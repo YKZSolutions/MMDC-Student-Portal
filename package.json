@@ -1,0 +1,24 @@
+{
+  "name": "capstone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend\" \"pnpm backend\"",
+    "dev:local": "concurrently -k -n SUPABASE,FRONTEND,BACKEND -c yellow,cyan,magenta \"pnpm supabase\" \"pnpm frontend:local\" \"pnpm backend:local\"",
+    "frontend": "cross-env SUPABASE_ENV=cloud pnpm --filter frontend dev",
+    "frontend:local": "cross-env SUPABASE_ENV=local pnpm --filter frontend dev",
+    "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
+    "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
+    "supabase": "pnpx --filter supabase supabase:start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "cross-env": "^10.0.0"
+  }
+}
