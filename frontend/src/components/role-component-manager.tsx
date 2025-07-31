@@ -1,6 +1,7 @@
+import type { Role } from '@/integrations/api/client'
 import type { ReactNode } from 'react'
 
-type DefaultRoles = 'student' | 'mentor' | 'admin'
+type DefaultRoles = Role
 
 type RoleRender = {
   [key in DefaultRoles]?: ReactNode

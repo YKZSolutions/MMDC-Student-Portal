@@ -10,7 +10,8 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
-    "check": "prettier --write . && eslint --fix"
+    "check": "prettier --write . && eslint --fix",
+    "openapi-ts": "openapi-ts"
   },
   "dependencies": {
     "@mantine/core": "^8.2.1",

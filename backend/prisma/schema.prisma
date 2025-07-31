@@ -4,19 +4,111 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-  provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_CLOUD_URL")
   directUrl = env("DIRECT_CLOUD_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+// generator nestjsDto {
+//   provider = "prisma-nestjs-swagger-generator"
+//   modelType = "class"
+//   nestjsSwagger = "true"
+//   omitRelations = "true"
+//   output   = "../src/generated/interfaces.ts"  // optional, defaults to ./generated
+// }
+
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "../src/generated/nestjs-dto"
+  classValidation                 = "true"
+  prettier                        = "true"
+  wrapRelationsAsType             = "true"
+  // outputToNestJsResourceStructure = "false"
+  // flatResourceStructure           = "false"
+  // exportRelationModifierClasses   = "true"
+  // reExport                        = "false"
+  // generateFileTypes               = "all"
+  // createDtoPrefix                 = "Create"
+  // updateDtoPrefix                 = "Update"
+  // dtoSuffix                       = "Dto"
+  // entityPrefix                    = ""
+  // entitySuffix                    = ""
+  // fileNamingStyle                 = "camel"
+  // noDependencies                  = "false"
+  // outputType                      = "class"
+  // definiteAssignmentAssertion     = "false"
+  // requiredResponseApiProperty     = "true"
+  // wrapRelationsAsType             = "false"
+  // showDefaultValues               = "false"
+}
+
+enum Role {
+  student
+  mentor
+  admin
+}
+
 model User {
   id String @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  userAccount UserAccount?
+  /// @DtoApiHidden
+  userDetails UserDetails?
+
+  firstName String
+  middleName String?
+  lastName String
+  role Role
+
+  /// @DtoReadOnly
   createdAt DateTime @default(now())
-  email String @unique
+  /// @DtoCreateHidden
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+}
+
+model UserAccount {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  /// @DtoRelationRequired
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoApiHidden
+  user User @relation(fields: [userId], references: [id])
+
+  authUid String
+  /// @IsEmail
+  email String?
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoCreateHidden
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model UserDetails {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  /// @DtoRelationRequired
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoApiHidden
+  user User @relation(fields: [userId], references: [id])
+
+  dob DateTime?
+  gender String?
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoCreateHidden
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
 }

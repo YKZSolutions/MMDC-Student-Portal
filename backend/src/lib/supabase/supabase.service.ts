@@ -21,7 +21,15 @@ export class SupabaseService {
     this.supabase = createClient(url, serviceRoleKey);
   }
 
-  getClient() {
+  get client() {
     return this.supabase;
+  }
+
+  get auth() {
+    return this.supabase.auth;
+  }
+
+  get storage(): SupabaseClient['storage'] {
+    return this.supabase.storage;
   }
 }

@@ -9,8 +9,10 @@
     "dev:local": "concurrently -k -n SUPABASE,FRONTEND,BACKEND -c yellow,cyan,magenta \"pnpm supabase\" \"pnpm frontend:local\" \"pnpm backend:local\"",
     "frontend": "cross-env SUPABASE_ENV=cloud pnpm --filter frontend dev",
     "frontend:local": "cross-env SUPABASE_ENV=local pnpm --filter frontend dev",
+    "frontend:api": "pnpm --filter frontend openapi-ts",
     "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
     "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
+    "backend:api": "concurrently -k -s first -n backend,fetch \"pnpm backend\" \"wait-on http://localhost:3001/api/json && pnpm --filter scripts fetch-spec\"",
     "supabase": "pnpx --filter supabase supabase:start"
   },
   "keywords": [],
@@ -19,6 +21,7 @@
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "concurrently": "^9.2.0",
-    "cross-env": "^10.0.0"
+    "cross-env": "^10.0.0",
+    "wait-on": "^8.0.4"
   }
 }

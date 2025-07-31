@@ -4,6 +4,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import TanStackQueryLayout from '@/integrations/tanstack-query/layout.tsx'
 
 import type { QueryClient } from '@tanstack/react-query'
+import { client } from '@/integrations/api/client/client.gen'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -17,4 +18,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       <TanStackQueryLayout />
     </>
   ),
+  beforeLoad: () => {
+    client.setConfig({
+      baseUrl: 'http://localhost:3001',
+    })
+  },
 })
