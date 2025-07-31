@@ -1,0 +1,17 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "fetch-spec": "node fetch-api-spec.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3"
+  }
+}

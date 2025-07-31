@@ -1,0 +1,16 @@
+{
+  "name": "supabase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "supabase:start": "pnpx supabase start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "devDependencies": {
+    "supabase": "^2.33.7"
+  }
+}

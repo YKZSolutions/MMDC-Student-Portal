@@ -1,0 +1,7 @@
+packages:
+  - frontend
+  - backend
+  - scripts
+  - supabase
+onlyBuiltDependencies:
+  - supabase

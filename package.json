@@ -1,0 +1,27 @@
+{
+  "name": "capstone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend\" \"pnpm backend\"",
+    "dev:local": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend:local\" \"pnpm backend:local\"",
+    "frontend": "cross-env SUPABASE_ENV=cloud pnpm --filter frontend dev",
+    "frontend:local": "cross-env SUPABASE_ENV=local pnpm --filter frontend dev",
+    "frontend:api": "pnpm --filter frontend openapi-ts",
+    "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
+    "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
+    "backend:prisma-gen": "pnpm --filter backend prisma-gen",
+    "backend:api": "concurrently -k -s first -n backend,fetch \"pnpm backend\" \"wait-on http://localhost:3001/api/json && pnpm --filter scripts fetch-spec\"",
+    "supabase": "pnpm --filter supabase supabase:start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "cross-env": "^10.0.0",
+    "wait-on": "^8.0.4"
+  }
+}
