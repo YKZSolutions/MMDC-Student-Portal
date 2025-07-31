@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "supabase:start": "pnpx supabase start"
   },
   "keywords": [],
@@ -12,6 +11,6 @@
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
-    "supabase": "^2.33.3"
+    "supabase": "^2.33.7"
   }
 }

@@ -4,16 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend\" \"pnpm backend\"",
-    "dev:local": "concurrently -k -n SUPABASE,FRONTEND,BACKEND -c yellow,cyan,magenta \"pnpm supabase\" \"pnpm frontend:local\" \"pnpm backend:local\"",
+    "dev:local": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend:local\" \"pnpm backend:local\"",
     "frontend": "cross-env SUPABASE_ENV=cloud pnpm --filter frontend dev",
     "frontend:local": "cross-env SUPABASE_ENV=local pnpm --filter frontend dev",
     "frontend:api": "pnpm --filter frontend openapi-ts",
     "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
     "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
+    "backend:prisma-gen": "pnpm --filter backend prisma-gen",
     "backend:api": "concurrently -k -s first -n backend,fetch \"pnpm backend\" \"wait-on http://localhost:3001/api/json && pnpm --filter scripts fetch-spec\"",
-    "supabase": "pnpx --filter supabase supabase:start"
+    "supabase": "pnpm --filter supabase supabase:start"
   },
   "keywords": [],
   "author": "",
