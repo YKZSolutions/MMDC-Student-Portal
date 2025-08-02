@@ -22,29 +22,14 @@ function Topbar() {
         <ActionIcon radius="xl" size="sm">
           <IconHomeFilled size={14} />
         </ActionIcon>
+
         {paths.map((link, idx) => {
           const isLast = idx === paths.length - 1
           const path = pathLinks[idx]
 
-          // Capitalize label
           const label = link.charAt(0).toUpperCase() + link.slice(1)
 
-          return isLast ? (
-            <Text key={path} size="sm" className="capitalize">
-              {label}
-            </Text>
-          ) : (
-            <Text
-              key={path}
-              size="sm"
-              component={Link}
-              to={path}
-              className="capitalize"
-              style={{ textDecoration: 'none' }}
-            >
-              {label}
-            </Text>
-          )
+          return <BreadcrumbItem isLast={isLast} path={path} label={label} />
         })}
       </Breadcrumbs>
 
@@ -57,6 +42,31 @@ function Topbar() {
         </ActionIcon>
       </Group>
     </Group>
+  )
+}
+
+interface BreadcrumbItemProps {
+  isLast: boolean
+  path: string
+  label: string
+}
+
+function BreadcrumbItem({ isLast, path, label }: BreadcrumbItemProps) {
+  return isLast ? (
+    <Text key={path} size="sm" className="capitalize">
+      {label}
+    </Text>
+  ) : (
+    <Text
+      key={path}
+      size="sm"
+      component={Link}
+      to={path}
+      className="capitalize"
+      style={{ textDecoration: 'none' }}
+    >
+      {label}
+    </Text>
   )
 }
 

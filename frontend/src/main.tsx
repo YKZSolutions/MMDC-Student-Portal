@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { colorsTuple, createTheme, MantineProvider } from '@mantine/core'
+import { MantineProvider } from '@mantine/core'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
@@ -11,6 +11,7 @@ import { routeTree } from './routeTree.gen'
 import './styles.css'
 import '@mantine/core/styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { theme } from './integrations/mantine/mantine-theme.ts'
 
 // Create a new router instance
 const router = createRouter({
@@ -30,14 +31,6 @@ declare module '@tanstack/react-router' {
     router: typeof router
   }
 }
-
-const theme = createTheme({
-  primaryColor: 'primary',
-  colors: {
-    primary: colorsTuple('#123373'),
-    secondary: colorsTuple('#F80507'),
-  },
-})
 
 // Render the app
 const rootElement = document.getElementById('app')

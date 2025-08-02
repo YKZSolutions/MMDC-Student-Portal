@@ -10,19 +10,13 @@ import { adminLinks, studentLinks } from '@/features/navigation/navLinks'
 function Sidebar() {
   const { authUser } = useAuth('protected')
 
-  // const logo =
-  //   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjhAGEboKYtmpm-_22nBVPqrIxmbiyRQNIgQ&s'
-
-  const logoLabel =
-    'https://media.licdn.com/dms/image/v2/C560BAQFfvE6ykJsacg/company-logo_200_200/company-logo_200_200/0/1637725925401/mapua_malayan_digital_college_of_the_philippines_logo?e=2147483647&v=beta&t=mkaMsKKKMxQKjYLppivAZhRx5M9QayYxfgQtfy2mx4Y'
-
   return (
     <Stack className="sticky top-0 left-0 w-52 h-screen">
       <Stack className="flex-1 p-4" gap={0} justify="space-between">
         <Stack gap={4}>
           {/* <Image src={logo} w={80} h={80} className="mb-4 contrast-[0.96]" /> */}
           <Image
-            src={logoLabel}
+            src="/mmdc-logo.jpg"
             w={120}
             h={120}
             className="mb-4 contrast-[0.96] mx-auto"

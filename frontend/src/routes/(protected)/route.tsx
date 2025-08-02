@@ -30,7 +30,7 @@ export const Route = createFileRoute('/(protected)')({
 
 function RouteComponent() {
   return (
-    <Group className="bg-[#FAFAFA]" gap={0} align="start">
+    <Group bg="background" gap={0} align="start">
       <Sidebar />
       <Stack className="flex-1 min-h-screen p-4 pl-0">
         <Stack
