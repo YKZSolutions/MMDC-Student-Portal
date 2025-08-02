@@ -53,7 +53,7 @@ interface BreadcrumbItemProps {
 
 function BreadcrumbItem({ isLast, path, label }: BreadcrumbItemProps) {
   return isLast ? (
-    <Text key={path} size="sm" className="capitalize">
+    <Text key={path} size="sm" c={'dark.5'} fw="bold" className="capitalize">
       {label}
     </Text>
   ) : (

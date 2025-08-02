@@ -34,7 +34,7 @@ function RouteComponent() {
       <Sidebar />
       <Stack className="flex-1 min-h-screen p-4 pl-0">
         <Stack
-          className="bg-white w-full flex-1 rounded-lg shadow"
+          className="bg-white w-full flex-1 rounded-lg shadow p-5"
           justify="start"
         >
           <Topbar />
