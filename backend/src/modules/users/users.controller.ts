@@ -1,27 +1,24 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  InternalServerErrorException,
-  BadRequestException,
-} from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-} from '@nestjs/swagger';
-import { User } from '@/generated/nestjs-dto/user.entity';
+import { Public } from '@/common/decorators/auth.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { AuthService } from '../auth/auth.service';
+import { User } from '@/generated/nestjs-dto/user.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Post,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
+import { AuthService } from '../auth/auth.service';
+import { CreateUserWithAccountDto } from './dto/create-user.dto';
+import { UsersService } from './users.service';
 
 /**
  *
@@ -67,10 +64,20 @@ export class UsersController {
     }
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
+  @Get()
+  // @Roles(Role.ADMIN)
+  @Public()
+  @ApiOkResponse({ type: [User] })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  findAll(): Promise<{ users: User[]; meta: any; }> {
+    try {
+      return this.usersService.findAll();
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new InternalServerErrorException('Failed to fetch users');
+    }
+  }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {

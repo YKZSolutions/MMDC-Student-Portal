@@ -1,22 +1,26 @@
+import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'nestjs-prisma';
 import { User } from '@supabase/supabase-js';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateUserWithAccountDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject('PrismaService')
+    private prisma: CustomPrismaService<ExtendedPrismaClient>,
+  ) {}
 
-  create(createUserDto: CreateUserWithAccountDto, account: User) {
+  async create(createUserDto: CreateUserWithAccountDto, account: User) {
     try {
-      return this.prisma.$transaction(async (tx) => {
+      return await this.prisma.client.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
             firstName: createUserDto.firstName,
@@ -42,9 +46,20 @@ export class UsersService {
     }
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
+  async findAll() {
+    try {
+      const [users, meta] = await this.prisma.client.user.paginate().withPages({
+        limit: 10,
+        page: 1,
+        includePageCount: true,
+      });
+
+      return { users, meta };
+    } catch (error) {
+      this.logger.error(`Failed to fetch all users: ${error}`);
+      throw new InternalServerErrorException('Failed to fetch all users');
+    }
+  }
 
   // findOne(id: number) {
   //   return `This action returns a #${id} user`;
