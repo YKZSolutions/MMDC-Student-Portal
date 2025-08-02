@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as protectedRouteRouteImport } from './routes/(protected)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
+import { Route as protectedUsersRouteImport } from './routes/(protected)/users'
 import { Route as protectedDashboardRouteImport } from './routes/(protected)/dashboard'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 
@@ -29,6 +30,11 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
+const protectedUsersRoute = protectedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
 const protectedDashboardRoute = protectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -44,12 +50,14 @@ export interface FileRoutesByFullPath {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/dashboard': typeof protectedDashboardRoute
+  '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/dashboard': typeof protectedDashboardRoute
+  '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/(protected)': typeof protectedRouteRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
   '/(protected)/dashboard': typeof protectedDashboardRoute
+  '/(protected)/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard' | '/demo/tanstack-query'
+  fullPaths: '/' | '/login' | '/dashboard' | '/users' | '/demo/tanstack-query'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/demo/tanstack-query'
+  to: '/' | '/login' | '/dashboard' | '/users' | '/demo/tanstack-query'
   id:
     | '__root__'
     | '/'
     | '/(protected)'
     | '/(auth)/login'
     | '/(protected)/dashboard'
+    | '/(protected)/users'
     | '/demo/tanstack-query'
   fileRoutesById: FileRoutesById
 }
@@ -104,6 +114,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(protected)/users': {
+      id: '/(protected)/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof protectedUsersRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/dashboard': {
       id: '/(protected)/dashboard'
       path: '/dashboard'
@@ -123,10 +140,12 @@ declare module '@tanstack/react-router' {
 
 interface protectedRouteRouteChildren {
   protectedDashboardRoute: typeof protectedDashboardRoute
+  protectedUsersRoute: typeof protectedUsersRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedDashboardRoute: protectedDashboardRoute,
+  protectedUsersRoute: protectedUsersRoute,
 }
 
 const protectedRouteRouteWithChildren = protectedRouteRoute._addFileChildren(
