@@ -33,25 +33,25 @@ function UsersPage() {
   const totalPages = Math.ceil(total / limit)
 
   const [page, setPage] = useState(1)
-  const message = `Showing ${limit * (page - 1) + 1} – ${Math.min(total, limit * page)} of ${total}`
+  const message = `Showing ${limit * (page - 1) + 1} - ${Math.min(total, limit * page)} of ${total}`
 
   return (
-    <Container size={'xl'} my={'md'}>
+    <Container fluid m={0}>
       <Box pb={'xl'}>
-        <Title opacity={'80%'} order={2} fw={700}>
+        <Title c={'dark.7'} variant="hero" order={2} fw={700}>
           User management
         </Title>
-        <Text opacity={'60%'} fw={500}>
+        <Text c={'dark.3'} fw={500}>
           Manage your team members and their account permissions here.
         </Text>
       </Box>
 
-      <Flex gap={'sm'} direction={'column'}>
+      <Flex gap={'md'} direction={'column'}>
         <Flex justify={'space-between'}>
           <Flex align={'center'} gap={'xs'}>
             <Title
               display={'flex'}
-              opacity={'80%'}
+              c={'dark.7'}
               order={3}
               fw={700}
               lts={rem(0.4)}
@@ -61,7 +61,7 @@ function UsersPage() {
             <Title
               display={'flex'}
               order={3}
-              opacity={'50%'}
+              c={'dark.3'}
               fw={700}
               lts={rem(0.4)}
             >
@@ -198,7 +198,7 @@ function UsersTable() {
   return (
     <Table
       highlightOnHover
-      highlightOnHoverColor="var(--mantine-color-gray-0)"
+      highlightOnHoverColor="gray.0"
       style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
       styles={{
         th: {
@@ -209,9 +209,10 @@ function UsersTable() {
       <Table.Thead>
         <Table.Tr
           style={{
-            background: 'var(--mantine-color-gray-1)',
             border: '0px',
           }}
+          bg={'gray.1'}
+          c={'dark.5'}
         >
           <Table.Th w={0}>
             <Checkbox py={rem(5)} />
@@ -233,7 +234,7 @@ function UsersTable() {
                 <Avatar name={data.name} src={data.avatar} />
                 <Flex direction={'column'}>
                   <Text fw={600}>{data.name}</Text>
-                  <Text fz={'sm'} fw={500} opacity={'50%'}>
+                  <Text fz={'sm'} fw={500} c={'dark.2'}>
                     {data.email}
                   </Text>
                 </Flex>
@@ -250,7 +251,7 @@ function UsersTable() {
                       },
                     }}
                   >
-                    <Text size="xs" c={'var(--mantine-color-blue-9)'} fw={500}>
+                    <Text size="xs" c={'primary'} fw={500}>
                       {access}
                     </Text>
                   </Pill>
@@ -258,7 +259,7 @@ function UsersTable() {
               </Flex>
             </Table.Td>
             <Table.Td>
-              <Text size="sm" c={'var(--mantine-color-gray-8)'}>
+              <Text size="sm" c={'dark.6'}>
                 {data.dateAdded}
               </Text>
             </Table.Td>
