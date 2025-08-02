@@ -1,36 +1,62 @@
 import { useAuth } from '@/features/auth/auth.hook'
-import { testControllerTestStudentOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { supabase } from '@/integrations/supabase/supabase-client'
-import { Button, Card, Container, TextInput } from '@mantine/core'
-import { useQuery } from '@tanstack/react-query'
+import { zUserCredentialsDto } from '@/integrations/api/client/zod.gen'
+import { Button, Card, Container, Stack, TextInput, Title } from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { getRouteApi } from '@tanstack/react-router'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
+
+const route = getRouteApi('/(auth)/login')
 
 function LoginPage() {
   const { login } = useAuth()
+  const navigate = route.useNavigate()
 
-  const onLoginClick = async () => {
-    const user = login('test@email.com', '1234')
-    console.log(user)
+  const form = useForm({
+    mode: 'uncontrolled',
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validate: zod4Resolver(zUserCredentialsDto),
+  })
+
+  const handleSubmit = async (values: typeof form.values) => {
+    const response = await login(values.email, values.password)
+
+    if (response.error) {
+      form.setErrors({
+        email: 'Invalid Email',
+        password: 'Invalid Password',
+      })
+      return
+    }
+
+    navigate({
+      to: '/dashboard',
+    })
   }
-
-  const onJWTClick = async () => {
-    const user = await supabase.auth.getClaims()
-    const session = await supabase.auth.getSession()
-
-    console.log(user, session)
-  }
-
-  const { data, error } = useQuery(testControllerTestStudentOptions())
-
-  console.log(data, error?.message)
 
   return (
-    <Container>
-      <Card>
-        <form>
-          <TextInput />
-          <TextInput />
-          <Button onClick={onLoginClick}>Login</Button>
-          <Button onClick={onJWTClick}>JWT</Button>
+    <Container className="h-screen grid place-content-center">
+      <Card withBorder className="w-screen max-w-sm">
+        <Title order={2} className="text-center pb-5">
+          Login
+        </Title>
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack gap="md">
+            <TextInput
+              label="Email"
+              placeholder="john@email.com"
+              {...form.getInputProps('email')}
+            />
+            <TextInput
+              label="Password"
+              placeholder="Type your password here..."
+              type="password"
+              {...form.getInputProps('password')}
+            />
+            <Button type="submit">Login</Button>
+          </Stack>
         </form>
       </Card>
     </Container>

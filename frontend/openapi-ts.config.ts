@@ -7,5 +7,6 @@ export default defineConfig({
     '@hey-api/typescript',
     '@hey-api/client-fetch',
     '@tanstack/react-query',
+    'zod',
   ],
 })

@@ -26,10 +26,6 @@ export type User = {
     deletedAt: string | null;
 };
 
-export type UpdateUserDto = {
-    [key: string]: unknown;
-};
-
 export type CreateCourseDto = {
     [key: string]: unknown;
 };
@@ -37,19 +33,6 @@ export type CreateCourseDto = {
 export type UpdateCourseDto = {
     [key: string]: unknown;
 };
-
-export type UsersControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/users';
-};
-
-export type UsersControllerFindAllResponses = {
-    200: string;
-};
-
-export type UsersControllerFindAllResponse = UsersControllerFindAllResponses[keyof UsersControllerFindAllResponses];
 
 export type UsersControllerCreateData = {
     body: CreateUserWithAccountDto;
@@ -59,62 +42,25 @@ export type UsersControllerCreateData = {
 };
 
 export type UsersControllerCreateErrors = {
-    /**
-     * Failed to create user
-     */
-    500: unknown;
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
 };
+
+export type UsersControllerCreateError = UsersControllerCreateErrors[keyof UsersControllerCreateErrors];
 
 export type UsersControllerCreateResponses = {
     201: User;
 };
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
-
-export type UsersControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/users/{id}';
-};
-
-export type UsersControllerRemoveResponses = {
-    200: string;
-};
-
-export type UsersControllerRemoveResponse = UsersControllerRemoveResponses[keyof UsersControllerRemoveResponses];
-
-export type UsersControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/users/{id}';
-};
-
-export type UsersControllerFindOneResponses = {
-    200: string;
-};
-
-export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
-
-export type UsersControllerUpdateData = {
-    body: UpdateUserDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/users/{id}';
-};
-
-export type UsersControllerUpdateResponses = {
-    200: string;
-};
-
-export type UsersControllerUpdateResponse = UsersControllerUpdateResponses[keyof UsersControllerUpdateResponses];
 
 export type CoursesControllerFindAllData = {
     body?: never;
