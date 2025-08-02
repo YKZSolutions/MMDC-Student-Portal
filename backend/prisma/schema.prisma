@@ -63,6 +63,8 @@ model User {
   studentDetails StudentDetails?
   /// @DtoApiHidden
   staffDetails StaffDetails?
+  /// @DtoApiHidden
+  notifications Notification[]
 
   firstName String
   middleName String?
@@ -166,6 +168,25 @@ model StaffDetails {
   createdAt DateTime @default(now())
   /// @DtoCreateHidden
   updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  /// @DtoRelationRequired
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoApiHidden
+  user User @relation(fields: [userId], references: [id])
+
+  title String
+  content String
+  isRead String
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
   /// @DtoReadOnly
   deletedAt DateTime?
 }
