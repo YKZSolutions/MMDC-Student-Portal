@@ -47,15 +47,19 @@ function LoginPage() {
             <TextInput
               label="Email"
               placeholder="john@email.com"
+              disabled={form.submitting}
               {...form.getInputProps('email')}
             />
             <TextInput
               label="Password"
               placeholder="Type your password here..."
               type="password"
+              disabled={form.submitting}
               {...form.getInputProps('password')}
             />
-            <Button type="submit">Login</Button>
+            <Button type="submit" loading={form.submitting}>
+              Login
+            </Button>
           </Stack>
         </form>
       </Card>
