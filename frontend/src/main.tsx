@@ -11,6 +11,7 @@ import { routeTree } from './routeTree.gen'
 import './styles.css'
 import '@mantine/core/styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { theme } from './integrations/mantine/mantine-theme.ts'
 
 // Create a new router instance
 const router = createRouter({
@@ -38,7 +39,7 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TanStackQueryProvider.Provider>
-        <MantineProvider>
+        <MantineProvider theme={theme}>
           <RouterProvider router={router} />
         </MantineProvider>
       </TanStackQueryProvider.Provider>
