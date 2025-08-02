@@ -1,0 +1,3 @@
+backend/src/generated/** linguist-generated
+frontend/src/generated/** longuist-generated
+frontend/src/routeTree.gen.ts longuist-generated
