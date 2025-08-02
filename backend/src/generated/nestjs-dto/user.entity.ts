@@ -16,10 +16,6 @@ import {
   StaffDetails,
   type StaffDetails as StaffDetailsAsType,
 } from './staffDetails.entity';
-import {
-  Notification,
-  type Notification as NotificationAsType,
-} from './notification.entity';
 
 export class User {
   @ApiProperty({
@@ -34,8 +30,6 @@ export class User {
   studentDetails?: StudentDetailsAsType | null;
   @ApiHideProperty()
   staffDetails?: StaffDetailsAsType | null;
-  @ApiHideProperty()
-  notifications?: NotificationAsType[];
   @ApiProperty({
     type: 'string',
   })
