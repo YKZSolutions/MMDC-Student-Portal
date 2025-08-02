@@ -8,6 +8,14 @@ import {
   UserDetails,
   type UserDetails as UserDetailsAsType,
 } from './userDetails.entity';
+import {
+  StudentDetails,
+  type StudentDetails as StudentDetailsAsType,
+} from './studentDetails.entity';
+import {
+  StaffDetails,
+  type StaffDetails as StaffDetailsAsType,
+} from './staffDetails.entity';
 
 export class User {
   @ApiProperty({
@@ -18,6 +26,10 @@ export class User {
   userAccount?: UserAccountAsType | null;
   @ApiHideProperty()
   userDetails?: UserDetailsAsType | null;
+  @ApiHideProperty()
+  studentDetails?: StudentDetailsAsType | null;
+  @ApiHideProperty()
+  staffDetails?: StaffDetailsAsType | null;
   @ApiProperty({
     type: 'string',
   })

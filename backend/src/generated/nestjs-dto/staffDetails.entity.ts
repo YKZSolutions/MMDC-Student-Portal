@@ -1,7 +1,8 @@
+import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { User, type User as UserAsType } from './user.entity';
 
-export class UserDetails {
+export class StaffDetails {
   @ApiProperty({
     type: 'string',
   })
@@ -13,21 +14,22 @@ export class UserDetails {
   @ApiHideProperty()
   user: UserAsType;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: 'integer',
+    format: 'int32',
   })
-  dateJoined: Date;
+  employee_number: number;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
-    nullable: true,
   })
-  dob: Date | null;
+  department: string;
   @ApiProperty({
     type: 'string',
-    nullable: true,
   })
-  gender: string | null;
+  position: string;
+  @ApiProperty({
+    type: () => Object,
+  })
+  other_details: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

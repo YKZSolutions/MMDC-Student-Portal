@@ -1,33 +1,30 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
+import { Prisma, StudentType } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class UserDetails {
+export class StudentDetailsDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'string',
+    type: 'integer',
+    format: 'int32',
   })
-  userId: string;
-  @ApiHideProperty()
-  user: UserAsType;
+  student_number: number;
+  @ApiProperty({
+    enum: StudentType,
+    enumName: 'StudentType',
+  })
+  student_type: StudentType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  dateJoined: Date;
+  admission_date: Date;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
+    type: () => Object,
   })
-  dob: Date | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  gender: string | null;
+  other_details: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

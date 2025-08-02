@@ -59,6 +59,10 @@ model User {
   userAccount UserAccount?
   /// @DtoApiHidden
   userDetails UserDetails?
+  /// @DtoApiHidden
+  studentDetails StudentDetails?
+  /// @DtoApiHidden
+  staffDetails StaffDetails?
 
   firstName String
   middleName String?
@@ -102,8 +106,61 @@ model UserDetails {
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id])
 
+  dateJoined DateTime
   dob DateTime?
   gender String?
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoCreateHidden
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum StudentType {
+  new
+  regular
+  irregular
+  transfer
+  returnee
+  graduate
+  special
+}
+
+model StudentDetails {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  /// @DtoRelationRequired
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoApiHidden
+  user User @relation(fields: [userId], references: [id])
+
+  student_number Int
+  student_type StudentType
+  admission_date DateTime
+  other_details Json
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoCreateHidden
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model StaffDetails {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  /// @DtoRelationRequired
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoApiHidden
+  user User @relation(fields: [userId], references: [id])
+
+  employee_number Int
+  department String
+  position String
+  other_details Json
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())

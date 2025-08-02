@@ -32,6 +32,13 @@ export class CreateUserDetailsDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  dateJoined: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
     required: false,
     nullable: true,
   })
