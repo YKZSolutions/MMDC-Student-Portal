@@ -8,6 +8,11 @@ export class UserDetailsDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',
+  })
+  dateJoined: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
     nullable: true,
   })
   dob: Date | null;

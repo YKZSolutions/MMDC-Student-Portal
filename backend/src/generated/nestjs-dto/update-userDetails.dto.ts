@@ -6,6 +6,14 @@ export class UpdateUserDetailsDto {
     type: 'string',
     format: 'date-time',
     required: false,
+  })
+  @IsOptional()
+  @IsDateString()
+  dateJoined?: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
     nullable: true,
   })
   @IsOptional()
