@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { MantineProvider } from '@mantine/core'
+import { colorsTuple, createTheme, MantineProvider } from '@mantine/core'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
@@ -31,6 +31,14 @@ declare module '@tanstack/react-router' {
   }
 }
 
+const theme = createTheme({
+  primaryColor: 'primary',
+  colors: {
+    primary: colorsTuple('#123373'),
+    secondary: colorsTuple('#F80507'),
+  },
+})
+
 // Render the app
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
@@ -38,7 +46,7 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TanStackQueryProvider.Provider>
-        <MantineProvider>
+        <MantineProvider theme={theme}>
           <RouterProvider router={router} />
         </MantineProvider>
       </TanStackQueryProvider.Provider>
