@@ -9,8 +9,7 @@ interface AuthUser {
 }
 
 const login = async (email: string, password: string) => {
-  const user = await supabase.auth.signInWithPassword({ email, password })
-  return user
+  return await supabase.auth.signInWithPassword({ email, password })
 }
 
 const logout = async () => {

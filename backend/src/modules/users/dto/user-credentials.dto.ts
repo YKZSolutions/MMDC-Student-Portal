@@ -1,9 +1,9 @@
 import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class UserCredentialsDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Email is not valid' })
   email: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Password is not valid' })
   password: string;
 }
