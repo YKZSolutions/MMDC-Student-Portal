@@ -14,6 +14,8 @@ import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
+import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UserWithRelations } from './dto/user-with-relations.dto';
 
 @Injectable()
 export class UsersService {
@@ -52,7 +54,7 @@ export class UsersService {
     }
   }
 
-  async findAll(filters: FilterUserDto) {
+  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
       const where = {
         ...(filters.role && { role: filters.role }),
@@ -109,7 +111,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<UserWithRelations> {
     try {
       if (!isUUID(id)) {
         throw new BadRequestException(`Invalid user ID format: ${id}`);

@@ -23,6 +23,7 @@ import { AuthService } from '../auth/auth.service';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
 
 /**
@@ -119,9 +120,11 @@ export class UsersController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  async findOne(@Param('id') id: User['id']): Promise<User> {
+  async findOne(
+    @Param('id') id: UserWithRelations['id'],
+  ): Promise<UserWithRelations> {
     try {
-      return (await this.usersService.findOne(id)) as User;
+      return await this.usersService.findOne(id);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
