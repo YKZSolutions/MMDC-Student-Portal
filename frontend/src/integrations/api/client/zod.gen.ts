@@ -41,9 +41,48 @@ export const zUser = z.object({
     ])
 });
 
+export const zPaginationMetaDto = z.object({
+    isFirstPage: z.boolean(),
+    isLastPage: z.boolean(),
+    currentPage: z.number(),
+    previousPage: z.union([
+        z.number(),
+        z.null()
+    ]),
+    nextPage: z.union([
+        z.number(),
+        z.null()
+    ]),
+    pageCount: z.number(),
+    totalCount: z.number()
+});
+
+export const zPaginatedUsersDto = z.object({
+    users: z.array(zUser),
+    meta: zPaginationMetaDto
+});
+
 export const zCreateCourseDto = z.object({});
 
 export const zUpdateCourseDto = z.object({});
+
+export const zUsersControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        search: z.string(),
+        role: z.enum([
+            'student',
+            'mentor',
+            'admin'
+        ])
+    })
+});
+
+/**
+ * List of users retrieved successfully
+ */
+export const zUsersControllerFindAllResponse = zPaginatedUsersDto;
 
 export const zUsersControllerCreateData = z.object({
     body: zCreateUserWithAccountDto,
@@ -52,6 +91,17 @@ export const zUsersControllerCreateData = z.object({
 });
 
 export const zUsersControllerCreateResponse = zUser;
+
+export const zUsersControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * User found successfully
+ */
+export const zUsersControllerFindOneResponse = zUser;
 
 export const zCoursesControllerFindAllData = z.object({
     body: z.optional(z.never()),
