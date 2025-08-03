@@ -26,13 +26,8 @@ export class UsersService {
           createUserDto.role,
         );
 
-        const user = await tx.user.create({
-          data: {
-            firstName: createUserDto.firstName,
-            middleName: createUserDto.middleName,
-            lastName: createUserDto.lastName,
-            role: createUserDto.role,
-          },
+        const user = await this.prisma.user.create({
+          data: { ...createUserDto },
         });
 
         const userAccount = await tx.userAccount.create({
@@ -57,6 +52,7 @@ export class UsersService {
 
   updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
     //TODO: Include other fields later on if there are updates in the schema
+    //TODO: Other user details are not included, would be updated if implemented in the create method
     try {
       return this.prisma.user.update({
         where: { id: userId },
