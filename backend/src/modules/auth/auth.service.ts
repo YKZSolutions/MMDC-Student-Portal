@@ -48,18 +48,9 @@ export class AuthService {
   /*TODO: possibly separate the email and password updates
      with validations and confirmation for security
    */
-  async updateAccountCredentials(
-    userId: string,
-    email?: string,
-    password?: string,
-  ) {
-    if (!email && !password) {
-      throw new BadRequestException('Nothing to update');
-    }
-
+  async resetPassword(userId: string, password: string) {
     try {
       return this.supabase.auth.admin.updateUserById(userId, {
-        email: email,
         password: password,
       });
     } catch (err) {
