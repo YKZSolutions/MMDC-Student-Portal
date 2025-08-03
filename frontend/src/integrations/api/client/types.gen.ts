@@ -26,6 +26,54 @@ export type User = {
     deletedAt: string | null;
 };
 
+export type UserAccount = {
+    id: string;
+    userId: string;
+    authUid: string;
+    email?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type UserDetails = {
+    id: string;
+    userId: string;
+    dob?: string;
+    gender?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type UserWithRelations = {
+    id: string;
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+    userAccount: UserAccount | null;
+    userDetails: UserDetails | null;
+};
+
+export type PaginationMetaDto = {
+    isFirstPage: boolean;
+    isLastPage: boolean;
+    currentPage: number;
+    previousPage: number | null;
+    nextPage: number | null;
+    pageCount: number;
+    totalCount: number;
+};
+
+export type PaginatedUsersDto = {
+    users: Array<UserWithRelations>;
+    meta: PaginationMetaDto;
+};
+
 export type CreateCourseDto = {
     [key: string]: unknown;
 };
@@ -33,6 +81,40 @@ export type CreateCourseDto = {
 export type UpdateCourseDto = {
     [key: string]: unknown;
 };
+
+export type UsersControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        role?: 'student' | 'mentor' | 'admin';
+    };
+    url: '/users';
+};
+
+export type UsersControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerFindAllError = UsersControllerFindAllErrors[keyof UsersControllerFindAllErrors];
+
+export type UsersControllerFindAllResponses = {
+    /**
+     * List of users retrieved successfully
+     */
+    200: PaginatedUsersDto;
+};
+
+export type UsersControllerFindAllResponse = UsersControllerFindAllResponses[keyof UsersControllerFindAllResponses];
 
 export type UsersControllerCreateData = {
     body: CreateUserWithAccountDto;
@@ -61,6 +143,42 @@ export type UsersControllerCreateResponses = {
 };
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
+
+export type UsersControllerFindOneData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/{id}';
+};
+
+export type UsersControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerFindOneError = UsersControllerFindOneErrors[keyof UsersControllerFindOneErrors];
+
+export type UsersControllerFindOneResponses = {
+    /**
+     * User found successfully
+     */
+    200: User;
+};
+
+export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
 
 export type CoursesControllerFindAllData = {
     body?: never;
