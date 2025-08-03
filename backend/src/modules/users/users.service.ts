@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -50,11 +51,21 @@ export class UsersService {
     }
   }
 
-  updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
+  async updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
     //TODO: Include other fields later on if there are updates in the schema
     //TODO: Other user details are not included, would be updated if implemented in the create method
     try {
-      return this.prisma.user.update({
+      // Check if user exists first
+      const userExists = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+
+      if (!userExists) {
+        throw new BadRequestException(`User with ID ${userId} not found`);
+      }
+
+      return await this.prisma.user.update({
         where: { id: userId },
         data: {
           firstName: updateUserDto.firstName,
