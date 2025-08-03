@@ -6,17 +6,16 @@ import {
   Param,
   Post,
   Put,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { ApiBearerAuth, ApiCreatedResponse } from '@nestjs/swagger';
 import { User } from '@/generated/nestjs-dto/user.entity';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { AuthService } from '../auth/auth.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { GetUser } from '@/common/decorators/get-user.decorator';
+import { Public } from '@/common/decorators/auth.decorator';
+import { Request } from 'express';
 
 /**
  *
@@ -26,10 +25,7 @@ import { GetUser } from '@/common/decorators/get-user.decorator';
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   /**
    * Create a new user
@@ -38,7 +34,8 @@ export class UsersController {
    *
    */
   @Post()
-  @Roles(Role.ADMIN)
+  // @Roles(Role.ADMIN)
+  @Public()
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
@@ -61,7 +58,8 @@ export class UsersController {
    *
    */
   @Put(':id')
-  @Roles(Role.ADMIN)
+  // @Roles(Role.ADMIN)
+  @Public()
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
@@ -84,15 +82,19 @@ export class UsersController {
    *
    */
   @Put('/me')
-  @Roles(Role.STUDENT, Role.MENTOR, Role.ADMIN)
+  // @Roles(Role.STUDENT, Role.MENTOR, Role.ADMIN)
+  @Public()
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async updateOwnUserDetails(
-    @GetUser() user: User,
+    @Req() request: Request,
     @Body() updateUserDto: UpdateUserDetailsDto,
   ): Promise<User> {
-    const id = user.id;
+    if (!request.user) throw new BadRequestException('User not found');
+
+    const id = request.user.id;
+
     try {
       return await this.usersService.updateUserDetails(id, updateUserDto);
     } catch (err) {
