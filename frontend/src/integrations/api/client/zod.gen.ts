@@ -41,6 +41,45 @@ export const zUser = z.object({
     ])
 });
 
+export const zUserAccount = z.object({
+    id: z.string(),
+    userId: z.string(),
+    authUid: z.string(),
+    email: z.optional(z.string()),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.optional(z.iso.datetime())
+});
+
+export const zUserDetails = z.object({
+    id: z.string(),
+    userId: z.string(),
+    dob: z.optional(z.iso.datetime()),
+    gender: z.optional(z.string()),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.optional(z.iso.datetime())
+});
+
+export const zUserWithRelations = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.optional(z.string()),
+    lastName: z.string(),
+    role: zRole,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.optional(z.iso.datetime()),
+    userAccount: z.union([
+        zUserAccount,
+        z.null()
+    ]),
+    userDetails: z.union([
+        zUserDetails,
+        z.null()
+    ])
+});
+
 export const zPaginationMetaDto = z.object({
     isFirstPage: z.boolean(),
     isLastPage: z.boolean(),
@@ -58,7 +97,7 @@ export const zPaginationMetaDto = z.object({
 });
 
 export const zPaginatedUsersDto = z.object({
-    users: z.array(zUser),
+    users: z.array(zUserWithRelations),
     meta: zPaginationMetaDto
 });
 
@@ -69,14 +108,14 @@ export const zUpdateCourseDto = z.object({});
 export const zUsersControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.object({
-        search: z.string(),
-        role: z.enum([
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        role: z.optional(z.enum([
             'student',
             'mentor',
             'admin'
-        ])
-    })
+        ]))
+    }))
 });
 
 /**

@@ -36,7 +36,7 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     ];
 };
 
-export const usersControllerFindAllQueryKey = (options: Options<UsersControllerFindAllData>) => createQueryKey('usersControllerFindAll', options);
+export const usersControllerFindAllQueryKey = (options?: Options<UsersControllerFindAllData>) => createQueryKey('usersControllerFindAll', options);
 
 /**
  * Retrieves a paginated list of users based on the provided filter parameters.
@@ -44,7 +44,7 @@ export const usersControllerFindAllQueryKey = (options: Options<UsersControllerF
  * - **Access:** Requires `ADMIN` role.
  * - **Filtering & Pagination:** Uses the `FilterUserDto` to define query parameters such as search terms, sorting, and page size.
  */
-export const usersControllerFindAllOptions = (options: Options<UsersControllerFindAllData>) => {
+export const usersControllerFindAllOptions = (options?: Options<UsersControllerFindAllData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
             const { data } = await usersControllerFindAll({

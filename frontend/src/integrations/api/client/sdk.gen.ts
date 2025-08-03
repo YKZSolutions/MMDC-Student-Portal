@@ -24,8 +24,8 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  * - **Access:** Requires `ADMIN` role.
  * - **Filtering & Pagination:** Uses the `FilterUserDto` to define query parameters such as search terms, sorting, and page size.
  */
-export const usersControllerFindAll = <ThrowOnError extends boolean = false>(options: Options<UsersControllerFindAllData, ThrowOnError>) => {
-    return (options.client ?? _heyApiClient).get<UsersControllerFindAllResponses, UsersControllerFindAllErrors, ThrowOnError>({
+export const usersControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerFindAllData, ThrowOnError>) => {
+    return (options?.client ?? _heyApiClient).get<UsersControllerFindAllResponses, UsersControllerFindAllErrors, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',

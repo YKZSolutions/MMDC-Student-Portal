@@ -26,6 +26,39 @@ export type User = {
     deletedAt: string | null;
 };
 
+export type UserAccount = {
+    id: string;
+    userId: string;
+    authUid: string;
+    email?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type UserDetails = {
+    id: string;
+    userId: string;
+    dob?: string;
+    gender?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type UserWithRelations = {
+    id: string;
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+    userAccount: UserAccount | null;
+    userDetails: UserDetails | null;
+};
+
 export type PaginationMetaDto = {
     isFirstPage: boolean;
     isLastPage: boolean;
@@ -37,7 +70,7 @@ export type PaginationMetaDto = {
 };
 
 export type PaginatedUsersDto = {
-    users: Array<User>;
+    users: Array<UserWithRelations>;
     meta: PaginationMetaDto;
 };
 
@@ -52,9 +85,9 @@ export type UpdateCourseDto = {
 export type UsersControllerFindAllData = {
     body?: never;
     path?: never;
-    query: {
-        search: string;
-        role: 'student' | 'mentor' | 'admin';
+    query?: {
+        search?: string;
+        role?: 'student' | 'mentor' | 'admin';
     };
     url: '/users';
 };
