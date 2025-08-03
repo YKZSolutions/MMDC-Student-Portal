@@ -21,13 +21,13 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { AuthService } from '../auth/auth.service';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
+import { Request } from 'express';
 
 /**
  *
