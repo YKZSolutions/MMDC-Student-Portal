@@ -1,27 +1,22 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  InternalServerErrorException,
   BadRequestException,
+  Body,
+  Controller,
+  InternalServerErrorException,
+  Param,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-} from '@nestjs/swagger';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
+import { ApiBearerAuth, ApiCreatedResponse } from '@nestjs/swagger';
 import { User } from '@/generated/nestjs-dto/user.entity';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { AuthService } from '../auth/auth.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import { GetUser } from '@/common/decorators/get-user.decorator';
 
 /**
  *
@@ -49,21 +44,60 @@ export class UsersController {
   @ApiException(() => InternalServerErrorException)
   async create(@Body() createUserDto: CreateUserWithAccountDto): Promise<User> {
     try {
-      const account = await this.authService.create(
-        createUserDto.credentials?.email || 'test@email',
-        createUserDto.credentials?.password || '1234',
-        createUserDto.role,
-      );
-      const user = await this.usersService.create(createUserDto, account);
-
-      await this.authService.updateMetadata(account.id, {
-        user_id: user.user.id,
-      });
+      const user = await this.usersService.create(createUserDto);
 
       return user.user;
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Update user details
+   * Admin only
+   *
+   * @remarks This operation updates the user details in the database
+   *
+   */
+  @Put(':id')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async updateUserDetails(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDetailsDto,
+  ): Promise<User> {
+    try {
+      return await this.usersService.updateUserDetails(id, updateUserDto);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to update user');
+    }
+  }
+
+  /**
+   * Update personal details
+   *
+   * @remarks This operation updates the user details in the database
+   *
+   */
+  @Put('/me')
+  @Roles(Role.STUDENT, Role.MENTOR, Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async updateOwnUserDetails(
+    @GetUser() user: User,
+    @Body() updateUserDto: UpdateUserDetailsDto,
+  ): Promise<User> {
+    const id = user.id;
+    try {
+      return await this.usersService.updateUserDetails(id, updateUserDto);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to update user');
     }
   }
 
