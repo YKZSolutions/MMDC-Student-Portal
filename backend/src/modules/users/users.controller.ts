@@ -58,7 +58,6 @@ export class UsersController {
    *
    */
   @Put('/me')
-  // @Roles(Role.ADMIN)
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
