@@ -10,10 +10,8 @@ import {
 } from '@nestjs/common';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { PrismaService } from 'nestjs-prisma';
 import { AuthService } from '@/modules/auth/auth.service';
 import { Prisma } from '@prisma/client';
-import { User } from '@supabase/supabase-js';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterUserDto } from './dto/filter-user.dto';
@@ -31,36 +29,41 @@ export class UsersService {
 
   ) {}
 
-  create(createUserDto: CreateUserWithAccountDto) {
+  async create(createUserDto: CreateUserWithAccountDto) {
     try {
-      return this.prisma.client.$transaction(async (tx) => {
-        const account = await this.authService.create(
-          createUserDto.credentials?.email || 'test@email',
-          createUserDto.credentials?.password || '1234',
-          createUserDto.role,
-        );
+      const account = await this.authService.create(
+        createUserDto.credentials?.email || 'test@email',
+        createUserDto.credentials?.password || '1234',
+        createUserDto.role,
+      );
 
-        const user = await tx.user.create({
-          data: { ...createUserDto },
+      try {
+        return await this.prisma.client.$transaction(async (tx) => {
+          const user = await tx.user.create({
+            data: { ...createUserDto },
+          });
+
+          const userAccount = await tx.userAccount.create({
+            data: {
+              userId: user.id,
+              authUid: account.id,
+              email: account.email,
+            },
+          });
+
+          await this.authService.updateMetadata(account.id, {
+            user_id: user.id,
+          });
+
+          return { user, userAccount };
         });
-
-        const userAccount = await tx.userAccount.create({
-          data: {
-            userId: user.id,
-            authUid: account.id,
-            email: account.email,
-          },
-        });
-
-        await this.authService.updateMetadata(account.id, {
-          user_id: user.id,
-        });
-
-        return { user, userAccount };
-      });
+      } catch (dbError) {
+        // Consider cleaning up the auth account if DB transaction fails
+        // await this.authService.deleteAccount(account.id);
+        throw dbError;
+      }
     } catch (err) {
-      this.logger.error(`Failed to create user db entry: ${err}`);
-      throw new InternalServerErrorException('Failed to create the user in DB');
+      throw new InternalServerErrorException('Failed to create the user');
     }
   }
 
