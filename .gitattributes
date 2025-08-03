@@ -2,3 +2,4 @@ backend/src/generated/** linguist-generated=true
 backend/prisma/migrations/** linguist-generated=true
 frontend/src/generated/** linguist-generated=true
 frontend/src/routeTree.gen.ts linguist-generated=true
+* text=auto eol=lf
