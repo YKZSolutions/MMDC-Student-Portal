@@ -1,12 +1,16 @@
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
+  BadRequestException,
+  HttpException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { User } from '@supabase/supabase-js';
+import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
@@ -96,13 +100,46 @@ export class UsersService {
       return { users, meta };
     } catch (error) {
       this.logger.error(`Failed to fetch all users: ${error}`);
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestException(error.message);
+      }
+
       throw new InternalServerErrorException('Failed to fetch all users');
     }
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
+  async findOne(id: string) {
+    try {
+      if (!isUUID(id)) {
+        throw new BadRequestException(`Invalid user ID format: ${id}`);
+      }
+
+      const user = await this.prisma.client.user.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          userAccount: true,
+          userDetails: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found.`);
+      }
+
+      return user;
+    } catch (error) {
+      this.logger.error(`Failed to fetch user: ${error}`);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
 
   // update(id: number, updateUserDto: UpdateUserDto) {
   //   return `This action updates a #${id} user`;

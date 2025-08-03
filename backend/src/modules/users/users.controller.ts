@@ -7,9 +7,12 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
   InternalServerErrorException,
+  NotFoundException,
+  Param,
   Post,
-  Query
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -66,24 +69,66 @@ export class UsersController {
     }
   }
 
+  /**
+   * Retrieves a paginated list of users based on the provided filter parameters.
+   *
+   * - **Access:** Requires `ADMIN` role.
+   * - **Filtering & Pagination:** Uses the `FilterUserDto` to define query parameters such as search terms, sorting, and page size.
+   *
+   * @param {FilterUserDto} filters - Query parameters for filtering, sorting, and pagination.
+   * @returns {Promise<PaginatedUsersDto>} A paginated list of users matching the provided filters.
+   *
+   * @throws {BadRequestException} If the provided filters are invalid or cannot be processed.
+   * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching users.
+   */
   @Get()
   @Roles(Role.ADMIN)
-  @ApiOkResponse({ type: PaginatedUsersDto })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
-  findAll(@Query() filters: FilterUserDto): Promise<PaginatedUsersDto> {
+  @ApiOkResponse({
+    description: 'List of users retrieved successfully',
+    type: PaginatedUsersDto,
+  })
+  @ApiException(() => [BadRequestException, InternalServerErrorException])
+  async findAll(@Query() filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
-      return this.usersService.findAll(filters);
+      return await this.usersService.findAll(filters);
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to fetch users');
     }
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
+  /**
+   * Retrieves a specific user by their unique identifier.
+   *
+   * - **Validation:** Ensures the provided `id` is a valid identifier format.
+   * - **Not Found Handling:** Throws an error if no matching user is found.
+   *
+   * @param {User['id']} id - The unique identifier of the user to retrieve.
+   * @returns {Promise<User>} The user matching the provided ID.
+   *
+   * @throws {BadRequestException} If the provided ID format is invalid.
+   * @throws {NotFoundException} If no user exists with the given ID.
+   * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching the user.
+   */
+  @Get(':id')
+  @ApiOkResponse({ description: 'User found successfully', type: User })
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
+  async findOne(@Param('id') id: User['id']): Promise<User> {
+    try {
+      return (await this.usersService.findOne(id)) as User;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
