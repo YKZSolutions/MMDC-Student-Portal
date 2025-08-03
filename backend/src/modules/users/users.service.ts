@@ -1,33 +1,46 @@
+import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
+  HttpException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { AuthService } from '@/modules/auth/auth.service';
+import { Prisma } from '@prisma/client';
+import { User } from '@supabase/supabase-js';
+import { isUUID } from 'class-validator';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UserWithRelations } from './dto/user-with-relations.dto';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject('PrismaService')
+    private prisma: CustomPrismaService<ExtendedPrismaClient>,
     private authService: AuthService,
+
   ) {}
 
   create(createUserDto: CreateUserWithAccountDto) {
     try {
-      return this.prisma.$transaction(async (tx) => {
+      return this.prisma.client.$transaction(async (tx) => {
         const account = await this.authService.create(
           createUserDto.credentials?.email || 'test@email',
           createUserDto.credentials?.password || '1234',
           createUserDto.role,
         );
 
-        const user = await this.prisma.user.create({
+        const user = await tx.user.create({
           data: { ...createUserDto },
         });
 
@@ -56,7 +69,7 @@ export class UsersService {
     //TODO: Other user details are not included, would be updated if implemented in the create method
     try {
       // Check if user exists first
-      const userExists = await this.prisma.user.findUnique({
+      const userExists = await this.prisma.client.user.findUnique({
         where: { id: userId },
         select: { id: true },
       });
@@ -65,7 +78,7 @@ export class UsersService {
         throw new BadRequestException(`User with ID ${userId} not found`);
       }
 
-      return await this.prisma.user.update({
+      return await this.prisma.client.user.update({
         where: { id: userId },
         data: {
           firstName: updateUserDto.firstName,
@@ -79,17 +92,94 @@ export class UsersService {
     }
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
+  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
+    try {
+      const where = {
+        ...(filters.role && { role: filters.role }),
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
+        ...(filters.search && {
+          OR: [
+            {
+              firstName: {
+                contains: filters.search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              lastName: {
+                contains: filters.search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              userAccount: {
+                email: {
+                  contains: filters.search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          ],
+        }),
+      };
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+      const [users, meta] = await this.prisma.client.user
+        .paginate({
+          where,
+          include: {
+            userAccount: true,
+            userDetails: true,
+          },
+        })
+        .withPages({
+          limit: 10,
+          page: 1,
+          includePageCount: true,
+        });
+
+      return { users, meta };
+    } catch (error) {
+      this.logger.error(`Failed to fetch all users: ${error}`);
+
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestException(error.message);
+      }
+
+      throw new InternalServerErrorException('Failed to fetch all users');
+    }
+  }
+
+  async findOne(id: string): Promise<UserWithRelations> {
+    try {
+      if (!isUUID(id)) {
+        throw new BadRequestException(`Invalid user ID format: ${id}`);
+      }
+
+      const user = await this.prisma.client.user.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          userAccount: true,
+          userDetails: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found.`);
+      }
+
+      return user;
+    } catch (error) {
+      this.logger.error(`Failed to fetch user: ${error}`);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
 
   // remove(id: number) {
   //   return `This action removes a #${id} user`;

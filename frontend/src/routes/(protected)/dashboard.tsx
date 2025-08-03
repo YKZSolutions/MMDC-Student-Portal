@@ -1,7 +1,7 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import { createFileRoute } from '@tanstack/react-router'
 import StudentDashboard from '@/pages/student/dasboard.student'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(protected)/dashboard')({
   component: RouteComponent,

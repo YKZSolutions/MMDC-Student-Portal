@@ -14,7 +14,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as protectedUsersRouteImport } from './routes/(protected)/users'
 import { Route as protectedProfileRouteImport } from './routes/(protected)/profile'
+import { Route as protectedNotificationsRouteImport } from './routes/(protected)/notifications'
+import { Route as protectedEnrollmentRouteImport } from './routes/(protected)/enrollment'
 import { Route as protectedDashboardRouteImport } from './routes/(protected)/dashboard'
+import { Route as protectedBillingRouteImport } from './routes/(protected)/billing'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
@@ -41,9 +44,24 @@ const protectedProfileRoute = protectedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const protectedNotificationsRoute = protectedNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
+const protectedEnrollmentRoute = protectedEnrollmentRouteImport.update({
+  id: '/enrollment',
+  path: '/enrollment',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
 const protectedDashboardRoute = protectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
+const protectedBillingRoute = protectedBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => protectedRouteRoute,
 } as any)
 const authLoginRoute = authLoginRouteImport.update({
@@ -55,7 +73,10 @@ const authLoginRoute = authLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
+  '/billing': typeof protectedBillingRoute
   '/dashboard': typeof protectedDashboardRoute
+  '/enrollment': typeof protectedEnrollmentRoute
+  '/notifications': typeof protectedNotificationsRoute
   '/profile': typeof protectedProfileRoute
   '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -63,7 +84,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
+  '/billing': typeof protectedBillingRoute
   '/dashboard': typeof protectedDashboardRoute
+  '/enrollment': typeof protectedEnrollmentRoute
+  '/notifications': typeof protectedNotificationsRoute
   '/profile': typeof protectedProfileRoute
   '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -73,7 +97,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/(protected)': typeof protectedRouteRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
+  '/(protected)/billing': typeof protectedBillingRoute
   '/(protected)/dashboard': typeof protectedDashboardRoute
+  '/(protected)/enrollment': typeof protectedEnrollmentRoute
+  '/(protected)/notifications': typeof protectedNotificationsRoute
   '/(protected)/profile': typeof protectedProfileRoute
   '/(protected)/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -83,7 +110,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/billing'
     | '/dashboard'
+    | '/enrollment'
+    | '/notifications'
     | '/profile'
     | '/users'
     | '/demo/tanstack-query'
@@ -91,7 +121,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/billing'
     | '/dashboard'
+    | '/enrollment'
+    | '/notifications'
     | '/profile'
     | '/users'
     | '/demo/tanstack-query'
@@ -100,7 +133,10 @@ export interface FileRouteTypes {
     | '/'
     | '/(protected)'
     | '/(auth)/login'
+    | '/(protected)/billing'
     | '/(protected)/dashboard'
+    | '/(protected)/enrollment'
+    | '/(protected)/notifications'
     | '/(protected)/profile'
     | '/(protected)/users'
     | '/demo/tanstack-query'
@@ -150,11 +186,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedProfileRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/notifications': {
+      id: '/(protected)/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof protectedNotificationsRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/enrollment': {
+      id: '/(protected)/enrollment'
+      path: '/enrollment'
+      fullPath: '/enrollment'
+      preLoaderRoute: typeof protectedEnrollmentRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/dashboard': {
       id: '/(protected)/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof protectedDashboardRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/billing': {
+      id: '/(protected)/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof protectedBillingRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(auth)/login': {
@@ -168,13 +225,19 @@ declare module '@tanstack/react-router' {
 }
 
 interface protectedRouteRouteChildren {
+  protectedBillingRoute: typeof protectedBillingRoute
   protectedDashboardRoute: typeof protectedDashboardRoute
+  protectedEnrollmentRoute: typeof protectedEnrollmentRoute
+  protectedNotificationsRoute: typeof protectedNotificationsRoute
   protectedProfileRoute: typeof protectedProfileRoute
   protectedUsersRoute: typeof protectedUsersRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
+  protectedBillingRoute: protectedBillingRoute,
   protectedDashboardRoute: protectedDashboardRoute,
+  protectedEnrollmentRoute: protectedEnrollmentRoute,
+  protectedNotificationsRoute: protectedNotificationsRoute,
   protectedProfileRoute: protectedProfileRoute,
   protectedUsersRoute: protectedUsersRoute,
 }

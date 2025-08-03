@@ -1,21 +1,29 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from './modules/users/users.module';
-import { EnvConfigModule } from './config/config.module';
-import { CoursesModule } from './modules/courses/courses.module';
-import { SupabaseModule } from './lib/supabase/supabase.module';
-import { PrismaModule } from 'nestjs-prisma';
 import { APP_GUARD } from '@nestjs/core';
-import { RoleGuard } from './common/guards/role.guard';
+import { CustomPrismaModule } from 'nestjs-prisma';
 import { AuthGuard } from './common/guards/auth.guard';
+import { RoleGuard } from './common/guards/role.guard';
+import { EnvConfigModule } from './config/config.module';
+import { extendedPrismaClient } from './lib/prisma/prisma.extension';
+import { SupabaseModule } from './lib/supabase/supabase.module';
+import { CoursesModule } from './modules/courses/courses.module';
 import { TestModule } from './modules/test/test.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
     EnvConfigModule,
     UsersModule,
     CoursesModule,
-    PrismaModule.forRoot({
+    // PrismaModule.forRoot({
+    //   isGlobal: true,
+    // }),
+    CustomPrismaModule.forRootAsync({
       isGlobal: true,
+      name: 'PrismaService',
+      useFactory: () => {
+        return extendedPrismaClient;
+      },
     }),
     SupabaseModule,
     TestModule,
