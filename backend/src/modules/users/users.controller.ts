@@ -16,6 +16,8 @@ import { User } from '@/generated/nestjs-dto/user.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Public } from '@/common/decorators/auth.decorator';
 import { Request } from 'express';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Role } from '@/common/enums/roles.enum';
 
 /**
  *
@@ -34,7 +36,7 @@ export class UsersController {
    *
    */
   @Post()
-  // @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN)
   @Public()
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
@@ -51,14 +53,14 @@ export class UsersController {
   }
 
   /**
-   * Update user details
-   * Admin only
+   * Update user details (Admin only)
+   *
    *
    * @remarks This operation updates the user details in the database
    *
    */
   @Put(':id')
-  // @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN)
   @Public()
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
@@ -75,6 +77,7 @@ export class UsersController {
     }
   }
 
+  //TODO: Still cannot be tested with the database as of now, needs logged in user implementation
   /**
    * Update personal details
    *
@@ -82,8 +85,7 @@ export class UsersController {
    *
    */
   @Put('/me')
-  // @Roles(Role.STUDENT, Role.MENTOR, Role.ADMIN)
-  @Public()
+  @Roles(Role.STUDENT, Role.MENTOR, Role.ADMIN)
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
