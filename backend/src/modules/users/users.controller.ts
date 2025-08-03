@@ -6,12 +6,14 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Get,
-  HttpException,
-  InternalServerErrorException,
-  NotFoundException,
   Param,
   Post,
+  Put,
+  Req,
+  Get,
+  HttpException,
+  NotFoundException,
+  InternalServerErrorException,
   Query,
 } from '@nestjs/common';
 import {
@@ -19,12 +21,13 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { AuthService } from '../auth/auth.service';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
+import { Request } from 'express';
 
 /**
  *
@@ -34,10 +37,7 @@ import { UsersService } from './users.service';
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   /**
    * Create a new user
@@ -52,21 +52,64 @@ export class UsersController {
   @ApiException(() => InternalServerErrorException)
   async create(@Body() createUserDto: CreateUserWithAccountDto): Promise<User> {
     try {
-      const account = await this.authService.create(
-        createUserDto.credentials?.email || 'test@email',
-        createUserDto.credentials?.password || '1234',
-        createUserDto.role,
-      );
-      const user = await this.usersService.create(createUserDto, account);
-
-      await this.authService.updateMetadata(account.id, {
-        user_id: user.user.id,
-      });
+      const user = await this.usersService.create(createUserDto);
 
       return user.user;
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Update personal details
+   *
+   * @remarks This operation updates the user details in the database
+   *
+   */
+  @Put('/me')
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async updateOwnUserDetails(
+    @Req() request: Request,
+    @Body() updateUserDto: UpdateUserDetailsDto,
+  ): Promise<User> {
+    if (!request.user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const userId = request.user.user_metadata?.user_id as string;
+
+    try {
+      return await this.usersService.updateUserDetails(userId, updateUserDto);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException(`Failed to update user: ${err}`);
+    }
+  }
+
+  /**
+   * Update user details (Admin only)
+   *
+   *
+   * @remarks This operation updates the user details in the database
+   *
+   */
+  @Put(':id')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async updateUserDetails(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDetailsDto,
+  ): Promise<User> {
+    try {
+      return await this.usersService.updateUserDetails(id, updateUserDto);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to update user');
     }
   }
 
@@ -132,11 +175,6 @@ export class UsersController {
       throw new InternalServerErrorException('Failed to fetch user');
     }
   }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {
