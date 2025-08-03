@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators/auth.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { User } from '@/generated/nestjs-dto/user.entity';
@@ -10,6 +9,7 @@ import {
   Get,
   InternalServerErrorException,
   Post,
+  Query
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -18,6 +18,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UsersService } from './users.service';
 
 /**
@@ -65,14 +67,13 @@ export class UsersController {
   }
 
   @Get()
-  // @Roles(Role.ADMIN)
-  @Public()
-  @ApiOkResponse({ type: [User] })
+  @Roles(Role.ADMIN)
+  @ApiOkResponse({ type: PaginatedUsersDto })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
-  findAll(): Promise<{ users: User[]; meta: any; }> {
+  findAll(@Query() filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
-      return this.usersService.findAll();
+      return this.usersService.findAll(filters);
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new InternalServerErrorException('Failed to fetch users');

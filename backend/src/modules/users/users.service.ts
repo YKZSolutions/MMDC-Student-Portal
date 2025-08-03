@@ -5,9 +5,11 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { User } from '@supabase/supabase-js';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
+import { FilterUserDto } from './dto/filter-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -46,13 +48,50 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(filters: FilterUserDto) {
     try {
-      const [users, meta] = await this.prisma.client.user.paginate().withPages({
-        limit: 10,
-        page: 1,
-        includePageCount: true,
-      });
+      const where = {
+        ...(filters.role && { role: filters.role }),
+
+        ...(filters.search && {
+          OR: [
+            {
+              firstName: {
+                contains: filters.search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              lastName: {
+                contains: filters.search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              userAccount: {
+                email: {
+                  contains: filters.search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          ],
+        }),
+      };
+
+      const [users, meta] = await this.prisma.client.user
+        .paginate({
+          where,
+          include: {
+            userAccount: true,
+            userDetails: true,
+          },
+        })
+        .withPages({
+          limit: 10,
+          page: 1,
+          includePageCount: true,
+        });
 
       return { users, meta };
     } catch (error) {
