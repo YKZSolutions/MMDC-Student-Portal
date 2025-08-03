@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   InternalServerErrorException,
-  Logger,
   Param,
   Post,
   Put,
@@ -28,8 +27,6 @@ import { Role } from '@/common/enums/roles.enum';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  private readonly logger = new Logger(UsersController.name);
 
   /**
    * Create a new user
