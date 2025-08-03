@@ -39,8 +39,10 @@ export class UsersService {
 
       try {
         return await this.prisma.client.$transaction(async (tx) => {
+          const { credentials, ...userData } = createUserDto;
+
           const user = await tx.user.create({
-            data: { ...createUserDto },
+            data: { ...userData },
           });
 
           const userAccount = await tx.userAccount.create({
@@ -58,11 +60,12 @@ export class UsersService {
           return { user, userAccount };
         });
       } catch (dbError) {
-        // Consider cleaning up the auth account if DB transaction fails
+        // TODO:Enable to clean up the auth account if DB transaction fails
         // await this.authService.deleteAccount(account.id);
         throw dbError;
       }
     } catch (err) {
+      this.logger.error(`Failed to create user: ${err}`);
       throw new InternalServerErrorException('Failed to create the user');
     }
   }
@@ -71,16 +74,6 @@ export class UsersService {
     //TODO: Include other fields later on if there are updates in the schema
     //TODO: Other user details are not included, would be updated if implemented in the create method
     try {
-      // Check if user exists first
-      const userExists = await this.prisma.client.user.findUnique({
-        where: { id: userId },
-        select: { id: true },
-      });
-
-      if (!userExists) {
-        throw new BadRequestException(`User with ID ${userId} not found`);
-      }
-
       return await this.prisma.client.user.update({
         where: { id: userId },
         data: {
