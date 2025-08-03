@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   InternalServerErrorException,
+  Logger,
   Param,
   Post,
   Put,
@@ -28,6 +29,8 @@ import { Role } from '@/common/enums/roles.enum';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  private readonly logger = new Logger(UsersController.name);
+
   /**
    * Create a new user
    *
@@ -50,30 +53,6 @@ export class UsersController {
     }
   }
 
-  /**
-   * Update user details (Admin only)
-   *
-   *
-   * @remarks This operation updates the user details in the database
-   *
-   */
-  @Put(':id')
-  @Roles(Role.ADMIN)
-  @ApiCreatedResponse({ type: User })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
-  async updateUserDetails(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDetailsDto,
-  ): Promise<User> {
-    try {
-      return await this.usersService.updateUserDetails(id, updateUserDto);
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to update user');
-    }
-  }
-
   //TODO: Still cannot be tested with the database as of now, needs logged in user implementation
   /**
    * Update personal details
@@ -90,10 +69,36 @@ export class UsersController {
     @Req() request: Request,
     @Body() updateUserDto: UpdateUserDetailsDto,
   ): Promise<User> {
-    if (!request.user) throw new BadRequestException('User not found');
+    if (!request.user) {
+      throw new BadRequestException('User not found');
+    }
 
-    const id = request.user.id;
+    const userId = request.user.user_metadata?.user_id as string;
 
+    try {
+      return await this.usersService.updateUserDetails(userId, updateUserDto);
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException(`Failed to update user: ${err}`);
+    }
+  }
+
+  /**
+   * Update user details (Admin only)
+   *
+   *
+   * @remarks This operation updates the user details in the database
+   *
+   */
+  @Put(':id')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async updateUserDetails(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDetailsDto,
+  ): Promise<User> {
     try {
       return await this.usersService.updateUserDetails(id, updateUserDto);
     } catch (err) {
