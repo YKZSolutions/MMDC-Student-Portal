@@ -18,6 +18,8 @@ import { Route as protectedNotificationsRouteImport } from './routes/(protected)
 import { Route as protectedEnrollmentRouteImport } from './routes/(protected)/enrollment'
 import { Route as protectedDashboardRouteImport } from './routes/(protected)/dashboard'
 import { Route as protectedBillingRouteImport } from './routes/(protected)/billing'
+import { Route as authUpdatePasswordRouteImport } from './routes/(auth)/update-password'
+import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
@@ -64,6 +66,16 @@ const protectedBillingRoute = protectedBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const authUpdatePasswordRoute = authUpdatePasswordRouteImport.update({
+  id: '/(auth)/update-password',
+  path: '/update-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authResetPasswordRoute = authResetPasswordRouteImport.update({
+  id: '/(auth)/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authLoginRoute = authLoginRouteImport.update({
   id: '/(auth)/login',
   path: '/login',
@@ -73,6 +85,8 @@ const authLoginRoute = authLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
+  '/reset-password': typeof authResetPasswordRoute
+  '/update-password': typeof authUpdatePasswordRoute
   '/billing': typeof protectedBillingRoute
   '/dashboard': typeof protectedDashboardRoute
   '/enrollment': typeof protectedEnrollmentRoute
@@ -84,6 +98,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
+  '/reset-password': typeof authResetPasswordRoute
+  '/update-password': typeof authUpdatePasswordRoute
   '/billing': typeof protectedBillingRoute
   '/dashboard': typeof protectedDashboardRoute
   '/enrollment': typeof protectedEnrollmentRoute
@@ -97,6 +113,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/(protected)': typeof protectedRouteRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
+  '/(auth)/reset-password': typeof authResetPasswordRoute
+  '/(auth)/update-password': typeof authUpdatePasswordRoute
   '/(protected)/billing': typeof protectedBillingRoute
   '/(protected)/dashboard': typeof protectedDashboardRoute
   '/(protected)/enrollment': typeof protectedEnrollmentRoute
@@ -110,6 +128,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/reset-password'
+    | '/update-password'
     | '/billing'
     | '/dashboard'
     | '/enrollment'
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/reset-password'
+    | '/update-password'
     | '/billing'
     | '/dashboard'
     | '/enrollment'
@@ -133,6 +155,8 @@ export interface FileRouteTypes {
     | '/'
     | '/(protected)'
     | '/(auth)/login'
+    | '/(auth)/reset-password'
+    | '/(auth)/update-password'
     | '/(protected)/billing'
     | '/(protected)/dashboard'
     | '/(protected)/enrollment'
@@ -146,6 +170,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   protectedRouteRoute: typeof protectedRouteRouteWithChildren
   authLoginRoute: typeof authLoginRoute
+  authResetPasswordRoute: typeof authResetPasswordRoute
+  authUpdatePasswordRoute: typeof authUpdatePasswordRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
@@ -214,6 +240,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedBillingRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(auth)/update-password': {
+      id: '/(auth)/update-password'
+      path: '/update-password'
+      fullPath: '/update-password'
+      preLoaderRoute: typeof authUpdatePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/reset-password': {
+      id: '/(auth)/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof authResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/login': {
       id: '/(auth)/login'
       path: '/login'
@@ -250,6 +290,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   protectedRouteRoute: protectedRouteRouteWithChildren,
   authLoginRoute: authLoginRoute,
+  authResetPasswordRoute: authResetPasswordRoute,
+  authUpdatePasswordRoute: authUpdatePasswordRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
 export const routeTree = rootRouteImport
