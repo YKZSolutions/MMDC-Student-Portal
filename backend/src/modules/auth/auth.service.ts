@@ -1,6 +1,11 @@
 import { UserMetadata } from '@/common/interfaces/auth.user-metadata';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 
 @Injectable()
@@ -38,5 +43,21 @@ export class AuthService {
     }
 
     return account.data.user;
+  }
+
+  /*TODO: possibly separate the email and password updates
+     with validations and confirmation for security
+   */
+  async resetPassword(userId: string, password: string) {
+    try {
+      return this.supabase.auth.admin.updateUserById(userId, {
+        password: password,
+      });
+    } catch (err) {
+      this.logger.error(`Failed to update user account credentials: ${err}`);
+      throw new InternalServerErrorException(
+        'Failed to update the user account credentials',
+      );
+    }
   }
 }

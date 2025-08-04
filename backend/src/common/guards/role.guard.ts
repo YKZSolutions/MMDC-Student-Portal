@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Role } from '../enums/roles.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { User } from '@supabase/supabase-js';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -20,11 +21,10 @@ export class RoleGuard implements CanActivate {
 
     if (!requiredRoles) return true;
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user }: { user: User } = context.switchToHttp().getRequest();
 
-    const hasRole = requiredRoles.some((role) =>
-      user?.user_metadata.role.includes(role),
-    );
+    const userRoles = user.user_metadata.role as Role[];
+    const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole)
       throw new ForbiddenException(

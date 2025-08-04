@@ -8,11 +8,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { CreateUserWithAccountDto } from './dto/create-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
+import { AuthService } from '@/modules/auth/auth.service';
 import { Prisma } from '@prisma/client';
-import { User } from '@supabase/supabase-js';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
@@ -24,33 +25,66 @@ export class UsersService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private authService: AuthService,
+
   ) {}
 
-  async create(createUserDto: CreateUserWithAccountDto, account: User) {
+  async create(createUserDto: CreateUserWithAccountDto) {
     try {
-      return await this.prisma.client.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            firstName: createUserDto.firstName,
-            middleName: createUserDto.middleName,
-            lastName: createUserDto.lastName,
-            role: createUserDto.role,
-          },
-        });
+      const account = await this.authService.create(
+        createUserDto.credentials?.email || 'test@email',
+        createUserDto.credentials?.password || '1234',
+        createUserDto.role,
+      );
 
-        const userAccount = await tx.userAccount.create({
-          data: {
-            userId: user.id,
-            authUid: account.id,
-            email: account.email,
-          },
-        });
+      try {
+        return await this.prisma.client.$transaction(async (tx) => {
+          const { credentials, ...userData } = createUserDto;
 
-        return { user, userAccount };
+          const user = await tx.user.create({
+            data: { ...userData },
+          });
+
+          const userAccount = await tx.userAccount.create({
+            data: {
+              userId: user.id,
+              authUid: account.id,
+              email: account.email,
+            },
+          });
+
+          await this.authService.updateMetadata(account.id, {
+            user_id: user.id,
+          });
+
+          return { user, userAccount };
+        });
+      } catch (dbError) {
+        // TODO:Enable to clean up the auth account if DB transaction fails
+        // await this.authService.deleteAccount(account.id);
+        throw dbError;
+      }
+    } catch (err) {
+      this.logger.error(`Failed to create user: ${err}`);
+      throw new InternalServerErrorException('Failed to create the user');
+    }
+  }
+
+  async updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
+    //TODO: Include other fields later on if there are updates in the schema
+    //TODO: Other user details are not included, would be updated if implemented in the create method
+    try {
+      return await this.prisma.client.user.update({
+        where: { id: userId },
+        data: {
+          firstName: updateUserDto.firstName,
+          middleName: updateUserDto.middleName,
+          lastName: updateUserDto.lastName,
+        },
       });
     } catch (err) {
-      this.logger.error(`Failed to create user db entry: ${err}`);
-      throw new InternalServerErrorException('Failed to create the user in DB');
+      this.logger.error(`Failed to update user db entry: ${err}`);
+      throw new InternalServerErrorException('Failed to update the user in DB');
     }
   }
 
@@ -141,10 +175,6 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to fetch user');
     }
   }
-
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
 
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
