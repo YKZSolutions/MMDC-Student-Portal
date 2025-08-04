@@ -40,6 +40,7 @@ export class AuthService {
     const account = await this.supabase.auth.admin.inviteUserByEmail(email, {
       data: {
         role: role,
+        status: 'active',
       },
       redirectTo: `${this.siteUrl}/update-password`,
     });

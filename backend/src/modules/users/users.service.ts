@@ -44,14 +44,12 @@ export class UsersService {
             middleName: createUserDto.middleName,
             lastName: createUserDto.lastName,
             role: createUserDto.role,
-          },
-        });
-
-        const userAccount = await tx.userAccount.create({
-          data: {
-            userId: user.id,
-            authUid: account.id,
-            email: account.email,
+            userAccount: {
+              create: {
+                authUid: account.id,
+                email: account.email,
+              },
+            },
           },
         });
 
@@ -59,7 +57,7 @@ export class UsersService {
           user_id: user.id,
         });
 
-        return { user, userAccount };
+        return { user };
       });
     } catch (err) {
       this.logger.error(`Failed to create user: ${err}`);
@@ -74,25 +72,23 @@ export class UsersService {
   async inviteUser(inviteUserDto: InviteUserDto) {
     return await this.prisma.client.$transaction(async (tx) => {
       try {
+        const account = await this.authService.invite(
+          inviteUserDto.email,
+          inviteUserDto.role,
+        );
+
         const user = await tx.user.create({
           data: {
             firstName: inviteUserDto.firstName,
             middleName: inviteUserDto.middleName,
             lastName: inviteUserDto.lastName,
             role: inviteUserDto.role,
-          },
-        });
-
-        const account = await this.authService.invite(
-          inviteUserDto.email,
-          inviteUserDto.role,
-        );
-
-        const userAccount = await tx.userAccount.create({
-          data: {
-            userId: user.id,
-            authUid: account.id,
-            email: account.email,
+            userAccount: {
+              create: {
+                authUid: account.id,
+                email: account.email,
+              },
+            },
           },
         });
 
@@ -100,7 +96,7 @@ export class UsersService {
           user_id: user.id,
         });
 
-        return { user, userAccount, account };
+        return { user };
       } catch (e) {
         this.logger.error(`Failed to invite user: ${e}`);
         throw new InternalServerErrorException('Failed to invite the user');
