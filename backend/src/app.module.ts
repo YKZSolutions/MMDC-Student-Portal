@@ -10,6 +10,7 @@ import { CoursesModule } from './modules/courses/courses.module';
 import { TestModule } from './modules/test/test.module';
 import { UsersModule } from './modules/users/users.module';
 import { UserStatusGuard } from './common/guards/user-status.guard';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UserStatusGuard } from './common/guards/user-status.guard';
     }),
     SupabaseModule,
     TestModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [

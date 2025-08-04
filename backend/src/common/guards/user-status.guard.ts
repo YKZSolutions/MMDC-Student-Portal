@@ -6,16 +6,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserAccountStatus } from '../interfaces/auth.user-metadata';
 import { IS_STATUS_BYPASS } from '../decorators/user-status.decorator';
 import { Request } from 'express';
+import { UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UserStatusGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const statusBypass = this.reflector.getAllAndOverride<UserAccountStatus>(
+    const statusBypass = this.reflector.getAllAndOverride<UserStatus>(
       IS_STATUS_BYPASS,
       [context.getHandler(), context.getClass()],
     );
@@ -24,7 +24,7 @@ export class UserStatusGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest<Request>();
 
-    if (!user) throw new UnauthorizedException('User data not found');
+    if (!user) throw new UnauthorizedException('Status: User data not found');
 
     const userStatus = user.user_metadata.status;
 

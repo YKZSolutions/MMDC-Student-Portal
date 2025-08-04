@@ -24,7 +24,7 @@ export class RoleGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest<Request>();
 
-    if (!user) throw new UnauthorizedException('User data not found');
+    if (!user) throw new UnauthorizedException('Role: User data not found');
 
     const userRoles = user.user_metadata.role;
 

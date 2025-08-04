@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 import {
   UserMetadata as SupabaseUserMetadata,
   User,
@@ -10,8 +10,6 @@ export interface AuthUser extends User {
 
 export interface UserMetadata extends SupabaseUserMetadata {
   role?: Role;
-  status?: UserAccountStatus;
+  status?: UserStatus;
   user_id?: string;
 }
-
-export type UserAccountStatus = 'active' | 'disabled' | 'deleted';

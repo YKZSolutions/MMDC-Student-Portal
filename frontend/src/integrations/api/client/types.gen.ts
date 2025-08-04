@@ -23,7 +23,12 @@ export type User = {
     role: Role;
     createdAt: string;
     updatedAt: string;
+    disabledAt: string | null;
     deletedAt: string | null;
+};
+
+export type UpdateUserDetailsDto = {
+    [key: string]: unknown;
 };
 
 export type UserAccount = {
@@ -80,6 +85,14 @@ export type CreateCourseDto = {
 
 export type UpdateCourseDto = {
     [key: string]: unknown;
+};
+
+export type UserStatus = 'active' | 'disabled' | 'deleted';
+
+export type AuthMetadataDto = {
+    role?: Role;
+    status?: UserStatus;
+    user_id?: string;
 };
 
 export type UsersControllerFindAllData = {
@@ -144,6 +157,35 @@ export type UsersControllerCreateResponses = {
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
 
+export type UsersControllerUpdateOwnUserDetailsData = {
+    body: UpdateUserDetailsDto;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type UsersControllerUpdateOwnUserDetailsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateOwnUserDetailsError = UsersControllerUpdateOwnUserDetailsErrors[keyof UsersControllerUpdateOwnUserDetailsErrors];
+
+export type UsersControllerUpdateOwnUserDetailsResponses = {
+    200: User;
+    201: User;
+};
+
+export type UsersControllerUpdateOwnUserDetailsResponse = UsersControllerUpdateOwnUserDetailsResponses[keyof UsersControllerUpdateOwnUserDetailsResponses];
+
 export type UsersControllerFindOneData = {
     body?: never;
     path?: never;
@@ -179,6 +221,37 @@ export type UsersControllerFindOneResponses = {
 };
 
 export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
+
+export type UsersControllerUpdateUserDetailsData = {
+    body: UpdateUserDetailsDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/users/{id}';
+};
+
+export type UsersControllerUpdateUserDetailsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateUserDetailsError = UsersControllerUpdateUserDetailsErrors[keyof UsersControllerUpdateUserDetailsErrors];
+
+export type UsersControllerUpdateUserDetailsResponses = {
+    200: User;
+    201: User;
+};
+
+export type UsersControllerUpdateUserDetailsResponse = UsersControllerUpdateUserDetailsResponses[keyof UsersControllerUpdateUserDetailsResponses];
 
 export type CoursesControllerFindAllData = {
     body?: never;
@@ -276,6 +349,37 @@ export type TestControllerTestAdminResponses = {
 };
 
 export type TestControllerTestAdminResponse = TestControllerTestAdminResponses[keyof TestControllerTestAdminResponses];
+
+export type AuthControllerGetMetadataData = {
+    body?: never;
+    path: {
+        uid: string;
+    };
+    query?: never;
+    url: '/auth/{uid}/metadata';
+};
+
+export type AuthControllerGetMetadataErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    default: AuthMetadataDto;
+};
+
+export type AuthControllerGetMetadataError = AuthControllerGetMetadataErrors[keyof AuthControllerGetMetadataErrors];
+
+export type AuthControllerGetMetadataResponses = {
+    200: AuthMetadataDto;
+};
+
+export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
 
 export type ClientOptions = {
     baseUrl: string;
