@@ -26,7 +26,12 @@ const login = async (
   email: string,
   password: string,
 ): Promise<AuthResponse> => {
-  return await supabase.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+  if (data) {
+    console.log(data.session.access_token)
+  }
+  return { data, error }
 }
 
 /**

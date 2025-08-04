@@ -2,12 +2,20 @@ import { UserMetadata } from '@/common/interfaces/auth.user-metadata';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { EnvVars } from '@/config/env.schema';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly siteUrl: string;
 
-  constructor(private supabase: SupabaseService) {}
+  constructor(
+    private supabase: SupabaseService,
+    private configService: ConfigService<EnvVars>,
+  ) {
+    this.siteUrl = this.configService.get('SITE_URL')!;
+  }
 
   async create(email: string, password: string, role: Role) {
     const account = await this.supabase.auth.admin.createUser({
@@ -32,7 +40,7 @@ export class AuthService {
       data: {
         role: role,
       },
-      redirectTo: 'http://localhost:3000/update-password',
+      redirectTo: `${this.siteUrl}/update-password`,
     });
 
     if (account.error) {
