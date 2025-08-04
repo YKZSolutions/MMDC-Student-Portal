@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import UpdatePasswordPage from '@/pages/shared/update-password-page.tsx'
 
-export const Route = createFileRoute('/(protected)/update-password')({
+export const Route = createFileRoute('/(auth)/update-password')({
   component: RouteComponent,
 })
 

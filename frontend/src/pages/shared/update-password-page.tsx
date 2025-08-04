@@ -4,11 +4,16 @@ import { useState } from 'react'
 import { useForm } from '@mantine/form'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { zCreateCourseDto } from '@/integrations/api/client/zod.gen.ts'
+import { getRouteApi } from '@tanstack/react-router'
+
+const route = getRouteApi('/(auth)/update-password')
 
 const UpdatePasswordPage = () => {
-  const { updateUserPassword } = useAuth('protected')
+  const { updateUserPassword } = useAuth()
   const [isSuccess, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const navigate = route.useNavigate()
 
   const form = useForm({
     mode: 'uncontrolled',
@@ -23,10 +28,15 @@ const UpdatePasswordPage = () => {
 
     if (response.error) {
       setError(response.error.message)
-    } else {
-      setError(null)
-      setSuccess(true)
+      return
     }
+
+    setError(null)
+    setSuccess(true)
+
+    await navigate({
+      to: '/login',
+    })
   }
 
   return (

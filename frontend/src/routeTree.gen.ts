@@ -13,12 +13,12 @@ import { Route as protectedRouteRouteImport } from './routes/(protected)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as protectedUsersRouteImport } from './routes/(protected)/users'
-import { Route as protectedUpdatePasswordRouteImport } from './routes/(protected)/update-password'
 import { Route as protectedProfileRouteImport } from './routes/(protected)/profile'
 import { Route as protectedNotificationsRouteImport } from './routes/(protected)/notifications'
 import { Route as protectedEnrollmentRouteImport } from './routes/(protected)/enrollment'
 import { Route as protectedDashboardRouteImport } from './routes/(protected)/dashboard'
 import { Route as protectedBillingRouteImport } from './routes/(protected)/billing'
+import { Route as authUpdatePasswordRouteImport } from './routes/(auth)/update-password'
 import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 
@@ -39,11 +39,6 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 const protectedUsersRoute = protectedUsersRouteImport.update({
   id: '/users',
   path: '/users',
-  getParentRoute: () => protectedRouteRoute,
-} as any)
-const protectedUpdatePasswordRoute = protectedUpdatePasswordRouteImport.update({
-  id: '/update-password',
-  path: '/update-password',
   getParentRoute: () => protectedRouteRoute,
 } as any)
 const protectedProfileRoute = protectedProfileRouteImport.update({
@@ -71,6 +66,11 @@ const protectedBillingRoute = protectedBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const authUpdatePasswordRoute = authUpdatePasswordRouteImport.update({
+  id: '/(auth)/update-password',
+  path: '/update-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authResetPasswordRoute = authResetPasswordRouteImport.update({
   id: '/(auth)/reset-password',
   path: '/reset-password',
@@ -86,12 +86,12 @@ export interface FileRoutesByFullPath {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/reset-password': typeof authResetPasswordRoute
+  '/update-password': typeof authUpdatePasswordRoute
   '/billing': typeof protectedBillingRoute
   '/dashboard': typeof protectedDashboardRoute
   '/enrollment': typeof protectedEnrollmentRoute
   '/notifications': typeof protectedNotificationsRoute
   '/profile': typeof protectedProfileRoute
-  '/update-password': typeof protectedUpdatePasswordRoute
   '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -99,12 +99,12 @@ export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/reset-password': typeof authResetPasswordRoute
+  '/update-password': typeof authUpdatePasswordRoute
   '/billing': typeof protectedBillingRoute
   '/dashboard': typeof protectedDashboardRoute
   '/enrollment': typeof protectedEnrollmentRoute
   '/notifications': typeof protectedNotificationsRoute
   '/profile': typeof protectedProfileRoute
-  '/update-password': typeof protectedUpdatePasswordRoute
   '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -114,12 +114,12 @@ export interface FileRoutesById {
   '/(protected)': typeof protectedRouteRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/reset-password': typeof authResetPasswordRoute
+  '/(auth)/update-password': typeof authUpdatePasswordRoute
   '/(protected)/billing': typeof protectedBillingRoute
   '/(protected)/dashboard': typeof protectedDashboardRoute
   '/(protected)/enrollment': typeof protectedEnrollmentRoute
   '/(protected)/notifications': typeof protectedNotificationsRoute
   '/(protected)/profile': typeof protectedProfileRoute
-  '/(protected)/update-password': typeof protectedUpdatePasswordRoute
   '/(protected)/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -129,12 +129,12 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/reset-password'
+    | '/update-password'
     | '/billing'
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
     | '/profile'
-    | '/update-password'
     | '/users'
     | '/demo/tanstack-query'
   fileRoutesByTo: FileRoutesByTo
@@ -142,12 +142,12 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/reset-password'
+    | '/update-password'
     | '/billing'
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
     | '/profile'
-    | '/update-password'
     | '/users'
     | '/demo/tanstack-query'
   id:
@@ -156,12 +156,12 @@ export interface FileRouteTypes {
     | '/(protected)'
     | '/(auth)/login'
     | '/(auth)/reset-password'
+    | '/(auth)/update-password'
     | '/(protected)/billing'
     | '/(protected)/dashboard'
     | '/(protected)/enrollment'
     | '/(protected)/notifications'
     | '/(protected)/profile'
-    | '/(protected)/update-password'
     | '/(protected)/users'
     | '/demo/tanstack-query'
   fileRoutesById: FileRoutesById
@@ -171,6 +171,7 @@ export interface RootRouteChildren {
   protectedRouteRoute: typeof protectedRouteRouteWithChildren
   authLoginRoute: typeof authLoginRoute
   authResetPasswordRoute: typeof authResetPasswordRoute
+  authUpdatePasswordRoute: typeof authUpdatePasswordRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
@@ -202,13 +203,6 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof protectedUsersRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
-    '/(protected)/update-password': {
-      id: '/(protected)/update-password'
-      path: '/update-password'
-      fullPath: '/update-password'
-      preLoaderRoute: typeof protectedUpdatePasswordRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/profile': {
@@ -246,6 +240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedBillingRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(auth)/update-password': {
+      id: '/(auth)/update-password'
+      path: '/update-password'
+      fullPath: '/update-password'
+      preLoaderRoute: typeof authUpdatePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/reset-password': {
       id: '/(auth)/reset-password'
       path: '/reset-password'
@@ -269,7 +270,6 @@ interface protectedRouteRouteChildren {
   protectedEnrollmentRoute: typeof protectedEnrollmentRoute
   protectedNotificationsRoute: typeof protectedNotificationsRoute
   protectedProfileRoute: typeof protectedProfileRoute
-  protectedUpdatePasswordRoute: typeof protectedUpdatePasswordRoute
   protectedUsersRoute: typeof protectedUsersRoute
 }
 
@@ -279,7 +279,6 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedEnrollmentRoute: protectedEnrollmentRoute,
   protectedNotificationsRoute: protectedNotificationsRoute,
   protectedProfileRoute: protectedProfileRoute,
-  protectedUpdatePasswordRoute: protectedUpdatePasswordRoute,
   protectedUsersRoute: protectedUsersRoute,
 }
 
@@ -292,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   protectedRouteRoute: protectedRouteRouteWithChildren,
   authLoginRoute: authLoginRoute,
   authResetPasswordRoute: authResetPasswordRoute,
+  authUpdatePasswordRoute: authUpdatePasswordRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
 export const routeTree = rootRouteImport
