@@ -41,6 +41,8 @@ export const zUser = z.object({
     ])
 });
 
+export const zUpdateUserDetailsDto = z.object({});
+
 export const zUserAccount = z.object({
     id: z.string(),
     userId: z.string(),
@@ -132,6 +134,14 @@ export const zUsersControllerCreateData = z.object({
 
 export const zUsersControllerCreateResponse = zUser;
 
+export const zUsersControllerUpdateOwnUserDetailsData = z.object({
+    body: zUpdateUserDetailsDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerUpdateOwnUserDetailsResponse = zUser;
+
 export const zUsersControllerFindOneData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -142,6 +152,16 @@ export const zUsersControllerFindOneData = z.object({
  * User found successfully
  */
 export const zUsersControllerFindOneResponse = zUser;
+
+export const zUsersControllerUpdateUserDetailsData = z.object({
+    body: zUpdateUserDetailsDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerUpdateUserDetailsResponse = zUser;
 
 export const zCoursesControllerFindAllData = z.object({
     body: z.optional(z.never()),

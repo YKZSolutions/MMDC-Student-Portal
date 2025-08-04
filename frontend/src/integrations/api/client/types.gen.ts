@@ -26,6 +26,10 @@ export type User = {
     deletedAt: string | null;
 };
 
+export type UpdateUserDetailsDto = {
+    [key: string]: unknown;
+};
+
 export type UserAccount = {
     id: string;
     userId: string;
@@ -145,6 +149,35 @@ export type UsersControllerCreateResponses = {
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
 
+export type UsersControllerUpdateOwnUserDetailsData = {
+    body: UpdateUserDetailsDto;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type UsersControllerUpdateOwnUserDetailsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateOwnUserDetailsError = UsersControllerUpdateOwnUserDetailsErrors[keyof UsersControllerUpdateOwnUserDetailsErrors];
+
+export type UsersControllerUpdateOwnUserDetailsResponses = {
+    200: User;
+    201: User;
+};
+
+export type UsersControllerUpdateOwnUserDetailsResponse = UsersControllerUpdateOwnUserDetailsResponses[keyof UsersControllerUpdateOwnUserDetailsResponses];
+
 export type UsersControllerFindOneData = {
     body?: never;
     path?: never;
@@ -180,6 +213,37 @@ export type UsersControllerFindOneResponses = {
 };
 
 export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
+
+export type UsersControllerUpdateUserDetailsData = {
+    body: UpdateUserDetailsDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/users/{id}';
+};
+
+export type UsersControllerUpdateUserDetailsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateUserDetailsError = UsersControllerUpdateUserDetailsErrors[keyof UsersControllerUpdateUserDetailsErrors];
+
+export type UsersControllerUpdateUserDetailsResponses = {
+    200: User;
+    201: User;
+};
+
+export type UsersControllerUpdateUserDetailsResponse = UsersControllerUpdateUserDetailsResponses[keyof UsersControllerUpdateUserDetailsResponses];
 
 export type CoursesControllerFindAllData = {
     body?: never;
