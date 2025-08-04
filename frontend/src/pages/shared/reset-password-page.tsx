@@ -1,7 +1,7 @@
 import {useAuth} from "@/features/auth/auth.hook.ts";
 import {useForm} from "@mantine/form";
 import {zod4Resolver} from "mantine-form-zod-resolver";
-import { zCreateCourseDto } from '@/integrations/api/client/zod.gen.ts'
+import { zUserCredentialsDto } from '@/integrations/api/client/zod.gen.ts'
 import { Button, Card, Container, Stack, TextInput, Title } from '@mantine/core'
 import { useState } from 'react'
 
@@ -15,7 +15,7 @@ const ResetPasswordPage = () => {
         initialValues: {
             email: ''
         },
-        validate: zod4Resolver(zCreateCourseDto),
+        validate: zod4Resolver(zUserCredentialsDto),
     })
 
     const handleSubmit = async (values: typeof form.values) => {
