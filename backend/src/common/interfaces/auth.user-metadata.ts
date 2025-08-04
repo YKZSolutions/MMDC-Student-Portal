@@ -1,7 +1,15 @@
-import { Role } from '@prisma/client';
-import { UserMetadata as SupabaseUserMetadata } from '@supabase/supabase-js';
+import { Role, UserStatus } from '@prisma/client';
+import {
+  UserMetadata as SupabaseUserMetadata,
+  User,
+} from '@supabase/supabase-js';
+
+export interface AuthUser extends User {
+  user_metadata: UserMetadata;
+}
 
 export interface UserMetadata extends SupabaseUserMetadata {
-  role: Role;
-  user_id: string;
+  role?: Role;
+  status?: UserStatus;
+  user_id?: string;
 }

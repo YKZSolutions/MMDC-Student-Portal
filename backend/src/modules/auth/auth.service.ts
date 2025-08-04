@@ -24,6 +24,7 @@ export class AuthService {
       email_confirm: true,
       user_metadata: {
         role: role,
+        status: 'active',
       },
     });
 

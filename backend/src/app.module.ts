@@ -9,6 +9,8 @@ import { SupabaseModule } from './lib/supabase/supabase.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { TestModule } from './modules/test/test.module';
 import { UsersModule } from './modules/users/users.module';
+import { UserStatusGuard } from './common/guards/user-status.guard';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,12 +29,17 @@ import { UsersModule } from './modules/users/users.module';
     }),
     SupabaseModule,
     TestModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: UserStatusGuard,
     },
     {
       provide: APP_GUARD,
