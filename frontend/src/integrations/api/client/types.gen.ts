@@ -361,17 +361,22 @@ export type AuthControllerGetMetadataData = {
 };
 
 export type AuthControllerGetMetadataErrors = {
+    /**
+     * If the uid provided is invalid
+     */
     404: {
         statusCode: number;
         message: string;
         error?: string;
     };
+    /**
+     * If an unexpected server error has occured
+     */
     500: {
         statusCode: number;
         message: string;
         error?: string;
     };
-    default: AuthMetadataDto;
 };
 
 export type AuthControllerGetMetadataError = AuthControllerGetMetadataErrors[keyof AuthControllerGetMetadataErrors];
