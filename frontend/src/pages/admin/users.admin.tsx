@@ -1,4 +1,10 @@
 import {
+  usersControllerFindAll,
+  type PaginationMetaDto,
+  type UserWithRelations,
+} from '@/integrations/api/client'
+import { formatPaginationMessage } from '@/utils/formatters'
+import {
   ActionIcon,
   Avatar,
   Box,
@@ -11,11 +17,13 @@ import {
   Pagination,
   Pill,
   rem,
+  Skeleton,
   Table,
   Text,
   TextInput,
   Title,
 } from '@mantine/core'
+import { useDebouncedCallback } from '@mantine/hooks'
 import {
   IconCancel,
   IconDotsVertical,
@@ -25,15 +33,88 @@ import {
   IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
-import { useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Suspense, useState, type ReactNode } from 'react'
+import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
+
+function UsersQueryProvider({
+  children,
+  props = { search: '', page: 1 },
+}: {
+  children: (props: {
+    users: UserWithRelations[]
+    meta: PaginationMetaDto | undefined
+    message: string
+    totalPages: number
+  }) => ReactNode
+  props?: {
+    search: string
+    page: number
+  }
+}) {
+  const { search, page } = props
+
+  const { data } = useSuspenseQuery({
+    queryKey: ['usersTable', search],
+    queryFn: async () => {
+      const response = await usersControllerFindAll({
+        query: { search, page },
+      })
+      return response.data
+    },
+  })
+
+  const users = data?.users ?? []
+  const meta = data?.meta
+  const limit = 10
+  const total = meta?.totalCount ?? 0
+  const totalPages = meta?.pageCount ?? 0
+
+  const message = formatPaginationMessage({ limit, page, total })
+
+  return children({
+    users,
+    meta,
+    message,
+    totalPages,
+  })
+}
 
 function UsersPage() {
-  const limit = 10
-  const total = 145
-  const totalPages = Math.ceil(total / limit)
+  const searchParam: {
+    search: string
+  } = useSearch({
+    from: '/(protected)/users',
+  })
 
+  const [search, setSearch] = useState(searchParam.search || '')
   const [page, setPage] = useState(1)
-  const message = `Showing ${limit * (page - 1) + 1} - ${Math.min(total, limit * page)} of ${total}`
+
+  const navigate = useNavigate()
+
+  const usersTableProps = {
+    search,
+    page,
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+
+    setSearch(value)
+
+    handleNavigate(value)
+  }
+
+  const handleNavigate = useDebouncedCallback(async (value: string) => {
+    navigate({
+      to: '/users',
+      search: (prev) => ({
+        ...prev,
+        search: value.trim(),
+      }),
+    })
+  }, 200)
 
   return (
     <Container fluid m={0}>
@@ -58,15 +139,22 @@ function UsersPage() {
             >
               All users
             </Title>
-            <Title
-              display={'flex'}
-              order={3}
-              c={'dark.3'}
-              fw={700}
-              lts={rem(0.4)}
-            >
-              44
-            </Title>
+
+            <Suspense fallback={<Skeleton visible h={rem(30)} w={rem(40)} />}>
+              <UsersQueryProvider>
+                {(props) => (
+                  <Title
+                    display={'flex'}
+                    order={3}
+                    c={'dark.3'}
+                    fw={700}
+                    lts={rem(0.4)}
+                  >
+                    {props.meta?.totalCount}
+                  </Title>
+                )}
+              </UsersQueryProvider>
+            </Suspense>
           </Flex>
 
           <Flex align={'center'} gap={5}>
@@ -75,6 +163,8 @@ function UsersPage() {
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
               w={rem(250)}
+              value={search}
+              onChange={(e) => handleSearch(e)}
             />
             <Button
               variant="default"
@@ -95,106 +185,36 @@ function UsersPage() {
           </Flex>
         </Flex>
 
-        <UsersTable />
+        <UsersTable props={usersTableProps} />
 
-        <Group justify="flex-end">
-          <Text size="sm">{message}</Text>
-          <Pagination
-            total={totalPages}
-            value={page}
-            onChange={setPage}
-            withPages={false}
-          />
-        </Group>
+        <Suspense fallback={<SuspendedPagination />}>
+          <UsersQueryProvider props={usersTableProps}>
+            {(props) => (
+              <Group justify="flex-end">
+                <Text size="sm">{props.message}</Text>
+                <Pagination
+                  total={props.totalPages}
+                  value={page}
+                  onChange={setPage}
+                  withPages={false}
+                />
+              </Group>
+            )}
+          </UsersQueryProvider>
+        </Suspense>
       </Flex>
     </Container>
   )
 }
 
-const userData = [
-  {
-    id: 1,
-    name: 'Florence Shaw',
-    email: 'florence@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1508214751196-c93f4e24c4e5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80',
-    access: ['Admin', 'Data Export', 'Data Import'],
-    lastActive: 'Mar 4, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 2,
-    name: 'Amélie Laurent',
-    email: 'amelie@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1586297135537-94bc8ba060aa?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1760&q=80',
-    access: ['Admin', 'Data Export', 'Data Import'],
-    lastActive: 'Mar 4, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 3,
-    name: 'Ammar Foley',
-    email: 'ammar@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1543610892-0b1f7e6b8ac6?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80',
-    access: ['Data Export', 'Data Import'],
-    lastActive: 'Mar 2, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 4,
-    name: 'Caitlyn King',
-    email: 'caitlyn@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1760&q=80',
-    access: ['Data Export', 'Data Import'],
-    lastActive: 'Mar 6, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 5,
-    name: 'Sienna Hewitt',
-    email: 'sienna@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1760&q=80',
-    access: ['Data Export', 'Data Import'],
-    lastActive: 'Mar 8, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 6,
-    name: 'Olly Shroeder',
-    email: 'olly@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1519345182560-2f2917c47671?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80',
-    access: ['Data Export', 'Data Import'],
-    lastActive: 'Mar 6, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 7,
-    name: 'Mathilde Lewis',
-    email: 'mathilde@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1760&q=80',
-    access: ['Data Export', 'Data Import'],
-    lastActive: 'Mar 4, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-  {
-    id: 8,
-    name: 'Jaya Willis',
-    email: 'jaya@untitledui.com',
-    avatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1760&q=80',
-    access: ['Data Export', 'Data Import'],
-    lastActive: 'Mar 4, 2024',
-    dateAdded: 'July 4, 2022',
-  },
-]
-
-function UsersTable() {
+function UsersTable({
+  props,
+}: {
+  props: {
+    search: string
+    page: number
+  }
+}) {
   return (
     <Table
       highlightOnHover
@@ -224,77 +244,86 @@ function UsersTable() {
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {userData.map((data) => (
-          <Table.Tr key={data.id}>
-            <Table.Td>
-              <Checkbox />
-            </Table.Td>
-            <Table.Td>
-              <Flex gap={'sm'} align={'center'} py={rem(5)}>
-                <Avatar name={data.name} src={data.avatar} />
-                <Flex direction={'column'}>
-                  <Text fw={600}>{data.name}</Text>
-                  <Text fz={'sm'} fw={500} c={'dark.2'}>
-                    {data.email}
-                  </Text>
-                </Flex>
-              </Flex>
-            </Table.Td>
-            <Table.Td>
-              <Flex gap={'xs'}>
-                {data.access.map((access) => (
-                  <Pill
-                    styles={{
-                      root: {
-                        border: '1px solid var(--mantine-color-blue-9)',
-                        backgroundColor: 'var(--mantine-color-blue-1)',
-                      },
-                    }}
-                  >
-                    <Text size="xs" c={'primary'} fw={500}>
-                      {access}
-                    </Text>
-                  </Pill>
-                ))}
-              </Flex>
-            </Table.Td>
-            <Table.Td>
-              <Text size="sm" c={'dark.6'}>
-                {data.dateAdded}
-              </Text>
-            </Table.Td>
-            <Table.Td>
-              <Menu
-                position="bottom-end"
-                shadow="xl"
-                width={rem(200)}
-                withArrow
-              >
-                <Menu.Target>
-                  <ActionIcon variant="subtle" color="gray" radius={'xl'}>
-                    <IconDotsVertical size={20} stroke={1.5} />
-                  </ActionIcon>
-                </Menu.Target>
-
-                <Menu.Dropdown>
-                  <Menu.Item leftSection={<IconPencil size={14} />}>
-                    Edit details
-                  </Menu.Item>
-
-                  <Menu.Item leftSection={<IconCancel size={14} />}>
-                    Disable
-                  </Menu.Item>
-
-                  <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
-                    Delete
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Table.Td>
-          </Table.Tr>
-        ))}
+        <Suspense fallback={<SuspendedTableRows />}>
+          <UsersQueryProvider props={props}>
+            {(props) =>
+              props.users.map((user: UserWithRelations) => (
+                <UsersTableRow user={user} />
+              ))
+            }
+          </UsersQueryProvider>
+        </Suspense>
       </Table.Tbody>
     </Table>
+  )
+}
+
+function UsersTableRow({ user }: { user: UserWithRelations }) {
+  return (
+    <>
+      <Table.Tr key={user.id}>
+        <Table.Td>
+          <Checkbox />
+        </Table.Td>
+        <Table.Td>
+          <Flex gap={'sm'} align={'center'} py={rem(5)}>
+            <Avatar name={`${user.firstName} ${user.lastName}`} />
+            <Flex direction={'column'}>
+              <Text fw={600}>
+                {user.firstName} {user.lastName}
+              </Text>
+              <Text fz={'sm'} fw={500} c={'dark.2'}>
+                {user.userAccount?.email}
+              </Text>
+            </Flex>
+          </Flex>
+        </Table.Td>
+        <Table.Td>
+          <Flex gap={'xs'}>
+            <Pill
+              styles={{
+                root: {
+                  border: '1px solid var(--mantine-color-blue-9)',
+                  backgroundColor: 'var(--mantine-color-blue-1)',
+                },
+              }}
+            >
+              <Text size="xs" c={'primary'} fw={500} className="capitalize">
+                {user.role}
+              </Text>
+            </Pill>
+          </Flex>
+        </Table.Td>
+        <Table.Td>
+          <Text size="sm" c={'dark.6'}>
+            {user.createdAt}
+          </Text>
+        </Table.Td>
+        <Table.Td>
+          <Menu position="bottom-end" shadow="xl" width={rem(200)} withArrow>
+            <Menu.Target>
+              <ActionIcon variant="subtle" color="gray" radius={'xl'}>
+                <IconDotsVertical size={20} stroke={1.5} />
+              </ActionIcon>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Menu.Item leftSection={<IconPencil size={14} />}>
+                Edit details
+              </Menu.Item>
+
+              <Menu.Item leftSection={<IconCancel size={14} />}>
+                Disable
+              </Menu.Item>
+
+              <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
+                Delete
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Table.Td>
+      </Table.Tr>
+    </>
   )
 }
 

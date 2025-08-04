@@ -114,7 +114,8 @@ export const zUsersControllerFindAllData = z.object({
             'student',
             'mentor',
             'admin'
-        ]))
+        ])),
+        page: z.optional(z.number()).default(1)
     }))
 });
 

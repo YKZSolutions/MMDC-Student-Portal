@@ -56,34 +56,33 @@ export class UsersService {
 
   async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
-      const where = {
-        ...(filters.role && { role: filters.role }),
+      const where: Prisma.UserWhereInput = {};
+      const page: FilterUserDto['page'] = Number(filters?.page) || 1;
 
-        ...(filters.search && {
+      if (filters.role) where.role = filters.role;
+
+      if (filters.search?.trim()) {
+        const searchTerms = filters.search
+          .trim()
+          .split(/\s+/) // split by whitespace
+          .filter(Boolean);
+
+        where.AND = searchTerms.map((term) => ({
           OR: [
             {
-              firstName: {
-                contains: filters.search,
-                mode: Prisma.QueryMode.insensitive,
-              },
+              firstName: { contains: term, mode: Prisma.QueryMode.insensitive },
             },
             {
-              lastName: {
-                contains: filters.search,
-                mode: Prisma.QueryMode.insensitive,
-              },
+              lastName: { contains: term, mode: Prisma.QueryMode.insensitive },
             },
             {
               userAccount: {
-                email: {
-                  contains: filters.search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
+                email: { contains: term, mode: Prisma.QueryMode.insensitive },
               },
             },
           ],
-        }),
-      };
+        }));
+      }
 
       const [users, meta] = await this.prisma.client.user
         .paginate({
@@ -95,7 +94,7 @@ export class UsersService {
         })
         .withPages({
           limit: 10,
-          page: 1,
+          page: page,
           includePageCount: true,
         });
 

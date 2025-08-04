@@ -88,6 +88,7 @@ export type UsersControllerFindAllData = {
     query?: {
         search?: string;
         role?: 'student' | 'mentor' | 'admin';
+        page?: number;
     };
     url: '/users';
 };

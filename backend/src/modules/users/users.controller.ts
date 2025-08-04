@@ -1,3 +1,4 @@
+import { Public } from '@/common/decorators/auth.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { User } from '@/generated/nestjs-dto/user.entity';
@@ -83,7 +84,8 @@ export class UsersController {
    * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching users.
    */
   @Get()
-  @Roles(Role.ADMIN)
+  // @Roles(Role.ADMIN)
+  @Public()
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
