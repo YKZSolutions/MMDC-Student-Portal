@@ -30,7 +30,6 @@ const ResetPasswordPage = () => {
       if (data){
         setError(null)
         setSuccess(true)
-          console.log(data)
       }
     }
 
