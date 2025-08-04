@@ -35,6 +35,10 @@ export const zUser = z.object({
     role: zRole,
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
+    disabledAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
     deletedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -106,6 +110,18 @@ export const zPaginatedUsersDto = z.object({
 export const zCreateCourseDto = z.object({});
 
 export const zUpdateCourseDto = z.object({});
+
+export const zUserStatus = z.enum([
+    'active',
+    'disabled',
+    'deleted'
+]);
+
+export const zAuthMetadataDto = z.object({
+    role: z.optional(zRole),
+    status: z.optional(zUserStatus),
+    user_id: z.optional(z.string())
+});
 
 export const zUsersControllerFindAllData = z.object({
     body: z.optional(z.never()),
@@ -224,3 +240,13 @@ export const zTestControllerTestAdminData = z.object({
 });
 
 export const zTestControllerTestAdminResponse = z.string();
+
+export const zAuthControllerGetMetadataData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        uid: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAuthControllerGetMetadataResponse = zAuthMetadataDto;

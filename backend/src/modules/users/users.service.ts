@@ -26,7 +26,6 @@ export class UsersService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
     private authService: AuthService,
-
   ) {}
 
   async create(createUserDto: CreateUserWithAccountDto) {
