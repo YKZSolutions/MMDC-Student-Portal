@@ -8,6 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/auth.decorator';
+import { AuthUser } from '../interfaces/auth.user-metadata';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -24,7 +25,7 @@ export class AuthGuard implements CanActivate {
 
     if (isPublic) return true;
 
-    const request: Request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) throw new UnauthorizedException('Access token is missing');
@@ -33,7 +34,7 @@ export class AuthGuard implements CanActivate {
 
     if (payload.error) throw new UnauthorizedException('Invalid access token');
 
-    request['user'] = payload.data.user;
+    request.user = payload.data.user as AuthUser;
 
     return true;
   }

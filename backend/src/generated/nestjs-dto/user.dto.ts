@@ -39,5 +39,11 @@ export class UserDto {
     format: 'date-time',
     nullable: true,
   })
+  disabledAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
   deletedAt: Date | null;
 }

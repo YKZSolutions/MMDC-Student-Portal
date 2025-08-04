@@ -23,6 +23,7 @@ export type User = {
     role: Role;
     createdAt: string;
     updatedAt: string;
+    disabledAt: string | null;
     deletedAt: string | null;
 };
 
@@ -84,6 +85,14 @@ export type CreateCourseDto = {
 
 export type UpdateCourseDto = {
     [key: string]: unknown;
+};
+
+export type UserStatus = 'active' | 'disabled' | 'deleted';
+
+export type AuthMetadataDto = {
+    role?: Role;
+    status?: UserStatus;
+    user_id?: string;
 };
 
 export type UsersControllerFindAllData = {
@@ -341,6 +350,37 @@ export type TestControllerTestAdminResponses = {
 };
 
 export type TestControllerTestAdminResponse = TestControllerTestAdminResponses[keyof TestControllerTestAdminResponses];
+
+export type AuthControllerGetMetadataData = {
+    body?: never;
+    path: {
+        uid: string;
+    };
+    query?: never;
+    url: '/auth/{uid}/metadata';
+};
+
+export type AuthControllerGetMetadataErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    default: AuthMetadataDto;
+};
+
+export type AuthControllerGetMetadataError = AuthControllerGetMetadataErrors[keyof AuthControllerGetMetadataErrors];
+
+export type AuthControllerGetMetadataResponses = {
+    200: AuthMetadataDto;
+};
+
+export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
 
 export type ClientOptions = {
     baseUrl: string;

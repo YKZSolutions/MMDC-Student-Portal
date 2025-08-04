@@ -3,11 +3,12 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../enums/roles.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { User } from '@supabase/supabase-js';
+import { Request } from 'express';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -21,9 +22,15 @@ export class RoleGuard implements CanActivate {
 
     if (!requiredRoles) return true;
 
-    const { user }: { user: User } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<Request>();
 
-    const userRoles = user.user_metadata.role as Role[];
+    if (!user) throw new UnauthorizedException('Role: User data not found');
+
+    const userRoles = user.user_metadata.role;
+
+    if (!userRoles)
+      throw new UnauthorizedException('Role of the user is not found');
+
     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole)
