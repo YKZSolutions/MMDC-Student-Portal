@@ -1,6 +1,7 @@
 import {
   usersControllerFindAll,
   type PaginationMetaDto,
+  type Role,
   type UserWithRelations,
 } from '@/integrations/api/client'
 import { formatPaginationMessage } from '@/utils/formatters'
@@ -16,12 +17,15 @@ import {
   Menu,
   Pagination,
   Pill,
+  Popover,
   rem,
   Skeleton,
+  Stack,
   Table,
   Text,
   TextInput,
   Title,
+  UnstyledButton,
 } from '@mantine/core'
 import { useDebouncedCallback } from '@mantine/hooks'
 import {
@@ -35,6 +39,7 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import dayjs from 'dayjs'
 import { Suspense, useState, type ReactNode } from 'react'
 import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
 
@@ -166,14 +171,31 @@ function UsersPage() {
               value={search}
               onChange={(e) => handleSearch(e)}
             />
-            <Button
-              variant="default"
-              radius={'md'}
-              leftSection={<IconFilter2 color="gray" size={20} />}
-              lts={rem(0.25)}
-            >
-              Filters
-            </Button>
+            <Popover position="bottom" width={rem(300)}>
+              <Popover.Target>
+                <Button
+                  variant="default"
+                  radius={'md'}
+                  leftSection={<IconFilter2 color="gray" size={20} />}
+                  lts={rem(0.25)}
+                >
+                  Filters
+                </Button>
+              </Popover.Target>
+              <Popover.Dropdown bg="var(--mantine-color-body)">
+                <Stack>
+                  <Flex justify={'space-between'}>
+                    <Title fw={500} c={'dark.8'} order={4}>
+                      Filter Users
+                    </Title>
+
+                    <UnstyledButton>
+                      <Text>Reset Filter</Text>
+                    </UnstyledButton>
+                  </Flex>
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
             <Button
               variant="filled"
               radius={'md'}
@@ -258,6 +280,47 @@ function UsersTable({
   )
 }
 
+function UsersRolePill({ role }: { role: Role }) {
+  const roleStyles: Record<
+    Role,
+    { border: string; backgroundColor: string; color: string }
+  > = {
+    mentor: {
+      border: '1px solid var(--mantine-color-green-9)',
+      backgroundColor: 'var(--mantine-color-green-1)',
+      color: 'var(--mantine-color-green-9)',
+    },
+    admin: {
+      border: '1px solid var(--mantine-color-blue-9)',
+      backgroundColor: 'var(--mantine-color-blue-1)',
+      color: 'var(--mantine-color-blue-9)',
+    },
+    student: {
+      border: '1px solid var(--mantine-color-violet-9)',
+      backgroundColor: 'var(--mantine-color-violet-1)',
+      color: 'var(--mantine-color-violet-9)',
+    },
+  }
+
+  const { border, backgroundColor, color } = roleStyles[role]
+
+  return (
+    <Pill
+      styles={{
+        root: {
+          border,
+          backgroundColor,
+          color,
+          fontWeight: 600,
+          textTransform: 'capitalize',
+        },
+      }}
+    >
+      {role}
+    </Pill>
+  )
+}
+
 function UsersTableRow({ user }: { user: UserWithRelations }) {
   return (
     <>
@@ -280,23 +343,12 @@ function UsersTableRow({ user }: { user: UserWithRelations }) {
         </Table.Td>
         <Table.Td>
           <Flex gap={'xs'}>
-            <Pill
-              styles={{
-                root: {
-                  border: '1px solid var(--mantine-color-blue-9)',
-                  backgroundColor: 'var(--mantine-color-blue-1)',
-                },
-              }}
-            >
-              <Text size="xs" c={'primary'} fw={500} className="capitalize">
-                {user.role}
-              </Text>
-            </Pill>
+            <UsersRolePill role={user.role} />
           </Flex>
         </Table.Td>
         <Table.Td>
-          <Text size="sm" c={'dark.6'}>
-            {user.createdAt}
+          <Text size="sm" c={'dark.3'} fw={500}>
+            {dayjs(user.createdAt).format('MMM D, YYYY')}
           </Text>
         </Table.Td>
         <Table.Td>
