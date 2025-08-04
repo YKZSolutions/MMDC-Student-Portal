@@ -19,18 +19,15 @@ const ResetPasswordPage = () => {
     })
 
     const handleSubmit = async (values: typeof form.values) => {
-      const {data,error} = await requestPasswordReset(values.email)
+      const response = await requestPasswordReset(values.email)
 
-      if (error) {
-        setError(error.message)
-      } else {
-        setError(null)
-      }
+        if (response.error) {
+          setError(response.error.message)
+          return
+        }
 
-      if (data){
-        setError(null)
-        setSuccess(true)
-      }
+      setError(null)
+      setSuccess(true)
     }
 
     return (
