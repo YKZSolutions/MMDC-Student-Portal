@@ -48,7 +48,7 @@ const requestPasswordReset = async (
   email: string,
 ): Promise<{ data: {} | null; error: AuthError | null }> => {
   return await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${window.location.origin}/update-password`,
   })
 }
 
@@ -106,7 +106,7 @@ export function useAuth<Route extends string>(route?: Exclude<Route, 'protected'
   login: typeof login;
   logout: typeof logout;
   requestPasswordReset: typeof requestPasswordReset
-  updateUserPassword: never
+  updateUserPassword: typeof updateUserPassword
 }
 
 export function useAuth(route?: string) {
