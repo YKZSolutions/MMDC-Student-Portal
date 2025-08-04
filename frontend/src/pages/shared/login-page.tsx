@@ -1,6 +1,6 @@
 import { useAuth } from '@/features/auth/auth.hook'
 import { zUserCredentialsDto } from '@/integrations/api/client/zod.gen'
-import { Button, Card, Checkbox, Container, Group, Stack, TextInput, Title } from '@mantine/core'
+import { Button, Card, Container, Group, Stack, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
@@ -57,8 +57,7 @@ function LoginPage() {
               disabled={form.submitting}
               {...form.getInputProps('password')}
             />
-            <Group justify="space-between" className="text-sm">
-              <Checkbox label="Remember me" disabled={form.submitting} />
+            <Group justify="end" className="text-sm">
               <Link
                 to="/reset-password"
                 className="underline decoration-dotted text-blue-950 hover:text-blue-600"
