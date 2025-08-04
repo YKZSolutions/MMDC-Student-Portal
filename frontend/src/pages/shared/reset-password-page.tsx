@@ -1,9 +1,9 @@
 import {useAuth} from "@/features/auth/auth.hook.ts";
 import {useForm} from "@mantine/form";
 import {zod4Resolver} from "mantine-form-zod-resolver";
-import { zUserCredentialsDto } from '@/integrations/api/client/zod.gen.ts'
 import { Button, Card, Container, Stack, TextInput, Title } from '@mantine/core'
 import { useState } from 'react'
+import { emailValidator } from '@/features/validation/custom-validaitons.ts'
 
 const ResetPasswordPage = () => {
     const { requestPasswordReset } = useAuth()
@@ -15,17 +15,20 @@ const ResetPasswordPage = () => {
         initialValues: {
             email: ''
         },
-        validate: zod4Resolver(zUserCredentialsDto),
+        validate: zod4Resolver(emailValidator),
     })
 
     const handleSubmit = async (values: typeof form.values) => {
-      const response = await requestPasswordReset(values.email)
+      const { error } = await requestPasswordReset(values.email)
 
-        if (response.error) {
-          setError(response.error.message)
-          return
-        }
+      if (error) {
+        console.log("error")
+        console.log(error.message)
+        setError(error.message)
+        return
+      }
 
+      console.log('Password reset link sent to', values.email)
       setError(null)
       setSuccess(true)
     }

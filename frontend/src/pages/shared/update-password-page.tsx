@@ -3,8 +3,8 @@ import { useAuth } from '@/features/auth/auth.hook.ts'
 import { useState } from 'react'
 import { useForm } from '@mantine/form'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
-import { zUserCredentialsDto } from '@/integrations/api/client/zod.gen.ts'
 import { getRouteApi } from '@tanstack/react-router'
+import {passwordValidator} from "@/features/validation/custom-validaitons.ts";
 
 const route = getRouteApi('/(auth)/update-password')
 
@@ -20,7 +20,7 @@ const UpdatePasswordPage = () => {
     initialValues: {
       password: ''
     },
-    validate: zod4Resolver(zUserCredentialsDto),
+    validate: zod4Resolver(passwordValidator),
   })
 
   const handleSubmit = async (values: typeof form.values) => {
