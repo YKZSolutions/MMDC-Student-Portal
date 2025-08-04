@@ -10,7 +10,7 @@ import { AuthUser, UserMetadata } from '@/common/interfaces/auth.user-metadata';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { AuthMetadataDto } from './dto/auth-metadata.dto';
 
@@ -18,11 +18,24 @@ import { AuthMetadataDto } from './dto/auth-metadata.dto';
 export class AuthController {
   constructor(private readonly supabase: SupabaseService) {}
 
+  /**
+   * Get User Account Metadata
+   *
+   * @remarks Retrieves the supabase auth account's metadata based on the uid given
+   *
+   * @param {string} uid - Query parameters for filtering, sorting, and pagination.
+   * @returns {AuthMetadataDto} The user's metadata
+   *
+   */
   @Get(':uid/metadata')
   @Roles(Role.ADMIN)
-  @ApiResponse({ type: AuthMetadataDto })
-  @ApiException(() => NotFoundException)
-  @ApiException(() => InternalServerErrorException)
+  @ApiOkResponse({ type: AuthMetadataDto })
+  @ApiException(() => NotFoundException, {
+    description: 'If the uid provided is invalid',
+  })
+  @ApiException(() => InternalServerErrorException, {
+    description: 'If an unexpected server error has occured',
+  })
   async getMetadata(@Param('uid') uid: string): Promise<AuthMetadataDto> {
     try {
       const data = await this.supabase.auth.admin.getUserById(uid);
