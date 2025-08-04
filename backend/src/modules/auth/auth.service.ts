@@ -27,6 +27,23 @@ export class AuthService {
     return account.data.user;
   }
 
+  async invite(email: string, role: Role) {
+    const account = await this.supabase.auth.admin.inviteUserByEmail(email, {
+      data: {
+        role: role,
+      },
+      redirectTo: 'http://localhost:3000/update-password',
+    });
+
+    if (account.error) {
+      this.logger.error(`Failed to invite user: ${account.error.message}`);
+      throw new BadRequestException('Error inviting user to Supabase');
+    }
+
+    // The data object will contain the invited user's information.
+    return account.data.user;
+  }
+
   async updateMetadata(id: string, metadata: Partial<UserMetadata>) {
     const account = await this.supabase.auth.admin.updateUserById(id, {
       user_metadata: metadata,

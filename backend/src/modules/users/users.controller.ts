@@ -28,6 +28,7 @@ import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { Request } from 'express';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 
 /**
  *
@@ -53,6 +54,28 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserWithAccountDto): Promise<User> {
     try {
       const user = await this.usersService.create(createUserDto);
+
+      return user.user;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Invite a new user
+   *
+   * @remarks This operation creates both a user and a supabase auth account
+   *
+   */
+  @Post('invite')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async inviteUser(@Body() inviteUserDto: InviteUserDto): Promise<User> {
+    try {
+      const user = await this.usersService.inviteUser(inviteUserDto);
 
       return user.user;
     } catch (err) {
