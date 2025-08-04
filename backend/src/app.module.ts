@@ -9,6 +9,7 @@ import { SupabaseModule } from './lib/supabase/supabase.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { TestModule } from './modules/test/test.module';
 import { UsersModule } from './modules/users/users.module';
+import { UserStatusGuard } from './common/guards/user-status.guard';
 
 @Module({
   imports: [
@@ -33,6 +34,10 @@ import { UsersModule } from './modules/users/users.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: UserStatusGuard,
     },
     {
       provide: APP_GUARD,

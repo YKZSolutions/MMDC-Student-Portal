@@ -21,5 +21,6 @@
     "paths": {
       "@/*": ["*"]
     }
-  }
+  },
+  "include": ["src", "src/common/types/request.d.ts"]
 }
