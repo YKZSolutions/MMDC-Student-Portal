@@ -13,7 +13,7 @@ import { Route as protectedRouteRouteImport } from './routes/(protected)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as protectedUsersRouteImport } from './routes/(protected)/users'
-import { Route as protectedUpdatePasswordRouteImport } from './routes/(protected)/updatePassword'
+import { Route as protectedUpdatePasswordRouteImport } from './routes/(protected)/update-password'
 import { Route as protectedProfileRouteImport } from './routes/(protected)/profile'
 import { Route as protectedNotificationsRouteImport } from './routes/(protected)/notifications'
 import { Route as protectedEnrollmentRouteImport } from './routes/(protected)/enrollment'
@@ -42,8 +42,8 @@ const protectedUsersRoute = protectedUsersRouteImport.update({
   getParentRoute: () => protectedRouteRoute,
 } as any)
 const protectedUpdatePasswordRoute = protectedUpdatePasswordRouteImport.update({
-  id: '/updatePassword',
-  path: '/updatePassword',
+  id: '/update-password',
+  path: '/update-password',
   getParentRoute: () => protectedRouteRoute,
 } as any)
 const protectedProfileRoute = protectedProfileRouteImport.update({
@@ -91,7 +91,7 @@ export interface FileRoutesByFullPath {
   '/enrollment': typeof protectedEnrollmentRoute
   '/notifications': typeof protectedNotificationsRoute
   '/profile': typeof protectedProfileRoute
-  '/updatePassword': typeof protectedUpdatePasswordRoute
+  '/update-password': typeof protectedUpdatePasswordRoute
   '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -104,7 +104,7 @@ export interface FileRoutesByTo {
   '/enrollment': typeof protectedEnrollmentRoute
   '/notifications': typeof protectedNotificationsRoute
   '/profile': typeof protectedProfileRoute
-  '/updatePassword': typeof protectedUpdatePasswordRoute
+  '/update-password': typeof protectedUpdatePasswordRoute
   '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -119,7 +119,7 @@ export interface FileRoutesById {
   '/(protected)/enrollment': typeof protectedEnrollmentRoute
   '/(protected)/notifications': typeof protectedNotificationsRoute
   '/(protected)/profile': typeof protectedProfileRoute
-  '/(protected)/updatePassword': typeof protectedUpdatePasswordRoute
+  '/(protected)/update-password': typeof protectedUpdatePasswordRoute
   '/(protected)/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -134,7 +134,7 @@ export interface FileRouteTypes {
     | '/enrollment'
     | '/notifications'
     | '/profile'
-    | '/updatePassword'
+    | '/update-password'
     | '/users'
     | '/demo/tanstack-query'
   fileRoutesByTo: FileRoutesByTo
@@ -147,7 +147,7 @@ export interface FileRouteTypes {
     | '/enrollment'
     | '/notifications'
     | '/profile'
-    | '/updatePassword'
+    | '/update-password'
     | '/users'
     | '/demo/tanstack-query'
   id:
@@ -161,7 +161,7 @@ export interface FileRouteTypes {
     | '/(protected)/enrollment'
     | '/(protected)/notifications'
     | '/(protected)/profile'
-    | '/(protected)/updatePassword'
+    | '/(protected)/update-password'
     | '/(protected)/users'
     | '/demo/tanstack-query'
   fileRoutesById: FileRoutesById
@@ -204,10 +204,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedUsersRouteImport
       parentRoute: typeof protectedRouteRoute
     }
-    '/(protected)/updatePassword': {
-      id: '/(protected)/updatePassword'
-      path: '/updatePassword'
-      fullPath: '/updatePassword'
+    '/(protected)/update-password': {
+      id: '/(protected)/update-password'
+      path: '/update-password'
+      fullPath: '/update-password'
       preLoaderRoute: typeof protectedUpdatePasswordRouteImport
       parentRoute: typeof protectedRouteRoute
     }
