@@ -128,7 +128,7 @@ export class UsersController {
    */
 
   @Get()
-  // @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN)
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
