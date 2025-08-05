@@ -195,6 +195,7 @@ export class UsersController {
    * @throws {InternalServerErrorException} If an unexpected error occurs during the operation.
    */
   @Patch(':id/disable')
+  @Roles(Role.ADMIN)
   @ApiOkResponse({ description: 'User disabled successfully' })
   @ApiException(() => [
     NotFoundException,
