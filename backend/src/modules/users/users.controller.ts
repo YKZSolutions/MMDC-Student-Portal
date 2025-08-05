@@ -202,41 +202,33 @@ export class UsersController {
   }
 
   /**
-   * Disables a user account by setting the `disabledAt` timestamp.
-   *
-   * @param id - The ID of the user to disable.
+   * Updates the status of a user (enable/disable).
    *
    * @remarks
-   * - This endpoint marks a user as disabled by updating the `disabledAt` field.
-   * - It ensures the user exists and is not already disabled.
-   * - Also verifies that the associated user account exists.
-   *
-   * @returns A confirmation that the user has been successfully disabled.
-   *
-   * @throws {NotFoundException} If the user or the user's account does not exist.
-   * @throws {BadRequestException} If the user is already disabled.
-   * @throws {InternalServerErrorException} If an unexpected error occurs during the operation.
+   * This endpoint toggles the user's status between active and disabled
+   * by updating the `disabledAt` field. The change is also reflected in
+   * the authentication provider's metadata.
    */
-  @Patch(':id/disable')
+
+  @Patch(':id/status')
   @Roles(Role.ADMIN)
-  @ApiOkResponse({ description: 'User disabled successfully' })
-  @ApiException(() => [
-    NotFoundException,
-    BadRequestException,
-    InternalServerErrorException,
-  ])
-  async disable(@Param('id') id: string) {
-    try {
-      await this.usersService.disableUser(id);
-
-      return { message: 'User disabled successfully.' };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException('An unexpected error has occured');
-    }
+  @ApiOkResponse({
+    description: 'User status updated successfully',
+    schema: {
+      properties: {
+        message: {
+          type: 'string',
+          examples: [
+            'User enabled successfully.',
+            'User disabled successfully.',
+          ],
+        },
+      },
+    },
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  async updateUserStatus(@Param('id') id: string) {
+    return this.usersService.updateStatus(id);
   }
 
   // @Delete(':id')
