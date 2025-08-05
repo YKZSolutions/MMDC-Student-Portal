@@ -11,6 +11,7 @@ import { TestModule } from './modules/test/test.module';
 import { UsersModule } from './modules/users/users.module';
 import { UserStatusGuard } from './common/guards/user-status.guard';
 import { AuthModule } from './modules/auth/auth.module';
+import { PaymongoModule } from './modules/paymongo/paymongo.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthModule } from './modules/auth/auth.module';
     SupabaseModule,
     TestModule,
     AuthModule,
+    PaymongoModule,
   ],
   controllers: [],
   providers: [
