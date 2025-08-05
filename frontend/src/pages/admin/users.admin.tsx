@@ -189,7 +189,7 @@ function UsersPage() {
 
           <Flex align={'center'} gap={5}>
             <TextInput
-              placeholder="Search"
+              placeholder="Search name/email"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
               w={rem(250)}
