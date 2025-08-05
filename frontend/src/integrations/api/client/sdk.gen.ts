@@ -176,6 +176,10 @@ export const testControllerTestAdmin = <ThrowOnError extends boolean = false>(op
     });
 };
 
+/**
+ * Get User Account Metadata
+ * Retrieves the supabase auth account's metadata based on the uid given
+ */
 export const authControllerGetMetadata = <ThrowOnError extends boolean = false>(options: Options<AuthControllerGetMetadataData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<AuthControllerGetMetadataResponses, AuthControllerGetMetadataErrors, ThrowOnError>({
         url: '/auth/{uid}/metadata',

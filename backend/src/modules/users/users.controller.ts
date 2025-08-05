@@ -1,34 +1,34 @@
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { User } from '@/generated/nestjs-dto/user.entity';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
   Controller,
+  Get,
+  HttpException,
+  InternalServerErrorException,
+  NotFoundException,
   Param,
   Post,
   Put,
-  Req,
-  Get,
-  HttpException,
-  NotFoundException,
-  InternalServerErrorException,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { Request } from 'express';
-import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 
 /**
  *
