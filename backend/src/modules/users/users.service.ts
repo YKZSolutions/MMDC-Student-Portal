@@ -1,4 +1,5 @@
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { AuthService } from '@/modules/auth/auth.service';
 import {
   BadRequestException,
   HttpException,
@@ -8,14 +9,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { AuthService } from '@/modules/auth/auth.service';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 
 @Injectable()
@@ -89,34 +89,35 @@ export class UsersService {
 
   async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
-      const where = {
-        ...(filters.search && {
+      const where: Prisma.UserWhereInput = {};
+      const page: FilterUserDto['page'] = Number(filters?.page) || 1;
+
+      if (filters.role) where.role = filters.role;
+
+      if (filters.search?.trim()) {
+        const searchTerms = filters.search
+          .trim()
+          .split(/\s+/) // split by whitespace
+          .filter(Boolean);
+
+        where.AND = searchTerms.map((term) => ({
           OR: [
             {
-              firstName: {
-                contains: filters.search,
-                mode: Prisma.QueryMode.insensitive,
-              },
+              firstName: { contains: term, mode: Prisma.QueryMode.insensitive },
             },
             {
-              lastName: {
-                contains: filters.search,
-                mode: Prisma.QueryMode.insensitive,
-              },
+              lastName: { contains: term, mode: Prisma.QueryMode.insensitive },
             },
             {
               userAccount: {
-                email: {
-                  contains: filters.search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
+                email: { contains: term, mode: Prisma.QueryMode.insensitive },
               },
             },
           ],
-        }),
+        }));
+      }
 
-        disabledAt: null,
-      };
+      where.disabledAt = null;
 
       const [users, meta] = await this.prisma.client.user
         .paginate({
@@ -128,7 +129,7 @@ export class UsersService {
         })
         .withPages({
           limit: 10,
-          page: 1,
+          page: page,
           includePageCount: true,
         });
 

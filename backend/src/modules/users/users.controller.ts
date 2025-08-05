@@ -6,29 +6,29 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Param,
-  Post,
-  Put,
-  Req,
   Get,
   HttpException,
-  NotFoundException,
   InternalServerErrorException,
-  Query,
+  NotFoundException,
+  Param,
   Patch,
+  Post,
+  Put,
+  Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { Request } from 'express';
 
 /**
  *
