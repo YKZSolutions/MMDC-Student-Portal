@@ -213,54 +213,58 @@ export class UsersService {
   }
 
   /**
-   * Disables a user and updates related authentication metadata.
+   * Toggles a user's status between active and disabled, and updates related authentication metadata.
    *
-   * @param userId - The ID of the user to disable.
+   * @param userId - The ID of the user whose status will be toggled.
    *
    * @throws {NotFoundException} If the user or their user account does not exist.
-   * @throws {BadRequestException} If the user is already disabled.
    * @throws {InternalServerErrorException} If an unexpected error occurs.
+   *
+   * @remarks
+   * - If the user is currently active, this will set the `disabledAt` timestamp to disable them.
+   * - If the user is currently disabled, this will set `disabledAt` to `null` to enable them.
+   * - The user's status in the authentication provider will also be updated accordingly.
    */
-  async disableUser(userId: string) {
+  async updateStatus(userId: string): Promise<{ message: string }> {
     try {
       const user = await this.prisma.client.user.findUnique({
         where: { id: userId },
+        select: {
+          disabledAt: true,
+          userAccount: { select: { authUid: true } },
+        },
       });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
-      if (user.disabledAt) {
-        throw new BadRequestException('User already disabled');
+      if (!user.userAccount) {
+        throw new NotFoundException(`User account for ${userId} not found`);
       }
 
-      const userAccount = await this.prisma.client.userAccount.findUnique({
-        where: { userId: userId },
-      });
-
-      if (!userAccount) {
-        throw new NotFoundException(`User account for ID ${userId} not found`);
-      }
-
+      const isDisabled = !!user.disabledAt;
       await this.prisma.client.user.update({
         where: { id: userId },
-        data: { disabledAt: new Date() },
+        data: { disabledAt: isDisabled ? null : new Date() },
       });
 
-      await this.authService.updateMetadata(userAccount.authUid, {
-        status: 'disabled',
+      await this.authService.updateMetadata(user.userAccount.authUid, {
+        status: isDisabled ? 'active' : 'disabled',
       });
 
-      this.logger.log(`User with ID ${userId} was successfully disabled.`);
+      return {
+        message: isDisabled
+          ? 'User enabled successfully.'
+          : 'User disabled successfully.',
+      };
     } catch (error) {
-      this.logger.error('Error disabling user');
+      this.logger.error(`Error updating status for user ${userId}`);
 
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException('An unexpected error has occured');
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(
+        'An unexpected error has occurred',
+      );
     }
   }
 
