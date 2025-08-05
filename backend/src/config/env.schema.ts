@@ -23,6 +23,9 @@ export const envSchema = z.object({
   GEMINI_API_KEY: z.string(),
 
   SITE_URL: z.url().default('http://localhost:3000'),
+
+  PAYMONGO_SECRET_KEY: z.string(),
+  PAYMONGO_WEBHOOK_SECRET: z.string(),
 });
 
 export type EnvVars = z.infer<typeof envSchema>;
