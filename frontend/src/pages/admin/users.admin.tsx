@@ -41,10 +41,12 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState, type ReactNode } from 'react'
 import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
+
+const route = getRouteApi('/(protected)/users')
 
 function UsersQueryProvider({
   children,
@@ -90,9 +92,7 @@ function UsersPage() {
   const searchParam: {
     search: string
     role: Role | null
-  } = useSearch({
-    from: '/(protected)/users',
-  })
+  } = route.useSearch()
   const navigate = useNavigate()
 
   const queryDefaultValues = {
