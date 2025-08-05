@@ -1,34 +1,65 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Public } from '@/common/decorators/auth.decorator';
+import { StatusBypass } from '@/common/decorators/user-status.decorator';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  InternalServerErrorException,
+  Logger,
+  Post,
+} from '@nestjs/common';
+import { AxiosError } from 'axios';
 import { PaymongoService } from './paymongo.service';
-import { CreatePaymongoDto } from './dto/create-paymongo.dto';
-import { UpdatePaymongoDto } from './dto/update-paymongo.dto';
 
 @Controller('paymongo')
 export class PaymongoController {
+  private readonly logger = new Logger(PaymongoController.name);
+
   constructor(private readonly paymongoService: PaymongoService) {}
 
-  @Post()
-  create(@Body() createPaymongoDto: CreatePaymongoDto) {
-    return this.paymongoService.create(createPaymongoDto);
+  @Post('create-ewallet-source')
+  @Public()
+  @StatusBypass()
+  async createEwallet(
+    @Body() body: { amount: number; type: 'gcash' | 'maya' },
+  ) {
+    try {
+      const source = await this.paymongoService.createEwalletSource(
+        body.amount,
+        body.type,
+      );
+      return { checkoutUrl: source.data.attributes.redirect.checkout_url };
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        this.logger.debug(err.response);
+        throw new BadRequestException(err.response?.data.errors);
+      }
+      throw new InternalServerErrorException('Failed to create source');
+    }
   }
 
-  @Get()
-  findAll() {
-    return this.paymongoService.findAll();
-  }
+  // @Post()
+  // create(@Body() createPaymongoDto: CreatePaymongoDto) {
+  //   return this.paymongoService.create(createPaymongoDto);
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymongoService.findOne(+id);
-  }
+  // @Get()
+  // findAll() {
+  //   return this.paymongoService.findAll();
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePaymongoDto: UpdatePaymongoDto) {
-    return this.paymongoService.update(+id, updatePaymongoDto);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.paymongoService.findOne(+id);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymongoService.remove(+id);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updatePaymongoDto: UpdatePaymongoDto) {
+  //   return this.paymongoService.update(+id, updatePaymongoDto);
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.paymongoService.remove(+id);
+  // }
 }
