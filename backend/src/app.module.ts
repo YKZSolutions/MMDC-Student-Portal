@@ -12,6 +12,7 @@ import { UsersModule } from './modules/users/users.module';
 import { UserStatusGuard } from './common/guards/user-status.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { PaymongoModule } from './modules/paymongo/paymongo.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PaymongoModule } from './modules/paymongo/paymongo.module';
     TestModule,
     AuthModule,
     PaymongoModule,
+    WebhookModule,
   ],
   controllers: [],
   providers: [
