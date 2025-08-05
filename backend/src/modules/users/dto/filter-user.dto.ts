@@ -11,6 +11,9 @@ export class FilterUserDto {
   @ApiProperty({ enum: Role, required: false })
   role?: Role;
 
+  @ApiProperty({ type: 'number', required: false, default: 1 })
+  page?: number;
+
   //   @ApiProperty({ enum: UserAccountStatus })
   //   status: UserAccountStatus;
 }
