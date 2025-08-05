@@ -1,6 +1,7 @@
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { User } from '@/generated/nestjs-dto/user.entity';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
@@ -53,6 +54,28 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserWithAccountDto): Promise<User> {
     try {
       const user = await this.usersService.create(createUserDto);
+
+      return user.user;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Invite a new user
+   *
+   * @remarks This operation creates both a user and a supabase auth account
+   *
+   */
+  @Post('invite')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async inviteUser(@Body() inviteUserDto: InviteUserDto): Promise<User> {
+    try {
+      const user = await this.usersService.inviteUser(inviteUserDto);
 
       return user.user;
     } catch (err) {

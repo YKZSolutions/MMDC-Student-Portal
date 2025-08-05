@@ -17,6 +17,7 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -36,37 +37,71 @@ export class UsersService {
         createUserDto.role,
       );
 
-      try {
-        return await this.prisma.client.$transaction(async (tx) => {
-          const { credentials, ...userData } = createUserDto;
-
-          const user = await tx.user.create({
-            data: { ...userData },
-          });
-
-          const userAccount = await tx.userAccount.create({
-            data: {
-              userId: user.id,
-              authUid: account.id,
-              email: account.email,
+      return await this.prisma.client.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            firstName: createUserDto.firstName,
+            middleName: createUserDto.middleName,
+            lastName: createUserDto.lastName,
+            role: createUserDto.role,
+            userAccount: {
+              create: {
+                authUid: account.id,
+                email: account.email,
+              },
             },
-          });
-
-          await this.authService.updateMetadata(account.id, {
-            user_id: user.id,
-          });
-
-          return { user, userAccount };
+          },
         });
-      } catch (dbError) {
-        // TODO:Enable to clean up the auth account if DB transaction fails
-        // await this.authService.deleteAccount(account.id);
-        throw dbError;
-      }
+
+        await this.authService.updateMetadata(account.id, {
+          user_id: user.id,
+        });
+
+        return { user };
+      });
     } catch (err) {
       this.logger.error(`Failed to create user: ${err}`);
+
+      //TODO: implement deleting the account that was just created upon error
+      // await this.authService.delete(account.id);
+
       throw new InternalServerErrorException('Failed to create the user');
     }
+  }
+
+  async inviteUser(inviteUserDto: InviteUserDto) {
+    return await this.prisma.client.$transaction(async (tx) => {
+      try {
+        const account = await this.authService.invite(
+          inviteUserDto.email,
+          inviteUserDto.role,
+        );
+
+        const user = await tx.user.create({
+          data: {
+            firstName: inviteUserDto.firstName,
+            middleName: inviteUserDto.middleName,
+            lastName: inviteUserDto.lastName,
+            role: inviteUserDto.role,
+            userAccount: {
+              create: {
+                authUid: account.id,
+                email: account.email,
+              },
+            },
+          },
+        });
+
+        await this.authService.updateMetadata(account.id, {
+          user_id: user.id,
+        });
+
+        return { user };
+      } catch (e) {
+        this.logger.error(`Failed to invite user: ${e}`);
+        throw new InternalServerErrorException('Failed to invite the user');
+      }
+    });
   }
 
   async updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
