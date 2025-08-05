@@ -15,6 +15,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   Query,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -125,8 +126,9 @@ export class UsersController {
    * @throws {BadRequestException} If the provided filters are invalid or cannot be processed.
    * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching users.
    */
+
   @Get()
-  @Roles(Role.ADMIN)
+  // @Roles(Role.ADMIN)
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
@@ -173,6 +175,43 @@ export class UsersController {
         throw error;
       }
       throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
+
+  /**
+   * Disables a user account by setting the `disabledAt` timestamp.
+   *
+   * @param id - The ID of the user to disable.
+   *
+   * @remarks
+   * - This endpoint marks a user as disabled by updating the `disabledAt` field.
+   * - It ensures the user exists and is not already disabled.
+   * - Also verifies that the associated user account exists.
+   *
+   * @returns A confirmation that the user has been successfully disabled.
+   *
+   * @throws {NotFoundException} If the user or the user's account does not exist.
+   * @throws {BadRequestException} If the user is already disabled.
+   * @throws {InternalServerErrorException} If an unexpected error occurs during the operation.
+   */
+  @Patch(':id/disable')
+  @ApiOkResponse({ description: 'User disabled successfully' })
+  @ApiException(() => [
+    NotFoundException,
+    BadRequestException,
+    InternalServerErrorException,
+  ])
+  async disable(@Param('id') id: string) {
+    try {
+      await this.usersService.disableUser(id);
+
+      return { message: 'User disabled successfully.' };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('An unexpected error has occured');
     }
   }
 
