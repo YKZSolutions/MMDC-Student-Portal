@@ -1,4 +1,5 @@
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { AuthService } from '@/modules/auth/auth.service';
 import {
   BadRequestException,
   HttpException,
@@ -8,14 +9,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { AuthService } from '@/modules/auth/auth.service';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 
@@ -152,6 +152,8 @@ export class UsersService {
         }));
       }
 
+      where.disabledAt = null;
+
       const [users, meta] = await this.prisma.client.user
         .paginate({
           where,
@@ -207,6 +209,62 @@ export class UsersService {
       }
 
       throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
+
+  /**
+   * Toggles a user's status between active and disabled, and updates related authentication metadata.
+   *
+   * @param userId - The ID of the user whose status will be toggled.
+   *
+   * @throws {NotFoundException} If the user or their user account does not exist.
+   * @throws {InternalServerErrorException} If an unexpected error occurs.
+   *
+   * @remarks
+   * - If the user is currently active, this will set the `disabledAt` timestamp to disable them.
+   * - If the user is currently disabled, this will set `disabledAt` to `null` to enable them.
+   * - The user's status in the authentication provider will also be updated accordingly.
+   */
+  async updateStatus(userId: string): Promise<{ message: string }> {
+    try {
+      const user = await this.prisma.client.user.findUnique({
+        where: { id: userId },
+        select: {
+          disabledAt: true,
+          userAccount: { select: { authUid: true } },
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      if (!user.userAccount) {
+        throw new NotFoundException(`User account for ${userId} not found`);
+      }
+
+      const isDisabled = !!user.disabledAt;
+      await this.prisma.client.user.update({
+        where: { id: userId },
+        data: { disabledAt: isDisabled ? null : new Date() },
+      });
+
+      await this.authService.updateMetadata(user.userAccount.authUid, {
+        status: isDisabled ? 'active' : 'disabled',
+      });
+
+      return {
+        message: isDisabled
+          ? 'User enabled successfully.'
+          : 'User disabled successfully.',
+      };
+    } catch (error) {
+      this.logger.error(`Error updating status for user ${userId}`);
+
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(
+        'An unexpected error has occurred',
+      );
     }
   }
 

@@ -12,6 +12,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -148,6 +149,7 @@ export class UsersController {
    * @throws {BadRequestException} If the provided filters are invalid or cannot be processed.
    * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching users.
    */
+
   @Get()
   @Roles(Role.ADMIN)
   @ApiOkResponse({
@@ -197,6 +199,36 @@ export class UsersController {
       }
       throw new InternalServerErrorException('Failed to fetch user');
     }
+  }
+
+  /**
+   * Updates the status of a user (enable/disable).
+   *
+   * @remarks
+   * This endpoint toggles the user's status between active and disabled
+   * by updating the `disabledAt` field. The change is also reflected in
+   * the authentication provider's metadata.
+   */
+
+  @Patch(':id/status')
+  @Roles(Role.ADMIN)
+  @ApiOkResponse({
+    description: 'User status updated successfully',
+    schema: {
+      properties: {
+        message: {
+          type: 'string',
+          examples: [
+            'User enabled successfully.',
+            'User disabled successfully.',
+          ],
+        },
+      },
+    },
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  async updateUserStatus(@Param('id') id: string) {
+    return this.usersService.updateStatus(id);
   }
 
   // @Delete(':id')
