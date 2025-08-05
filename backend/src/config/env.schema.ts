@@ -21,6 +21,8 @@ export const envSchema = z.object({
   DIRECT_LOCAL_URL: z.url(),
 
   GEMINI_API_KEY: z.string(),
+
+  SITE_URL: z.url().default('http://localhost:3000'),
 });
 
 export type EnvVars = z.infer<typeof envSchema>;
