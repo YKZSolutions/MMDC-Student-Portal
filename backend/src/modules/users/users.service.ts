@@ -90,8 +90,6 @@ export class UsersService {
   async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
       const where = {
-        ...(filters.role && { role: filters.role }),
-
         ...(filters.search && {
           OR: [
             {
@@ -116,6 +114,8 @@ export class UsersService {
             },
           ],
         }),
+
+        disabledAt: null,
       };
 
       const [users, meta] = await this.prisma.client.user
@@ -173,6 +173,58 @@ export class UsersService {
       }
 
       throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
+
+  /**
+   * Disables a user and updates related authentication metadata.
+   *
+   * @param userId - The ID of the user to disable.
+   *
+   * @throws {NotFoundException} If the user or their user account does not exist.
+   * @throws {BadRequestException} If the user is already disabled.
+   * @throws {InternalServerErrorException} If an unexpected error occurs.
+   */
+  async disableUser(userId: string) {
+    try {
+      const user = await this.prisma.client.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      if (user.disabledAt) {
+        throw new BadRequestException('User already disabled');
+      }
+
+      const userAccount = await this.prisma.client.userAccount.findUnique({
+        where: { userId: userId },
+      });
+
+      if (!userAccount) {
+        throw new NotFoundException(`User account for ID ${userId} not found`);
+      }
+
+      await this.prisma.client.user.update({
+        where: { id: userId },
+        data: { disabledAt: new Date() },
+      });
+
+      await this.authService.updateMetadata(userAccount.authUid, {
+        status: 'disabled',
+      });
+
+      this.logger.log(`User with ID ${userId} was successfully disabled.`);
+    } catch (error) {
+      this.logger.error('Error disabling user');
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('An unexpected error has occured');
     }
   }
 
