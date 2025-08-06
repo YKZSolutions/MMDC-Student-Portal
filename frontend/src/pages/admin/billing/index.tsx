@@ -273,7 +273,7 @@ function BillingPage() {
           {currentInvoices.map((invoice) => (
             <Table.Tr
               key={invoice.id}
-              onClick={() =>
+              onClick={(e) =>
                 navigate({
                   to: '/billing/' + invoice.id,
                 })
@@ -297,7 +297,12 @@ function BillingPage() {
               <Table.Td>
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
-                    <ActionIcon variant="subtle" color="gray" radius={'xl'}>
+                    <ActionIcon
+                      onClick={(e) => e.stopPropagation()}
+                      variant="subtle"
+                      color="gray"
+                      radius={'xl'}
+                    >
                       <IconDotsVertical size={20} stroke={1.5} />
                     </ActionIcon>
                   </Menu.Target>
