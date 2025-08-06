@@ -15,7 +15,7 @@ import {
   Table,
   Text,
   TextInput,
-  Title,
+  Title
 } from '@mantine/core'
 import {
   IconDotsVertical,
@@ -40,7 +40,7 @@ const MOCK_INVOICES = [
       name: 'Bessie Cooper',
       avatar: 'https://placehold.co/40x40/FF6347/FFFFFF?text=BC',
     },
-    services: 'Diagnostic Evaluation',
+    description: 'Tuition Fee',
     price: 160.0,
   },
   {
@@ -52,7 +52,7 @@ const MOCK_INVOICES = [
       name: 'Leslie Alexander',
       avatar: 'https://placehold.co/40x40/3CB371/FFFFFF?text=LA',
     },
-    services: 'Company ITD Solution',
+    description: 'Tuition Fee',
     price: 267.0,
   },
   {
@@ -64,7 +64,7 @@ const MOCK_INVOICES = [
       name: 'Ralph Edwards',
       avatar: 'https://placehold.co/40x40/FFD700/FFFFFF?text=RE',
     },
-    services: 'Appointment Add- on',
+    description: 'Tuition Fee',
     price: 267.18,
   },
   {
@@ -76,7 +76,7 @@ const MOCK_INVOICES = [
       name: 'Savannah Nguyen',
       avatar: 'https://placehold.co/40x40/4682B4/FFFFFF?text=SN',
     },
-    services: 'Standard Appointment',
+    description: 'Tuition Fee',
     price: 153.3,
   },
   {
@@ -88,7 +88,7 @@ const MOCK_INVOICES = [
       name: 'Eleanor Pena',
       avatar: 'https://placehold.co/40x40/8A2BE2/FFFFFF?text=EP',
     },
-    services: 'Company ITD Solution',
+    description: 'Tuition Fee',
     price: 178.45,
   },
   {
@@ -100,7 +100,7 @@ const MOCK_INVOICES = [
       name: 'Dianne Russell',
       avatar: 'https://placehold.co/40x40/DAA520/FFFFFF?text=DR',
     },
-    services: 'Diagnostic Evaluation',
+    description: 'Tuition Fee',
     price: 235.2,
   },
   {
@@ -112,7 +112,7 @@ const MOCK_INVOICES = [
       name: 'Leslie Alexander',
       avatar: 'https://placehold.co/40x40/008080/FFFFFF?text=LA',
     },
-    services: 'Diagnostic Evaluation',
+    description: 'Tuition Fee',
     price: 124.0,
   },
 ]
@@ -258,7 +258,7 @@ function BillingPage() {
               <Checkbox size="sm" />
             </Table.Th>
             <Table.Th>Invoice ID</Table.Th>
-            <Table.Th>Student Name</Table.Th>
+            <Table.Th>User</Table.Th>
             <Table.Th>Status</Table.Th>
             <Table.Th>Issue Date</Table.Th>
             <Table.Th>Amount</Table.Th>
@@ -283,7 +283,16 @@ function BillingPage() {
                 <Checkbox size="sm" />
               </Table.Td>
               <Table.Td>{invoice.id}</Table.Td>
-              <Table.Td>{invoice.clientName}</Table.Td>
+              <Table.Td>
+                <Flex gap={'sm'} align={'center'}>
+                  <Flex direction={'column'}>
+                    <Text fw={600}>{invoice.clientName}</Text>
+                    <Text fz={'sm'} fw={500} c={'dark.2'}>
+                      test@email.com
+                    </Text>
+                  </Flex>
+                </Flex>
+              </Table.Td>
               <Table.Td>
                 <Badge variant="light" radius="lg">
                   <Text className="capitalize" fz={'xs'} fw={500}>
