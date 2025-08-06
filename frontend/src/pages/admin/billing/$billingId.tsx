@@ -119,7 +119,7 @@ function BillingIdPage() {
   const [opened, { open, close }] = useDisclosure(false)
 
   return (
-    <Container size={'md'}>
+    <Container size={'md'} pb={'lg'}>
       <Flex align={'center'} pb={'lg'}>
         <Group>
           <ActionIcon
