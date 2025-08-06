@@ -131,6 +131,7 @@ function BillingIdPage() {
       </Flex>
 
       <Drawer
+        position="right"
         opened={opened}
         onClose={close}
         title={
