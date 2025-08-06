@@ -68,4 +68,11 @@ export const adminLinks: NavItem[] = [
     IconInactive: IconUser,
     fuzzy: true,
   },
+  {
+    link: '/billing',
+    label: 'Billing',
+    Icon: IconCashBanknoteFilled,
+    IconInactive: IconCashBanknote,
+    fuzzy: true,
+  },
 ]

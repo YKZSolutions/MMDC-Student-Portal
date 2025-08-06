@@ -1,3 +1,4 @@
+import BillingPage from '@/pages/shared/billing-page'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(protected)/billing')({
@@ -5,5 +6,5 @@ export const Route = createFileRoute('/(protected)/billing')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/(protected)/billing"!</div>
+  return <BillingPage />
 }
