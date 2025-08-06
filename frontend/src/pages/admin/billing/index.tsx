@@ -185,7 +185,7 @@ function BillingPage() {
             Manage invoices and billing information here.
           </Text>
         </Box>
-        <Flex align={'center'} gap={5} ml={'auto'}>
+        <Group gap={'sm'} align={'center'} ml={'auto'}>
           <Button
             variant="outline"
             radius={'md'}
@@ -205,7 +205,7 @@ function BillingPage() {
           >
             New Invoice
           </Button>
-        </Flex>
+        </Group>
       </Flex>
 
       {/* <Card padding="lg" radius="md" withBorder> */}
