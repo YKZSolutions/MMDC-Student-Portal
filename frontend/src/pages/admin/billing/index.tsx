@@ -182,7 +182,7 @@ function BillingPage() {
             Billing
           </Title>
           <Text c={'dark.3'} fw={500}>
-            Manage your invoices and billing information here.
+            Manage invoices and billing information here.
           </Text>
         </Box>
         <Flex align={'center'} gap={5} ml={'auto'}>
