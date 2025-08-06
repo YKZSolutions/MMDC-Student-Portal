@@ -1,6 +1,5 @@
-import { Role } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -25,12 +24,4 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   lastName?: string;
-  @ApiProperty({
-    enum: Role,
-    enumName: 'Role',
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
 }
