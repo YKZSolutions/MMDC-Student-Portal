@@ -1,4 +1,5 @@
 import {
+    ActionIcon,
     Button,
     Container,
     Drawer,
@@ -14,7 +15,8 @@ import {
     Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconHistory, IconUpload } from '@tabler/icons-react'
+import { IconArrowLeft, IconHistory, IconUpload } from '@tabler/icons-react'
+import { useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 
 const bills = {
@@ -108,15 +110,30 @@ const paymentHistory = [
 ]
 
 function BillingIdPage() {
+  const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
 
   return (
     <Container size={'md'}>
-      <Flex align={'start'} pb={'lg'}>
-        <Title c={'dark.7'} variant="hero" order={2} fw={700}>
-          Billing Details
-        </Title>
-        <Flex align={'center'} gap={5} ml={'auto'}>
+      <Flex align={'center'} pb={'lg'}>
+        <Group>
+          <ActionIcon
+            radius={'xl'}
+            variant="subtle"
+            size={'lg'}
+            onClick={() =>
+              navigate({
+                to: '..',
+              })
+            }
+          >
+            <IconArrowLeft />
+          </ActionIcon>
+          <Title c={'dark.7'} variant="hero" order={2} fw={700}>
+            Billing Details
+          </Title>
+        </Group>
+        <Group align={'center'} gap={5} ml={'auto'}>
           <Button
             variant="outline"
             radius={'md'}
@@ -127,7 +144,7 @@ function BillingIdPage() {
           >
             Export
           </Button>
-        </Flex>
+        </Group>
       </Flex>
 
       <Drawer
