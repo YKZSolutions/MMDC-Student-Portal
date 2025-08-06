@@ -15,7 +15,12 @@ import {
     Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconArrowLeft, IconHistory, IconUpload } from '@tabler/icons-react'
+import {
+    IconArrowLeft,
+    IconHistory,
+    IconPlus,
+    IconUpload,
+} from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 
@@ -143,6 +148,14 @@ function BillingIdPage() {
             lts={rem(0.25)}
           >
             Export
+          </Button>
+          <Button
+            variant="filled"
+            radius={'md'}
+            leftSection={<IconPlus size={20} />}
+            lts={rem(0.25)}
+          >
+            Pay Bill
           </Button>
         </Group>
       </Flex>
