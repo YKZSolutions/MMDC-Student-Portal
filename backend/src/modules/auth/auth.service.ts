@@ -17,7 +17,17 @@ export class AuthService {
     this.siteUrl = this.configService.get('SITE_URL')!;
   }
 
-  async create(email: string, password: string, role: Role) {
+  /**
+   * Creates a new Supabase user account with the given email, password, and role.
+   * The account will be marked as active and the email will be auto-confirmed.
+   *
+   * @param email - The email address for the new user.
+   * @param password - The password for the new user.
+   * @param role - The role to assign to the user (e.g., 'student', 'admin').
+   * @returns The created Supabase user object.
+   * @throws BadRequestException if the Supabase account creation fails.
+   */
+  async create(role: Role, email: string, password?: string) {
     const account = await this.supabase.auth.admin.createUser({
       email: email,
       password: password,
@@ -54,6 +64,14 @@ export class AuthService {
     return account.data.user;
   }
 
+  /**
+   * Updates the metadata of an existing Supabase user account.
+   *
+   * @param id - The Supabase UID of the user to update.
+   * @param metadata - Partial user metadata to be merged into the existing data.
+   * @returns The updated Supabase user object.
+   * @throws BadRequestException if the update operation fails.
+   */
   async updateMetadata(id: string, metadata: Partial<UserMetadata>) {
     const account = await this.supabase.auth.admin.updateUserById(id, {
       user_metadata: metadata,
@@ -65,5 +83,22 @@ export class AuthService {
     }
 
     return account.data.user;
+  }
+
+  /**
+   * Deletes a Supabase user account by UID.
+   *
+   * @param uid - The UID of the user to delete.
+   * @throws BadRequestException if the deletion fails.
+   */
+  async delete(uid: string) {
+    const account = await this.supabase.auth.admin.deleteUser(uid);
+
+    if (account.error) {
+      this.logger.error(`Failed to create account: ${account.error.message}`);
+      throw new BadRequestException('Error deleting Supabase account');
+    }
+
+    this.logger.log(`Successful account deletion`);
   }
 }
