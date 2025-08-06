@@ -9,15 +9,24 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {
+  CreateUserFullDto,
+  CreateUserStaffDto,
+  CreateUserStudentDto,
+} from './dto/create-user.dto';
+import {
+  UpdateUserStudentDto,
+  UpdateUserStaffDto,
+} from './dto/update-user-details.dto';
+import { Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
+import { User } from '@supabase/supabase-js';
+import { UserDto } from '@/generated/nestjs-dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -29,41 +38,114 @@ export class UsersService {
     private authService: AuthService,
   ) {}
 
-  async create(createUserDto: CreateUserWithAccountDto) {
+  /**
+   * Handles Supabase account creation and executes a callback that creates the corresponding Prisma user.
+   * It also sets the user's metadata which will be used in handling of role and status guards.
+   * If Prisma creation fails, it will delete the Supabase account.
+   *
+   * @param credentials - The user's login credentials.
+   * @param role - Role of the user (student, admin, etc).
+   * @param callback - A function to create the Prisma user, passed the Supabase user object.
+   * @returns The created Prisma user.
+   * @throws BadRequestException if user creation in DB fails.
+   */
+  async accountCreationHandler(
+    credentials: CreateUserFullDto['credentials'],
+    role: Role,
+    callback: (user: User) => Promise<UserDto>,
+  ) {
+    const account = await this.authService.create(
+      role,
+      credentials.email,
+      credentials.password,
+    );
     try {
-      const account = await this.authService.create(
-        createUserDto.credentials?.email || 'test@email',
-        createUserDto.credentials?.password || '1234',
-        createUserDto.role,
-      );
+      const user = await callback(account);
 
-      return await this.prisma.client.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            firstName: createUserDto.firstName,
-            middleName: createUserDto.middleName,
-            lastName: createUserDto.lastName,
-            role: createUserDto.role,
+      await this.authService.updateMetadata(account.id, {
+        user_id: user.id,
+      });
+
+      return user;
+    } catch (err) {
+      this.logger.error(`Error creating user in DB: ${err}`);
+      if (
+        err instanceof Prisma.PrismaClientValidationError ||
+        err instanceof Prisma.PrismaClientKnownRequestError
+      ) {
+        await this.authService.delete(account.id);
+      }
+      throw new BadRequestException('Error creating user in DB');
+    }
+  }
+
+  /**
+   * Creates a new user with associated Supabase account and database records.
+   *
+   * @param role - The role of the user being created.
+   * @param createUserDto - The complete user creation payload.
+   * @returns The created user object.
+   * @throws InternalServerErrorException if user creation fails.
+   */
+  async create(
+    role: Role,
+    createUserDto:
+      | CreateUserFullDto
+      | CreateUserStudentDto
+      | CreateUserStaffDto,
+  ) {
+    try {
+      const {
+        user: userDto,
+        credentials,
+        userDetails: userDetailsDto,
+      } = createUserDto;
+
+      const user = await this.accountCreationHandler(
+        credentials,
+        role,
+        async (account) => {
+          const baseUserData: Prisma.UserCreateInput = {
+            ...userDto,
+            role,
             userAccount: {
               create: {
                 authUid: account.id,
                 email: account.email,
               },
             },
-          },
-        });
+            userDetails: {
+              create: userDetailsDto || {
+                dateJoined: new Date(),
+              },
+            },
+          };
 
-        await this.authService.updateMetadata(account.id, {
-          user_id: user.id,
-        });
+          if (
+            !('role' in createUserDto) &&
+            'specificDetails' in createUserDto
+          ) {
+            baseUserData.studentDetails = {
+              create: createUserDto.specificDetails,
+            };
+          } else if (
+            (role === 'mentor' || role === 'admin') &&
+            'specificDetails' in createUserDto
+          ) {
+            baseUserData.staffDetails = {
+              create: createUserDto.specificDetails,
+            };
+          }
 
-        return { user };
-      });
+          return await this.prisma.client.user.create({
+            data: baseUserData,
+          });
+        },
+      );
+
+      return user;
     } catch (err) {
       this.logger.error(`Failed to create user: ${err}`);
-
-      //TODO: implement deleting the account that was just created upon error
-      // await this.authService.delete(account.id);
 
       throw new InternalServerErrorException('Failed to create the user');
     }
@@ -104,17 +186,50 @@ export class UsersService {
     });
   }
 
-  async updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
-    //TODO: Include other fields later on if there are updates in the schema
-    //TODO: Other user details are not included, would be updated if implemented in the create method
+  /**
+   * Updates a user’s basic personal details (first name, middle name, last name).
+   *
+   * @param userId - The UUID of the user.
+   * @param role - The Role of the user ("student", "mentor", "admin").
+   * @param updateUserDto - Partial fields to update.
+   * @returns The updated user object.
+   * @throws InternalServerErrorException if update fails.
+   */
+  async updateUserDetails(
+    userId: string,
+    role: Role,
+    updateUserDto: UpdateUserStudentDto | UpdateUserStaffDto,
+  ) {
     try {
+      const {
+        user: userDto,
+        userDetails: userDetailsDto,
+        specificDetails: specificDetailsDto,
+      } = updateUserDto;
+
+      const baseUserData: Prisma.UserUpdateInput = {
+        ...userDto,
+        userDetails: {
+          update: userDetailsDto,
+        },
+      };
+
+      if (!('role' in updateUserDto) && 'specificDetails' in updateUserDto) {
+        baseUserData.studentDetails = {
+          update: specificDetailsDto,
+        };
+      } else if (
+        (role === 'mentor' || role === 'admin') &&
+        'specificDetails' in updateUserDto
+      ) {
+        baseUserData.staffDetails = {
+          update: specificDetailsDto,
+        };
+      }
+
       return await this.prisma.client.user.update({
         where: { id: userId },
-        data: {
-          firstName: updateUserDto.firstName,
-          middleName: updateUserDto.middleName,
-          lastName: updateUserDto.lastName,
-        },
+        data: baseUserData,
       });
     } catch (err) {
       this.logger.error(`Failed to update user db entry: ${err}`);
@@ -122,6 +237,13 @@ export class UsersService {
     }
   }
 
+  /**
+   * Finds all users that match provided filters (e.g. role, search keyword) with pagination.
+   *
+   * @param filters - Filter and pagination options.
+   * @returns Paginated list of users with metadata.
+   * @throws BadRequestException or InternalServerErrorException based on the failure type.
+   */
   async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
     try {
       const where: Prisma.UserWhereInput = {};
@@ -152,8 +274,6 @@ export class UsersService {
         }));
       }
 
-      where.disabledAt = null;
-
       const [users, meta] = await this.prisma.client.user
         .paginate({
           where,
@@ -180,6 +300,15 @@ export class UsersService {
     }
   }
 
+  /**
+   * Finds a user by their ID, including related records like userAccount and userDetails.
+   *
+   * @param id - UUID of the user.
+   * @returns The user and their related entities.
+   * @throws BadRequestException if the ID format is invalid.
+   * @throws NotFoundException if the user does not exist.
+   * @throws InternalServerErrorException for all other errors.
+   */
   async findOne(id: string): Promise<UserWithRelations> {
     try {
       if (!isUUID(id)) {
