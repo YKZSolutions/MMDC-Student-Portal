@@ -45,6 +45,17 @@ export const zUser = z.object({
     ])
 });
 
+export const zInviteUserDto = z.object({
+    firstName: z.string(),
+    middleName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.string(),
+    role: zRole,
+    email: z.email()
+});
+
 export const zUpdateUserDetailsDto = z.object({});
 
 export const zUserAccount = z.object({
@@ -150,6 +161,14 @@ export const zUsersControllerCreateData = z.object({
 
 export const zUsersControllerCreateResponse = zUser;
 
+export const zUsersControllerInviteUserData = z.object({
+    body: zInviteUserDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerInviteUserResponse = zUser;
+
 export const zUsersControllerUpdateOwnUserDetailsData = z.object({
     body: zUpdateUserDetailsDto,
     path: z.optional(z.never()),
@@ -178,6 +197,21 @@ export const zUsersControllerUpdateUserDetailsData = z.object({
 });
 
 export const zUsersControllerUpdateUserDetailsResponse = zUser;
+
+export const zUsersControllerUpdateUserStatusData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * User status updated successfully
+ */
+export const zUsersControllerUpdateUserStatusResponse = z.object({
+    message: z.optional(z.string())
+});
 
 export const zCoursesControllerFindAllData = z.object({
     body: z.optional(z.never()),

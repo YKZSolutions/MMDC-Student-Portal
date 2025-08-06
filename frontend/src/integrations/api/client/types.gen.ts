@@ -27,6 +27,14 @@ export type User = {
     deletedAt: string | null;
 };
 
+export type InviteUserDto = {
+    firstName: string;
+    middleName?: string | null;
+    lastName: string;
+    role: Role;
+    email: string;
+};
+
 export type UpdateUserDetailsDto = {
     [key: string]: unknown;
 };
@@ -158,6 +166,34 @@ export type UsersControllerCreateResponses = {
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
 
+export type UsersControllerInviteUserData = {
+    body: InviteUserDto;
+    path?: never;
+    query?: never;
+    url: '/users/invite';
+};
+
+export type UsersControllerInviteUserErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerInviteUserError = UsersControllerInviteUserErrors[keyof UsersControllerInviteUserErrors];
+
+export type UsersControllerInviteUserResponses = {
+    201: User;
+};
+
+export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
+
 export type UsersControllerUpdateOwnUserDetailsData = {
     body: UpdateUserDetailsDto;
     path?: never;
@@ -253,6 +289,41 @@ export type UsersControllerUpdateUserDetailsResponses = {
 };
 
 export type UsersControllerUpdateUserDetailsResponse = UsersControllerUpdateUserDetailsResponses[keyof UsersControllerUpdateUserDetailsResponses];
+
+export type UsersControllerUpdateUserStatusData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/users/{id}/status';
+};
+
+export type UsersControllerUpdateUserStatusErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateUserStatusError = UsersControllerUpdateUserStatusErrors[keyof UsersControllerUpdateUserStatusErrors];
+
+export type UsersControllerUpdateUserStatusResponses = {
+    /**
+     * User status updated successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type UsersControllerUpdateUserStatusResponse = UsersControllerUpdateUserStatusResponses[keyof UsersControllerUpdateUserStatusResponses];
 
 export type CoursesControllerFindAllData = {
     body?: never;
