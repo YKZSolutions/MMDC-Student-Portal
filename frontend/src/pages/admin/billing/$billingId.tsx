@@ -138,7 +138,7 @@ function BillingIdPage() {
             Billing Details
           </Title>
         </Group>
-        <Group align={'center'} gap={5} ml={'auto'}>
+        <Group align={'center'} gap={"sm"} ml={'auto'}>
           <Button
             variant="outline"
             radius={'md'}
