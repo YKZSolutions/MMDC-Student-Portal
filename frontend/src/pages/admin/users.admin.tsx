@@ -153,7 +153,7 @@ function UsersPage() {
           User management
         </Title>
         <Text c={'dark.3'} fw={500}>
-          Manage your team members and their account permissions here.
+          Manage users and their account permissions here.
         </Text>
       </Box>
 
