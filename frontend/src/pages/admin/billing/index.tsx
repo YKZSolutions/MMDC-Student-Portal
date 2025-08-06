@@ -15,7 +15,7 @@ import {
   Table,
   Text,
   TextInput,
-  Title
+  Title,
 } from '@mantine/core'
 import {
   IconDotsVertical,
@@ -282,7 +282,11 @@ function BillingPage() {
               <Table.Td>
                 <Checkbox size="sm" />
               </Table.Td>
-              <Table.Td>{invoice.id}</Table.Td>
+              <Table.Td>
+                <Text size="sm" c={'dark.3'} fw={500}>
+                  {invoice.id}
+                </Text>
+              </Table.Td>
               <Table.Td>
                 <Flex gap={'sm'} align={'center'}>
                   <Flex direction={'column'}>
@@ -300,9 +304,17 @@ function BillingPage() {
                   </Text>
                 </Badge>
               </Table.Td>
-              <Table.Td>{invoice.issueDate}</Table.Td>
+              <Table.Td>
+                <Text size="sm" c={'dark.3'} fw={500}>
+                  {invoice.issueDate}
+                </Text>
+              </Table.Td>
 
-              <Table.Td>${invoice.price.toFixed(2)}</Table.Td>
+              <Table.Td>
+                <Text size="sm" fw={500}>
+                  ${invoice.price.toFixed(2)}
+                </Text>
+              </Table.Td>
               <Table.Td>
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
