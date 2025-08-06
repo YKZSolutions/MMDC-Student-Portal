@@ -1,34 +1,35 @@
-import { Public } from '@/common/decorators/auth.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { User } from '@/generated/nestjs-dto/user.entity';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
   Controller,
-  Param,
-  Post,
-  Put,
-  Req,
   Get,
   HttpException,
-  NotFoundException,
   InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Put,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { Request } from 'express';
 
 /**
  *
@@ -54,6 +55,28 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserWithAccountDto): Promise<User> {
     try {
       const user = await this.usersService.create(createUserDto);
+
+      return user.user;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Invite a new user
+   *
+   * @remarks This operation creates both a user and a supabase auth account
+   *
+   */
+  @Post('invite')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async inviteUser(@Body() inviteUserDto: InviteUserDto): Promise<User> {
+    try {
+      const user = await this.usersService.inviteUser(inviteUserDto);
 
       return user.user;
     } catch (err) {
@@ -126,9 +149,9 @@ export class UsersController {
    * @throws {BadRequestException} If the provided filters are invalid or cannot be processed.
    * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching users.
    */
+
   @Get()
-  // @Roles(Role.ADMIN)
-  @Public()
+  @Roles(Role.ADMIN)
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
@@ -176,6 +199,36 @@ export class UsersController {
       }
       throw new InternalServerErrorException('Failed to fetch user');
     }
+  }
+
+  /**
+   * Updates the status of a user (enable/disable).
+   *
+   * @remarks
+   * This endpoint toggles the user's status between active and disabled
+   * by updating the `disabledAt` field. The change is also reflected in
+   * the authentication provider's metadata.
+   */
+
+  @Patch(':id/status')
+  @Roles(Role.ADMIN)
+  @ApiOkResponse({
+    description: 'User status updated successfully',
+    schema: {
+      properties: {
+        message: {
+          type: 'string',
+          examples: [
+            'User enabled successfully.',
+            'User disabled successfully.',
+          ],
+        },
+      },
+    },
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  async updateUserStatus(@Param('id') id: string) {
+    return this.usersService.updateStatus(id);
   }
 
   // @Delete(':id')

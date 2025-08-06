@@ -1,4 +1,5 @@
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { AuthService } from '@/modules/auth/auth.service';
 import {
   BadRequestException,
   HttpException,
@@ -8,15 +9,15 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
-import { AuthService } from '@/modules/auth/auth.service';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateUserWithAccountDto } from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -36,37 +37,71 @@ export class UsersService {
         createUserDto.role,
       );
 
-      try {
-        return await this.prisma.client.$transaction(async (tx) => {
-          const { credentials, ...userData } = createUserDto;
-
-          const user = await tx.user.create({
-            data: { ...userData },
-          });
-
-          const userAccount = await tx.userAccount.create({
-            data: {
-              userId: user.id,
-              authUid: account.id,
-              email: account.email,
+      return await this.prisma.client.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            firstName: createUserDto.firstName,
+            middleName: createUserDto.middleName,
+            lastName: createUserDto.lastName,
+            role: createUserDto.role,
+            userAccount: {
+              create: {
+                authUid: account.id,
+                email: account.email,
+              },
             },
-          });
-
-          await this.authService.updateMetadata(account.id, {
-            user_id: user.id,
-          });
-
-          return { user, userAccount };
+          },
         });
-      } catch (dbError) {
-        // TODO:Enable to clean up the auth account if DB transaction fails
-        // await this.authService.deleteAccount(account.id);
-        throw dbError;
-      }
+
+        await this.authService.updateMetadata(account.id, {
+          user_id: user.id,
+        });
+
+        return { user };
+      });
     } catch (err) {
       this.logger.error(`Failed to create user: ${err}`);
+
+      //TODO: implement deleting the account that was just created upon error
+      // await this.authService.delete(account.id);
+
       throw new InternalServerErrorException('Failed to create the user');
     }
+  }
+
+  async inviteUser(inviteUserDto: InviteUserDto) {
+    return await this.prisma.client.$transaction(async (tx) => {
+      try {
+        const account = await this.authService.invite(
+          inviteUserDto.email,
+          inviteUserDto.role,
+        );
+
+        const user = await tx.user.create({
+          data: {
+            firstName: inviteUserDto.firstName,
+            middleName: inviteUserDto.middleName,
+            lastName: inviteUserDto.lastName,
+            role: inviteUserDto.role,
+            userAccount: {
+              create: {
+                authUid: account.id,
+                email: account.email,
+              },
+            },
+          },
+        });
+
+        await this.authService.updateMetadata(account.id, {
+          user_id: user.id,
+        });
+
+        return { user };
+      } catch (e) {
+        this.logger.error(`Failed to invite user: ${e}`);
+        throw new InternalServerErrorException('Failed to invite the user');
+      }
+    });
   }
 
   async updateUserDetails(userId: string, updateUserDto: UpdateUserDetailsDto) {
@@ -116,6 +151,8 @@ export class UsersService {
           ],
         }));
       }
+
+      where.disabledAt = null;
 
       const [users, meta] = await this.prisma.client.user
         .paginate({
@@ -172,6 +209,62 @@ export class UsersService {
       }
 
       throw new InternalServerErrorException('Failed to fetch user');
+    }
+  }
+
+  /**
+   * Toggles a user's status between active and disabled, and updates related authentication metadata.
+   *
+   * @param userId - The ID of the user whose status will be toggled.
+   *
+   * @throws {NotFoundException} If the user or their user account does not exist.
+   * @throws {InternalServerErrorException} If an unexpected error occurs.
+   *
+   * @remarks
+   * - If the user is currently active, this will set the `disabledAt` timestamp to disable them.
+   * - If the user is currently disabled, this will set `disabledAt` to `null` to enable them.
+   * - The user's status in the authentication provider will also be updated accordingly.
+   */
+  async updateStatus(userId: string): Promise<{ message: string }> {
+    try {
+      const user = await this.prisma.client.user.findUnique({
+        where: { id: userId },
+        select: {
+          disabledAt: true,
+          userAccount: { select: { authUid: true } },
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      if (!user.userAccount) {
+        throw new NotFoundException(`User account for ${userId} not found`);
+      }
+
+      const isDisabled = !!user.disabledAt;
+      await this.prisma.client.user.update({
+        where: { id: userId },
+        data: { disabledAt: isDisabled ? null : new Date() },
+      });
+
+      await this.authService.updateMetadata(user.userAccount.authUid, {
+        status: isDisabled ? 'active' : 'disabled',
+      });
+
+      return {
+        message: isDisabled
+          ? 'User enabled successfully.'
+          : 'User disabled successfully.',
+      };
+    } catch (error) {
+      this.logger.error(`Error updating status for user ${userId}`);
+
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(
+        'An unexpected error has occurred',
+      );
     }
   }
 

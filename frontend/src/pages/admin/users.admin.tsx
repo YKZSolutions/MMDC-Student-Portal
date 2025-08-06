@@ -1,15 +1,18 @@
+import { roleOptions, roleStyles } from '@/features/user-management/constants'
+import type { IQuery } from '@/features/user-management/types'
 import {
-  usersControllerFindAll,
   type PaginationMetaDto,
   type Role,
   type UserWithRelations,
 } from '@/integrations/api/client'
+import { usersControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
   Avatar,
   Box,
   Button,
+  Center,
   Checkbox,
   Container,
   Flex,
@@ -38,14 +41,20 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState, type ReactNode } from 'react'
 import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
 
+const route = getRouteApi('/(protected)/users')
+
 function UsersQueryProvider({
   children,
-  props = { search: '', page: 1 },
+  props = {
+    search: '',
+    page: 1,
+    role: null,
+  },
 }: {
   children: (props: {
     users: UserWithRelations[]
@@ -53,22 +62,15 @@ function UsersQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: {
-    search: string
-    page: number
-  }
+  props?: IQuery
 }) {
-  const { search, page } = props
+  const { search, page, role } = props
 
-  const { data } = useSuspenseQuery({
-    queryKey: ['usersTable', search],
-    queryFn: async () => {
-      const response = await usersControllerFindAll({
-        query: { search, page },
-      })
-      return response.data
-    },
-  })
+  const { data } = useSuspenseQuery(
+    usersControllerFindAllOptions({
+      query: { search, page, ...(role && { role }) },
+    }),
+  )
 
   const users = data?.users ?? []
   const meta = data?.meta
@@ -89,24 +91,25 @@ function UsersQueryProvider({
 function UsersPage() {
   const searchParam: {
     search: string
-  } = useSearch({
-    from: '/(protected)/users',
-  })
-
-  const [search, setSearch] = useState(searchParam.search || '')
-  const [page, setPage] = useState(1)
-
+    role: Role | null
+  } = route.useSearch()
   const navigate = useNavigate()
 
-  const usersTableProps = {
-    search,
-    page,
+  const queryDefaultValues = {
+    search: searchParam.search || '',
+    page: 1,
+    role: searchParam.role || null,
   }
+
+  const [query, setQuery] = useState<IQuery>(queryDefaultValues)
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
 
-    setSearch(value)
+    setQuery((prev) => ({
+      ...prev,
+      search: value,
+    }))
 
     handleNavigate(value)
   }
@@ -116,10 +119,32 @@ function UsersPage() {
       to: '/users',
       search: (prev) => ({
         ...prev,
-        search: value.trim(),
+        search: value.trim() || undefined,
       }),
     })
   }, 200)
+
+  const handlePage = (page: IQuery['page']) => {
+    setQuery((prev) => ({
+      ...prev,
+      page,
+    }))
+  }
+
+  const handleRoleFilter = (role: IQuery['role']) => {
+    setQuery((prev) => ({
+      ...prev,
+      role,
+    }))
+
+    navigate({
+      to: '/users',
+      search: (prev) => ({
+        ...prev,
+        role: role || undefined,
+      }),
+    })
+  }
 
   return (
     <Container fluid m={0}>
@@ -164,11 +189,11 @@ function UsersPage() {
 
           <Flex align={'center'} gap={5}>
             <TextInput
-              placeholder="Search"
+              placeholder="Search name/email"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
               w={rem(250)}
-              value={search}
+              value={query.search}
               onChange={(e) => handleSearch(e)}
             />
             <Popover position="bottom" width={rem(300)}>
@@ -189,10 +214,55 @@ function UsersPage() {
                       Filter Users
                     </Title>
 
-                    <UnstyledButton>
-                      <Text>Reset Filter</Text>
+                    <UnstyledButton
+                      styles={{
+                        root: {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                      c={'primary'}
+                      onClick={() => setQuery(queryDefaultValues)}
+                    >
+                      Reset Filter
                     </UnstyledButton>
                   </Flex>
+
+                  <Stack gap={'xs'}>
+                    <Text fw={500} c={'gray.7'} fz={'sm'}>
+                      Role
+                    </Text>
+                    <Flex
+                      justify={'space-between'}
+                      w={'100%'}
+                      wrap={'wrap'}
+                      gap={'sm'}
+                    >
+                      {roleOptions.map((role) => (
+                        <Button
+                          className="flex-[47%]"
+                          key={role.value}
+                          variant={
+                            query.role === role.value ? 'filled' : 'outline'
+                          }
+                          styles={{
+                            root: {
+                              background:
+                                query.role === role.value
+                                  ? 'var(--mantine-color-gray-3)'
+                                  : 'transparent',
+                              borderColor: 'var(--mantine-color-gray-3)',
+                              color: 'var(--mantine-color-dark-7)',
+                            },
+                          }}
+                          radius={'xl'}
+                          leftSection={role.icon}
+                          onClick={() => handleRoleFilter(role.value)}
+                        >
+                          {role.label}
+                        </Button>
+                      ))}
+                    </Flex>
+                  </Stack>
                 </Stack>
               </Popover.Dropdown>
             </Popover>
@@ -207,17 +277,17 @@ function UsersPage() {
           </Flex>
         </Flex>
 
-        <UsersTable props={usersTableProps} />
+        <UsersTable props={query} />
 
         <Suspense fallback={<SuspendedPagination />}>
-          <UsersQueryProvider props={usersTableProps}>
+          <UsersQueryProvider props={query}>
             {(props) => (
               <Group justify="flex-end">
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={page}
-                  onChange={setPage}
+                  value={query.page}
+                  onChange={handlePage}
                   withPages={false}
                 />
               </Group>
@@ -229,14 +299,7 @@ function UsersPage() {
   )
 }
 
-function UsersTable({
-  props,
-}: {
-  props: {
-    search: string
-    page: number
-  }
-}) {
+function UsersTable({ props }: { props: IQuery }) {
   return (
     <Table
       highlightOnHover
@@ -268,11 +331,7 @@ function UsersTable({
       <Table.Tbody>
         <Suspense fallback={<SuspendedTableRows />}>
           <UsersQueryProvider props={props}>
-            {(props) =>
-              props.users.map((user: UserWithRelations) => (
-                <UsersTableRow user={user} />
-              ))
-            }
+            {(props) => <UsersTableRow users={props.users} />}
           </UsersQueryProvider>
         </Suspense>
       </Table.Tbody>
@@ -281,27 +340,6 @@ function UsersTable({
 }
 
 function UsersRolePill({ role }: { role: Role }) {
-  const roleStyles: Record<
-    Role,
-    { border: string; backgroundColor: string; color: string }
-  > = {
-    mentor: {
-      border: '1px solid var(--mantine-color-green-9)',
-      backgroundColor: 'var(--mantine-color-green-1)',
-      color: 'var(--mantine-color-green-9)',
-    },
-    admin: {
-      border: '1px solid var(--mantine-color-blue-9)',
-      backgroundColor: 'var(--mantine-color-blue-1)',
-      color: 'var(--mantine-color-blue-9)',
-    },
-    student: {
-      border: '1px solid var(--mantine-color-violet-9)',
-      backgroundColor: 'var(--mantine-color-violet-1)',
-      color: 'var(--mantine-color-violet-9)',
-    },
-  }
-
   const { border, backgroundColor, color } = roleStyles[role]
 
   return (
@@ -321,8 +359,21 @@ function UsersRolePill({ role }: { role: Role }) {
   )
 }
 
-function UsersTableRow({ user }: { user: UserWithRelations }) {
-  return (
+function UsersTableRow({ users }: { users: UserWithRelations[] }) {
+  if (users.length === 0)
+    return (
+      <Table.Tr>
+        <Table.Td colSpan={5}>
+          <Center py={rem(10)}>
+            <Text fw={500} c={'dark.5'}>
+              No matching users found.
+            </Text>
+          </Center>
+        </Table.Td>
+      </Table.Tr>
+    )
+
+  return users.map((user: UserWithRelations) => (
     <>
       <Table.Tr key={user.id}>
         <Table.Td>
@@ -376,7 +427,7 @@ function UsersTableRow({ user }: { user: UserWithRelations }) {
         </Table.Td>
       </Table.Tr>
     </>
-  )
+  ))
 }
 
 export default UsersPage
