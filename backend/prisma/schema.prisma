@@ -75,11 +75,12 @@ model User {
   firstName String
   middleName String?
   lastName String
+  /// @DtoReadOnly
   role Role
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
-  /// @DtoCreateHidden
+  /// @DtoReadOnly
   updatedAt DateTime @updatedAt
   /// @DtoReadOnly
   disabledAt DateTime?
@@ -101,7 +102,7 @@ model UserAccount {
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
-  /// @DtoCreateHidden
+  /// @DtoReadOnly
   updatedAt DateTime @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
@@ -121,7 +122,7 @@ model UserDetails {
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
-  /// @DtoCreateHidden
+  /// @DtoReadOnly
   updatedAt DateTime @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
@@ -152,7 +153,7 @@ model StudentDetails {
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
-  /// @DtoCreateHidden
+  /// @DtoReadOnly
   updatedAt DateTime @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
@@ -173,7 +174,7 @@ model StaffDetails {
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
-  /// @DtoCreateHidden
+  /// @DtoReadOnly
   updatedAt DateTime @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?

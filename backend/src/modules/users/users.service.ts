@@ -55,12 +55,13 @@ export class UsersService {
     callback: (user: User) => Promise<UserDto>,
   ) {
     const account = await this.authService.create(
-      credentials?.email || 'test@email',
-      credentials?.password || '1234',
       role,
+      credentials.email,
+      credentials.password,
     );
     try {
       const user = await callback(account);
+
       await this.authService.updateMetadata(account.id, {
         user_id: user.id,
       });

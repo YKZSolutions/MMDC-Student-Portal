@@ -10,22 +10,17 @@ import { CreateUserDto } from '@/generated/nestjs-dto/create-user.dto';
 import { CreateUserDetailsDto } from '@/generated/nestjs-dto/create-userDetails.dto';
 import { CreateStudentDetailsDto } from '@/generated/nestjs-dto/create-studentDetails.dto';
 import { CreateStaffDetailsDto } from '@/generated/nestjs-dto/create-staffDetails.dto';
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
-
-export class CreateUserDtoNoRole extends OmitType(CreateUserDto, [
-  'role',
-] as const) {}
 
 export class CreateUserBaseDto {
   @ValidateNested()
-  @Type(() => CreateUserDtoNoRole)
-  user: CreateUserDtoNoRole;
+  @Type(() => CreateUserDto)
+  user: CreateUserDto;
 
-  @IsOptional()
   @ValidateNested()
   @Type(() => UserCredentialsDto)
-  credentials?: UserCredentialsDto;
+  credentials: UserCredentialsDto;
 
   @IsOptional()
   @ValidateNested()
@@ -56,7 +51,7 @@ export class CreateUserStaffDto extends CreateUserBaseDto {
   })
   @IsNotEmpty()
   @IsEnum(['mentor', 'admin'])
-  role: Omit<Role, 'student'>;
+  role: Exclude<Role, 'student'>;
 
   @ValidateNested()
   @Type(() => CreateStaffDetailsDto)

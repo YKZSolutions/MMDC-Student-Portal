@@ -63,8 +63,6 @@ export class UsersController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  // @Public()
-  // @StatusBypass()
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
@@ -121,7 +119,10 @@ export class UsersController {
   @ApiException(() => InternalServerErrorException)
   async createStaff(@Body() createUserDto: CreateUserStaffDto): Promise<User> {
     try {
-      const user = await this.usersService.create('student', createUserDto);
+      const user = await this.usersService.create(
+        createUserDto.role,
+        createUserDto,
+      );
 
       return user;
     } catch (err) {
@@ -198,9 +199,7 @@ export class UsersController {
    * The user should be have a student role.
    */
   @Put(':id/student')
-  // @Roles(Role.ADMIN)
-  @Public()
-  @StatusBypass()
+  @Roles(Role.ADMIN)
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)

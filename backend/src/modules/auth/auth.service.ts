@@ -27,7 +27,7 @@ export class AuthService {
    * @returns The created Supabase user object.
    * @throws BadRequestException if the Supabase account creation fails.
    */
-  async create(email: string, password: string, role: Role) {
+  async create(role: Role, email: string, password?: string) {
     const account = await this.supabase.auth.admin.createUser({
       email: email,
       password: password,
