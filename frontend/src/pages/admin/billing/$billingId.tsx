@@ -210,7 +210,6 @@ function BillingPrefaceDetails() {
           variant="vertical"
           layout="fixed"
           withRowBorders={false}
-          c={'dark.5'}
         >
           <Table.Tbody>
             <Table.Tr>
@@ -224,8 +223,8 @@ function BillingPrefaceDetails() {
             </Table.Tr>
 
             <Table.Tr>
-              <Table.Th>Issue Date</Table.Th>
-              <Table.Td>February 14, 2025</Table.Td>
+              <Table.Th>Payer Email</Table.Th>
+              <Table.Td>test@email.com</Table.Td>
             </Table.Tr>
 
             <Table.Tr>
@@ -250,7 +249,6 @@ function BillingPrefaceDetails() {
           variant="vertical"
           layout="fixed"
           withRowBorders={false}
-          c={'dark.5'}
         >
           <Table.Tbody>
             <Table.Tr>
