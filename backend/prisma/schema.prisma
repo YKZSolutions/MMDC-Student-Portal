@@ -96,7 +96,7 @@ model UserAccount {
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id])
 
-  authUid String
+  authUid String  @unique
   /// @IsEmail
   email String?
 

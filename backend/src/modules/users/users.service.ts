@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   CreateUserFullDto,
@@ -27,6 +28,12 @@ import { UserWithRelations } from './dto/user-with-relations.dto';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { User } from '@supabase/supabase-js';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
+import {
+  UserDetailsFullDto,
+  UserStaffDetailsDto,
+  UserStudentDetailsDto,
+} from './dto/user-details.dto';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 
 @Injectable()
 export class UsersService {
@@ -389,6 +396,94 @@ export class UsersService {
       };
     } catch (error) {
       this.logger.error(`Error updating status for user ${userId}`);
+
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(
+        'An unexpected error has occurred',
+      );
+    }
+  }
+
+  /**
+   * Retrieves the profile of the currently authenticated user.
+   *
+   * This method:
+   * - Uses the user's Supabase Auth UID (`user.id`) to locate the corresponding account
+   * - Includes related entities like `UserDetails`, `StudentDetails`, and `StaffDetails`
+   * - Constructs and returns a flattened DTO depending on the user's role
+   *
+   * @param user - The authenticated user from Supabase Auth context
+   * @returns One of:
+   * - `UserStudentDetailsDto` if the user is a student
+   * - `UserStaffDetailsDto` if the user is a mentor/admin
+   * - Fallback: `UserDetailsFullDto` if role-based detail is missing
+   *
+   * @throws UnauthorizedException If the `authUid` is missing or invalid
+   * @throws NotFoundException If no user account is found
+   * @throws InternalServerErrorException If an unexpected error occurs
+   */
+  async getMe(
+    user: AuthUser,
+  ): Promise<UserDetailsFullDto | UserStudentDetailsDto | UserStaffDetailsDto> {
+    try {
+      const authUid = user.id;
+
+      if (!authUid) {
+        throw new UnauthorizedException('User not authorized');
+      }
+
+      const account = await this.prisma.client.userAccount.findUnique({
+        where: { authUid: authUid },
+        include: {
+          user: {
+            include: {
+              userDetails: true,
+              staffDetails: true,
+              studentDetails: true,
+            },
+          },
+        },
+      });
+
+      if (!account) {
+        throw new NotFoundException('User not found');
+      }
+
+      const { email } = account;
+      const {
+        id,
+        firstName,
+        middleName,
+        lastName,
+        role,
+        userDetails,
+        studentDetails,
+        staffDetails,
+      } = account.user;
+
+      const basicDetails: Partial<UserDetailsFullDto> = {
+        id,
+        email,
+        firstName,
+        middleName,
+        lastName,
+        role,
+        userDetails,
+      };
+
+      if (role === 'student') {
+        return {
+          ...basicDetails,
+          studentDetails,
+        } as UserStudentDetailsDto;
+      }
+
+      return {
+        ...basicDetails,
+        staffDetails,
+      } as UserStaffDetailsDto;
+    } catch (error) {
+      this.logger.error(`Error fetching user details`, error);
 
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(
