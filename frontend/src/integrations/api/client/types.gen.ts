@@ -2,17 +2,36 @@
 
 export type Role = 'student' | 'mentor' | 'admin';
 
-export type UserCredentialsDto = {
-    email: string;
-    password: string;
-};
-
-export type CreateUserWithAccountDto = {
+export type CreateUserDto = {
     firstName: string;
     middleName?: string | null;
     lastName: string;
+};
+
+export type UserCredentialsDto = {
+    email: string;
+    password?: string;
+};
+
+export type ConnectUserDto = {
+    id: string;
+};
+
+export type CreateUserDetailsUserRelationInputDto = {
+    connect: ConnectUserDto;
+};
+
+export type CreateUserDetailsDto = {
+    dateJoined: string;
+    dob?: string | null;
+    gender?: string | null;
+};
+
+export type CreateUserFullDto = {
     role: Role;
-    credentials?: UserCredentialsDto;
+    user: CreateUserDto;
+    credentials: UserCredentialsDto;
+    userDetails?: CreateUserDetailsDto;
 };
 
 export type User = {
@@ -27,6 +46,51 @@ export type User = {
     deletedAt: string | null;
 };
 
+export type CreateStudentDetailsUserRelationInputDto = {
+    connect: ConnectUserDto;
+};
+
+export type StudentType = 'new' | 'regular' | 'irregular' | 'transfer' | 'returnee' | 'graduate' | 'special';
+
+export type CreateStudentDetailsDto = {
+    student_number: number;
+    student_type: StudentType;
+    admission_date: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+};
+
+export type CreateUserStudentDto = {
+    specificDetails: CreateStudentDetailsDto;
+    user: CreateUserDto;
+    credentials: UserCredentialsDto;
+    userDetails?: CreateUserDetailsDto;
+};
+
+export type StaffRole = 'mentor' | 'admin';
+
+export type CreateStaffDetailsUserRelationInputDto = {
+    connect: ConnectUserDto;
+};
+
+export type CreateStaffDetailsDto = {
+    employee_number: number;
+    department: string;
+    position: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+};
+
+export type CreateUserStaffDto = {
+    role: StaffRole;
+    specificDetails: CreateStaffDetailsDto;
+    user: CreateUserDto;
+    credentials: UserCredentialsDto;
+    userDetails?: CreateUserDetailsDto;
+};
+
 export type InviteUserDto = {
     firstName: string;
     middleName?: string | null;
@@ -35,8 +99,51 @@ export type InviteUserDto = {
     email: string;
 };
 
+export type UpdateStudentDetailsDto = {
+    student_number?: number;
+    student_type?: StudentType;
+    admission_date?: string;
+    other_details?: {
+        [key: string]: unknown;
+    };
+};
+
+export type UpdateUserDto = {
+    firstName?: string;
+    middleName?: string | null;
+    lastName?: string;
+};
+
 export type UpdateUserDetailsDto = {
-    [key: string]: unknown;
+    dateJoined?: string;
+    dob?: string | null;
+    gender?: string | null;
+};
+
+export type UpdateUserStudentDto = {
+    specificDetails?: UpdateStudentDetailsDto;
+    user?: UpdateUserDto;
+    userDetails?: UpdateUserDetailsDto;
+};
+
+export type UpdateStaffDetailsDto = {
+    employee_number?: number;
+    department?: string;
+    position?: string;
+    other_details?: {
+        [key: string]: unknown;
+    };
+};
+
+export type UpdateUserStaffDto = {
+    specificDetails?: UpdateStaffDetailsDto;
+    user?: UpdateUserDto;
+    userDetails?: UpdateUserDetailsDto;
+};
+
+export type UpdateUserBaseDto = {
+    user?: UpdateUserDto;
+    userDetails?: UpdateUserDetailsDto;
 };
 
 export type UserAccount = {
@@ -139,7 +246,7 @@ export type UsersControllerFindAllResponses = {
 export type UsersControllerFindAllResponse = UsersControllerFindAllResponses[keyof UsersControllerFindAllResponses];
 
 export type UsersControllerCreateData = {
-    body: CreateUserWithAccountDto;
+    body: CreateUserFullDto;
     path?: never;
     query?: never;
     url: '/users';
@@ -165,6 +272,62 @@ export type UsersControllerCreateResponses = {
 };
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
+
+export type UsersControllerCreateStudentData = {
+    body: CreateUserStudentDto;
+    path?: never;
+    query?: never;
+    url: '/users/student';
+};
+
+export type UsersControllerCreateStudentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerCreateStudentError = UsersControllerCreateStudentErrors[keyof UsersControllerCreateStudentErrors];
+
+export type UsersControllerCreateStudentResponses = {
+    201: User;
+};
+
+export type UsersControllerCreateStudentResponse = UsersControllerCreateStudentResponses[keyof UsersControllerCreateStudentResponses];
+
+export type UsersControllerCreateStaffData = {
+    body: CreateUserStaffDto;
+    path?: never;
+    query?: never;
+    url: '/users/staff';
+};
+
+export type UsersControllerCreateStaffErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerCreateStaffError = UsersControllerCreateStaffErrors[keyof UsersControllerCreateStaffErrors];
+
+export type UsersControllerCreateStaffResponses = {
+    201: User;
+};
+
+export type UsersControllerCreateStaffResponse = UsersControllerCreateStaffResponses[keyof UsersControllerCreateStaffResponses];
 
 export type UsersControllerInviteUserData = {
     body: InviteUserDto;
@@ -195,7 +358,7 @@ export type UsersControllerInviteUserResponses = {
 export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
 
 export type UsersControllerUpdateOwnUserDetailsData = {
-    body: UpdateUserDetailsDto;
+    body: UpdateUserBaseDto;
     path?: never;
     query?: never;
     url: '/users/me';
@@ -222,6 +385,68 @@ export type UsersControllerUpdateOwnUserDetailsResponses = {
 };
 
 export type UsersControllerUpdateOwnUserDetailsResponse = UsersControllerUpdateOwnUserDetailsResponses[keyof UsersControllerUpdateOwnUserDetailsResponses];
+
+export type UsersControllerUpdateUserStudentDetailsData = {
+    body: UpdateUserStudentDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/users/{id}/student';
+};
+
+export type UsersControllerUpdateUserStudentDetailsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateUserStudentDetailsError = UsersControllerUpdateUserStudentDetailsErrors[keyof UsersControllerUpdateUserStudentDetailsErrors];
+
+export type UsersControllerUpdateUserStudentDetailsResponses = {
+    200: User;
+    201: User;
+};
+
+export type UsersControllerUpdateUserStudentDetailsResponse = UsersControllerUpdateUserStudentDetailsResponses[keyof UsersControllerUpdateUserStudentDetailsResponses];
+
+export type UsersControllerUpdateUserStaffDetailsData = {
+    body: UpdateUserStaffDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/users/{id}/staff';
+};
+
+export type UsersControllerUpdateUserStaffDetailsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerUpdateUserStaffDetailsError = UsersControllerUpdateUserStaffDetailsErrors[keyof UsersControllerUpdateUserStaffDetailsErrors];
+
+export type UsersControllerUpdateUserStaffDetailsResponses = {
+    200: User;
+    201: User;
+};
+
+export type UsersControllerUpdateUserStaffDetailsResponse = UsersControllerUpdateUserStaffDetailsResponses[keyof UsersControllerUpdateUserStaffDetailsResponses];
 
 export type UsersControllerFindOneData = {
     body?: never;
@@ -258,37 +483,6 @@ export type UsersControllerFindOneResponses = {
 };
 
 export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
-
-export type UsersControllerUpdateUserDetailsData = {
-    body: UpdateUserDetailsDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/users/{id}';
-};
-
-export type UsersControllerUpdateUserDetailsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type UsersControllerUpdateUserDetailsError = UsersControllerUpdateUserDetailsErrors[keyof UsersControllerUpdateUserDetailsErrors];
-
-export type UsersControllerUpdateUserDetailsResponses = {
-    200: User;
-    201: User;
-};
-
-export type UsersControllerUpdateUserDetailsResponse = UsersControllerUpdateUserDetailsResponses[keyof UsersControllerUpdateUserDetailsResponses];
 
 export type UsersControllerUpdateUserStatusData = {
     body?: never;
