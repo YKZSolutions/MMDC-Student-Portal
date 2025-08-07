@@ -32,6 +32,18 @@ const Chatbot = ({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
 
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'bot', content: 'Hello! How can I help you today?' },
+  ])
+
+  const addMessage = (userInput: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { role: 'user', content: userInput },
+      { role: 'bot', content: 'Thanks for your message! (placeholder reply)' }, //TODO: this should be replaced with a bot response
+    ])
+  }
+
   useEffect(() => {
     // set the initial position of the chatbot to the bottom right corner of the screen
     setPosition({
@@ -174,8 +186,8 @@ const Chatbot = ({
 
               <Popover.Dropdown style={{ padding: 0, height: 500, display: 'flex', flexDirection: 'column' }}>
                 <ChatHeader onClose={handleModalClose} />
-                <ChatMessages />
-                <ChatInput />
+                <ChatMessages messages={messages} />
+                <ChatInput onSendInput={addMessage} />
               </Popover.Dropdown>
             </Popover>
           </div>

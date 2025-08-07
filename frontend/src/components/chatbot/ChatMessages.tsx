@@ -1,6 +1,5 @@
 import { Text, useMantineTheme } from '@mantine/core'
-import { theme } from '@/integrations/mantine/mantine-theme.ts'
-
+import { useState } from 'react'
 
 const BotMessage = ({message}) =>{
   const theme = useMantineTheme()
@@ -40,7 +39,13 @@ const UserMessage = ({message}) =>{
   )
 }
 
-const ChatMessages = () => {
+type Message = {
+  role: 'user' | 'bot'
+  content: string
+}
+
+
+const ChatMessages = ({messages}: {messages: Message[]}) => {
   return (
     <div
       style={{
@@ -52,15 +57,25 @@ const ChatMessages = () => {
         gap: '12px',
       }}
     >
-      <BotMessage message="Hello! How can I help you today?" />
+      {messages.map((msg, index) =>
+        msg.role === 'user' ? (
+          <UserMessage key={index} message={msg.content} />
+        ) : (
+          <BotMessage key={index} message={msg.content} />
+        )
+      )}
 
       <Text size="xs" c="dimmed" ta="center" mt="md">
         Start typing to continue the conversation...
       </Text>
-      
-      <UserMessage message="I need help with my account." />
+
+      {/*/!* Example interaction *!/*/}
+      {/*<button onClick={() => addMessage('I need help with my account.')}>*/}
+      {/*  Simulate Send*/}
+      {/*</button>*/}
     </div>
   )
 }
+
 
 export default ChatMessages

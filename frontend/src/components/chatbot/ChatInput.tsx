@@ -1,7 +1,10 @@
 import { Button, useMantineTheme } from '@mantine/core'
+import { Input, CloseButton } from '@mantine/core';
+import { useState } from 'react';
 
-const ChatInput = () => {
+const ChatInput = ({onSendInput}: {onSendInput: (message: string) => void}) => {
   const theme = useMantineTheme()
+  const [value, setValue] = useState('');
 
   return (
     <div
@@ -9,25 +12,32 @@ const ChatInput = () => {
         padding: '16px 20px',
         borderTop: `1px solid ${theme.colors.gray[3]}`,
         display: 'flex',
-        gap: '8px',
         alignItems: 'center',
+        justifyContent: 'space-between',
       }}
     >
-      <div
-        style={{
-          flex: 1,
-          padding: '10px 14px',
-          border: `1px solid ${theme.colors.gray[4]}`,
-          borderRadius: 20,
-          backgroundColor: theme.colors.gray[0],
-          fontSize: 14,
-          color: theme.colors.gray[6],
-          cursor: 'text',
+      <Input
+        placeholder="Type your message..."
+        value={value}
+        onChange={(event) => setValue(event.currentTarget.value)}
+        rightSectionPointerEvents="all"
+        radius="lg"
+        rightSection={
+          <CloseButton
+            aria-label="Clear input"
+            onClick={() => setValue('')}
+            style={{ display: value ? undefined : 'none' }}
+          />
+        }
+      />
+      <Button
+        onClick={() => {
+          onSendInput(value);
+          setValue('');
         }}
-      >
-        Type your message...
-      </div>
-      <Button size="sm" radius="xl" style={{
+        size="sm"
+        radius="xl"
+        style={{
         padding: '0 16px',
         backgroundColor: theme.colors.secondary[6],
         color: theme.white,
