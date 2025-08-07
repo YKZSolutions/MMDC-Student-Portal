@@ -99,6 +99,64 @@ export type InviteUserDto = {
     email: string;
 };
 
+export type UserDetailsDto = {
+    id: string;
+    dateJoined: string;
+    dob: string | null;
+    gender: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type StudentDetailsDto = {
+    id: string;
+    student_number: number;
+    student_type: StudentType;
+    admission_date: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserStudentDetailsDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+    studentDetails: StudentDetailsDto | null;
+};
+
+export type StaffDetailsDto = {
+    id: string;
+    employee_number: number;
+    department: string;
+    position: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserStaffDetailsDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+    staffDetails: StaffDetailsDto | null;
+};
+
 export type UpdateStudentDetailsDto = {
     student_number?: number;
     student_type?: StudentType;
@@ -208,6 +266,24 @@ export type AuthMetadataDto = {
     role?: Role;
     status?: UserStatus;
     user_id?: string;
+};
+
+export type CreateBillingDto = {
+    amount: number;
+    description: string;
+    statement: string;
+    metadata: {
+        [key: string]: unknown;
+    };
+};
+
+export type UpdateBillingDto = {
+    amount?: number;
+    description?: string;
+    statement?: string;
+    metadata?: {
+        [key: string]: unknown;
+    };
 };
 
 export type UsersControllerFindAllData = {
@@ -356,6 +432,42 @@ export type UsersControllerInviteUserResponses = {
 };
 
 export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
+
+export type UsersControllerGetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type UsersControllerGetMeErrors = {
+    401: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerGetMeError = UsersControllerGetMeErrors[keyof UsersControllerGetMeErrors];
+
+export type UsersControllerGetMeResponses = {
+    /**
+     * Current user details fetched successfully
+     */
+    200: UserStudentDetailsDto | UserStaffDetailsDto;
+};
+
+export type UsersControllerGetMeResponse = UsersControllerGetMeResponses[keyof UsersControllerGetMeResponses];
 
 export type UsersControllerUpdateOwnUserDetailsData = {
     body: UpdateUserBaseDto;
@@ -651,6 +763,79 @@ export type AuthControllerGetMetadataResponses = {
 };
 
 export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
+
+export type BillingControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/billing';
+};
+
+export type BillingControllerFindAllResponses = {
+    200: string;
+};
+
+export type BillingControllerFindAllResponse = BillingControllerFindAllResponses[keyof BillingControllerFindAllResponses];
+
+export type BillingControllerCreateData = {
+    body: CreateBillingDto;
+    path?: never;
+    query?: never;
+    url: '/billing';
+};
+
+export type BillingControllerCreateResponses = {
+    201: {
+        [key: string]: unknown;
+    };
+};
+
+export type BillingControllerCreateResponse = BillingControllerCreateResponses[keyof BillingControllerCreateResponses];
+
+export type BillingControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerRemoveResponses = {
+    200: string;
+};
+
+export type BillingControllerRemoveResponse = BillingControllerRemoveResponses[keyof BillingControllerRemoveResponses];
+
+export type BillingControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerFindOneResponses = {
+    200: string;
+};
+
+export type BillingControllerFindOneResponse = BillingControllerFindOneResponses[keyof BillingControllerFindOneResponses];
+
+export type BillingControllerUpdateData = {
+    body: UpdateBillingDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerUpdateResponses = {
+    200: string;
+};
+
+export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;
