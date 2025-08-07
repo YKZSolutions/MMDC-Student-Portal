@@ -1,5 +1,8 @@
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { UserDto } from '@/generated/nestjs-dto/user.dto';
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { AuthService } from '@/modules/auth/auth.service';
+import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import {
   BadRequestException,
   HttpException,
@@ -10,30 +13,27 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
+import { User } from '@supabase/supabase-js';
+import { isUUID } from 'class-validator';
+import { CustomPrismaService } from 'nestjs-prisma';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
   CreateUserStudentDto,
 } from './dto/create-user.dto';
-import {
-  UpdateUserStudentDto,
-  UpdateUserStaffDto,
-} from './dto/update-user-details.dto';
-import { Prisma, Role } from '@prisma/client';
-import { isUUID } from 'class-validator';
-import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
-import { UserWithRelations } from './dto/user-with-relations.dto';
-import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
-import { User } from '@supabase/supabase-js';
-import { UserDto } from '@/generated/nestjs-dto/user.dto';
+import {
+  UpdateUserStaffDto,
+  UpdateUserStudentDto,
+} from './dto/update-user-details.dto';
 import {
   UserDetailsFullDto,
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { UserWithRelations } from './dto/user-with-relations.dto';
 
 @Injectable()
 export class UsersService {
