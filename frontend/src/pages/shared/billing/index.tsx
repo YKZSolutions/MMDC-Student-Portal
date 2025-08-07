@@ -1,3 +1,5 @@
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -136,7 +138,11 @@ function BillingQueryProvider({
     page: 1,
   },
 }: {
-  children: (props: { message: string; totalPages: number }) => ReactNode
+  children: (props: {
+    currentInvoices: typeof MOCK_INVOICES
+    message: string
+    totalPages: number
+  }) => ReactNode
   props?: IBillingQuery
 }) {
   const { search, page } = props
@@ -147,6 +153,8 @@ function BillingQueryProvider({
   //   }),
   // )
 
+  const currentInvoices = MOCK_INVOICES
+
   const limit = 10
   const total = MOCK_INVOICES.length
   const totalPages = 1
@@ -154,6 +162,7 @@ function BillingQueryProvider({
   const message = formatPaginationMessage({ limit, page, total })
 
   return children({
+    currentInvoices,
     message,
     totalPages,
   })
@@ -172,7 +181,7 @@ function BillingPage() {
 
   const [query, setQuery] = useState<IBillingQuery>(queryDefaultValues)
 
-  const currentInvoices = MOCK_INVOICES
+  const { authUser } = useAuth('protected')
 
   return (
     <Container fluid m={0}>
@@ -197,14 +206,21 @@ function BillingPage() {
             Export
           </Button>
 
-          <Button
-            variant="filled"
-            radius={'md'}
-            leftSection={<IconPlus size={20} />}
-            lts={rem(0.25)}
-          >
-            New Invoice
-          </Button>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              admin: (
+                <Button
+                  variant="filled"
+                  radius={'md'}
+                  leftSection={<IconPlus size={20} />}
+                  lts={rem(0.25)}
+                >
+                  New Invoice
+                </Button>
+              ),
+            }}
+          />
         </Group>
       </Flex>
 
@@ -235,109 +251,9 @@ function BillingPage() {
           </Button>
         </Group>
       </Group>
-      <Table
-        verticalSpacing={'md'}
-        highlightOnHover
-        highlightOnHoverColor="gray.0"
-        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-        styles={{
-          th: {
-            fontWeight: 500,
-          },
-        }}
-      >
-        <Table.Thead>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.5'}
-          >
-            <Table.Th>
-              <Checkbox size="sm" />
-            </Table.Th>
-            <Table.Th>Invoice ID</Table.Th>
-            <Table.Th>User</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>Issue Date</Table.Th>
-            <Table.Th>Amount</Table.Th>
-            <Table.Th></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody
-          style={{
-            cursor: 'pointer',
-          }}
-        >
-          {currentInvoices.map((invoice) => (
-            <Table.Tr
-              key={invoice.id}
-              onClick={(e) =>
-                navigate({
-                  to: '/billing/' + invoice.id,
-                })
-              }
-            >
-              <Table.Td>
-                <Checkbox size="sm" />
-              </Table.Td>
-              <Table.Td>
-                <Text size="sm" c={'dark.3'} fw={500}>
-                  {invoice.id}
-                </Text>
-              </Table.Td>
-              <Table.Td>
-                <Flex gap={'sm'} align={'center'}>
-                  <Flex direction={'column'}>
-                    <Text fw={600}>{invoice.clientName}</Text>
-                    <Text fz={'sm'} fw={500} c={'dark.2'}>
-                      test@email.com
-                    </Text>
-                  </Flex>
-                </Flex>
-              </Table.Td>
-              <Table.Td>
-                <Badge variant="light" radius="lg">
-                  <Text className="capitalize" fz={'xs'} fw={500}>
-                    {invoice.status}
-                  </Text>
-                </Badge>
-              </Table.Td>
-              <Table.Td>
-                <Text size="sm" c={'dark.3'} fw={500}>
-                  {invoice.issueDate}
-                </Text>
-              </Table.Td>
 
-              <Table.Td>
-                <Text size="sm" fw={500}>
-                  ${invoice.price.toFixed(2)}
-                </Text>
-              </Table.Td>
-              <Table.Td>
-                <Menu shadow="md" width={200}>
-                  <Menu.Target>
-                    <ActionIcon
-                      onClick={(e) => e.stopPropagation()}
-                      variant="subtle"
-                      color="gray"
-                      radius={'xl'}
-                    >
-                      <IconDotsVertical size={20} stroke={1.5} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item>View Details</Menu.Item>
-                    <Menu.Item>Edit</Menu.Item>
-                    <Menu.Item c="red">Delete</Menu.Item>{' '}
-                  </Menu.Dropdown>
-                </Menu>
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+      <BillingTable />
+
       <BillingQueryProvider props={query}>
         {(props) => (
           <Group justify="flex-end">
@@ -368,6 +284,136 @@ function BillingPage() {
         </Flex>
       </Flex> */}
     </Container>
+  )
+}
+
+function BillingTable() {
+  const navigate = useNavigate()
+  const { authUser } = useAuth('protected')
+
+  return (
+    <Table
+      verticalSpacing={'md'}
+      highlightOnHover
+      highlightOnHoverColor="gray.0"
+      style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+      styles={{
+        th: {
+          fontWeight: 500,
+        },
+      }}
+    >
+      <Table.Thead>
+        <Table.Tr
+          style={{
+            border: '0px',
+          }}
+          bg={'gray.1'}
+          c={'dark.5'}
+        >
+          <Table.Th>
+            <Checkbox size="sm" />
+          </Table.Th>
+          <Table.Th>Invoice ID</Table.Th>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              admin: (
+                <Button
+                  variant="filled"
+                  radius={'md'}
+                  leftSection={<IconPlus size={20} />}
+                  lts={rem(0.25)}
+                >
+                  New Invoice
+                </Button>
+              ),
+            }}
+          />
+          <Table.Th>User</Table.Th>
+          <Table.Th>Status</Table.Th>
+          <Table.Th>Issue Date</Table.Th>
+          <Table.Th>Amount</Table.Th>
+          <Table.Th></Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody
+        style={{
+          cursor: 'pointer',
+        }}
+      >
+        <BillingQueryProvider>
+          {(props) =>
+            props.currentInvoices.map((invoice) => (
+              <Table.Tr
+                key={invoice.id}
+                onClick={(e) =>
+                  navigate({
+                    to: '/billing/' + invoice.id,
+                  })
+                }
+              >
+                <Table.Td>
+                  <Checkbox size="sm" />
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm" c={'dark.3'} fw={500}>
+                    {invoice.id}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Flex gap={'sm'} align={'center'}>
+                    <Flex direction={'column'}>
+                      <Text fw={600}>{invoice.clientName}</Text>
+                      <Text fz={'sm'} fw={500} c={'dark.2'}>
+                        test@email.com
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Table.Td>
+                <Table.Td>
+                  <Badge variant="light" radius="lg">
+                    <Text className="capitalize" fz={'xs'} fw={500}>
+                      {invoice.status}
+                    </Text>
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm" c={'dark.3'} fw={500}>
+                    {invoice.issueDate}
+                  </Text>
+                </Table.Td>
+
+                <Table.Td>
+                  <Text size="sm" fw={500}>
+                    ${invoice.price.toFixed(2)}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Menu shadow="md" width={200}>
+                    <Menu.Target>
+                      <ActionIcon
+                        onClick={(e) => e.stopPropagation()}
+                        variant="subtle"
+                        color="gray"
+                        radius={'xl'}
+                      >
+                        <IconDotsVertical size={20} stroke={1.5} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item>View Details</Menu.Item>
+                      <Menu.Item>Edit</Menu.Item>
+                      <Menu.Item c="red">Delete</Menu.Item>{' '}
+                    </Menu.Dropdown>
+                  </Menu>
+                </Table.Td>
+              </Table.Tr>
+            ))
+          }
+        </BillingQueryProvider>
+      </Table.Tbody>
+    </Table>
   )
 }
 
