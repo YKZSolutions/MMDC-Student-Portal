@@ -364,9 +364,9 @@ export const zAuthMetadataDto = z.object({
 
 export const zCreateBillingDto = z.object({
     amount: z.number(),
-    description: z.string(),
-    statement: z.string(),
-    metadata: z.object({})
+    description: z.optional(z.string()),
+    statement: z.optional(z.string()),
+    metadata: z.optional(z.object({}))
 });
 
 export const zUpdateBillingDto = z.object({

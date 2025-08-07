@@ -270,9 +270,9 @@ export type AuthMetadataDto = {
 
 export type CreateBillingDto = {
     amount: number;
-    description: string;
-    statement: string;
-    metadata: {
+    description?: string;
+    statement?: string;
+    metadata?: {
         [key: string]: unknown;
     };
 };

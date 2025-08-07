@@ -5,11 +5,11 @@ export class CreateBillingDto {
   amount: number;
 
   @IsOptional()
-  description: string;
+  description?: string;
 
   @IsOptional()
-  statement: string;
+  statement?: string;
 
   @IsOptional()
-  metadata: object;
+  metadata?: object;
 }
