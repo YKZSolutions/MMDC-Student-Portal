@@ -8,20 +8,45 @@ export const zRole = z.enum([
     'admin'
 ]);
 
-export const zUserCredentialsDto = z.object({
-    email: z.email(),
-    password: z.string()
-});
-
-export const zCreateUserWithAccountDto = z.object({
+export const zCreateUserDto = z.object({
     firstName: z.string(),
     middleName: z.optional(z.union([
         z.string(),
         z.null()
     ])),
-    lastName: z.string(),
+    lastName: z.string()
+});
+
+export const zUserCredentialsDto = z.object({
+    email: z.email(),
+    password: z.optional(z.string())
+});
+
+export const zConnectUserDto = z.object({
+    id: z.string()
+});
+
+export const zCreateUserDetailsUserRelationInputDto = z.object({
+    connect: zConnectUserDto
+});
+
+export const zCreateUserDetailsDto = z.object({
+    dateJoined: z.iso.datetime(),
+    dob: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    gender: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zCreateUserFullDto = z.object({
     role: zRole,
-    credentials: z.optional(zUserCredentialsDto)
+    user: zCreateUserDto,
+    credentials: zUserCredentialsDto,
+    userDetails: z.optional(zCreateUserDetailsDto)
 });
 
 export const zUser = z.object({
@@ -45,7 +70,120 @@ export const zUser = z.object({
     ])
 });
 
-export const zUpdateUserDetailsDto = z.object({});
+export const zCreateStudentDetailsUserRelationInputDto = z.object({
+    connect: zConnectUserDto
+});
+
+export const zStudentType = z.enum([
+    'new',
+    'regular',
+    'irregular',
+    'transfer',
+    'returnee',
+    'graduate',
+    'special'
+]);
+
+export const zCreateStudentDetailsDto = z.object({
+    student_number: z.int(),
+    student_type: zStudentType,
+    admission_date: z.iso.datetime(),
+    other_details: z.object({})
+});
+
+export const zCreateUserStudentDto = z.object({
+    specificDetails: zCreateStudentDetailsDto,
+    user: zCreateUserDto,
+    credentials: zUserCredentialsDto,
+    userDetails: z.optional(zCreateUserDetailsDto)
+});
+
+export const zStaffRole = z.enum([
+    'mentor',
+    'admin'
+]);
+
+export const zCreateStaffDetailsUserRelationInputDto = z.object({
+    connect: zConnectUserDto
+});
+
+export const zCreateStaffDetailsDto = z.object({
+    employee_number: z.int(),
+    department: z.string(),
+    position: z.string(),
+    other_details: z.object({})
+});
+
+export const zCreateUserStaffDto = z.object({
+    role: zStaffRole,
+    specificDetails: zCreateStaffDetailsDto,
+    user: zCreateUserDto,
+    credentials: zUserCredentialsDto,
+    userDetails: z.optional(zCreateUserDetailsDto)
+});
+
+export const zInviteUserDto = z.object({
+    firstName: z.string(),
+    middleName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.string(),
+    role: zRole,
+    email: z.email()
+});
+
+export const zUpdateStudentDetailsDto = z.object({
+    student_number: z.optional(z.int()),
+    student_type: z.optional(zStudentType),
+    admission_date: z.optional(z.iso.datetime()),
+    other_details: z.optional(z.object({}))
+});
+
+export const zUpdateUserDto = z.object({
+    firstName: z.optional(z.string()),
+    middleName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lastName: z.optional(z.string())
+});
+
+export const zUpdateUserDetailsDto = z.object({
+    dateJoined: z.optional(z.iso.datetime()),
+    dob: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    gender: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zUpdateUserStudentDto = z.object({
+    specificDetails: z.optional(zUpdateStudentDetailsDto),
+    user: z.optional(zUpdateUserDto),
+    userDetails: z.optional(zUpdateUserDetailsDto)
+});
+
+export const zUpdateStaffDetailsDto = z.object({
+    employee_number: z.optional(z.int()),
+    department: z.optional(z.string()),
+    position: z.optional(z.string()),
+    other_details: z.optional(z.object({}))
+});
+
+export const zUpdateUserStaffDto = z.object({
+    specificDetails: z.optional(zUpdateStaffDetailsDto),
+    user: z.optional(zUpdateUserDto),
+    userDetails: z.optional(zUpdateUserDetailsDto)
+});
+
+export const zUpdateUserBaseDto = z.object({
+    user: z.optional(zUpdateUserDto),
+    userDetails: z.optional(zUpdateUserDetailsDto)
+});
 
 export const zUserAccount = z.object({
     id: z.string(),
@@ -143,20 +281,64 @@ export const zUsersControllerFindAllData = z.object({
 export const zUsersControllerFindAllResponse = zPaginatedUsersDto;
 
 export const zUsersControllerCreateData = z.object({
-    body: zCreateUserWithAccountDto,
+    body: zCreateUserFullDto,
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
 export const zUsersControllerCreateResponse = zUser;
 
+export const zUsersControllerCreateStudentData = z.object({
+    body: zCreateUserStudentDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerCreateStudentResponse = zUser;
+
+export const zUsersControllerCreateStaffData = z.object({
+    body: zCreateUserStaffDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerCreateStaffResponse = zUser;
+
+export const zUsersControllerInviteUserData = z.object({
+    body: zInviteUserDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerInviteUserResponse = zUser;
+
 export const zUsersControllerUpdateOwnUserDetailsData = z.object({
-    body: zUpdateUserDetailsDto,
+    body: zUpdateUserBaseDto,
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
 export const zUsersControllerUpdateOwnUserDetailsResponse = zUser;
+
+export const zUsersControllerUpdateUserStudentDetailsData = z.object({
+    body: zUpdateUserStudentDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerUpdateUserStudentDetailsResponse = zUser;
+
+export const zUsersControllerUpdateUserStaffDetailsData = z.object({
+    body: zUpdateUserStaffDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zUsersControllerUpdateUserStaffDetailsResponse = zUser;
 
 export const zUsersControllerFindOneData = z.object({
     body: z.optional(z.never()),
@@ -169,15 +351,20 @@ export const zUsersControllerFindOneData = z.object({
  */
 export const zUsersControllerFindOneResponse = zUser;
 
-export const zUsersControllerUpdateUserDetailsData = z.object({
-    body: zUpdateUserDetailsDto,
+export const zUsersControllerUpdateUserStatusData = z.object({
+    body: z.optional(z.never()),
     path: z.object({
         id: z.string()
     }),
     query: z.optional(z.never())
 });
 
-export const zUsersControllerUpdateUserDetailsResponse = zUser;
+/**
+ * User status updated successfully
+ */
+export const zUsersControllerUpdateUserStatusResponse = z.object({
+    message: z.optional(z.string())
+});
 
 export const zCoursesControllerFindAllData = z.object({
     body: z.optional(z.never()),
