@@ -1,4 +1,4 @@
-import BillingPage from '@/pages/admin/billing'
+import BillingPage from '@/pages/shared/billing'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(protected)/billing/')({
