@@ -1,25 +1,27 @@
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
 import {
-    ActionIcon,
-    Button,
-    Container,
-    Drawer,
-    Flex,
-    Group,
-    NumberFormatter,
-    Paper,
-    rem,
-    Stack,
-    Table,
-    Text,
-    Timeline,
-    Title,
+  ActionIcon,
+  Button,
+  Container,
+  Drawer,
+  Flex,
+  Group,
+  NumberFormatter,
+  Paper,
+  rem,
+  Stack,
+  Table,
+  Text,
+  Timeline,
+  Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
-    IconArrowLeft,
-    IconHistory,
-    IconPlus,
-    IconUpload,
+  IconArrowLeft,
+  IconHistory,
+  IconPlus,
+  IconUpload,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
@@ -117,6 +119,7 @@ const paymentHistory = [
 function BillingIdPage() {
   const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
+  const { authUser } = useAuth('protected')
 
   return (
     <Container size={'md'} pb={'lg'}>
@@ -138,7 +141,7 @@ function BillingIdPage() {
             Billing Details
           </Title>
         </Group>
-        <Group align={'center'} gap={"sm"} ml={'auto'}>
+        <Group align={'center'} gap={'sm'} ml={'auto'}>
           <Button
             variant="outline"
             radius={'md'}
@@ -149,14 +152,21 @@ function BillingIdPage() {
           >
             Export
           </Button>
-          <Button
-            variant="filled"
-            radius={'md'}
-            leftSection={<IconPlus size={20} />}
-            lts={rem(0.25)}
-          >
-            Pay Bill
-          </Button>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              student: (
+                <Button
+                  variant="filled"
+                  radius={'md'}
+                  leftSection={<IconPlus size={20} />}
+                  lts={rem(0.25)}
+                >
+                  Pay Bill
+                </Button>
+              ),
+            }}
+          />
         </Group>
       </Flex>
 
