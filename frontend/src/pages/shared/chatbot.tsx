@@ -6,10 +6,10 @@ import {
 import React, { useRef, useState, useEffect } from 'react'
 import Draggable from 'react-draggable'
 import { IconMessageChatbot } from '@tabler/icons-react'
-import DropZoneIndicator from '@/components/chatbot/DropZoneIndicator'
-import ChatHeader from '@/components/chatbot/ChatHeader'
-import ChatMessages from '@/components/chatbot/ChatMessages'
-import ChatInput from '@/components/chatbot/ChatInput'
+import DropZoneIndicator from '@/components/chatbot/drop-zone-indicator.tsx'
+import ChatHeader from '@/components/chatbot/chat-header.tsx'
+import ChatMessages from '@/components/chatbot/chat-messages.tsx'
+import ChatInput from '@/components/chatbot/chat-input.tsx'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -85,6 +85,8 @@ const Chatbot = ({
 
   const handleDragStop = (_: any, data: any) => {
     if (isDrag.current && isInCenterDropZone(data.x, data.y)) {
+      isDrag.current = false
+
       // if the user has dragged to the center drop zone, close the chatbot
       setChatbotFabHidden(true)
       setChatbotOpen(false)
@@ -93,8 +95,8 @@ const Chatbot = ({
         y: window.innerHeight - 100
       })
     }
+
     setIsDragging(false)
-    isDrag.current = false
   }
 
   const handleClick = () => {
