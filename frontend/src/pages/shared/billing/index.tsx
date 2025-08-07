@@ -269,22 +269,6 @@ function BillingPage() {
           )}
         </BillingQueryProvider>
         {/* </Card> */}
-
-        {/* <Flex gap={'md'} direction={'column'}>
-        <Flex justify={'space-between'}>
-          <Flex align={'center'} gap={'xs'}>
-            <Title
-              display={'flex'}
-              c={'dark.7'}
-              order={3}
-              fw={700}
-              lts={rem(0.4)}
-            >
-              Billing{' '}
-            </Title>
-          </Flex>
-        </Flex>
-      </Flex> */}
       </Stack>
     </Container>
   )
