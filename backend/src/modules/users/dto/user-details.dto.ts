@@ -1,7 +1,10 @@
+import { StaffDetailsDto } from '@/generated/nestjs-dto/staffDetails.dto';
+import { StudentDetailsDto } from '@/generated/nestjs-dto/studentDetails.dto';
+import { UserDetailsDto } from '@/generated/nestjs-dto/userDetails.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
-export class UserDetailsDto {
+export class UserDetailsFullDto {
   @ApiProperty()
   id: string;
 
@@ -20,12 +23,16 @@ export class UserDetailsDto {
   @ApiProperty({ enum: Role })
   role: Role;
 
-  @ApiProperty({ nullable: true, type: Object })
-  userDetails: any;
+  @ApiProperty({ nullable: true, type: UserDetailsDto })
+  userDetails: UserDetailsDto | null;
+}
 
-  @ApiProperty({ nullable: true, type: Object })
-  studentDetails: any;
+export class UserStudentDetailsDto extends UserDetailsFullDto {
+  @ApiProperty({ type: StudentDetailsDto, nullable: true })
+  studentDetails: StudentDetailsDto;
+}
 
-  @ApiProperty({ nullable: true, type: Object })
-  staffDetails: any;
+export class UserStaffDetailsDto extends UserDetailsFullDto {
+  @ApiProperty({ type: StaffDetailsDto, nullable: true })
+  staffDetails: StaffDetailsDto;
 }
