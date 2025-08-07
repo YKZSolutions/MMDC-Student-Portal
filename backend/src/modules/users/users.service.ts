@@ -18,6 +18,7 @@ import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
+import { UserDetailsDto } from './dto/user-details.dto';
 
 @Injectable()
 export class UsersService {
@@ -260,6 +261,71 @@ export class UsersService {
       };
     } catch (error) {
       this.logger.error(`Error updating status for user ${userId}`);
+
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(
+        'An unexpected error has occurred',
+      );
+    }
+  }
+
+  /**
+   * Retrieves user profile details using the Supabase Auth UID (`authUid`).
+   *
+   * This method:
+   * - Uses the unique `authUid` to find the corresponding `UserAccount`
+   * - Includes related `User`, `UserDetails`, `StaffDetails`, and `StudentDetails`
+   * - Maps the user data to a flat structure returned as a `UserDetailsDto`
+   *
+   * @param authUid - The Supabase `sub` value, used to uniquely identify the authenticated user.
+   * @returns A structured user details DTO, including basic info and extended profile (if found).
+   * @throws NotFoundException if no user is found with the provided auth UID.
+   * @throws InternalServerErrorException for unexpected errors during the lookup.
+   */
+  async getMe(authUid: string): Promise<UserDetailsDto> {
+    try {
+      const account = await this.prisma.client.userAccount.findUnique({
+        where: { authUid: authUid },
+        include: {
+          user: {
+            include: {
+              userDetails: true,
+              staffDetails: true,
+              studentDetails: true,
+            },
+          },
+        },
+      });
+
+      if (!account) {
+        throw new NotFoundException('User not found');
+      }
+
+      const { email } = account;
+      const {
+        id,
+        firstName,
+        middleName,
+        lastName,
+        role,
+        userDetails,
+        studentDetails,
+        staffDetails,
+      } = account.user;
+
+      return {
+        id,
+        email,
+        firstName,
+        middleName,
+        lastName,
+        role,
+        userDetails,
+        studentDetails,
+        staffDetails,
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching user details`, error);
 
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(
