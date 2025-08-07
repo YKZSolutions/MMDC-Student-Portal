@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   CreateUserFullDto,
@@ -27,7 +28,12 @@ import { UserWithRelations } from './dto/user-with-relations.dto';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { User } from '@supabase/supabase-js';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
-import { UserDetailsDto } from './dto/user-details.dto';
+import {
+  UserDetailsFullDto,
+  UserStaffDetailsDto,
+  UserStudentDetailsDto,
+} from './dto/user-details.dto';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 
 @Injectable()
 export class UsersService {
@@ -399,20 +405,33 @@ export class UsersService {
   }
 
   /**
-   * Retrieves user profile details using the Supabase Auth UID (`authUid`).
+   * Retrieves the profile of the currently authenticated user.
    *
    * This method:
-   * - Uses the unique `authUid` to find the corresponding `UserAccount`
-   * - Includes related `User`, `UserDetails`, `StaffDetails`, and `StudentDetails`
-   * - Maps the user data to a flat structure returned as a `UserDetailsDto`
+   * - Uses the user's Supabase Auth UID (`user.id`) to locate the corresponding account
+   * - Includes related entities like `UserDetails`, `StudentDetails`, and `StaffDetails`
+   * - Constructs and returns a flattened DTO depending on the user's role
    *
-   * @param authUid - The Supabase `sub` value, used to uniquely identify the authenticated user.
-   * @returns A structured user details DTO, including basic info and extended profile (if found).
-   * @throws NotFoundException if no user is found with the provided auth UID.
-   * @throws InternalServerErrorException for unexpected errors during the lookup.
+   * @param user - The authenticated user from Supabase Auth context
+   * @returns One of:
+   * - `UserStudentDetailsDto` if the user is a student
+   * - `UserStaffDetailsDto` if the user is a mentor/admin
+   * - Fallback: `UserDetailsFullDto` if role-based detail is missing
+   *
+   * @throws UnauthorizedException If the `authUid` is missing or invalid
+   * @throws NotFoundException If no user account is found
+   * @throws InternalServerErrorException If an unexpected error occurs
    */
-  async getMe(authUid: string): Promise<UserDetailsDto> {
+  async getMe(
+    user: AuthUser,
+  ): Promise<UserDetailsFullDto | UserStudentDetailsDto | UserStaffDetailsDto> {
     try {
+      const authUid = user.id;
+
+      if (!authUid) {
+        throw new UnauthorizedException('User not authorized');
+      }
+
       const account = await this.prisma.client.userAccount.findUnique({
         where: { authUid: authUid },
         include: {
@@ -442,7 +461,7 @@ export class UsersService {
         staffDetails,
       } = account.user;
 
-      return {
+      const basicDetails: Partial<UserDetailsFullDto> = {
         id,
         email,
         firstName,
@@ -450,9 +469,19 @@ export class UsersService {
         lastName,
         role,
         userDetails,
-        studentDetails,
-        staffDetails,
       };
+
+      if (role === 'student') {
+        return {
+          ...basicDetails,
+          studentDetails,
+        } as UserStudentDetailsDto;
+      }
+
+      return {
+        ...basicDetails,
+        staffDetails,
+      } as UserStaffDetailsDto;
     } catch (error) {
       this.logger.error(`Error fetching user details`, error);
 
