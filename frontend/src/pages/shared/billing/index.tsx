@@ -14,6 +14,7 @@ import {
   Pagination,
   rem,
   SegmentedControl,
+  Stack,
   Table,
   Text,
   TextInput,
@@ -224,51 +225,52 @@ function BillingPage() {
         </Group>
       </Flex>
 
-      {/* <Card padding="lg" radius="md" withBorder> */}
-      <Group justify="space-between" mb="md" align="center">
-        <SegmentedControl
-          bd={'1px solid gray.2'}
-          radius={'md'}
-          data={segmentedControlOptions}
-          color="primary"
-        />
-        <Group gap="sm">
-          {' '}
-          {/* Changed spacing to gap */}
-          <TextInput
-            placeholder="Search name/email"
+      <Stack>
+        {/* <Card padding="lg" radius="md" withBorder> */}
+        <Group justify="space-between" align="center">
+          <SegmentedControl
+            bd={'1px solid gray.2'}
             radius={'md'}
-            leftSection={<IconSearch size={18} stroke={1} />}
-            w={rem(250)}
+            data={segmentedControlOptions}
+            color="primary"
           />
-          <Button
-            variant="default"
-            radius={'md'}
-            leftSection={<IconFilter2 color="gray" size={20} />}
-            lts={rem(0.25)}
-          >
-            Filters
-          </Button>
-        </Group>
-      </Group>
-
-      <BillingTable />
-
-      <BillingQueryProvider props={query}>
-        {(props) => (
-          <Group justify="flex-end">
-            <Text size="sm">{props.message}</Text>
-            <Pagination
-              total={props.totalPages}
-              value={query.page}
-              withPages={false}
+          <Group gap="sm">
+            {' '}
+            {/* Changed spacing to gap */}
+            <TextInput
+              placeholder="Search name/email"
+              radius={'md'}
+              leftSection={<IconSearch size={18} stroke={1} />}
+              w={rem(250)}
             />
+            <Button
+              variant="default"
+              radius={'md'}
+              leftSection={<IconFilter2 color="gray" size={20} />}
+              lts={rem(0.25)}
+            >
+              Filters
+            </Button>
           </Group>
-        )}
-      </BillingQueryProvider>
-      {/* </Card> */}
+        </Group>
 
-      {/* <Flex gap={'md'} direction={'column'}>
+        <BillingTable />
+
+        <BillingQueryProvider props={query}>
+          {(props) => (
+            <Group justify="flex-end">
+              <Text size="sm">{props.message}</Text>
+              <Pagination
+                total={props.totalPages}
+                value={query.page}
+                withPages={false}
+              />
+            </Group>
+          )}
+        </BillingQueryProvider>
+        {/* </Card> */}
+
+        {/* <Flex gap={'md'} direction={'column'}>
         <Flex justify={'space-between'}>
           <Flex align={'center'} gap={'xs'}>
             <Title
@@ -283,6 +285,7 @@ function BillingPage() {
           </Flex>
         </Flex>
       </Flex> */}
+      </Stack>
     </Container>
   )
 }
@@ -311,30 +314,40 @@ function BillingTable() {
           bg={'gray.1'}
           c={'dark.5'}
         >
-          <Table.Th>
-            <Checkbox size="sm" />
-          </Table.Th>
-          <Table.Th>Invoice ID</Table.Th>
           <RoleComponentManager
             currentRole={authUser.role}
             roleRender={{
               admin: (
-                <Button
-                  variant="filled"
-                  radius={'md'}
-                  leftSection={<IconPlus size={20} />}
-                  lts={rem(0.25)}
-                >
-                  New Invoice
-                </Button>
+                <Table.Th>
+                  <Checkbox size="sm" />
+                </Table.Th>
               ),
             }}
           />
-          <Table.Th>User</Table.Th>
+          <Table.Th>Invoice ID</Table.Th>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              admin: <Table.Th>User</Table.Th>,
+              student: <Table.Th>Bill Type</Table.Th>,
+            }}
+          />
           <Table.Th>Status</Table.Th>
-          <Table.Th>Issue Date</Table.Th>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              admin: <Table.Th>Issue Date</Table.Th>,
+              student: <Table.Th>Due Date</Table.Th>,
+            }}
+          />
+
           <Table.Th>Amount</Table.Th>
-          <Table.Th></Table.Th>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              admin: <Table.Th></Table.Th>,
+            }}
+          />
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody
@@ -353,23 +366,42 @@ function BillingTable() {
                   })
                 }
               >
-                <Table.Td>
-                  <Checkbox size="sm" />
-                </Table.Td>
+                <RoleComponentManager
+                  currentRole={authUser.role}
+                  roleRender={{
+                    admin: (
+                      <Table.Td>
+                        <Checkbox size="sm" />
+                      </Table.Td>
+                    ),
+                  }}
+                />
                 <Table.Td>
                   <Text size="sm" c={'dark.3'} fw={500}>
                     {invoice.id}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Flex gap={'sm'} align={'center'}>
-                    <Flex direction={'column'}>
-                      <Text fw={600}>{invoice.clientName}</Text>
-                      <Text fz={'sm'} fw={500} c={'dark.2'}>
-                        test@email.com
-                      </Text>
-                    </Flex>
-                  </Flex>
+                  <RoleComponentManager
+                    currentRole={authUser.role}
+                    roleRender={{
+                      admin: (
+                        <Flex gap={'sm'} align={'center'}>
+                          <Flex direction={'column'}>
+                            <Text fw={600}>{invoice.clientName}</Text>
+                            <Text fz={'sm'} fw={500} c={'dark.2'}>
+                              test@email.com
+                            </Text>
+                          </Flex>
+                        </Flex>
+                      ),
+                      student: (
+                        <Text fz={'sm'} fw={500} c={'dark.3'}>
+                          Tuition Fee
+                        </Text>
+                      ),
+                    }}
+                  />
                 </Table.Td>
                 <Table.Td>
                   <Badge variant="light" radius="lg">
@@ -389,25 +421,33 @@ function BillingTable() {
                     ${invoice.price.toFixed(2)}
                   </Text>
                 </Table.Td>
-                <Table.Td>
-                  <Menu shadow="md" width={200}>
-                    <Menu.Target>
-                      <ActionIcon
-                        onClick={(e) => e.stopPropagation()}
-                        variant="subtle"
-                        color="gray"
-                        radius={'xl'}
-                      >
-                        <IconDotsVertical size={20} stroke={1.5} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item>View Details</Menu.Item>
-                      <Menu.Item>Edit</Menu.Item>
-                      <Menu.Item c="red">Delete</Menu.Item>{' '}
-                    </Menu.Dropdown>
-                  </Menu>
-                </Table.Td>
+
+                <RoleComponentManager
+                  currentRole={authUser.role}
+                  roleRender={{
+                    admin: (
+                      <Table.Td>
+                        <Menu shadow="md" width={200}>
+                          <Menu.Target>
+                            <ActionIcon
+                              onClick={(e) => e.stopPropagation()}
+                              variant="subtle"
+                              color="gray"
+                              radius={'xl'}
+                            >
+                              <IconDotsVertical size={20} stroke={1.5} />
+                            </ActionIcon>
+                          </Menu.Target>
+                          <Menu.Dropdown>
+                            <Menu.Item>View Details</Menu.Item>
+                            <Menu.Item>Edit</Menu.Item>
+                            <Menu.Item c="red">Delete</Menu.Item>{' '}
+                          </Menu.Dropdown>
+                        </Menu>
+                      </Table.Td>
+                    ),
+                  }}
+                />
               </Table.Tr>
             ))
           }
