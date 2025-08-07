@@ -5,6 +5,7 @@ import Sidebar from '@/pages/shared/sidebar'
 import Topbar from '@/pages/shared/topbar'
 import { Group, Stack } from '@mantine/core'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { Chatbot } from '@/pages/shared/chatbot.tsx'
 
 export const Route = createFileRoute('/(protected)')({
   component: RouteComponent,
@@ -40,6 +41,7 @@ function RouteComponent() {
           <Topbar />
           <Outlet />
         </Stack>
+        <Chatbot/>
       </Stack>
     </Group>
   )
