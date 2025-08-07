@@ -1,5 +1,6 @@
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
+import { Role as RoleType } from '@prisma/client';
 import { User } from '@/generated/nestjs-dto/user.entity';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -21,16 +22,29 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiOkResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { CreateUserWithAccountDto } from './dto/create-user.dto';
+import {
+  CreateUserFullDto,
+  CreateUserStaffDto,
+  CreateUserStudentDto,
+} from './dto/create-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
-import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
+import {
+  UpdateUserBaseDto,
+  UpdateUserStaffDto,
+  UpdateUserStudentDto,
+} from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
+import { Public } from '@/common/decorators/auth.decorator';
+import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { UserDetailsDto } from './dto/user-details.dto';
@@ -55,11 +69,65 @@ export class UsersController {
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
-  async create(@Body() createUserDto: CreateUserWithAccountDto): Promise<User> {
+  async create(@Body() createUserDto: CreateUserFullDto): Promise<User> {
     try {
-      const user = await this.usersService.create(createUserDto);
+      const user = await this.usersService.create(
+        createUserDto.role,
+        createUserDto,
+      );
 
-      return user.user;
+      return user;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Create a new student user
+   *
+   * @remarks
+   * This operation creates both a user and a supabase auth account.
+   * It also has additional properties for student specific details.
+   *
+   */
+  @Post('/student')
+  @Roles(Role.ADMIN)
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async createStudent(
+    @Body() createUserDto: CreateUserStudentDto,
+  ): Promise<User> {
+    try {
+      const user = await this.usersService.create('student', createUserDto);
+
+      return user;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  /**
+   * Create a new staff user
+   *
+   * @remarks
+   * This operation creates both a user and a supabase auth account.
+   * It also has additional properties for staff specific details.
+   *
+   */
+  @Post('/staff')
+  @Roles(Role.ADMIN)
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async createStaff(@Body() createUserDto: CreateUserStaffDto): Promise<User> {
+    try {
+      const user = await this.usersService.create(
+        createUserDto.role,
+        createUserDto,
+      );
+
+      return user;
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to create user');
@@ -113,21 +181,31 @@ export class UsersController {
    *
    */
   @Put('/me')
+  @ApiExtraModels(UpdateUserStudentDto, UpdateUserStaffDto)
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async updateOwnUserDetails(
     @Req() request: Request,
-    @Body() updateUserDto: UpdateUserDetailsDto,
+    @Body() updateUserDto: UpdateUserBaseDto,
   ): Promise<User> {
-    if (!request.user) {
-      throw new BadRequestException('User not found');
-    }
+    if (!request.user) throw new BadRequestException('User not found');
 
-    const userId = request.user.user_metadata?.user_id as string;
+    if (
+      !request.user.user_metadata ||
+      !request.user.user_metadata.user_id ||
+      !request.user.user_metadata.role
+    )
+      throw new BadRequestException('User metadata not found');
+
+    const { user_id, role } = request.user.user_metadata;
 
     try {
-      return await this.usersService.updateUserDetails(userId, updateUserDto);
+      return await this.usersService.updateUserDetails(
+        user_id,
+        role,
+        updateUserDto,
+      );
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException(`Failed to update user: ${err}`);
@@ -135,23 +213,29 @@ export class UsersController {
   }
 
   /**
-   * Update user details (Admin only)
+   * Update student user details (Admin only)
    *
-   *
-   * @remarks This operation updates the user details in the database
-   *
+   * @remarks
+   * This operation updates the user details in the database.
+   * The user should be have a student role.
    */
-  @Put(':id')
+  @Put(':id/student')
   @Roles(Role.ADMIN)
   @ApiCreatedResponse({ type: User })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
-  async updateUserDetails(
+  async updateUserStudentDetails(
     @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDetailsDto,
+    @Body() updateUserDto: UpdateUserStudentDto,
   ): Promise<User> {
     try {
-      return await this.usersService.updateUserDetails(id, updateUserDto);
+      const user = await this.usersService.findOne(id);
+
+      return await this.usersService.updateUserDetails(
+        id,
+        user.role,
+        updateUserDto,
+      );
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to update user');
@@ -159,16 +243,43 @@ export class UsersController {
   }
 
   /**
-   * Retrieves a paginated list of users based on the provided filter parameters.
+   * Update staff user details (Admin only)
    *
+   * @remarks
+   * This operation updates the user details in the database.
+   * The user should be have a mentor or admin role.
+   */
+  @Put(':id/staff')
+  @Roles(Role.ADMIN)
+  @ApiCreatedResponse({ type: User })
+  @ApiException(() => BadRequestException)
+  @ApiException(() => InternalServerErrorException)
+  async updateUserStaffDetails(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserStaffDto,
+  ): Promise<User> {
+    try {
+      const user = await this.usersService.findOne(id);
+
+      return await this.usersService.updateUserDetails(
+        id,
+        user.role,
+        updateUserDto,
+      );
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new InternalServerErrorException('Failed to update user');
+    }
+  }
+
+  /**
+   * Get users
+   *
+   * @remarks
+   * Retrieves a paginated list of users based on the provided filter parameters.
    * - **Access:** Requires `ADMIN` role.
    * - **Filtering & Pagination:** Uses the `FilterUserDto` to define query parameters such as search terms, sorting, and page size.
    *
-   * @param {FilterUserDto} filters - Query parameters for filtering, sorting, and pagination.
-   * @returns {Promise<PaginatedUsersDto>} A paginated list of users matching the provided filters.
-   *
-   * @throws {BadRequestException} If the provided filters are invalid or cannot be processed.
-   * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching users.
    */
 
   @Get()
@@ -190,17 +301,14 @@ export class UsersController {
   }
 
   /**
-   * Retrieves a specific user by their unique identifier.
+   * Get user by id
+
    *
+   * @remarks
+   * Retrieves a specific user by their unique identifier.
    * - **Validation:** Ensures the provided `id` is a valid identifier format.
    * - **Not Found Handling:** Throws an error if no matching user is found.
    *
-   * @param {User['id']} id - The unique identifier of the user to retrieve.
-   * @returns {Promise<User>} The user matching the provided ID.
-   *
-   * @throws {BadRequestException} If the provided ID format is invalid.
-   * @throws {NotFoundException} If no user exists with the given ID.
-   * @throws {InternalServerErrorException} If an unexpected server error occurs while fetching the user.
    */
   @Get(':id')
   @ApiOkResponse({ description: 'User found successfully', type: User })
