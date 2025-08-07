@@ -1,6 +1,12 @@
 import type { Role } from '@/integrations/api/client'
 import { supabase } from '@/integrations/supabase/supabase-client'
-import type {AuthError, AuthResponse, User, UserResponse} from '@supabase/supabase-js'
+import type {
+  AuthError,
+  AuthResponse,
+  AuthTokenResponsePassword,
+  User,
+  UserResponse,
+} from '@supabase/supabase-js'
 import { useRouteContext } from '@tanstack/react-router'
 
 /**
@@ -26,12 +32,13 @@ const login = async (
   email: string,
   password: string,
 ): Promise<AuthResponse> => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  const response: AuthTokenResponsePassword = await supabase.auth.signInWithPassword({ email, password })
 
-  if (data) {
-    console.log(data.session.access_token)
+  if (response && response.data.session) {
+    console.log(response.data.session.access_token)
   }
-  return { data, error }
+
+  return response
 }
 
 /**
