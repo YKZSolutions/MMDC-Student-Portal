@@ -16,4 +16,11 @@ export class ConnectUserAccountDto {
   @IsOptional()
   @IsString()
   userId?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  authUid?: string;
 }
