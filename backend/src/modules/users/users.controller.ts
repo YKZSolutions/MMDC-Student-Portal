@@ -17,6 +17,7 @@ import {
   Put,
   Query,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -30,7 +31,9 @@ import { PaginatedUsersDto } from './dto/paginated-user.dto';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
-
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { UserDetailsDto } from './dto/user-details.dto';
 /**
  *
  * @remarks Handles user related operations
@@ -83,6 +86,24 @@ export class UsersController {
       if (err instanceof BadRequestException) throw err;
       throw new InternalServerErrorException('Failed to create user');
     }
+  }
+
+  /**
+   * Retrieves profile information of the currently authenticated user.
+   *
+   * @remarks
+   * This endpoint uses the `UserDetailsDto` as the response schema.
+   */
+  @ApiOkResponse({ type: UserDetailsDto })
+  @Get('/me')
+  async getMe(@CurrentUser() user: AuthUser) {
+    const id = user.id;
+
+    if (!id) {
+      throw new UnauthorizedException('User not authorized');
+    }
+
+    return this.usersService.getMe(id);
   }
 
   /**
