@@ -1,6 +1,5 @@
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { Role as RoleType } from '@prisma/client';
 import { User } from '@/generated/nestjs-dto/user.entity';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -47,7 +46,11 @@ import { Public } from '@/common/decorators/auth.decorator';
 import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
-import { UserDetailsDto } from './dto/user-details.dto';
+import {
+  UserDetailsFullDto,
+  UserStaffDetailsDto,
+  UserStudentDetailsDto,
+} from './dto/user-details.dto';
 /**
  *
  * @remarks Handles user related operations
@@ -157,21 +160,34 @@ export class UsersController {
   }
 
   /**
-   * Retrieves profile information of the currently authenticated user.
+   * Get the currently authenticated user
    *
    * @remarks
-   * This endpoint uses the `UserDetailsDto` as the response schema.
+   * This endpoint returns the full profile of the currently authenticated user.
+   * The structure of the returned object depends on the user's role:
+   *
+   * - `UserStudentDetailsDto` for users with the `student` role
+   * - `UserStaffDetailsDto` for users with the `mentor` or `admin` role
    */
-  @ApiOkResponse({ type: UserDetailsDto })
+  @ApiExtraModels(UserStudentDetailsDto, UserStaffDetailsDto)
+  @ApiOkResponse({
+    description: 'Current user details fetched successfully',
+    schema: {
+      type: 'object',
+      oneOf: [
+        { $ref: getSchemaPath(UserStudentDetailsDto) },
+        { $ref: getSchemaPath(UserStaffDetailsDto) },
+      ],
+    },
+  })
+  @ApiException(() => [
+    UnauthorizedException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
   @Get('/me')
   async getMe(@CurrentUser() user: AuthUser) {
-    const id = user.id;
-
-    if (!id) {
-      throw new UnauthorizedException('User not authorized');
-    }
-
-    return this.usersService.getMe(id);
+    return this.usersService.getMe(user);
   }
 
   /**
