@@ -1,7 +1,7 @@
 import { Text, useMantineTheme } from '@mantine/core'
 import { useState } from 'react'
 
-const BotMessage = ({message}) =>{
+const BotMessage = ({message}: {message: string}) =>{
   const theme = useMantineTheme()
   return (
     <div
@@ -20,7 +20,7 @@ const BotMessage = ({message}) =>{
   )
 }
 
-const UserMessage = ({message}) =>{
+const UserMessage = ({message}: {message: string}) =>{
   const theme = useMantineTheme()
   return (
     <div
@@ -38,12 +38,6 @@ const UserMessage = ({message}) =>{
     </div>
   )
 }
-
-type Message = {
-  role: 'user' | 'bot'
-  content: string
-}
-
 
 const ChatMessages = ({messages}: {messages: Message[]}) => {
   return (

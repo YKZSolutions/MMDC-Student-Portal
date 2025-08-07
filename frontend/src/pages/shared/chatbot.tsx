@@ -167,7 +167,7 @@ const Chatbot = ({
                 <Button
                   onClick={handleClick}
                   variant="filled"
-                  color={theme.secondaryColor}
+                  color={theme.colors["secondary"][0]}
                   size="lg"
                   radius="xl"
                   leftSection={<IconMessageChatbot size={24} />}

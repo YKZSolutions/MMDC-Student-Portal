@@ -11,7 +11,7 @@ const ChatHeader = ({ onClose }: { onClose: () => void }) => {
         borderBottom: `1px solid ${theme.colors.gray[3]}`,
         display: 'flex',
         justifyContent: 'space-between',
-        backgroundColor: theme.colors[theme.secondaryColor][0],
+        backgroundColor: theme.colors["secondary"][0],
         borderRadius: '8px 8px 0 0',
       }}
     >

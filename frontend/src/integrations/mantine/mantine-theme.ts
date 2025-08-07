@@ -24,7 +24,6 @@ declare module '@mantine/core' {
 
 export const theme = createTheme({
   primaryColor: 'primary',
-  secondaryColor: 'secondary',
   colors: {
     ...customColors,
   },
