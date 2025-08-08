@@ -18,16 +18,14 @@ import {
   Put,
   Query,
   Req,
-  Search,
   UnauthorizedException,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiCreatedResponse,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery,
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -50,10 +48,10 @@ import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
-  UserDetailsFullDto,
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
+import { DeleteQueryDto } from './dto/delete-user-query.dto';
 /**
  *
  * @remarks Handles user related operations
@@ -395,12 +393,6 @@ export class UsersController {
    */
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @ApiQuery({
-    name: 'directDelete',
-    type: Boolean,
-    description: 'If set to true, will skip the soft delete process',
-    required: false,
-  })
   @ApiOkResponse({
     description: 'User deleted successfully',
     schema: {
@@ -418,8 +410,8 @@ export class UsersController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   remove(
     @Param('id') id: string,
-    @Query('directDelete') directDelete?: boolean,
+    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
   ) {
-    return this.usersService.remove(id, directDelete);
+    return this.usersService.remove(id, query?.directDelete);
   }
 }

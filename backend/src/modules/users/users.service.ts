@@ -529,6 +529,11 @@ export class UsersService {
             },
           });
 
+          if (user.userAccount)
+            await this.authService.updateMetadata(user.userAccount.authUid, {
+              status: 'deleted',
+            });
+
           return {
             message: 'User has been soft deleted',
           };
