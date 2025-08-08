@@ -492,7 +492,65 @@ export class UsersService {
     }
   }
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
+  /**
+   * Deletes a user either softly or permanently.
+   *
+   * - If `directDelete` is true, the user is permanently deleted without checking `deletedAt`.
+   * - If `directDelete` is false or undefined:
+   *   - If `deletedAt` is null, it sets the current date to soft delete the user.
+   *   - If `deletedAt` is already set, the user is permanently deleted.
+   *
+   * All of the user details and the supabase auth account will be deleted from the cloud on hard delete
+   *
+   * @param id - The ID of the user to delete.
+   * @param directDelete - Whether to skip soft delete and directly remove the user.
+   * @returns A message indicating the result.
+   */
+  async remove(
+    id: string,
+    directDelete?: boolean,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await this.prisma.client.user.findFirstOrThrow({
+        where: { id: id },
+        include: {
+          userAccount: true,
+        },
+      });
+
+      if (!directDelete) {
+        if (!user.deletedAt) {
+          await this.prisma.client.user.update({
+            where: { id: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
+
+          return {
+            message: 'User has been soft deleted',
+          };
+        }
+      }
+
+      if (user.userAccount)
+        await this.authService.delete(user.userAccount.authUid);
+
+      await this.prisma.client.user.delete({
+        where: { id: id },
+      });
+
+      return {
+        message: 'User has been permanently deleted',
+      };
+    } catch (err) {
+      this.logger.error(err);
+      if (err instanceof Prisma.PrismaClientKnownRequestError)
+        if (err.code === 'P2025') throw new NotFoundException('User not found');
+
+      if (err instanceof HttpException) throw err;
+
+      throw new InternalServerErrorException('Error deleting the user');
+    }
+  }
 }
