@@ -394,9 +394,7 @@ export class UsersController {
    * Use this endpoint to manage user deletion workflows flexibly through a single API.
    */
   @Delete(':id')
-  // @Roles(Role.ADMIN)
-  @Public()
-  @StatusBypass()
+  @Roles(Role.ADMIN)
   @ApiQuery({
     name: 'directDelete',
     type: Boolean,
