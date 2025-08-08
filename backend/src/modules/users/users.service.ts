@@ -256,6 +256,8 @@ export class UsersService {
       const where: Prisma.UserWhereInput = {};
       const page: FilterUserDto['page'] = Number(filters?.page) || 1;
 
+      where.deletedAt = null;
+
       if (filters.role) where.role = filters.role;
 
       if (filters.search?.trim()) {
