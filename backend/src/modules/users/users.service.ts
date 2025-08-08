@@ -510,8 +510,12 @@ export class UsersService {
    */
   async remove(
     id: string,
-    directDelete?: boolean,
+    directDelete: boolean | string = false,
   ): Promise<{ message: string }> {
+    // Convert directDelete to boolean if it's a string
+    const shouldDeleteDirectly =
+      directDelete === true || directDelete === 'true';
+    console.log('Converted shouldDeleteDirectly:', shouldDeleteDirectly);
     try {
       const user = await this.prisma.client.user.findFirstOrThrow({
         where: { id: id },
@@ -520,19 +524,27 @@ export class UsersService {
         },
       });
 
-      if (!directDelete) {
-        if (!user.deletedAt) {
-          await this.prisma.client.user.update({
-            where: { id: id },
-            data: {
-              deletedAt: new Date(),
-            },
-          });
+      console.log('User:', user);
+      console.log('directDelete value:', directDelete);
+      console.log('directDelete type:', typeof directDelete);
 
-          return {
-            message: 'User has been soft deleted',
-          };
-        }
+      if (!shouldDeleteDirectly) {
+        console.log('soft delete');
+
+        await this.prisma.client.$transaction([
+          this.prisma.client.user.update({
+            where: { id: id },
+            data: { deletedAt: new Date() },
+          }),
+          this.prisma.client.userAccount.updateMany({
+            where: { userId: id },
+            data: { deletedAt: new Date() },
+          }),
+        ]);
+
+        return {
+          message: 'User has been soft deleted',
+        };
       }
 
       if (user.userAccount)

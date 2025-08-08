@@ -54,6 +54,7 @@ import {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
+import { Type } from 'class-transformer';
 /**
  *
  * @remarks Handles user related operations
@@ -418,7 +419,8 @@ export class UsersController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   remove(
     @Param('id') id: string,
-    @Query('directDelete') directDelete?: boolean,
+    @Query('directDelete')
+    directDelete?: boolean,
   ) {
     return this.usersService.remove(id, directDelete);
   }
