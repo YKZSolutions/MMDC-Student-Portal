@@ -8,7 +8,7 @@ import {
 const customColors = {
   background: colorsTuple('#FAFAFA'),
   primary: colorsTuple('#123373'),
-  secondary: colorsTuple('#F80507'),
+  secondary: colorsTuple('#BE0000'),
 } satisfies Record<string, MantineColorsTuple>
 
 type CustomColors = keyof typeof customColors
