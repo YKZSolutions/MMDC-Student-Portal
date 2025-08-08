@@ -7,7 +7,12 @@ import {
 } from '@tabler/icons-react'
 import { Link, useLocation } from '@tanstack/react-router'
 
-function Topbar() {
+type TopBarProps = {
+  setChatbotOpen: (open: boolean) => void
+  setChatbotFabHidden: (hidden: boolean) => void
+}
+
+function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
   const location = useLocation()
 
   const paths = location.pathname.split('/').slice(1)
@@ -34,7 +39,7 @@ function Topbar() {
       </Breadcrumbs>
 
       <Group>
-        <ActionIcon variant="subtle" radius="xl">
+        <ActionIcon variant="subtle" radius="xl" onClick={() => {setChatbotOpen(true); setChatbotFabHidden(false)}}>
           <IconMessageChatbot size={22} />
         </ActionIcon>
         <ActionIcon variant="subtle" radius="xl">
