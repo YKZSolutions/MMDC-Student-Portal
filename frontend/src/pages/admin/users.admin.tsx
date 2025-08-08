@@ -1,5 +1,5 @@
 import { roleOptions, roleStyles } from '@/features/user-management/constants'
-import type { IQuery } from '@/features/user-management/types'
+import type { IUsersQuery } from '@/features/user-management/types'
 import {
   type PaginationMetaDto,
   type Role,
@@ -62,7 +62,7 @@ function UsersQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IQuery
+  props?: IUsersQuery
 }) {
   const { search, page, role } = props
 
@@ -101,7 +101,7 @@ function UsersPage() {
     role: searchParam.role || null,
   }
 
-  const [query, setQuery] = useState<IQuery>(queryDefaultValues)
+  const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -124,14 +124,14 @@ function UsersPage() {
     })
   }, 200)
 
-  const handlePage = (page: IQuery['page']) => {
+  const handlePage = (page: IUsersQuery['page']) => {
     setQuery((prev) => ({
       ...prev,
       page,
     }))
   }
 
-  const handleRoleFilter = (role: IQuery['role']) => {
+  const handleRoleFilter = (role: IUsersQuery['role']) => {
     setQuery((prev) => ({
       ...prev,
       role,
@@ -153,7 +153,7 @@ function UsersPage() {
           User management
         </Title>
         <Text c={'dark.3'} fw={500}>
-          Manage your team members and their account permissions here.
+          Manage users and their account permissions here.
         </Text>
       </Box>
 
@@ -299,7 +299,7 @@ function UsersPage() {
   )
 }
 
-function UsersTable({ props }: { props: IQuery }) {
+function UsersTable({ props }: { props: IUsersQuery }) {
   return (
     <Table
       highlightOnHover
