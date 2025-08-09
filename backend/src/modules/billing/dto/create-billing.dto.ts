@@ -4,6 +4,9 @@ export class CreateBillingDto {
   @IsNotEmpty()
   amount: number;
 
+  @IsNotEmpty()
+  billingId: string;
+
   @IsOptional()
   description?: string;
 
