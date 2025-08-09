@@ -13,13 +13,12 @@ import {
   Group,
   Image,
   LoadingOverlay,
+  Radio,
   rem,
   Stack,
   Text,
-  Transition,
 } from '@mantine/core'
 import type { ContextModalProps } from '@mantine/modals'
-import { IconCheck } from '@tabler/icons-react'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState, type ReactNode } from 'react'
 
@@ -110,7 +109,8 @@ export default function EwalletModal({
     context.updateModal({
       modalId: id,
       centered: true,
-      radius: "md"
+      radius: 'md',
+      withCloseButton: false,
     })
   }, [])
 
@@ -183,18 +183,29 @@ export default function EwalletModal({
         attachResult.data.attributes.next_action?.redirect?.url
 
       if (redirectUrl) window.open(redirectUrl, '_blank')
+
+      context.closeContextModal(id)
     } catch (error) {
       console.error(error)
     }
   }
 
   return (
-    <Stack gap="md">
+    <Stack gap="sm">
+      <Stack gap={rem(2.5)}>
+        <Text fw={500} c={'dark.9'}>
+          Select E-wallet
+        </Text>
+        <Text fz="sm" c="dark.3" mb="sm">
+          Choose how you want to make payments
+        </Text>
+      </Stack>
       {ewallets.map((wallet) => (
         <Card
           key={wallet.value}
           // shadow="sm"
-          padding="lg"
+          px="lg"
+          py="sm"
           radius="md"
           withBorder
           onClick={() => setSelectedWallet(wallet.value as PaymentMethod)}
@@ -202,11 +213,12 @@ export default function EwalletModal({
             cursor: 'pointer',
             backgroundColor:
               selectedWallet === wallet.value
-                ? 'var(--mantine-color-gray-1)'
+                ? 'var(--mantine-color-gray-0)'
                 : undefined,
           }}
         >
           <Group>
+            <Radio checked={selectedWallet === wallet.value} readOnly />
             <Image
               src={wallet.logo}
               alt={wallet.value}
@@ -217,28 +229,12 @@ export default function EwalletModal({
             <Text fw={500} c={'gray.9'}>
               {wallet.name}
             </Text>
-            <Transition
-              mounted={selectedWallet === wallet.value}
-              transition={'fade'}
-              duration={250}
-              timingFunction="ease"
-            >
-              {(styles) => (
-                <IconCheck
-                  style={{
-                    ...styles,
-                    marginLeft: 'auto',
-                  }}
-                  color="green"
-                />
-              )}
-            </Transition>
           </Group>
         </Card>
       ))}
 
       <Group justify="flex-end" mt="md">
-        <Button variant="subtle" onClick={() => context.closeContextModal}>
+        <Button variant="subtle" onClick={() => context.closeContextModal(id)}>
           Cancel
         </Button>
         <Suspense
