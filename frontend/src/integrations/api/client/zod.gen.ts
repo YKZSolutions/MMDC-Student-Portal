@@ -490,6 +490,20 @@ export const zUsersControllerGetMeResponse = z.union([
     zUserStaffDetailsDto
 ]);
 
+export const zUsersControllerGetMeData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Current user details fetched successfully
+ */
+export const zUsersControllerGetMeResponse = z.union([
+    zUserStudentDetailsDto,
+    zUserStaffDetailsDto
+]);
+
 export const zUsersControllerUpdateOwnUserDetailsData = z.object({
     body: zUpdateUserBaseDto,
     path: z.optional(z.never()),
@@ -517,6 +531,23 @@ export const zUsersControllerUpdateUserStaffDetailsData = z.object({
 });
 
 export const zUsersControllerUpdateUserStaffDetailsResponse = zUser;
+
+export const zUsersControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+/**
+ * User deleted successfully
+ */
+export const zUsersControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
 
 export const zUsersControllerFindOneData = z.object({
     body: z.optional(z.never()),

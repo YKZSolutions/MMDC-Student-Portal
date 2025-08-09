@@ -511,6 +511,42 @@ export type UsersControllerGetMeResponses = {
 
 export type UsersControllerGetMeResponse = UsersControllerGetMeResponses[keyof UsersControllerGetMeResponses];
 
+export type UsersControllerGetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type UsersControllerGetMeErrors = {
+    401: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerGetMeError = UsersControllerGetMeErrors[keyof UsersControllerGetMeErrors];
+
+export type UsersControllerGetMeResponses = {
+    /**
+     * Current user details fetched successfully
+     */
+    200: UserStudentDetailsDto | UserStaffDetailsDto;
+};
+
+export type UsersControllerGetMeResponse = UsersControllerGetMeResponses[keyof UsersControllerGetMeResponses];
+
 export type UsersControllerUpdateOwnUserDetailsData = {
     body: UpdateUserBaseDto;
     path?: never;
@@ -601,6 +637,46 @@ export type UsersControllerUpdateUserStaffDetailsResponses = {
 };
 
 export type UsersControllerUpdateUserStaffDetailsResponse = UsersControllerUpdateUserStaffDetailsResponses[keyof UsersControllerUpdateUserStaffDetailsResponses];
+
+export type UsersControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/users/{id}';
+};
+
+export type UsersControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerRemoveError = UsersControllerRemoveErrors[keyof UsersControllerRemoveErrors];
+
+export type UsersControllerRemoveResponses = {
+    /**
+     * User deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type UsersControllerRemoveResponse = UsersControllerRemoveResponses[keyof UsersControllerRemoveResponses];
 
 export type UsersControllerFindOneData = {
     body?: never;
