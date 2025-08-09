@@ -11,6 +11,7 @@ import {
   Get,
   HttpException,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -60,6 +61,8 @@ import { DeleteQueryDto } from './dto/delete-user-query.dto';
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(private readonly usersService: UsersService) {}
 
   /**
@@ -75,6 +78,8 @@ export class UsersController {
   @ApiException(() => InternalServerErrorException)
   async create(@Body() createUserDto: CreateUserFullDto): Promise<User> {
     try {
+      this.logger.log('Doggy');
+
       const user = await this.usersService.create(
         createUserDto.role,
         createUserDto,

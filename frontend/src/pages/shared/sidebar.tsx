@@ -6,6 +6,10 @@ import NavButton from '../../features/navigation/nav-button'
 import type { User } from '@supabase/supabase-js'
 import { useNavigate } from '@tanstack/react-router'
 import { adminLinks, studentLinks } from '@/features/navigation/navLinks'
+import SupabaseAvatar from '@/components/supabase-avatar'
+import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
+import { useQuery } from '@tanstack/react-query'
+import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 
 function Sidebar() {
   const { authUser } = useAuth('protected')
@@ -51,6 +55,8 @@ function AccountButton(props: AccountButtonProps) {
   const { logout } = useAuth()
   const navigate = useNavigate()
 
+  const { data } = useQuery(usersControllerGetMeOptions())
+
   const onLogoutClick = () => {
     logout()
     navigate({
@@ -66,7 +72,15 @@ function AccountButton(props: AccountButtonProps) {
           px={2}
           h="auto"
           justify="start"
-          leftSection={<Avatar size={34}>TU</Avatar>}
+          leftSection={
+            <SupabaseAvatar
+              size={34}
+              bucket={SupabaseBuckets.USER_AVATARS}
+              path={data?.id || ''}
+              imageType="jpg"
+              name={`${data?.firstName} ${data?.lastName}`}
+            />
+          }
         >
           <Stack gap={0} align="start" w="100%">
             <Text className="text-left w-full" c="dark" fw={500} w="100%">

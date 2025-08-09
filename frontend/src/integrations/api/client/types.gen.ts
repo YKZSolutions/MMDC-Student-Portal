@@ -13,14 +13,6 @@ export type UserCredentialsDto = {
     password?: string;
 };
 
-export type ConnectUserDto = {
-    id: string;
-};
-
-export type CreateUserDetailsUserRelationInputDto = {
-    connect: ConnectUserDto;
-};
-
 export type CreateUserDetailsDto = {
     dateJoined: string;
     dob?: string | null;
@@ -46,10 +38,6 @@ export type User = {
     deletedAt: string | null;
 };
 
-export type CreateStudentDetailsUserRelationInputDto = {
-    connect: ConnectUserDto;
-};
-
 export type StudentType = 'new' | 'regular' | 'irregular' | 'transfer' | 'returnee' | 'graduate' | 'special';
 
 export type CreateStudentDetailsDto = {
@@ -69,10 +57,6 @@ export type CreateUserStudentDto = {
 };
 
 export type StaffRole = 'mentor' | 'admin';
-
-export type CreateStaffDetailsUserRelationInputDto = {
-    connect: ConnectUserDto;
-};
 
 export type CreateStaffDetailsDto = {
     employee_number: number;
@@ -97,6 +81,64 @@ export type InviteUserDto = {
     lastName: string;
     role: Role;
     email: string;
+};
+
+export type UserDetailsDto = {
+    id: string;
+    dateJoined: string;
+    dob: string | null;
+    gender: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type StudentDetailsDto = {
+    id: string;
+    student_number: number;
+    student_type: StudentType;
+    admission_date: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserStudentDetailsDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+    studentDetails: StudentDetailsDto | null;
+};
+
+export type StaffDetailsDto = {
+    id: string;
+    employee_number: number;
+    department: string;
+    position: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserStaffDetailsDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+    staffDetails: StaffDetailsDto | null;
 };
 
 export type UpdateStudentDetailsDto = {
@@ -146,37 +188,27 @@ export type UpdateUserBaseDto = {
     userDetails?: UpdateUserDetailsDto;
 };
 
-export type UserAccount = {
+export type UserAccountDto = {
     id: string;
-    userId: string;
     authUid: string;
-    email?: string;
+    email: string | null;
     createdAt: string;
     updatedAt: string;
-    deletedAt?: string;
-};
-
-export type UserDetails = {
-    id: string;
-    userId: string;
-    dob?: string;
-    gender?: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt?: string;
+    deletedAt: string | null;
 };
 
 export type UserWithRelations = {
     id: string;
     firstName: string;
-    middleName?: string;
+    middleName: string | null;
     lastName: string;
     role: Role;
     createdAt: string;
     updatedAt: string;
-    deletedAt?: string;
-    userAccount: UserAccount | null;
-    userDetails: UserDetails | null;
+    disabledAt: string | null;
+    deletedAt: string | null;
+    userAccount: UserAccountDto | null;
+    userDetails: UserDetailsDto | null;
 };
 
 export type PaginationMetaDto = {
@@ -357,6 +389,42 @@ export type UsersControllerInviteUserResponses = {
 
 export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
 
+export type UsersControllerGetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type UsersControllerGetMeErrors = {
+    401: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerGetMeError = UsersControllerGetMeErrors[keyof UsersControllerGetMeErrors];
+
+export type UsersControllerGetMeResponses = {
+    /**
+     * Current user details fetched successfully
+     */
+    200: UserStudentDetailsDto | UserStaffDetailsDto;
+};
+
+export type UsersControllerGetMeResponse = UsersControllerGetMeResponses[keyof UsersControllerGetMeResponses];
+
 export type UsersControllerUpdateOwnUserDetailsData = {
     body: UpdateUserBaseDto;
     path?: never;
@@ -447,6 +515,46 @@ export type UsersControllerUpdateUserStaffDetailsResponses = {
 };
 
 export type UsersControllerUpdateUserStaffDetailsResponse = UsersControllerUpdateUserStaffDetailsResponses[keyof UsersControllerUpdateUserStaffDetailsResponses];
+
+export type UsersControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/users/{id}';
+};
+
+export type UsersControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerRemoveError = UsersControllerRemoveErrors[keyof UsersControllerRemoveErrors];
+
+export type UsersControllerRemoveResponses = {
+    /**
+     * User deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type UsersControllerRemoveResponse = UsersControllerRemoveResponses[keyof UsersControllerRemoveResponses];
 
 export type UsersControllerFindOneData = {
     body?: never;
