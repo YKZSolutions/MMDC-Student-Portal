@@ -277,6 +277,45 @@ export type CreateBillingDto = {
     };
 };
 
+export type PaymentIntentAttributesDto = {
+    amount: number;
+    capture_type: string;
+    client_key: string;
+    created_at: number;
+    currency: string;
+    description: string;
+    last_payment_error?: string | null;
+    livemode: boolean;
+    metadata?: {
+        [key: string]: unknown;
+    } | null;
+    next_action?: {
+        [key: string]: unknown;
+    } | null;
+    original_amount: number;
+    payment_method_allowed: Array<string>;
+    payment_method_options?: {
+        [key: string]: unknown;
+    } | null;
+    payments: Array<{
+        [key: string]: unknown;
+    }>;
+    setup_future_usage?: string | null;
+    statement_descriptor: string;
+    status: string;
+    updated_at: number;
+};
+
+export type PaymentIntentDataDto = {
+    id: string;
+    type: string;
+    attributes: PaymentIntentAttributesDto;
+};
+
+export type PaymentIntentResponseDto = {
+    data: PaymentIntentDataDto;
+};
+
 export type UpdateBillingDto = {
     amount?: number;
     description?: string;
@@ -785,9 +824,7 @@ export type BillingControllerCreateData = {
 };
 
 export type BillingControllerCreateResponses = {
-    201: {
-        [key: string]: unknown;
-    };
+    201: PaymentIntentResponseDto;
 };
 
 export type BillingControllerCreateResponse = BillingControllerCreateResponses[keyof BillingControllerCreateResponses];
