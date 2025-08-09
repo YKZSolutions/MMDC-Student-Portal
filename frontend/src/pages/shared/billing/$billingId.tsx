@@ -1,5 +1,11 @@
+import EwalletSelectionModal from '@/components/billing/ewallet-modal'
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import type {
+  IPaymentMethod,
+  IPaymentMethodResponse,
+} from '@/features/billing/types'
+import { billingControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   ActionIcon,
   Button,
@@ -23,7 +29,8 @@ import {
   IconPlus,
   IconUpload,
 } from '@tabler/icons-react'
-import { useNavigate } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 
 const bills = {
@@ -116,10 +123,110 @@ const paymentHistory = [
   },
 ]
 
+const route = getRouteApi('/(protected)/billing/$billingId')
+
 function BillingIdPage() {
   const navigate = useNavigate()
+  const { billingId } = route.useParams()
+
   const [opened, { open, close }] = useDisclosure(false)
+  const [paymentOpened, { open: paymentOpen, close: paymentClose }] =
+    useDisclosure(false)
+
   const { authUser } = useAuth('protected')
+
+  // Payment Intent Creation
+  const {
+    mutate: mutateIntent,
+    data: dataIntent,
+    isPending,
+  } = useMutation({
+    mutationFn: () =>
+      billingControllerCreateMutation().mutationFn!({
+        body: {
+          amount: 20000,
+          billingId: billingId,
+        },
+      }),
+  })
+
+  // Payment Method Creation
+  const { mutate: mutateMethod, data: dataMethod } = useMutation({
+    mutationFn: async (
+      payload: IPaymentMethod,
+    ): Promise<IPaymentMethodResponse> => {
+      const response = await fetch(
+        'https://api.paymongo.com/v1/payment_methods',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`, // replace with your actual secret key
+          },
+          body: JSON.stringify({
+            data: {
+              attributes: {
+                type: 'gcash',
+                billing: {
+                  name: payload.name,
+                  email: payload.email,
+                  phone: payload.phone,
+                },
+                metadata: payload.metadata,
+              },
+            },
+          }),
+        },
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(JSON.stringify(error))
+      }
+
+      return response.json()
+    },
+  })
+
+  const { mutate: mutateAttach, data: dataAttach } = useMutation({
+    mutationFn: async (payload) => {
+      const response = await fetch(
+        `https://api.paymongo.com/v1/payment_intents/${dataIntent?.data.id}/attach`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`, // replace with your actual secret key
+          },
+          body: JSON.stringify({
+            data: {
+              attributes: {
+                client_key: dataIntent?.data.attributes.client_key,
+                payment_method: dataMethod?.data.id,
+                return_url: 'http://localhost:3000/success',
+              },
+            },
+          }),
+        },
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(JSON.stringify(error))
+      }
+
+      return response.json()
+    },
+  })
+
+  console.log(dataIntent, dataMethod, dataAttach)
+
+  const handleProceed = (selectedWallet: string | null) => {
+    console.log('Selected E-wallet:', selectedWallet)
+    paymentClose()
+  }
 
   return (
     <Container size={'md'} pb={'lg'}>
@@ -149,6 +256,7 @@ function BillingIdPage() {
             c={'gray.7'}
             color="gray.4"
             lts={rem(0.25)}
+            // onClick={() => mutateIntent()}
           >
             Export
           </Button>
@@ -156,17 +264,47 @@ function BillingIdPage() {
             currentRole={authUser.role}
             roleRender={{
               student: (
-                <Button
-                  variant="filled"
-                  radius={'md'}
-                  leftSection={<IconPlus size={20} />}
-                  lts={rem(0.25)}
+                <EwalletSelectionModal
+                  handleProceed={handleProceed}
+                  paymentClose={paymentClose}
+                  paymentOpened={paymentOpened}
                 >
-                  Pay Bill
-                </Button>
+                  <Button
+                    variant="filled"
+                    radius={'md'}
+                    leftSection={<IconPlus size={20} />}
+                    lts={rem(0.25)}
+                    onClick={() =>
+                      // mutateMethod({
+                      //   name: 'Jose Rizal',
+                      //   email: 'joserizal@gmail.com',
+                      //   phone: '09000000000',
+                      //   metadata: {
+                      //     key: 'value',
+                      //     key2: 'value',
+                      //   },
+                      // })
+                      paymentOpen()
+                    }
+                  >
+                    Pay Bill
+                  </Button>
+                </EwalletSelectionModal>
               ),
             }}
           />
+
+          <Button
+            variant="outline"
+            radius={'md'}
+            leftSection={<IconUpload size={20} />}
+            c={'gray.7'}
+            color="gray.4"
+            lts={rem(0.25)}
+            onClick={() => mutateAttach()}
+          >
+            Attach
+          </Button>
         </Group>
       </Flex>
 
