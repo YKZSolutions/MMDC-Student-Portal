@@ -41,6 +41,25 @@ interface IEwalletModalQueryProvider {
   billingId: string
 }
 
+async function paymongoFetch<T>(url: string, body: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(JSON.stringify(error))
+  }
+
+  return await response.json()
+}
+
 function EwalletModalQueryProvider({
   children,
   props,
@@ -103,39 +122,20 @@ export default function EwalletModal({
   } = useMutation({
     mutationFn: async (
       payload: IPaymentMethod,
-    ): Promise<IPaymentMethodResponse> => {
-      const response = await fetch(
-        'https://api.paymongo.com/v1/payment_methods',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`, // replace with your actual secret key
-          },
-          body: JSON.stringify({
-            data: {
-              attributes: {
-                type: payload.type,
-                billing: {
-                  name: payload.name,
-                  email: payload.email,
-                  phone: payload.phone,
-                },
-                metadata: payload.metadata,
-              },
+    ): Promise<IPaymentMethodResponse> =>
+      paymongoFetch('https://api.paymongo.com/v1/payment_methods', {
+        data: {
+          attributes: {
+            type: payload.type,
+            billing: {
+              name: payload.name,
+              email: payload.email,
+              phone: payload.phone,
             },
-          }),
+            metadata: payload.metadata,
+          },
         },
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(JSON.stringify(error))
-      }
-
-      return await response.json()
-    },
+      }),
   })
 
   const {
@@ -144,35 +144,19 @@ export default function EwalletModal({
     isPending: isAttachPending,
     mutateAsync: mutateAttachAsync,
   } = useMutation({
-    mutationFn: async (payload: IPaymentAttach | undefined) => {
-      const response = await fetch(
+    mutationFn: async (payload: IPaymentAttach | undefined) =>
+      paymongoFetch(
         `https://api.paymongo.com/v1/payment_intents/${payload?.paymentIntentId}/attach`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`, // replace with your actual secret key
-          },
-          body: JSON.stringify({
-            data: {
-              attributes: {
-                client_key: payload?.clientKey,
-                payment_method: payload?.paymentMethodId,
-                return_url: `${import.meta.env.VITE_SITE_URL}/success`,
-              },
+          data: {
+            attributes: {
+              client_key: payload?.clientKey,
+              payment_method: payload?.paymentMethodId,
+              return_url: `${import.meta.env.VITE_SITE_URL}/success`,
             },
-          }),
+          },
         },
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(JSON.stringify(error))
-      }
-
-      return await response.json()
-    },
+      ),
   })
 
   console.log(dataMethod, dataAttach)
@@ -217,7 +201,7 @@ export default function EwalletModal({
             cursor: 'pointer',
             backgroundColor:
               selectedWallet === wallet.value
-                ? 'var(--mantine-color-gray-0)'
+                ? 'var(--mantine-color-gray-1)'
                 : undefined,
           }}
         >
