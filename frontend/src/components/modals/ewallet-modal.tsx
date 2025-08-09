@@ -184,9 +184,6 @@ export default function EwalletModal({
     try {
       const attachResult = (await (async () => {
         const methodResult = await mutateMethodAsync({
-          name: 'Test',
-          email: 'test@email.com',
-          phone: '09090909',
           type: selectedWallet || 'gcash',
         })
 

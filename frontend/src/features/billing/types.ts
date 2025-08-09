@@ -1,20 +1,8 @@
 export type PaymentMethod = 'gcash' | 'paymaya'
 export interface IPaymentMethod {
-  //   cardNumber: string
-  //   expMonth: number
-  //   expYear: number
-  //   cvc: string
-  //   bankCode: string
-  name: string
-  email: string
-  phone: string
-  //   address: {
-  //     line1: string
-  //     line2?: string
-  //     city: string
-  //     postalCode: string
-  //     country: string
-  //   }
+  name?: string
+  email?: string
+  phone?: string
   metadata?: Record<string, string>
   installments?: {
     tenure: number
@@ -55,7 +43,6 @@ export interface IPaymentAttach {
   paymentIntentId: string | undefined
   paymentMethodId: string
   clientKey: string | undefined
-  // returnUrl: string
 }
 
 export interface IPaymentIntentResponse {
