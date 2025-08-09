@@ -1,6 +1,5 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import type {
-  UserDetailsFullDto,
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from '@/integrations/api/client'
@@ -16,123 +15,23 @@ import {
 } from '@mantine/core'
 import { IconCamera } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
-import { useQuery } from '@tanstack/react-query'
-
-// type ProfileUser = {
-//   firstName: string
-//   middleName?: string | null
-//   lastName: string
-//   role: 'student' | 'staff' | 'admin'
-//   userAccount?: {
-//     email: string | null
-//   }
-//   userDetails?: {
-//     dateJoined: string
-//     dob?: string | null
-//     gender?: string | null
-//   }
-//   studentDetails?: {
-//     student_number: number
-//     student_type: string
-//     admission_date: string
-//   }
-//   staffDetails?: {
-//     employee_number: number
-//     department: string
-//     position: string
-//   }
-// }
-
-// const mockStudent: UserStudentDetailsDto = {
-//   id: '',
-//   email: 'jane.doe@example.com',
-//   firstName: 'Jane',
-//   middleName: 'A.',
-//   lastName: 'Doe',
-//   role: 'student',
-//   userDetails: {
-//     dateJoined: '2024-09-01T00:00:00.000Z',
-//     dob: '2002-05-15T00:00:00.000Z',
-//     gender: 'Female',
-//     id: '',
-//     createdAt: '',
-//     updatedAt: '',
-//     deletedAt: null,
-//   },
-//   studentDetails: {
-//     student_number: 202301234,
-//     student_type: 'regular',
-//     admission_date: '2024-08-15T00:00:00.000Z',
-//     id: '',
-//     other_details: {},
-//     createdAt: '',
-//     updatedAt: '',
-//     deletedAt: null,
-//   },
-// }
-
-const mockStaff: UserStaffDetailsDto = {
-  id: '',
-  email: null,
-  firstName: '',
-  middleName: null,
-  lastName: '',
-  role: 'student',
-  userDetails: null,
-  staffDetails: null,
-}
-
-const staffDetails = (
-  <ProfileSection title="Staff Details">
-    <Field
-      label="Employee Number"
-      value={mockStaff.staffDetails?.employee_number ?? '—'}
-    />
-    <Field
-      label="Department"
-      value={mockStaff.staffDetails?.department ?? '—'}
-    />
-    <Field label="Position" value={mockStaff.staffDetails?.position ?? '—'} />
-  </ProfileSection>
-)
-
-const studentDetails = (data) => {
-  return <ProfileSection title="Student Details">
-    <Field
-      label="Student Number"
-      value={data.studentDetails?.student_number ?? '—'}
-    />
-    <Field
-      label="Student Type"
-      value={data.studentDetails?.student_type ?? '—'}
-    />
-    <Field
-      label="Admission Date"
-      value={
-        data.studentDetails?.admission_date
-          ? dayjs(data.studentDetails.admission_date).format(
-              'MMM D, YYYY',
-            )
-          : '—'
-      }
-    />
-  </ProfileSection>
-}
+import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 function ProfilePage() {
-  const {data} = useQuery(usersControllerGetMeOptions())
-  const fullName = `${data?.firstName} ${data?.middleName ?? ''} ${data?.lastName}`
+  const { data } = useSuspenseQuery(usersControllerGetMeOptions())
+
+  const fullName =
+    `${data.firstName} ${data.middleName ?? ''} ${data.lastName}`.trim()
+  const avatarInitials = `${data.firstName?.[0] ?? ''}${data.lastName?.[0] ?? ''}`
 
   return (
     <Container fluid m={0}>
       <Box pb="lg">
         <Flex justify="space-between" align="center">
-          {/* Avatar Section */}
           <Flex align="center" gap="md">
             <Avatar size={80} radius="xl" color="blue">
-              {data?.firstName[0]}
-              {data?.lastName[0]}
+              {avatarInitials}
             </Avatar>
             <Box>
               <Title order={2} fw={700} c="dark.7">
@@ -158,46 +57,85 @@ function ProfilePage() {
 
         <ProfileSection title="Basic Information">
           <Field label="Full Name" value={fullName} />
-          <Field label="Email" value={data?.email ?? '—'} />
+          <Field label="Email" value={data.email ?? '—'} />
           <Field
             label="Date Joined"
             value={
-              data?.userDetails?.dateJoined
-                ? dayjs(data?.userDetails.dateJoined).format(
-                    'MMM D, YYYY',
-                  )
+              data.userDetails?.dateJoined
+                ? dayjs(data.userDetails.dateJoined).format('MMM D, YYYY')
                 : '—'
             }
           />
-          <Field
-            label="Gender"
-            value={data?.userDetails?.gender ?? '—'}
-          />
+          <Field label="Gender" value={data.userDetails?.gender ?? '—'} />
           <Field
             label="Date of Birth"
             value={
-              data?.userDetails?.dob
-                ? dayjs(data?.userDetails.dob).format('MMM D, YYYY')
+              data.userDetails?.dob
+                ? dayjs(data.userDetails.dob).format('MMM D, YYYY')
                 : '—'
             }
           />
         </ProfileSection>
 
         <RoleComponentManager
-          currentRole={data?.role || 'student'}
+          currentRole={data.role}
           roleRender={{
-            student: studentDetails(data),
-            admin: staffDetails,
-            mentor: staffDetails,
+            student:
+              data.role === 'student'
+                ? studentDetails(data as UserStudentDetailsDto)
+                : null,
+            admin:
+              data.role === 'admin'
+                ? staffDetails(data as UserStaffDetailsDto)
+                : null,
+            mentor:
+              data.role === 'mentor'
+                ? staffDetails(data as UserStaffDetailsDto)
+                : null,
           }}
         />
 
-        {/* Other details */}
         <ProfileSection title="Other Details">
           <div> </div>
         </ProfileSection>
       </Stack>
     </Container>
+  )
+}
+
+function studentDetails(data: UserStudentDetailsDto) {
+  return (
+    <ProfileSection title="Student Details">
+      <Field
+        label="Student Number"
+        value={data.studentDetails?.student_number ?? '—'}
+      />
+      <Field
+        label="Student Type"
+        value={data.studentDetails?.student_type ?? '—'}
+      />
+      <Field
+        label="Admission Date"
+        value={
+          data.studentDetails?.admission_date
+            ? dayjs(data.studentDetails.admission_date).format('MMM D, YYYY')
+            : '—'
+        }
+      />
+    </ProfileSection>
+  )
+}
+
+function staffDetails(data: UserStaffDetailsDto) {
+  return (
+    <ProfileSection title="Staff Details">
+      <Field
+        label="Employee Number"
+        value={data.staffDetails?.employee_number ?? '—'}
+      />
+      <Field label="Department" value={data.staffDetails?.department ?? '—'} />
+      <Field label="Position" value={data.staffDetails?.position ?? '—'} />
+    </ProfileSection>
   )
 }
 
