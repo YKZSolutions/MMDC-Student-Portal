@@ -270,6 +270,7 @@ export type AuthMetadataDto = {
 
 export type CreateBillingDto = {
     amount: number;
+    billingId: string;
     description?: string;
     statement?: string;
     metadata?: {
@@ -314,10 +315,12 @@ export type PaymentIntentDataDto = {
 
 export type PaymentIntentResponseDto = {
     data: PaymentIntentDataDto;
+    billingId: string;
 };
 
 export type UpdateBillingDto = {
     amount?: number;
+    billingId?: string;
     description?: string;
     statement?: string;
     metadata?: {

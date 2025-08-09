@@ -364,6 +364,7 @@ export const zAuthMetadataDto = z.object({
 
 export const zCreateBillingDto = z.object({
     amount: z.number(),
+    billingId: z.string(),
     description: z.optional(z.string()),
     statement: z.optional(z.string()),
     metadata: z.optional(z.object({}))
@@ -412,11 +413,13 @@ export const zPaymentIntentDataDto = z.object({
 });
 
 export const zPaymentIntentResponseDto = z.object({
-    data: zPaymentIntentDataDto
+    data: zPaymentIntentDataDto,
+    billingId: z.string()
 });
 
 export const zUpdateBillingDto = z.object({
     amount: z.optional(z.number()),
+    billingId: z.optional(z.string()),
     description: z.optional(z.string()),
     statement: z.optional(z.string()),
     metadata: z.optional(z.object({}))
