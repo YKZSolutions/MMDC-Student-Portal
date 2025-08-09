@@ -5,6 +5,8 @@ import Sidebar from '@/pages/shared/sidebar'
 import Topbar from '@/pages/shared/topbar'
 import { Group, Stack } from '@mantine/core'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import Chatbot from '@/pages/shared/chatbot'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/(protected)')({
   component: RouteComponent,
@@ -29,18 +31,25 @@ export const Route = createFileRoute('/(protected)')({
 })
 
 function RouteComponent() {
+  const [isChatbotOpen, setChatbotOpen] = useState(false)
+  const [isChatbotFabHidden, setChatbotFabHidden] = useState(false)
+
   return (
-    <Group bg="background" gap={0} align="start">
-      <Sidebar />
-      <Stack className="flex-1 min-h-screen p-4 pl-0">
-        <Stack
-          className="bg-white w-full flex-1 rounded-lg shadow p-5"
-          justify="start"
-        >
-          <Topbar />
-          <Outlet />
+    <>
+      <Group bg="background" gap={0} align="start" style={{ position: 'relative' }}>
+        <Sidebar />
+        <Stack className="flex-1 min-h-screen p-4 pl-0">
+          <Stack
+            className="bg-white w-full flex-1 rounded-lg shadow p-5"
+            justify="start"
+            style={{ position: 'relative' }}
+          >
+            <Topbar setChatbotOpen={setChatbotOpen} setChatbotFabHidden={setChatbotFabHidden} />
+            <Outlet />
+          </Stack>
         </Stack>
-      </Stack>
-    </Group>
+      </Group>
+      <Chatbot isChatbotOpen={isChatbotOpen} setChatbotOpen={setChatbotOpen} isChatbotFabHidden={isChatbotFabHidden} setChatbotFabHidden={setChatbotFabHidden}   />
+    </>
   )
 }
