@@ -208,6 +208,9 @@ export class UsersService {
     updateUserDto: UpdateUserStudentDto | UpdateUserStaffDto,
   ) {
     try {
+      if (!userId) throw new BadRequestException('User ID is required');
+      if (!role) throw new BadRequestException('User role is required');
+
       const {
         user: userDto,
         userDetails: userDetailsDto,
