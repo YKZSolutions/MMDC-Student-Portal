@@ -369,6 +369,52 @@ export const zCreateBillingDto = z.object({
     metadata: z.optional(z.object({}))
 });
 
+export const zPaymentIntentAttributesDto = z.object({
+    amount: z.number(),
+    capture_type: z.string(),
+    client_key: z.string(),
+    created_at: z.number(),
+    currency: z.string(),
+    description: z.string(),
+    last_payment_error: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    livemode: z.boolean(),
+    metadata: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    next_action: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    original_amount: z.number(),
+    payment_method_allowed: z.array(z.string()),
+    payment_method_options: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    payments: z.array(z.object({})),
+    setup_future_usage: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    statement_descriptor: z.string(),
+    status: z.string(),
+    updated_at: z.number()
+});
+
+export const zPaymentIntentDataDto = z.object({
+    id: z.string(),
+    type: z.string(),
+    attributes: zPaymentIntentAttributesDto
+});
+
+export const zPaymentIntentResponseDto = z.object({
+    data: zPaymentIntentDataDto
+});
+
 export const zUpdateBillingDto = z.object({
     amount: z.optional(z.number()),
     description: z.optional(z.string()),
@@ -581,7 +627,7 @@ export const zBillingControllerCreateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zBillingControllerCreateResponse = z.object({});
+export const zBillingControllerCreateResponse = zPaymentIntentResponseDto;
 
 export const zBillingControllerRemoveData = z.object({
     body: z.optional(z.never()),
