@@ -7,6 +7,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   InternalServerErrorException,
@@ -18,10 +19,10 @@ import {
   Query,
   Req,
   UnauthorizedException,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiCreatedResponse,
   ApiExtraModels,
   ApiOkResponse,
@@ -47,10 +48,10 @@ import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
-  UserDetailsFullDto,
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
+import { DeleteQueryDto } from './dto/delete-user-query.dto';
 /**
  *
  * @remarks Handles user related operations
@@ -354,7 +355,6 @@ export class UsersController {
    * by updating the `disabledAt` field. The change is also reflected in
    * the authentication provider's metadata.
    */
-
   @Patch(':id/status')
   @Roles(Role.ADMIN)
   @ApiOkResponse({
@@ -376,8 +376,42 @@ export class UsersController {
     return this.usersService.updateStatus(id);
   }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
+  /**
+   * Deletes a user (soft & hard delete)
+   *
+   * @remarks
+   * This endpoint performs either a soft delete or a permanent delete on a user depending on the current state of the user or the query parameter provided:
+   *
+   * - If `directDelete` is true, the user is **permanently deleted** without checking if they are already soft deleted.
+   * - If `directDelete` is not provided or false:
+   *   - If the user is not yet soft deleted (`deletedAt` is null), a **soft delete** is performed by setting the `deletedAt` timestamp.
+   *   - If the user is already soft deleted, a **permanent delete** is executed.
+   *
+   * All of the user details and the supabase auth account will be deleted from the cloud on hard delete
+   *
+   * Use this endpoint to manage user deletion workflows flexibly through a single API.
+   */
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @ApiOkResponse({
+    description: 'User deleted successfully',
+    schema: {
+      properties: {
+        message: {
+          type: 'string',
+          examples: [
+            'User has been soft deleted.',
+            'User has been permanently deleted.',
+          ],
+        },
+      },
+    },
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  remove(
+    @Param('id') id: string,
+    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
+  ) {
+    return this.usersService.remove(id, query?.directDelete);
+  }
 }

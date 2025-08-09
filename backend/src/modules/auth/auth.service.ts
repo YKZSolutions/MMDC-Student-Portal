@@ -67,13 +67,13 @@ export class AuthService {
   /**
    * Updates the metadata of an existing Supabase user account.
    *
-   * @param id - The Supabase UID of the user to update.
+   * @param uid - The Supabase UID of the user to update.
    * @param metadata - Partial user metadata to be merged into the existing data.
    * @returns The updated Supabase user object.
    * @throws BadRequestException if the update operation fails.
    */
-  async updateMetadata(id: string, metadata: Partial<UserMetadata>) {
-    const account = await this.supabase.auth.admin.updateUserById(id, {
+  async updateMetadata(uid: string, metadata: Partial<UserMetadata>) {
+    const account = await this.supabase.auth.admin.updateUserById(uid, {
       user_metadata: metadata,
     });
 

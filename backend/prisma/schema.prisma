@@ -94,7 +94,7 @@ model UserAccount {
   /// @DtoRelationRequired
   /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   authUid String  @unique
   /// @IsEmail
@@ -114,7 +114,7 @@ model UserDetails {
   /// @DtoRelationRequired
   /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   dateJoined DateTime
   dob DateTime?
@@ -144,7 +144,7 @@ model StudentDetails {
   /// @DtoRelationRequired
   /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   student_number Int
   student_type StudentType
@@ -165,7 +165,7 @@ model StaffDetails {
   /// @DtoRelationRequired
   /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   employee_number Int
   department String
