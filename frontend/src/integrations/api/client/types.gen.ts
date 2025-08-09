@@ -109,6 +109,16 @@ export type UserDetailsDto = {
     deletedAt: string | null;
 };
 
+export type UserDetailsFullDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+};
+
 export type StudentDetailsDto = {
     id: string;
     student_number: number;
@@ -315,7 +325,6 @@ export type PaymentIntentDataDto = {
 
 export type PaymentIntentResponseDto = {
     data: PaymentIntentDataDto;
-    billingId: string;
 };
 
 export type UpdateBillingDto = {
@@ -474,42 +483,6 @@ export type UsersControllerInviteUserResponses = {
 };
 
 export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
-
-export type UsersControllerGetMeData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/users/me';
-};
-
-export type UsersControllerGetMeErrors = {
-    401: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type UsersControllerGetMeError = UsersControllerGetMeErrors[keyof UsersControllerGetMeErrors];
-
-export type UsersControllerGetMeResponses = {
-    /**
-     * Current user details fetched successfully
-     */
-    200: UserStudentDetailsDto | UserStaffDetailsDto;
-};
-
-export type UsersControllerGetMeResponse = UsersControllerGetMeResponses[keyof UsersControllerGetMeResponses];
 
 export type UsersControllerGetMeData = {
     body?: never;

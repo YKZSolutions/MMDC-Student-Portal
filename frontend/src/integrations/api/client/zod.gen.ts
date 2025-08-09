@@ -152,6 +152,29 @@ export const zUserDetailsDto = z.object({
     ])
 });
 
+export const zUserDetailsFullDto = z.object({
+    id: z.string(),
+    email: z.union([
+        z.string(),
+        z.null()
+    ]),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: z.enum([
+        'student',
+        'mentor',
+        'admin'
+    ]),
+    userDetails: z.union([
+        zUserDetailsDto,
+        z.null()
+    ])
+});
+
 export const zStudentDetailsDto = z.object({
     id: z.string(),
     student_number: z.int(),
@@ -413,8 +436,7 @@ export const zPaymentIntentDataDto = z.object({
 });
 
 export const zPaymentIntentResponseDto = z.object({
-    data: zPaymentIntentDataDto,
-    billingId: z.string()
+    data: zPaymentIntentDataDto
 });
 
 export const zUpdateBillingDto = z.object({
@@ -475,20 +497,6 @@ export const zUsersControllerInviteUserData = z.object({
 });
 
 export const zUsersControllerInviteUserResponse = zUser;
-
-export const zUsersControllerGetMeData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-/**
- * Current user details fetched successfully
- */
-export const zUsersControllerGetMeResponse = z.union([
-    zUserStudentDetailsDto,
-    zUserStaffDetailsDto
-]);
 
 export const zUsersControllerGetMeData = z.object({
     body: z.optional(z.never()),
