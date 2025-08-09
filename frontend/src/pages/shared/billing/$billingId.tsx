@@ -1,10 +1,5 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import type {
-  IPaymentMethod,
-  IPaymentMethodResponse,
-} from '@/features/billing/types'
-import { billingControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   ActionIcon,
   Button,
@@ -29,7 +24,6 @@ import {
   IconPlus,
   IconUpload,
 } from '@tabler/icons-react'
-import { useMutation } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 
@@ -133,98 +127,6 @@ function BillingIdPage() {
 
   const { authUser } = useAuth('protected')
 
-  // Payment Intent Creation
-  const {
-    mutate: mutateIntent,
-    data: dataIntent,
-    isPending,
-  } = useMutation({
-    mutationFn: () =>
-      billingControllerCreateMutation().mutationFn!({
-        body: {
-          amount: 20000,
-          billingId: billingId,
-        },
-      }),
-  })
-
-  // Payment Method Creation
-  const { mutate: mutateMethod, data: dataMethod } = useMutation({
-    mutationFn: async (
-      payload: IPaymentMethod,
-    ): Promise<IPaymentMethodResponse> => {
-      const response = await fetch(
-        'https://api.paymongo.com/v1/payment_methods',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`, // replace with your actual secret key
-          },
-          body: JSON.stringify({
-            data: {
-              attributes: {
-                type: 'gcash',
-                billing: {
-                  name: payload.name,
-                  email: payload.email,
-                  phone: payload.phone,
-                },
-                metadata: payload.metadata,
-              },
-            },
-          }),
-        },
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(JSON.stringify(error))
-      }
-
-      return response.json()
-    },
-  })
-
-  const { mutate: mutateAttach, data: dataAttach } = useMutation({
-    mutationFn: async (payload) => {
-      const response = await fetch(
-        `https://api.paymongo.com/v1/payment_intents/${dataIntent?.data.id}/attach`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Basic ${btoa(`${import.meta.env.VITE_PAYMONGO_PUBLIC_KEY}:`)}`, // replace with your actual secret key
-          },
-          body: JSON.stringify({
-            data: {
-              attributes: {
-                client_key: dataIntent?.data.attributes.client_key,
-                payment_method: dataMethod?.data.id,
-                return_url: 'http://localhost:3000/success',
-              },
-            },
-          }),
-        },
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(JSON.stringify(error))
-      }
-
-      return response.json()
-    },
-  })
-
-  console.log(dataIntent, dataMethod, dataAttach)
-
-  const handleProceed = (selectedWallet: string | null) => {
-    console.log('Selected E-wallet:', selectedWallet)
-  }
-
   return (
     <Container size={'md'} pb={'lg'}>
       <Flex align={'center'} pb={'lg'}>
@@ -286,7 +188,6 @@ function BillingIdPage() {
                       innerProps: {
                         amount: 20000,
                         billingId,
-                        handleProceed: handleProceed,
                       },
                     })
                   }
@@ -297,17 +198,17 @@ function BillingIdPage() {
             }}
           />
 
-          <Button
+          {/* <Button
             variant="outline"
             radius={'md'}
             leftSection={<IconUpload size={20} />}
             c={'gray.7'}
             color="gray.4"
             lts={rem(0.25)}
-            onClick={() => mutateAttach()}
+            onClick={() => mutateAttach(dataIntent)}
           >
             Attach
-          </Button>
+          </Button> */}
         </Group>
       </Flex>
 

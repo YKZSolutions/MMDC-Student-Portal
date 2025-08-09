@@ -1,3 +1,4 @@
+export type PaymentMethod = 'gcash' | 'paymaya'
 export interface IPaymentMethod {
   //   cardNumber: string
   //   expMonth: number
@@ -19,6 +20,7 @@ export interface IPaymentMethod {
     tenure: number
     issuerId: string
   }
+  type: PaymentMethod
 }
 
 export interface IPaymentMethodResponse {
@@ -50,8 +52,46 @@ export interface IPaymentMethodResponse {
 }
 
 export interface IPaymentAttach {
-  // paymentIntentId: string
-  // paymentMethodId: string
-  // clientKey: string
+  paymentIntentId: string | undefined
+  paymentMethodId: string
+  clientKey: string | undefined
   // returnUrl: string
+}
+
+export interface IPaymentIntentResponse {
+  data: {
+    id: string
+    type: 'payment_intent'
+    attributes: {
+      amount: number
+      capture_type: 'automatic' | 'manual'
+      client_key: string
+      created_at: number
+      currency: string
+      description: string
+      last_payment_error: any | null
+      livemode: boolean
+      metadata: Record<string, string>
+      next_action: {
+        type: 'redirect'
+        redirect: {
+          url: string
+          return_url: string
+        }
+      } | null
+      original_amount: number
+      payment_method_allowed: PaymentMethod[]
+      payment_method_options: any | null
+      payments: any[]
+      setup_future_usage: string | null
+      statement_descriptor: string
+      status:
+        | 'awaiting_payment_method'
+        | 'awaiting_next_action'
+        | 'processing'
+        | 'succeeded'
+        | 'failed'
+      updated_at: number
+    }
+  }
 }
