@@ -278,7 +278,14 @@ function BillingIdPage() {
                     // })
                     modals.openContextModal({
                       modal: 'ewallet',
+                      title: (
+                        <Text fw={500} c={'dark.7'}>
+                          Select E-wallet
+                        </Text>
+                      ),
                       innerProps: {
+                        amount: 20000,
+                        billingId,
                         handleProceed: handleProceed,
                       },
                     })

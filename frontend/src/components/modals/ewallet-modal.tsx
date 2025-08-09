@@ -1,8 +1,11 @@
+import type { PaymentIntentDataDto } from '@/integrations/api/client'
+import { billingControllerCreateOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Button,
   Card,
   Group,
   Image,
+  LoadingOverlay,
   rem,
   Stack,
   Text,
@@ -10,7 +13,8 @@ import {
 } from '@mantine/core'
 import type { ContextModalProps } from '@mantine/modals'
 import { IconCheck } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { Suspense, useEffect, useState, type ReactNode } from 'react'
 
 const ewallets = [
   {
@@ -25,14 +29,53 @@ const ewallets = [
   },
 ]
 
+interface IEwalletModalQueryProvider {
+  amount: number
+  billingId: string
+}
+
+function EwalletModalQueryProvider({
+  children,
+  props,
+}: {
+  children: (props: {
+    data: PaymentIntentDataDto | undefined
+    isFetching: boolean
+    isPending: boolean
+  }) => ReactNode
+  props: IEwalletModalQueryProvider
+}) {
+  const { amount, billingId } = props
+
+  // Payment Intent Creation
+  const { data, isFetching, isPending } = useSuspenseQuery(
+    billingControllerCreateOptions({
+      body: {
+        amount: amount,
+        billingId: billingId,
+      },
+    }),
+  )
+
+  const paymentIntentData = data?.data
+
+  return children({
+    data: paymentIntentData,
+    isPending: isPending,
+    isFetching: isFetching,
+  })
+}
+
 export default function EwalletModal({
   context,
   id,
   innerProps,
 }: ContextModalProps<{
+  amount: number
+  billingId: string
   handleProceed: (selectedWallet: string | null) => void
 }>) {
-  const { handleProceed } = innerProps
+  const { handleProceed, billingId, amount } = innerProps
 
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
 
@@ -96,12 +139,36 @@ export default function EwalletModal({
         <Button variant="subtle" onClick={() => context.closeContextModal}>
           Cancel
         </Button>
-        <Button
-          disabled={!selectedWallet}
-          onClick={() => handleProceed(selectedWallet)}
+        <Suspense
+          fallback={
+            <>
+              <LoadingOverlay
+                visible
+                zIndex={1000}
+                overlayProps={{ radius: 'sm', blur: 2 }}
+                loaderProps={{ color: 'primary' }}
+              />
+              <Button disabled>Proceed</Button>
+            </>
+          }
         >
-          Proceed
-        </Button>
+          <EwalletModalQueryProvider
+            props={{
+              amount,
+              billingId,
+            }}
+          >
+            {(props) => (
+              <Button
+                loading={props.isFetching}
+                disabled={!selectedWallet}
+                onClick={() => handleProceed(selectedWallet)}
+              >
+                Proceed
+              </Button>
+            )}
+          </EwalletModalQueryProvider>
+        </Suspense>
       </Group>
     </Stack>
   )
