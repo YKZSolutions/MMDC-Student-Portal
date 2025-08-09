@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { CreateBillingDto } from './dto/create-billing.dto';
 import { UpdateBillingDto } from './dto/update-billing.dto';
@@ -24,22 +29,13 @@ export class BillingService {
           attributes: {
             amount: createBillingDto.amount,
             currency: 'PHP',
-            payment_method_allowed: [
-              'card',
-              'dob',
-              'paymaya',
-              'billease',
-              'gcash',
-            ],
-            payment_method_options: {
-              card: {
-                request_three_d_secure: 'any',
-              },
-            },
+            payment_method_allowed: ['paymaya', 'gcash'],
             capture_type: 'automatic',
             description: createBillingDto.description || 'Payment intent',
             statement_descriptor: createBillingDto.statement || 'Statement',
-            metadata: createBillingDto.metadata || {},
+            metadata: {
+              billingId: createBillingDto.billingId,
+            },
           },
         },
       };
@@ -52,8 +48,8 @@ export class BillingService {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error creating payment intent', error);
-      throw error;
+      if (error instanceof AxiosError) this.logger.error(error.response?.data);
+      throw new InternalServerErrorException(error);
     }
   }
 
