@@ -99,6 +99,74 @@ export type InviteUserDto = {
     email: string;
 };
 
+export type UserDetailsDto = {
+    id: string;
+    dateJoined: string;
+    dob: string | null;
+    gender: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserDetailsFullDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+};
+
+export type StudentDetailsDto = {
+    id: string;
+    student_number: number;
+    student_type: StudentType;
+    admission_date: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserStudentDetailsDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+    studentDetails: StudentDetailsDto | null;
+};
+
+export type StaffDetailsDto = {
+    id: string;
+    employee_number: number;
+    department: string;
+    position: string;
+    other_details: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserStaffDetailsDto = {
+    id: string;
+    email: string | null;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: 'student' | 'mentor' | 'admin';
+    userDetails: UserDetailsDto | null;
+    staffDetails: StaffDetailsDto | null;
+};
+
 export type UpdateStudentDetailsDto = {
     student_number?: number;
     student_type?: StudentType;
@@ -357,6 +425,42 @@ export type UsersControllerInviteUserResponses = {
 
 export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
 
+export type UsersControllerGetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type UsersControllerGetMeErrors = {
+    401: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerGetMeError = UsersControllerGetMeErrors[keyof UsersControllerGetMeErrors];
+
+export type UsersControllerGetMeResponses = {
+    /**
+     * Current user details fetched successfully
+     */
+    200: UserStudentDetailsDto | UserStaffDetailsDto;
+};
+
+export type UsersControllerGetMeResponse = UsersControllerGetMeResponses[keyof UsersControllerGetMeResponses];
+
 export type UsersControllerUpdateOwnUserDetailsData = {
     body: UpdateUserBaseDto;
     path?: never;
@@ -447,6 +551,46 @@ export type UsersControllerUpdateUserStaffDetailsResponses = {
 };
 
 export type UsersControllerUpdateUserStaffDetailsResponse = UsersControllerUpdateUserStaffDetailsResponses[keyof UsersControllerUpdateUserStaffDetailsResponses];
+
+export type UsersControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/users/{id}';
+};
+
+export type UsersControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type UsersControllerRemoveError = UsersControllerRemoveErrors[keyof UsersControllerRemoveErrors];
+
+export type UsersControllerRemoveResponses = {
+    /**
+     * User deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type UsersControllerRemoveResponse = UsersControllerRemoveResponses[keyof UsersControllerRemoveResponses];
 
 export type UsersControllerFindOneData = {
     body?: never;
