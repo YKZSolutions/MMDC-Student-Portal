@@ -10,8 +10,10 @@ import {
   IconClipboardListFilled,
   IconGraph,
   IconGraphFilled,
+  IconHome,
   IconHomeFilled,
   IconUser,
+  IconUserCog,
   IconUserFilled,
 } from '@tabler/icons-react'
 
@@ -20,7 +22,7 @@ export const studentLinks: NavItem[] = [
     link: '/dashboard',
     label: 'Dashboard',
     Icon: IconHomeFilled,
-    IconInactive: IconHomeFilled,
+    IconInactive: IconHome,
     fuzzy: true,
   },
   {
@@ -51,6 +53,13 @@ export const studentLinks: NavItem[] = [
     IconInactive: IconBell,
     fuzzy: true,
   },
+  {
+    link: '/profile',
+    label: 'Profile',
+    Icon: IconUserFilled,
+    IconInactive: IconUser,
+    fuzzy: true,
+  },
 ]
 
 export const adminLinks: NavItem[] = [
@@ -64,8 +73,8 @@ export const adminLinks: NavItem[] = [
   {
     link: '/users',
     label: 'Users',
-    Icon: IconUserFilled,
-    IconInactive: IconUser,
+    Icon: IconUserCog,
+    IconInactive: IconUserCog,
     fuzzy: true,
   },
   {
@@ -73,6 +82,13 @@ export const adminLinks: NavItem[] = [
     label: 'Billing',
     Icon: IconCashBanknoteFilled,
     IconInactive: IconCashBanknote,
+    fuzzy: true,
+  },
+  {
+    link: '/profile',
+    label: 'Profile',
+    Icon: IconUserFilled,
+    IconInactive: IconUser,
     fuzzy: true,
   },
 ]
