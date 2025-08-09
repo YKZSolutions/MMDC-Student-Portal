@@ -6,10 +6,12 @@ import ReactDOM from 'react-dom/client'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
 // Import the generated route tree
+import { ModalsProvider } from '@mantine/modals'
 import { routeTree } from './routeTree.gen'
 
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
+import { customModals } from './components/modals/constants.ts'
 import { theme } from './integrations/mantine/mantine-theme.ts'
 import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
@@ -41,7 +43,9 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <TanStackQueryProvider.Provider>
         <MantineProvider theme={theme}>
-          <RouterProvider router={router} />
+          <ModalsProvider modals={customModals}>
+            <RouterProvider router={router} />
+          </ModalsProvider>
         </MantineProvider>
       </TanStackQueryProvider.Provider>
     </StrictMode>,

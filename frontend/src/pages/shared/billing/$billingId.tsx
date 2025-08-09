@@ -1,4 +1,3 @@
-import EwalletSelectionModal from '@/components/billing/ewallet-modal'
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
 import type {
@@ -23,6 +22,7 @@ import {
   Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
   IconHistory,
@@ -130,8 +130,6 @@ function BillingIdPage() {
   const { billingId } = route.useParams()
 
   const [opened, { open, close }] = useDisclosure(false)
-  const [paymentOpened, { open: paymentOpen, close: paymentClose }] =
-    useDisclosure(false)
 
   const { authUser } = useAuth('protected')
 
@@ -225,7 +223,6 @@ function BillingIdPage() {
 
   const handleProceed = (selectedWallet: string | null) => {
     console.log('Selected E-wallet:', selectedWallet)
-    paymentClose()
   }
 
   return (
@@ -264,32 +261,31 @@ function BillingIdPage() {
             currentRole={authUser.role}
             roleRender={{
               student: (
-                <EwalletSelectionModal
-                  handleProceed={handleProceed}
-                  paymentClose={paymentClose}
-                  paymentOpened={paymentOpened}
+                <Button
+                  variant="filled"
+                  radius={'md'}
+                  leftSection={<IconPlus size={20} />}
+                  lts={rem(0.25)}
+                  onClick={() =>
+                    // mutateMethod({
+                    //   name: 'Jose Rizal',
+                    //   email: 'joserizal@gmail.com',
+                    //   phone: '09000000000',
+                    //   metadata: {
+                    //     key: 'value',
+                    //     key2: 'value',
+                    //   },
+                    // })
+                    modals.openContextModal({
+                      modal: 'ewallet',
+                      innerProps: {
+                        handleProceed: handleProceed,
+                      },
+                    })
+                  }
                 >
-                  <Button
-                    variant="filled"
-                    radius={'md'}
-                    leftSection={<IconPlus size={20} />}
-                    lts={rem(0.25)}
-                    onClick={() =>
-                      // mutateMethod({
-                      //   name: 'Jose Rizal',
-                      //   email: 'joserizal@gmail.com',
-                      //   phone: '09000000000',
-                      //   metadata: {
-                      //     key: 'value',
-                      //     key2: 'value',
-                      //   },
-                      // })
-                      paymentOpen()
-                    }
-                  >
-                    Pay Bill
-                  </Button>
-                </EwalletSelectionModal>
+                  Pay Bill
+                </Button>
               ),
             }}
           />
