@@ -110,6 +110,7 @@ export default function EwalletModal({
     context.updateModal({
       modalId: id,
       centered: true,
+      radius: "md"
     })
   }, [])
 
