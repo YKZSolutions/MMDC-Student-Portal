@@ -48,6 +48,7 @@ import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
+  UserDetailsFullDto,
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
@@ -170,7 +171,11 @@ export class UsersController {
    * - `UserStudentDetailsDto` for users with the `student` role
    * - `UserStaffDetailsDto` for users with the `mentor` or `admin` role
    */
-  @ApiExtraModels(UserStudentDetailsDto, UserStaffDetailsDto)
+  @ApiExtraModels(
+    UserDetailsFullDto,
+    UserStudentDetailsDto,
+    UserStaffDetailsDto,
+  )
   @ApiOkResponse({
     description: 'Current user details fetched successfully',
     schema: {
@@ -187,7 +192,9 @@ export class UsersController {
     InternalServerErrorException,
   ])
   @Get('/me')
-  async getMe(@CurrentUser() user: AuthUser) {
+  async getMe(
+    @CurrentUser() user: AuthUser,
+  ): Promise<UserDetailsFullDto | UserStudentDetailsDto | UserStaffDetailsDto> {
     return this.usersService.getMe(user);
   }
 
