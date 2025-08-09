@@ -16,6 +16,8 @@ import {
 } from '@mantine/core'
 import { IconCamera } from '@tabler/icons-react'
 import dayjs from 'dayjs'
+import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
+import { useQuery } from '@tanstack/react-query'
 
 // type ProfileUser = {
 //   firstName: string
@@ -42,37 +44,33 @@ import dayjs from 'dayjs'
 //   }
 // }
 
-const mockStudent: UserStudentDetailsDto = {
-  id: '',
-  email: null,
-  firstName: 'Jane',
-  middleName: 'A.',
-  lastName: 'Doe',
-  role: 'student',
-  userAccount: {
-    email: 'jane.doe@example.com',
-  },
-  userDetails: {
-    dateJoined: '2024-09-01T00:00:00.000Z',
-    dob: '2002-05-15T00:00:00.000Z',
-    gender: 'Female',
-    id: '',
-    createdAt: '',
-    updatedAt: '',
-    deletedAt: null,
-  },
-  studentDetails: {
-    student_number: 202301234,
-    student_type: 'regular',
-    admission_date: '2024-08-15T00:00:00.000Z',
-    id: '',
-    other_details: {},
-    createdAt: '',
-    updatedAt: '',
-    deletedAt: null,
-  },
-  staffDetails: undefined,
-}
+// const mockStudent: UserStudentDetailsDto = {
+//   id: '',
+//   email: 'jane.doe@example.com',
+//   firstName: 'Jane',
+//   middleName: 'A.',
+//   lastName: 'Doe',
+//   role: 'student',
+//   userDetails: {
+//     dateJoined: '2024-09-01T00:00:00.000Z',
+//     dob: '2002-05-15T00:00:00.000Z',
+//     gender: 'Female',
+//     id: '',
+//     createdAt: '',
+//     updatedAt: '',
+//     deletedAt: null,
+//   },
+//   studentDetails: {
+//     student_number: 202301234,
+//     student_type: 'regular',
+//     admission_date: '2024-08-15T00:00:00.000Z',
+//     id: '',
+//     other_details: {},
+//     createdAt: '',
+//     updatedAt: '',
+//     deletedAt: null,
+//   },
+// }
 
 const mockStaff: UserStaffDetailsDto = {
   id: '',
@@ -99,31 +97,32 @@ const staffDetails = (
   </ProfileSection>
 )
 
-const studentDetails = (
-  <ProfileSection title="Student Details">
+const studentDetails = (data) => {
+  return <ProfileSection title="Student Details">
     <Field
       label="Student Number"
-      value={mockStudent.studentDetails?.student_number ?? '—'}
+      value={data.studentDetails?.student_number ?? '—'}
     />
     <Field
       label="Student Type"
-      value={mockStudent.studentDetails?.student_type ?? '—'}
+      value={data.studentDetails?.student_type ?? '—'}
     />
     <Field
       label="Admission Date"
       value={
-        mockStudent.studentDetails?.admission_date
-          ? dayjs(mockStudent.studentDetails.admission_date).format(
+        data.studentDetails?.admission_date
+          ? dayjs(data.studentDetails.admission_date).format(
               'MMM D, YYYY',
             )
           : '—'
       }
     />
   </ProfileSection>
-)
+}
 
 function ProfilePage() {
-  const fullName = `${mockStudent.firstName} ${mockStudent.middleName ?? ''} ${mockStudent.lastName}`
+  const {data} = useQuery(usersControllerGetMeOptions())
+  const fullName = `${data?.firstName} ${data?.middleName ?? ''} ${data?.lastName}`
 
   return (
     <Container fluid m={0}>
@@ -132,8 +131,8 @@ function ProfilePage() {
           {/* Avatar Section */}
           <Flex align="center" gap="md">
             <Avatar size={80} radius="xl" color="blue">
-              {mockStudent.firstName[0]}
-              {mockStudent.lastName[0]}
+              {data?.firstName[0]}
+              {data?.lastName[0]}
             </Avatar>
             <Box>
               <Title order={2} fw={700} c="dark.7">
@@ -159,12 +158,12 @@ function ProfilePage() {
 
         <ProfileSection title="Basic Information">
           <Field label="Full Name" value={fullName} />
-          <Field label="Email" value={mockStudent.userAccount?.email ?? '—'} />
+          <Field label="Email" value={data?.email ?? '—'} />
           <Field
             label="Date Joined"
             value={
-              mockStudent.userDetails?.dateJoined
-                ? dayjs(mockStudent.userDetails.dateJoined).format(
+              data?.userDetails?.dateJoined
+                ? dayjs(data?.userDetails.dateJoined).format(
                     'MMM D, YYYY',
                   )
                 : '—'
@@ -172,22 +171,22 @@ function ProfilePage() {
           />
           <Field
             label="Gender"
-            value={mockStudent.userDetails?.gender ?? '—'}
+            value={data?.userDetails?.gender ?? '—'}
           />
           <Field
             label="Date of Birth"
             value={
-              mockStudent.userDetails?.dob
-                ? dayjs(mockStudent.userDetails.dob).format('MMM D, YYYY')
+              data?.userDetails?.dob
+                ? dayjs(data?.userDetails.dob).format('MMM D, YYYY')
                 : '—'
             }
           />
         </ProfileSection>
 
         <RoleComponentManager
-          currentRole={mockStudent.role}
+          currentRole={data?.role || 'student'}
           roleRender={{
-            student: studentDetails,
+            student: studentDetails(data),
             admin: staffDetails,
             mentor: staffDetails,
           }}
