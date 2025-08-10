@@ -7,7 +7,9 @@ interface AvatarUploadProps {
   radius?: number | string
   initialImage?: string
   file?: File | null
+  accept?: React.InputHTMLAttributes<HTMLInputElement>['accept']
   onImageUpload?: (file: File) => void
+  disabled?: boolean
 }
 
 export function AvatarUpload({
@@ -15,7 +17,9 @@ export function AvatarUpload({
   radius = 'xl',
   initialImage,
   file,
+  accept,
   onImageUpload,
+  disabled,
 }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [preview, setPreview] = useState<string | undefined>(initialImage)
@@ -38,9 +42,10 @@ export function AvatarUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={accept || 'image/*'}
         className="hidden"
         onChange={handleFileChange}
+        disabled={disabled}
       />
 
       <Stack

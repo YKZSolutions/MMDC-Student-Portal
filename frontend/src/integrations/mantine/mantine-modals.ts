@@ -1,4 +1,4 @@
-import PutUserModal from '@/pages/admin/modals/put-user.admin'
+import PutUserModal from '@/features/modals/put-user.admin'
 
 export const modals = {
   putUser: PutUserModal,

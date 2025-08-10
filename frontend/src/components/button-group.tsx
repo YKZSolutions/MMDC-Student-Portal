@@ -22,6 +22,7 @@ interface ButtonGroupProps<T extends string> {
   onChange?: (value: T) => void
   error?: ReactNode
   required?: boolean
+  disabled?: boolean
 }
 
 export function ButtonGroup<T extends string>({
@@ -30,6 +31,7 @@ export function ButtonGroup<T extends string>({
   value,
   defaultValue,
   onChange,
+  disabled,
 }: ButtonGroupProps<T>) {
   const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null)
   const [controlsRefs, setControlsRefs] = useState<
@@ -57,6 +59,7 @@ export function ButtonGroup<T extends string>({
       ref={setControlRef(index)}
       onClick={() => handleChange(item.value)}
       mod={{ active: _value === item.value }}
+      disabled={disabled}
     >
       <Text component="span" className="relative z-[1]">
         {item.icon}

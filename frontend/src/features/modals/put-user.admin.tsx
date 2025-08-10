@@ -40,7 +40,6 @@ import {
   type StudentFormInput,
   type StudentFormOutput,
 } from './put-user-form.schema'
-import { getRouteApi } from '@tanstack/react-router'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { notifications } from '@mantine/notifications'
 import { supabase } from '@/integrations/supabase/supabase-client'
@@ -150,9 +149,11 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               <AvatarUpload
                 size={120}
                 file={form.getValues().profileImage}
+                accept="image/png, image/jpeg"
                 onImageUpload={(file) =>
                   form.setFieldValue('profileImage', file)
                 }
+                disabled={isPending}
               />
             </Stack>
             <ButtonGroup
@@ -174,6 +175,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                   label: 'Admin',
                 },
               ]}
+              disabled={isPending}
               key={form.key('role')}
               {...form.getInputProps('role')}
             />
@@ -184,6 +186,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                   label="First Name"
                   placeholder="Juan"
                   withAsterisk
+                  disabled={isPending}
                   key={form.key('user.firstName')}
                   {...form.getInputProps('user.firstName')}
                 />
@@ -193,6 +196,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                   label="Last Name"
                   placeholder="Dela Cruz"
                   withAsterisk
+                  disabled={isPending}
                   key={form.key('user.lastName')}
                   {...form.getInputProps('user.lastName')}
                 />
@@ -201,6 +205,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                 <TextInput
                   label="Middle Name"
                   placeholder="Dante"
+                  disabled={isPending}
                   key={form.key('user.middleName')}
                   {...form.getInputProps('user.middleName')}
                 />
@@ -220,6 +225,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                     { value: 'Prefer not to say', label: 'Prefer not to say' },
                     { value: 'Other', label: 'Other (self-describe)' },
                   ]}
+                  disabled={isPending}
                   key={form.key('userDetails.gender')}
                   {...form.getInputProps('userDetails.gender')}
                 />
@@ -230,6 +236,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                   placeholder="Pick a date..."
                   className="flex-1"
                   rightSection={<IconCalendarWeek size={20} opacity={0.5} />}
+                  disabled={isPending}
                   key={form.key('userDetails.dob')}
                   {...form.getInputProps('userDetails.dob')}
                   value={form.getInputProps('userDetails.dob').value}
@@ -250,6 +257,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                 label="Email"
                 placeholder="name@email.com"
                 withAsterisk
+                disabled={isPending}
                 key={form.key('credentials.email')}
                 {...form.getInputProps('credentials.email')}
               />
@@ -257,6 +265,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
                 className="flex-1"
                 label="Password"
                 placeholder="Input password..."
+                disabled={isPending}
                 key={form.key('credentials.password')}
                 {...form.getInputProps('credentials.password')}
               />
@@ -496,6 +505,7 @@ function StaffForm(props: NextFormProps) {
         label="Employee Number"
         placeholder="202XXXXX"
         withAsterisk
+        disabled={isPending}
         key={form.key('employee_number')}
         {...form.getInputProps('employee_number')}
         onChange={(val) =>
@@ -509,6 +519,7 @@ function StaffForm(props: NextFormProps) {
         label="Department"
         placeholder="Department"
         withAsterisk
+        disabled={isPending}
         key={form.key('department')}
         {...form.getInputProps('department')}
       />
@@ -517,6 +528,7 @@ function StaffForm(props: NextFormProps) {
         label="Position"
         placeholder="Position"
         withAsterisk
+        disabled={isPending}
         key={form.key('position')}
         {...form.getInputProps('position')}
       />

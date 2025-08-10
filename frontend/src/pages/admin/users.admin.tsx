@@ -52,7 +52,7 @@ import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState, type ReactNode } from 'react'
 import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
-import { modals, openContextModal } from '@mantine/modals'
+import { modals } from '@mantine/modals'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { notifications } from '@mantine/notifications'
 import SupabaseAvatar from '@/components/supabase-avatar'
@@ -284,8 +284,9 @@ function UsersPage() {
               leftSection={<IconPlus size={20} />}
               lts={rem(0.25)}
               onClick={() =>
-                openContextModal({
+                modals.openContextModal({
                   modal: 'putUser',
+                  size: 520,
                   title: (
                     <Text size="lg" fw={500}>
                       Add User
