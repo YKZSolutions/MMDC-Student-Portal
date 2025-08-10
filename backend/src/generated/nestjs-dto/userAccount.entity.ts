@@ -11,7 +11,7 @@ export class UserAccount {
   })
   userId: string;
   @ApiHideProperty()
-  user: UserAsType;
+  user?: UserAsType;
   @ApiProperty({
     type: 'string',
   })
