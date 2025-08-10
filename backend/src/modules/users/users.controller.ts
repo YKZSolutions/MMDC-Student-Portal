@@ -10,7 +10,6 @@ import {
   Delete,
   Get,
   InternalServerErrorException,
-  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -58,8 +57,6 @@ import { DeleteQueryDto } from './dto/delete-user-query.dto';
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  private readonly logger = new Logger(UsersService.name);
-
   constructor(private readonly usersService: UsersService) {}
 
   /**
