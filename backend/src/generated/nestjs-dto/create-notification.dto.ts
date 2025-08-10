@@ -1,28 +1,7 @@
-import { ApiExtraModels, ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  ConnectUserDto,
-  type ConnectUserDto as ConnectUserDtoAsType,
-} from './connect-user.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateNotificationUserRelationInputDto {
-  @ApiProperty({
-    type: ConnectUserDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ConnectUserDto)
-  connect: ConnectUserDtoAsType;
-}
-
-@ApiExtraModels(ConnectUserDto, CreateNotificationUserRelationInputDto)
 export class CreateNotificationDto {
-  @ApiHideProperty()
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => CreateNotificationUserRelationInputDto)
-  user: CreateNotificationUserRelationInputDto;
   @ApiProperty({
     type: 'string',
   })

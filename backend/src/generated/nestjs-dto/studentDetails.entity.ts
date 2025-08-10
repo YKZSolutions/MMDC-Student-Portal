@@ -12,7 +12,7 @@ export class StudentDetails {
   })
   userId: string;
   @ApiHideProperty()
-  user: UserAsType;
+  user?: UserAsType;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

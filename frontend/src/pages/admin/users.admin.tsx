@@ -5,7 +5,12 @@ import {
   type Role,
   type UserWithRelations,
 } from '@/integrations/api/client'
-import { usersControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  usersControllerFindAllOptions,
+  usersControllerFindAllQueryKey,
+  usersControllerRemoveMutation,
+  usersControllerUpdateUserStatusMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -17,6 +22,7 @@ import {
   Container,
   Flex,
   Group,
+  Image,
   Menu,
   Pagination,
   Pill,
@@ -33,6 +39,7 @@ import {
 import { useDebouncedCallback } from '@mantine/hooks'
 import {
   IconCancel,
+  IconCheck,
   IconDotsVertical,
   IconFilter2,
   IconPencil,
@@ -40,11 +47,16 @@ import {
   IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState, type ReactNode } from 'react'
 import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
+import { modals } from '@mantine/modals'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { notifications } from '@mantine/notifications'
+import SupabaseAvatar from '@/components/supabase-avatar'
+import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 
 const route = getRouteApi('/(protected)/users')
 
@@ -271,6 +283,18 @@ function UsersPage() {
               radius={'md'}
               leftSection={<IconPlus size={20} />}
               lts={rem(0.25)}
+              onClick={() =>
+                modals.openContextModal({
+                  modal: 'putUser',
+                  size: 520,
+                  title: (
+                    <Text size="lg" fw={500}>
+                      Add User
+                    </Text>
+                  ),
+                  innerProps: {},
+                })
+              }
             >
               Add user
             </Button>
@@ -360,6 +384,87 @@ function UsersRolePill({ role }: { role: Role }) {
 }
 
 function UsersTableRow({ users }: { users: UserWithRelations[] }) {
+  const { mutateAsync: disabled } = useMutation({
+    ...usersControllerUpdateUserStatusMutation(),
+    onSettled: async () => {
+      const { queryClient } = getContext()
+      queryClient.invalidateQueries({
+        queryKey: usersControllerFindAllQueryKey(),
+      })
+    },
+  })
+
+  const { mutateAsync: remove } = useMutation({
+    ...usersControllerRemoveMutation(),
+    onSettled: async () => {
+      const { queryClient } = getContext()
+      queryClient.invalidateQueries({
+        queryKey: usersControllerFindAllQueryKey(),
+      })
+    },
+  })
+
+  const handleDisable = async (id: string, isDisabled: boolean) => {
+    const notifId = notifications.show({
+      loading: true,
+      title: `${isDisabled ? 'Enabling' : 'Disabling'} the user`,
+      message: `Performing the action, please wait`,
+      autoClose: false,
+      withCloseButton: false,
+    })
+    await disabled({
+      path: {
+        id: id,
+      },
+    })
+    notifications.update({
+      id: notifId,
+      color: 'teal',
+      title: `User ${isDisabled ? 'Enabled' : 'Disabled'}`,
+      message: `The user's account has been ${isDisabled ? 'enabled' : 'disabled'}`,
+      icon: <IconCheck size={18} />,
+      loading: false,
+      autoClose: 1500,
+    })
+  }
+
+  const handleDelete = (id: string) => {
+    modals.openConfirmModal({
+      title: 'Delete this user?',
+      children: (
+        <Text size="sm">Are you sure you wan't to delete this user?</Text>
+      ),
+      labels: { confirm: 'Delete', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        const notifId = notifications.show({
+          loading: true,
+          title: `Deleting the user`,
+          message: `Performing the action, please wait`,
+          autoClose: false,
+          withCloseButton: false,
+        })
+        await remove({
+          path: {
+            id: id,
+          },
+          query: {
+            directDelete: true,
+          },
+        })
+        notifications.update({
+          id: notifId,
+          color: 'teal',
+          title: `User Deleted`,
+          message: `The user and their account has been deleted`,
+          icon: <IconCheck size={18} />,
+          loading: false,
+          autoClose: 1500,
+        })
+      },
+    })
+  }
+
   if (users.length === 0)
     return (
       <Table.Tr>
@@ -374,59 +479,75 @@ function UsersTableRow({ users }: { users: UserWithRelations[] }) {
     )
 
   return users.map((user: UserWithRelations) => (
-    <>
-      <Table.Tr key={user.id}>
-        <Table.Td>
-          <Checkbox />
-        </Table.Td>
-        <Table.Td>
-          <Flex gap={'sm'} align={'center'} py={rem(5)}>
-            <Avatar name={`${user.firstName} ${user.lastName}`} />
-            <Flex direction={'column'}>
-              <Text fw={600}>
-                {user.firstName} {user.lastName}
-              </Text>
-              <Text fz={'sm'} fw={500} c={'dark.2'}>
-                {user.userAccount?.email}
-              </Text>
-            </Flex>
+    <Table.Tr key={user.id}>
+      <Table.Td>
+        <Checkbox />
+      </Table.Td>
+      <Table.Td>
+        <Flex gap={'sm'} align={'center'} py={rem(5)}>
+          <SupabaseAvatar
+            bucket={SupabaseBuckets.USER_AVATARS}
+            path={user.id}
+            imageType="jpg"
+            name={`${user.firstName} ${user.lastName}`}
+          />
+          <Flex direction={'column'}>
+            <Text fw={600}>
+              {user.firstName} {user.lastName}
+            </Text>
+            <Text fz={'sm'} fw={500} c={'dark.2'}>
+              {user.userAccount?.email}
+            </Text>
           </Flex>
-        </Table.Td>
-        <Table.Td>
-          <Flex gap={'xs'}>
-            <UsersRolePill role={user.role} />
-          </Flex>
-        </Table.Td>
-        <Table.Td>
-          <Text size="sm" c={'dark.3'} fw={500}>
-            {dayjs(user.createdAt).format('MMM D, YYYY')}
-          </Text>
-        </Table.Td>
-        <Table.Td>
-          <Menu position="bottom-end" shadow="xl" width={rem(200)} withArrow>
-            <Menu.Target>
-              <ActionIcon variant="subtle" color="gray" radius={'xl'}>
-                <IconDotsVertical size={20} stroke={1.5} />
-              </ActionIcon>
-            </Menu.Target>
+        </Flex>
+      </Table.Td>
+      <Table.Td>
+        <Flex gap={'xs'}>
+          <UsersRolePill role={user.role} />
+        </Flex>
+      </Table.Td>
+      <Table.Td>
+        <Text size="sm" c={'dark.3'} fw={500}>
+          {dayjs(user.createdAt).format('MMM D, YYYY')}
+        </Text>
+      </Table.Td>
+      <Table.Td>
+        <Menu position="bottom-end" shadow="xl" width={rem(200)} withArrow>
+          <Menu.Target>
+            <ActionIcon variant="subtle" color="gray" radius={'xl'}>
+              <IconDotsVertical size={20} stroke={1.5} />
+            </ActionIcon>
+          </Menu.Target>
 
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<IconPencil size={14} />}>
-                Edit details
-              </Menu.Item>
+          <Menu.Dropdown>
+            <Menu.Item leftSection={<IconPencil size={14} />}>
+              Edit details
+            </Menu.Item>
 
-              <Menu.Item leftSection={<IconCancel size={14} />}>
-                Disable
-              </Menu.Item>
+            <Menu.Item
+              leftSection={
+                user.disabledAt !== null ? (
+                  <IconCheck size={14} />
+                ) : (
+                  <IconCancel size={14} />
+                )
+              }
+              onClick={() => handleDisable(user.id, user.disabledAt !== null)}
+            >
+              {user.disabledAt !== null ? 'Enable' : 'Disable'}
+            </Menu.Item>
 
-              <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
-                Delete
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        </Table.Td>
-      </Table.Tr>
-    </>
+            <Menu.Item
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              onClick={() => handleDelete(user.id)}
+            >
+              Delete
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      </Table.Td>
+    </Table.Tr>
   ))
 }
 
