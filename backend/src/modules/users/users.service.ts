@@ -56,7 +56,7 @@ export class UsersService {
    * @returns The created Prisma user.
    * @throws BadRequestException if user creation in DB fails.
    */
-  async accountCreationHandler(
+  private async accountCreationHandler(
     credentials: CreateUserFullDto['credentials'],
     role: Role,
     callback: (user: User) => Promise<UserDto>,
