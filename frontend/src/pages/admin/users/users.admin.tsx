@@ -58,7 +58,7 @@ import { notifications } from '@mantine/notifications'
 import SupabaseAvatar from '@/components/supabase-avatar'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 
-const route = getRouteApi('/(protected)/users')
+const route = getRouteApi('/(protected)/users/')
 
 function UsersQueryProvider({
   children,

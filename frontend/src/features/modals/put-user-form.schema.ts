@@ -3,7 +3,7 @@ import {
   zUsersControllerCreateStaffData,
   zUsersControllerCreateStudentData,
 } from '@/integrations/api/client/zod.gen'
-import { nullableInput } from '@/integrations/zod/nullableInput'
+import { nullableInput } from '@/integrations/zod/nullable-input'
 import z from 'zod'
 
 const zodUserCreate = zUsersControllerCreateData.shape.body.shape
