@@ -1,10 +1,14 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import StudentDashboard from '@/pages/student/dasboard.student'
+import { usersControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import UsersPage from '@/pages/admin/users/users.admin'
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/(protected)/dashboard')({
+export const Route = createFileRoute('/(protected)/users/')({
   component: RouteComponent,
+  loader: ({ context: { queryClient } }) => {
+    queryClient.ensureQueryData(usersControllerFindAllOptions())
+  },
 })
 
 function RouteComponent() {
@@ -14,7 +18,7 @@ function RouteComponent() {
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        student: <StudentDashboard />,
+        admin: <UsersPage />,
       }}
     />
   )

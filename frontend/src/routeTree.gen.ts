@@ -12,14 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as protectedRouteRouteImport } from './routes/(protected)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
-import { Route as protectedUsersRouteImport } from './routes/(protected)/users'
-import { Route as protectedProfileRouteImport } from './routes/(protected)/profile'
-import { Route as protectedNotificationsRouteImport } from './routes/(protected)/notifications'
-import { Route as protectedEnrollmentRouteImport } from './routes/(protected)/enrollment'
-import { Route as protectedDashboardRouteImport } from './routes/(protected)/dashboard'
 import { Route as authUpdatePasswordRouteImport } from './routes/(auth)/update-password'
 import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
+import { Route as protectedUsersIndexRouteImport } from './routes/(protected)/users/index'
+import { Route as protectedProfileIndexRouteImport } from './routes/(protected)/profile/index'
+import { Route as protectedNotificationsIndexRouteImport } from './routes/(protected)/notifications/index'
+import { Route as protectedEnrollmentIndexRouteImport } from './routes/(protected)/enrollment/index'
+import { Route as protectedDashboardIndexRouteImport } from './routes/(protected)/dashboard/index'
 import { Route as protectedBillingIndexRouteImport } from './routes/(protected)/billing/index'
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
 
@@ -37,31 +37,6 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
-const protectedUsersRoute = protectedUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => protectedRouteRoute,
-} as any)
-const protectedProfileRoute = protectedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => protectedRouteRoute,
-} as any)
-const protectedNotificationsRoute = protectedNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => protectedRouteRoute,
-} as any)
-const protectedEnrollmentRoute = protectedEnrollmentRouteImport.update({
-  id: '/enrollment',
-  path: '/enrollment',
-  getParentRoute: () => protectedRouteRoute,
-} as any)
-const protectedDashboardRoute = protectedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => protectedRouteRoute,
-} as any)
 const authUpdatePasswordRoute = authUpdatePasswordRouteImport.update({
   id: '/(auth)/update-password',
   path: '/update-password',
@@ -76,6 +51,33 @@ const authLoginRoute = authLoginRouteImport.update({
   id: '/(auth)/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const protectedUsersIndexRoute = protectedUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
+const protectedProfileIndexRoute = protectedProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
+const protectedNotificationsIndexRoute =
+  protectedNotificationsIndexRouteImport.update({
+    id: '/notifications/',
+    path: '/notifications/',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
+const protectedEnrollmentIndexRoute =
+  protectedEnrollmentIndexRouteImport.update({
+    id: '/enrollment/',
+    path: '/enrollment/',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
+const protectedDashboardIndexRoute = protectedDashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => protectedRouteRoute,
 } as any)
 const protectedBillingIndexRoute = protectedBillingIndexRouteImport.update({
   id: '/billing/',
@@ -94,28 +96,28 @@ export interface FileRoutesByFullPath {
   '/login': typeof authLoginRoute
   '/reset-password': typeof authResetPasswordRoute
   '/update-password': typeof authUpdatePasswordRoute
-  '/dashboard': typeof protectedDashboardRoute
-  '/enrollment': typeof protectedEnrollmentRoute
-  '/notifications': typeof protectedNotificationsRoute
-  '/profile': typeof protectedProfileRoute
-  '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/billing': typeof protectedBillingIndexRoute
+  '/dashboard': typeof protectedDashboardIndexRoute
+  '/enrollment': typeof protectedEnrollmentIndexRoute
+  '/notifications': typeof protectedNotificationsIndexRoute
+  '/profile': typeof protectedProfileIndexRoute
+  '/users': typeof protectedUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/reset-password': typeof authResetPasswordRoute
   '/update-password': typeof authUpdatePasswordRoute
-  '/dashboard': typeof protectedDashboardRoute
-  '/enrollment': typeof protectedEnrollmentRoute
-  '/notifications': typeof protectedNotificationsRoute
-  '/profile': typeof protectedProfileRoute
-  '/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/billing': typeof protectedBillingIndexRoute
+  '/dashboard': typeof protectedDashboardIndexRoute
+  '/enrollment': typeof protectedEnrollmentIndexRoute
+  '/notifications': typeof protectedNotificationsIndexRoute
+  '/profile': typeof protectedProfileIndexRoute
+  '/users': typeof protectedUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,14 +126,14 @@ export interface FileRoutesById {
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/reset-password': typeof authResetPasswordRoute
   '/(auth)/update-password': typeof authUpdatePasswordRoute
-  '/(protected)/dashboard': typeof protectedDashboardRoute
-  '/(protected)/enrollment': typeof protectedEnrollmentRoute
-  '/(protected)/notifications': typeof protectedNotificationsRoute
-  '/(protected)/profile': typeof protectedProfileRoute
-  '/(protected)/users': typeof protectedUsersRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/(protected)/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/(protected)/billing/': typeof protectedBillingIndexRoute
+  '/(protected)/dashboard/': typeof protectedDashboardIndexRoute
+  '/(protected)/enrollment/': typeof protectedEnrollmentIndexRoute
+  '/(protected)/notifications/': typeof protectedNotificationsIndexRoute
+  '/(protected)/profile/': typeof protectedProfileIndexRoute
+  '/(protected)/users/': typeof protectedUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,28 +142,28 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/update-password'
+    | '/demo/tanstack-query'
+    | '/billing/$billingId'
+    | '/billing'
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
     | '/profile'
     | '/users'
-    | '/demo/tanstack-query'
-    | '/billing/$billingId'
-    | '/billing'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/reset-password'
     | '/update-password'
+    | '/demo/tanstack-query'
+    | '/billing/$billingId'
+    | '/billing'
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
     | '/profile'
     | '/users'
-    | '/demo/tanstack-query'
-    | '/billing/$billingId'
-    | '/billing'
   id:
     | '__root__'
     | '/'
@@ -169,14 +171,14 @@ export interface FileRouteTypes {
     | '/(auth)/login'
     | '/(auth)/reset-password'
     | '/(auth)/update-password'
-    | '/(protected)/dashboard'
-    | '/(protected)/enrollment'
-    | '/(protected)/notifications'
-    | '/(protected)/profile'
-    | '/(protected)/users'
     | '/demo/tanstack-query'
     | '/(protected)/billing/$billingId'
     | '/(protected)/billing/'
+    | '/(protected)/dashboard/'
+    | '/(protected)/enrollment/'
+    | '/(protected)/notifications/'
+    | '/(protected)/profile/'
+    | '/(protected)/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,41 +213,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(protected)/users': {
-      id: '/(protected)/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof protectedUsersRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
-    '/(protected)/profile': {
-      id: '/(protected)/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof protectedProfileRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
-    '/(protected)/notifications': {
-      id: '/(protected)/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof protectedNotificationsRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
-    '/(protected)/enrollment': {
-      id: '/(protected)/enrollment'
-      path: '/enrollment'
-      fullPath: '/enrollment'
-      preLoaderRoute: typeof protectedEnrollmentRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
-    '/(protected)/dashboard': {
-      id: '/(protected)/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof protectedDashboardRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
     '/(auth)/update-password': {
       id: '/(auth)/update-password'
       path: '/update-password'
@@ -267,6 +234,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(protected)/users/': {
+      id: '/(protected)/users/'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof protectedUsersIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/profile/': {
+      id: '/(protected)/profile/'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof protectedProfileIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/notifications/': {
+      id: '/(protected)/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof protectedNotificationsIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/enrollment/': {
+      id: '/(protected)/enrollment/'
+      path: '/enrollment'
+      fullPath: '/enrollment'
+      preLoaderRoute: typeof protectedEnrollmentIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/dashboard/': {
+      id: '/(protected)/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof protectedDashboardIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/billing/': {
       id: '/(protected)/billing/'
       path: '/billing'
@@ -285,23 +287,23 @@ declare module '@tanstack/react-router' {
 }
 
 interface protectedRouteRouteChildren {
-  protectedDashboardRoute: typeof protectedDashboardRoute
-  protectedEnrollmentRoute: typeof protectedEnrollmentRoute
-  protectedNotificationsRoute: typeof protectedNotificationsRoute
-  protectedProfileRoute: typeof protectedProfileRoute
-  protectedUsersRoute: typeof protectedUsersRoute
   protectedBillingBillingIdRoute: typeof protectedBillingBillingIdRoute
   protectedBillingIndexRoute: typeof protectedBillingIndexRoute
+  protectedDashboardIndexRoute: typeof protectedDashboardIndexRoute
+  protectedEnrollmentIndexRoute: typeof protectedEnrollmentIndexRoute
+  protectedNotificationsIndexRoute: typeof protectedNotificationsIndexRoute
+  protectedProfileIndexRoute: typeof protectedProfileIndexRoute
+  protectedUsersIndexRoute: typeof protectedUsersIndexRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
-  protectedDashboardRoute: protectedDashboardRoute,
-  protectedEnrollmentRoute: protectedEnrollmentRoute,
-  protectedNotificationsRoute: protectedNotificationsRoute,
-  protectedProfileRoute: protectedProfileRoute,
-  protectedUsersRoute: protectedUsersRoute,
   protectedBillingBillingIdRoute: protectedBillingBillingIdRoute,
   protectedBillingIndexRoute: protectedBillingIndexRoute,
+  protectedDashboardIndexRoute: protectedDashboardIndexRoute,
+  protectedEnrollmentIndexRoute: protectedEnrollmentIndexRoute,
+  protectedNotificationsIndexRoute: protectedNotificationsIndexRoute,
+  protectedProfileIndexRoute: protectedProfileIndexRoute,
+  protectedUsersIndexRoute: protectedUsersIndexRoute,
 }
 
 const protectedRouteRouteWithChildren = protectedRouteRoute._addFileChildren(
