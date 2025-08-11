@@ -1,22 +1,26 @@
 services:
-  tailscale:
-    image: tailscale/tailscale:latest
-    container_name: tailscale_n8n
-    hostname: n8n
+  # To prevent mounting docker.sock, which is a security risk
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy
     environment:
-      TS_AUTHKEY: ${TS_AUTHKEY}
-      TS_STATE_DIR: /var/lib/tailscale
-      TS_USERSPACE: false
-      TS_SERVE_CONFIG: /config/serve.json
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - net_admin
-      - sys_module
-    restart: unless-stopped
+      CONTAINERS: 1
     volumes:
-      - ${PROJECT_DIR}/tailscale:/config
-      - ${PROJECT_DIR}/tailscale_state:/var/lib/tailscale
+    - /var/run/docker.sock:/var/run/docker.sock
+
+  traefik:
+    image: traefik:latest
+    command:
+    - "--configFile=/etc/traefik/config/static.yml"
+    security_opt:
+    - no-new-privileges:true
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - ./letsencrypt:/letsencrypt:rw # letsencrypt folder
+    - ./traefik/config:/etc/traefik/config:ro # traefik folder
+    - ./traefik/logs:/logs # traefik folder
+    restart: always
 
   db:
     image: postgres:16-alpine
@@ -54,7 +58,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    network_mode: service:tailscale
+    # network_mode: service:tailscale
+    labels:
+    - "traefik.enable=true"
+
+    # Router Configuration
+    - "traefik.http.routers.n8n.rule=Host(`${N8N_FQDN}`)"
+    - "traefik.http.routers.n8n.entrypoints=web"
     volumes:
       - ${PROJECT_DIR}/n8n_data:/home/node/.n8n
       - ${PROJECT_DIR}/local-files:/files
