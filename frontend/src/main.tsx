@@ -11,7 +11,6 @@ import * as TanStackQueryProvider from './integrations/tanstack-query/root-provi
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
-import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
 import { theme } from './integrations/mantine/mantine-theme.ts'
