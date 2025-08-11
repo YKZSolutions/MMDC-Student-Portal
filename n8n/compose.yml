@@ -8,6 +8,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
 
   traefik:
+    container_name: traefik
     image: traefik:latest
     command:
     - "--configFile=/etc/traefik/config/static.yml"
