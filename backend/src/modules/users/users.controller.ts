@@ -9,16 +9,13 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   InternalServerErrorException,
-  Logger,
   NotFoundException,
   Param,
   Patch,
   Post,
   Put,
   Query,
-  Req,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
@@ -29,7 +26,6 @@ import {
   ApiOkResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { Request } from 'express';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
@@ -44,8 +40,6 @@ import {
 } from './dto/update-user-details.dto';
 import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
-import { Public } from '@/common/decorators/auth.decorator';
-import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
@@ -54,6 +48,7 @@ import {
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
 import { DeleteQueryDto } from './dto/delete-user-query.dto';
+
 /**
  *
  * @remarks Handles user related operations
@@ -62,8 +57,6 @@ import { DeleteQueryDto } from './dto/delete-user-query.dto';
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  private readonly logger = new Logger(UsersService.name);
-
   constructor(private readonly usersService: UsersService) {}
 
   /**
@@ -78,19 +71,7 @@ export class UsersController {
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async create(@Body() createUserDto: CreateUserFullDto): Promise<User> {
-    try {
-      this.logger.log('Doggy');
-
-      const user = await this.usersService.create(
-        createUserDto.role,
-        createUserDto,
-      );
-
-      return user;
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to create user');
-    }
+    return this.usersService.create(createUserDto.role, createUserDto);
   }
 
   /**
@@ -108,14 +89,7 @@ export class UsersController {
   async createStudent(
     @Body() createUserDto: CreateUserStudentDto,
   ): Promise<User> {
-    try {
-      const user = await this.usersService.create('student', createUserDto);
-
-      return user;
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to create user');
-    }
+    return this.usersService.create('student', createUserDto);
   }
 
   /**
@@ -131,17 +105,7 @@ export class UsersController {
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async createStaff(@Body() createUserDto: CreateUserStaffDto): Promise<User> {
-    try {
-      const user = await this.usersService.create(
-        createUserDto.role,
-        createUserDto,
-      );
-
-      return user;
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to create user');
-    }
+    return this.usersService.create(createUserDto.role, createUserDto);
   }
 
   /**
@@ -156,14 +120,9 @@ export class UsersController {
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async inviteUser(@Body() inviteUserDto: InviteUserDto): Promise<User> {
-    try {
-      const user = await this.usersService.inviteUser(inviteUserDto);
+    const user = await this.usersService.inviteUser(inviteUserDto);
 
-      return user.user;
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to create user');
-    }
+    return user.user;
   }
 
   /**
@@ -215,30 +174,12 @@ export class UsersController {
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async updateOwnUserDetails(
-    @Req() request: Request,
+    @CurrentUser() user: AuthUser,
     @Body() updateUserDto: UpdateUserBaseDto,
   ): Promise<User> {
-    if (!request.user) throw new BadRequestException('User not found');
+    const { user_id, role } = user.user_metadata;
 
-    if (
-      !request.user.user_metadata ||
-      !request.user.user_metadata.user_id ||
-      !request.user.user_metadata.role
-    )
-      throw new BadRequestException('User metadata not found');
-
-    const { user_id, role } = request.user.user_metadata;
-
-    try {
-      return await this.usersService.updateUserDetails(
-        user_id,
-        role,
-        updateUserDto,
-      );
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException(`Failed to update user: ${err}`);
-    }
+    return this.usersService.updateUserDetails(user_id!, role!, updateUserDto);
   }
 
   /**
@@ -257,18 +198,9 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserStudentDto,
   ): Promise<User> {
-    try {
-      const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findOne(id);
 
-      return await this.usersService.updateUserDetails(
-        id,
-        user.role,
-        updateUserDto,
-      );
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to update user');
-    }
+    return this.usersService.updateUserDetails(id, user.role, updateUserDto);
   }
 
   /**
@@ -287,18 +219,9 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserStaffDto,
   ): Promise<User> {
-    try {
-      const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findOne(id);
 
-      return await this.usersService.updateUserDetails(
-        id,
-        user.role,
-        updateUserDto,
-      );
-    } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      throw new InternalServerErrorException('Failed to update user');
-    }
+    return this.usersService.updateUserDetails(id, user.role, updateUserDto);
   }
 
   /**
@@ -319,14 +242,7 @@ export class UsersController {
   })
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   async findAll(@Query() filters: FilterUserDto): Promise<PaginatedUsersDto> {
-    try {
-      return await this.usersService.findAll(filters);
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to fetch users');
-    }
+    return this.usersService.findAll(filters);
   }
 
   /**
@@ -349,14 +265,7 @@ export class UsersController {
   async findOne(
     @Param('id') id: UserWithRelations['id'],
   ): Promise<UserWithRelations> {
-    try {
-      return await this.usersService.findOne(id);
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to fetch user');
-    }
+    return this.usersService.findOne(id);
   }
 
   /**
