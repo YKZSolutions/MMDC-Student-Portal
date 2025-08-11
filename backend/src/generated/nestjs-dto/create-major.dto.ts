@@ -1,11 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class ConnectNotificationDto {
+export class CreateMajorDto {
   @ApiProperty({
     type: 'string',
   })
   @IsNotEmpty()
   @IsString()
-  id: string;
+  name: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  description: string;
 }

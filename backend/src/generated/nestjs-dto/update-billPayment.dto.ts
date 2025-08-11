@@ -1,34 +1,36 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsDecimal, IsOptional, IsString } from 'class-validator';
 
-export class UpdateStaffDetailsDto {
+export class UpdateBillPaymentDto {
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
+    format: 'Decimal.js',
     required: false,
   })
   @IsOptional()
-  @IsInt()
-  employeeNumber?: number;
+  @IsDecimal()
+  amountPaid?: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
     required: false,
   })
   @IsOptional()
   @IsString()
-  department?: string;
+  paymentType?: string;
   @ApiProperty({
     type: 'string',
     required: false,
   })
   @IsOptional()
   @IsString()
-  position?: string;
+  notes?: string;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
+    format: 'date-time',
     required: false,
   })
   @IsOptional()
-  otherDetails?: Prisma.InputJsonValue;
+  @IsDateString()
+  paymentDate?: Date;
 }

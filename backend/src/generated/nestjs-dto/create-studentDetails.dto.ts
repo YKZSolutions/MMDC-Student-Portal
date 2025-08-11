@@ -9,24 +9,24 @@ export class CreateStudentDetailsDto {
   })
   @IsNotEmpty()
   @IsInt()
-  student_number: number;
+  studentNumber: number;
   @ApiProperty({
     enum: StudentType,
     enumName: 'StudentType',
   })
   @IsNotEmpty()
   @IsEnum(StudentType)
-  student_type: StudentType;
+  studentType: StudentType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
   @IsNotEmpty()
   @IsDateString()
-  admission_date: Date;
+  admissionDate: Date;
   @ApiProperty({
     type: () => Object,
   })
   @IsNotEmpty()
-  other_details: Prisma.InputJsonValue;
+  otherDetails: Prisma.InputJsonValue;
 }

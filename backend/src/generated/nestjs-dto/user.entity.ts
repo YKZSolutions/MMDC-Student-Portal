@@ -16,6 +16,7 @@ import {
   StaffDetails,
   type StaffDetails as StaffDetailsAsType,
 } from './staffDetails.entity';
+import { Bill, type Bill as BillAsType } from './bill.entity';
 import {
   Notification,
   type Notification as NotificationAsType,
@@ -34,6 +35,8 @@ export class User {
   studentDetails?: StudentDetailsAsType | null;
   @ApiHideProperty()
   staffDetails?: StaffDetailsAsType | null;
+  @ApiHideProperty()
+  bills?: BillAsType[];
   @ApiHideProperty()
   notifications?: NotificationAsType[];
   @ApiProperty({

@@ -41,10 +41,10 @@ export type User = {
 export type StudentType = 'new' | 'regular' | 'irregular' | 'transfer' | 'returnee' | 'graduate' | 'special';
 
 export type CreateStudentDetailsDto = {
-    student_number: number;
-    student_type: StudentType;
-    admission_date: string;
-    other_details: {
+    studentNumber: number;
+    studentType: StudentType;
+    admissionDate: string;
+    otherDetails: {
         [key: string]: unknown;
     };
 };
@@ -59,10 +59,10 @@ export type CreateUserStudentDto = {
 export type StaffRole = 'mentor' | 'admin';
 
 export type CreateStaffDetailsDto = {
-    employee_number: number;
+    employeeNumber: number;
     department: string;
     position: string;
-    other_details: {
+    otherDetails: {
         [key: string]: unknown;
     };
 };
@@ -105,10 +105,10 @@ export type UserDetailsFullDto = {
 
 export type StudentDetailsDto = {
     id: string;
-    student_number: number;
-    student_type: StudentType;
-    admission_date: string;
-    other_details: {
+    studentNumber: number;
+    studentType: StudentType;
+    admissionDate: string;
+    otherDetails: {
         [key: string]: unknown;
     };
     createdAt: string;
@@ -129,10 +129,10 @@ export type UserStudentDetailsDto = {
 
 export type StaffDetailsDto = {
     id: string;
-    employee_number: number;
+    employeeNumber: number;
     department: string;
     position: string;
-    other_details: {
+    otherDetails: {
         [key: string]: unknown;
     };
     createdAt: string;
@@ -152,10 +152,10 @@ export type UserStaffDetailsDto = {
 };
 
 export type UpdateStudentDetailsDto = {
-    student_number?: number;
-    student_type?: StudentType;
-    admission_date?: string;
-    other_details?: {
+    studentNumber?: number;
+    studentType?: StudentType;
+    admissionDate?: string;
+    otherDetails?: {
         [key: string]: unknown;
     };
 };
@@ -179,10 +179,10 @@ export type UpdateUserStudentDto = {
 };
 
 export type UpdateStaffDetailsDto = {
-    employee_number?: number;
+    employeeNumber?: number;
     department?: string;
     position?: string;
-    other_details?: {
+    otherDetails?: {
         [key: string]: unknown;
     };
 };

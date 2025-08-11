@@ -73,10 +73,10 @@ export const zStudentType = z.enum([
 ]);
 
 export const zCreateStudentDetailsDto = z.object({
-    student_number: z.int(),
-    student_type: zStudentType,
-    admission_date: z.iso.datetime(),
-    other_details: z.object({})
+    studentNumber: z.int(),
+    studentType: zStudentType,
+    admissionDate: z.iso.datetime(),
+    otherDetails: z.object({})
 });
 
 export const zCreateUserStudentDto = z.object({
@@ -92,10 +92,10 @@ export const zStaffRole = z.enum([
 ]);
 
 export const zCreateStaffDetailsDto = z.object({
-    employee_number: z.int(),
+    employeeNumber: z.int(),
     department: z.string(),
     position: z.string(),
-    other_details: z.object({})
+    otherDetails: z.object({})
 });
 
 export const zCreateUserStaffDto = z.object({
@@ -161,10 +161,10 @@ export const zUserDetailsFullDto = z.object({
 
 export const zStudentDetailsDto = z.object({
     id: z.string(),
-    student_number: z.int(),
-    student_type: zStudentType,
-    admission_date: z.iso.datetime(),
-    other_details: z.object({}),
+    studentNumber: z.int(),
+    studentType: zStudentType,
+    admissionDate: z.iso.datetime(),
+    otherDetails: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -202,10 +202,10 @@ export const zUserStudentDetailsDto = z.object({
 
 export const zStaffDetailsDto = z.object({
     id: z.string(),
-    employee_number: z.int(),
+    employeeNumber: z.int(),
     department: z.string(),
     position: z.string(),
-    other_details: z.object({}),
+    otherDetails: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -242,10 +242,10 @@ export const zUserStaffDetailsDto = z.object({
 });
 
 export const zUpdateStudentDetailsDto = z.object({
-    student_number: z.optional(z.int()),
-    student_type: z.optional(zStudentType),
-    admission_date: z.optional(z.iso.datetime()),
-    other_details: z.optional(z.object({}))
+    studentNumber: z.optional(z.int()),
+    studentType: z.optional(zStudentType),
+    admissionDate: z.optional(z.iso.datetime()),
+    otherDetails: z.optional(z.object({}))
 });
 
 export const zUpdateUserDto = z.object({
@@ -276,10 +276,10 @@ export const zUpdateUserStudentDto = z.object({
 });
 
 export const zUpdateStaffDetailsDto = z.object({
-    employee_number: z.optional(z.int()),
+    employeeNumber: z.optional(z.int()),
     department: z.optional(z.string()),
     position: z.optional(z.string()),
-    other_details: z.optional(z.object({}))
+    otherDetails: z.optional(z.object({}))
 });
 
 export const zUpdateUserStaffDto = z.object({
