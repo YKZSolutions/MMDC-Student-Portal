@@ -374,6 +374,68 @@ export const zAuthMetadataDto = z.object({
     user_id: z.optional(z.string())
 });
 
+export const zCreateBillingDto = z.object({
+    amount: z.number(),
+    billingId: z.string(),
+    description: z.optional(z.string()),
+    statement: z.optional(z.string()),
+    metadata: z.optional(z.object({}))
+});
+
+export const zPaymentIntentAttributesDto = z.object({
+    amount: z.number(),
+    capture_type: z.string(),
+    client_key: z.string(),
+    created_at: z.number(),
+    currency: z.string(),
+    description: z.string(),
+    last_payment_error: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    livemode: z.boolean(),
+    metadata: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    next_action: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    original_amount: z.number(),
+    payment_method_allowed: z.array(z.string()),
+    payment_method_options: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    payments: z.array(z.object({})),
+    setup_future_usage: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    statement_descriptor: z.string(),
+    status: z.string(),
+    updated_at: z.number()
+});
+
+export const zPaymentIntentDataDto = z.object({
+    id: z.string(),
+    type: z.string(),
+    attributes: zPaymentIntentAttributesDto
+});
+
+export const zPaymentIntentResponseDto = z.object({
+    data: zPaymentIntentDataDto
+});
+
+export const zUpdateBillingDto = z.object({
+    amount: z.optional(z.number()),
+    billingId: z.optional(z.string()),
+    description: z.optional(z.string()),
+    statement: z.optional(z.string()),
+    metadata: z.optional(z.object({}))
+});
+
 export const zUsersControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -581,3 +643,49 @@ export const zAuthControllerGetMetadataData = z.object({
 });
 
 export const zAuthControllerGetMetadataResponse = zAuthMetadataDto;
+
+export const zBillingControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerFindAllResponse = z.string();
+
+export const zBillingControllerCreateData = z.object({
+    body: zCreateBillingDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerCreateResponse = zPaymentIntentResponseDto;
+
+export const zBillingControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerRemoveResponse = z.string();
+
+export const zBillingControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerFindOneResponse = z.string();
+
+export const zBillingControllerUpdateData = z.object({
+    body: zUpdateBillingDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerUpdateResponse = z.string();

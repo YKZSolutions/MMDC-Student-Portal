@@ -158,6 +158,23 @@ function UsersPage() {
     })
   }
 
+  const handleResetFilter = () => {
+    setQuery((prev) => ({
+      ...prev,
+      role: null,
+      page: 1,
+    }))
+
+    navigate({
+      to: '/users',
+      search: (prev) => ({
+        ...prev,
+        role: undefined,
+        page: undefined,
+      }),
+    })
+  }
+
   return (
     <Container fluid m={0}>
       <Box pb={'xl'}>
@@ -233,7 +250,7 @@ function UsersPage() {
                         },
                       }}
                       c={'primary'}
-                      onClick={() => setQuery(queryDefaultValues)}
+                      onClick={() => handleResetFilter()}
                     >
                       Reset Filter
                     </UnstyledButton>

@@ -1,21 +1,21 @@
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
+import { Notifications } from '@mantine/notifications'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { theme } from './integrations/mantine/mantine-theme.ts'
-import { ModalsProvider } from '@mantine/modals'
 import { modals } from './integrations/mantine/mantine-modals.ts'
-import { Notifications } from '@mantine/notifications'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
-import reportWebVitals from './reportWebVitals.ts'
-import './styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
+import { theme } from './integrations/mantine/mantine-theme.ts'
+import reportWebVitals from './reportWebVitals.ts'
+import './styles.css'
 
 // Create a new router instance
 const router = createRouter({

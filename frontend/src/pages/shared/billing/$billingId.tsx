@@ -17,13 +17,14 @@ import {
   Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
   IconHistory,
   IconPlus,
   IconUpload,
 } from '@tabler/icons-react'
-import { useNavigate } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 
 const bills = {
@@ -116,9 +117,14 @@ const paymentHistory = [
   },
 ]
 
+const route = getRouteApi('/(protected)/billing/$billingId')
+
 function BillingIdPage() {
   const navigate = useNavigate()
+  const { billingId } = route.useParams()
+
   const [opened, { open, close }] = useDisclosure(false)
+
   const { authUser } = useAuth('protected')
 
   return (
@@ -149,6 +155,7 @@ function BillingIdPage() {
             c={'gray.7'}
             color="gray.4"
             lts={rem(0.25)}
+            // onClick={() => mutateIntent()}
           >
             Export
           </Button>
@@ -161,12 +168,42 @@ function BillingIdPage() {
                   radius={'md'}
                   leftSection={<IconPlus size={20} />}
                   lts={rem(0.25)}
+                  onClick={() =>
+                    // mutateMethod({
+                    //   name: 'Jose Rizal',
+                    //   email: 'joserizal@gmail.com',
+                    //   phone: '09000000000',
+                    //   metadata: {
+                    //     key: 'value',
+                    //     key2: 'value',
+                    //   },
+                    // })
+                    modals.openContextModal({
+                      modal: 'ewallet',
+                      innerProps: {
+                        amount: 20000,
+                        billingId,
+                      },
+                    })
+                  }
                 >
                   Pay Bill
                 </Button>
               ),
             }}
           />
+
+          {/* <Button
+            variant="outline"
+            radius={'md'}
+            leftSection={<IconUpload size={20} />}
+            c={'gray.7'}
+            color="gray.4"
+            lts={rem(0.25)}
+            onClick={() => mutateAttach(dataIntent)}
+          >
+            Attach
+          </Button> */}
         </Group>
       </Flex>
 

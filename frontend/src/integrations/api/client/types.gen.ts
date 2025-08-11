@@ -252,6 +252,65 @@ export type AuthMetadataDto = {
     user_id?: string;
 };
 
+export type CreateBillingDto = {
+    amount: number;
+    billingId: string;
+    description?: string;
+    statement?: string;
+    metadata?: {
+        [key: string]: unknown;
+    };
+};
+
+export type PaymentIntentAttributesDto = {
+    amount: number;
+    capture_type: string;
+    client_key: string;
+    created_at: number;
+    currency: string;
+    description: string;
+    last_payment_error?: string | null;
+    livemode: boolean;
+    metadata?: {
+        [key: string]: unknown;
+    } | null;
+    next_action?: {
+        [key: string]: unknown;
+    } | null;
+    original_amount: number;
+    payment_method_allowed: Array<string>;
+    payment_method_options?: {
+        [key: string]: unknown;
+    } | null;
+    payments: Array<{
+        [key: string]: unknown;
+    }>;
+    setup_future_usage?: string | null;
+    statement_descriptor: string;
+    status: string;
+    updated_at: number;
+};
+
+export type PaymentIntentDataDto = {
+    id: string;
+    type: string;
+    attributes: PaymentIntentAttributesDto;
+};
+
+export type PaymentIntentResponseDto = {
+    data: PaymentIntentDataDto;
+};
+
+export type UpdateBillingDto = {
+    amount?: number;
+    billingId?: string;
+    description?: string;
+    statement?: string;
+    metadata?: {
+        [key: string]: unknown;
+    };
+};
+
 export type UsersControllerFindAllData = {
     body?: never;
     path?: never;
@@ -769,6 +828,77 @@ export type AuthControllerGetMetadataResponses = {
 };
 
 export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
+
+export type BillingControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/billing';
+};
+
+export type BillingControllerFindAllResponses = {
+    200: string;
+};
+
+export type BillingControllerFindAllResponse = BillingControllerFindAllResponses[keyof BillingControllerFindAllResponses];
+
+export type BillingControllerCreateData = {
+    body: CreateBillingDto;
+    path?: never;
+    query?: never;
+    url: '/billing';
+};
+
+export type BillingControllerCreateResponses = {
+    201: PaymentIntentResponseDto;
+};
+
+export type BillingControllerCreateResponse = BillingControllerCreateResponses[keyof BillingControllerCreateResponses];
+
+export type BillingControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerRemoveResponses = {
+    200: string;
+};
+
+export type BillingControllerRemoveResponse = BillingControllerRemoveResponses[keyof BillingControllerRemoveResponses];
+
+export type BillingControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerFindOneResponses = {
+    200: string;
+};
+
+export type BillingControllerFindOneResponse = BillingControllerFindOneResponses[keyof BillingControllerFindOneResponses];
+
+export type BillingControllerUpdateData = {
+    body: UpdateBillingDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerUpdateResponses = {
+    200: string;
+};
+
+export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;
