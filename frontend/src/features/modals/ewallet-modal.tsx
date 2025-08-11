@@ -73,16 +73,20 @@ function EwalletModalQueryProvider({
   const { amount, billingId } = props
 
   // Payment Intent Creation
-  const { data, isFetching, isPending } = useSuspenseQuery(
-    billingControllerCreateOptions({
+  const { data, isFetching, isPending } = useSuspenseQuery({
+    ...billingControllerCreateOptions({
       body: {
         amount: amount,
         billingId: billingId,
       },
     }),
-  )
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
 
   const paymentIntentData = data?.data
+
+  console.log(paymentIntentData)
 
   return children({
     data: paymentIntentData,
