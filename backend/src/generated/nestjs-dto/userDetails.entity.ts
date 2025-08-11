@@ -11,7 +11,7 @@ export class UserDetails {
   })
   userId: string;
   @ApiHideProperty()
-  user: UserAsType;
+  user?: UserAsType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

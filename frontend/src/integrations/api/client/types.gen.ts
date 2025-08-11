@@ -13,14 +13,6 @@ export type UserCredentialsDto = {
     password?: string;
 };
 
-export type ConnectUserDto = {
-    id: string;
-};
-
-export type CreateUserDetailsUserRelationInputDto = {
-    connect: ConnectUserDto;
-};
-
 export type CreateUserDetailsDto = {
     dateJoined: string;
     dob?: string | null;
@@ -46,10 +38,6 @@ export type User = {
     deletedAt: string | null;
 };
 
-export type CreateStudentDetailsUserRelationInputDto = {
-    connect: ConnectUserDto;
-};
-
 export type StudentType = 'new' | 'regular' | 'irregular' | 'transfer' | 'returnee' | 'graduate' | 'special';
 
 export type CreateStudentDetailsDto = {
@@ -69,10 +57,6 @@ export type CreateUserStudentDto = {
 };
 
 export type StaffRole = 'mentor' | 'admin';
-
-export type CreateStaffDetailsUserRelationInputDto = {
-    connect: ConnectUserDto;
-};
 
 export type CreateStaffDetailsDto = {
     employee_number: number;
@@ -214,37 +198,27 @@ export type UpdateUserBaseDto = {
     userDetails?: UpdateUserDetailsDto;
 };
 
-export type UserAccount = {
+export type UserAccountDto = {
     id: string;
-    userId: string;
     authUid: string;
-    email?: string;
+    email: string | null;
     createdAt: string;
     updatedAt: string;
-    deletedAt?: string;
-};
-
-export type UserDetails = {
-    id: string;
-    userId: string;
-    dob?: string;
-    gender?: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt?: string;
+    deletedAt: string | null;
 };
 
 export type UserWithRelations = {
     id: string;
     firstName: string;
-    middleName?: string;
+    middleName: string | null;
     lastName: string;
     role: Role;
     createdAt: string;
     updatedAt: string;
-    deletedAt?: string;
-    userAccount: UserAccount | null;
-    userDetails: UserDetails | null;
+    disabledAt: string | null;
+    deletedAt: string | null;
+    userAccount: UserAccountDto | null;
+    userDetails: UserDetailsDto | null;
 };
 
 export type PaginationMetaDto = {

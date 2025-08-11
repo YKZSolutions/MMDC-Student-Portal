@@ -10,6 +10,10 @@ export class PaginatedUsersDto {
   @ApiProperty({ type: [UserWithRelations] })
   users: UserWithRelations[];
 
-  @ApiProperty({ type: PaginationMetaDto, additionalProperties: true, nullable: false })
+  @ApiProperty({
+    type: PaginationMetaDto,
+    additionalProperties: true,
+    nullable: false,
+  })
   meta: PageNumberPagination & PageNumberCounters;
 }

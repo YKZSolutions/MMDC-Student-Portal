@@ -1,17 +1,19 @@
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
+import { Notifications } from '@mantine/notifications'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
+import { modals } from './integrations/mantine/mantine-modals.ts'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
 // Import the generated route tree
-import { ModalsProvider } from '@mantine/modals'
 import { routeTree } from './routeTree.gen'
 
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
-import { customModals } from './components/modals/constants.ts'
+import '@mantine/notifications/styles.css'
 import { theme } from './integrations/mantine/mantine-theme.ts'
 import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
@@ -43,7 +45,8 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <TanStackQueryProvider.Provider>
         <MantineProvider theme={theme}>
-          <ModalsProvider modals={customModals}>
+          <ModalsProvider modals={modals}>
+            <Notifications />
             <RouterProvider router={router} />
           </ModalsProvider>
         </MantineProvider>

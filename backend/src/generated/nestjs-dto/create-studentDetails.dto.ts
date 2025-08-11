@@ -1,35 +1,8 @@
 import { Prisma, StudentType } from '@prisma/client';
-import { ApiExtraModels, ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  ConnectUserDto,
-  type ConnectUserDto as ConnectUserDtoAsType,
-} from './connect-user.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsEnum, IsInt, IsNotEmpty } from 'class-validator';
 
-export class CreateStudentDetailsUserRelationInputDto {
-  @ApiProperty({
-    type: ConnectUserDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ConnectUserDto)
-  connect: ConnectUserDtoAsType;
-}
-
-@ApiExtraModels(ConnectUserDto, CreateStudentDetailsUserRelationInputDto)
 export class CreateStudentDetailsDto {
-  @ApiHideProperty()
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => CreateStudentDetailsUserRelationInputDto)
-  user: CreateStudentDetailsUserRelationInputDto;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

@@ -91,8 +91,6 @@ model User {
 model UserAccount {
   id String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -111,8 +109,6 @@ model UserAccount {
 model UserDetails {
   id String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -141,8 +137,6 @@ enum StudentType {
 model StudentDetails {
   id String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -162,8 +156,6 @@ model StudentDetails {
 model StaffDetails {
   id String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -184,8 +176,6 @@ model StaffDetails {
 model Notification {
   id String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id])
 
