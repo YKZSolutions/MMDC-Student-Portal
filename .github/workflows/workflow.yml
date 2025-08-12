@@ -10,25 +10,27 @@ on:
     branches:
       - "main"
       - "develop"
-  
+
 jobs:
-  lint:
-    name: Code Quality Checks
+  type-check:
+    name: Frontend Type Checking & Dependency Install
     timeout-minutes: 5
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
 
-      - name: Set up pnpm # This must be above the setup-node action
+      - name: Install pnpm Package Manager
         uses: pnpm/action-setup@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
 
-      # Cache frontend
-      - name: Restore frontend dependencies cache
+      - name: Restore pnpm Cache and Node Modules
         uses: actions/cache@v3
         with:
           path: |
@@ -37,12 +39,11 @@ jobs:
           key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-frontend-
-      
-      # Frontend linting
-      - name: Install frontend dependencies
+
+      - name: Install Frontend Dependencies
         working-directory: ./frontend
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint frontend code
+      - name: Run TypeScript Type Check
         working-directory: ./frontend
         run: pnpm tsc --noEmit
