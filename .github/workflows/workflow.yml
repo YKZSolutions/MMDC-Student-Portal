@@ -21,6 +21,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+      - name: Set up pnpm # This must be above the setup-node action
       - uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
