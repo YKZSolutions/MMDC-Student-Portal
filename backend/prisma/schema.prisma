@@ -245,8 +245,6 @@ model Bill {
 model BillPayment {
   id     String @id @default(uuid()) @db.Uuid
   billId String @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   bill   Bill   @relation(fields: [billId], references: [id])
 

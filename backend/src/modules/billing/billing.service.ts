@@ -5,7 +5,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateBillingDto } from './dto/update-billing.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';

@@ -12,7 +12,7 @@ export class BillPayment {
   })
   billId: string;
   @ApiHideProperty()
-  bill: BillAsType;
+  bill?: BillAsType;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
