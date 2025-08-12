@@ -3,6 +3,25 @@ import { FunctionDeclaration, Tool, Type } from '@google/genai';
 // Common enums/refs
 const RoleEnum = ['student', 'mentor', 'admin'];
 
+export const vectorSearchFn: FunctionDeclaration = {
+  name: 'search_vector',
+  description: 'Search for documents using vector search.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      query: {
+        type: Type.STRING,
+        description: 'The search query.',
+      },
+      limit: {
+        type: Type.INTEGER,
+        default: 10,
+        description: 'The number of results to return.',
+      },
+    },
+  },
+};
+
 // -------------------------
 // Users function declarations
 // -------------------------
@@ -94,6 +113,7 @@ export const courseFunctions: FunctionDeclaration[] = [
 export const tools: Tool[] = [
   {
     functionDeclarations: [
+      vectorSearchFn,
       ...userFunctions,
 
       // ...billingFunctions,
@@ -108,9 +128,9 @@ export function getToolsForRole(role: string) {
     case 'admin':
       return tools; // all tools
     case 'mentor':
-      return [{ functionDeclarations: [...courseFunctions] }];
+      return [{ functionDeclarations: [...courseFunctions, vectorSearchFn] }];
     case 'student':
-      return [{ functionDeclarations: [...courseFunctions] }];
+      return [{ functionDeclarations: [...courseFunctions, vectorSearchFn] }];
     default:
       return [];
   }

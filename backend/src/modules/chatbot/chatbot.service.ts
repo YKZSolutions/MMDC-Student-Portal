@@ -6,6 +6,7 @@ import { CoursesService } from '@/modules/courses/courses.service';
 import { FunctionCall } from '@google/genai';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
 import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
+import { SupabaseService } from '@/lib/supabase/supabase.service';
 
 @Injectable()
 export class ChatbotService {
@@ -14,6 +15,7 @@ export class ChatbotService {
     private readonly usersService: UsersService,
     private readonly billingService: BillingService,
     private readonly coursesService: CoursesService,
+    private readonly supabase: SupabaseService,
   ) {}
 
   async handleQuestion(prompt: PromptDto) {
@@ -43,6 +45,14 @@ export class ChatbotService {
           );
           break;
         }
+        case 'search_vector': {
+          const args = functionCall.args as { query: string; limit: number };
+          const vector = await this.handleVectorSearch(args);
+          result.push(
+            `Vector search for "${args.query}": ${JSON.stringify(vector)}`,
+          );
+          break;
+        }
         default:
           return { answer: `Function ${functionCall.name} not implemented.` };
       }
@@ -54,5 +64,10 @@ export class ChatbotService {
       result,
     );
     return { answer: finalAnswer };
+  }
+
+  async handleVectorSearch(query: string, limit: number = 10): Promise<string> {
+    const embedding = await this.gemini.generateEmbedding(query);
+    return ''; //TODO: Implement vector search from supabase
   }
 }
