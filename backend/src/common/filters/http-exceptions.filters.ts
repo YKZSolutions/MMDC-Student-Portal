@@ -113,6 +113,12 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     });
   }
 
+  handledErrors = [
+    AuthError.name,
+    Prisma.PrismaClientKnownRequestError.name,
+    HttpException.name,
+  ];
+
   private logError(
     type: string,
     requestId: string,
@@ -122,7 +128,9 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     const logMessage = `[${type}] RequestID=${requestId} ${req.method} ${req.url} -> ${exception.message}`;
     this.logger.error(
       logMessage,
-      this.isProduction ? undefined : exception.stack,
+      this.isProduction && this.handledErrors.includes(exception.name) //Only log the exception stack if in production and if it's a handled error'
+        ? undefined
+        : exception.stack,
     );
   }
 }
