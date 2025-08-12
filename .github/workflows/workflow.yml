@@ -3,14 +3,14 @@ name: MMDC Student Portal Actions
 on:
   push:
     branches:
-      - "main"
-      - "develop"
-      - "feat/cap-60"
+      - main
+      - develop
+      - feat/cap-60
   pull_request:
     branches:
-      - "main"
-      - "develop"
-  
+      - main
+      - develop
+
 jobs:
   lint:
     name: Code Quality Checks
@@ -19,18 +19,20 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
 
       - name: Install pnpm
-        run: |
-          npm install -g pnpm # This will install pnpm globally
-          pnpm setup # This sets up pnpm's environment variables and PATH
-          echo "$(pnpm store path)" >> $GITHUB_PATH # Add pnpm's global store to PATH
-      
-      # Cache frontend
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
       - name: Restore frontend dependencies cache
         uses: actions/cache@v3
         with:
@@ -40,12 +42,11 @@ jobs:
           key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-frontend-
-      
-      # Frontend linting
+
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint frontend code
+      - name: Type check frontend code
         working-directory: ./frontend
         run: pnpm tsc --noEmit
