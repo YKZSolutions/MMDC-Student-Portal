@@ -4,6 +4,7 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -119,10 +120,9 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     exception: Error,
   ) {
     const logMessage = `[${type}] RequestID=${requestId} ${req.method} ${req.url} -> ${exception.message}`;
-    if (this.isProduction) {
-      this.logger.error(logMessage);
-    } else {
-      this.logger.error(logMessage, exception.stack);
-    }
+    this.logger.error(
+      logMessage,
+      this.isProduction ? undefined : exception.stack,
+    );
   }
 }
