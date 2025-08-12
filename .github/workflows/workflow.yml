@@ -12,7 +12,7 @@ on:
       - "develop"
 
 jobs:
-  type-check:
+  type-check-frontend:
     name: Frontend Type Checking & Dependency Install
     timeout-minutes: 5
     runs-on: ubuntu-latest
@@ -46,4 +46,40 @@ jobs:
 
       - name: Run TypeScript Type Check
         working-directory: ./frontend
+        run: pnpm tsc --noEmit
+
+  type-check-backend:
+    name: Backend Type Checking & Dependency Install
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm Package Manager
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Restore pnpm Cache and Node Modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            backend/node_modules
+          key: ${{ runner.os }}-backend-${{ hashFiles('backend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run TypeScript Type Check
+        working-directory: ./backend
         run: pnpm tsc --noEmit
