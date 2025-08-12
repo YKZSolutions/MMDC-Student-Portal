@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { CustomPrismaModule } from 'nestjs-prisma';
 import { AuthGuard } from './common/guards/auth.guard';
@@ -11,6 +11,7 @@ import { TestModule } from './modules/test/test.module';
 import { UsersModule } from './modules/users/users.module';
 import { UserStatusGuard } from './common/guards/user-status.guard';
 import { AuthModule } from './modules/auth/auth.module';
+import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
 
 @Module({
   imports: [
@@ -47,4 +48,8 @@ import { AuthModule } from './modules/auth/auth.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}
