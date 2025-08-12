@@ -9,6 +9,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
 import { AuthError } from '@supabase/supabase-js';
+import { RequestWithId } from '@/middleware/request-id.middleware';
 
 @Catch()
 export class GlobalHttpExceptionFilter implements ExceptionFilter {
@@ -19,7 +20,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
-    const requestId: string = (req as any).id || 'N/A';
+    const requestId: string = (req as RequestWithId).id || 'N/A';
 
     let statusCode: number;
     let message: string;
@@ -36,6 +37,8 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         string,
         { message: string; statusCode: number }
       > = {
+        // Common errors
+        // All validation errors should be handled by DTO validations.
         P2000: {
           message: 'The provided value for a column is too long.',
           statusCode: HttpStatus.BAD_REQUEST,
@@ -48,6 +51,10 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
           message: `Duplicate entry: ${exception.meta?.target as string}`,
           statusCode: HttpStatus.CONFLICT,
         },
+        // For not found errors, it is generally much better to throw a NotFoundException
+        // with the field that was not found.
+        // But in cases where the field should not be known by the client,
+        // we can directly use an `orThrow` in the Prisma query.
         P2001: {
           message: 'Record not found.',
           statusCode: HttpStatus.NOT_FOUND,
@@ -60,6 +67,10 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
           message: 'Associated record/s not found.',
           statusCode: HttpStatus.NOT_FOUND,
         },
+
+        // Add more Prisma error codes as needed
+        // Be wary of including too many Prisma error codes here,
+        // especially since not everything should be known to the client.
       };
 
       const errorInfo = prismaErrorMap[exception.code];
@@ -73,12 +84,13 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       statusCode = exception.getStatus();
 
       let messages: string[] = [];
+
       if (
         typeof exceptionResponse === 'object' &&
         'message' in exceptionResponse
       ) {
         messages = Array.isArray(exceptionResponse.message)
-          ? exceptionResponse.message
+          ? (exceptionResponse.message as string[])
           : [exceptionResponse.message as string];
       }
       message = messages.length > 0 ? messages.join('; ') : exception.message;
@@ -96,7 +108,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       error: message,
       timestamp: new Date().toISOString(),
       requestId,
-      path: this.isProduction ? undefined : req.url,
+      path: this.isProduction ? undefined : req.url, // Don't expose the path in production'
     });
   }
 
