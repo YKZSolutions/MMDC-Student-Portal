@@ -122,9 +122,9 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     const logMessage = `[${type}] RequestID=${requestId} ${req.method} ${req.url} -> ${exception.message}`;
     this.logger.error(
       logMessage,
-      !(this.isProduction && type === 'UnhandledException') //Only log the exception stack if in production and if it's a handled error'
-        ? undefined
-        : exception.stack,
+      !this.isProduction && type === 'UnhandledException' // Only log stack trace in non-production for unhandled exceptions
+        ? exception.stack
+        : undefined,
     );
   }
 }
