@@ -1,5 +1,6 @@
 import {
   ArgumentsHost,
+  BadRequestException,
   Catch,
   ExceptionFilter,
   HttpException,
@@ -119,10 +120,11 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     exception: Error,
   ) {
     const logMessage = `[${type}] RequestID=${requestId} ${req.method} ${req.url} -> ${exception.message}`;
-    if (this.isProduction) {
-      this.logger.error(logMessage);
-    } else {
-      this.logger.error(logMessage, exception.stack);
-    }
+    this.logger.error(
+      logMessage,
+      !this.isProduction && type === 'UnhandledException' // Only log stack trace in non-production for unhandled exceptions
+        ? exception.stack
+        : undefined,
+    );
   }
 }
