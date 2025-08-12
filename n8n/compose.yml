@@ -1,0 +1,71 @@
+services:
+  # To prevent mounting docker.sock, which is a security risk
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    environment:
+      CONTAINERS: 1
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    command:
+    - "--configFile=/etc/traefik/config/static.yml"
+    security_opt:
+    - no-new-privileges:true
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - ./letsencrypt:/letsencrypt:rw # letsencrypt folder
+    - ./traefik/config:/etc/traefik/config:ro # traefik folder
+    - ./traefik/logs:/logs # traefik folder
+    restart: always
+
+  db:
+    image: postgres:16-alpine
+    container_name: db
+    restart: unless-stopped
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ${PROJECT_DIR}/database:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d n8n"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    image: n8nio/n8n:1.106.2
+    container_name: n8n
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_HOST=${POSTGRESDB_HOST}
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - NODE_ENV=${NODE_ENV}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
+    depends_on:
+      db:
+        condition: service_healthy
+    # network_mode: service:tailscale
+    labels:
+    - "traefik.enable=true"
+
+    # Router Configuration
+    - "traefik.http.routers.n8n.rule=Host(`${N8N_FQDN}`)"
+    - "traefik.http.routers.n8n.entrypoints=web"
+    volumes:
+      - ${PROJECT_DIR}/n8n_data:/home/node/.n8n
+      - ${PROJECT_DIR}/local-files:/files
