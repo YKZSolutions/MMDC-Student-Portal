@@ -1,18 +1,13 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
+import { Type } from 'class-transformer';
+import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
 
 export class CreateBillingDto {
-  @IsNotEmpty()
-  amount: number;
-
-  @IsNotEmpty()
-  billingId: string;
+  @ValidateNested()
+  @Type(() => CreateBillDto)
+  bill: CreateBillDto;
 
   @IsOptional()
-  description?: string;
-
-  @IsOptional()
-  statement?: string;
-
-  @IsOptional()
-  metadata?: object;
+  @IsUUID()
+  userId?: string;
 }

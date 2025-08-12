@@ -16,11 +16,6 @@ import { BillingModule } from './modules/billing/billing.module';
 @Module({
   imports: [
     EnvConfigModule,
-    UsersModule,
-    CoursesModule,
-    // PrismaModule.forRoot({
-    //   isGlobal: true,
-    // }),
     CustomPrismaModule.forRootAsync({
       isGlobal: true,
       name: 'PrismaService',
@@ -30,6 +25,8 @@ import { BillingModule } from './modules/billing/billing.module';
     }),
     SupabaseModule,
     TestModule,
+    UsersModule,
+    CoursesModule,
     AuthModule,
     BillingModule,
   ],
