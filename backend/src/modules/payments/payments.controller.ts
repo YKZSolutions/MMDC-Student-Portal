@@ -1,15 +1,18 @@
+import { Public } from '@/common/decorators/auth.decorator';
+import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Headers,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
-import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { PaymentsService } from './payments.service';
 
 @Controller('billing/:billId/payments')
 export class PaymentsController {
@@ -18,6 +21,16 @@ export class PaymentsController {
   @Post()
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentsService.create(createPaymentDto);
+  }
+
+  @Post('webhook')
+  @Public()
+  @StatusBypass()
+  async webhook(
+    @Body() body: any,
+    @Headers('paymongo-signature') signature: string,
+  ) {
+    return this.paymentsService.webhook(body, signature);
   }
 
   @Get()
