@@ -1,35 +1,29 @@
 import { Prisma } from '@prisma/client';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class StaffDetails {
+export class BillPaymentDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
     type: 'string',
+    format: 'Decimal.js',
   })
-  userId: string;
-  @ApiHideProperty()
-  user?: UserAsType;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  employeeNumber: number;
+  amountPaid: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
   })
-  department: string;
+  paymentType: string;
   @ApiProperty({
     type: 'string',
   })
-  position: string;
+  notes: string;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
+    format: 'date-time',
   })
-  otherDetails: Prisma.JsonValue;
+  paymentDate: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

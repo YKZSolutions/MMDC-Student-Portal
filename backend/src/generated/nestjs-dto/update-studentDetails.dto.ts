@@ -10,7 +10,7 @@ export class UpdateStudentDetailsDto {
   })
   @IsOptional()
   @IsInt()
-  student_number?: number;
+  studentNumber?: number;
   @ApiProperty({
     enum: StudentType,
     enumName: 'StudentType',
@@ -18,7 +18,7 @@ export class UpdateStudentDetailsDto {
   })
   @IsOptional()
   @IsEnum(StudentType)
-  student_type?: StudentType;
+  studentType?: StudentType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -26,11 +26,11 @@ export class UpdateStudentDetailsDto {
   })
   @IsOptional()
   @IsDateString()
-  admission_date?: Date;
+  admissionDate?: Date;
   @ApiProperty({
     type: () => Object,
     required: false,
   })
   @IsOptional()
-  other_details?: Prisma.InputJsonValue;
+  otherDetails?: Prisma.InputJsonValue;
 }

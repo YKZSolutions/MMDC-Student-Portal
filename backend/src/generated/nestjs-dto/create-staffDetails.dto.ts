@@ -9,7 +9,7 @@ export class CreateStaffDetailsDto {
   })
   @IsNotEmpty()
   @IsInt()
-  employee_number: number;
+  employeeNumber: number;
   @ApiProperty({
     type: 'string',
   })
@@ -26,5 +26,5 @@ export class CreateStaffDetailsDto {
     type: () => Object,
   })
   @IsNotEmpty()
-  other_details: Prisma.InputJsonValue;
+  otherDetails: Prisma.InputJsonValue;
 }

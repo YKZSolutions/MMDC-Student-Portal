@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_CLOUD_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_CLOUD_URL")
   directUrl = env("DIRECT_CLOUD_URL")
 }
 
@@ -14,37 +8,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// generator nestjsDto {
-//   provider = "prisma-nestjs-swagger-generator"
-//   modelType = "class"
-//   nestjsSwagger = "true"
-//   omitRelations = "true"
-//   output   = "../src/generated/interfaces.ts"  // optional, defaults to ./generated
-// }
+generator json {
+  provider = "prisma-json-types-generator"
+}
 
 generator nestjsDto {
-  provider                        = "prisma-generator-nestjs-dto"
-  output                          = "../src/generated/nestjs-dto"
-  classValidation                 = "true"
-  prettier                        = "true"
-  wrapRelationsAsType             = "true"
-  // outputToNestJsResourceStructure = "false"
-  // flatResourceStructure           = "false"
-  // exportRelationModifierClasses   = "true"
-  // reExport                        = "false"
-  // generateFileTypes               = "all"
-  // createDtoPrefix                 = "Create"
-  // updateDtoPrefix                 = "Update"
-  // dtoSuffix                       = "Dto"
-  // entityPrefix                    = ""
-  // entitySuffix                    = ""
-  // fileNamingStyle                 = "camel"
-  // noDependencies                  = "false"
-  // outputType                      = "class"
-  // definiteAssignmentAssertion     = "false"
-  // requiredResponseApiProperty     = "true"
-  // wrapRelationsAsType             = "false"
-  // showDefaultValues               = "false"
+  provider            = "prisma-generator-nestjs-dto"
+  output              = "../src/generated/nestjs-dto"
+  classValidation     = "true"
+  prettier            = "true"
+  wrapRelationsAsType = "true"
 }
 
 enum Role {
@@ -60,66 +33,68 @@ enum UserStatus {
 }
 
 model User {
-  id String @id @default(uuid()) @db.Uuid
+  id             String          @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  userAccount UserAccount?
+  userAccount    UserAccount?
   /// @DtoApiHidden
-  userDetails UserDetails?
+  userDetails    UserDetails?
   /// @DtoApiHidden
   studentDetails StudentDetails?
   /// @DtoApiHidden
-  staffDetails StaffDetails?
+  staffDetails   StaffDetails?
   /// @DtoApiHidden
-  notifications Notification[]
+  bills          Bill[]
+  /// @DtoApiHidden
+  notifications  Notification[]
 
-  firstName String
+  firstName  String
   middleName String?
-  lastName String
+  lastName   String
   /// @DtoReadOnly
-  role Role
+  role       Role
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt
+  updatedAt  DateTime  @updatedAt
   /// @DtoReadOnly
   disabledAt DateTime?
   /// @DtoReadOnly
-  deletedAt DateTime?
+  deletedAt  DateTime?
 }
 
 model UserAccount {
-  id String @id @default(uuid()) @db.Uuid
+  id     String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   authUid String  @unique
   /// @IsEmail
-  email String?
+  email   String?
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
 }
 
 model UserDetails {
-  id String @id @default(uuid()) @db.Uuid
+  id     String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   dateJoined DateTime
-  dob DateTime?
-  gender String?
+  dob        DateTime?
+  gender     String?
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
 }
@@ -135,56 +110,171 @@ enum StudentType {
 }
 
 model StudentDetails {
-  id String @id @default(uuid()) @db.Uuid
+  id     String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  student_number Int
-  student_type StudentType
-  admission_date DateTime
-  other_details Json
+  studentNumber Int
+  studentType   StudentType
+  admissionDate DateTime
+  otherDetails  Json
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
 }
 
 model StaffDetails {
-  id String @id @default(uuid()) @db.Uuid
+  id     String @id @default(uuid()) @db.Uuid
   userId String @unique @db.Uuid
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  employee_number Int
-  department String
-  position String
-  other_details Json
+  employeeNumber Int
+  department     String
+  position       String
+  otherDetails   Json
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
 }
 
-
-model Notification {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @unique @db.Uuid
+model Program {
+  id     String  @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  user User @relation(fields: [userId], references: [id])
+  majors Major[]
 
-  title String
-  content String
-  isRead String
+  name        String
+  description String
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model Major {
+  id        String   @id @default(uuid()) @db.Uuid
+  programId String   @db.Uuid
+  /// @DtoApiHidden
+  program   Program  @relation(fields: [programId], references: [id])
+  courses   Course[]
+
+  name        String
+  description String
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model Course {
+  id    String  @id @default(uuid()) @db.Uuid
+  major Major[]
+
+  prereqs   Course[] @relation("CoursePrereq")
+  prereqFor Course[] @relation("CoursePrereq")
+
+  coreqs   Course[] @relation("CourseCoreq")
+  coreqFor Course[] @relation("CourseCoreq")
+
+  courseCode  String
+  name        String
+  description String
+  year        String
+  semester    String
+  units       Int
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum BillStatus {
+  paid
+  unpaid
+  overpaid
+}
+
+model Bill {
+  id     String  @id @default(uuid()) @db.Uuid
+  userId String? @db.Uuid
+
+  user         User?         @relation(fields: [userId], references: [id])
+  /// @DtoApiHidden
+  billPayments BillPayment[]
+
+  invoiceId         String
+  payerName         String
+  payerEmail        String
+  billType          String
+  status            BillStatus
+  receivableAmount  Decimal    @db.Decimal(10, 2)
+  receiptedAmount   Decimal    @db.Decimal(10, 2)
+  outstandingAmount Decimal    @db.Decimal(10, 2)
+  dueAt             DateTime
+  issuedAt          DateTime
+  /// [CostBreakdown]
+  /// @DtoOverrideType(PrismaJson.CostBreakdown)
+  costBreakdown     Json
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model BillPayment {
+  id     String @id @default(uuid()) @db.Uuid
+  billId String @db.Uuid
+  /// @DtoRelationRequired
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoApiHidden
+  bill   Bill   @relation(fields: [billId], references: [id])
+
+  amountPaid  Decimal  @db.Decimal(10, 2)
+  paymentType String
+  notes       String
+  paymentDate DateTime
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model Notification {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  /// @DtoApiHidden
+  user   User   @relation(fields: [userId], references: [id])
+
+  title   String
+  content String
+  isRead  String
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
   deletedAt DateTime?
 }

@@ -1,8 +1,6 @@
-import { Prisma } from '@prisma/client';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class StaffDetails {
+export class CourseDto {
   @ApiProperty({
     type: 'string',
   })
@@ -10,26 +8,28 @@ export class StaffDetails {
   @ApiProperty({
     type: 'string',
   })
-  userId: string;
-  @ApiHideProperty()
-  user?: UserAsType;
+  courseCode: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  name: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  description: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  year: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  semester: string;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
-  employeeNumber: number;
-  @ApiProperty({
-    type: 'string',
-  })
-  department: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  position: string;
-  @ApiProperty({
-    type: () => Object,
-  })
-  otherDetails: Prisma.JsonValue;
+  units: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
