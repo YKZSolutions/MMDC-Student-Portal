@@ -8,7 +8,8 @@ const RoleEnum = ['student', 'mentor', 'admin'];
 // -------------------------
 export const usersCountFn: FunctionDeclaration = {
   name: 'users_count_all',
-  description: 'Count all users.',
+  description:
+    'Count all users based on filters which include role and search term.',
   parameters: {
     type: Type.OBJECT,
     properties: {
