@@ -1,19 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class ConnectNotificationDto {
   @ApiProperty({
     type: 'string',
-    required: false,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  id?: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  userId?: string;
+  id: string;
 }

@@ -73,10 +73,10 @@ export const zStudentType = z.enum([
 ]);
 
 export const zCreateStudentDetailsDto = z.object({
-    student_number: z.int(),
-    student_type: zStudentType,
-    admission_date: z.iso.datetime(),
-    other_details: z.object({})
+    studentNumber: z.int(),
+    studentType: zStudentType,
+    admissionDate: z.iso.datetime(),
+    otherDetails: z.object({})
 });
 
 export const zCreateUserStudentDto = z.object({
@@ -92,10 +92,10 @@ export const zStaffRole = z.enum([
 ]);
 
 export const zCreateStaffDetailsDto = z.object({
-    employee_number: z.int(),
+    employeeNumber: z.int(),
     department: z.string(),
     position: z.string(),
-    other_details: z.object({})
+    otherDetails: z.object({})
 });
 
 export const zCreateUserStaffDto = z.object({
@@ -161,10 +161,10 @@ export const zUserDetailsFullDto = z.object({
 
 export const zStudentDetailsDto = z.object({
     id: z.string(),
-    student_number: z.int(),
-    student_type: zStudentType,
-    admission_date: z.iso.datetime(),
-    other_details: z.object({}),
+    studentNumber: z.int(),
+    studentType: zStudentType,
+    admissionDate: z.iso.datetime(),
+    otherDetails: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -202,10 +202,10 @@ export const zUserStudentDetailsDto = z.object({
 
 export const zStaffDetailsDto = z.object({
     id: z.string(),
-    employee_number: z.int(),
+    employeeNumber: z.int(),
     department: z.string(),
     position: z.string(),
-    other_details: z.object({}),
+    otherDetails: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -242,10 +242,10 @@ export const zUserStaffDetailsDto = z.object({
 });
 
 export const zUpdateStudentDetailsDto = z.object({
-    student_number: z.optional(z.int()),
-    student_type: z.optional(zStudentType),
-    admission_date: z.optional(z.iso.datetime()),
-    other_details: z.optional(z.object({}))
+    studentNumber: z.optional(z.int()),
+    studentType: z.optional(zStudentType),
+    admissionDate: z.optional(z.iso.datetime()),
+    otherDetails: z.optional(z.object({}))
 });
 
 export const zUpdateUserDto = z.object({
@@ -276,10 +276,10 @@ export const zUpdateUserStudentDto = z.object({
 });
 
 export const zUpdateStaffDetailsDto = z.object({
-    employee_number: z.optional(z.int()),
+    employeeNumber: z.optional(z.int()),
     department: z.optional(z.string()),
     position: z.optional(z.string()),
-    other_details: z.optional(z.object({}))
+    otherDetails: z.optional(z.object({}))
 });
 
 export const zUpdateUserStaffDto = z.object({
@@ -372,6 +372,68 @@ export const zAuthMetadataDto = z.object({
     role: z.optional(zRole),
     status: z.optional(zUserStatus),
     user_id: z.optional(z.string())
+});
+
+export const zCreateBillingDto = z.object({
+    amount: z.number(),
+    billingId: z.string(),
+    description: z.optional(z.string()),
+    statement: z.optional(z.string()),
+    metadata: z.optional(z.object({}))
+});
+
+export const zPaymentIntentAttributesDto = z.object({
+    amount: z.number(),
+    capture_type: z.string(),
+    client_key: z.string(),
+    created_at: z.number(),
+    currency: z.string(),
+    description: z.string(),
+    last_payment_error: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    livemode: z.boolean(),
+    metadata: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    next_action: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    original_amount: z.number(),
+    payment_method_allowed: z.array(z.string()),
+    payment_method_options: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    payments: z.array(z.object({})),
+    setup_future_usage: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    statement_descriptor: z.string(),
+    status: z.string(),
+    updated_at: z.number()
+});
+
+export const zPaymentIntentDataDto = z.object({
+    id: z.string(),
+    type: z.string(),
+    attributes: zPaymentIntentAttributesDto
+});
+
+export const zPaymentIntentResponseDto = z.object({
+    data: zPaymentIntentDataDto
+});
+
+export const zUpdateBillingDto = z.object({
+    amount: z.optional(z.number()),
+    billingId: z.optional(z.string()),
+    description: z.optional(z.string()),
+    statement: z.optional(z.string()),
+    metadata: z.optional(z.object({}))
 });
 
 export const zUsersControllerFindAllData = z.object({
@@ -581,3 +643,49 @@ export const zAuthControllerGetMetadataData = z.object({
 });
 
 export const zAuthControllerGetMetadataResponse = zAuthMetadataDto;
+
+export const zBillingControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerFindAllResponse = z.string();
+
+export const zBillingControllerCreateData = z.object({
+    body: zCreateBillingDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerCreateResponse = zPaymentIntentResponseDto;
+
+export const zBillingControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerRemoveResponse = z.string();
+
+export const zBillingControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerFindOneResponse = z.string();
+
+export const zBillingControllerUpdateData = z.object({
+    body: zUpdateBillingDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zBillingControllerUpdateResponse = z.string();

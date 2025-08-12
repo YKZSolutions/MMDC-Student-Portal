@@ -17,21 +17,21 @@ export class StudentDetails {
     type: 'integer',
     format: 'int32',
   })
-  student_number: number;
+  studentNumber: number;
   @ApiProperty({
     enum: StudentType,
     enumName: 'StudentType',
   })
-  student_type: StudentType;
+  studentType: StudentType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  admission_date: Date;
+  admissionDate: Date;
   @ApiProperty({
     type: () => Object,
   })
-  other_details: Prisma.JsonValue;
+  otherDetails: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

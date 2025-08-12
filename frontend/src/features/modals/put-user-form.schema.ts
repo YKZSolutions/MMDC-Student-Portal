@@ -3,7 +3,7 @@ import {
   zUsersControllerCreateStaffData,
   zUsersControllerCreateStudentData,
 } from '@/integrations/api/client/zod.gen'
-import { nullableInput } from '@/integrations/zod/nullableInput'
+import { nullableInput } from '@/integrations/zod/nullable-input'
 import z from 'zod'
 
 const zodUserCreate = zUsersControllerCreateData.shape.body.shape
@@ -31,16 +31,16 @@ const zodStudentSpecificDetails = zodStudent.specificDetails.shape
 
 export const StudentFormSchema = z.object({
   ...zodStudentSpecificDetails,
-  student_number: nullableInput(
-    zodStudentSpecificDetails.student_number,
+  studentNumber: nullableInput(
+    zodStudentSpecificDetails.studentNumber,
     'Student number is required',
   ),
-  student_type: nullableInput(
-    zodStudentSpecificDetails.student_type,
+  studentType: nullableInput(
+    zodStudentSpecificDetails.studentType,
     'Student type is required',
   ),
-  admission_date: nullableInput(
-    zodStudentSpecificDetails.admission_date,
+  admissionDate: nullableInput(
+    zodStudentSpecificDetails.admissionDate,
     'Admission Date is required',
   ),
 })
@@ -53,8 +53,8 @@ const zodStaffSpecificDetails = zodStaff.specificDetails.shape
 
 export const StaffFormSchema = z.object({
   ...zodStaffSpecificDetails,
-  employee_number: nullableInput(
-    zodStaffSpecificDetails.employee_number,
+  employeeNumber: nullableInput(
+    zodStaffSpecificDetails.employeeNumber,
     'Employee number is required',
   ),
   department: nullableInput(

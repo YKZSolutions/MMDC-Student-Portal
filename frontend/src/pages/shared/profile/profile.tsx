@@ -108,17 +108,17 @@ function studentDetails(data: UserStudentDetailsDto) {
     <ProfileSection title="Student Details">
       <Field
         label="Student Number"
-        value={data.studentDetails?.student_number ?? '—'}
+        value={data.studentDetails?.studentNumber ?? '—'}
       />
       <Field
         label="Student Type"
-        value={data.studentDetails?.student_type ?? '—'}
+        value={data.studentDetails?.studentType ?? '—'}
       />
       <Field
         label="Admission Date"
         value={
-          data.studentDetails?.admission_date
-            ? dayjs(data.studentDetails.admission_date).format('MMM D, YYYY')
+          data.studentDetails?.admissionDate
+            ? dayjs(data.studentDetails.admissionDate).format('MMM D, YYYY')
             : '—'
         }
       />
@@ -131,7 +131,7 @@ function staffDetails(data: UserStaffDetailsDto) {
     <ProfileSection title="Staff Details">
       <Field
         label="Employee Number"
-        value={data.staffDetails?.employee_number ?? '—'}
+        value={data.staffDetails?.employeeNumber ?? '—'}
       />
       <Field label="Department" value={data.staffDetails?.department ?? '—'} />
       <Field label="Position" value={data.staffDetails?.position ?? '—'} />

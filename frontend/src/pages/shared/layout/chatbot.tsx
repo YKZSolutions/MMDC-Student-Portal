@@ -1,15 +1,11 @@
-import {
-  Button,
-  Popover,
-  useMantineTheme,
-} from '@mantine/core'
+import { Button, Popover, useMantineTheme } from '@mantine/core'
 import React, { useRef, useState, useEffect } from 'react'
 import Draggable from 'react-draggable'
 import { IconMessageChatbot } from '@tabler/icons-react'
-import DropZoneIndicator from '@/components/chatbot/drop-zone-indicator.tsx'
-import ChatHeader from '@/components/chatbot/chat-header.tsx'
-import ChatMessages from '@/components/chatbot/chat-messages.tsx'
-import ChatInput from '@/components/chatbot/chat-input.tsx'
+import DropZoneIndicator from '@/features/chatbot/drop-zone-indicator'
+import ChatHeader from '@/features/chatbot/chat-header'
+import ChatMessages from '@/features/chatbot/chat-messages'
+import ChatInput from '@/features/chatbot/chat-input'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -19,11 +15,11 @@ type ChatbotProps = {
 }
 
 const Chatbot = ({
-                   isChatbotOpen,
-                   setChatbotOpen,
-                   isChatbotFabHidden,
-                   setChatbotFabHidden
-                 }: ChatbotProps) => {
+  isChatbotOpen,
+  setChatbotOpen,
+  isChatbotFabHidden,
+  setChatbotFabHidden,
+}: ChatbotProps) => {
   const theme = useMantineTheme()
   const nodeRef = useRef<HTMLDivElement>(null)
   const dragStartPosition = useRef({ x: 0, y: 0 })
@@ -48,7 +44,7 @@ const Chatbot = ({
     // set the initial position of the chatbot to the bottom right corner of the screen
     setPosition({
       x: window.innerWidth - 200,
-      y: window.innerHeight - 100
+      y: window.innerHeight - 100,
     })
   }, [])
 
@@ -92,7 +88,7 @@ const Chatbot = ({
       setChatbotOpen(false)
       setPosition({
         x: window.innerWidth - 200,
-        y: window.innerHeight - 100
+        y: window.innerHeight - 100,
       })
     }
 
@@ -123,7 +119,7 @@ const Chatbot = ({
             inset: 0,
             backgroundColor: 'rgba(0,0,0,0.2)',
             zIndex: 998,
-            pointerEvents: 'none'
+            pointerEvents: 'none',
           }}
         />
       )}
@@ -133,7 +129,7 @@ const Chatbot = ({
           position: 'fixed',
           inset: 0,
           pointerEvents: 'none',
-          zIndex: 1000
+          zIndex: 1000,
         }}
       >
         <Draggable
@@ -167,26 +163,35 @@ const Chatbot = ({
                 <Button
                   onClick={handleClick}
                   variant="filled"
-                  color={theme.colors["secondary"][0]}
+                  color={theme.colors['secondary'][0]}
                   size="lg"
                   radius="xl"
                   leftSection={<IconMessageChatbot size={24} />}
                   style={{
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.12)',
+                    boxShadow:
+                      '0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.12)',
                     transform: isDragging ? 'scale(1.05)' : 'scale(1)',
                     userSelect: 'none',
                     transition: 'transform 0.2s ease',
                     '&:hover': {
-                      boxShadow: '0 12px 32px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.12)',
-                      transform: isDragging ? 'scale(1.05)' : 'scale(1.05)'
-                    }
+                      boxShadow:
+                        '0 12px 32px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.12)',
+                      transform: isDragging ? 'scale(1.05)' : 'scale(1.05)',
+                    },
                   }}
                 >
                   Chat with us
                 </Button>
               </Popover.Target>
 
-              <Popover.Dropdown style={{ padding: 0, height: 500, display: 'flex', flexDirection: 'column' }}>
+              <Popover.Dropdown
+                style={{
+                  padding: 0,
+                  height: 500,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <ChatHeader onClose={handleModalClose} />
                 <ChatMessages messages={messages} />
                 <ChatInput onSendInput={addMessage} />

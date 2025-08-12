@@ -337,17 +337,17 @@ function StudentForm(props: NextFormProps) {
   const form = useForm<StudentFormInput>({
     mode: 'uncontrolled',
     initialValues: {
-      student_number: null,
-      student_type: null,
-      admission_date: null,
-      other_details: {},
+      studentNumber: null,
+      studentType: null,
+      admissionDate: null,
+      otherDetails: {},
     },
     validate: zod4Resolver(StudentFormSchema),
   })
 
   const handleFinish = async (values: StudentFormOutput) => {
     if (form.validate().hasErrors) return
-
+    console.log(values)
     const user = await create({
       body: {
         user: props.mainForm.user,
@@ -381,11 +381,11 @@ function StudentForm(props: NextFormProps) {
         label="Student Number"
         placeholder="202XXXXX"
         withAsterisk
-        key={form.key('student_number')}
-        {...form.getInputProps('student_number')}
+        key={form.key('studentNumber')}
+        {...form.getInputProps('studentNumber')}
         onChange={(val) =>
           form
-            .getInputProps('student_number')
+            .getInputProps('studentNumber')
             .onChange(val.target.value !== '' ? Number(val.target.value) : null)
         }
       />
@@ -404,19 +404,19 @@ function StudentForm(props: NextFormProps) {
           { value: 'graduate', label: 'Graduate' },
           { value: 'special', label: 'Special' },
         ]}
-        key={form.key('student_type')}
-        {...form.getInputProps('student_type')}
+        key={form.key('studentType')}
+        {...form.getInputProps('studentType')}
       />
       <DatePickerInput
         className="flex-1"
         label="Admission Date"
         placeholder="Pick a date"
         withAsterisk
-        key={form.key('admission_date')}
-        {...form.getInputProps('admission_date')}
-        value={form.getInputProps('admission_date').value}
+        key={form.key('admissionDate')}
+        {...form.getInputProps('admissionDate')}
+        value={form.getInputProps('admissionDate').value}
         onChange={(val) =>
-          form.getInputProps('admission_date').onChange(`${val}T00:00:00Z`)
+          form.getInputProps('admissionDate').onChange(`${val}T00:00:00Z`)
         }
       />
 
@@ -456,16 +456,15 @@ function StaffForm(props: NextFormProps) {
   const form = useForm<StaffFormInput>({
     mode: 'uncontrolled',
     initialValues: {
-      employee_number: null,
+      employeeNumber: null,
       department: null,
       position: null,
-      other_details: {},
+      otherDetails: {},
     },
     validate: zod4Resolver(StaffFormSchema),
   })
 
   const handleFinish = async (values: StaffFormOutput) => {
-    console.log(form.validate().errors)
     if (form.validate().hasErrors) return
 
     if (props.mainForm.role === 'student') return
@@ -494,8 +493,6 @@ function StaffForm(props: NextFormProps) {
     })
   }
 
-  console.log(form.values)
-
   return (
     <Stack>
       <Text className="font-semibold">Staff Details</Text>
@@ -506,11 +503,11 @@ function StaffForm(props: NextFormProps) {
         placeholder="202XXXXX"
         withAsterisk
         disabled={isPending}
-        key={form.key('employee_number')}
-        {...form.getInputProps('employee_number')}
+        key={form.key('employeeNumber')}
+        {...form.getInputProps('employeeNumber')}
         onChange={(val) =>
           form
-            .getInputProps('employee_number')
+            .getInputProps('employeeNumber')
             .onChange(val.target.value !== '' ? Number(val.target.value) : null)
         }
       />

@@ -11,6 +11,7 @@ import { TestModule } from './modules/test/test.module';
 import { UsersModule } from './modules/users/users.module';
 import { UserStatusGuard } from './common/guards/user-status.guard';
 import { AuthModule } from './modules/auth/auth.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
 
 @Module({
@@ -31,6 +32,7 @@ import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
     SupabaseModule,
     TestModule,
     AuthModule,
+    BillingModule,
   ],
   controllers: [],
   providers: [

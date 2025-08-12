@@ -10,7 +10,7 @@ export class StaffDetailsDto {
     type: 'integer',
     format: 'int32',
   })
-  employee_number: number;
+  employeeNumber: number;
   @ApiProperty({
     type: 'string',
   })
@@ -22,7 +22,7 @@ export class StaffDetailsDto {
   @ApiProperty({
     type: () => Object,
   })
-  other_details: Prisma.JsonValue;
+  otherDetails: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

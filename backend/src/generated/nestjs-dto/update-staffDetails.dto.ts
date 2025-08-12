@@ -10,7 +10,7 @@ export class UpdateStaffDetailsDto {
   })
   @IsOptional()
   @IsInt()
-  employee_number?: number;
+  employeeNumber?: number;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -30,5 +30,5 @@ export class UpdateStaffDetailsDto {
     required: false,
   })
   @IsOptional()
-  other_details?: Prisma.InputJsonValue;
+  otherDetails?: Prisma.InputJsonValue;
 }

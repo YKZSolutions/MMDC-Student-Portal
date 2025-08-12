@@ -22,5 +22,9 @@
       "@/*": ["*"]
     }
   },
-  "include": ["src", "src/common/types/request.d.ts"]
+  "include": [
+    "src",
+    "src/common/types/request.d.ts",
+    "src/common/types/prisma.d.ts"
+  ]
 }

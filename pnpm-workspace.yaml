@@ -3,5 +3,6 @@ packages:
   - backend
   - scripts
   - supabase
+  - cypress
 onlyBuiltDependencies:
   - supabase
