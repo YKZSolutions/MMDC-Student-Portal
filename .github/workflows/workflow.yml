@@ -3,14 +3,14 @@ name: MMDC Student Portal Actions
 on:
   push:
     branches:
-      - main
-      - develop
-      - feat/cap-60
+      - "main"
+      - "develop"
+      - "feat/cap-60"
   pull_request:
     branches:
-      - main
-      - develop
-
+      - "main"
+      - "develop"
+  
 jobs:
   lint:
     name: Code Quality Checks
@@ -18,26 +18,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - uses: pnpm/action-setup@v4
+        with:
+            version: 9
+
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
+        
+      # Cache frontend
+      - name: Restore frontend dependencies cache
+        uses: actions/cache@v3
         with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Check pnpm version
-        run: pnpm --version
-
+          path: |
+            ~/.pnpm-store
+            frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+      
+      # Frontend linting
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: pnpm install --no-frozen-lockfile
 
-      - name: Type check frontend code
+      - name: Lint frontend code
         working-directory: ./frontend
         run: pnpm tsc --noEmit
