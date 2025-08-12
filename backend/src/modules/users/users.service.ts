@@ -222,60 +222,52 @@ export class UsersService {
   async updateUserDetails(
     userId: string,
     role: Role,
-    updateUserDto:
-      | UpdateUserStudentDto
-      | UpdateUserStaffDto
-      | UpdateUserBaseDto,
+    updateUserDto: UpdateUserStudentDto | UpdateUserStaffDto,
   ): Promise<UserDto> {
     const method = 'updateUserDetails';
     this.logger.log(`[${method}] START: userId=${userId}, role=${role}`);
 
-    const { user: userDto, userDetails: userDetailsDto } = updateUserDto;
-    const specificDetailsDto =
-      'specificDetails' in updateUserDto
-        ? updateUserDto.specificDetails
-        : undefined;
+    const {
+      user: userDto,
+      userDetails: userDetailsDto,
+      specificDetails: specificDetailsDto,
+    } = updateUserDto;
 
-    const hasUser = !!(userDto && Object.keys(userDto).length > 0);
-    const hasUserDetails = !!(
-      userDetailsDto && Object.keys(userDetailsDto).length > 0
-    );
-    const hasSpecificDetails = !!(
-      specificDetailsDto && Object.keys(specificDetailsDto).length > 0
-    );
-
-    if (!hasUser && !hasUserDetails && !hasSpecificDetails) {
-      throw new BadRequestException('No update fields provided');
-    }
-
-    const data: Prisma.UserUpdateInput = {};
-
-    if (userDto) {
-      Object.assign(data, userDto);
-    }
+    const baseUserData: Prisma.UserUpdateInput = {
+      ...userDto,
+    };
 
     if (userDetailsDto) {
-      data.userDetails = { update: userDetailsDto };
+      baseUserData.userDetails = {
+        update: {
+          ...userDetailsDto,
+        },
+      };
     }
 
     if (specificDetailsDto) {
       if (role === 'student') {
-        data.studentDetails = {
-          update: specificDetailsDto as UpdateStudentDetailsDto,
+        baseUserData.studentDetails = {
+          update: {
+            ...(specificDetailsDto as UpdateStudentDetailsDto),
+          },
         };
       } else if (role === 'mentor' || role === 'admin') {
-        data.staffDetails = {
-          update: specificDetailsDto as UpdateStaffDetailsDto,
+        baseUserData.staffDetails = {
+          update: {
+            ...(specificDetailsDto as UpdateStaffDetailsDto),
+          },
         };
       }
     }
 
-    const updated = await this.prisma.client.user.update({
+    const updatedUser = await this.prisma.client.user.update({
       where: { id: userId },
-      data,
+      data: baseUserData,
     });
-    this.logger.log(`[${method}] SUCCESS: updated user id=${updated.id}`);
-    return updated;
+
+    this.logger.log(`[${method}] SUCCESS: updated user id=${updatedUser.id}`);
+    return updatedUser;
   }
 
   /**
