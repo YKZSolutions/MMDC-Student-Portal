@@ -3,50 +3,18 @@ name: MMDC Student Portal Actions
 on:
   push:
     branches:
-      - main
-      - develop
-      - feat/cap-60
+      - "main"
+      - "develop"
+      - "feat/cap-60"
   pull_request:
     branches:
-      - main
-      - develop
+      - "main"
+      - "develop"
 
 jobs:
-  install-dependencies:
-    name: Install Dependencies (Root)
-    runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-deps.outputs.cache-hit }}
-    steps:
-      - name: Checkout Repository Code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm Package Manager
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Cache pnpm store and node_modules
-        id: cache-deps
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.pnpm-store
-            node_modules
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install All Dependencies (root)
-        run: pnpm install --frozen-lockfile
-
   type-check-frontend:
     name: Frontend Type Checking
-    needs: install-dependencies
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     steps:
@@ -62,23 +30,27 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Restore pnpm store and root node_modules cache
+      - name: Restore pnpm Cache and Node Modules
         uses: actions/cache@v3
         with:
           path: |
             ~/.pnpm-store
-            node_modules
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+            frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-frontend-
 
-      - name: Run Frontend TypeScript Check
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run TypeScript Type Check
         working-directory: ./frontend
         run: pnpm tsc --noEmit
 
   type-check-backend:
     name: Backend Type Checking
-    needs: install-dependencies
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     steps:
@@ -94,20 +66,24 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Restore pnpm store and root node_modules cache
+      - name: Restore pnpm Cache and Node Modules
         uses: actions/cache@v3
         with:
           path: |
             ~/.pnpm-store
-            node_modules
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+            backend/node_modules
+          key: ${{ runner.os }}-backend-${{ hashFiles('backend/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-backend-
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: pnpm install --no-frozen-lockfile
 
       - name: Generate Prisma Types
         working-directory: ./backend
         run: pnpm prisma-gen
 
-      - name: Run Backend TypeScript Check
+      - name: Run TypeScript Type Check
         working-directory: ./backend
         run: pnpm tsc --noEmit
