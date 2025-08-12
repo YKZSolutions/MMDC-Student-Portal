@@ -115,16 +115,3 @@ export function getToolsForRole(role: string) {
       return [];
   }
 }
-
-/**
- * If you need finer control over which functions are enabled per request,
- * you can build Tool arrays per module like:
- *
- *   export const authTools: Tool[] = [{ functionDeclarations: authFunctions }];
- *   export const userTools: Tool[] = [{ functionDeclarations: userFunctions }];
- */
-export const userTools: Tool[] = [{ functionDeclarations: userFunctions }];
-// export const billingTools: Tool[] = [
-//   { functionDeclarations: billingFunctions },
-// ];
-export const courseTools: Tool[] = [{ functionDeclarations: courseFunctions }];
