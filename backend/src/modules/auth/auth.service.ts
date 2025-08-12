@@ -28,6 +28,9 @@ export class AuthService {
    * @throws BadRequestException if the Supabase account creation fails.
    */
   async create(role: Role, email: string, password?: string) {
+    const method = 'create';
+    this.logger.log(`[${method}] START: email=${email}, role=${role}`);
+
     const account = await this.supabase.auth.admin.createUser({
       email: email,
       password: password,
@@ -39,14 +42,23 @@ export class AuthService {
     });
 
     if (account.error) {
-      this.logger.error(`Failed to create account: ${account.error.message}`);
-      throw new BadRequestException('Error creating Supabase account');
+      this.logger.error(
+        `[${method}] FAIL: email=${email}, reason=${account.error.message}`,
+        account.error.stack,
+      );
+      throw account.error;
     }
+
+    const userId = account.data?.user?.id ?? 'unknown';
+    this.logger.log(`[${method}] SUCCESS: created user id=${userId}`);
 
     return account.data.user;
   }
 
   async invite(email: string, role: Role) {
+    const method = 'invite';
+    this.logger.log(`[${method}] START: email=${email}, role=${role}`);
+
     const account = await this.supabase.auth.admin.inviteUserByEmail(email, {
       data: {
         role: role,
@@ -56,11 +68,16 @@ export class AuthService {
     });
 
     if (account.error) {
-      this.logger.error(`Failed to invite user: ${account.error.message}`);
-      throw new BadRequestException('Error inviting user to Supabase');
+      this.logger.error(
+        `[${method}] FAIL: email=${email}, reason=${account.error.message}`,
+        account.error.stack,
+      );
+      throw account.error;
     }
 
-    // The data object will contain the invited user's information.
+    const userId = account.data?.user?.id ?? 'unknown';
+    this.logger.log(`[${method}] SUCCESS: invited user id=${userId}`);
+
     return account.data.user;
   }
 
@@ -73,14 +90,23 @@ export class AuthService {
    * @throws BadRequestException if the update operation fails.
    */
   async updateMetadata(uid: string, metadata: Partial<UserMetadata>) {
+    const method = 'updateMetadata';
+    this.logger.log(`[${method}] START: uid=${uid}`);
+
     const account = await this.supabase.auth.admin.updateUserById(uid, {
       user_metadata: metadata,
     });
 
     if (account.error) {
-      this.logger.error(`Failed to create account: ${account.error.message}`);
+      this.logger.error(
+        `[${method}] FAIL: uid=${uid}, reason=${account.error.message}`,
+        account.error.stack,
+      );
       throw new BadRequestException('Error creating Supabase account');
     }
+
+    const updatedUserId = account.data?.user?.id ?? uid;
+    this.logger.log(`[${method}] SUCCESS: updated user id=${updatedUserId}`);
 
     return account.data.user;
   }
@@ -92,13 +118,19 @@ export class AuthService {
    * @throws BadRequestException if the deletion fails.
    */
   async delete(uid: string) {
+    const method = 'delete';
+    this.logger.log(`[${method}] START: uid=${uid}`);
+
     const account = await this.supabase.auth.admin.deleteUser(uid);
 
     if (account.error) {
-      this.logger.error(`Failed to create account: ${account.error.message}`);
+      this.logger.error(
+        `[${method}] FAIL: uid=${uid}, reason=${account.error.message}`,
+        account.error.stack,
+      );
       throw new BadRequestException('Error deleting Supabase account');
     }
 
-    this.logger.log(`Successful account deletion`);
+    this.logger.log(`[${method}] SUCCESS: deleted user uid=${uid}`);
   }
 }

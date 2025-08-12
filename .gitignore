@@ -1,2 +1,12 @@
 node_modules
 .idea
+
+**/.env
+
+# n8n
+n8n/database
+n8n/local-files
+n8n/n8n_data
+n8n/tailscale_state
+n8n/**/logs
+n8n/letsencrypt
