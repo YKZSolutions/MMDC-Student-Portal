@@ -278,27 +278,10 @@ export class UsersService {
     return updated;
   }
 
-  /**
-   * Finds all users that match provided filters (e.g., role, search keyword) with pagination.
-   *
-   * @param filters - Filter and pagination options.
-   * @returns Paginated list of users with metadata.
-   * @throws BadRequestException or InternalServerErrorException based on the failure type.
-   */
-  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
-    const method = 'findAll';
-    this.logger.log(
-      `[${method}] START: role=${filters.role ?? 'any'}, search="${
-        filters.search ?? ''
-      }", page=${filters.page ?? 1}`,
-    );
-
-    const where: Prisma.UserWhereInput = {};
-    const page: FilterUserDto['page'] = Number(filters?.page) || 1;
+  async filterHandler(filters: FilterUserDto, where: Prisma.UserWhereInput) {
+    if (filters.role) where.role = filters.role;
 
     where.deletedAt = null;
-
-    if (filters.role) where.role = filters.role;
 
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
@@ -328,6 +311,27 @@ export class UsersService {
         ],
       }));
     }
+  }
+
+  /**
+   * Finds all users that match provided filters (e.g., role, search keyword) with pagination.
+   *
+   * @param filters - Filter and pagination options.
+   * @returns Paginated list of users with metadata.
+   * @throws BadRequestException or InternalServerErrorException based on the failure type.
+   */
+  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
+    const method = 'findAll';
+    this.logger.log(
+      `[${method}] START: role=${filters.role ?? 'any'}, search="${
+        filters.search ?? ''
+      }", page=${filters.page ?? 1}`,
+    );
+
+    const page: FilterUserDto['page'] = Number(filters?.page) || 1;
+    const where: Prisma.UserWhereInput = {};
+
+    await this.filterHandler(filters, where);
 
     const [users, meta] = await this.prisma.client.user
       .paginate({
@@ -345,6 +349,23 @@ export class UsersService {
 
     this.logger.log(`[${method}] SUCCESS: returned ${users.length} users`);
     return { users, meta };
+  }
+
+  async countAll(filters: FilterUserDto): Promise<number> {
+    const method = 'countAll';
+    this.logger.log(
+      `[${method}] START: role=${filters.role ?? 'any'}, search="${
+        filters.search ?? ''
+      }", page=${filters.page ?? 1}`,
+    );
+
+    const where: Prisma.UserWhereInput = {};
+
+    await this.filterHandler(filters, where);
+
+    const count = await this.prisma.client.user.count({ where });
+    this.logger.log(`[${method}] SUCCESS: count=${count}`);
+    return count;
   }
 
   /**
