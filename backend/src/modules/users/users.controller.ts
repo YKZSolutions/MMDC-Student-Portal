@@ -47,7 +47,7 @@ import {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
-import { DeleteQueryDto } from './dto/delete-user-query.dto';
+import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
 
 /**
  *
