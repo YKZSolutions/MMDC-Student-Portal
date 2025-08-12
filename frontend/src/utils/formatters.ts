@@ -3,7 +3,7 @@ export function formatPaginationMessage({
   page,
   total,
 }: {
-  limit: number
+  limit: 
   page: number
   total: number
 }) {
