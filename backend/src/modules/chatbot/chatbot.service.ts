@@ -47,7 +47,7 @@ export class ChatbotService {
         }
         case 'search_vector': {
           const args = functionCall.args as { query: string; limit: number };
-          const vector = await this.handleVectorSearch(args);
+          const vector = await this.handleVectorSearch(args.query, args.limit);
           result.push(
             `Vector search for "${args.query}": ${JSON.stringify(vector)}`,
           );
