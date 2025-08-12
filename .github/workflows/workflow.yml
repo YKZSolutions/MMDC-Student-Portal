@@ -80,6 +80,10 @@ jobs:
         working-directory: ./backend
         run: pnpm install --no-frozen-lockfile
 
+      - name: Generate Prisma Types
+        working-directory: ./backend
+        run: pnpm prisma-gen
+
       - name: Run TypeScript Type Check
         working-directory: ./backend
         run: pnpm tsc --noEmit
