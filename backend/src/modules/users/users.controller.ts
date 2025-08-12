@@ -79,7 +79,7 @@ export class UsersController {
    *
    * @remarks
    * This operation creates both a user and a supabase auth account.
-   * It also has additional properties for student specific details.
+   * It also has additional properties for student-specific details.
    *
    */
   @Post('/student')
@@ -97,7 +97,7 @@ export class UsersController {
    *
    * @remarks
    * This operation creates both a user and a supabase auth account.
-   * It also has additional properties for staff specific details.
+   * It also has additional properties for staff-specific details.
    *
    */
   @Post('/staff')
@@ -187,7 +187,7 @@ export class UsersController {
    *
    * @remarks
    * This operation updates the user details in the database.
-   * The user should be have a student role.
+   * The user should have a student role.
    */
   @Put(':id/student')
   @Roles(Role.ADMIN)
@@ -208,7 +208,7 @@ export class UsersController {
    *
    * @remarks
    * This operation updates the user details in the database.
-   * The user should be have a mentor or admin role.
+   * The user should have a mentor or admin role.
    */
   @Put(':id/staff')
   @Roles(Role.ADMIN)
@@ -229,8 +229,8 @@ export class UsersController {
    *
    * @remarks
    * Retrieves a paginated list of users based on the provided filter parameters.
-   * - **Access:** Requires `ADMIN` role.
-   * - **Filtering & Pagination:** Uses the `FilterUserDto` to define query parameters such as search terms, sorting, and page size.
+   * - **Access: ** Requires `ADMIN` role.
+   * - **Filtering & Pagination: ** Uses the `FilterUserDto` to define query parameters such as search terms, sorting, and page size.
    *
    */
 
@@ -251,8 +251,8 @@ export class UsersController {
    *
    * @remarks
    * Retrieves a specific user by their unique identifier.
-   * - **Validation:** Ensures the provided `id` is a valid identifier format.
-   * - **Not Found Handling:** Throws an error if no matching user is found.
+   * - **Validation: ** Ensures the provided `id` is a valid identifier format.
+   * - **Not Found Handling: ** Throws an error if no matching user is found.
    *
    */
   @Get(':id')
@@ -298,17 +298,17 @@ export class UsersController {
   }
 
   /**
-   * Deletes a user (soft & hard delete)
+   * Deletes a user (soft and hard delete)
    *
    * @remarks
-   * This endpoint performs either a soft delete or a permanent delete on a user depending on the current state of the user or the query parameter provided:
+   * This endpoint performs either a soft delete or a permanent deletion of a user depending on the current state of the user or the query parameter provided:
    *
-   * - If `directDelete` is true, the user is **permanently deleted** without checking if they are already soft deleted.
+   * - If `directDelete` is true, the user is **permanently deleted** without checking if they are already softly deleted.
    * - If `directDelete` is not provided or false:
-   *   - If the user is not yet soft deleted (`deletedAt` is null), a **soft delete** is performed by setting the `deletedAt` timestamp.
-   *   - If the user is already soft deleted, a **permanent delete** is executed.
+   *   - If the user is not yet softly deleted (`deletedAt` is null), a **soft delete** is performed by setting the `deletedAt` timestamp.
+   *   - If the user is already softly deleted, a **permanent delete** is executed.
    *
-   * All of the user details and the supabase auth account will be deleted from the cloud on hard delete
+   * All the user details and the supabase auth account will be deleted from the cloud on hard delete
    *
    * Use this endpoint to manage user deletion workflows flexibly through a single API.
    */
