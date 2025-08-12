@@ -29,6 +29,8 @@ export class GeminiService {
   ) {
     this.logger.debug(`Asking Gemini: ${question}`);
 
+    console.log('Current user', currentUser);
+
     const session = this.sessionStore.createOrUpdateSession(
       sessionId,
       currentUser,
@@ -42,7 +44,7 @@ export class GeminiService {
       : `No authenticated user.`;
 
     const conversation = [
-      { role: 'system', parts: [{ text: systemContext }] },
+      { role: 'model', parts: [{ text: systemContext }] },
       ...session.history,
       { role: 'user', parts: [{ text: question }] },
     ];

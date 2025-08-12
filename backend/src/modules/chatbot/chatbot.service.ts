@@ -4,8 +4,8 @@ import { UsersService } from '@/modules/users/users.service';
 import { BillingService } from '@/modules/billing/billing.service';
 import { CoursesService } from '@/modules/courses/courses.service';
 import { FunctionCall } from '@google/genai';
-import { UserWithRelations } from '@/modules/users/dto/user-with-relations.dto';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
+import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -35,6 +35,14 @@ export class ChatbotService {
 
     for (const functionCall of call) {
       switch (functionCall.name) {
+        case 'users_count_all': {
+          const args = functionCall.args as FilterUserDto;
+          const count = await this.usersService.countAll(args);
+          result.push(
+            `${count} users found with the following filters: ${JSON.stringify(args)}`,
+          );
+          break;
+        }
         default:
           return { answer: `Function ${functionCall.name} not implemented.` };
       }
