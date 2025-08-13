@@ -1,10 +1,6 @@
-name: MMDC Student Portal Actions
+name: PR Type Checking (Frontend & Backend)
 
 on:
-  push:
-    branches:
-      - "main"
-      - "develop"
   pull_request:
     branches:
       - "main"
