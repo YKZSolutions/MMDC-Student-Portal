@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class PromptDto {
   @IsNotEmpty()
@@ -7,42 +7,31 @@ export class PromptDto {
 
   @IsArray()
   messageHistory: string[];
-
-  @ValidateNested()
-  @IsNotEmpty()
-  user: UserStudentContextDto | UserStaffContextDto;
 }
 
 export class UserBaseContextDto {
-  @IsNotEmpty()
   @IsString()
   id: string;
 
-  @IsNotEmpty()
   @IsString()
-  email: string;
+  email: string | null;
 
-  @IsNotEmpty()
   @IsString()
   role: string;
 }
 
 export class UserStudentContextDto extends UserBaseContextDto {
-  @IsNotEmpty()
-  @IsString()
-  studentNumber: string;
+  @IsNumber()
+  studentNumber: number;
 }
 
 export class UserStaffContextDto extends UserBaseContextDto {
-  @IsNotEmpty()
-  @IsString()
-  employeeNumber: string;
+  @IsNumber()
+  employeeNumber: number;
 
-  @IsNotEmpty()
   @IsString()
   department: string;
 
-  @IsNotEmpty()
   @IsString()
   position: string;
 }
