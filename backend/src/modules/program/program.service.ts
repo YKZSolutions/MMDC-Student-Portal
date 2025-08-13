@@ -7,16 +7,17 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { CreateProgramDto } from './dto/create-program.dto';
-import { UpdateProgramDto } from './dto/update-program.dto';
+
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { FilterProgramDto } from './dto/filter-program.dto';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
+import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
+import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProgramService {
@@ -46,6 +47,10 @@ export class ProgramService {
       });
       return program;
     } catch (error) {
+      this.logger.error(
+        `Failed to create program with code ${createProgramDto.code} and name ${createProgramDto.name}.`,
+      );
+      // Handle service specific expcetions
       if (
         error instanceof PrismaClientKnownRequestError &&
         error.code === 'P2002'
@@ -56,7 +61,7 @@ export class ProgramService {
       if (error instanceof Prisma.PrismaClientInitializationError) {
         throw new ServiceUnavailableException('Database connection failed');
       }
-
+      // Let http exception filter handle unknown expcetion
       throw error;
     }
   }
@@ -111,6 +116,10 @@ export class ProgramService {
 
       return { programs, meta };
     } catch (error) {
+      this.logger.error(
+        `Failed to fetch programs with filters: ${JSON.stringify(filters)}`,
+      );
+
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new BadRequestException(error.message);
       }
@@ -124,7 +133,6 @@ export class ProgramService {
       if (error instanceof Prisma.PrismaClientInitializationError) {
         throw new ServiceUnavailableException('Database connection failed');
       }
-
       throw error;
     }
   }
@@ -152,12 +160,13 @@ export class ProgramService {
 
       return program;
     } catch (error) {
+      this.logger.error(`Failed to fetch program with id: ${id}`);
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
           throw new NotFoundException(`Program with id '${id}' not found.`);
         }
       }
-
       throw error;
     }
   }
@@ -186,6 +195,10 @@ export class ProgramService {
 
       return program;
     } catch (error) {
+      this.logger.error(
+        `Failed to update program with id ${id} using payload: ${JSON.stringify(updateProgramDto)}`,
+      );
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
           throw new NotFoundException(`Program with id '${id}' not found.`);
@@ -238,9 +251,14 @@ export class ProgramService {
         message: 'Program deleted permanently',
       };
     } catch (error) {
+      this.logger.error(
+        `Failed to delete program with ID "${id}" (directDelete=${directDelete ?? false})`,
+      );
+
       if (error instanceof Prisma.PrismaClientKnownRequestError)
         if (error.code === 'P2025')
           throw new NotFoundException('Program not found');
+
       throw error;
     }
   }
