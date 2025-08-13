@@ -1,12 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { getToolsForRole } from '@/lib/gemini/function-declarations';
-import {
-  UserStaffDetailsDto,
-  UserStudentDetailsDto,
-} from '@/modules/users/dto/user-details.dto';
 import { GeminiSessionStore } from '@/lib/gemini/gemini-session.store';
 import {
+  UserBaseContextDto,
   UserStaffContextDto,
   UserStudentContextDto,
 } from '@/modules/chatbot/dto/prompt.dto';
@@ -28,7 +25,10 @@ export class GeminiService {
    */
   async askWithFunctionCalling(
     question: string,
-    currentUser: UserStudentContextDto | UserStaffContextDto,
+    currentUser:
+      | UserBaseContextDto
+      | UserStudentContextDto
+      | UserStaffContextDto,
   ) {
     this.logger.debug(`Asking Gemini: ${question}`);
 

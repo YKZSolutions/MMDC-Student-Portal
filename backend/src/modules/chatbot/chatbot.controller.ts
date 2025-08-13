@@ -8,9 +8,10 @@ import {
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ChatbotService } from '@/modules/chatbot/chatbot.service';
-import { Public } from '@/common/decorators/auth.decorator';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
-import { StatusBypass } from '@/common/decorators/user-status.decorator';
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { AuthUser } from '@supabase/supabase-js';
+import { Role } from '@/common/enums/roles.enum';
 
 @ApiBearerAuth()
 @Controller('chatbot')
@@ -18,11 +19,13 @@ export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
 
   @Post()
-  @Public()
-  @StatusBypass()
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
-  async prompt(@Body() prompt: PromptDto) {
-    return this.chatbotService.handleQuestion(prompt);
+  async prompt(@CurrentUser() user: AuthUser, @Body() prompt: PromptDto) {
+    return this.chatbotService.handleQuestion(
+      user.id,
+      user.user_metadata.role as Role,
+      prompt,
+    );
   }
 }
