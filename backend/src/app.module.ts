@@ -14,6 +14,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
 import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
+import { ProgramModule } from './modules/program/program.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
     TestModule,
     AuthModule,
     BillingModule,
+    ProgramModule,
     ChatbotModule,
   ],
   controllers: [],
