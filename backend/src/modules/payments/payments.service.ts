@@ -5,7 +5,6 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import crypto from 'crypto';
 import { CustomPrismaService } from 'nestjs-prisma';
@@ -14,7 +13,7 @@ import { BillPaymentDto } from '@/generated/nestjs-dto/billPayment.dto';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.dto';
 
 @Injectable()
@@ -25,7 +24,6 @@ export class PaymentsService {
     Authorization: `Basic ${Buffer.from(process.env.PAYMONGO_SECRET_KEY + ':').toString('base64')}`,
     'Content-Type': 'application/json',
   };
-  private readonly webhookSecret = process.env.PAYMONGO_WEBHOOK_SECRET;
 
   constructor(
     @Inject('PrismaService')
@@ -82,10 +80,21 @@ export class PaymentsService {
     }
   }
 
-  async findAll(billId: string): Promise<BillPaymentDto[]> {
+  async findAll(
+    billId: string,
+    role: Role,
+    userId: string,
+  ): Promise<BillPaymentDto[]> {
     try {
       const payment = await this.prisma.client.billPayment.findMany({
-        where: { billId },
+        where: {
+          billId,
+          ...(role !== 'admin' && {
+            bill: {
+              userId,
+            },
+          }),
+        },
         orderBy: {
           paymentDate: 'desc',
         },
@@ -97,10 +106,21 @@ export class PaymentsService {
     }
   }
 
-  async findOne(id: string): Promise<BillPaymentDto> {
+  async findOne(
+    id: string,
+    role: Role,
+    userId: string,
+  ): Promise<BillPaymentDto> {
     try {
       const payment = await this.prisma.client.billPayment.findFirstOrThrow({
-        where: { id },
+        where: {
+          id,
+          ...(role !== 'admin' && {
+            bill: {
+              userId,
+            },
+          }),
+        },
       });
 
       return payment;
@@ -205,48 +225,6 @@ export class PaymentsService {
     } catch (err) {
       this.logger.error(`Error verifying signature: ${err.message}`);
       return false;
-    }
-  }
-
-  webhook(body: any, signature: string) {
-    try {
-      // Verify signature if needed
-      const isValid = this.verifySignature(
-        body,
-        signature,
-        this.webhookSecret!,
-      );
-
-      if (!isValid) {
-        throw new UnauthorizedException('Invalid webhook signature');
-      }
-
-      const event = body.data;
-
-      switch (event.attributes.type) {
-        case 'payment.paid': {
-          // Confirm payment success
-          this.logger.debug('PAIDDDDD!!!!');
-          break;
-        }
-        case 'payment.failed': {
-          this.logger.debug('FAILED!');
-          break;
-        }
-        default: {
-          this.logger.debug('UNCAUGHT');
-          break;
-        }
-      }
-
-      return { received: true };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        'Failed to handle webhook request',
-      );
     }
   }
 }
