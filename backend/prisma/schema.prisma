@@ -152,8 +152,9 @@ model Program {
   /// @DtoApiHidden
   majors Major[]
 
-  name        String
-  description String
+  code  String  @unique
+  name        String  @unique
+  description String  
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -252,6 +253,9 @@ model BillPayment {
   paymentType String
   notes       String
   paymentDate DateTime
+  /// [PayMongoData]
+  /// @DtoOverrideType(PrismaJson.PayMongoData)
+  paymongoData Json
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

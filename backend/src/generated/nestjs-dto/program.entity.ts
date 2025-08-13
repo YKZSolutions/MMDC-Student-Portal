@@ -11,6 +11,10 @@ export class Program {
   @ApiProperty({
     type: 'string',
   })
+  code: string;
+  @ApiProperty({
+    type: 'string',
+  })
   name: string;
   @ApiProperty({
     type: 'string',

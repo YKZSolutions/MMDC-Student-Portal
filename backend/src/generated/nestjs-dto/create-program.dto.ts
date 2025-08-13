@@ -7,6 +7,12 @@ export class CreateProgramDto {
   })
   @IsNotEmpty()
   @IsString()
+  code: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
   name: string;
   @ApiProperty({
     type: 'string',

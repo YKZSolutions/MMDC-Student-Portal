@@ -33,4 +33,10 @@ export class UpdateBillPaymentDto {
   @IsOptional()
   @IsDateString()
   paymentDate?: Date;
+  @ApiProperty({
+    type: () => Object,
+    required: false,
+  })
+  @IsOptional()
+  paymongoData?: PrismaJson.PayMongoData;
 }

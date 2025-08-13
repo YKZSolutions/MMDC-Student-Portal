@@ -29,4 +29,9 @@ export class CreateBillPaymentDto {
   @IsNotEmpty()
   @IsDateString()
   paymentDate: Date;
+  @ApiProperty({
+    type: () => Object,
+  })
+  @IsNotEmpty()
+  paymongoData: PrismaJson.PayMongoData;
 }

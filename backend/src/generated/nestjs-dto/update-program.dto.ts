@@ -8,6 +8,13 @@ export class UpdateProgramDto {
   })
   @IsOptional()
   @IsString()
+  code?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
   name?: string;
   @ApiProperty({
     type: 'string',
