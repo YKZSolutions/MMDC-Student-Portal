@@ -255,6 +255,9 @@ model BillPayment {
   paymentType String
   notes       String
   paymentDate DateTime
+  /// [PayMongoData]
+  /// @DtoOverrideType(PrismaJson.PayMongoData)
+  paymongoData Json
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
