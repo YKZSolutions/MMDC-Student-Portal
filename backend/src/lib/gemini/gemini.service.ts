@@ -6,6 +6,10 @@ import {
   UserStudentDetailsDto,
 } from '@/modules/users/dto/user-details.dto';
 import { GeminiSessionStore } from '@/lib/gemini/gemini-session.store';
+import {
+  UserStaffContextDto,
+  UserStudentContextDto,
+} from '@/modules/chatbot/dto/prompt.dto';
 
 @Injectable()
 export class GeminiService {
@@ -23,20 +27,17 @@ export class GeminiService {
    * Ask Gemini a question and let it decide if it should call a function.
    */
   async askWithFunctionCalling(
-    sessionId: string,
     question: string,
-    currentUser?: UserStaffDetailsDto | UserStudentDetailsDto,
+    currentUser: UserStudentContextDto | UserStaffContextDto,
   ) {
     this.logger.debug(`Asking Gemini: ${question}`);
 
     console.log('Current user', currentUser);
 
-    const session = this.sessionStore.createOrUpdateSession(
-      sessionId,
-      currentUser,
-    );
+    //TODO: remove this when session store is implemented in the client
+    const session = this.sessionStore.createOrUpdateSession(currentUser);
 
-    const role = currentUser?.role ?? 'user';
+    const role = currentUser.role ?? 'user';
     const allowedTools = getToolsForRole(role);
 
     const systemContext = currentUser
@@ -56,9 +57,10 @@ export class GeminiService {
     });
 
     // Store user message + bot response in history
-    this.sessionStore.appendMessage(sessionId, 'user', question);
+    //TODO: remove this when session store is implemented in the client
+    this.sessionStore.appendMessage(currentUser.id, 'user', question);
     if (result.text) {
-      this.sessionStore.appendMessage(sessionId, 'model', result.text);
+      this.sessionStore.appendMessage(currentUser.id, 'model', result.text);
     }
 
     return {

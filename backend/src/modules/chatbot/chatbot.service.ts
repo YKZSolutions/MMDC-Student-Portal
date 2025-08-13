@@ -16,6 +16,7 @@ export class ChatbotService {
     private readonly billingService: BillingService,
     private readonly coursesService: CoursesService,
     private readonly supabase: SupabaseService,
+    private readonly programService: SupabaseService,
   ) {}
 
   async handleQuestion(prompt: PromptDto) {
@@ -23,11 +24,7 @@ export class ChatbotService {
       call,
       text,
     }: { call: FunctionCall[] | null; text: string | undefined } =
-      await this.gemini.askWithFunctionCalling(
-        prompt.sessionId,
-        prompt.prompt,
-        prompt.user,
-      );
+      await this.gemini.askWithFunctionCalling(prompt.question, prompt.user);
 
     if (!call) {
       return { answer: text };
@@ -60,7 +57,7 @@ export class ChatbotService {
 
     // Send results back to Gemini
     const finalAnswer = await this.gemini.generateFinalAnswer(
-      prompt.prompt,
+      prompt.question,
       result,
     );
     return { answer: finalAnswer };
