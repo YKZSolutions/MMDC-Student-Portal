@@ -13,8 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
-import { CreateProgramDto } from './dto/create-program.dto';
-import { UpdateProgramDto } from './dto/update-program.dto';
+
 import { FilterProgramDto } from './dto/filter-program.dto';
 import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -23,6 +22,8 @@ import { Program } from '@/generated/nestjs-dto/program.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
+import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
+import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
 
 /**
  * @remarks
