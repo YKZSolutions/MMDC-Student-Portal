@@ -159,7 +159,7 @@ export class UsersController {
   async getMe(
     @CurrentUser() user: AuthUser,
   ): Promise<UserDetailsFullDto | UserStudentDetailsDto | UserStaffDetailsDto> {
-    return this.usersService.getMe(user);
+    return this.usersService.getMe(user.id);
   }
 
   /**
