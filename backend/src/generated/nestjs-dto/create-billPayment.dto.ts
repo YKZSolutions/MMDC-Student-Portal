@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsDecimal,
   IsNotEmpty,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -58,7 +59,9 @@ export class CreateBillPaymentDto {
   paymentDate: Date;
   @ApiProperty({
     type: () => Object,
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
-  paymongoData: PrismaJson.PayMongoData;
+  @IsOptional()
+  paymongoData?: PrismaJson.PayMongoData | null;
 }
