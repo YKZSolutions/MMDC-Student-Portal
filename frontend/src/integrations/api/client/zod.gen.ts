@@ -439,6 +439,58 @@ export const zUpdateBillDto = z.object({
     costBreakdown: z.optional(z.object({}))
 });
 
+export const zInitiatePaymentDto = z.object({
+    description: z.optional(z.string()),
+    statementDescriptor: z.optional(z.string()),
+    amount: z.number()
+});
+
+export const zPaymentIntentAttributesDto = z.object({
+    amount: z.number(),
+    capture_type: z.string(),
+    client_key: z.string(),
+    created_at: z.number(),
+    currency: z.string(),
+    description: z.string(),
+    last_payment_error: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    livemode: z.boolean(),
+    metadata: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    next_action: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    original_amount: z.number(),
+    payment_method_allowed: z.array(z.string()),
+    payment_method_options: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    payments: z.array(z.object({})),
+    setup_future_usage: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    statement_descriptor: z.string(),
+    status: z.string(),
+    updated_at: z.number()
+});
+
+export const zPaymentIntentDataDto = z.object({
+    id: z.string(),
+    type: z.string(),
+    attributes: zPaymentIntentAttributesDto
+});
+
+export const zPaymentIntentResponseDto = z.object({
+    data: zPaymentIntentDataDto
+});
+
 export const zCreateBillPaymentDto = z.object({
     amountPaid: z.string(),
     paymentType: z.string(),
@@ -452,8 +504,8 @@ export const zCreateBillPaymentDto = z.object({
 
 export const zCreatePaymentDto = z.object({
     payment: zCreateBillPaymentDto,
-    description: z.string(),
-    statementDescriptor: z.string()
+    description: z.optional(z.string()),
+    statementDescriptor: z.optional(z.string())
 });
 
 export const zBillPaymentDto = z.object({
@@ -528,21 +580,9 @@ export const zUpdateProgramDto = z.object({
     description: z.optional(z.string())
 });
 
-export const zTurn = z.object({
-    role: z.enum([
-        'user',
-        'model'
-    ]),
-    content: z.string()
-});
-
 export const zPromptDto = z.object({
     question: z.string(),
-    sessionHistory: z.array(zTurn)
-});
-
-export const zChatbotResponseDto = z.object({
-    response: z.string()
+    messageHistory: z.array(z.string())
 });
 
 export const zCreateMajorDto = z.object({
@@ -909,14 +949,14 @@ export const zBillingControllerUpdateData = z.object({
 export const zBillingControllerUpdateResponse = zBillDto;
 
 export const zPaymentsControllerPayData = z.object({
-    body: zCreatePaymentDto,
+    body: zInitiatePaymentDto,
     path: z.object({
         billId: z.string()
     }),
     query: z.optional(z.never())
 });
 
-export const zPaymentsControllerPayResponse = z.object({});
+export const zPaymentsControllerPayResponse = zPaymentIntentResponseDto;
 
 export const zPaymentsControllerFindAllData = z.object({
     body: z.optional(z.never()),
@@ -1036,8 +1076,6 @@ export const zChatbotControllerPromptData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
-
-export const zChatbotControllerPromptResponse = zChatbotResponseDto;
 
 export const zMajorControllerFindAllData = z.object({
     body: z.optional(z.never()),
