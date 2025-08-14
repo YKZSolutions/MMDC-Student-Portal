@@ -1,9 +1,13 @@
 import {
+  Affix,
+  Box,
   Button,
   CloseButton,
+  Group,
   Input,
   Popover,
   Skeleton,
+  Stack,
   Text,
   useMantineTheme,
 } from '@mantine/core'
@@ -208,16 +212,14 @@ const Chatbot = ({
               </Popover.Target>
 
               <Popover.Dropdown
-                style={{
-                  padding: 0,
-                  height: 500,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
+                p={0}
+                h={'65%'}
               >
-                <ChatHeader onClose={handleModalClose} />
-                <ChatMessages messages={messages} waitingBotResponse={waitingBotResponse} botError={botError} />
-                <ChatInput onSendInput={addMessage} />
+                <Stack h={'100%'}>
+                  <ChatHeader onClose={handleModalClose} />
+                  <ChatMessages messages={messages} isSending={waitingBotResponse} isError={botError} />
+                  <ChatInput onSendInput={addMessage} isSending={waitingBotResponse} />
+                </Stack>
               </Popover.Dropdown>
             </Popover>
           </div>
@@ -231,127 +233,121 @@ const ChatHeader = ({ onClose }: { onClose: () => void }) => {
   const theme = useMantineTheme()
 
   return (
-    <div
+    <Group
+      p={'md'}
+      justify={'space-between'}
+      bg={theme.colors.secondary[0]}
+      bdrs={'8px 8px 0 0'}
       style={{
-        padding: '16px 20px',
-        borderBottom: `1px solid ${theme.colors.gray[3]}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        backgroundColor: theme.colors["secondary"][0],
-        borderRadius: '8px 8px 0 0',
+        borderBottom: `1px solid ${theme.colors.gray[3]}`
       }}
     >
       <Text fw={600} c={theme.white} size="md">Chat Support</Text>
       <Button
         variant="subtle"
         size="xs"
+        miw={'auto'}
+        p={'0.25rem'}
         onClick={onClose}
         style={{ minWidth: 'auto', padding: 4 }}
       >
         <IconX size={16} color={theme.white} />
       </Button>
-    </div>
+    </Group>
   )
 }
 
 const BotMessage = ({message}: {message: string}) =>{
   const theme = useMantineTheme()
   return (
-    <div
+    <Box
+      p={'md'}
+      bdrs={'12px 12px 12px 4px'}
+      bg={theme.colors.gray[1]}
+      maw = "85%"
       style={{
-        padding: 12,
-        backgroundColor: theme.colors.gray[1],
-        borderRadius: '12px 12px 12px 4px',
         alignSelf: 'flex-start',
-        maxWidth: '85%',
       }}
     >
       <Text size="sm">
         {message}
       </Text>
-    </div>
+    </Box>
   )
 }
 
 const UserMessage = ({message}: {message: string}) =>{
   const theme = useMantineTheme()
   return (
-    <div
+    <Box
+      p={'md'}
+      bdrs={'12px 12px 4px 12px'}
+      bg={theme.colors.gray[1]}
+      maw = "85%"
       style={{
-        padding: 12,
-        backgroundColor: theme.colors.gray[0],
-        borderRadius: '12px 12px 4px 12px',
         alignSelf: 'flex-end',
-        maxWidth: '85%',
       }}
     >
       <Text size="sm">
         {message}
       </Text>
-    </div>
+    </Box>
   )
 }
 
 interface ChatMessagesProps {
   messages: Turn[];
-  waitingBotResponse?: boolean;
-  botError?: boolean;
+  isSending?: boolean;
+  isError?: boolean;
 }
 
-const ChatMessages = ({ messages, waitingBotResponse = false, botError = false }: ChatMessagesProps) => {
+const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMessagesProps) => {
   return (
-    <div
+    <Stack
+      gap = "sm"
+      p={'lg'}
+      flex={1}
       style={{
-        flex: 1,
         overflowY: 'auto',
-        padding: '16px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
       }}
     >
       {messages.map((msg, index) =>
         msg.role === 'user' ? (
           <UserMessage key={index} message={msg.content} />
-        ) : msg.content === '__WAITING_FOR_BOT_RESPONSE__' ? (
-          <div key={index} style={{alignSelf: 'flex-start', maxWidth: '85%'}}>
-            <Skeleton height={24} radius="md" />
-          </div>
-        ) : msg.content === '__BOT_ERROR__' ? (
-          <div key={index} style={{alignSelf: 'flex-start', maxWidth: '85%'}}>
-            <Text size="sm" c="red" style={{maxWidth: '85%'}}>
-              The bot encountered an error while processing your query.
-            </Text>
-          </div>
         ) : (
-          <BotMessage key={index} message={msg.content} />
+          <BotMessage key={index} message={msg.content}/>
         )
       )}
 
-      <Text size="xs" c="dimmed" ta="center" mt="md">
-        Start typing to continue the conversation...
-      </Text>
+      {isSending && (
+        <Skeleton visible={isSending} height={36} bdrs={'12px 12px 12px 4px'}/>
+      )}
 
-      {/*/!* Example interaction *!/*/}
-      {/*<button onClick={() => addMessage('I need help with my account.')}>*/}
-      {/*  Simulate Send*/}
-      {/*</button>*/}
-    </div>
+      {isError && (
+        <BotMessage message={'An error occurred while processing your request. Please try again later.'}/>
+      )}
+    </Stack>
   )
 }
 
-const ChatInput = ({onSendInput}: {onSendInput: (message: string) => void}) => {
+const ChatInput = ({
+  onSendInput,
+  isSending = false,
+}: {
+  onSendInput: (message: string) => void
+  isSending?: boolean
+}) => {
   const theme = useMantineTheme()
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState('')
+
+  const canSend = !!value.trim() && !isSending
 
   return (
-    <div
+    <Group
+      p={'md'}
+      justify={'space-between'}
       style={{
-        padding: '16px 20px',
         borderTop: `1px solid ${theme.colors.gray[3]}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
       }}
     >
       <Input
@@ -360,6 +356,7 @@ const ChatInput = ({onSendInput}: {onSendInput: (message: string) => void}) => {
         onChange={(event) => setValue(event.currentTarget.value)}
         rightSectionPointerEvents="all"
         radius="lg"
+        disabled={isSending}
         rightSection={
           <CloseButton
             aria-label="Clear input"
@@ -370,31 +367,37 @@ const ChatInput = ({onSendInput}: {onSendInput: (message: string) => void}) => {
       />
       <Button
         onClick={() => {
-          onSendInput(value);
-          setValue('');
+          if (!canSend) return
+          onSendInput(value)
+          setValue('')
         }}
         size="sm"
         radius="xl"
+        p={'0 1rem'}
+        loading={isSending}
+        disabled={!canSend}
         style={{
-          padding: '0 16px',
           backgroundColor: theme.colors.secondary[6],
           color: theme.white,
-        }}>
+        }}
+      >
         Send
       </Button>
-    </div>
+    </Group>
   )
 }
 
 const DropZoneIndicator = () => (
-  <div
-    className="fixed top-1/6 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
+  <Affix position={{ top: '12%', left: '50%' }} w={"8rem"} h={"8rem"}
+    className="rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
     style={{
       zIndex: 999,
-      pointerEvents: 'none' }}
+     }}
   >
-    <Text className="text-center text-blue-600">Drop to hide chatbot</Text>
-  </div>
+    <Stack align="center" justify="center" h="100%">
+      <Text fw={600} size="md" ta ="center">Drop to hide chatbot</Text>
+    </Stack>
+  </Affix>
 )
 
 export default Chatbot
