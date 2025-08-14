@@ -11,13 +11,13 @@ import {
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
-import { FilterProgramDto } from './dto/filter-program.dto';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
 import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 
 @Injectable()
 export class ProgramService {
@@ -78,7 +78,7 @@ export class ProgramService {
    * @throws {ServiceUnavailableException} If database connection fails.
    * @throws {Error} Any other unexpected errors.
    */
-  async findAll(filters: FilterProgramDto): Promise<PaginatedProgramsDto> {
+  async findAll(filters: BaseFilterDto): Promise<PaginatedProgramsDto> {
     try {
       const where: Prisma.ProgramWhereInput = {};
       const page = Number(filters?.page) || 1;
