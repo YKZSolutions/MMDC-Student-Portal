@@ -9,14 +9,10 @@ import {
 } from '@mantine/core'
 import React, { useRef, useState, useEffect } from 'react'
 import Draggable from 'react-draggable'
-import { IconMessageChatbot } from '@tabler/icons-react'
-import DropZoneIndicator from '@/features/chatbot/drop-zone-indicator'
-import ChatHeader from '@/features/chatbot/chat-header'
-import ChatMessages from '@/features/chatbot/chat-messages'
-import ChatInput from '@/features/chatbot/chat-input'
 import { IconMessageChatbot, IconX } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
+import type { Turn } from '@/integrations/api/client'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -39,16 +35,30 @@ const Chatbot = ({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: 'Hello! How can I help you today?' },
+  const [messages, setMessages] = useState<Turn[]>([
+    { role: 'model', content: 'Hello! How can I help you today?' },
   ])
 
-  const addMessage = (userInput: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', content: userInput },
-      { role: 'bot', content: 'Thanks for your message! (placeholder reply)' }, //TODO: this should be replaced with a bot response
-    ])
+  const { mutateAsync: create, isPending: waitingBotResponse, isError: botError } = useMutation(chatbotControllerPromptMutation())
+
+  const addMessage = async (userInput: string) => {
+    const res = await create({
+      body: {
+        question: userInput,
+        sessionHistory: messages,
+      },
+    })
+
+    const response: string = res.response ?? "I'm sorry, we couldn't process your request. Please try again later."
+
+    setMessages((prev): Turn[] => {
+      const newMessages: Turn[] = [
+        ...prev,
+        { role: 'user', content: userInput },
+        { role: 'model', content: response },
+      ]
+      return newMessages.slice(-20) // Keep the last 10 interactions
+    })
   }
 
   useEffect(() => {
@@ -206,7 +216,7 @@ const Chatbot = ({
                 }}
               >
                 <ChatHeader onClose={handleModalClose} />
-                <ChatMessages messages={messages} />
+                <ChatMessages messages={messages} waitingBotResponse={waitingBotResponse} botError={botError} />
                 <ChatInput onSendInput={addMessage} />
               </Popover.Dropdown>
             </Popover>
