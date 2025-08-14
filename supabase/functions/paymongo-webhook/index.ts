@@ -29,10 +29,12 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ received: true }));
 
       supabase.from("BillPayment").insert({
+        id: crypto.randomUUID(),
         billId: data.metadata?.billId,
         amountPaid: data.amount,
         notes: "Doggy",
         paymentType: "Doggy",
+        paymongoData: JSON.stringify(body),
         paymentDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -44,7 +46,7 @@ Deno.serve(async (req) => {
       break;
     }
     default: {
-      console.log("FAILED!");
+      console.log("DEFAULT!");
       break;
     }
   }
