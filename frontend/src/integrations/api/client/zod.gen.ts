@@ -580,9 +580,21 @@ export const zUpdateProgramDto = z.object({
     description: z.optional(z.string())
 });
 
+export const zTurn = z.object({
+    role: z.enum([
+        'user',
+        'model'
+    ]),
+    content: z.string()
+});
+
 export const zPromptDto = z.object({
     question: z.string(),
-    messageHistory: z.array(z.string())
+    sessionHistory: z.array(zTurn)
+});
+
+export const zChatbotResponseDto = z.object({
+    response: z.string()
 });
 
 export const zCreateMajorDto = z.object({
@@ -1076,6 +1088,8 @@ export const zChatbotControllerPromptData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
+
+export const zChatbotControllerPromptResponse = zChatbotResponseDto;
 
 export const zMajorControllerFindAllData = z.object({
     body: z.optional(z.never()),
