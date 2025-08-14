@@ -1,25 +1,25 @@
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
-    Accordion,
-    Badge,
-    Box,
-    Button,
-    Card,
-    Container,
-    Divider,
-    Flex,
-    Group,
-    Pagination,
-    Paper,
-    Popover,
-    rem,
-    SegmentedControl,
-    Stack,
-    Tabs,
-    Text,
-    TextInput,
-    Title,
-    UnstyledButton,
+  Accordion,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Container,
+  Divider,
+  Flex,
+  Group,
+  Pagination,
+  Paper,
+  Popover,
+  rem,
+  SegmentedControl,
+  Stack,
+  Tabs,
+  Text,
+  TextInput,
+  Title,
+  UnstyledButton,
 } from '@mantine/core'
 import { IconFilter2, IconSearch, type ReactNode } from '@tabler/icons-react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
@@ -376,7 +376,7 @@ function CourseSelectionPanel() {
 
   return (
     <Stack>
-      <Paper withBorder radius={'md'}>
+      <Paper radius={'md'}>
         <Flex p={'sm'} justify={'space-between'}>
           <SegmentedControl
             className="grow max-w-2xs"
