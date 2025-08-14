@@ -311,6 +311,53 @@ export type UpdateBillingDto = {
     };
 };
 
+export type CreateProgramDto = {
+    code: string;
+    name: string;
+    description: string;
+};
+
+export type Program = {
+    id: string;
+    code: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ProgramDto = {
+    id: string;
+    code: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedProgramsDto = {
+    programs: Array<ProgramDto>;
+    meta: PaginationMetaDto;
+};
+
+export type UpdateProgramDto = {
+    code?: string;
+    name?: string;
+    description?: string;
+};
+
+export type Turn = {
+    role: 'user' | 'model';
+    content: string;
+};
+
+export type PromptDto = {
+    question: string;
+    sessionHistory: Array<Turn>;
+};
+
 export type UsersControllerFindAllData = {
     body?: never;
     path?: never;
@@ -899,6 +946,212 @@ export type BillingControllerUpdateResponses = {
 };
 
 export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
+
+export type ProgramControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/program';
+};
+
+export type ProgramControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindAllError = ProgramControllerFindAllErrors[keyof ProgramControllerFindAllErrors];
+
+export type ProgramControllerFindAllResponses = {
+    /**
+     * List of programs retrieved successfully
+     */
+    200: PaginatedProgramsDto;
+};
+
+export type ProgramControllerFindAllResponse = ProgramControllerFindAllResponses[keyof ProgramControllerFindAllResponses];
+
+export type ProgramControllerCreateData = {
+    body: CreateProgramDto;
+    path?: never;
+    query?: never;
+    url: '/program';
+};
+
+export type ProgramControllerCreateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerCreateError = ProgramControllerCreateErrors[keyof ProgramControllerCreateErrors];
+
+export type ProgramControllerCreateResponses = {
+    201: Program;
+};
+
+export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
+
+export type ProgramControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/program/{id}';
+};
+
+export type ProgramControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerRemoveError = ProgramControllerRemoveErrors[keyof ProgramControllerRemoveErrors];
+
+export type ProgramControllerRemoveResponses = {
+    /**
+     * Program deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type ProgramControllerRemoveResponse = ProgramControllerRemoveResponses[keyof ProgramControllerRemoveResponses];
+
+export type ProgramControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/program/{id}';
+};
+
+export type ProgramControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindOneError = ProgramControllerFindOneErrors[keyof ProgramControllerFindOneErrors];
+
+export type ProgramControllerFindOneResponses = {
+    /**
+     * Program retrieved successfully
+     */
+    200: Program;
+};
+
+export type ProgramControllerFindOneResponse = ProgramControllerFindOneResponses[keyof ProgramControllerFindOneResponses];
+
+export type ProgramControllerUpdateData = {
+    body: UpdateProgramDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/program/{id}';
+};
+
+export type ProgramControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerUpdateError = ProgramControllerUpdateErrors[keyof ProgramControllerUpdateErrors];
+
+export type ProgramControllerUpdateResponses = {
+    /**
+     * Program updated successfully
+     */
+    200: Program;
+};
+
+export type ProgramControllerUpdateResponse = ProgramControllerUpdateResponses[keyof ProgramControllerUpdateResponses];
+
+export type ChatbotControllerPromptData = {
+    body: PromptDto;
+    path?: never;
+    query?: never;
+    url: '/chatbot';
+};
+
+export type ChatbotControllerPromptErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ChatbotControllerPromptError = ChatbotControllerPromptErrors[keyof ChatbotControllerPromptErrors];
+
+export type ChatbotControllerPromptResponses = {
+    /**
+     * Chatbot response
+     */
+    201: {
+        response?: string;
+    };
+};
+
+export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
 
 export type ClientOptions = {
     baseUrl: string;

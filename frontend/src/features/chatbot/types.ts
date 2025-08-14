@@ -1,4 +1,0 @@
-type Message = {
-  role: 'user' | 'bot'
-  content: string
-}

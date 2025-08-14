@@ -436,6 +436,62 @@ export const zUpdateBillingDto = z.object({
     metadata: z.optional(z.object({}))
 });
 
+export const zCreateProgramDto = z.object({
+    code: z.string(),
+    name: z.string(),
+    description: z.string()
+});
+
+export const zProgram = z.object({
+    id: z.string(),
+    code: z.string(),
+    name: z.string(),
+    description: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zProgramDto = z.object({
+    id: z.string(),
+    code: z.string(),
+    name: z.string(),
+    description: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPaginatedProgramsDto = z.object({
+    programs: z.array(zProgramDto),
+    meta: zPaginationMetaDto
+});
+
+export const zUpdateProgramDto = z.object({
+    code: z.optional(z.string()),
+    name: z.optional(z.string()),
+    description: z.optional(z.string())
+});
+
+export const zTurn = z.object({
+    role: z.enum([
+        'user',
+        'model'
+    ]),
+    content: z.string()
+});
+
+export const zPromptDto = z.object({
+    question: z.string(),
+    sessionHistory: z.array(zTurn)
+});
+
 export const zUsersControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -689,3 +745,81 @@ export const zBillingControllerUpdateData = z.object({
 });
 
 export const zBillingControllerUpdateResponse = z.string();
+
+export const zProgramControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number()).default(1)
+    }))
+});
+
+/**
+ * List of programs retrieved successfully
+ */
+export const zProgramControllerFindAllResponse = zPaginatedProgramsDto;
+
+export const zProgramControllerCreateData = z.object({
+    body: zCreateProgramDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zProgramControllerCreateResponse = zProgram;
+
+export const zProgramControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+/**
+ * Program deleted successfully
+ */
+export const zProgramControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
+
+export const zProgramControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Program retrieved successfully
+ */
+export const zProgramControllerFindOneResponse = zProgram;
+
+export const zProgramControllerUpdateData = z.object({
+    body: zUpdateProgramDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Program updated successfully
+ */
+export const zProgramControllerUpdateResponse = zProgram;
+
+export const zChatbotControllerPromptData = z.object({
+    body: zPromptDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Chatbot response
+ */
+export const zChatbotControllerPromptResponse = z.object({
+    response: z.optional(z.string())
+});
