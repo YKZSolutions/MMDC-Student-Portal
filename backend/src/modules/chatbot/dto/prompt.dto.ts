@@ -1,37 +1,28 @@
-import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 
 export class PromptDto {
   @IsNotEmpty()
   @IsString()
   question: string;
 
+  @ValidateNested({ each: true })
   @IsArray()
-  messageHistory: string[];
+  sessionHistory: Turn[];
 }
 
-export class UserBaseContextDto {
-  @IsString()
-  id: string;
-
-  @IsString()
-  email: string | null;
-
-  @IsString()
-  role: string;
+enum ChatbotRole {
+  USER = 'user',
+  MODEL = 'model',
 }
 
-export class UserStudentContextDto extends UserBaseContextDto {
-  @IsNumber()
-  studentNumber: number;
-}
-
-export class UserStaffContextDto extends UserBaseContextDto {
-  @IsNumber()
-  employeeNumber: number;
+export class Turn {
+  @IsNotEmpty()
+  @ApiProperty({ enum: ChatbotRole })
+  role: ChatbotRole;
 
   @IsString()
-  department: string;
-
-  @IsString()
-  position: string;
+  @IsNotEmpty()
+  content: string;
 }
