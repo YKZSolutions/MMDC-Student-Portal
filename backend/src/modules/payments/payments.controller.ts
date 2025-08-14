@@ -1,3 +1,9 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Role } from '@/common/enums/roles.enum';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.dto';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   Body,
   Controller,
@@ -10,13 +16,9 @@ import {
   Post,
 } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { InitiatePaymentDto } from './dto/initiate-payment.dto';
+import { PaymentIntentResponseDto } from './dto/payment-intent.dto';
 import { PaymentsService } from './payments.service';
-import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 
 @Controller('billing/:billId/payments')
 export class PaymentsController {
@@ -30,9 +32,9 @@ export class PaymentsController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   pay(
     @Param('billId') billId: string,
-    @Body() createPaymentDto: CreatePaymentDto,
+    @Body() initiatePaymentDto: InitiatePaymentDto,
     @CurrentUser() user: AuthUser,
-  ) {
+  ): Promise<PaymentIntentResponseDto> {
     const { role, user_id } = user.user_metadata;
 
     if (!role || !user_id)
@@ -40,7 +42,7 @@ export class PaymentsController {
 
     return this.paymentsService.initiatePayment(
       billId,
-      createPaymentDto,
+      initiatePaymentDto,
       user_id,
     );
   }

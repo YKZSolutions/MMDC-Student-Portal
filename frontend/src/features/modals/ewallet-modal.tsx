@@ -6,7 +6,7 @@ import type {
   PaymentMethod,
 } from '@/features/billing/types'
 import type { PaymentIntentDataDto } from '@/integrations/api/client'
-import { billingControllerCreateOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { paymentsControllerPayOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Button,
   Card,
@@ -74,11 +74,15 @@ function EwalletModalQueryProvider({
 
   // Payment Intent Creation
   const { data, isFetching, isPending } = useSuspenseQuery({
-    ...billingControllerCreateOptions({
+    ...paymentsControllerPayOptions({
+      // body: {
+      //   amount: amount,
+      //   billingId: billingId,
+      // },
       body: {
         amount: amount,
-        billingId: billingId,
       },
+      path: { billId: billingId },
     }),
     refetchOnMount: false,
     refetchOnWindowFocus: false,

@@ -1,4 +1,7 @@
+import { BillPaymentDto } from '@/generated/nestjs-dto/billPayment.dto';
+import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { HttpService } from '@nestjs/axios';
 import {
   HttpException,
   Inject,
@@ -6,20 +9,19 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
+import { AxiosError } from 'axios';
 import crypto from 'crypto';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { BillPaymentDto } from '@/generated/nestjs-dto/billPayment.dto';
 import { firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
-import { AxiosError } from 'axios';
-import { Prisma, Role } from '@prisma/client';
-import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.dto';
+import { CreatePaymentDto } from './dto/create-payment.dto';
+import { InitiatePaymentDto } from './dto/initiate-payment.dto';
+import { PaymentIntentResponseDto } from './dto/payment-intent.dto';
 
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private readonly baseUrl = 'https://api.paymongo.com/v1';
+  private readonly baseUrl = 'https://api.paymongo.com/v1/payment_intents';
   private readonly headers = {
     Authorization: `Basic ${Buffer.from(process.env.PAYMONGO_SECRET_KEY + ':').toString('base64')}`,
     'Content-Type': 'application/json',
@@ -39,20 +41,20 @@ export class PaymentsService {
    */
   async initiatePayment(
     billId: string,
-    createPaymentDto: CreatePaymentDto,
+    initiatePayment: InitiatePaymentDto,
     userId: string,
-  ) {
+  ): Promise<PaymentIntentResponseDto> {
     try {
       const payload = {
         data: {
           attributes: {
-            amount: createPaymentDto.payment.amountPaid,
+            amount: initiatePayment.amount,
             currency: 'PHP',
             payment_method_allowed: ['paymaya', 'gcash'],
             capture_type: 'automatic',
-            description: createPaymentDto.description || 'Payment intent',
+            description: initiatePayment.description || 'Payment intent',
             statement_descriptor:
-              createPaymentDto.statementDescriptor || 'Statement',
+              initiatePayment.statementDescriptor || 'Statement',
             metadata: {
               userId: userId,
               billingId: billId,
