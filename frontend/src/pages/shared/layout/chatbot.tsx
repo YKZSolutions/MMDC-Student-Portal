@@ -11,7 +11,7 @@ import {
   Text,
   useMantineTheme,
 } from '@mantine/core'
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { IconMessageChatbot, IconX } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
@@ -46,6 +46,11 @@ const Chatbot = ({
   const { mutateAsync: create, isPending, isError, isSuccess } = useMutation(chatbotControllerPromptMutation())
 
   const addMessage = async (userInput: string) => {
+    //Add the user's input first
+    setMessages((prev): Turn[] => {
+      return [...prev, { role: 'user', content: userInput }]
+    })
+
     const res = await create({
       body: {
         question: userInput,
@@ -55,15 +60,23 @@ const Chatbot = ({
 
     const response: string = res.response
 
+    //Add the bot's response next'
     setMessages((prev): Turn[] => {
       const newMessages: Turn[] = [
         ...prev,
-        { role: 'user', content: userInput },
         { role: 'model', content: response },
       ]
       return newMessages.slice(-20) // Keep the last 10 interactions
     })
   }
+
+  useEffect(() => {
+    if(isError){
+      setMessages((prev): Turn[] => {
+        return [...prev.slice(0, -1)]
+      })
+    }
+  }, [isError])
 
   useEffect(() => {
     // set the initial position of the chatbot to the bottom right corner of the screen
@@ -295,7 +308,7 @@ const UserMessage = ({message}: {message: string}) =>{
   )
 }
 
-interface ChatMessagesProps {
+type ChatMessagesProps = {
   messages: Turn[];
   isSending?: boolean;
   isError?: boolean;
@@ -352,6 +365,13 @@ const ChatInput = ({
     }
   }, [isSuccess])
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && canSend) {
+      e.preventDefault()
+      onSendInput(value)
+    }
+  }
+
   return (
     <Group
       p={'md'}
@@ -364,6 +384,7 @@ const ChatInput = ({
         placeholder="Type your message..."
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
+        onKeyDown={handleKeyDown}
         rightSectionPointerEvents="all"
         radius="lg"
         disabled={isSending}
@@ -388,6 +409,7 @@ const ChatInput = ({
         style={{
           backgroundColor: theme.colors.secondary[6],
           color: theme.white,
+          opacity: isSending ? 0.7 : 1,
         }}
       >
         Send
