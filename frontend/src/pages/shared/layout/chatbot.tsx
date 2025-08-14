@@ -1,4 +1,12 @@
-import { Button, Popover, useMantineTheme } from '@mantine/core'
+import {
+  Button,
+  CloseButton,
+  Input,
+  Popover,
+  Skeleton,
+  Text,
+  useMantineTheme,
+} from '@mantine/core'
 import React, { useRef, useState, useEffect } from 'react'
 import Draggable from 'react-draggable'
 import { IconMessageChatbot } from '@tabler/icons-react'
@@ -6,6 +14,9 @@ import DropZoneIndicator from '@/features/chatbot/drop-zone-indicator'
 import ChatHeader from '@/features/chatbot/chat-header'
 import ChatMessages from '@/features/chatbot/chat-messages'
 import ChatInput from '@/features/chatbot/chat-input'
+import { IconMessageChatbot, IconX } from '@tabler/icons-react'
+import { useMutation } from '@tanstack/react-query'
+import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -205,5 +216,175 @@ const Chatbot = ({
     </>
   )
 }
+
+const ChatHeader = ({ onClose }: { onClose: () => void }) => {
+  const theme = useMantineTheme()
+
+  return (
+    <div
+      style={{
+        padding: '16px 20px',
+        borderBottom: `1px solid ${theme.colors.gray[3]}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        backgroundColor: theme.colors["secondary"][0],
+        borderRadius: '8px 8px 0 0',
+      }}
+    >
+      <Text fw={600} c={theme.white} size="md">Chat Support</Text>
+      <Button
+        variant="subtle"
+        size="xs"
+        onClick={onClose}
+        style={{ minWidth: 'auto', padding: 4 }}
+      >
+        <IconX size={16} color={theme.white} />
+      </Button>
+    </div>
+  )
+}
+
+const BotMessage = ({message}: {message: string}) =>{
+  const theme = useMantineTheme()
+  return (
+    <div
+      style={{
+        padding: 12,
+        backgroundColor: theme.colors.gray[1],
+        borderRadius: '12px 12px 12px 4px',
+        alignSelf: 'flex-start',
+        maxWidth: '85%',
+      }}
+    >
+      <Text size="sm">
+        {message}
+      </Text>
+    </div>
+  )
+}
+
+const UserMessage = ({message}: {message: string}) =>{
+  const theme = useMantineTheme()
+  return (
+    <div
+      style={{
+        padding: 12,
+        backgroundColor: theme.colors.gray[0],
+        borderRadius: '12px 12px 4px 12px',
+        alignSelf: 'flex-end',
+        maxWidth: '85%',
+      }}
+    >
+      <Text size="sm">
+        {message}
+      </Text>
+    </div>
+  )
+}
+
+interface ChatMessagesProps {
+  messages: Turn[];
+  waitingBotResponse?: boolean;
+  botError?: boolean;
+}
+
+const ChatMessages = ({ messages, waitingBotResponse = false, botError = false }: ChatMessagesProps) => {
+  return (
+    <div
+      style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+      }}
+    >
+      {messages.map((msg, index) =>
+        msg.role === 'user' ? (
+          <UserMessage key={index} message={msg.content} />
+        ) : msg.content === '__WAITING_FOR_BOT_RESPONSE__' ? (
+          <div key={index} style={{alignSelf: 'flex-start', maxWidth: '85%'}}>
+            <Skeleton height={24} radius="md" />
+          </div>
+        ) : msg.content === '__BOT_ERROR__' ? (
+          <div key={index} style={{alignSelf: 'flex-start', maxWidth: '85%'}}>
+            <Text size="sm" c="red" style={{maxWidth: '85%'}}>
+              The bot encountered an error while processing your query.
+            </Text>
+          </div>
+        ) : (
+          <BotMessage key={index} message={msg.content} />
+        )
+      )}
+
+      <Text size="xs" c="dimmed" ta="center" mt="md">
+        Start typing to continue the conversation...
+      </Text>
+
+      {/*/!* Example interaction *!/*/}
+      {/*<button onClick={() => addMessage('I need help with my account.')}>*/}
+      {/*  Simulate Send*/}
+      {/*</button>*/}
+    </div>
+  )
+}
+
+const ChatInput = ({onSendInput}: {onSendInput: (message: string) => void}) => {
+  const theme = useMantineTheme()
+  const [value, setValue] = useState('');
+
+  return (
+    <div
+      style={{
+        padding: '16px 20px',
+        borderTop: `1px solid ${theme.colors.gray[3]}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
+      <Input
+        placeholder="Type your message..."
+        value={value}
+        onChange={(event) => setValue(event.currentTarget.value)}
+        rightSectionPointerEvents="all"
+        radius="lg"
+        rightSection={
+          <CloseButton
+            aria-label="Clear input"
+            onClick={() => setValue('')}
+            style={{ display: value ? undefined : 'none' }}
+          />
+        }
+      />
+      <Button
+        onClick={() => {
+          onSendInput(value);
+          setValue('');
+        }}
+        size="sm"
+        radius="xl"
+        style={{
+          padding: '0 16px',
+          backgroundColor: theme.colors.secondary[6],
+          color: theme.white,
+        }}>
+        Send
+      </Button>
+    </div>
+  )
+}
+
+const DropZoneIndicator = () => (
+  <div
+    className="fixed top-1/6 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
+    style={{
+      zIndex: 999,
+      pointerEvents: 'none' }}
+  >
+    <Text className="text-center text-blue-600">Drop to hide chatbot</Text>
+  </div>
+)
 
 export default Chatbot
