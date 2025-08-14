@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Card,
+  Checkbox,
   Container,
   Divider,
   Flex,
@@ -19,6 +20,7 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
   UnstyledButton,
 } from '@mantine/core'
 import { IconFilter2, IconSearch, type ReactNode } from '@tabler/icons-react'
@@ -34,17 +36,47 @@ const tabsData = [
     label: 'Course Selection',
     Component: CourseSelectionPanel,
   },
-  {
-    value: 'payment-scheme',
-    label: 'Payment Scheme',
-    Component: () => <></>,
-  },
+  // {
+  //   value: 'payment-scheme',
+  //   label: 'Payment Scheme',
+  //   Component: () => <></>,
+  // },
   {
     value: 'finalization',
     label: 'Finalization',
-    Component: () => <></>,
+    Component: FinalizationPanel,
   },
 ]
+
+interface IPaymentScheme {
+  paymentTypeId: string
+  paymentType: string
+  paymentDescription: string
+  paymentBreakdown: string
+}
+
+const paymentSchemeData = [
+  {
+    paymentTypeId: 'full-payment',
+    paymentType: 'Full Payment',
+    paymentDescription: 'No Interest • 1 Payment',
+    paymentBreakdown: '100% at Enrollment',
+  },
+  {
+    paymentTypeId: 'installment-plan-1',
+    paymentType: 'Installment Plan 1',
+    paymentDescription: '5% Interest • 3 Payments',
+    paymentBreakdown:
+      '40% at enrollment • 30% first payment • 30% second payment',
+  },
+  {
+    paymentTypeId: 'installment-plan-2',
+    paymentType: 'Installment Plan 2',
+    paymentDescription: '7.5% Interest • 3 Payments',
+    paymentBreakdown:
+      '20% at enrollment • 40% first payment • 40% second payment',
+  },
+] as IPaymentScheme[]
 
 const mockCourseData = [
   {
@@ -456,7 +488,12 @@ function CourseSelectionPanel() {
                     <Divider />
                     <Stack gap={'xs'}>
                       {course.sections.map((section) => (
-                        <Card withBorder radius="md" py="sm">
+                        <Card
+                          key={section.sectionName}
+                          withBorder
+                          radius="md"
+                          py="sm"
+                        >
                           <Group justify="space-between" align="center">
                             <Stack gap={2}>
                               <Group gap="xs">
@@ -506,6 +543,151 @@ function CourseSelectionPanel() {
         )}
       </EnrollmentQueryProvider>
     </Stack>
+  )
+}
+
+function FinalizationPanel() {
+  const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
+
+  return (
+    <Box p="lg">
+      <Stack gap={'md'}>
+        <Stack gap={rem(5)}>
+          <Title order={3}>Finalize Enrollment</Title>
+          <Text fw={600} size="sm" c="dimmed">
+            Enrolled Courses
+          </Text>
+        </Stack>
+
+        <Stack gap="xs">
+          <EnrolledCourseCard
+            courseName="Capstone 1"
+            courseCode="MO-IT200"
+            sectionName="A2101"
+            sectionSchedule={{
+              day: 'MWF',
+              time: '8:00 - 9:00 AM',
+            }}
+          />
+          <EnrolledCourseCard
+            courseName="Web Technology Applications"
+            courseCode="MO-IT200"
+            sectionName="A2101"
+            sectionSchedule={{
+              day: 'MWF',
+              time: '8:00 - 9:00 AM',
+            }}
+          />
+        </Stack>
+
+        <Stack pt={'xs'} gap={'xs'}>
+          <Text fw={600} size="sm" c="dimmed">
+            Payment Scheme
+          </Text>
+          <Group>
+            {paymentSchemeData.map((scheme) => (
+              <PaymentPlanCard
+                key={scheme.paymentTypeId}
+                props={{
+                  ...scheme,
+                  selectedPaymentScheme,
+                  setSelectedPaymentScheme,
+                }}
+              />
+            ))}
+          </Group>
+        </Stack>
+
+        <Button disabled={!selectedPaymentScheme} ml={'auto'}>
+          Finalize
+        </Button>
+      </Stack>
+    </Box>
+  )
+}
+
+// A simple card to display the enrolled course name and code
+function EnrolledCourseCard({
+  courseName,
+  courseCode,
+  sectionName,
+  sectionSchedule,
+}: {
+  courseName: string
+  courseCode: string
+  sectionName: string
+  sectionSchedule: {
+    day: string
+    time: string
+  }
+}) {
+  return (
+    <Card withBorder radius="md" p="md" className="flex-1">
+      <Group justify="space-between" wrap="nowrap">
+        <Stack gap={4} miw={0} className="truncate">
+          <Text fw={600} size="md" truncate="end">
+            {courseName}
+          </Text>
+          <Text fw={500} fz={'xs'} c={'dark.3'}>
+            {courseCode}
+          </Text>
+        </Stack>
+        <Stack gap={4} miw={'fit-content'}>
+          <Group gap="xs" justify="end">
+            <Text fw={600} size="md">
+              {sectionName}
+            </Text>
+          </Group>
+          <Group gap="xs" justify="end">
+            <Text c="dimmed" size="sm">
+              {sectionSchedule.day} | {sectionSchedule.time}
+            </Text>
+          </Group>
+        </Stack>
+      </Group>
+    </Card>
+  )
+}
+
+// A card to display the selected payment plan
+function PaymentPlanCard({
+  props,
+}: {
+  props: IPaymentScheme & {
+    selectedPaymentScheme: string
+    setSelectedPaymentScheme: React.Dispatch<React.SetStateAction<string>>
+  }
+}) {
+  const handleSelectPaymentScheme = () => {
+    props.setSelectedPaymentScheme((prev) =>
+      prev === props.paymentTypeId ? '' : props.paymentTypeId,
+    )
+  }
+
+  return (
+    <UnstyledButton className="flex-1/4" onClick={handleSelectPaymentScheme}>
+      <Paper radius="md" withBorder py="lg" px={'xl'}>
+        <Stack align="center" justify="space-between">
+          <Checkbox
+            size="md"
+            tabIndex={-1}
+            checked={props.selectedPaymentScheme === props.paymentTypeId}
+            onChange={() => {}}
+          />
+          <Stack gap={4} align="center">
+            <Text fw={500}>{props.paymentType}</Text>
+            <Text truncate size="sm" c="dimmed">
+              {props.paymentDescription}
+            </Text>
+          </Stack>
+          <Tooltip label={props.paymentBreakdown} position="bottom">
+            <Text fz="xs" c="blue" mt="xs" td="underline">
+              View payment breakdown
+            </Text>
+          </Tooltip>
+        </Stack>
+      </Paper>
+    </UnstyledButton>
   )
 }
 
