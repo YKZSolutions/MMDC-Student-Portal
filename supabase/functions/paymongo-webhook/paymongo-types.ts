@@ -20,7 +20,8 @@ export type PaymentDataType =
 
 // Metadata we defined in our payment intent
 interface CustomMetadata {
-  billId?: string;
+  billingId?: string;
+  userId?: string;
 }
 
 // ===== Base Webhook Envelope =====
