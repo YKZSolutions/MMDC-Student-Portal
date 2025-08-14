@@ -1,7 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateMajorDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  programId: string;
+
   @ApiProperty({
     type: 'string',
   })
