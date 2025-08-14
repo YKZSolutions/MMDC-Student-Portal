@@ -1,16 +1,5 @@
 import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
-
-export class PromptDto {
-  @IsNotEmpty()
-  @IsString()
-  question: string;
-
-  @ValidateNested({ each: true })
-  @IsArray()
-  sessionHistory: Turn[];
-}
 
 enum ChatbotRole {
   USER = 'user',
@@ -25,4 +14,15 @@ export class Turn {
   @IsString()
   @IsNotEmpty()
   content: string;
+}
+
+export class PromptDto {
+  @IsNotEmpty()
+  @IsString()
+  question: string;
+
+  @ApiProperty({ type: [Turn] })
+  @ValidateNested({ each: true })
+  @IsArray()
+  sessionHistory: Turn[];
 }
