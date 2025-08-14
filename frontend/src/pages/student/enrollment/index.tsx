@@ -36,11 +36,6 @@ const tabsData = [
     label: 'Course Selection',
     Component: CourseSelectionPanel,
   },
-  // {
-  //   value: 'payment-scheme',
-  //   label: 'Payment Scheme',
-  //   Component: () => <></>,
-  // },
   {
     value: 'finalization',
     label: 'Finalization',
@@ -606,7 +601,6 @@ function FinalizationPanel() {
   )
 }
 
-// A simple card to display the enrolled course name and code
 function EnrolledCourseCard({
   courseName,
   courseCode,
@@ -649,7 +643,6 @@ function EnrolledCourseCard({
   )
 }
 
-// A card to display the selected payment plan
 function PaymentPlanCard({
   props,
 }: {
