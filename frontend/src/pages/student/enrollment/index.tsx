@@ -299,12 +299,12 @@ const mockCourseData = [
   },
 ]
 
-interface IEnrollmentQuery {
+interface IEnrollmentStudentQuery {
   search: string
   page: number
 }
 
-function EnrollmentQueryProvider({
+function EnrollmentStudentQueryProvider({
   children,
   props = {
     search: '',
@@ -316,7 +316,7 @@ function EnrollmentQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IEnrollmentQuery
+  props?: IEnrollmentStudentQuery
 }) {
   const { search, page } = props
 
@@ -399,7 +399,7 @@ function CourseSelectionPanel() {
     page: 1,
   }
 
-  const [query, setQuery] = useState<IEnrollmentQuery>(queryDefaultValues)
+  const [query, setQuery] = useState<IEnrollmentStudentQuery>(queryDefaultValues)
 
   return (
     <Stack>
@@ -525,7 +525,7 @@ function CourseSelectionPanel() {
         </Accordion>
       </Paper>
 
-      <EnrollmentQueryProvider>
+      <EnrollmentStudentQueryProvider>
         {(props) => (
           <Group justify="flex-end">
             <Text size="sm">{props.message}</Text>
@@ -536,7 +536,7 @@ function CourseSelectionPanel() {
             />
           </Group>
         )}
-      </EnrollmentQueryProvider>
+      </EnrollmentStudentQueryProvider>
     </Stack>
   )
 }
