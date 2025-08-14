@@ -43,7 +43,7 @@ const Chatbot = ({
     { role: 'model', content: 'Hello! How can I help you today?' },
   ])
 
-  const { mutateAsync: create, isPending: waitingBotResponse, isError: botError } = useMutation(chatbotControllerPromptMutation())
+  const { mutateAsync: create, isPending, isError, isSuccess } = useMutation(chatbotControllerPromptMutation())
 
   const addMessage = async (userInput: string) => {
     const res = await create({
@@ -217,8 +217,8 @@ const Chatbot = ({
               >
                 <Stack h={'100%'}>
                   <ChatHeader onClose={handleModalClose} />
-                  <ChatMessages messages={messages} isSending={waitingBotResponse} isError={botError} />
-                  <ChatInput onSendInput={addMessage} isSending={waitingBotResponse} />
+                  <ChatMessages messages={messages} isSending={isPending} isError={isError} />
+                  <ChatInput onSendInput={addMessage} isSending={isPending} isSuccess={isSuccess} />
                 </Stack>
               </Popover.Dropdown>
             </Popover>
@@ -330,17 +330,27 @@ const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMess
   )
 }
 
+type ChatInputProps = {
+  onSendInput: (message: string) => void
+  isSending?: boolean
+  isSuccess?: boolean
+}
+
 const ChatInput = ({
   onSendInput,
   isSending = false,
-}: {
-  onSendInput: (message: string) => void
-  isSending?: boolean
-}) => {
+  isSuccess = false,
+}: ChatInputProps) => {
   const theme = useMantineTheme()
   const [value, setValue] = useState('')
 
   const canSend = !!value.trim() && !isSending
+
+  useEffect(() => {
+    if (isSuccess) {
+      setValue('')
+    }
+  }, [isSuccess])
 
   return (
     <Group
@@ -369,7 +379,6 @@ const ChatInput = ({
         onClick={() => {
           if (!canSend) return
           onSendInput(value)
-          setValue('')
         }}
         size="sm"
         radius="xl"
