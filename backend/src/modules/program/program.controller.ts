@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
 
-import { FilterProgramDto } from './dto/filter-program.dto';
 import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
@@ -24,6 +23,7 @@ import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
 import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 
 /**
  * @remarks
@@ -63,7 +63,7 @@ export class ProgramController {
     type: PaginatedProgramsDto,
   })
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAll(@Query() filters: FilterProgramDto) {
+  findAll(@Query() filters: BaseFilterDto) {
     return this.programService.findAll(filters);
   }
 
