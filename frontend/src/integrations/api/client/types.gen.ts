@@ -358,6 +358,10 @@ export type PromptDto = {
     sessionHistory: Array<Turn>;
 };
 
+export type ChatbotResponseDto = {
+    response: string;
+};
+
 export type UsersControllerFindAllData = {
     body?: never;
     path?: never;
@@ -1143,12 +1147,7 @@ export type ChatbotControllerPromptErrors = {
 export type ChatbotControllerPromptError = ChatbotControllerPromptErrors[keyof ChatbotControllerPromptErrors];
 
 export type ChatbotControllerPromptResponses = {
-    /**
-     * Chatbot response
-     */
-    201: {
-        response?: string;
-    };
+    201: ChatbotResponseDto;
 };
 
 export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];

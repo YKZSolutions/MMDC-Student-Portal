@@ -49,7 +49,7 @@ const Chatbot = ({
       },
     })
 
-    const response: string = res.response ?? "I'm sorry, we couldn't process your request. Please try again later."
+    const response: string = res.response
 
     setMessages((prev): Turn[] => {
       const newMessages: Turn[] = [

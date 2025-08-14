@@ -12,6 +12,7 @@ import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@supabase/supabase-js';
 import { Role } from '@/common/enums/roles.enum';
+import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 
 @ApiBearerAuth()
 @Controller('chatbot')
@@ -28,18 +29,7 @@ export class ChatbotController {
    * @returns A response from the chatbot.
    */
   @Post()
-  @ApiCreatedResponse({
-    description: 'Chatbot response',
-    schema: {
-      type: 'object',
-      properties: {
-        response: {
-          type: 'string',
-          example: 'Hello, how can I help you today?',
-        },
-      },
-    },
-  })
+  @ApiCreatedResponse({ type: ChatbotResponseDto })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async prompt(@CurrentUser() user: AuthUser, @Body() prompt: PromptDto) {

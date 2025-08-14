@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotImplementedException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { UsersService } from '@/modules/users/users.service';
 import { BillingService } from '@/modules/billing/billing.service';
@@ -16,6 +21,7 @@ import {
   UserStaffContext,
   UserStudentContext,
 } from '@/modules/chatbot/dto/user-context.dto';
+import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -67,9 +73,17 @@ export class ChatbotService {
     return baseContext;
   }
 
-  async handleQuestion(userId: string, role: string, prompt: PromptDto) {
+  async handleQuestion(
+    userId: string,
+    role: string,
+    prompt: PromptDto,
+  ): Promise<ChatbotResponseDto> {
     const method = 'handleQuestion';
     this.logger.log(`[${method}] START: userId=${userId}, role=${role}`);
+
+    const result: ChatbotResponseDto = {
+      response: '',
+    };
 
     const userContext: UserBaseContext | UserStudentContext | UserStaffContext =
       this.mapUserToContext(role, await this.usersService.getMe(userId));
@@ -85,14 +99,18 @@ export class ChatbotService {
       );
 
     if (!call) {
-      this.logger.log(
-        `[${method}] SUCCESS: userId=${userId}, role=${role} answer=${text}`,
-      );
+      this.logger.log(`[${method}] SUCCESS: userId=${userId}, role=${role}`);
       this.logger.debug(`[${method}] Final answer: ${text}`);
-      return { answer: text };
+
+      if (!text) {
+        throw new ServiceUnavailableException('No response from Gemini');
+      }
+
+      result.response = text;
+      return result;
     }
 
-    const result: string[] = [];
+    const functionCallResult: string[] = [];
 
     for (const functionCall of call) {
       switch (functionCall.name) {
@@ -100,7 +118,7 @@ export class ChatbotService {
           this.logger.debug(`[${method}] Function call: ${functionCall.name}`);
           const args = functionCall.args as FilterUserDto;
           const count = await this.usersService.countAll(args);
-          result.push(
+          functionCallResult.push(
             `${text}: ${count} users found with the following filters: ${JSON.stringify(args)}`,
           );
           break;
@@ -109,24 +127,32 @@ export class ChatbotService {
           this.logger.debug(`[${method}] Function call: ${functionCall.name}`);
           const args = functionCall.args as { query: string; limit: number };
           const vector = await this.handleVectorSearch(args.query, args.limit);
-          result.push(
+          functionCallResult.push(
             `${text}: Vector search for "${args.query}": ${JSON.stringify(vector)}`,
           );
           break;
         }
         default:
-          throw new Error(`Unhandled function call: ${functionCall.name}`);
+          throw new NotImplementedException(
+            `Unhandled function call: ${functionCall.name}`,
+          );
       }
     }
 
     // Send results back to Gemini
     const finalAnswer = await this.gemini.generateFinalAnswer(
       prompt.question,
-      result,
+      functionCallResult,
     );
+    if (!finalAnswer) {
+      throw new ServiceUnavailableException('No response from Gemini');
+    }
+
     this.logger.log(`[${method}] SUCCESS: userId=${userId}, role=${role}`);
     this.logger.debug(`[${method}] Final answer: ${finalAnswer}`);
-    return { answer: finalAnswer };
+
+    result.response = finalAnswer;
+    return result;
   }
 
   async handleVectorSearch(query: string, limit: number = 10): Promise<string> {

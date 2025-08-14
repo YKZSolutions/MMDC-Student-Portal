@@ -58,7 +58,9 @@ export class GeminiService {
       config: { tools: allowedTools },
     });
 
-    this.logger.log(`[${method}] `);
+    this.logger.log(
+      `[${method}] SUCCESS: userId=${currentUser.id} role=${role}`,
+    );
     return {
       text: result.text,
       call: result.functionCalls ?? null,

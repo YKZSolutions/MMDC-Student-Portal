@@ -492,6 +492,10 @@ export const zPromptDto = z.object({
     sessionHistory: z.array(zTurn)
 });
 
+export const zChatbotResponseDto = z.object({
+    response: z.string()
+});
+
 export const zUsersControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -817,9 +821,4 @@ export const zChatbotControllerPromptData = z.object({
     query: z.optional(z.never())
 });
 
-/**
- * Chatbot response
- */
-export const zChatbotControllerPromptResponse = z.object({
-    response: z.optional(z.string())
-});
+export const zChatbotControllerPromptResponse = zChatbotResponseDto;
