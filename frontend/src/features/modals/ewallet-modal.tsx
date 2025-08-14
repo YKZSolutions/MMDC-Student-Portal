@@ -75,10 +75,6 @@ function EwalletModalQueryProvider({
   // Payment Intent Creation
   const { data, isFetching, isPending } = useSuspenseQuery({
     ...paymentsControllerPayOptions({
-      // body: {
-      //   amount: amount,
-      //   billingId: billingId,
-      // },
       body: {
         amount: amount,
       },
