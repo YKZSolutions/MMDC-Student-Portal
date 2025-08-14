@@ -41,30 +41,46 @@ export class GeminiService {
       ? `The current authenticated user is: ${JSON.stringify(currentUser)}`
       : `No authenticated user.`;
 
-    const normalizedHistory = (sessionHistory ?? []).map((turn) => ({
+    // Convert session history to the format expected by Gemini
+    const history = (sessionHistory ?? []).map((turn) => ({
       role: turn.role,
       parts: [{ text: turn.content }],
     }));
 
-    const conversation = [
-      { role: 'model', parts: [{ text: systemContext }] },
-      ...normalizedHistory,
-      { role: 'user', parts: [{ text: question }] },
-    ];
+    // Create the conversation with system context and current question
+    const conversation = [{ role: 'model', parts: [{ text: systemContext }] }];
 
-    const result = await this.gemini.models.generateContent({
-      model: this.model,
-      contents: conversation,
-      config: { tools: allowedTools },
-    });
+    if (history.length > 0) {
+      conversation.push(...history);
+    }
 
-    this.logger.log(
-      `[${method}] SUCCESS: userId=${currentUser.id} role=${role}`,
-    );
-    return {
-      text: result.text,
-      call: result.functionCalls ?? null,
-    };
+    conversation.push({ role: 'user', parts: [{ text: question }] });
+
+    try {
+      const result = await this.gemini.models.generateContent({
+        model: this.model,
+        contents: conversation,
+        config: { tools: allowedTools },
+      });
+
+      this.logger.log(
+        `[${method}] SUCCESS: userId=${currentUser.id} role=${role}`,
+      );
+
+      // Extract the response text
+      const responseText = result.text;
+
+      // Extract function calls if any
+      const functionCalls = result.functionCalls;
+
+      return {
+        text: responseText,
+        call: functionCalls?.length ? functionCalls : null,
+      };
+    } catch (error) {
+      this.logger.error(`[${method}] Error calling Gemini API:`, error);
+      throw new Error('Failed to get response from Gemini API');
+    }
   }
 
   /**

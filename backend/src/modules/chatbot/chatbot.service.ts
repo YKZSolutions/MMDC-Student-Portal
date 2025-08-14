@@ -81,6 +81,9 @@ export class ChatbotService {
     const method = 'handleQuestion';
     this.logger.log(`[${method}] START: userId=${userId}, role=${role}`);
 
+    this.logger.debug(
+      `[${method}] Prompt: ${prompt.question}, sessionHistory: ${JSON.stringify(prompt.sessionHistory)}`,
+    );
     const result: ChatbotResponseDto = {
       response: '',
     };

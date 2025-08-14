@@ -33,6 +33,7 @@ export class ChatbotController {
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
   async prompt(@CurrentUser() user: AuthUser, @Body() prompt: PromptDto) {
+    console.log(JSON.stringify(prompt));
     return this.chatbotService.handleQuestion(
       user.id,
       user.user_metadata.role as Role,
