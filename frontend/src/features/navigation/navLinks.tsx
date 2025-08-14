@@ -78,6 +78,13 @@ export const adminLinks: NavItem[] = [
     fuzzy: true,
   },
   {
+    link: '/enrollment',
+    label: 'Enrollment',
+    Icon: IconClipboardListFilled,
+    IconInactive: IconClipboardList,
+    fuzzy: true,
+  },
+  {
     link: '/billing',
     label: 'Billing',
     Icon: IconCashBanknoteFilled,
