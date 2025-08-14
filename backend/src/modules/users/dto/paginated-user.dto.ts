@@ -1,19 +1,8 @@
-import { PaginationMetaDto } from '@/modules/meta/dto/pagination-meta.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  PageNumberCounters,
-  PageNumberPagination,
-} from 'prisma-extension-pagination/dist/types';
 import { UserWithRelations } from './user-with-relations.dto';
+import { PaginatedDto } from '@/common/dto/paginated.dto';
 
-export class PaginatedUsersDto {
+export class PaginatedUsersDto extends PaginatedDto<UserWithRelations> {
   @ApiProperty({ type: [UserWithRelations] })
   users: UserWithRelations[];
-
-  @ApiProperty({
-    type: PaginationMetaDto,
-    additionalProperties: true,
-    nullable: false,
-  })
-  meta: PageNumberPagination & PageNumberCounters;
 }
