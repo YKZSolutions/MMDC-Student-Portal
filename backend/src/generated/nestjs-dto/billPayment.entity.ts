@@ -12,7 +12,7 @@ export class BillPayment {
   })
   billId: string;
   @ApiHideProperty()
-  bill: BillAsType;
+  bill?: BillAsType;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -31,6 +31,11 @@ export class BillPayment {
     format: 'date-time',
   })
   paymentDate: Date;
+  @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  paymongoData: PrismaJson.PayMongoData | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

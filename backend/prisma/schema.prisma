@@ -171,7 +171,7 @@ model Major {
   program   Program  @relation(fields: [programId], references: [id])
   courses   Course[]
 
-  name        String
+  name        String @unique
   description String
 
   /// @DtoReadOnly
@@ -246,8 +246,6 @@ model Bill {
 model BillPayment {
   id     String @id @default(uuid()) @db.Uuid
   billId String @db.Uuid
-  /// @DtoRelationRequired
-  /// @DtoRelationCanConnectOnCreate
   /// @DtoApiHidden
   bill   Bill   @relation(fields: [billId], references: [id])
 
@@ -255,6 +253,9 @@ model BillPayment {
   paymentType String
   notes       String
   paymentDate DateTime
+  /// [PayMongoData]
+  /// @DtoOverrideType(PrismaJson.PayMongoData)
+  paymongoData Json?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

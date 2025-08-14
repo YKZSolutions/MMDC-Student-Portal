@@ -25,6 +25,11 @@ export class BillPaymentDto {
   })
   paymentDate: Date;
   @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  paymongoData: PrismaJson.PayMongoData | null;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
