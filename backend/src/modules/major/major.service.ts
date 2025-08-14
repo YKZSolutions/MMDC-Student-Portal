@@ -1,4 +1,3 @@
-import { CreateMajorDto } from '@/generated/nestjs-dto/create-major.dto';
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
@@ -12,10 +11,11 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { FilterMajorDto } from './dto/filter-major.dto';
-import { PaginatedMajorDto } from './dto/paginated-major.dto';
+import { PaginatedMajorsDto } from './dto/paginated-major.dto';
 import { MajorDto } from '@/generated/nestjs-dto/major.dto';
 import { isUUID } from 'class-validator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { CreateMajorDto } from './dto/create-major.dto';
 
 @Injectable()
 export class MajorService {
@@ -39,7 +39,13 @@ export class MajorService {
   async create(createMajorDto: CreateMajorDto): Promise<MajorDto> {
     try {
       const major = await this.prisma.client.major.create({
-        data: { ...createMajorDto },
+        data: {
+          name: createMajorDto.major.name,
+          description: createMajorDto.major.description,
+          program: {
+            connect: { id: createMajorDto.programId },
+          },
+        },
       });
       return major;
     } catch (error) {
@@ -59,13 +65,13 @@ export class MajorService {
    *
    * @async
    * @param {FilterMajorDto} filters - Filter and pagination options (e.g., search keyword, page number).
-   * @returns {Promise<PaginatedMajorDto>} - Paginated list of programs with metadata.
+   * @returns {Promise<PaginatedMajorsDto>} - Paginated list of programs with metadata.
    *
    * @throws {BadRequestException} If the query paramters are invalid.
    * @throws {NotFoundException} If no prgrams are found.
    * @throws {Error} Any other unexpected erros.
    */
-  async findAll(filters: FilterMajorDto): Promise<PaginatedMajorDto> {
+  async findAll(filters: BaseFilterDto): Promise<PaginatedMajorsDto> {
     try {
       const where: Prisma.MajorWhereInput = {};
       const page = filters.page || 1;
