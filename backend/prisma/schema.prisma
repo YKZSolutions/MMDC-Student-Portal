@@ -171,7 +171,7 @@ model Major {
   program   Program  @relation(fields: [programId], references: [id])
   courses   Course[]
 
-  name        String
+  name        String @unique
   description String
 
   /// @DtoReadOnly
