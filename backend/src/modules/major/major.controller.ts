@@ -14,16 +14,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { MajorService } from './major.service';
-import { CreateMajorDto } from '@/generated/nestjs-dto/create-major.dto';
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
-import { FilterMajorDto } from './dto/filter-major.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { Major } from '@/generated/nestjs-dto/major.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { PaginatedMajorDto } from './dto/paginated-major.dto';
+import { PaginatedMajorsDto } from './dto/paginated-major.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { CreateMajorDto } from './dto/create-major.dto';
 
 /**
  * @remarks
@@ -58,13 +58,13 @@ export class MajorController {
    */
   @Get()
   @Roles(Role.ADMIN)
-  @ApiOkResponse({ type: PaginatedMajorDto })
+  @ApiOkResponse({ type: PaginatedMajorsDto })
   @ApiException(() => [
     BadRequestException,
     NotFoundException,
     InternalServerErrorException,
   ])
-  findAll(@Query() filters: FilterMajorDto) {
+  findAll(@Query() filters: BaseFilterDto) {
     return this.majorService.findAll(filters);
   }
 
