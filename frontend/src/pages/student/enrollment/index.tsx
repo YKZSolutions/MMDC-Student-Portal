@@ -399,12 +399,13 @@ function CourseSelectionPanel() {
     page: 1,
   }
 
-  const [query, setQuery] = useState<IEnrollmentStudentQuery>(queryDefaultValues)
+  const [query, setQuery] =
+    useState<IEnrollmentStudentQuery>(queryDefaultValues)
 
   return (
     <Stack>
       <Paper radius={'md'}>
-        <Flex p={'sm'} justify={'space-between'}>
+        <Group py={'sm'} justify={'space-between'}>
           <SegmentedControl
             className="grow max-w-2xs"
             bd={'1px solid gray.2'}
@@ -459,7 +460,7 @@ function CourseSelectionPanel() {
               </Popover.Dropdown>
             </Popover>
           </Flex>
-        </Flex>
+        </Group>
 
         <Divider />
 
