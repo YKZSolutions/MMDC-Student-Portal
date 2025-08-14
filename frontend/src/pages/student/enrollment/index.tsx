@@ -473,9 +473,14 @@ function CourseSelectionPanel() {
                     <Text fw={500} fz={'md'}>
                       {course.name}
                     </Text>
-                    <Text fw={500} fz={'xs'} c={'dark.3'}>
-                      {course.code}
-                    </Text>
+                    <Stack gap={rem(5)}>
+                      <Text fw={500} fz={'xs'} c={'dark.3'}>
+                        {course.code}
+                      </Text>
+                      <Badge c="gray.6" variant="light" radius="sm" size="sm">
+                        {course.sections.length} section(s)
+                      </Badge>
+                    </Stack>
                   </Stack>
                 </Accordion.Control>
 

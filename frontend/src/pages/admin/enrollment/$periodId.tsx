@@ -11,7 +11,6 @@ import {
   Paper,
   Popover,
   rem,
-  SegmentedControl,
   Stack,
   Text,
   TextInput,
@@ -21,9 +20,10 @@ import {
 import {
   IconArrowLeft,
   IconFilter2,
+  IconPencil,
   IconPlus,
   IconSearch,
-  IconUpload,
+  IconTrash,
 } from '@tabler/icons-react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { Fragment } from 'react/jsx-runtime'
@@ -262,74 +262,32 @@ function EnrollmentPeriodIdPage() {
 
   return (
     <Container fluid m={0} pb={'lg'}>
-      <Flex align={'center'} pb={'lg'}>
-        <Group>
-          <ActionIcon
-            radius={'xl'}
-            variant="subtle"
-            size={'lg'}
-            onClick={() =>
-              navigate({
-                to: '..',
-              })
-            }
-          >
-            <IconArrowLeft />
-          </ActionIcon>
-          <Title c={'dark.7'} order={3} fw={700}>
-            2023 - 2024
-          </Title>
-          <Divider orientation="vertical" />
-          <Title c={'dark.7'} order={3} fw={700}>
-            Term 2
-          </Title>
-        </Group>
-        <Group align={'center'} gap={'sm'} ml={'auto'}>
-          <Button
-            variant="outline"
-            radius={'md'}
-            leftSection={<IconUpload size={20} />}
-            c={'gray.7'}
-            color="gray.4"
-            lts={rem(0.25)}
-            // onClick={() => mutateIntent()}
-          >
-            Export
-          </Button>
-          <Button
-            variant="filled"
-            radius={'md'}
-            leftSection={<IconPlus size={20} />}
-            lts={rem(0.25)}
-          >
-            Pay Bill
-          </Button>
-
-          {/* <Button
-            variant="outline"
-            radius={'md'}
-            leftSection={<IconUpload size={20} />}
-            c={'gray.7'}
-            color="gray.4"
-            lts={rem(0.25)}
-            onClick={() => mutateAttach(dataIntent)}
-          >
-            Attach
-          </Button> */}
-        </Group>
-      </Flex>
-
       <Stack>
         <Paper radius={'md'}>
-          <Flex p={'sm'} justify={'space-between'}>
-            <SegmentedControl
-              className="grow max-w-2xs"
-              bd={'1px solid gray.2'}
-              radius={'md'}
-              data={['All', 'Enrolled', 'Not Enrolled']}
-              color="primary"
-            />
-
+          <Group py={'md'} justify={'space-between'} align="center">
+            <Flex align={'center'}>
+              <Group>
+                <ActionIcon
+                  radius={'xl'}
+                  variant="subtle"
+                  size={'lg'}
+                  onClick={() =>
+                    navigate({
+                      to: '..',
+                    })
+                  }
+                >
+                  <IconArrowLeft />
+                </ActionIcon>
+                <Title c={'dark.7'} order={3} fw={700}>
+                  2023 - 2024
+                </Title>
+                <Divider orientation="vertical" />
+                <Title c={'dark.7'} order={3} fw={700}>
+                  Term 2
+                </Title>
+              </Group>
+            </Flex>
             <Flex align={'center'} gap={5}>
               <TextInput
                 placeholder="Search name/email"
@@ -375,8 +333,16 @@ function EnrollmentPeriodIdPage() {
                   </Stack>
                 </Popover.Dropdown>
               </Popover>
+              <Button
+                variant="filled"
+                radius={'md'}
+                leftSection={<IconPlus size={20} />}
+                lts={rem(0.25)}
+              >
+                Create
+              </Button>
             </Flex>
-          </Flex>
+          </Group>
 
           <Divider />
 
@@ -385,20 +351,56 @@ function EnrollmentPeriodIdPage() {
               <Fragment key={course.id}>
                 <Accordion.Item value={course.id.toString()}>
                   <Accordion.Control py={rem(5)}>
-                    <Stack gap={rem(0)}>
-                      <Text fw={500} fz={'md'}>
-                        {course.name}
-                      </Text>
-                      <Text fw={500} fz={'xs'} c={'dark.3'}>
-                        {course.code}
-                      </Text>
-                    </Stack>
+                    <Group justify="space-between">
+                      <Stack gap={rem(0)}>
+                        <Text fw={500} fz={'md'}>
+                          {course.name}
+                        </Text>
+                        <Stack gap={rem(5)}>
+                          <Text fw={500} fz={'xs'} c={'dark.3'}>
+                            {course.code}
+                          </Text>
+                          <Badge
+                            c="gray.6"
+                            variant="light"
+                            radius="sm"
+                            size="sm"
+                          >
+                            {course.sections.length} section(s)
+                          </Badge>
+                        </Stack>
+                      </Stack>
+
+                      <ActionIcon
+                        component="div"
+                        variant="subtle"
+                        c={'red.4'}
+                        size={'lg'}
+                        radius={'xl'}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <IconTrash size={18} />
+                      </ActionIcon>
+                    </Group>
                   </Accordion.Control>
 
                   <Accordion.Panel>
                     <Stack>
                       <Divider />
                       <Stack gap={'xs'}>
+                        <Button
+                          size="md"
+                          variant="outline"
+                          c={'dark.4'}
+                          className="border-2 border-dashed border-dark-50 hover:bg-gray-200"
+                        >
+                          <Group gap={rem(5)}>
+                            <IconPlus size={18} />
+                            <Text fz={'sm'} fw={500}>
+                              Add Section
+                            </Text>
+                          </Group>
+                        </Button>
                         {course.sections.map((section) => (
                           <Card
                             key={section.sectionName}
@@ -422,9 +424,26 @@ function EnrollmentPeriodIdPage() {
                                 </Text>
                               </Stack>
                               <Stack gap={'xs'} align="flex-end">
-                                <Button size="xs" radius={'lg'}>
-                                  Enroll
-                                </Button>
+                                <Group gap={rem(5)}>
+                                  <ActionIcon
+                                    variant="subtle"
+                                    c={'dark.3'}
+                                    size={'md'}
+                                    radius={'xl'}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <IconPencil size={18} />
+                                  </ActionIcon>
+                                  <ActionIcon
+                                    variant="subtle"
+                                    c={'red.4'}
+                                    size={'md'}
+                                    radius={'xl'}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <IconTrash size={18} />
+                                  </ActionIcon>
+                                </Group>
                                 <Badge c="gray.6" variant="light" radius="sm">
                                   {section.takenSlots} / {section.maxSlots}{' '}
                                   slots
