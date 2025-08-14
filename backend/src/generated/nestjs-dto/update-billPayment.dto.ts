@@ -36,7 +36,8 @@ export class UpdateBillPaymentDto {
   @ApiProperty({
     type: () => Object,
     required: false,
+    nullable: true,
   })
   @IsOptional()
-  paymongoData?: PrismaJson.PayMongoData;
+  paymongoData?: PrismaJson.PayMongoData | null;
 }

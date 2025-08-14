@@ -13,6 +13,7 @@ import { UserStatusGuard } from './common/guards/user-status.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
+import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
 import { ProgramModule } from './modules/program/program.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { ProgramModule } from './modules/program/program.module';
     AuthModule,
     BillingModule,
     ProgramModule,
+    ChatbotModule,
   ],
   controllers: [],
   providers: [

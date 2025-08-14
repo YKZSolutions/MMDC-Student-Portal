@@ -1,20 +1,12 @@
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { AuthService } from '@/modules/auth/auth.service';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
   CreateUserStudentDto,
 } from './dto/create-user.dto';
 import {
-  UpdateUserBaseDto,
   UpdateUserStaffDto,
   UpdateUserStudentDto,
 } from './dto/update-user-details.dto';
@@ -31,7 +23,6 @@ import {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { UpdateStudentDetailsDto } from '@/generated/nestjs-dto/update-studentDetails.dto';
 import { UpdateStaffDetailsDto } from '@/generated/nestjs-dto/update-staffDetails.dto';
 
@@ -270,27 +261,10 @@ export class UsersService {
     return updatedUser;
   }
 
-  /**
-   * Finds all users that match provided filters (e.g., role, search keyword) with pagination.
-   *
-   * @param filters - Filter and pagination options.
-   * @returns Paginated list of users with metadata.
-   * @throws BadRequestException or InternalServerErrorException based on the failure type.
-   */
-  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
-    const method = 'findAll';
-    this.logger.log(
-      `[${method}] START: role=${filters.role ?? 'any'}, search="${
-        filters.search ?? ''
-      }", page=${filters.page ?? 1}`,
-    );
-
-    const where: Prisma.UserWhereInput = {};
-    const page: FilterUserDto['page'] = Number(filters?.page) || 1;
+  filterHandler(filters: FilterUserDto, where: Prisma.UserWhereInput) {
+    if (filters.role) where.role = filters.role;
 
     where.deletedAt = null;
-
-    if (filters.role) where.role = filters.role;
 
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
@@ -320,6 +294,27 @@ export class UsersService {
         ],
       }));
     }
+  }
+
+  /**
+   * Finds all users that match provided filters (e.g., role, search keyword) with pagination.
+   *
+   * @param filters - Filter and pagination options.
+   * @returns Paginated list of users with metadata.
+   * @throws BadRequestException or InternalServerErrorException based on the failure type.
+   */
+  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
+    const method = 'findAll';
+    this.logger.log(
+      `[${method}] START: role=${filters.role ?? 'any'}, search="${
+        filters.search ?? ''
+      }", page=${filters.page ?? 1}`,
+    );
+
+    const page: FilterUserDto['page'] = Number(filters?.page) || 1;
+    const where: Prisma.UserWhereInput = {};
+
+    this.filterHandler(filters, where);
 
     const [users, meta] = await this.prisma.client.user
       .paginate({
@@ -337,6 +332,23 @@ export class UsersService {
 
     this.logger.log(`[${method}] SUCCESS: returned ${users.length} users`);
     return { users, meta };
+  }
+
+  async countAll(filters: FilterUserDto): Promise<number> {
+    const method = 'countAll';
+    this.logger.log(
+      `[${method}] START: role=${filters.role ?? 'any'}, search="${
+        filters.search ?? ''
+      }", page=${filters.page ?? 1}`,
+    );
+
+    const where: Prisma.UserWhereInput = {};
+
+    this.filterHandler(filters, where);
+
+    const count = await this.prisma.client.user.count({ where });
+    this.logger.log(`[${method}] SUCCESS: count=${count}`);
+    return count;
   }
 
   /**
@@ -435,7 +447,7 @@ export class UsersService {
    * - Includes related entities like `UserDetails`, `StudentDetails`, and `StaffDetails`
    * - Constructs and returns a flattened DTO depending on the user's role
    *
-   * @param user - The authenticated user from Supabase Auth context
+   * @param authId - The Supabase Auth UID of the authenticated user.
    * @returns One of:
    * - `UserStudentDetailsDto` if the user is a student
    * - `UserStaffDetailsDto` if the user is a mentor/admin
@@ -446,22 +458,14 @@ export class UsersService {
    * @throws InternalServerErrorException If an unexpected error occurs
    */
   async getMe(
-    user: AuthUser,
+    authId: string,
   ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
     const method = 'getMe';
-    const authUid = user.id;
 
-    this.logger.log(`[${method}] START: authUid=${authUid ?? 'unknown'}`);
-
-    if (!authUid) {
-      this.logger.error(
-        `[${method}] FAIL: authUid=unknown, reason=User not authorized`,
-      );
-      throw new UnauthorizedException('User not authorized');
-    }
+    this.logger.log(`[${method}] START: authId=${authId ?? 'unknown'}`);
 
     const account = await this.prisma.client.userAccount.findUnique({
-      where: { authUid: authUid },
+      where: { authUid: authId },
       include: {
         user: {
           include: {
@@ -475,7 +479,7 @@ export class UsersService {
 
     if (!account) {
       this.logger.error(
-        `[${method}] FAIL: authUid=${authUid}, reason=User not found`,
+        `[${method}] FAIL: authUid=${authId}, reason=User not found`,
       );
       throw new NotFoundException('User not found');
     }
