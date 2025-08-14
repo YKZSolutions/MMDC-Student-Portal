@@ -1,5 +1,6 @@
 import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 enum ChatbotRole {
   USER = 'user',
@@ -21,8 +22,8 @@ export class PromptDto {
   @IsString()
   question: string;
 
-  @ApiProperty({ type: [Turn] })
   @ValidateNested({ each: true })
   @IsArray()
+  @Type(() => Turn)
   sessionHistory: Turn[];
 }

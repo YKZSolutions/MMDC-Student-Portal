@@ -537,8 +537,8 @@ export const zTurn = z.object({
 });
 
 export const zPromptDto = z.object({
-    sessionHistory: z.array(zTurn),
-    question: z.string()
+    question: z.string(),
+    sessionHistory: z.array(zTurn)
 });
 
 export const zChatbotResponseDto = z.object({

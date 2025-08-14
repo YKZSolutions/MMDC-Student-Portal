@@ -401,8 +401,8 @@ export type Turn = {
 };
 
 export type PromptDto = {
-    sessionHistory: Array<Turn>;
     question: string;
+    sessionHistory: Array<Turn>;
 };
 
 export type ChatbotResponseDto = {
