@@ -1,10 +1,14 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
   Get,
   HttpException,
   InternalServerErrorException,
   NotFoundException,
   Param,
+  Post,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthUser, UserMetadata } from '@/common/interfaces/auth.user-metadata';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
@@ -13,10 +17,18 @@ import { Role } from '@/common/enums/roles.enum';
 import { ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { AuthMetadataDto } from './dto/auth-metadata.dto';
+import { AuthService } from './auth.service';
+import { UserCredentialsDto } from '../users/dto/user-credentials.dto';
+import { Session } from '@supabase/supabase-js';
+import { Public } from '@/common/decorators/auth.decorator';
+import { StatusBypass } from '@/common/decorators/user-status.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly authService: AuthService,
+  ) {}
 
   /**
    * Get User Account Metadata
@@ -51,5 +63,24 @@ export class AuthController {
       }
       throw new InternalServerErrorException('Failed to fetch user');
     }
+  }
+
+  /**
+   * Login Account
+   *
+   * @remarks Login via email & password
+   */
+  @Post('login')
+  @Public()
+  @StatusBypass()
+  @ApiException(() => [BadRequestException, UnauthorizedException])
+  async login(@Body() credentials: UserCredentialsDto): Promise<string> {
+    if (!credentials.password)
+      throw new BadRequestException('Password not found');
+
+    return await this.authService.login(
+      credentials.email,
+      credentials.password,
+    );
   }
 }

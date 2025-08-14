@@ -15,15 +15,11 @@ import { BillingModule } from './modules/billing/billing.module';
 import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
 import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
 import { ProgramModule } from './modules/program/program.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
     EnvConfigModule,
-    UsersModule,
-    CoursesModule,
-    // PrismaModule.forRoot({
-    //   isGlobal: true,
-    // }),
     CustomPrismaModule.forRootAsync({
       isGlobal: true,
       name: 'PrismaService',
@@ -33,8 +29,11 @@ import { ProgramModule } from './modules/program/program.module';
     }),
     SupabaseModule,
     TestModule,
+    UsersModule,
+    CoursesModule,
     AuthModule,
     BillingModule,
+    PaymentsModule,
     ProgramModule,
     ChatbotModule,
   ],

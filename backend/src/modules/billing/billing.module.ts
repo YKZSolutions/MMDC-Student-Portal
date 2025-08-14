@@ -1,12 +1,12 @@
-import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
+import { BillingController } from './billing.controller';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
-  imports: [HttpModule],
   controllers: [BillingController],
   providers: [BillingService],
+  imports: [PaymentsModule],
   exports: [BillingService],
 })
 export class BillingModule {}
