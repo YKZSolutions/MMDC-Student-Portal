@@ -14,7 +14,4 @@ export class CreatePaymentDto {
   @IsOptional()
   @IsString()
   statementDescriptor: string;
-
-  @IsUUID()
-  billId: string;
 }

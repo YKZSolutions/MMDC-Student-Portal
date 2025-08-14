@@ -58,7 +58,7 @@ export class BillingService {
    * @param filters - The different filters, search, sorting, and pagination for the query
    * @param role - The user's role
    * @param userId - The user's id
-   * @returns An array of all bills.
+   * @returns A paginated list of all bills.
    */
   async findAll(
     filters: FilterBillDto,

@@ -31,20 +31,31 @@ export class PaymentsService {
     private readonly httpService: HttpService,
   ) {}
 
-  async initiatePayment(createBillingDto: CreatePaymentDto) {
+  /**
+   * Starts a payment intent from PayMongo which redirects to their payment gateway.
+   *
+   * @param createPaymentDto - The DTO containing payment data (amount, payment date, etc.)
+   * @param userId - The ID of the user the payment is associated with. This will be included in the payload metadata
+   */
+  async initiatePayment(
+    billId: string,
+    createPaymentDto: CreatePaymentDto,
+    userId: string,
+  ) {
     try {
       const payload = {
         data: {
           attributes: {
-            amount: createBillingDto.payment.amountPaid,
+            amount: createPaymentDto.payment.amountPaid,
             currency: 'PHP',
             payment_method_allowed: ['paymaya', 'gcash'],
             capture_type: 'automatic',
-            description: createBillingDto.description || 'Payment intent',
+            description: createPaymentDto.description || 'Payment intent',
             statement_descriptor:
-              createBillingDto.statementDescriptor || 'Statement',
+              createPaymentDto.statementDescriptor || 'Statement',
             metadata: {
-              billingId: createBillingDto.billId,
+              userId: userId,
+              billingId: billId,
             },
           },
         },
@@ -64,12 +75,21 @@ export class PaymentsService {
     }
   }
 
-  async create(createPaymentDto: CreatePaymentDto): Promise<BillPaymentDto> {
+  /**
+   * Creates a new payment entry in the database.
+   *
+   * @param createPaymentDto - The DTO containing payment data (amount, payment date, etc.)
+   * @returns Data of the created payment entry
+   */
+  async create(
+    billId: string,
+    createPaymentDto: CreatePaymentDto,
+  ): Promise<BillPaymentDto> {
     try {
       const payment = await this.prisma.client.billPayment.create({
         data: {
           ...createPaymentDto.payment,
-          billId: createPaymentDto.billId,
+          billId: billId,
         },
       });
 
@@ -80,6 +100,15 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Retrieves a list of payment entries from the database.
+   * The data returned will depend on the user's role.
+   *
+   * @param billId - An ID reference of the bill to be paid
+   * @param role - The user's role
+   * @param userId - The user's ID
+   * @returns An paginated list of all payments.
+   */
   async findAll(
     billId: string,
     role: Role,
@@ -106,6 +135,16 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Retrieves a single payment entry by ID.
+   * If the user's role is not an admin, they can only retrieve their own bill.
+   *
+   * @param id - The ID of the payment to retrieve.
+   * @param role - The user's role
+   * @param userId - The user's id
+   * @returns The payment object if found.
+   * @throws NotFoundException - If there are no payment with the specified id
+   */
   async findOne(
     id: string,
     role: Role,
@@ -130,6 +169,13 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Updates a payment entry by ID.
+   *
+   * @param id - The ID of the payment to update.
+   * @param updatePaymentDto - The DTO with updated payment data.
+   * @returns The updated payment object.
+   */
   async update(
     id: string,
     updatePaymentDto: UpdateBillPaymentDto,
@@ -147,6 +193,18 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Deletes a payment (temporary o permanent)
+   *
+   * - If `directDelete` is true, the payment is permanently deleted without checking `deletedAt`.
+   * - If `directDelete` is false or undefined:
+   *   - If `deletedAt` is null, it sets the current date to softly delete the payment.
+   *   - If `deletedAt` is already set, the payment is permanently deleted.
+   *
+   * @param id - The ID of the payment to delete.
+   * @param directDelete - Whether to skip soft delete and directly remove the payment.
+   * @returns A message indicating the result.
+   */
   async remove(
     id: string,
     directDelete?: boolean,
@@ -187,6 +245,13 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Checks whether the endpoint response came from paymongo
+   *
+   * @param body
+   * @param signatureHeader
+   * @returns If the signature is valid or not
+   */
   verifySignature(body: any, signatureHeader: string, secret: string): boolean {
     try {
       const parts = signatureHeader.split(',').reduce((acc: any, part) => {

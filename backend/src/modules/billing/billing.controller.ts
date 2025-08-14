@@ -35,9 +35,7 @@ export class BillingController {
    * @remarks Creates a new bill item and can optionally attach a user
    */
   @Post()
-  @Public()
-  @StatusBypass()
-  // @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN)
   @ApiException(() => InternalServerErrorException)
   create(@Body() createBillingDto: CreateBillingDto) {
     return this.billingService.create(
@@ -54,6 +52,7 @@ export class BillingController {
    * Returns a paginated response.
    */
   @Get()
+  @ApiException(() => NotFoundException)
   findAll(
     @Query(new ValidationPipe({ transform: true })) filters: FilterBillDto,
     @CurrentUser() user: AuthUser,
@@ -72,6 +71,7 @@ export class BillingController {
    * If the user is not an admin, they are only limited to querying their own bills.
    */
   @Get(':id')
+  @ApiException(() => NotFoundException)
   findOne(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     const { role, user_id } = user.user_metadata;
 
@@ -88,6 +88,7 @@ export class BillingController {
    */
   @Patch(':id')
   @Roles(Role.ADMIN)
+  @ApiException(() => InternalServerErrorException)
   update(@Param('id') id: string, @Body() updateBillingDto: UpdateBillDto) {
     return this.billingService.update(id, updateBillingDto);
   }
@@ -104,6 +105,7 @@ export class BillingController {
    *   - If the bill is already softly deleted, a **permanent delete** is executed.
    */
   @Delete(':id')
+  @ApiException(() => InternalServerErrorException)
   remove(@Param('id') id: string) {
     return this.billingService.remove(id);
   }
