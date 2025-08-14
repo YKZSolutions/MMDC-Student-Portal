@@ -1,19 +1,9 @@
+import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { MajorDto } from '@/generated/nestjs-dto/major.dto';
-import { PaginationMetaDto } from '@/modules/meta/dto/pagination-meta.dto';
+import { Major } from '@/generated/nestjs-dto/major.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  PageNumberCounters,
-  PageNumberPagination,
-} from 'prisma-extension-pagination/dist/types';
 
-export class PaginatedMajorDto {
+export class PaginatedMajorsDto extends PaginatedDto<Major> {
   @ApiProperty()
   majors: MajorDto[];
-
-  @ApiProperty({
-    type: PaginationMetaDto,
-    additionalProperties: true,
-    nullable: false,
-  })
-  meta: PageNumberPagination & PageNumberCounters;
 }
