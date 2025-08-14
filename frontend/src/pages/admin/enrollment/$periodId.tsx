@@ -1,3 +1,4 @@
+import { formatPaginationMessage } from '@/utils/formatters'
 import {
   Accordion,
   ActionIcon,
@@ -8,6 +9,7 @@ import {
   Divider,
   Flex,
   Group,
+  Pagination,
   Paper,
   Popover,
   rem,
@@ -24,8 +26,10 @@ import {
   IconPlus,
   IconSearch,
   IconTrash,
+  type ReactNode,
 } from '@tabler/icons-react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/$periodId')
@@ -256,9 +260,63 @@ const mockCourseData = [
   },
 ]
 
+interface IEnrollmentPeriodAdminQuery {
+  search: string
+  page: number
+}
+
+function EnrollmentPeriodAdminQueryProvider({
+  children,
+  props = {
+    search: '',
+    page: 1,
+  },
+}: {
+  children: (props: {
+    courseData: typeof mockCourseData
+    message: string
+    totalPages: number
+  }) => ReactNode
+  props?: IEnrollmentPeriodAdminQuery
+}) {
+  const { search, page } = props
+
+  // const { data } = useSuspenseQuery(
+  //   usersControllerFindAllOptions({
+  //     query: { search, page, ...(role && { role }) },
+  //   }),
+  // )
+
+  const courseData = mockCourseData
+
+  const limit = 10
+  const total = mockCourseData.length
+  const totalPages = 1
+
+  const message = formatPaginationMessage({ limit, page, total })
+
+  return children({
+    courseData,
+    message,
+    totalPages,
+  })
+}
+
 function EnrollmentPeriodIdPage() {
   const navigate = useNavigate()
   const { periodId } = route.useParams()
+
+  const searchParam: {
+    search: string
+  } = route.useSearch()
+
+  const queryDefaultValues = {
+    search: searchParam.search || '',
+    page: 1,
+  }
+
+  const [query, setQuery] =
+    useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
 
   return (
     <Container fluid m={0} pb={'lg'}>
@@ -390,9 +448,10 @@ function EnrollmentPeriodIdPage() {
                       <Stack gap={'xs'}>
                         <Button
                           size="md"
-                          variant="outline"
+                          className="border-gray-300"
+                          variant="default"
+                          radius={'md'}
                           c={'dark.4'}
-                          className="border-2 border-dashed border-dark-50 hover:bg-gray-200"
                         >
                           <Group gap={rem(5)}>
                             <IconPlus size={18} />
@@ -462,7 +521,7 @@ function EnrollmentPeriodIdPage() {
           </Accordion>
         </Paper>
 
-        {/* <EnrollmentStudentQueryProvider>
+        <EnrollmentPeriodAdminQueryProvider>
           {(props) => (
             <Group justify="flex-end">
               <Text size="sm">{props.message}</Text>
@@ -473,7 +532,7 @@ function EnrollmentPeriodIdPage() {
               />
             </Group>
           )}
-        </EnrollmentStudentQueryProvider> */}
+        </EnrollmentPeriodAdminQueryProvider>
       </Stack>
     </Container>
   )
