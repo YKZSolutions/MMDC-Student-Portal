@@ -144,7 +144,7 @@ function EnrollmentAdminPage() {
   const [query, setQuery] = useState<IEnrollmentAdminQuery>(queryDefaultValues)
 
   return (
-    <Container size={'md'} w={'100%'} pb={'xl'}>
+    <Container fluid m={0} pb={'xl'}>
       <Stack gap={'lg'}>
         {/* Page Hero */}
         <Box>
