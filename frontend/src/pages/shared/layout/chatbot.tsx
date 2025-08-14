@@ -139,6 +139,7 @@ const Chatbot = ({
           onDrag={handleDrag}
           onStop={handleDragStop}
           bounds="body"
+          handle=".chatbot-drag-handle"
         >
           <div
             ref={nodeRef}
@@ -161,6 +162,7 @@ const Chatbot = ({
             >
               <Popover.Target>
                 <Button
+                  className="chatbot-drag-handle"
                   onClick={handleClick}
                   variant="filled"
                   color={theme.colors['secondary'][0]}
