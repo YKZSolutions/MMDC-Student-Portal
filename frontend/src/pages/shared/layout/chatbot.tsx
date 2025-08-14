@@ -39,44 +39,36 @@ const Chatbot = ({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
 
-  const [messages, setMessages] = useState<Turn[]>([
-    { role: 'model', content: 'Hello! How can I help you today?' },
-  ])
+  const [messages, setMessages] = useState<Turn[]>([])
 
   const { mutateAsync: create, isPending, isError, isSuccess } = useMutation(chatbotControllerPromptMutation())
 
   const addMessage = async (userInput: string) => {
-    //Add the user's input first
-    setMessages((prev): Turn[] => {
-      return [...prev, { role: 'user', content: userInput }]
-    })
+    // Add the user's message to the state
+    const userMessage = { role: 'user' as const, content: userInput };
+    
+    // Get the current messages including the new user message
+    const updatedMessages = [...messages, userMessage];
+    
+    // Update the UI immediately with the user's message
+    setMessages(updatedMessages);
 
     const res = await create({
       body: {
         question: userInput,
-        sessionHistory: messages,
+        sessionHistory: messages, // Send all previous messages
       },
-    })
+    });
 
-    const response: string = res.response
+    const response: string = res.response;
 
-    //Add the bot's response next'
-    setMessages((prev): Turn[] => {
-      const newMessages: Turn[] = [
-        ...prev,
-        { role: 'model', content: response },
-      ]
-      return newMessages.slice(-20) // Keep the last 10 interactions
-    })
+    // Add the bot's response to the messages
+    setMessages(prev => {
+      const newMessages = [...prev, { role: 'model' as const, content: response }];
+      // Keep only the last 5 interactions (10 messages: 5 user + 5 bot)
+      return newMessages.slice(-10);
+    });
   }
-
-  useEffect(() => {
-    if(isError){
-      setMessages((prev): Turn[] => {
-        return [...prev.slice(0, -1)]
-      })
-    }
-  }, [isError])
 
   useEffect(() => {
     // set the initial position of the chatbot to the bottom right corner of the screen
@@ -324,6 +316,8 @@ const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMess
         overflowY: 'auto',
       }}
     >
+      <BotMessage message={'Hello! How can I help you today?'} />
+
       {messages.map((msg, index) =>
         msg.role === 'user' ? (
           <UserMessage key={index} message={msg.content} />
