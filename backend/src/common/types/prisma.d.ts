@@ -8,7 +8,7 @@ declare global {
       cost: number;
     }[];
 
-    type PayMongoData = PayMongoWebhookEvent;
+    type PayMongoData = PayMongoWebhookEvent | null;
   }
 }
 

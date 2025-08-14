@@ -1,30 +1,13 @@
 import { Prisma } from '@prisma/client';
-import { ApiExtraModels, ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
   IsDecimal,
   IsNotEmpty,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  ConnectBillDto,
-  type ConnectBillDto as ConnectBillDtoAsType,
-} from './connect-bill.dto';
 
-export class CreateBillPaymentBillRelationInputDto {
-  @ApiProperty({
-    type: ConnectBillDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ConnectBillDto)
-  connect: ConnectBillDtoAsType;
-}
-
-@ApiExtraModels(ConnectBillDto, CreateBillPaymentBillRelationInputDto)
 export class CreateBillPaymentDto {
   @ApiProperty({
     type: 'string',

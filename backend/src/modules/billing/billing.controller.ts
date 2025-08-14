@@ -9,11 +9,12 @@ import {
   InternalServerErrorException,
   Query,
   ValidationPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { ApiCreatedResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse } from '@nestjs/swagger';
 import { BillDto } from '@/generated/nestjs-dto/bill.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Role } from '@/common/enums/roles.enum';
@@ -21,7 +22,10 @@ import { Public } from '@/common/decorators/auth.decorator';
 import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { FilterBillDto } from './dto/filter-bill.dto';
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 
+@ApiBearerAuth()
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
@@ -31,7 +35,9 @@ export class BillingController {
    * @remarks Creates a new bill item and can optionally attach a user
    */
   @Post()
-  @Roles(Role.ADMIN)
+  @Public()
+  @StatusBypass()
+  // @Roles(Role.ADMIN)
   @ApiException(() => InternalServerErrorException)
   create(@Body() createBillingDto: CreateBillingDto) {
     return this.billingService.create(
@@ -44,29 +50,59 @@ export class BillingController {
    * Fetch bills
    * @remarks
    * Fetch bills with the option to filter and sort them.
+   * Contents of the returned list will depend on the user and their role.
    * Returns a paginated response.
    */
   @Get()
-  @Public()
-  @StatusBypass()
   findAll(
     @Query(new ValidationPipe({ transform: true })) filters: FilterBillDto,
+    @CurrentUser() user: AuthUser,
   ) {
-    console.log(filters);
-    return this.billingService.findAll(filters);
-    // return 'Doggy';
+    const { role, user_id } = user.user_metadata;
+
+    if (!role || !user_id)
+      throw new NotFoundException('User metadata role and id not found');
+
+    return this.billingService.findAll(filters, role, user_id);
   }
 
+  /**
+   * Fetch a single bill
+   * @remarks
+   * If the user is not an admin, they are only limited to querying their own bills.
+   */
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.billingService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    const { role, user_id } = user.user_metadata;
+
+    if (!role || !user_id)
+      throw new NotFoundException('User metadata not found');
+
+    return this.billingService.findOne(id, role, user_id);
   }
 
+  /**
+   * Update bill data
+   * @remarks
+   * Change the bill's details
+   */
   @Patch(':id')
+  @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() updateBillingDto: UpdateBillDto) {
     return this.billingService.update(id, updateBillingDto);
   }
 
+  /**
+   * Deletes a bill (temporary or permanent)
+   *
+   * @remarks
+   * This endpoint performs either a soft delete or a permanent deletion of a bill depending on the current state of the nill or the query parameter provided:
+   *
+   * - If `directDelete` is true, the bill is **permanently deleted** without checking if they are already softly deleted.
+   * - If `directDelete` is not provided or false:
+   *   - If the bill is not yet softly deleted (`deletedAt` is null), a **soft delete** is performed by setting the `deletedAt` timestamp.
+   *   - If the bill is already softly deleted, a **permanent delete** is executed.
+   */
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.billingService.remove(id);

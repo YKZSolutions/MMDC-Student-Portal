@@ -15,6 +15,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
 import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
 import { ProgramModule } from './modules/program/program.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ProgramModule } from './modules/program/program.module';
     CoursesModule,
     AuthModule,
     BillingModule,
+    PaymentsModule,
     ProgramModule,
     ChatbotModule,
   ],

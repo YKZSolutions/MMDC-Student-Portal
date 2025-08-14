@@ -10,9 +10,10 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
 import { BillDto } from '@/generated/nestjs-dto/bill.dto';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { FilterBillDto } from './dto/filter-bill.dto';
 import { PageNumberPaginationMeta } from 'prisma-extension-pagination';
+import { PaginatedBillsDto } from './dto/paginated-bills.dto';
 
 @Injectable()
 export class BillingService {
@@ -51,16 +52,25 @@ export class BillingService {
   }
 
   /**
-   * Retrieves all billing entries from the database.
+   * Retrieves a list of billing entries from the database.
+   * The data returned will depend on the user's role.
    *
+   * @param filters - The different filters, search, sorting, and pagination for the query
+   * @param role - The user's role
+   * @param userId - The user's id
    * @returns An array of all bills.
    */
-  async findAll(filters: FilterBillDto): Promise<{
-    bills: BillDto[];
-    meta: PageNumberPaginationMeta;
-  }> {
+  async findAll(
+    filters: FilterBillDto,
+    role: Role,
+    userId: string,
+  ): Promise<PaginatedBillsDto> {
     try {
       const where: Prisma.BillWhereInput = {};
+
+      // Only the user should see their own list of bills
+      if (role !== 'admin') where.userId = userId;
+
       const orderBy: Prisma.BillOrderByWithRelationInput = {};
       const page: FilterBillDto['page'] = filters.page ?? 1;
 
@@ -102,14 +112,25 @@ export class BillingService {
 
   /**
    * Retrieves a single billing entry by ID.
+   * If the user's role is not an admin, they can only retrieve their own bill.
    *
    * @param id - The ID of the bill to retrieve.
+   * @param role - The user's role
+   * @param userId - The user's id
    * @returns The billing object if found.
+   * @throws NotFoundException - If there are no bill with the specified id
    */
-  async findOne(id: string): Promise<BillDto> {
+  async findOne(id: string, role: Role, userId: string): Promise<BillDto> {
     try {
       const bill = await this.prisma.client.bill.findUnique({
-        where: { id },
+        where: {
+          id,
+          ...(role !== 'admin' && {
+            bill: {
+              userId,
+            },
+          }),
+        },
       });
 
       if (!bill) {
@@ -134,12 +155,6 @@ export class BillingService {
    */
   async update(id: string, updateBillingDto: UpdateBillDto): Promise<BillDto> {
     try {
-      const bill = await this.prisma.client.bill.findUnique({ where: { id } });
-
-      if (!bill) {
-        throw new NotFoundException(`Bill with ID ${id} not found`);
-      }
-
       return await this.prisma.client.bill.update({
         where: { id },
         data: updateBillingDto,
@@ -153,20 +168,47 @@ export class BillingService {
   }
 
   /**
-   * Deletes a billing entry by ID.
+   * Deletes a bill (temporary o permanent)
+   *
+   * - If `directDelete` is true, the bill is permanently deleted without checking `deletedAt`.
+   * - If `directDelete` is false or undefined:
+   *   - If `deletedAt` is null, it sets the current date to softly delete the bill.
+   *   - If `deletedAt` is already set, the bill is permanently deleted.
    *
    * @param id - The ID of the bill to delete.
-   * @returns The deleted billing object.
+   * @param directDelete - Whether to skip soft delete and directly remove the bill.
+   * @returns A message indicating the result.
    */
-  async remove(id: string): Promise<BillDto> {
+  async remove(
+    id: string,
+    directDelete?: boolean,
+  ): Promise<{ message: string }> {
     try {
-      const bill = await this.prisma.client.bill.findUnique({ where: { id } });
+      if (!directDelete) {
+        const payment = await this.prisma.client.bill.findFirstOrThrow({
+          where: { id: id },
+        });
+        if (!payment.deletedAt) {
+          await this.prisma.client.bill.update({
+            where: { id: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
 
-      if (!bill) {
-        throw new NotFoundException(`Bill with ID ${id} not found`);
+          return {
+            message: 'Bill has been soft deleted',
+          };
+        }
       }
 
-      return await this.prisma.client.bill.delete({ where: { id } });
+      await this.prisma.client.bill.delete({
+        where: { id: id },
+      });
+
+      return {
+        message: 'Bill has been permanently deleted',
+      };
     } catch (err) {
       this.logger.error(`Remove billing failed for ID ${id}`, err);
       throw err instanceof NotFoundException

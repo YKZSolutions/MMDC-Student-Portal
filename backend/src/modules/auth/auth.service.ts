@@ -1,6 +1,12 @@
 import { UserMetadata } from '@/common/interfaces/auth.user-metadata';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from '@/config/env.schema';
@@ -53,6 +59,25 @@ export class AuthService {
     this.logger.log(`[${method}] SUCCESS: created user id=${userId}`);
 
     return account.data.user;
+  }
+
+  /**
+   * Test function that logs in the user via email and password
+   *
+   * @param email - The email address of the user.
+   * @param password - The password of the user.
+   * @returns The user's session token.
+   * @throws UnauthorizedException if the login fails (wrong email or password).
+   */
+  async login(email: string, password: string) {
+    const user = await this.supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (user.error) throw new UnauthorizedException('Wrong login credentials');
+
+    return user.data.session.access_token;
   }
 
   async invite(email: string, role: Role) {
