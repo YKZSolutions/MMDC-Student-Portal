@@ -3,17 +3,20 @@ import {
   Box,
   Button,
   CloseButton,
+  Container,
+  Flex,
   Group,
   Input,
   Popover,
   Skeleton,
   Stack,
   Text,
+  Textarea,
   useMantineTheme,
 } from '@mantine/core'
 import React, { useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
-import { IconMessageChatbot, IconX } from '@tabler/icons-react'
+import { IconMessageChatbot, IconSend, IconX } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 import type { Turn } from '@/integrations/api/client'
@@ -367,48 +370,54 @@ const ChatInput = ({
   }
 
   return (
-    <Group
+    <Flex
       p={'md'}
-      justify={'space-between'}
       style={{
         borderTop: `1px solid ${theme.colors.gray[3]}`,
+        position: 'relative',
       }}
     >
-      <Input
-        placeholder="Type your message..."
-        value={value}
-        onChange={(event) => setValue(event.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-        rightSectionPointerEvents="all"
-        radius="lg"
-        disabled={isSending}
-        rightSection={
-          <CloseButton
-            aria-label="Clear input"
-            onClick={() => setValue('')}
-            style={{ display: value ? undefined : 'none' }}
-          />
-        }
-      />
-      <Button
-        onClick={() => {
-          if (!canSend) return
-          onSendInput(value)
-        }}
-        size="sm"
-        radius="xl"
-        p={'0 1rem'}
-        loading={isSending}
-        disabled={!canSend}
-        style={{
-          backgroundColor: theme.colors.secondary[6],
-          color: theme.white,
-          opacity: isSending ? 0.7 : 1,
-        }}
-      >
-        Send
-      </Button>
-    </Group>
+        <Textarea
+            placeholder="Type your message..."
+            value={value}
+            onChange={(event) => setValue(event.currentTarget.value)}
+            onKeyDown={handleKeyDown}
+            rightSectionPointerEvents="all"
+            radius="lg"
+            w={'100%'}
+            autosize={true}
+            minRows={1}
+            maxRows={3}
+            disabled={isSending}
+            styles={{
+                input: {
+                    paddingRight: '2.5rem',
+                    resize: 'none',
+                    overflow: 'hidden',
+                    '&:focus': {
+                        overflow: 'auto',
+                    },
+                },
+            }}
+            rightSection={
+                <Flex align={'flex-end'} justify={'flex-end'} h={'100%'} p={'0.25rem'}>
+                    <Button
+                        onClick={() => {
+                            if (!canSend) return;
+                            onSendInput(value);
+                        }}
+                        size="xs"
+                        radius="xl"
+                        loading={isSending}
+                        hidden={!canSend}
+                        bg="transparent"
+                    >
+                        <IconSend color={theme.colors.primary[0]} />
+                    </Button>
+                </Flex>
+            }
+        />
+    </Flex>
   )
 }
 
