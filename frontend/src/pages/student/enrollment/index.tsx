@@ -346,14 +346,25 @@ function EnrollmentStudentPage() {
     <Container size={'md'} w={'100%'} pb={'xl'}>
       <Stack gap={'xl'}>
         {/* Page Hero */}
-        <Box>
-          <Title c={'dark.7'} variant="hero" order={2} fw={700}>
-            Enrollment
-          </Title>
-          <Text c={'dark.3'} fw={500}>
-            Manage your enrollment for this semester.
-          </Text>
-        </Box>
+        <Group justify="space-between" align="start">
+          <Box>
+            <Title c={'dark.7'} order={2} fw={700}>
+              Enrollment
+            </Title>
+            <Text c={'dark.3'} fw={500}>
+              Manage your enrollment for this semester.
+            </Text>
+          </Box>
+          <Group>
+            <Title c={'dark.7'} order={2} fw={700}>
+              2023 - 2024
+            </Title>
+            <Divider orientation="vertical" />
+            <Title c={'dark.7'} order={2} fw={700}>
+              Term 2
+            </Title>
+          </Group>
+        </Group>
 
         {/* Main Tabs */}
         {/* Don't modify page layout here. Instead,
