@@ -18,6 +18,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
 import type { ContextModalProps } from '@mantine/modals'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState, type ReactNode } from 'react'
@@ -73,7 +74,7 @@ function EwalletModalQueryProvider({
   const { amount, billingId } = props
 
   // Payment Intent Creation
-  const { data, isFetching, isPending } = useSuspenseQuery({
+  const { data, isFetching, isPending, isError } = useSuspenseQuery({
     ...paymentsControllerPayOptions({
       body: {
         amount: amount,
@@ -85,8 +86,6 @@ function EwalletModalQueryProvider({
   })
 
   const paymentIntentData = data?.data
-
-  console.log(paymentIntentData)
 
   return children({
     data: paymentIntentData,
@@ -108,6 +107,10 @@ export default function EwalletModal({
   const [selectedWallet, setSelectedWallet] = useState<PaymentMethod | null>(
     null,
   )
+
+  const [pmClientKey, setPmClientKey] = useLocalStorage({
+    key: 'pm-client-key',
+  })
 
   useEffect(() => {
     context.updateModal({
@@ -147,6 +150,7 @@ export default function EwalletModal({
     mutate: mutateAttach,
     data: dataAttach,
     isPending: isAttachPending,
+    isSuccess: isAttachSuccess,
     mutateAsync: mutateAttachAsync,
   } = useMutation({
     mutationFn: async (payload: IPaymentAttach | undefined) =>
@@ -157,7 +161,7 @@ export default function EwalletModal({
             attributes: {
               client_key: payload?.clientKey,
               payment_method: payload?.paymentMethodId,
-              return_url: `${import.meta.env.VITE_SITE_URL}/success`,
+              return_url: `${import.meta.env.VITE_SITE_URL}/billing/redirect`,
             },
           },
         },
@@ -176,6 +180,10 @@ export default function EwalletModal({
           type: selectedWallet || 'gcash',
         })
 
+        // Put this here. Regardless the result of the next
+        // query, we we safely have this.
+        setPmClientKey(dataIntent?.attributes.client_key || '')
+
         return await mutateAttachAsync({
           paymentIntentId: dataIntent?.id,
           paymentMethodId: methodResult.data.id,
@@ -186,9 +194,10 @@ export default function EwalletModal({
       const redirectUrl =
         attachResult.data.attributes.next_action?.redirect?.url
 
-      if (redirectUrl) window.open(redirectUrl, '_blank')
-
-      context.closeContextModal(id)
+      if (redirectUrl) {
+        window.location.href = redirectUrl // Navigate to external URL
+        // window.location.reload() // Reload after navigation (optional delay if needed)
+      }
     } catch (error) {
       console.error(error)
     }
@@ -261,13 +270,25 @@ export default function EwalletModal({
             }}
           >
             {(props) => (
-              <Button
-                loading={props.isFetching || isMethodPending || isAttachPending}
-                disabled={!selectedWallet || isMethodPending || isAttachPending}
-                onClick={() => handleProceed(selectedWallet, props.data)}
-              >
-                Proceed
-              </Button>
+              <>
+                <LoadingOverlay
+                  visible={isAttachSuccess}
+                  zIndex={1000}
+                  overlayProps={{ radius: 'sm', blur: 2 }}
+                  loaderProps={{ color: 'primary' }}
+                />
+                <Button
+                  loading={
+                    props.isFetching || isMethodPending || isAttachPending
+                  }
+                  disabled={
+                    !selectedWallet || isMethodPending || isAttachPending
+                  }
+                  onClick={() => handleProceed(selectedWallet, props.data)}
+                >
+                  Proceed
+                </Button>
+              </>
             )}
           </EwalletModalQueryProvider>
         </Suspense>
