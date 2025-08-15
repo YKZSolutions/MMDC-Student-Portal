@@ -1,37 +1,29 @@
-import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+
+enum ChatbotRole {
+  USER = 'user',
+  MODEL = 'model',
+}
+
+export class Turn {
+  @IsNotEmpty()
+  @ApiProperty({ enum: ChatbotRole })
+  role: ChatbotRole;
+
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+}
 
 export class PromptDto {
   @IsNotEmpty()
   @IsString()
   question: string;
 
+  @ValidateNested({ each: true })
   @IsArray()
-  messageHistory: string[];
-}
-
-export class UserBaseContextDto {
-  @IsString()
-  id: string;
-
-  @IsString()
-  email: string | null;
-
-  @IsString()
-  role: string;
-}
-
-export class UserStudentContextDto extends UserBaseContextDto {
-  @IsNumber()
-  studentNumber: number;
-}
-
-export class UserStaffContextDto extends UserBaseContextDto {
-  @IsNumber()
-  employeeNumber: number;
-
-  @IsString()
-  department: string;
-
-  @IsString()
-  position: string;
+  @Type(() => Turn)
+  sessionHistory: Turn[];
 }

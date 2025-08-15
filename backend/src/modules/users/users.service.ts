@@ -75,12 +75,6 @@ export class UsersService {
       );
       return user;
     } catch (err) {
-      this.logger.error(
-        `[${method}] FAIL: email=${credentials.email}, reason=${
-          err instanceof Error ? err.message : String(err)
-        }`,
-        err instanceof Error ? err.stack : undefined,
-      );
       if (account) await this.authService.delete(account.id);
       throw err;
     }
@@ -375,7 +369,6 @@ export class UsersService {
     });
 
     if (!user) {
-      this.logger.error(`[${method}] FAIL: id=${id}, reason=User not found`);
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
@@ -407,16 +400,10 @@ export class UsersService {
     });
 
     if (!user) {
-      this.logger.error(
-        `[${method}] FAIL: userId=${userId}, reason=User not found`,
-      );
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
     if (!user.userAccount) {
-      this.logger.error(
-        `[${method}] FAIL: userId=${userId}, reason=User account not found`,
-      );
       throw new NotFoundException(`User account for ${userId} not found`);
     }
 
@@ -478,9 +465,6 @@ export class UsersService {
     });
 
     if (!account) {
-      this.logger.error(
-        `[${method}] FAIL: authUid=${authId}, reason=User not found`,
-      );
       throw new NotFoundException('User not found');
     }
 

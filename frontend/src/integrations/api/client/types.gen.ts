@@ -440,9 +440,18 @@ export type UpdateProgramDto = {
     description?: string;
 };
 
+export type Turn = {
+    role: 'user' | 'model';
+    content: string;
+};
+
 export type PromptDto = {
     question: string;
-    messageHistory: Array<string>;
+    sessionHistory: Array<Turn>;
+};
+
+export type ChatbotResponseDto = {
+    response: string;
 };
 
 export type CreateMajorDto = {
@@ -1519,8 +1528,10 @@ export type ChatbotControllerPromptErrors = {
 export type ChatbotControllerPromptError = ChatbotControllerPromptErrors[keyof ChatbotControllerPromptErrors];
 
 export type ChatbotControllerPromptResponses = {
-    201: unknown;
+    201: ChatbotResponseDto;
 };
+
+export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
 
 export type MajorControllerFindAllData = {
     body?: never;

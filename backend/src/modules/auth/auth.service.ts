@@ -48,10 +48,6 @@ export class AuthService {
     });
 
     if (account.error) {
-      this.logger.error(
-        `[${method}] FAIL: email=${email}, reason=${account.error.message}`,
-        account.error.stack,
-      );
       throw account.error;
     }
 
@@ -93,10 +89,6 @@ export class AuthService {
     });
 
     if (account.error) {
-      this.logger.error(
-        `[${method}] FAIL: email=${email}, reason=${account.error.message}`,
-        account.error.stack,
-      );
       throw account.error;
     }
 
@@ -123,10 +115,6 @@ export class AuthService {
     });
 
     if (account.error) {
-      this.logger.error(
-        `[${method}] FAIL: uid=${uid}, reason=${account.error.message}`,
-        account.error.stack,
-      );
       throw new BadRequestException('Error creating Supabase account');
     }
 
@@ -149,10 +137,6 @@ export class AuthService {
     const account = await this.supabase.auth.admin.deleteUser(uid);
 
     if (account.error) {
-      this.logger.error(
-        `[${method}] FAIL: uid=${uid}, reason=${account.error.message}`,
-        account.error.stack,
-      );
       throw new BadRequestException('Error deleting Supabase account');
     }
 
