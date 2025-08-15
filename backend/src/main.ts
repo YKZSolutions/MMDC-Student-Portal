@@ -30,7 +30,12 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
-  app.useGlobalPipes(new ValidationPipe({}));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
 
   app.enableCors();
 

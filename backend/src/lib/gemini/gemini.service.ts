@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { getToolsForRole } from '@/lib/gemini/function-declarations';
-import { GeminiSessionStore } from '@/lib/gemini/gemini-session.store';
 import {
-  UserBaseContextDto,
-  UserStaffContextDto,
-  UserStudentContextDto,
-} from '@/modules/chatbot/dto/prompt.dto';
+  UserBaseContext,
+  UserStaffContext,
+  UserStudentContext,
+} from '@/modules/chatbot/dto/user-context.dto';
+import { Turn } from '@/modules/chatbot/dto/prompt.dto';
 
 @Injectable()
 export class GeminiService {
@@ -14,7 +14,7 @@ export class GeminiService {
   private readonly gemini: GoogleGenAI;
   private readonly model: string = 'gemini-2.5-flash';
 
-  constructor(private sessionStore: GeminiSessionStore) {
+  constructor() {
     this.gemini = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
     });
@@ -25,17 +25,14 @@ export class GeminiService {
    */
   async askWithFunctionCalling(
     question: string,
-    currentUser:
-      | UserBaseContextDto
-      | UserStudentContextDto
-      | UserStaffContextDto,
+    sessionHistory: Turn[],
+    currentUser: UserBaseContext | UserStudentContext | UserStaffContext,
   ) {
+    const method = 'askWithFunctionCalling';
+    this.logger.log(`[${method}] START: question=${question}`);
     this.logger.debug(`Asking Gemini: ${question}`);
-
-    console.log('Current user', currentUser);
-
-    //TODO: remove this when session store is implemented in the client
-    const session = this.sessionStore.createOrUpdateSession(currentUser);
+    this.logger.debug('Current user', currentUser);
+    this.logger.debug('Session history', sessionHistory);
 
     const role = currentUser.role ?? 'user';
     const allowedTools = getToolsForRole(role);
@@ -44,29 +41,46 @@ export class GeminiService {
       ? `The current authenticated user is: ${JSON.stringify(currentUser)}`
       : `No authenticated user.`;
 
-    const conversation = [
-      { role: 'model', parts: [{ text: systemContext }] },
-      ...session.history,
-      { role: 'user', parts: [{ text: question }] },
-    ];
+    // Convert session history to the format expected by Gemini
+    const history = (sessionHistory ?? []).map((turn) => ({
+      role: turn.role,
+      parts: [{ text: turn.content }],
+    }));
 
-    const result = await this.gemini.models.generateContent({
-      model: this.model,
-      contents: conversation,
-      config: { tools: allowedTools },
-    });
+    // Create the conversation with system context and current question
+    const conversation = [{ role: 'model', parts: [{ text: systemContext }] }];
 
-    // Store user message + bot response in history
-    //TODO: remove this when session store is implemented in the client
-    this.sessionStore.appendMessage(currentUser.id, 'user', question);
-    if (result.text) {
-      this.sessionStore.appendMessage(currentUser.id, 'model', result.text);
+    if (history.length > 0) {
+      conversation.push(...history);
     }
 
-    return {
-      text: result.text,
-      call: result.functionCalls ?? null,
-    };
+    conversation.push({ role: 'user', parts: [{ text: question }] });
+
+    try {
+      const result = await this.gemini.models.generateContent({
+        model: this.model,
+        contents: conversation,
+        config: { tools: allowedTools },
+      });
+
+      this.logger.log(
+        `[${method}] SUCCESS: userId=${currentUser.id} role=${role}`,
+      );
+
+      // Extract the response text
+      const responseText = result.text;
+
+      // Extract function calls if any
+      const functionCalls = result.functionCalls;
+
+      return {
+        text: responseText,
+        call: functionCalls?.length ? functionCalls : null,
+      };
+    } catch (error) {
+      this.logger.error(`[${method}] Error calling Gemini API:`, error);
+      throw new Error('Failed to get response from Gemini API');
+    }
   }
 
   /**

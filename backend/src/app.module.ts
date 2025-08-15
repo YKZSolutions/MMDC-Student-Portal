@@ -16,6 +16,7 @@ import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
 import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
 import { ProgramModule } from './modules/program/program.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { MajorModule } from './modules/major/major.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     PaymentsModule,
     ProgramModule,
     ChatbotModule,
+    MajorModule,
   ],
   controllers: [],
   providers: [

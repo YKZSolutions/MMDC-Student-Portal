@@ -198,6 +198,16 @@ export type UpdateUserBaseDto = {
     userDetails?: UpdateUserDetailsDto;
 };
 
+export type PaginationMetaDto = {
+    isFirstPage: boolean;
+    isLastPage: boolean;
+    currentPage: number;
+    previousPage: number | null;
+    nextPage: number | null;
+    pageCount: number;
+    totalCount: number;
+};
+
 export type UserAccountDto = {
     id: string;
     authUid: string;
@@ -221,19 +231,9 @@ export type UserWithRelations = {
     userDetails: UserDetailsDto | null;
 };
 
-export type PaginationMetaDto = {
-    isFirstPage: boolean;
-    isLastPage: boolean;
-    currentPage: number;
-    previousPage: number | null;
-    nextPage: number | null;
-    pageCount: number;
-    totalCount: number;
-};
-
 export type PaginatedUsersDto = {
-    users: Array<UserWithRelations>;
     meta: PaginationMetaDto;
+    users: Array<UserWithRelations>;
 };
 
 export type CreateCourseDto = {
@@ -252,14 +252,76 @@ export type AuthMetadataDto = {
     user_id?: string;
 };
 
-export type CreateBillingDto = {
-    amount: number;
-    billingId: string;
-    description?: string;
-    statement?: string;
-    metadata?: {
+export type BillStatus = 'paid' | 'unpaid' | 'overpaid';
+
+export type CreateBillDto = {
+    invoiceId: string;
+    payerName: string;
+    payerEmail: string;
+    billType: string;
+    status: BillStatus;
+    receivableAmount: string;
+    receiptedAmount: string;
+    outstandingAmount: string;
+    dueAt: string;
+    issuedAt: string;
+    costBreakdown: {
         [key: string]: unknown;
     };
+};
+
+export type CreateBillingDto = {
+    bill: CreateBillDto;
+    userId?: string;
+};
+
+export type BillDto = {
+    id: string;
+    invoiceId: string;
+    payerName: string;
+    payerEmail: string;
+    billType: string;
+    status: BillStatus;
+    receivableAmount: string;
+    receiptedAmount: string;
+    outstandingAmount: string;
+    dueAt: string;
+    issuedAt: string;
+    costBreakdown: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedBillsDto = {
+    bills: Array<BillDto>;
+    meta: {
+        [key: string]: unknown;
+    };
+};
+
+export type UpdateBillDto = {
+    invoiceId?: string;
+    payerName?: string;
+    payerEmail?: string;
+    billType?: string;
+    status?: BillStatus;
+    receivableAmount?: string;
+    receiptedAmount?: string;
+    outstandingAmount?: string;
+    dueAt?: string;
+    issuedAt?: string;
+    costBreakdown?: {
+        [key: string]: unknown;
+    };
+};
+
+export type InitiatePaymentDto = {
+    description?: string;
+    statementDescriptor?: string;
+    amount: number;
 };
 
 export type PaymentIntentAttributesDto = {
@@ -301,23 +363,183 @@ export type PaymentIntentResponseDto = {
     data: PaymentIntentDataDto;
 };
 
-export type UpdateBillingDto = {
-    amount?: number;
-    billingId?: string;
-    description?: string;
-    statement?: string;
-    metadata?: {
+export type CreateBillPaymentDto = {
+    amountPaid: string;
+    paymentType: string;
+    notes: string;
+    paymentDate: string;
+    paymongoData?: {
         [key: string]: unknown;
-    };
+    } | null;
 };
+
+export type CreatePaymentDto = {
+    payment: CreateBillPaymentDto;
+    description?: string;
+    statementDescriptor?: string;
+};
+
+export type BillPaymentDto = {
+    id: string;
+    amountPaid: string;
+    paymentType: string;
+    notes: string;
+    paymentDate: string;
+    paymongoData: {
+        [key: string]: unknown;
+    } | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UpdateBillPaymentDto = {
+    amountPaid?: string;
+    paymentType?: string;
+    notes?: string;
+    paymentDate?: string;
+    paymongoData?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+export type CreateProgramDto = {
+    code: string;
+    name: string;
+    description: string;
+};
+
+export type Program = {
+    id: string;
+    code: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ProgramDto = {
+    id: string;
+    code: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedProgramsDto = {
+    meta: PaginationMetaDto;
+    programs: Array<ProgramDto>;
+};
+
+export type UpdateProgramDto = {
+    code?: string;
+    name?: string;
+    description?: string;
+};
+
+export type Turn = {
+    role: 'user' | 'model';
+    content: string;
+};
+
+export type PromptDto = {
+    question: string;
+    sessionHistory: Array<Turn>;
+};
+
+export type ChatbotResponseDto = {
+    response: string;
+};
+
+export type CreateMajorDto = {
+    major: CreateMajorDto;
+    programId: string;
+};
+
+export type Major = {
+    id: string;
+    programId: string;
+    courses?: Array<Course>;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type Course = {
+    id: string;
+    major?: Array<Major>;
+    prereqs?: Array<Course>;
+    prereqFor?: Array<Course>;
+    coreqs?: Array<Course>;
+    coreqFor?: Array<Course>;
+    courseCode: string;
+    name: string;
+    description: string;
+    year: string;
+    semester: string;
+    units: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type MajorDto = {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedMajorsDto = {
+    meta: PaginationMetaDto;
+    majors: Array<MajorDto>;
+};
+
+export type UpdateMajorDto = {
+    name?: string;
+    description?: string;
+};
+
+export type TestControllerTestStudentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/test/student';
+};
+
+export type TestControllerTestStudentResponses = {
+    200: string;
+};
+
+export type TestControllerTestStudentResponse = TestControllerTestStudentResponses[keyof TestControllerTestStudentResponses];
+
+export type TestControllerTestAdminData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/test/admin';
+};
+
+export type TestControllerTestAdminResponses = {
+    200: string;
+};
+
+export type TestControllerTestAdminResponse = TestControllerTestAdminResponses[keyof TestControllerTestAdminResponses];
 
 export type UsersControllerFindAllData = {
     body?: never;
     path?: never;
     query?: {
         search?: string;
-        role?: 'student' | 'mentor' | 'admin';
         page?: number;
+        role?: 'student' | 'mentor' | 'admin';
     };
     url: '/users';
 };
@@ -767,32 +989,6 @@ export type CoursesControllerUpdateResponses = {
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
 
-export type TestControllerTestStudentData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/test/student';
-};
-
-export type TestControllerTestStudentResponses = {
-    200: string;
-};
-
-export type TestControllerTestStudentResponse = TestControllerTestStudentResponses[keyof TestControllerTestStudentResponses];
-
-export type TestControllerTestAdminData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/test/admin';
-};
-
-export type TestControllerTestAdminResponses = {
-    200: string;
-};
-
-export type TestControllerTestAdminResponse = TestControllerTestAdminResponses[keyof TestControllerTestAdminResponses];
-
 export type AuthControllerGetMetadataData = {
     body?: never;
     path: {
@@ -829,15 +1025,60 @@ export type AuthControllerGetMetadataResponses = {
 
 export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
 
+export type AuthControllerLoginData = {
+    body: UserCredentialsDto;
+    path?: never;
+    query?: never;
+    url: '/auth/login';
+};
+
+export type AuthControllerLoginErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    401: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AuthControllerLoginError = AuthControllerLoginErrors[keyof AuthControllerLoginErrors];
+
+export type AuthControllerLoginResponses = {
+    201: string;
+};
+
+export type AuthControllerLoginResponse = AuthControllerLoginResponses[keyof AuthControllerLoginResponses];
+
 export type BillingControllerFindAllData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        sortOrder?: 'asc' | 'desc';
+        page?: number;
+        search?: string;
+        sort?: 'status' | 'amount' | 'dueAt' | 'createdAt';
+        status?: 'paid' | 'unpaid' | 'overpaid';
+        type?: string;
+    };
     url: '/billing';
 };
 
+export type BillingControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerFindAllError = BillingControllerFindAllErrors[keyof BillingControllerFindAllErrors];
+
 export type BillingControllerFindAllResponses = {
-    200: string;
+    200: PaginatedBillsDto;
 };
 
 export type BillingControllerFindAllResponse = BillingControllerFindAllResponses[keyof BillingControllerFindAllResponses];
@@ -849,8 +1090,18 @@ export type BillingControllerCreateData = {
     url: '/billing';
 };
 
+export type BillingControllerCreateErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerCreateError = BillingControllerCreateErrors[keyof BillingControllerCreateErrors];
+
 export type BillingControllerCreateResponses = {
-    201: PaymentIntentResponseDto;
+    201: BillDto;
 };
 
 export type BillingControllerCreateResponse = BillingControllerCreateResponses[keyof BillingControllerCreateResponses];
@@ -864,11 +1115,19 @@ export type BillingControllerRemoveData = {
     url: '/billing/{id}';
 };
 
-export type BillingControllerRemoveResponses = {
-    200: string;
+export type BillingControllerRemoveErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
 };
 
-export type BillingControllerRemoveResponse = BillingControllerRemoveResponses[keyof BillingControllerRemoveResponses];
+export type BillingControllerRemoveError = BillingControllerRemoveErrors[keyof BillingControllerRemoveErrors];
+
+export type BillingControllerRemoveResponses = {
+    200: unknown;
+};
 
 export type BillingControllerFindOneData = {
     body?: never;
@@ -879,14 +1138,24 @@ export type BillingControllerFindOneData = {
     url: '/billing/{id}';
 };
 
+export type BillingControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerFindOneError = BillingControllerFindOneErrors[keyof BillingControllerFindOneErrors];
+
 export type BillingControllerFindOneResponses = {
-    200: string;
+    200: BillDto;
 };
 
 export type BillingControllerFindOneResponse = BillingControllerFindOneResponses[keyof BillingControllerFindOneResponses];
 
 export type BillingControllerUpdateData = {
-    body: UpdateBillingDto;
+    body: UpdateBillDto;
     path: {
         id: string;
     };
@@ -894,11 +1163,541 @@ export type BillingControllerUpdateData = {
     url: '/billing/{id}';
 };
 
+export type BillingControllerUpdateErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerUpdateError = BillingControllerUpdateErrors[keyof BillingControllerUpdateErrors];
+
 export type BillingControllerUpdateResponses = {
-    200: string;
+    200: BillDto;
 };
 
 export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
+
+export type PaymentsControllerPayData = {
+    body: InitiatePaymentDto;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/pay';
+};
+
+export type PaymentsControllerPayErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerPayError = PaymentsControllerPayErrors[keyof PaymentsControllerPayErrors];
+
+export type PaymentsControllerPayResponses = {
+    201: PaymentIntentResponseDto;
+};
+
+export type PaymentsControllerPayResponse = PaymentsControllerPayResponses[keyof PaymentsControllerPayResponses];
+
+export type PaymentsControllerFindAllData = {
+    body?: never;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments';
+};
+
+export type PaymentsControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerFindAllError = PaymentsControllerFindAllErrors[keyof PaymentsControllerFindAllErrors];
+
+export type PaymentsControllerFindAllResponses = {
+    200: Array<BillPaymentDto>;
+};
+
+export type PaymentsControllerFindAllResponse = PaymentsControllerFindAllResponses[keyof PaymentsControllerFindAllResponses];
+
+export type PaymentsControllerCreateData = {
+    body: CreatePaymentDto;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments';
+};
+
+export type PaymentsControllerCreateErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerCreateError = PaymentsControllerCreateErrors[keyof PaymentsControllerCreateErrors];
+
+export type PaymentsControllerCreateResponses = {
+    201: BillPaymentDto;
+};
+
+export type PaymentsControllerCreateResponse = PaymentsControllerCreateResponses[keyof PaymentsControllerCreateResponses];
+
+export type PaymentsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/{id}';
+};
+
+export type PaymentsControllerRemoveErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerRemoveError = PaymentsControllerRemoveErrors[keyof PaymentsControllerRemoveErrors];
+
+export type PaymentsControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type PaymentsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/{id}';
+};
+
+export type PaymentsControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerFindOneError = PaymentsControllerFindOneErrors[keyof PaymentsControllerFindOneErrors];
+
+export type PaymentsControllerFindOneResponses = {
+    200: BillPaymentDto;
+};
+
+export type PaymentsControllerFindOneResponse = PaymentsControllerFindOneResponses[keyof PaymentsControllerFindOneResponses];
+
+export type PaymentsControllerUpdateData = {
+    body: UpdateBillPaymentDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/{id}';
+};
+
+export type PaymentsControllerUpdateErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerUpdateError = PaymentsControllerUpdateErrors[keyof PaymentsControllerUpdateErrors];
+
+export type PaymentsControllerUpdateResponses = {
+    200: BillPaymentDto;
+};
+
+export type PaymentsControllerUpdateResponse = PaymentsControllerUpdateResponses[keyof PaymentsControllerUpdateResponses];
+
+export type ProgramControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/program';
+};
+
+export type ProgramControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindAllError = ProgramControllerFindAllErrors[keyof ProgramControllerFindAllErrors];
+
+export type ProgramControllerFindAllResponses = {
+    /**
+     * List of programs retrieved successfully
+     */
+    200: PaginatedProgramsDto;
+};
+
+export type ProgramControllerFindAllResponse = ProgramControllerFindAllResponses[keyof ProgramControllerFindAllResponses];
+
+export type ProgramControllerCreateData = {
+    body: CreateProgramDto;
+    path?: never;
+    query?: never;
+    url: '/program';
+};
+
+export type ProgramControllerCreateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerCreateError = ProgramControllerCreateErrors[keyof ProgramControllerCreateErrors];
+
+export type ProgramControllerCreateResponses = {
+    201: Program;
+};
+
+export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
+
+export type ProgramControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/program/{id}';
+};
+
+export type ProgramControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerRemoveError = ProgramControllerRemoveErrors[keyof ProgramControllerRemoveErrors];
+
+export type ProgramControllerRemoveResponses = {
+    /**
+     * Program deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type ProgramControllerRemoveResponse = ProgramControllerRemoveResponses[keyof ProgramControllerRemoveResponses];
+
+export type ProgramControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/program/{id}';
+};
+
+export type ProgramControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindOneError = ProgramControllerFindOneErrors[keyof ProgramControllerFindOneErrors];
+
+export type ProgramControllerFindOneResponses = {
+    /**
+     * Program retrieved successfully
+     */
+    200: Program;
+};
+
+export type ProgramControllerFindOneResponse = ProgramControllerFindOneResponses[keyof ProgramControllerFindOneResponses];
+
+export type ProgramControllerUpdateData = {
+    body: UpdateProgramDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/program/{id}';
+};
+
+export type ProgramControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerUpdateError = ProgramControllerUpdateErrors[keyof ProgramControllerUpdateErrors];
+
+export type ProgramControllerUpdateResponses = {
+    /**
+     * Program updated successfully
+     */
+    200: Program;
+};
+
+export type ProgramControllerUpdateResponse = ProgramControllerUpdateResponses[keyof ProgramControllerUpdateResponses];
+
+export type ChatbotControllerPromptData = {
+    body: PromptDto;
+    path?: never;
+    query?: never;
+    url: '/chatbot';
+};
+
+export type ChatbotControllerPromptErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ChatbotControllerPromptError = ChatbotControllerPromptErrors[keyof ChatbotControllerPromptErrors];
+
+export type ChatbotControllerPromptResponses = {
+    201: ChatbotResponseDto;
+};
+
+export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
+
+export type MajorControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/major';
+};
+
+export type MajorControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerFindAllError = MajorControllerFindAllErrors[keyof MajorControllerFindAllErrors];
+
+export type MajorControllerFindAllResponses = {
+    200: PaginatedMajorsDto;
+};
+
+export type MajorControllerFindAllResponse = MajorControllerFindAllResponses[keyof MajorControllerFindAllResponses];
+
+export type MajorControllerCreateData = {
+    body: CreateMajorDto;
+    path?: never;
+    query?: never;
+    url: '/major';
+};
+
+export type MajorControllerCreateErrors = {
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerCreateError = MajorControllerCreateErrors[keyof MajorControllerCreateErrors];
+
+export type MajorControllerCreateResponses = {
+    201: Major;
+};
+
+export type MajorControllerCreateResponse = MajorControllerCreateResponses[keyof MajorControllerCreateResponses];
+
+export type MajorControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/major/{id}';
+};
+
+export type MajorControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerRemoveError = MajorControllerRemoveErrors[keyof MajorControllerRemoveErrors];
+
+export type MajorControllerRemoveResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type MajorControllerRemoveResponse = MajorControllerRemoveResponses[keyof MajorControllerRemoveResponses];
+
+export type MajorControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/major/{id}';
+};
+
+export type MajorControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerFindOneError = MajorControllerFindOneErrors[keyof MajorControllerFindOneErrors];
+
+export type MajorControllerFindOneResponses = {
+    200: Major;
+};
+
+export type MajorControllerFindOneResponse = MajorControllerFindOneResponses[keyof MajorControllerFindOneResponses];
+
+export type MajorControllerUpdateData = {
+    body: UpdateMajorDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/major/{id}';
+};
+
+export type MajorControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerUpdateError = MajorControllerUpdateErrors[keyof MajorControllerUpdateErrors];
+
+export type MajorControllerUpdateResponses = {
+    200: Major;
+};
+
+export type MajorControllerUpdateResponse = MajorControllerUpdateResponses[keyof MajorControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;

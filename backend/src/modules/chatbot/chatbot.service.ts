@@ -1,24 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotImplementedException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { UsersService } from '@/modules/users/users.service';
 import { BillingService } from '@/modules/billing/billing.service';
 import { CoursesService } from '@/modules/courses/courses.service';
 import { FunctionCall } from '@google/genai';
-import {
-  PromptDto,
-  UserBaseContextDto,
-  UserStaffContextDto,
-  UserStudentContextDto,
-} from '@/modules/chatbot/dto/prompt.dto';
+import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
 import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
 import {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from '@/modules/users/dto/user-details.dto';
+import {
+  UserBaseContext,
+  UserStaffContext,
+  UserStudentContext,
+} from '@/modules/chatbot/dto/user-context.dto';
+import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 
 @Injectable()
 export class ChatbotService {
+  private readonly logger = new Logger(ChatbotService.name);
+
   constructor(
     private readonly gemini: GeminiService,
     private readonly usersService: UsersService,
@@ -31,9 +39,9 @@ export class ChatbotService {
   private mapUserToContext(
     role: string,
     user: UserStudentDetailsDto | UserStaffDetailsDto,
-  ): UserBaseContextDto | UserStudentContextDto | UserStaffContextDto {
+  ): UserBaseContext | UserStudentContext | UserStaffContext {
     // Create base context with required fields
-    const baseContext: UserBaseContextDto = {
+    const baseContext: UserBaseContext = {
       id: user.id,
       role: role,
       email: user.email,
@@ -44,7 +52,7 @@ export class ChatbotService {
       return {
         ...baseContext,
         studentNumber: user.studentDetails.studentNumber,
-      } as UserStudentContextDto;
+      } as UserStudentContext;
     }
 
     // If user is staff and has staff details
@@ -58,63 +66,96 @@ export class ChatbotService {
         employeeNumber: user.staffDetails.employeeNumber,
         department: user.staffDetails.department || '',
         position: user.staffDetails.position || '',
-      } as UserStaffContextDto;
+      } as UserStaffContext;
     }
 
     // Return base context if no specific role details are available
     return baseContext;
   }
 
-  async handleQuestion(userId: string, role: string, prompt: PromptDto) {
-    const userContext:
-      | UserBaseContextDto
-      | UserStudentContextDto
-      | UserStaffContextDto = this.mapUserToContext(
-      role,
-      await this.usersService.getMe(userId),
+  async handleQuestion(
+    userId: string,
+    role: string,
+    prompt: PromptDto,
+  ): Promise<ChatbotResponseDto> {
+    const method = 'handleQuestion';
+    this.logger.log(`[${method}] START: userId=${userId}, role=${role}`);
+
+    this.logger.debug(
+      `[${method}] Prompt: ${prompt.question}, sessionHistory: ${JSON.stringify(prompt.sessionHistory)}`,
     );
+    const result: ChatbotResponseDto = {
+      response: '',
+    };
+
+    const userContext: UserBaseContext | UserStudentContext | UserStaffContext =
+      this.mapUserToContext(role, await this.usersService.getMe(userId));
 
     const {
       call,
       text,
     }: { call: FunctionCall[] | null; text: string | undefined } =
-      await this.gemini.askWithFunctionCalling(prompt.question, userContext);
+      await this.gemini.askWithFunctionCalling(
+        prompt.question,
+        prompt.sessionHistory,
+        userContext,
+      );
 
     if (!call) {
-      return { answer: text };
+      this.logger.log(`[${method}] SUCCESS: userId=${userId}, role=${role}`);
+      this.logger.debug(`[${method}] Final answer: ${text}`);
+
+      if (!text) {
+        throw new ServiceUnavailableException('No response from Gemini');
+      }
+
+      result.response = text;
+      return result;
     }
 
-    const result: string[] = [];
+    const functionCallResult: string[] = [];
 
     for (const functionCall of call) {
       switch (functionCall.name) {
         case 'users_count_all': {
+          this.logger.debug(`[${method}] Function call: ${functionCall.name}`);
           const args = functionCall.args as FilterUserDto;
           const count = await this.usersService.countAll(args);
-          result.push(
-            `${count} users found with the following filters: ${JSON.stringify(args)}`,
+          functionCallResult.push(
+            `${text}: ${count} users found with the following filters: ${JSON.stringify(args)}`,
           );
           break;
         }
         case 'search_vector': {
+          this.logger.debug(`[${method}] Function call: ${functionCall.name}`);
           const args = functionCall.args as { query: string; limit: number };
           const vector = await this.handleVectorSearch(args.query, args.limit);
-          result.push(
-            `Vector search for "${args.query}": ${JSON.stringify(vector)}`,
+          functionCallResult.push(
+            `${text}: Vector search for "${args.query}": ${JSON.stringify(vector)}`,
           );
           break;
         }
         default:
-          return { answer: `Function ${functionCall.name} not implemented.` };
+          throw new NotImplementedException(
+            `Unhandled function call: ${functionCall.name}`,
+          );
       }
     }
 
     // Send results back to Gemini
     const finalAnswer = await this.gemini.generateFinalAnswer(
       prompt.question,
-      result,
+      functionCallResult,
     );
-    return { answer: finalAnswer };
+    if (!finalAnswer) {
+      throw new ServiceUnavailableException('No response from Gemini');
+    }
+
+    this.logger.log(`[${method}] SUCCESS: userId=${userId}, role=${role}`);
+    this.logger.debug(`[${method}] Final answer: ${finalAnswer}`);
+
+    result.response = finalAnswer;
+    return result;
   }
 
   async handleVectorSearch(query: string, limit: number = 10): Promise<string> {

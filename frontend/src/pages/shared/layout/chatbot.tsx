@@ -1,11 +1,25 @@
-import { Button, Popover, useMantineTheme } from '@mantine/core'
-import React, { useRef, useState, useEffect } from 'react'
+import {
+  Affix,
+  Box,
+  Button,
+  CloseButton,
+  Container,
+  Flex,
+  Group,
+  Input,
+  Popover,
+  Skeleton,
+  Stack,
+  Text,
+  Textarea,
+  useMantineTheme,
+} from '@mantine/core'
+import React, { useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
-import { IconMessageChatbot } from '@tabler/icons-react'
-import DropZoneIndicator from '@/features/chatbot/drop-zone-indicator'
-import ChatHeader from '@/features/chatbot/chat-header'
-import ChatMessages from '@/features/chatbot/chat-messages'
-import ChatInput from '@/features/chatbot/chat-input'
+import { IconMessageChatbot, IconSend, IconX } from '@tabler/icons-react'
+import { useMutation } from '@tanstack/react-query'
+import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
+import type { Turn } from '@/integrations/api/client'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -28,16 +42,35 @@ const Chatbot = ({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: 'Hello! How can I help you today?' },
-  ])
+  const [messages, setMessages] = useState<Turn[]>([])
 
-  const addMessage = (userInput: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', content: userInput },
-      { role: 'bot', content: 'Thanks for your message! (placeholder reply)' }, //TODO: this should be replaced with a bot response
-    ])
+  const { mutateAsync: create, isPending, isError, isSuccess } = useMutation(chatbotControllerPromptMutation())
+
+  const addMessage = async (userInput: string) => {
+    // Add the user's message to the state
+    const userMessage = { role: 'user' as const, content: userInput };
+    
+    // Get the current messages including the new user message
+    const updatedMessages = [...messages, userMessage];
+    
+    // Update the UI immediately with the user's message
+    setMessages(updatedMessages);
+
+    const res = await create({
+      body: {
+        question: userInput,
+        sessionHistory: messages, // Send all previous messages
+      },
+    });
+
+    const response: string = res.response;
+
+    // Add the bot's response to the messages
+    setMessages(prev => {
+      const newMessages = [...prev, { role: 'model' as const, content: response }];
+      // Keep only the last 5 interactions (10 messages: 5 user + 5 bot)
+      return newMessages.slice(-10);
+    });
   }
 
   useEffect(() => {
@@ -139,6 +172,7 @@ const Chatbot = ({
           onDrag={handleDrag}
           onStop={handleDragStop}
           bounds="body"
+          handle=".chatbot-drag-handle"
         >
           <div
             ref={nodeRef}
@@ -161,6 +195,7 @@ const Chatbot = ({
             >
               <Popover.Target>
                 <Button
+                  className="chatbot-drag-handle"
                   onClick={handleClick}
                   variant="filled"
                   color={theme.colors['secondary'][0]}
@@ -185,16 +220,14 @@ const Chatbot = ({
               </Popover.Target>
 
               <Popover.Dropdown
-                style={{
-                  padding: 0,
-                  height: 500,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
+                p={0}
+                h={'65%'}
               >
-                <ChatHeader onClose={handleModalClose} />
-                <ChatMessages messages={messages} />
-                <ChatInput onSendInput={addMessage} />
+                <Stack h={'100%'}>
+                  <ChatHeader onClose={handleModalClose} />
+                  <ChatMessages messages={messages} isSending={isPending} isError={isError} />
+                  <ChatInput onSendInput={addMessage} isSending={isPending} isSuccess={isSuccess} />
+                </Stack>
               </Popover.Dropdown>
             </Popover>
           </div>
@@ -203,5 +236,202 @@ const Chatbot = ({
     </>
   )
 }
+
+const ChatHeader = ({ onClose }: { onClose: () => void }) => {
+  const theme = useMantineTheme()
+
+  return (
+    <Group
+      p={'md'}
+      justify={'space-between'}
+      bg={theme.colors.secondary[0]}
+      bdrs={'8px 8px 0 0'}
+      style={{
+        borderBottom: `1px solid ${theme.colors.gray[3]}`
+      }}
+    >
+      <Text fw={600} c={theme.white} size="md">Chat Support</Text>
+      <Button
+        variant="subtle"
+        size="xs"
+        miw={'auto'}
+        p={'0.25rem'}
+        onClick={onClose}
+        style={{ minWidth: 'auto', padding: 4 }}
+      >
+        <IconX size={16} color={theme.white} />
+      </Button>
+    </Group>
+  )
+}
+
+const BotMessage = ({message}: {message: string}) =>{
+  const theme = useMantineTheme()
+  return (
+    <Box
+      p={'md'}
+      bdrs={'12px 12px 12px 4px'}
+      bg={theme.colors.gray[1]}
+      maw = "85%"
+      style={{
+        alignSelf: 'flex-start',
+      }}
+    >
+      <Text size="sm">
+        {message}
+      </Text>
+    </Box>
+  )
+}
+
+const UserMessage = ({message}: {message: string}) =>{
+  const theme = useMantineTheme()
+  return (
+    <Box
+      p={'md'}
+      bdrs={'12px 12px 4px 12px'}
+      bg={theme.colors.gray[1]}
+      maw = "85%"
+      style={{
+        alignSelf: 'flex-end',
+      }}
+    >
+      <Text size="sm">
+        {message}
+      </Text>
+    </Box>
+  )
+}
+
+type ChatMessagesProps = {
+  messages: Turn[];
+  isSending?: boolean;
+  isError?: boolean;
+}
+
+const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMessagesProps) => {
+  return (
+    <Stack
+      gap = "sm"
+      p={'lg'}
+      flex={1}
+      style={{
+        overflowY: 'auto',
+      }}
+    >
+      <BotMessage message={'Hello! How can I help you today?'} />
+
+      {messages.map((msg, index) =>
+        msg.role === 'user' ? (
+          <UserMessage key={index} message={msg.content} />
+        ) : (
+          <BotMessage key={index} message={msg.content}/>
+        )
+      )}
+
+      {isSending && (
+        <Skeleton visible={isSending} height={36} bdrs={'12px 12px 12px 4px'}/>
+      )}
+
+      {isError && (
+        <BotMessage message={'An error occurred while processing your request. Please try again later.'}/>
+      )}
+    </Stack>
+  )
+}
+
+type ChatInputProps = {
+  onSendInput: (message: string) => void
+  isSending?: boolean
+  isSuccess?: boolean
+}
+
+const ChatInput = ({
+  onSendInput,
+  isSending = false,
+  isSuccess = false,
+}: ChatInputProps) => {
+  const theme = useMantineTheme()
+  const [value, setValue] = useState('')
+
+  const canSend = !!value.trim() && !isSending
+
+  useEffect(() => {
+    if (isSuccess) {
+      setValue('')
+    }
+  }, [isSuccess])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && canSend) {
+      e.preventDefault()
+      onSendInput(value)
+    }
+  }
+
+  return (
+    <Flex
+      p={'md'}
+      style={{
+        borderTop: `1px solid ${theme.colors.gray[3]}`,
+        position: 'relative',
+      }}
+    >
+        <Textarea
+            placeholder="Type your message..."
+            value={value}
+            onChange={(event) => setValue(event.currentTarget.value)}
+            onKeyDown={handleKeyDown}
+            rightSectionPointerEvents="all"
+            radius="lg"
+            w={'100%'}
+            autosize={true}
+            minRows={1}
+            maxRows={3}
+            disabled={isSending}
+            styles={{
+                input: {
+                    paddingRight: '2.5rem',
+                    resize: 'none',
+                    overflow: 'hidden',
+                    '&:focus': {
+                        overflow: 'auto',
+                    },
+                },
+            }}
+            rightSection={
+                <Flex align={'flex-end'} justify={'flex-end'} h={'100%'} p={'0.25rem'}>
+                    <Button
+                        onClick={() => {
+                            if (!canSend) return;
+                            onSendInput(value);
+                        }}
+                        size="xs"
+                        radius="xl"
+                        loading={isSending}
+                        hidden={!canSend}
+                        bg="transparent"
+                    >
+                        <IconSend color={theme.colors.primary[0]} />
+                    </Button>
+                </Flex>
+            }
+        />
+    </Flex>
+  )
+}
+
+const DropZoneIndicator = () => (
+  <Affix position={{ top: '12%', left: '50%' }} w={"8rem"} h={"8rem"}
+    className="rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
+    style={{
+      zIndex: 999,
+     }}
+  >
+    <Stack align="center" justify="center" h="100%">
+      <Text fw={600} size="md" ta ="center">Drop to hide chatbot</Text>
+    </Stack>
+  </Affix>
+)
 
 export default Chatbot
