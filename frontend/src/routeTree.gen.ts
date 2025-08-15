@@ -22,6 +22,7 @@ import { Route as protectedEnrollmentIndexRouteImport } from './routes/(protecte
 import { Route as protectedDashboardIndexRouteImport } from './routes/(protected)/dashboard/index'
 import { Route as protectedBillingIndexRouteImport } from './routes/(protected)/billing/index'
 import { Route as protectedEnrollmentPeriodIdRouteImport } from './routes/(protected)/enrollment/$periodId'
+import { Route as protectedBillingSuccessRouteImport } from './routes/(protected)/billing/success'
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
@@ -91,6 +92,11 @@ const protectedEnrollmentPeriodIdRoute =
     path: '/enrollment/$periodId',
     getParentRoute: () => protectedRouteRoute,
   } as any)
+const protectedBillingSuccessRoute = protectedBillingSuccessRouteImport.update({
+  id: '/billing/success',
+  path: '/billing/success',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
 const protectedBillingBillingIdRoute =
   protectedBillingBillingIdRouteImport.update({
     id: '/billing/$billingId',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/update-password': typeof authUpdatePasswordRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
+  '/billing/success': typeof protectedBillingSuccessRoute
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/billing': typeof protectedBillingIndexRoute
   '/dashboard': typeof protectedDashboardIndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/update-password': typeof authUpdatePasswordRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
+  '/billing/success': typeof protectedBillingSuccessRoute
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/billing': typeof protectedBillingIndexRoute
   '/dashboard': typeof protectedDashboardIndexRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/(auth)/update-password': typeof authUpdatePasswordRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/(protected)/billing/$billingId': typeof protectedBillingBillingIdRoute
+  '/(protected)/billing/success': typeof protectedBillingSuccessRoute
   '/(protected)/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/(protected)/billing/': typeof protectedBillingIndexRoute
   '/(protected)/dashboard/': typeof protectedDashboardIndexRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/update-password'
     | '/demo/tanstack-query'
     | '/billing/$billingId'
+    | '/billing/success'
     | '/enrollment/$periodId'
     | '/billing'
     | '/dashboard'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/update-password'
     | '/demo/tanstack-query'
     | '/billing/$billingId'
+    | '/billing/success'
     | '/enrollment/$periodId'
     | '/billing'
     | '/dashboard'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/(auth)/update-password'
     | '/demo/tanstack-query'
     | '/(protected)/billing/$billingId'
+    | '/(protected)/billing/success'
     | '/(protected)/enrollment/$periodId'
     | '/(protected)/billing/'
     | '/(protected)/dashboard/'
@@ -296,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedEnrollmentPeriodIdRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/billing/success': {
+      id: '/(protected)/billing/success'
+      path: '/billing/success'
+      fullPath: '/billing/success'
+      preLoaderRoute: typeof protectedBillingSuccessRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/billing/$billingId': {
       id: '/(protected)/billing/$billingId'
       path: '/billing/$billingId'
@@ -308,6 +327,7 @@ declare module '@tanstack/react-router' {
 
 interface protectedRouteRouteChildren {
   protectedBillingBillingIdRoute: typeof protectedBillingBillingIdRoute
+  protectedBillingSuccessRoute: typeof protectedBillingSuccessRoute
   protectedEnrollmentPeriodIdRoute: typeof protectedEnrollmentPeriodIdRoute
   protectedBillingIndexRoute: typeof protectedBillingIndexRoute
   protectedDashboardIndexRoute: typeof protectedDashboardIndexRoute
@@ -319,6 +339,7 @@ interface protectedRouteRouteChildren {
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedBillingBillingIdRoute: protectedBillingBillingIdRoute,
+  protectedBillingSuccessRoute: protectedBillingSuccessRoute,
   protectedEnrollmentPeriodIdRoute: protectedEnrollmentPeriodIdRoute,
   protectedBillingIndexRoute: protectedBillingIndexRoute,
   protectedDashboardIndexRoute: protectedDashboardIndexRoute,
