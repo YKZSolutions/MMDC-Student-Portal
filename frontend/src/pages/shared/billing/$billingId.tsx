@@ -3,6 +3,7 @@ import { useAuth } from '@/features/auth/auth.hook'
 import {
   ActionIcon,
   Button,
+  Card,
   Container,
   Drawer,
   Flex,
@@ -10,9 +11,11 @@ import {
   NumberFormatter,
   Paper,
   rem,
+  SimpleGrid,
   Stack,
   Table,
   Text,
+  ThemeIcon,
   Timeline,
   Title,
 } from '@mantine/core'
@@ -20,9 +23,17 @@ import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
+  IconCalendarEvent,
+  IconCash,
+  IconFileInvoice,
   IconHistory,
+  IconMail,
   IconPlus,
+  IconReceipt2,
+  IconReportMoney,
+  IconSchool,
   IconUpload,
+  IconUser,
 } from '@tabler/icons-react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
@@ -128,7 +139,7 @@ function BillingIdPage() {
   const { authUser } = useAuth('protected')
 
   return (
-    <Container size={'md'} pb={'lg'}>
+    <Container size={'md'} pb={'lg'} w={'100%'}>
       <Flex align={'center'} pb={'lg'}>
         <Group>
           <ActionIcon
@@ -239,87 +250,175 @@ function BillingIdPage() {
   )
 }
 
-function BillingPrefaceDetails() {
+// function BillingPrefaceDetails() {
+//   return (
+//     <Group align="start" justify="space-between">
+//       <Paper withBorder radius={'md'} className="flex-1/3">
+//         <Table
+//           styles={{
+//             td: {
+//               textAlign: 'end',
+//             },
+//             th: {
+//               backgroundColor: 'var(--mantine-color-gray-1)',
+//               color: 'var(--mantine-color-dark-7)',
+//             },
+//           }}
+//           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+//           variant="vertical"
+//           layout="fixed"
+//           withRowBorders={false}
+//         >
+//           <Table.Tbody>
+//             <Table.Tr>
+//               <Table.Th w={160}>Invoice ID</Table.Th>
+//               <Table.Td>P60009</Table.Td>
+//             </Table.Tr>
+
+//             <Table.Tr>
+//               <Table.Th>Payer Name</Table.Th>
+//               <Table.Td>Test Namezuela</Table.Td>
+//             </Table.Tr>
+
+//             <Table.Tr>
+//               <Table.Th>Payer Email</Table.Th>
+//               <Table.Td>test@email.com</Table.Td>
+//             </Table.Tr>
+
+//             <Table.Tr>
+//               <Table.Th>Due Date</Table.Th>
+//               <Table.Td>February 24, 2025</Table.Td>
+//             </Table.Tr>
+//           </Table.Tbody>
+//         </Table>
+//       </Paper>
+//       <Paper withBorder radius={'md'} className="flex-1/3">
+//         <Table
+//           styles={{
+//             td: {
+//               textAlign: 'end',
+//             },
+//             th: {
+//               backgroundColor: 'var(--mantine-color-gray-1)',
+//               color: 'var(--mantine-color-dark-7)',
+//             },
+//           }}
+//           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+//           variant="vertical"
+//           layout="fixed"
+//           withRowBorders={false}
+//         >
+//           <Table.Tbody>
+//             <Table.Tr>
+//               <Table.Th w={160}>Bill Type</Table.Th>
+//               <Table.Td>Tuition Fee</Table.Td>
+//             </Table.Tr>
+//             <Table.Tr>
+//               <Table.Th>Receivable Amount</Table.Th>
+//               <Table.Td>16,632.00</Table.Td>
+//             </Table.Tr>
+
+//             <Table.Tr>
+//               <Table.Th>Receipted Amount</Table.Th>
+//               <Table.Td>16,632.00</Table.Td>
+//             </Table.Tr>
+
+//             <Table.Tr>
+//               <Table.Th>Outstanding Amount</Table.Th>
+//               <Table.Td>0</Table.Td>
+//             </Table.Tr>
+//           </Table.Tbody>
+//         </Table>
+//       </Paper>
+//     </Group>
+//   )
+// }
+
+const billingDetails = [
+  {
+    label: 'Invoice ID',
+    value: 'P60009',
+    icon: IconFileInvoice,
+  },
+  {
+    label: 'Payer Name',
+    value: 'Test Namezuela',
+    icon: IconUser,
+  },
+  {
+    label: 'Payer Email',
+    value: 'test@email.com',
+    icon: IconMail,
+  },
+  {
+    label: 'Due Date',
+    value: 'February 24, 2025',
+    icon: IconCalendarEvent,
+  },
+  {
+    label: 'Bill Type',
+    value: 'Tuition Fee',
+    icon: IconSchool,
+  },
+  {
+    label: 'Receivable Amount',
+    value: '16,632.0',
+    icon: IconCash,
+  },
+  {
+    label: 'Receipted Amount',
+    value: '16,632.0',
+    icon: IconReceipt2,
+  },
+  {
+    label: 'Outstanding Amount',
+    value: 0,
+    icon: IconReportMoney,
+  },
+]
+
+export function BillingPrefaceDetails() {
+  const midIndex = Math.ceil(billingDetails.length / 2)
+  const firstHalf = billingDetails.slice(0, midIndex)
+  const secondHalf = billingDetails.slice(midIndex)
+
   return (
-    <Group align="start" justify="space-between">
-      <Paper withBorder radius={'md'} className="flex-1/3">
-        <Table
-          styles={{
-            td: {
-              textAlign: 'end',
-            },
-            th: {
-              backgroundColor: 'var(--mantine-color-gray-1)',
-              color: 'var(--mantine-color-dark-7)',
-            },
-          }}
-          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-          variant="vertical"
-          layout="fixed"
-          withRowBorders={false}
-        >
-          <Table.Tbody>
-            <Table.Tr>
-              <Table.Th w={160}>Invoice ID</Table.Th>
-              <Table.Td>P60009</Table.Td>
-            </Table.Tr>
-
-            <Table.Tr>
-              <Table.Th>Payer Name</Table.Th>
-              <Table.Td>Test Namezuela</Table.Td>
-            </Table.Tr>
-
-            <Table.Tr>
-              <Table.Th>Payer Email</Table.Th>
-              <Table.Td>test@email.com</Table.Td>
-            </Table.Tr>
-
-            <Table.Tr>
-              <Table.Th>Due Date</Table.Th>
-              <Table.Td>February 24, 2025</Table.Td>
-            </Table.Tr>
-          </Table.Tbody>
-        </Table>
-      </Paper>
-      <Paper withBorder radius={'md'} className="flex-1/3">
-        <Table
-          styles={{
-            td: {
-              textAlign: 'end',
-            },
-            th: {
-              backgroundColor: 'var(--mantine-color-gray-1)',
-              color: 'var(--mantine-color-dark-7)',
-            },
-          }}
-          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-          variant="vertical"
-          layout="fixed"
-          withRowBorders={false}
-        >
-          <Table.Tbody>
-            <Table.Tr>
-              <Table.Th w={160}>Bill Type</Table.Th>
-              <Table.Td>Tuition Fee</Table.Td>
-            </Table.Tr>
-            <Table.Tr>
-              <Table.Th>Receivable Amount</Table.Th>
-              <Table.Td>16,632.00</Table.Td>
-            </Table.Tr>
-
-            <Table.Tr>
-              <Table.Th>Receipted Amount</Table.Th>
-              <Table.Td>16,632.00</Table.Td>
-            </Table.Tr>
-
-            <Table.Tr>
-              <Table.Th>Outstanding Amount</Table.Th>
-              <Table.Td>0</Table.Td>
-            </Table.Tr>
-          </Table.Tbody>
-        </Table>
-      </Paper>
-    </Group>
+    <SimpleGrid cols={{ lg: 2, xl: 2, md: 2 }}>
+      {[firstHalf, secondHalf].map((details, idx) => (
+        <Card key={idx} withBorder p="lg" radius="md">
+          <SimpleGrid
+            h="100%"
+            cols={{
+              // xl: 3, lg: 3,
+              xs: 2,
+              base: 1,
+            }}
+            spacing={'xl'}
+          >
+            {details.map((detail) => (
+              <Group key={detail.label} wrap="nowrap">
+                <ThemeIcon
+                  variant="light"
+                  radius="xl"
+                  color="dark.2"
+                  p={rem(3)}
+                >
+                  <detail.icon />
+                </ThemeIcon>
+                <Stack gap={rem(3)}>
+                  <Text c="dimmed" fz="xs">
+                    {detail.label}
+                  </Text>
+                  <Text fw={500} size="sm">
+                    {detail.value}
+                  </Text>
+                </Stack>
+              </Group>
+            ))}
+          </SimpleGrid>
+        </Card>
+      ))}
+    </SimpleGrid>
   )
 }
 
