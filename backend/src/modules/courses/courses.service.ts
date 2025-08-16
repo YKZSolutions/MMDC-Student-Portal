@@ -15,6 +15,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
+import { Log, LogParam } from '@/common/decorators/log.decorator';
 
 @Injectable()
 export class CoursesService {
@@ -35,7 +36,11 @@ export class CoursesService {
    * @throws {ConflictException} - If the course code already exists.
    * @throws {Error} Any other unexpected errors.
    */
-  async create(createCourseDto: CreateCourseDto): Promise<CourseDto> {
+
+  @Log({})
+  async create(
+    @LogParam('course') createCourseDto: CreateCourseDto,
+  ): Promise<CourseDto> {
     try {
       const { majorIds, prereqIds, coreqIds, ...courseData } = createCourseDto;
 
@@ -78,7 +83,10 @@ export class CoursesService {
    * @throws {BadRequestException} If query parameters are invalid.
    * @throws {Error} Any other unexpected errors.
    */
-  async findAll(filters: BaseFilterDto): Promise<PaginatedCoursesDto> {
+  @Log({})
+  async findAll(
+    @LogParam('filters') filters: BaseFilterDto,
+  ): Promise<PaginatedCoursesDto> {
     try {
       const where: Prisma.CourseWhereInput = {};
       const page = filters.page || 1;
@@ -131,7 +139,8 @@ export class CoursesService {
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {Error} Any other unexpected errors.
    */
-  async findOne(id: string): Promise<CourseDto> {
+  @Log({})
+  async findOne(@LogParam('id') id: string): Promise<CourseDto> {
     try {
       if (!isUUID(id)) {
         throw new BadRequestException('Invalid course ID format');
@@ -164,9 +173,10 @@ export class CoursesService {
    * @throws {ConflictException} If the course code already exists.
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({})
   async update(
-    id: string,
-    updateCourseDto: UpdateCourseDto,
+    @LogParam('id') id: string,
+    @LogParam('course') updateCourseDto: UpdateCourseDto,
   ): Promise<CourseDto> {
     try {
       if (!isUUID(id)) {
@@ -224,9 +234,10 @@ export class CoursesService {
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({})
   async remove(
-    id: string,
-    directDelete?: boolean,
+    @LogParam('id') id: string,
+    @LogParam('directDelete') directDelete?: boolean,
   ): Promise<{ message: string }> {
     try {
       if (!isUUID(id)) {
