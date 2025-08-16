@@ -81,8 +81,7 @@ function EwalletModalQueryProvider({
       },
       path: { billId: billingId },
     }),
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    staleTime: Infinity,
   })
 
   const paymentIntentData = data?.data
