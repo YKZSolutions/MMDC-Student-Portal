@@ -13,3 +13,9 @@ export interface UserMetadata extends SupabaseUserMetadata {
   status?: UserStatus;
   user_id?: string;
 }
+
+export interface CurrentAuthUser extends AuthUser {
+  user_metadata: CurrentUserMetadata;
+}
+
+export type CurrentUserMetadata = Required<UserMetadata>;
