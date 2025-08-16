@@ -192,7 +192,7 @@ model Course {
   coreqs   Course[] @relation("CourseCoreq")
   coreqFor Course[] @relation("CourseCoreq")
 
-  courseCode  String
+  courseCode  String @unique
   name        String
   description String
   year        String
