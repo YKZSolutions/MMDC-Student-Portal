@@ -1,29 +1,26 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Role } from '@/common/enums/roles.enum';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
   InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
   Query,
   ValidationPipe,
-  NotFoundException,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ApiBearerAuth, ApiCreatedResponse } from '@nestjs/swagger';
-import { BillDto } from '@/generated/nestjs-dto/bill.dto';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { Public } from '@/common/decorators/auth.decorator';
-import { StatusBypass } from '@/common/decorators/user-status.decorator';
-import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { FilterBillDto } from './dto/filter-bill.dto';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 
 @ApiBearerAuth()
 @Controller('billing')
@@ -38,10 +35,7 @@ export class BillingController {
   @Roles(Role.ADMIN)
   @ApiException(() => InternalServerErrorException)
   create(@Body() createBillingDto: CreateBillingDto) {
-    return this.billingService.create(
-      createBillingDto.bill,
-      createBillingDto.userId,
-    );
+    return this.billingService.create(createBillingDto);
   }
 
   /**

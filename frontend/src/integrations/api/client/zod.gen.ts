@@ -2,6 +2,15 @@
 
 import { z } from 'zod';
 
+export const zTestBodyNestDto = z.object({
+    name: z.string()
+});
+
+export const zTestBodyDto = z.object({
+    id: z.number(),
+    nested: zTestBodyNestDto
+});
+
 export const zRole = z.enum([
     'student',
     'mentor',
@@ -394,8 +403,15 @@ export const zCreateBillDto = z.object({
     costBreakdown: z.object({})
 });
 
+export const zBillingCostBreakdown = z.object({
+    name: z.string(),
+    cost: z.number(),
+    category: z.string()
+});
+
 export const zCreateBillingDto = z.object({
     bill: zCreateBillDto,
+    costBreakdown: z.array(zBillingCostBreakdown),
     userId: z.optional(z.uuid())
 });
 
@@ -696,6 +712,18 @@ export const zTestControllerTestAdminData = z.object({
 });
 
 export const zTestControllerTestAdminResponse = z.string();
+
+export const zTestControllerTestData = z.object({
+    body: zTestBodyDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.object({
+        page: z.number()
+    })
+});
+
+export const zTestControllerTestResponse = z.string();
 
 export const zUsersControllerFindAllData = z.object({
     body: z.optional(z.never()),

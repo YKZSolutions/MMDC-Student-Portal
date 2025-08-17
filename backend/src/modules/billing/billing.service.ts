@@ -1,3 +1,6 @@
+import { BillDto } from '@/generated/nestjs-dto/bill.dto';
+import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   Inject,
   Injectable,
@@ -5,14 +8,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
-import { BillDto } from '@/generated/nestjs-dto/bill.dto';
-import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { Prisma, Role } from '@prisma/client';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateBillingDto } from './dto/create-billing.dto';
 import { FilterBillDto } from './dto/filter-bill.dto';
-import { PageNumberPaginationMeta } from 'prisma-extension-pagination';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
 
 @Injectable()
@@ -32,15 +31,12 @@ export class BillingService {
    * @returns The created billing object in DTO format.
    * @throws InternalServerErrorException - If the database operation fails.
    */
-  async create(
-    createBillingDto: CreateBillDto,
-    userId?: string,
-  ): Promise<BillDto> {
+  async create(createBillingDto: CreateBillingDto): Promise<BillDto> {
     try {
       const billing = await this.prisma.client.bill.create({
         data: {
+          ...createBillingDto.bill,
           ...createBillingDto,
-          userId,
         },
       });
 
