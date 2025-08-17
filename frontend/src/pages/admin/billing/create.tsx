@@ -94,13 +94,13 @@ function CreateBillingPage() {
 
     create({
       body: {
-        bill: form.values.bill,
-        costBreakdown: form.values.costBreakdown.map((item) => ({
+        bill: form.getValues().bill,
+        costBreakdown: form.getValues().costBreakdown.map((item) => ({
           name: item.name,
           cost: item.cost.toString(), // Since we are using NumberInput, cost will be a number
           category: item.category,
         })),
-        userId: form.values.userId,
+        userId: form.getValues().userId,
       },
     })
   }
@@ -128,7 +128,7 @@ function CreateBillingPage() {
             key={form.key('bill.dueAt')}
             {...form.getInputProps('bill.dueAt')}
             value={
-              form.values.bill.dueAt ? new Date(form.values.bill.dueAt) : null
+              form.getValues().bill.dueAt ? new Date(form.getValues().bill.dueAt) : null
             }
             onChange={(val) =>
               form.getInputProps('bill.dueAt').onChange(`${val}T00:00:00Z`)
@@ -146,7 +146,7 @@ function CreateBillingPage() {
 
         {/* Computation Breakdown */}
 
-        <Stack gap={form.values.costBreakdown.length > 0 ? 'lg' : rem(5)}>
+        <Stack gap={form.getValues().costBreakdown.length > 0 ? 'lg' : rem(5)}>
           <Group gap={rem(5)}>
             <Text size="sm" fw={500}>
               Computation Breakdown
@@ -158,7 +158,7 @@ function CreateBillingPage() {
 
           <Tabs
             variant="outline"
-            hidden={form.values.costBreakdown.length == 0}
+            hidden={form.getValues().costBreakdown.length == 0}
             defaultValue="breakdown"
           >
             <Stack>
@@ -176,7 +176,7 @@ function CreateBillingPage() {
 
               <Tabs.Panel value="breakdown">
                 <Stack>
-                  {form.values.costBreakdown.map((item, index) => (
+                  {form.getValues().costBreakdown.map((item, index) => (
                     <Stack gap={'xl'} key={item.id}>
                       <Group grow gap="sm" align="start">
                         <Select
@@ -236,7 +236,7 @@ function CreateBillingPage() {
                             }
                             onClick={() => {
                               const newBreakdown =
-                                form.values.costBreakdown.filter(
+                                form.getValues().costBreakdown.filter(
                                   (_, i) => i !== index,
                                 )
                               form.setFieldValue('costBreakdown', newBreakdown)
@@ -254,7 +254,7 @@ function CreateBillingPage() {
               </Tabs.Panel>
 
               <Tabs.Panel value="preview">
-                <BillingFeeBreakdown fees={form.values.costBreakdown} />
+                <BillingFeeBreakdown fees={form.getValues().costBreakdown} />
               </Tabs.Panel>
             </Stack>
           </Tabs>
@@ -270,7 +270,7 @@ function CreateBillingPage() {
             }}
             onClick={() => {
               form.setFieldValue('costBreakdown', [
-                ...form.values.costBreakdown,
+                ...form.getValues().costBreakdown,
                 // when you push new items into costBreakdown
                 {
                   id: crypto.randomUUID(),
