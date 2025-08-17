@@ -12,25 +12,6 @@ export const CreateBillFormSchema = z.object({
 
     billType: zodBill.billType.nonempty('Bill type cannot be empty.'),
 
-    costBreakdown: z
-      .record(
-        z.string(),
-        z.record(
-          z.string(),
-          z.number({
-            error: 'Value must be a number',
-          }),
-        ),
-      )
-      .refine(
-        (val) =>
-          Object.values(val).every((v) => Object.keys(v).length > 0) &&
-          Object.keys(val).length > 0,
-        {
-          message: 'Cost breakdown cannot be empty.',
-        },
-      ),
-
     dueAt: z
       .string()
       .nonempty()
@@ -38,6 +19,29 @@ export const CreateBillFormSchema = z.object({
         message: 'Invalid date format.',
       }),
   }),
+
+  costBreakdown: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z
+          .string()
+          .nonempty('Name is required')
+          .max(30, { error: 'Name must not exceed 30 characters.' }),
+        // Check for nonnegative for string
+        cost: z.preprocess(
+          (val) => (val !== null && val !== undefined ? String(val) : ''),
+          z
+            .string()
+            .regex(/^\d+(\.\d{1,2})?$/, 'Cost must be a valid decimal')
+            .refine((val) => Number(val) >= 0, {
+              message: 'Cost cannot be negative',
+            }),
+        ),
+        category: z.string().nonempty({ error: 'Category is required.' }),
+      }),
+    )
+    .nonempty('At least one breakdown item is required.'),
 
   userId: z
     .uuid({ error: 'User must have a valid UUID.' })
