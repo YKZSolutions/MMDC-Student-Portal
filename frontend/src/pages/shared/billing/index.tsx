@@ -1,5 +1,7 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import type { BillDto, PaginationMetaDto } from '@/integrations/api/client'
+import { billingControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -28,6 +30,7 @@ import {
   IconUpload,
   type ReactNode,
 } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
@@ -140,7 +143,8 @@ function BillingQueryProvider({
   },
 }: {
   children: (props: {
-    currentInvoices: typeof MOCK_INVOICES
+    currentInvoices: BillDto[]
+    meta: PaginationMetaDto
     message: string
     totalPages: number
   }) => ReactNode
@@ -148,22 +152,24 @@ function BillingQueryProvider({
 }) {
   const { search, page } = props
 
-  // const { data } = useSuspenseQuery(
-  //   usersControllerFindAllOptions({
-  //     query: { search, page, ...(role && { role }) },
-  //   }),
-  // )
+  const { data } = useSuspenseQuery(
+    billingControllerFindAllOptions({
+      query: { search, page },
+    }),
+  )
 
-  const currentInvoices = MOCK_INVOICES
+  const currentInvoices = data.bills || []
 
+  const meta = data.meta as PaginationMetaDto
   const limit = 10
-  const total = MOCK_INVOICES.length
-  const totalPages = 1
+  const total = meta.totalCount ?? 0
+  const totalPages = meta.pageCount ?? 0
 
   const message = formatPaginationMessage({ limit, page, total })
 
   return children({
     currentInvoices,
+    meta,
     message,
     totalPages,
   })
@@ -377,9 +383,9 @@ function BillingTable() {
                       admin: (
                         <Flex gap={'sm'} align={'center'}>
                           <Flex direction={'column'}>
-                            <Text fw={600}>{invoice.clientName}</Text>
+                            <Text fw={600}>{invoice.payerName}</Text>
                             <Text fz={'sm'} fw={500} c={'dark.2'}>
-                              test@email.com
+                              {invoice.payerEmail}
                             </Text>
                           </Flex>
                         </Flex>
@@ -401,13 +407,13 @@ function BillingTable() {
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" c={'dark.3'} fw={500}>
-                    {invoice.issueDate}
+                    {invoice.issuedAt}
                   </Text>
                 </Table.Td>
 
                 <Table.Td>
                   <Text size="sm" fw={500}>
-                    ${invoice.price.toFixed(2)}
+                    ${invoice.outstandingAmount}
                   </Text>
                 </Table.Td>
 
