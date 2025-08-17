@@ -36,7 +36,8 @@ export class BillingService {
       const billing = await this.prisma.client.bill.create({
         data: {
           ...createBillingDto.bill,
-          ...createBillingDto,
+          costBreakdown: createBillingDto.costBreakdown,
+          userId: createBillingDto.userId,
         },
       });
 
