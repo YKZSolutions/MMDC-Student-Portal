@@ -1,5 +1,7 @@
 import RoleComponentManager from '@/components/role-component-manager'
+import { SuspendedPagination } from '@/components/suspense-pagination'
 import { useAuth } from '@/features/auth/auth.hook'
+import { SuspendedBillingTableRows } from '@/features/billing/suspense'
 import type { BillDto, PaginationMetaDto } from '@/integrations/api/client'
 import { billingControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
@@ -13,6 +15,7 @@ import {
   Flex,
   Group,
   Menu,
+  NumberFormatter,
   Pagination,
   rem,
   SegmentedControl,
@@ -21,6 +24,7 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from '@mantine/core'
 import {
   IconDotsVertical,
@@ -32,7 +36,8 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import dayjs from 'dayjs'
+import { Suspense, useState } from 'react'
 
 const route = getRouteApi('/(protected)/billing/')
 
@@ -267,18 +272,20 @@ function BillingPage() {
 
         <BillingTable />
 
-        <BillingQueryProvider props={query}>
-          {(props) => (
-            <Group justify="flex-end">
-              <Text size="sm">{props.message}</Text>
-              <Pagination
-                total={props.totalPages}
-                value={query.page}
-                withPages={false}
-              />
-            </Group>
-          )}
-        </BillingQueryProvider>
+        <Suspense fallback={<SuspendedPagination />}>
+          <BillingQueryProvider props={query}>
+            {(props) => (
+              <Group justify="flex-end">
+                <Text size="sm">{props.message}</Text>
+                <Pagination
+                  total={props.totalPages}
+                  value={query.page}
+                  withPages={false}
+                />
+              </Group>
+            )}
+          </BillingQueryProvider>
+        </Suspense>
         {/* </Card> */}
       </Stack>
     </Container>
@@ -350,103 +357,117 @@ function BillingTable() {
           cursor: 'pointer',
         }}
       >
-        <BillingQueryProvider>
-          {(props) =>
-            props.currentInvoices.map((invoice) => (
-              <Table.Tr
-                key={invoice.id}
-                onClick={(e) =>
-                  navigate({
-                    to: '/billing/' + invoice.id,
-                  })
-                }
-              >
-                <RoleComponentManager
-                  currentRole={authUser.role}
-                  roleRender={{
-                    admin: (
-                      <Table.Td>
-                        <Checkbox size="sm" />
-                      </Table.Td>
-                    ),
-                  }}
-                />
-                <Table.Td>
-                  <Text size="sm" c={'dark.3'} fw={500}>
-                    {invoice.id}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
+        <Suspense fallback={<SuspendedBillingTableRows />}>
+          <BillingQueryProvider>
+            {(props) =>
+              props.currentInvoices.map((invoice) => (
+                <Table.Tr
+                  key={invoice.id}
+                  onClick={(e) =>
+                    navigate({
+                      to: '/billing/' + invoice.id,
+                    })
+                  }
+                >
                   <RoleComponentManager
                     currentRole={authUser.role}
                     roleRender={{
                       admin: (
-                        <Flex gap={'sm'} align={'center'}>
-                          <Flex direction={'column'}>
-                            <Text fw={600}>{invoice.payerName}</Text>
-                            <Text fz={'sm'} fw={500} c={'dark.2'}>
-                              {invoice.payerEmail}
-                            </Text>
-                          </Flex>
-                        </Flex>
-                      ),
-                      student: (
-                        <Text fz={'sm'} fw={500} c={'dark.3'}>
-                          Tuition Fee
-                        </Text>
+                        <Table.Td>
+                          <Checkbox size="sm" />
+                        </Table.Td>
                       ),
                     }}
                   />
-                </Table.Td>
-                <Table.Td>
-                  <Badge variant="light" radius="lg">
-                    <Text className="capitalize" fz={'xs'} fw={500}>
-                      {invoice.status}
+                  <Table.Td>
+                    <Tooltip withArrow position="bottom" label={invoice.id}>
+                      <Text
+                        className="max-w-[17ch]"
+                        size="sm"
+                        c={'dark.3'}
+                        truncate
+                        fw={500}
+                      >
+                        {invoice.id}
+                      </Text>
+                    </Tooltip>
+                  </Table.Td>
+                  <Table.Td>
+                    <RoleComponentManager
+                      currentRole={authUser.role}
+                      roleRender={{
+                        admin: (
+                          <Flex gap={'sm'} align={'center'}>
+                            <Flex direction={'column'}>
+                              <Text fw={600}>{invoice.payerName}</Text>
+                              <Text fz={'sm'} fw={500} c={'dark.2'}>
+                                {invoice.payerEmail}
+                              </Text>
+                            </Flex>
+                          </Flex>
+                        ),
+                        student: (
+                          <Text fz={'sm'} fw={500} c={'dark.3'}>
+                            Tuition Fee
+                          </Text>
+                        ),
+                      }}
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge variant="light" radius="lg">
+                      <Text className="capitalize" fz={'xs'} fw={500}>
+                        {invoice.status}
+                      </Text>
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={'dark.3'} fw={500}>
+                      {dayjs(invoice.issuedAt).format('MMM D, YYYY')}
                     </Text>
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" c={'dark.3'} fw={500}>
-                    {invoice.issuedAt}
-                  </Text>
-                </Table.Td>
+                  </Table.Td>
 
-                <Table.Td>
-                  <Text size="sm" fw={500}>
-                    ${invoice.outstandingAmount}
-                  </Text>
-                </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" fw={500}>
+                      <NumberFormatter
+                        prefix="&#8369;"
+                        value={invoice.outstandingAmount}
+                        thousandSeparator
+                      />
+                    </Text>
+                  </Table.Td>
 
-                <RoleComponentManager
-                  currentRole={authUser.role}
-                  roleRender={{
-                    admin: (
-                      <Table.Td>
-                        <Menu shadow="md" width={200}>
-                          <Menu.Target>
-                            <ActionIcon
-                              onClick={(e) => e.stopPropagation()}
-                              variant="subtle"
-                              color="gray"
-                              radius={'xl'}
-                            >
-                              <IconDotsVertical size={20} stroke={1.5} />
-                            </ActionIcon>
-                          </Menu.Target>
-                          <Menu.Dropdown>
-                            <Menu.Item>View Details</Menu.Item>
-                            <Menu.Item>Edit</Menu.Item>
-                            <Menu.Item c="red">Delete</Menu.Item>{' '}
-                          </Menu.Dropdown>
-                        </Menu>
-                      </Table.Td>
-                    ),
-                  }}
-                />
-              </Table.Tr>
-            ))
-          }
-        </BillingQueryProvider>
+                  <RoleComponentManager
+                    currentRole={authUser.role}
+                    roleRender={{
+                      admin: (
+                        <Table.Td>
+                          <Menu shadow="md" width={200}>
+                            <Menu.Target>
+                              <ActionIcon
+                                onClick={(e) => e.stopPropagation()}
+                                variant="subtle"
+                                color="gray"
+                                radius={'xl'}
+                              >
+                                <IconDotsVertical size={20} stroke={1.5} />
+                              </ActionIcon>
+                            </Menu.Target>
+                            <Menu.Dropdown>
+                              <Menu.Item>View Details</Menu.Item>
+                              <Menu.Item>Edit</Menu.Item>
+                              <Menu.Item c="red">Delete</Menu.Item>{' '}
+                            </Menu.Dropdown>
+                          </Menu>
+                        </Table.Td>
+                      ),
+                    }}
+                  />
+                </Table.Tr>
+              ))
+            }
+          </BillingQueryProvider>
+        </Suspense>
       </Table.Tbody>
     </Table>
   )
