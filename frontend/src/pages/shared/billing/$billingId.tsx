@@ -1,5 +1,7 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
+import type { IFrontendBillingCostBreakdown } from '@/features/billing/types'
 import {
   ActionIcon,
   Button,
@@ -8,12 +10,9 @@ import {
   Drawer,
   Flex,
   Group,
-  NumberFormatter,
-  Paper,
   rem,
   SimpleGrid,
   Stack,
-  Table,
   Text,
   ThemeIcon,
   Timeline,
@@ -26,7 +25,6 @@ import {
   IconCalendarEvent,
   IconCash,
   IconFileInvoice,
-  IconHistory,
   IconMail,
   IconPlus,
   IconReceipt2,
@@ -55,48 +53,66 @@ const bills = {
   },
   fees: [
     {
-      description: 'Lec Subject/s',
-      amount: 10696.0,
+      id: '1',
+      category: 'Tuition Fee',
+      name: 'Lec Subject/s',
+      cost: "10696.0",
     },
     {
-      description: 'Lab Subject/s',
-      amount: 7000.0,
-    },
-  ],
-  miscellaneous_fees: [
-    {
-      description: 'Campus Life Prog Fund',
-      amount: 390.0,
+      id: '2',
+      category: 'Tuition Fee',
+      name: 'Lab Subject/s',
+      cost: "7000.0",
     },
     {
-      description: 'E-Resource Fee',
-      amount: 675.0,
+      id: '3',
+      category: 'Miscellaneous Fee',
+      name: 'Campus Life Prog Fund',
+      cost: "390.0",
     },
     {
-      description: 'Health Services Fee',
-      amount: 465.0,
+      id: '4',
+      category: 'Miscellaneous Fee',
+      name: 'E-Resource Fee',
+      cost: "675.0",
     },
     {
-      description: 'IT Infrastructure Fee',
-      amount: 2680.0,
+      id: '5',
+      category: 'Miscellaneous Fee',
+      name: 'Health Services Fee',
+      cost: "465.0",
     },
     {
-      description: 'Library Fee',
-      amount: 1205.0,
+      id: '6',
+      category: 'Miscellaneous Fee',
+      name: 'IT Infrastructure Fee',
+      cost: "2680.0",
     },
     {
-      description: 'Registration Fee',
-      amount: 725.0,
+      id: '7',
+      category: 'Miscellaneous Fee',
+      name: 'Library Fee',
+      cost: "1205.0",
     },
     {
-      description: 'Student Council Fee',
-      amount: 40.0,
+      id: '8',
+      category: 'Miscellaneous Fee',
+      name: 'Registration Fee',
+      cost: "725.0",
     },
     {
-      description: 'Supplementary Fee',
-      amount: 735.0,
+      id: '9',
+      category: 'Miscellaneous Fee',
+      name: 'Student Council Fee',
+      cost: "40.0",
     },
-  ],
+    {
+      id: '10',
+      category: 'Miscellaneous Fee',
+      name: 'Supplementary Fee',
+      cost: "735.0",
+    },
+  ] as IFrontendBillingCostBreakdown[],
 }
 
 const paymentHistory = [
@@ -244,95 +260,11 @@ function BillingIdPage() {
 
       <Stack>
         <BillingPrefaceDetails />
-        <BillingFeeBreakdown open={open} />
+        <BillingFeeBreakdown open={open} fees={bills.fees} />
       </Stack>
     </Container>
   )
 }
-
-// function BillingPrefaceDetails() {
-//   return (
-//     <Group align="start" justify="space-between">
-//       <Paper withBorder radius={'md'} className="flex-1/3">
-//         <Table
-//           styles={{
-//             td: {
-//               textAlign: 'end',
-//             },
-//             th: {
-//               backgroundColor: 'var(--mantine-color-gray-1)',
-//               color: 'var(--mantine-color-dark-7)',
-//             },
-//           }}
-//           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-//           variant="vertical"
-//           layout="fixed"
-//           withRowBorders={false}
-//         >
-//           <Table.Tbody>
-//             <Table.Tr>
-//               <Table.Th w={160}>Invoice ID</Table.Th>
-//               <Table.Td>P60009</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Payer Name</Table.Th>
-//               <Table.Td>Test Namezuela</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Payer Email</Table.Th>
-//               <Table.Td>test@email.com</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Due Date</Table.Th>
-//               <Table.Td>February 24, 2025</Table.Td>
-//             </Table.Tr>
-//           </Table.Tbody>
-//         </Table>
-//       </Paper>
-//       <Paper withBorder radius={'md'} className="flex-1/3">
-//         <Table
-//           styles={{
-//             td: {
-//               textAlign: 'end',
-//             },
-//             th: {
-//               backgroundColor: 'var(--mantine-color-gray-1)',
-//               color: 'var(--mantine-color-dark-7)',
-//             },
-//           }}
-//           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-//           variant="vertical"
-//           layout="fixed"
-//           withRowBorders={false}
-//         >
-//           <Table.Tbody>
-//             <Table.Tr>
-//               <Table.Th w={160}>Bill Type</Table.Th>
-//               <Table.Td>Tuition Fee</Table.Td>
-//             </Table.Tr>
-//             <Table.Tr>
-//               <Table.Th>Receivable Amount</Table.Th>
-//               <Table.Td>16,632.00</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Receipted Amount</Table.Th>
-//               <Table.Td>16,632.00</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Outstanding Amount</Table.Th>
-//               <Table.Td>0</Table.Td>
-//             </Table.Tr>
-//           </Table.Tbody>
-//         </Table>
-//       </Paper>
-//     </Group>
-//   )
-// }
 
 const billingDetails = [
   {
@@ -419,121 +351,6 @@ export function BillingPrefaceDetails() {
         </Card>
       ))}
     </SimpleGrid>
-  )
-}
-
-function BillingFeeBreakdown({ open }: { open: () => void }) {
-  return (
-    <Paper radius={'md'} withBorder>
-      <Table
-        verticalSpacing={'md'}
-        highlightOnHover
-        highlightOnHoverColor="gray.0"
-        style={{ borderRadius: rem('5px'), overflow: 'hidden' }}
-        styles={{
-          th: {
-            fontWeight: 500,
-          },
-        }}
-      >
-        <Table.Thead>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.7'}
-          >
-            <Table.Th>Tuition Fees</Table.Th>
-            <Table.Th>
-              <Group w={'100%'}>
-                <Button
-                  size="xs"
-                  ml={'auto'}
-                  variant="outline"
-                  radius={'md'}
-                  leftSection={<IconHistory size={20} />}
-                  c={'gray.7'}
-                  color="gray.4"
-                  lts={rem(0.25)}
-                  onClick={() => open()}
-                >
-                  History
-                </Button>
-              </Group>
-            </Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {bills.fees.map((bill) => (
-            <Table.Tr key={bill.description}>
-              <Table.Td>{bill.description}</Table.Td>
-              <Table.Td
-                style={{
-                  textAlign: 'end',
-                }}
-              >
-                <NumberFormatter
-                  prefix="₱ "
-                  value={bill.amount}
-                  thousandSeparator
-                />
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-
-        <Table.Thead>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.5'}
-          >
-            <Table.Th>Miscellaneous Fees</Table.Th>
-            <Table.Th></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {bills.miscellaneous_fees.map((misc) => (
-            <Table.Tr key={misc.description}>
-              <Table.Td>{misc.description}</Table.Td>
-              <Table.Td
-                style={{
-                  textAlign: 'end',
-                }}
-              >
-                <NumberFormatter
-                  prefix="₱ "
-                  value={misc.amount}
-                  thousandSeparator
-                />
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-
-        <Table.Tbody>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.7'}
-          >
-            <Table.Th>Total</Table.Th>
-            <Table.Th
-              style={{
-                textAlign: 'end',
-              }}
-            >
-              <NumberFormatter prefix="₱ " value={30000} thousandSeparator />
-            </Table.Th>
-          </Table.Tr>
-        </Table.Tbody>
-      </Table>
-    </Paper>
   )
 }
 
