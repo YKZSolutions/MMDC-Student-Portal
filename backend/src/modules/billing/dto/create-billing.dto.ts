@@ -1,5 +1,6 @@
 import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
-import { OmitType } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { Prisma } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsDecimal,
@@ -33,7 +34,11 @@ export class BillingCostBreakdown implements Breakdown {
   name: string;
 
   @IsDecimal()
-  cost: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+  })
+  cost: Prisma.Decimal;
 
   @IsString()
   category: string;
