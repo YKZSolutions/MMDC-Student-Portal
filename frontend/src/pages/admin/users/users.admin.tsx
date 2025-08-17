@@ -1,4 +1,7 @@
+import SupabaseAvatar from '@/components/supabase-avatar'
+import { SuspendedPagination } from '@/components/suspense-pagination'
 import { roleOptions, roleStyles } from '@/features/user-management/constants'
+import { SuspendedUserTableRows } from '@/features/user-management/suspense'
 import type { IUsersQuery } from '@/features/user-management/types'
 import {
   type PaginationMetaDto,
@@ -11,10 +14,11 @@ import {
   usersControllerRemoveMutation,
   usersControllerUpdateUserStatusMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
-  Avatar,
   Box,
   Button,
   Center,
@@ -22,7 +26,6 @@ import {
   Container,
   Flex,
   Group,
-  Image,
   Menu,
   Pagination,
   Pill,
@@ -34,9 +37,11 @@ import {
   Text,
   TextInput,
   Title,
-  UnstyledButton,
+  UnstyledButton
 } from '@mantine/core'
 import { useDebouncedCallback } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
+import { notifications } from '@mantine/notifications'
 import {
   IconCancel,
   IconCheck,
@@ -51,12 +56,6 @@ import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState, type ReactNode } from 'react'
-import { SuspendedPagination, SuspendedTableRows } from './users.admin.suspense'
-import { modals } from '@mantine/modals'
-import { getContext } from '@/integrations/tanstack-query/root-provider'
-import { notifications } from '@mantine/notifications'
-import SupabaseAvatar from '@/components/supabase-avatar'
-import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 
 const route = getRouteApi('/(protected)/users/')
 
@@ -370,7 +369,7 @@ function UsersTable({ props }: { props: IUsersQuery }) {
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        <Suspense fallback={<SuspendedTableRows />}>
+        <Suspense fallback={<SuspendedUserTableRows />}>
           <UsersQueryProvider props={props}>
             {(props) => <UsersTableRow users={props.users} />}
           </UsersQueryProvider>
