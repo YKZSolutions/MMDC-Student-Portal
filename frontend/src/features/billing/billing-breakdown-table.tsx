@@ -1,12 +1,13 @@
 import {
-    Button,
-    Group,
-    NumberFormatter,
-    Paper,
-    Table,
-    rem,
+  Button,
+  Group,
+  NumberFormatter,
+  Paper,
+  Table,
+  rem,
 } from '@mantine/core'
 import { IconHistory } from '@tabler/icons-react'
+import Decimal from 'decimal.js'
 import { groupBy } from 'lodash'
 import React from 'react'
 import type { IFrontendBillingCostBreakdown } from './types'
@@ -22,7 +23,12 @@ function BillingFeeBreakdown({
   const grouped = groupBy(fees, 'category')
 
   // get total
-  const total = fees.reduce((sum, item) => (sum) + Number(item.cost), 0)
+  const totalNumber = fees.reduce(
+    (sum, item) => sum.plus(new Decimal(item.cost || 0)),
+    new Decimal(0),
+  )
+
+  const total = totalNumber.toNumber()
 
   return (
     <Paper radius="md" withBorder>
