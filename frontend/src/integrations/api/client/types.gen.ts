@@ -266,7 +266,7 @@ export type AuthMetadataDto = {
 
 export type BillStatus = 'paid' | 'unpaid' | 'overpaid';
 
-export type CreateBillDto = {
+export type CreateBillDtoNoBreakdown = {
     invoiceId: string;
     payerName: string;
     payerEmail: string;
@@ -277,19 +277,16 @@ export type CreateBillDto = {
     outstandingAmount: string;
     dueAt: string;
     issuedAt: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
 };
 
 export type BillingCostBreakdown = {
+    cost: string;
     name: string;
-    cost: number;
     category: string;
 };
 
 export type CreateBillingDto = {
-    bill: CreateBillDto;
+    bill: CreateBillDtoNoBreakdown;
     costBreakdown: Array<BillingCostBreakdown>;
     userId?: string;
 };

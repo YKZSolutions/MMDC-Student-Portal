@@ -389,7 +389,7 @@ export const zBillStatus = z.enum([
     'overpaid'
 ]);
 
-export const zCreateBillDto = z.object({
+export const zCreateBillDtoNoBreakdown = z.object({
     invoiceId: z.string(),
     payerName: z.string(),
     payerEmail: z.string(),
@@ -399,18 +399,17 @@ export const zCreateBillDto = z.object({
     receiptedAmount: z.string(),
     outstandingAmount: z.string(),
     dueAt: z.iso.datetime(),
-    issuedAt: z.iso.datetime(),
-    costBreakdown: z.object({})
+    issuedAt: z.iso.datetime()
 });
 
 export const zBillingCostBreakdown = z.object({
+    cost: z.string(),
     name: z.string(),
-    cost: z.number(),
     category: z.string()
 });
 
 export const zCreateBillingDto = z.object({
-    bill: zCreateBillDto,
+    bill: zCreateBillDtoNoBreakdown,
     costBreakdown: z.array(zBillingCostBreakdown),
     userId: z.optional(z.uuid())
 });
