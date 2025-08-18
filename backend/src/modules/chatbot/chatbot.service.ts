@@ -123,7 +123,9 @@ export class ChatbotService {
           this.logger.debug(`[${method}] Function call: ${functionCall.name}`);
           const args = functionCall.args as FilterUserDto;
           const count = await this.usersService.countAll(args);
-          functionCallResult.push(`${text}: ${count} users found`);
+          functionCallResult.push(
+            `${text}: ${count} users found with filter ${JSON.stringify(args)}`,
+          );
           break;
         }
         case 'search_vector': {
