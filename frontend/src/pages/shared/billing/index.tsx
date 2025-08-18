@@ -3,7 +3,12 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import { useAuth } from '@/features/auth/auth.hook'
 import { SuspendedBillingTableRows } from '@/features/billing/suspense'
 import type { BillDto, PaginationMetaDto } from '@/integrations/api/client'
-import { billingControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  billingControllerFindAllOptions,
+  billingControllerFindAllQueryKey,
+  billingControllerRemoveMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -26,7 +31,10 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
+import { modals } from '@mantine/modals'
+import { notifications } from '@mantine/notifications'
 import {
+  IconCheck,
   IconDotsVertical,
   IconFilter2,
   IconPlus,
@@ -34,7 +42,7 @@ import {
   IconUpload,
   type ReactNode,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState } from 'react'
@@ -51,6 +59,7 @@ const segmentedControlOptions = [
 interface IBillingQuery {
   search: string
   page: number
+  excludeSoftDeleted?: boolean
 }
 
 function BillingQueryProvider({
@@ -58,6 +67,7 @@ function BillingQueryProvider({
   props = {
     search: '',
     page: 1,
+    excludeSoftDeleted: true,
   },
 }: {
   children: (props: {
@@ -68,11 +78,18 @@ function BillingQueryProvider({
   }) => ReactNode
   props?: IBillingQuery
 }) {
-  const { search, page } = props
+  const { authUser } = useAuth('protected')
+
+  const { search, page, excludeSoftDeleted } = props
 
   const { data } = useSuspenseQuery(
     billingControllerFindAllOptions({
-      query: { search, page },
+      query: {
+        search,
+        page,
+        ...(excludeSoftDeleted &&
+          authUser.role !== 'admin' && { excludeSoftDeleted }),
+      },
     }),
   )
 
@@ -208,6 +225,56 @@ function BillingPage() {
 function BillingTable() {
   const navigate = useNavigate()
   const { authUser } = useAuth('protected')
+
+  const { mutateAsync: remove } = useMutation({
+    ...billingControllerRemoveMutation(),
+    onSuccess: async () => {
+      const { queryClient } = getContext()
+      queryClient.invalidateQueries({
+        queryKey: billingControllerFindAllQueryKey(),
+      })
+    },
+  })
+
+  const handleMenuAction = (
+    id: BillDto['id'],
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) =>
+    // Prevent the list from being clicked when a menu item is clicked
+    (
+      e.stopPropagation(),
+      {
+        view: () => {
+          navigate({
+            to: `/billing/${id}`,
+          })
+        },
+        edit: () => {
+          navigate({
+            to: `/billing/${id}/edit`,
+          })
+        },
+        delete: () => {
+          modals.openConfirmModal({
+            title: (
+              <Text fw={600} c={'dark.7'}>
+                Delete Bill
+              </Text>
+            ),
+            children: (
+              <Text size="sm" c={'dark.3'}>
+                Are you sure you want to delete this bill? This action cannot be
+                undone.
+              </Text>
+            ),
+            centered: true,
+            labels: { confirm: 'Delete', cancel: 'Cancel' },
+            confirmProps: { color: 'red' },
+            onConfirm: async () => {
+              const notifId = notifications.show({
+                loading: true,
+      }
+    )
 
   return (
     <Table
@@ -370,6 +437,12 @@ function BillingTable() {
                               <Menu.Item>View Details</Menu.Item>
                               <Menu.Item>Edit</Menu.Item>
                               <Menu.Item c="red">Delete</Menu.Item>{' '}
+                                  handleMenuAction(invoice.id, e).delete()
+                                }
+                                c="red"
+                              >
+                                Delete
+                              </Menu.Item>
                             </Menu.Dropdown>
                           </Menu>
                         </Table.Td>
