@@ -122,11 +122,7 @@ export class BillingService {
       const bill = await this.prisma.client.bill.findUnique({
         where: {
           id,
-          ...(role !== 'admin' && {
-            bill: {
-              userId,
-            },
-          }),
+          ...(role !== 'admin' ? { userId } : undefined),
         },
       });
 
