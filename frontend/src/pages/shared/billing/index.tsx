@@ -273,6 +273,28 @@ function BillingTable() {
             onConfirm: async () => {
               const notifId = notifications.show({
                 loading: true,
+                title: `Deleting the bill.`,
+                message: `Performing the action, please wait.`,
+                autoClose: false,
+                withCloseButton: false,
+              })
+              await remove({
+                path: {
+                  id: id,
+                },
+              })
+              notifications.update({
+                id: notifId,
+                color: 'teal',
+                title: `Bill Deleted`,
+                message: `The bill has been deleted.`,
+                icon: <IconCheck size={18} />,
+                loading: false,
+                autoClose: 1500,
+              })
+            },
+          })
+        },
       }
     )
 
@@ -434,9 +456,22 @@ function BillingTable() {
                               </ActionIcon>
                             </Menu.Target>
                             <Menu.Dropdown>
-                              <Menu.Item>View Details</Menu.Item>
-                              <Menu.Item>Edit</Menu.Item>
-                              <Menu.Item c="red">Delete</Menu.Item>{' '}
+                              <Menu.Item
+                                onClick={(e) =>
+                                  handleMenuAction(invoice.id, e).view()
+                                }
+                              >
+                                View Details
+                              </Menu.Item>
+                              <Menu.Item
+                                onClick={(e) =>
+                                  handleMenuAction(invoice.id, e).edit()
+                                }
+                              >
+                                Edit
+                              </Menu.Item>
+                              <Menu.Item
+                                onClick={(e) =>
                                   handleMenuAction(invoice.id, e).delete()
                                 }
                                 c="red"
