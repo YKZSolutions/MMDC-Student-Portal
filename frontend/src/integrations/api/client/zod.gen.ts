@@ -933,6 +933,7 @@ export const zBillingControllerFindAllData = z.object({
             'desc'
         ])),
         page: z.optional(z.number()).default(1),
+        excludeSoftDeleted: z.optional(z.boolean()).default(false),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
             'status',

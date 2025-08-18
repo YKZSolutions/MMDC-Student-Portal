@@ -1092,6 +1092,7 @@ export type BillingControllerFindAllData = {
     query?: {
         sortOrder?: 'asc' | 'desc';
         page?: number;
+        excludeSoftDeleted?: boolean;
         search?: string;
         sort?: 'status' | 'amount' | 'dueAt' | 'createdAt';
         status?: 'paid' | 'unpaid' | 'overpaid';

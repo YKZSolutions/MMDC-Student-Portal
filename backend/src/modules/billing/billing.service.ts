@@ -83,6 +83,10 @@ export class BillingService {
         ];
       }
 
+      if (filters.excludeSoftDeleted) {
+        where.deletedAt = null;
+      }
+
       if (filters.sort) {
         orderBy[filters.sort] = filters.sortOrder ?? 'desc';
       } else {
