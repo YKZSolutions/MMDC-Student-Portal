@@ -25,6 +25,7 @@ import { Route as protectedEnrollmentPeriodIdRouteImport } from './routes/(prote
 import { Route as protectedBillingRedirectRouteImport } from './routes/(protected)/billing/redirect'
 import { Route as protectedBillingCreateRouteImport } from './routes/(protected)/billing/create'
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
+import { Route as protectedBillingBillingIdEditRouteImport } from './routes/(protected)/billing/$billingId_.edit'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
   id: '/(protected)',
@@ -110,6 +111,12 @@ const protectedBillingBillingIdRoute =
     path: '/billing/$billingId',
     getParentRoute: () => protectedRouteRoute,
   } as any)
+const protectedBillingBillingIdEditRoute =
+  protectedBillingBillingIdEditRouteImport.update({
+    id: '/billing/$billingId_/edit',
+    path: '/billing/$billingId/edit',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof protectedRouteRouteWithChildren
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof protectedNotificationsIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
+  '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
@@ -144,6 +152,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof protectedNotificationsIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
+  '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -163,6 +172,7 @@ export interface FileRoutesById {
   '/(protected)/notifications/': typeof protectedNotificationsIndexRoute
   '/(protected)/profile/': typeof protectedProfileIndexRoute
   '/(protected)/users/': typeof protectedUsersIndexRoute
+  '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/users'
+    | '/billing/$billingId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/users'
+    | '/billing/$billingId/edit'
   id:
     | '__root__'
     | '/'
@@ -217,6 +229,7 @@ export interface FileRouteTypes {
     | '/(protected)/notifications/'
     | '/(protected)/profile/'
     | '/(protected)/users/'
+    | '/(protected)/billing/$billingId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedBillingBillingIdRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/billing/$billingId_/edit': {
+      id: '/(protected)/billing/$billingId_/edit'
+      path: '/billing/$billingId/edit'
+      fullPath: '/billing/$billingId/edit'
+      preLoaderRoute: typeof protectedBillingBillingIdEditRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
   }
 }
 
@@ -356,6 +376,7 @@ interface protectedRouteRouteChildren {
   protectedNotificationsIndexRoute: typeof protectedNotificationsIndexRoute
   protectedProfileIndexRoute: typeof protectedProfileIndexRoute
   protectedUsersIndexRoute: typeof protectedUsersIndexRoute
+  protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
@@ -369,6 +390,7 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedNotificationsIndexRoute: protectedNotificationsIndexRoute,
   protectedProfileIndexRoute: protectedProfileIndexRoute,
   protectedUsersIndexRoute: protectedUsersIndexRoute,
+  protectedBillingBillingIdEditRoute: protectedBillingBillingIdEditRoute,
 }
 
 const protectedRouteRouteWithChildren = protectedRouteRoute._addFileChildren(
