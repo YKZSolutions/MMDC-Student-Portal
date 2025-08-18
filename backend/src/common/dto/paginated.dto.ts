@@ -5,7 +5,7 @@ import {
   PageNumberCounters,
 } from 'prisma-extension-pagination/dist/types';
 
-export class PaginatedDto<T> {
+export class PaginatedDto {
   @ApiProperty({
     type: PaginationMetaDto,
     additionalProperties: true,
