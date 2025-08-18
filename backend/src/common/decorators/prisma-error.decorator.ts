@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { LOG_PARAM } from './log-param.decorator';
+import { extractArgs } from './extract-args.util';
 
 /**
  * Common Prisma error codes mapped to readable names.
@@ -88,7 +90,7 @@ type PrismaErrorCodeValue = (typeof PrismaErrorCode)[PrismaErrorCodeKey];
  */
 const defaultErrorMap: Record<
   PrismaErrorCodeValue,
-  (message?: string) => Error
+  (message: string, args: Record<string, any>) => Error
 > = {
   [PrismaErrorCode.ValueTooLong]: (msg) =>
     new BadRequestException(msg || 'Value is too long.'),
@@ -130,8 +132,8 @@ export function PrismaError(customMap: Partial<typeof defaultErrorMap> = {}) {
   const mergedMap = { ...defaultErrorMap, ...customMap };
 
   return function (
-    _target: any,
-    _propertyKey: string,
+    target: any,
+    propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
@@ -143,7 +145,10 @@ export function PrismaError(customMap: Partial<typeof defaultErrorMap> = {}) {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
           const handler = mergedMap[err.code as PrismaErrorCodeValue];
           if (handler) {
-            throw handler(err.message);
+            const params = Reflect.getMetadata(LOG_PARAM, target, propertyKey);
+            const keyArgs = extractArgs(params, args);
+
+            throw handler(err.message, keyArgs);
           }
         }
         throw err;
