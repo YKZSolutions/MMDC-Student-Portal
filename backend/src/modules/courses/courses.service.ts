@@ -15,7 +15,8 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
-import { Log, LogParam } from '@/common/decorators/log.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class CoursesService {
