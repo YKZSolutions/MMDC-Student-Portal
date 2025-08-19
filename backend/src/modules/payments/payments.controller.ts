@@ -14,11 +14,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 import { PaymentIntentResponseDto } from './dto/payment-intent.dto';
 import { PaymentsService } from './payments.service';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 
 @Controller('billing/:billId/payments')
 export class PaymentsController {
@@ -53,7 +56,7 @@ export class PaymentsController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   create(
     @Param('billId') billId: string,
     @Body() createPaymentDto: CreatePaymentDto,
@@ -102,7 +105,7 @@ export class PaymentsController {
    */
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   update(
     @Param('id') id: string,
     @Body() updatePaymentDto: UpdateBillPaymentDto,
@@ -123,8 +126,11 @@ export class PaymentsController {
    */
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
-  remove(@Param('id') id: string) {
-    return this.paymentsService.remove(id);
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  remove(
+    @Param('id') id: string,
+    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
+  ) {
+    return this.paymentsService.remove(id, query?.directDelete);
   }
 }

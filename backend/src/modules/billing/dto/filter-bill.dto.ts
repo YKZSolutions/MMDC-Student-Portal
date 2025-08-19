@@ -1,10 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { BillType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 enum FilterBillSort {
-  status = 'status',
-  amount = 'amount',
+  amountToPay = 'amountToPay',
+  totalPaid = 'totalPaid',
   dueAt = 'dueAt',
   createdAt = 'createdAt',
 }
@@ -14,9 +15,10 @@ export enum SortOrder {
   desc = 'desc',
 }
 
-enum BillStatus {
-  paid = 'paid',
+export enum BillStatus {
   unpaid = 'unpaid',
+  partial = 'partial',
+  paid = 'paid',
   overpaid = 'overpaid',
 }
 
@@ -38,9 +40,13 @@ export class FilterBillDto {
   @IsEnum(BillStatus)
   status?: BillStatus;
 
+  @ApiPropertyOptional({
+    enumName: 'BillType',
+    enum: BillType,
+  })
   @IsOptional()
-  @IsString()
-  type?: string;
+  @IsEnum(BillType)
+  type?: BillType;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

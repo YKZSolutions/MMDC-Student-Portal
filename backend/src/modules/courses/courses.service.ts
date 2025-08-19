@@ -17,6 +17,10 @@ import { isUUID } from 'class-validator';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class CoursesService {
@@ -37,41 +41,40 @@ export class CoursesService {
    * @throws {ConflictException} - If the course code already exists.
    * @throws {Error} Any other unexpected errors.
    */
-
-  @Log({})
+  @Log({
+    logArgsMessage: ({ course }) =>
+      `Creating course [${course.courseCode} - ${course.name}]`,
+    logSuccessMessage: (course) =>
+      `Course [${course.courseCode} - ${course.name}] successfully created.`,
+    logErrorMessage: (err, { course }) =>
+      `An error has occurred while creating course [${course.courseCode} - ${course.name}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException('Course code already in use.'),
+  })
   async create(
     @LogParam('course') createCourseDto: CreateCourseDto,
   ): Promise<CourseDto> {
-    try {
-      const { majorIds, prereqIds, coreqIds, ...courseData } = createCourseDto;
+    const { majorIds, prereqIds, coreqIds, ...courseData } = createCourseDto;
 
-      return await this.prisma.client.course.create({
-        data: {
-          ...courseData,
-          major: majorIds?.length
-            ? { connect: majorIds.map((id) => ({ id })) }
-            : undefined,
-          prereqs: prereqIds?.length
-            ? { connect: prereqIds.map((id) => ({ id })) }
-            : undefined,
-          coreqs: coreqIds?.length
-            ? { connect: coreqIds.map((id) => ({ id })) }
-            : undefined,
-        },
-      });
-    } catch (error) {
-      this.logger.error(
-        `Failed to create course with code ${createCourseDto.courseCode}`,
-      );
+    const data: Prisma.CourseCreateInput = {
+      ...courseData,
+    };
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        if (error.code === 'P2002')
-          throw new ConflictException(
-            `Course code ${createCourseDto.courseCode} already exits`,
-          );
-
-      throw error;
+    if (majorIds?.length) {
+      data.major = { connect: majorIds.map((id) => ({ id })) };
     }
+
+    if (prereqIds?.length) {
+      data.prereqs = { connect: prereqIds.map((id) => ({ id })) };
+    }
+
+    if (coreqIds?.length) {
+      data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
+    }
+
+    return await this.prisma.client.course.create({ data });
   }
 
   /**
@@ -84,49 +87,55 @@ export class CoursesService {
    * @throws {BadRequestException} If query parameters are invalid.
    * @throws {Error} Any other unexpected errors.
    */
-  @Log({})
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Fetching courses with filters ${JSON.stringify(filters)}`,
+    logSuccessMessage: (_result, filters) =>
+      `Successfully fetched courses with filters ${JSON.stringify(filters)}`,
+    logErrorMessage: (err, { filters }) =>
+      `Failed to fetch courses with filters ${JSON.stringify(filters)} | Error: ${err.message}`,
+  })
   async findAll(
     @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedCoursesDto> {
-    try {
-      const where: Prisma.CourseWhereInput = {};
-      const page = filters.page || 1;
+    const where: Prisma.CourseWhereInput = {};
+    const page = filters.page || 1;
 
-      if (filters.search?.trim()) {
-        const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+    if (filters.search?.trim()) {
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
-        where.AND = searchTerms.map((term) => ({
-          OR: [
-            {
-              name: { contains: term, mode: Prisma.QueryMode.insensitive },
+      where.AND = searchTerms.map((term) => ({
+        OR: [
+          {
+            name: { contains: term, mode: Prisma.QueryMode.insensitive },
+          },
+          {
+            description: {
+              contains: term,
+              mode: Prisma.QueryMode.insensitive,
             },
-            {
-              description: {
-                contains: term,
-                mode: Prisma.QueryMode.insensitive,
-              },
+          },
+          {
+            courseCode: {
+              contains: term,
+              mode: Prisma.QueryMode.insensitive,
             },
-            {
-              courseCode: {
-                contains: term,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-          ],
-        }));
-      }
-
-      const [courses, meta] = await this.prisma.client.course
-        .paginate({ where })
-        .withPages({ limit: 10, page, includePageCount: true });
-
-      return { courses, meta };
-    } catch (error) {
-      this.logger.error(
-        `Failed to retrieve courses with filters: ${JSON.stringify(filters)}`,
-      );
-      throw error;
+          },
+        ],
+      }));
     }
+
+    const [courses, meta] = await this.prisma.client.course
+      .paginate({
+        where,
+        include: {
+          prereqs: { select: { courseCode: true, name: true } },
+          coreqs: { select: { courseCode: true, name: true } },
+        },
+      })
+      .withPages({ limit: 10, page, includePageCount: true });
+
+    return { courses, meta };
   }
 
   /**
@@ -140,26 +149,32 @@ export class CoursesService {
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {Error} Any other unexpected errors.
    */
-  @Log({})
+  @Log({
+    logArgsMessage: ({ id }) => `Fetching course record for id ${id}`,
+    logSuccessMessage: ({ id }) => `Successfully fetched course for id ${id}`,
+    logErrorMessage: (err, { id }) =>
+      `An error has occurred while fetching course for id ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('Course not found'),
+  })
   async findOne(@LogParam('id') id: string): Promise<CourseDto> {
-    try {
-      if (!isUUID(id)) {
-        throw new BadRequestException('Invalid course ID format');
-      }
-
-      return await this.prisma.client.course.findUniqueOrThrow({
-        where: { id },
-      });
-    } catch (error) {
-      this.logger.error(`Failed to retrieve course with ID ${id}`);
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      )
-        throw new NotFoundException(`Course with ID ${id} not found.`);
-
-      throw error;
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid course ID format');
     }
+
+    return await this.prisma.client.course.findUniqueOrThrow({
+      where: { id },
+      include: {
+        coreqs: {
+          select: { id: true, courseCode: true, name: true },
+        },
+        prereqs: {
+          select: { id: true, courseCode: true, name: true },
+        },
+      },
+    });
   }
 
   /**
@@ -174,51 +189,45 @@ export class CoursesService {
    * @throws {ConflictException} If the course code already exists.
    * @throws {Error} Any other unexpected errors.
    */
-  @Log({})
+  @Log({
+    logArgsMessage: ({ id }) => `Updating course for id ${id}`,
+    logSuccessMessage: (id) => `Successfully updated course for id ${id}`,
+    logErrorMessage: (err, { id }) =>
+      `An error has occurred while updated course for id ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Course not found for Id ${id}`),
+    [PrismaErrorCode.UniqueConstraint]: (_, { course }) =>
+      new ConflictException(`Course code ${course.courseCode} already in use`),
+  })
   async update(
     @LogParam('id') id: string,
     @LogParam('course') updateCourseDto: UpdateCourseDto,
   ): Promise<CourseDto> {
-    try {
-      if (!isUUID(id)) {
-        throw new NotFoundException(`Course with ID ${id} not found.`);
-      }
-
-      const { majorIds, coreqIds, ...courseData } = updateCourseDto;
-
-      return await this.prisma.client.course.update({
-        where: { id },
-        data: {
-          ...courseData,
-          ...(majorIds !== undefined && {
-            major: { set: majorIds.map((id) => ({ id })) },
-          }),
-          ...(coreqIds !== undefined && {
-            coreqs: { set: coreqIds.map((id) => ({ id })) },
-          }),
-        },
-      });
-    } catch (error) {
-      this.logger.error(
-        `Failed to update course with ID ${id} and payload ${JSON.stringify(
-          updateCourseDto,
-        )}`,
-      );
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException(`Course with ID ${id} not found.`);
-        }
-
-        if (error.code === 'P2002') {
-          throw new ConflictException(
-            `Course code ${updateCourseDto.courseCode} already exits`,
-          );
-        }
-      }
-
-      throw error;
+    if (!isUUID(id)) {
+      throw new NotFoundException(`Course with ID ${id} not found.`);
     }
+
+    const { majorIds, coreqIds, prereqIds, ...courseData } = updateCourseDto;
+
+    const data: Prisma.CourseUpdateInput = {
+      ...courseData,
+    };
+
+    if (majorIds) {
+      data.major = { set: majorIds.map((id) => ({ id })) };
+    }
+
+    if (coreqIds) {
+      data.coreqs = { set: coreqIds.map((id) => ({ id })) };
+    }
+
+    if (prereqIds) {
+      data.prereqs = { set: prereqIds.map((id) => ({ id })) };
+    }
+
+    return await this.prisma.client.course.update({ where: { id }, data });
   }
 
   /**
@@ -235,43 +244,40 @@ export class CoursesService {
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {Error} Any other unexpected errors.
    */
-  @Log({})
+  @Log({
+    logArgsMessage: ({ id, directDelete }) =>
+      `Deleting course with id=${id}, directDelete=${directDelete ?? false}`,
+    logSuccessMessage: (_result, { id, directDelete }) =>
+      `Successfully deleted course with id=${id} (${directDelete ? 'permanent' : 'soft'})`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to delete course with id=${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_msg, { id }) =>
+      new NotFoundException(`Course with ID ${id} not found`),
+  })
   async remove(
     @LogParam('id') id: string,
     @LogParam('directDelete') directDelete?: boolean,
   ): Promise<{ message: string }> {
-    try {
-      if (!isUUID(id)) {
-        throw new BadRequestException(`Invalid ID format: ${id}`);
-      }
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Invalid ID format: ${id}`);
+    }
 
-      const course = await this.prisma.client.course.findUniqueOrThrow({
+    const course = await this.prisma.client.course.findUniqueOrThrow({
+      where: { id },
+    });
+
+    if (!directDelete && !course.deletedAt) {
+      await this.prisma.client.course.update({
         where: { id },
+        data: { deletedAt: new Date() },
       });
 
-      if (!directDelete && !course.deletedAt) {
-        await this.prisma.client.course.update({
-          where: { id },
-          data: { deletedAt: new Date() },
-        });
-
-        return { message: 'Course marked for deletion' };
-      }
-
-      await this.prisma.client.course.delete({ where: { id } });
-      return { message: 'Course permanently deleted' };
-    } catch (error) {
-      this.logger.error(
-        `Failed to delete course with ID ${id}, directDelete=${directDelete}`,
-      );
-
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      )
-        throw new NotFoundException(`Course with ID ${id} not found.`);
-
-      throw error;
+      return { message: 'Course marked for deletion' };
     }
+
+    await this.prisma.client.course.delete({ where: { id } });
+    return { message: 'Course permanently deleted' };
   }
 }
