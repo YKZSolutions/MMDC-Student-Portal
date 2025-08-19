@@ -29,12 +29,12 @@ import { useNavigate } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
 const billTypes = [
-  'Academic', // Tuition Fee, Thesis/Capstone Fee, Internship/Practicum Fee
-  'Administrative', // ID Card Fee, Publication Fee, Graduation Fee
-  'Facilities', // Library Fee, Laboratory Fee, Technology Fee
-  'Student Services', // Medical/Dental Fee, Athletic Fee, Miscellaneous Fee
-  'Activities', // Field Trip/Activity Fee, Uniform Fee
-  'Penalties', // Penalty Fee
+  'Academic',
+  'Administrative',
+  'Facilities',
+  'Student Services',
+  'Activities',
+  'Penalties',
 ]
 
 const billCategories = [
@@ -61,16 +61,12 @@ function CreateBillingPage() {
     mode: 'uncontrolled',
     initialValues: {
       bill: {
-        billType: '',
+        billType: 'full',
         dueAt: '',
-        invoiceId: crypto.randomUUID(),
         issuedAt: new Date().toISOString(),
-        outstandingAmount: '0',
         payerEmail: '',
         payerName: '',
-        receiptedAmount: '0',
-        receivableAmount: '0',
-        status: 'unpaid',
+        amountToPay: '',
       },
       costBreakdown: [],
       userId: '',
@@ -128,7 +124,9 @@ function CreateBillingPage() {
             key={form.key('bill.dueAt')}
             {...form.getInputProps('bill.dueAt')}
             value={
-              form.getValues().bill.dueAt ? new Date(form.getValues().bill.dueAt) : null
+              form.getValues().bill.dueAt
+                ? new Date(form.getValues().bill.dueAt)
+                : null
             }
             onChange={(val) =>
               form.getInputProps('bill.dueAt').onChange(`${val}T00:00:00Z`)
@@ -235,10 +233,9 @@ function CreateBillingPage() {
                                 : rem(5)
                             }
                             onClick={() => {
-                              const newBreakdown =
-                                form.getValues().costBreakdown.filter(
-                                  (_, i) => i !== index,
-                                )
+                              const newBreakdown = form
+                                .getValues()
+                                .costBreakdown.filter((_, i) => i !== index)
                               form.setFieldValue('costBreakdown', newBreakdown)
                             }}
                           >
