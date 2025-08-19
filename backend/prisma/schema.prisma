@@ -242,8 +242,9 @@ model Bill {
 
 enum PaymentType {
   card
-  maya
+  paymaya
   gcash
+  qrph
   manual
 }
 
