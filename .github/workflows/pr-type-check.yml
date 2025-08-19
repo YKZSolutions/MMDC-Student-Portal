@@ -1,6 +1,9 @@
 name: PR Type Checking (Frontend & Backend)
 
 on:
+  push:
+    branches:
+      - "fix/cap-92"
   pull_request:
     branches:
       - "main"
@@ -78,6 +81,10 @@ jobs:
       - name: Generate Prisma Types
         working-directory: ./backend
         run: pnpm prisma-gen
+
+      - name: Generate Prisma SQL Types
+        working-directory: ./backend
+        run: pnpm prisma-gen-sql
 
       - name: Run TypeScript Type Check
         working-directory: ./backend
