@@ -14,16 +14,14 @@ import {
 import { BillingService } from './billing.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { ApiBearerAuth, ApiCreatedResponse } from '@nestjs/swagger';
-import { BillDto } from '@/generated/nestjs-dto/bill.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { Public } from '@/common/decorators/auth.decorator';
-import { StatusBypass } from '@/common/decorators/user-status.decorator';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { FilterBillDto } from './dto/filter-bill.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 
 @ApiBearerAuth()
 @Controller('billing')
@@ -36,7 +34,7 @@ export class BillingController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   create(@Body() createBillingDto: CreateBillingDto) {
     return this.billingService.create(
       createBillingDto.bill,
@@ -88,7 +86,7 @@ export class BillingController {
    */
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   update(@Param('id') id: string, @Body() updateBillingDto: UpdateBillDto) {
     return this.billingService.update(id, updateBillingDto);
   }
@@ -105,8 +103,11 @@ export class BillingController {
    *   - If the bill is already softly deleted, a **permanent delete** is executed.
    */
   @Delete(':id')
-  @ApiException(() => InternalServerErrorException)
-  remove(@Param('id') id: string) {
-    return this.billingService.remove(id);
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  remove(
+    @Param('id') id: string,
+    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
+  ) {
+    return this.billingService.remove(id, query?.directDelete);
   }
 }

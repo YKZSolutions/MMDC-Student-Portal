@@ -1,10 +1,9 @@
-import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { BillDto as AutoBillDto } from '@/generated/nestjs-dto/bill.dto';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { FilterBillDto } from './filter-bill.dto';
 
-class BillDto extends OmitType(AutoBillDto, ['costBreakdown']) {
+export class DetailedBillDto extends AutoBillDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -12,8 +11,4 @@ class BillDto extends OmitType(AutoBillDto, ['costBreakdown']) {
   totalPaid: Prisma.Decimal;
 
   status: FilterBillDto['status'];
-}
-
-export class PaginatedBillsDto extends PaginatedDto {
-  bills: BillDto[];
 }
