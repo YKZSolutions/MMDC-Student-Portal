@@ -249,11 +249,77 @@ export type PaginatedUsersDto = {
 };
 
 export type CreateCourseDto = {
-    [key: string]: unknown;
+    courseCode: string;
+    name: string;
+    description: string;
+    year: string;
+    semester: string;
+    units: number;
+    majorIds?: Array<string>;
+    prereqIds?: Array<string>;
+    coreqIds?: Array<string>;
+};
+
+export type Course = {
+    id: string;
+    major?: Array<Major>;
+    prereqs?: Array<Course>;
+    prereqFor?: Array<Course>;
+    coreqs?: Array<Course>;
+    coreqFor?: Array<Course>;
+    courseCode: string;
+    name: string;
+    description: string;
+    year: string;
+    semester: string;
+    units: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type Major = {
+    id: string;
+    programId: string;
+    courses?: Array<Course>;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CourseDto = {
+    id: string;
+    courseCode: string;
+    name: string;
+    description: string;
+    year: string;
+    semester: string;
+    units: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedCoursesDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of courses for the current page
+     */
+    courses: Array<CourseDto>;
 };
 
 export type UpdateCourseDto = {
-    [key: string]: unknown;
+    courseCode?: string;
+    name?: string;
+    description?: string;
+    year?: string;
+    semester?: string;
+    units?: number;
+    majorIds?: Array<string>;
+    prereqIds?: Array<string>;
+    coreqIds?: Array<string>;
 };
 
 export type UserStatus = 'active' | 'disabled' | 'deleted';
@@ -264,43 +330,32 @@ export type AuthMetadataDto = {
     user_id?: string;
 };
 
-export type BillStatus = 'paid' | 'unpaid' | 'overpaid';
+export type BillType = 'full' | 'installment';
 
-export type CreateBillDtoNoBreakdown = {
-    invoiceId: string;
+export type CreateBillDto = {
     payerName: string;
     payerEmail: string;
-    billType: string;
-    status: BillStatus;
-    receivableAmount: string;
-    receiptedAmount: string;
-    outstandingAmount: string;
+    billType: BillType;
+    amountToPay: string;
     dueAt: string;
     issuedAt: string;
-};
-
-export type BillingCostBreakdown = {
-    cost: string;
-    name: string;
-    category: string;
+    costBreakdown: {
+        [key: string]: unknown;
+    };
 };
 
 export type CreateBillingDto = {
-    bill: CreateBillDtoNoBreakdown;
-    costBreakdown: Array<BillingCostBreakdown>;
+    bill: CreateBillDto;
     userId?: string;
 };
 
 export type BillDto = {
     id: string;
-    invoiceId: string;
+    invoiceId: number;
     payerName: string;
     payerEmail: string;
-    billType: string;
-    status: BillStatus;
-    receivableAmount: string;
-    receiptedAmount: string;
-    outstandingAmount: string;
+    billType: BillType;
+    amountToPay: string;
     dueAt: string;
     issuedAt: string;
     costBreakdown: {
@@ -312,21 +367,34 @@ export type BillDto = {
 };
 
 export type PaginatedBillsDto = {
+    meta: PaginationMetaDto;
     bills: Array<BillDto>;
-    meta: {
+};
+
+export type DetailedBillDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    amountToPay: string;
+    dueAt: string;
+    issuedAt: string;
+    costBreakdown: {
         [key: string]: unknown;
     };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
 };
 
 export type UpdateBillDto = {
-    invoiceId?: string;
     payerName?: string;
     payerEmail?: string;
-    billType?: string;
-    status?: BillStatus;
-    receivableAmount?: string;
-    receiptedAmount?: string;
-    outstandingAmount?: string;
+    billType?: BillType;
+    amountToPay?: string;
     dueAt?: string;
     issuedAt?: string;
     costBreakdown?: {
@@ -379,9 +447,11 @@ export type PaymentIntentResponseDto = {
     data: PaymentIntentDataDto;
 };
 
+export type PaymentType = 'card' | 'paymaya' | 'gcash' | 'qrph' | 'manual';
+
 export type CreateBillPaymentDto = {
     amountPaid: string;
-    paymentType: string;
+    paymentType: PaymentType;
     notes: string;
     paymentDate: string;
     paymongoData?: {
@@ -398,7 +468,7 @@ export type CreatePaymentDto = {
 export type BillPaymentDto = {
     id: string;
     amountPaid: string;
-    paymentType: string;
+    paymentType: PaymentType;
     notes: string;
     paymentDate: string;
     paymongoData: {
@@ -411,7 +481,7 @@ export type BillPaymentDto = {
 
 export type UpdateBillPaymentDto = {
     amountPaid?: string;
-    paymentType?: string;
+    paymentType?: PaymentType;
     notes?: string;
     paymentDate?: string;
     paymongoData?: {
@@ -473,35 +543,6 @@ export type ChatbotResponseDto = {
 export type CreateMajorDto = {
     major: CreateMajorDto;
     programId: string;
-};
-
-export type Major = {
-    id: string;
-    programId: string;
-    courses?: Array<Course>;
-    name: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type Course = {
-    id: string;
-    major?: Array<Major>;
-    prereqs?: Array<Course>;
-    prereqFor?: Array<Course>;
-    coreqs?: Array<Course>;
-    coreqFor?: Array<Course>;
-    courseCode: string;
-    name: string;
-    description: string;
-    year: string;
-    semester: string;
-    units: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
 };
 
 export type MajorDto = {
@@ -954,12 +995,30 @@ export type UsersControllerUpdateUserStatusResponse = UsersControllerUpdateUserS
 export type CoursesControllerFindAllData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        search?: string;
+        page?: number;
+    };
     url: '/courses';
 };
 
+export type CoursesControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CoursesControllerFindAllError = CoursesControllerFindAllErrors[keyof CoursesControllerFindAllErrors];
+
 export type CoursesControllerFindAllResponses = {
-    200: string;
+    200: PaginatedCoursesDto;
 };
 
 export type CoursesControllerFindAllResponse = CoursesControllerFindAllResponses[keyof CoursesControllerFindAllResponses];
@@ -971,8 +1030,23 @@ export type CoursesControllerCreateData = {
     url: '/courses';
 };
 
+export type CoursesControllerCreateErrors = {
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CoursesControllerCreateError = CoursesControllerCreateErrors[keyof CoursesControllerCreateErrors];
+
 export type CoursesControllerCreateResponses = {
-    201: string;
+    201: Course;
 };
 
 export type CoursesControllerCreateResponse = CoursesControllerCreateResponses[keyof CoursesControllerCreateResponses];
@@ -982,12 +1056,34 @@ export type CoursesControllerRemoveData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
     url: '/courses/{id}';
 };
 
+export type CoursesControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CoursesControllerRemoveError = CoursesControllerRemoveErrors[keyof CoursesControllerRemoveErrors];
+
 export type CoursesControllerRemoveResponses = {
-    200: string;
+    200: {
+        message?: string;
+    };
 };
 
 export type CoursesControllerRemoveResponse = CoursesControllerRemoveResponses[keyof CoursesControllerRemoveResponses];
@@ -1001,8 +1097,23 @@ export type CoursesControllerFindOneData = {
     url: '/courses/{id}';
 };
 
+export type CoursesControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CoursesControllerFindOneError = CoursesControllerFindOneErrors[keyof CoursesControllerFindOneErrors];
+
 export type CoursesControllerFindOneResponses = {
-    200: string;
+    200: Course;
 };
 
 export type CoursesControllerFindOneResponse = CoursesControllerFindOneResponses[keyof CoursesControllerFindOneResponses];
@@ -1016,8 +1127,28 @@ export type CoursesControllerUpdateData = {
     url: '/courses/{id}';
 };
 
+export type CoursesControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CoursesControllerUpdateError = CoursesControllerUpdateErrors[keyof CoursesControllerUpdateErrors];
+
 export type CoursesControllerUpdateResponses = {
-    200: string;
+    200: Course;
 };
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
@@ -1091,12 +1222,11 @@ export type BillingControllerFindAllData = {
     path?: never;
     query?: {
         sortOrder?: 'asc' | 'desc';
+        type?: BillType;
         page?: number;
-        excludeSoftDeleted?: boolean;
         search?: string;
         sort?: 'status' | 'amount' | 'dueAt' | 'createdAt';
-        status?: 'paid' | 'unpaid' | 'overpaid';
-        type?: string;
+        status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
     url: '/billing';
 };
@@ -1145,7 +1275,12 @@ export type BillingControllerRemoveData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
     url: '/billing/{id}';
 };
 
@@ -1183,7 +1318,7 @@ export type BillingControllerFindOneErrors = {
 export type BillingControllerFindOneError = BillingControllerFindOneErrors[keyof BillingControllerFindOneErrors];
 
 export type BillingControllerFindOneResponses = {
-    200: BillDto;
+    200: DetailedBillDto;
 };
 
 export type BillingControllerFindOneResponse = BillingControllerFindOneResponses[keyof BillingControllerFindOneResponses];
@@ -1298,7 +1433,12 @@ export type PaymentsControllerRemoveData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
     url: '/billing/{billId}/payments/{id}';
 };
 

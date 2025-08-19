@@ -2,7 +2,7 @@
 
 import { type Options, testControllerTestStudent, testControllerTestAdmin, testControllerTest, usersControllerFindAll, usersControllerCreate, usersControllerCreateStudent, usersControllerCreateStaff, usersControllerInviteUser, usersControllerGetMe, usersControllerUpdateOwnUserDetails, usersControllerUpdateUserStudentDetails, usersControllerUpdateUserStaffDetails, usersControllerRemove, usersControllerFindOne, usersControllerUpdateUserStatus, coursesControllerFindAll, coursesControllerCreate, coursesControllerRemove, coursesControllerFindOne, coursesControllerUpdate, authControllerGetMetadata, authControllerLogin, billingControllerFindAll, billingControllerCreate, billingControllerRemove, billingControllerFindOne, billingControllerUpdate, paymentsControllerPay, paymentsControllerFindAll, paymentsControllerCreate, paymentsControllerRemove, paymentsControllerFindOne, paymentsControllerUpdate, programControllerFindAll, programControllerCreate, programControllerRemove, programControllerFindOne, programControllerUpdate, chatbotControllerPrompt, majorControllerFindAll, majorControllerCreate, majorControllerRemove, majorControllerFindOne, majorControllerUpdate } from '../sdk.gen';
 import { queryOptions, infiniteQueryOptions, type InfiniteData, type DefaultError, type UseMutationOptions } from '@tanstack/react-query';
-import type { TestControllerTestStudentData, TestControllerTestAdminData, TestControllerTestData, TestControllerTestResponse, UsersControllerFindAllData, UsersControllerFindAllError, UsersControllerFindAllResponse, UsersControllerCreateData, UsersControllerCreateError, UsersControllerCreateResponse, UsersControllerCreateStudentData, UsersControllerCreateStudentError, UsersControllerCreateStudentResponse, UsersControllerCreateStaffData, UsersControllerCreateStaffError, UsersControllerCreateStaffResponse, UsersControllerInviteUserData, UsersControllerInviteUserError, UsersControllerInviteUserResponse, UsersControllerGetMeData, UsersControllerUpdateOwnUserDetailsData, UsersControllerUpdateOwnUserDetailsError, UsersControllerUpdateOwnUserDetailsResponse, UsersControllerUpdateUserStudentDetailsData, UsersControllerUpdateUserStudentDetailsError, UsersControllerUpdateUserStudentDetailsResponse, UsersControllerUpdateUserStaffDetailsData, UsersControllerUpdateUserStaffDetailsError, UsersControllerUpdateUserStaffDetailsResponse, UsersControllerRemoveData, UsersControllerRemoveError, UsersControllerRemoveResponse, UsersControllerFindOneData, UsersControllerUpdateUserStatusData, UsersControllerUpdateUserStatusError, UsersControllerUpdateUserStatusResponse, CoursesControllerFindAllData, CoursesControllerCreateData, CoursesControllerCreateResponse, CoursesControllerRemoveData, CoursesControllerRemoveResponse, CoursesControllerFindOneData, CoursesControllerUpdateData, CoursesControllerUpdateResponse, AuthControllerGetMetadataData, AuthControllerLoginData, AuthControllerLoginError, AuthControllerLoginResponse, BillingControllerFindAllData, BillingControllerFindAllError, BillingControllerFindAllResponse, BillingControllerCreateData, BillingControllerCreateError, BillingControllerCreateResponse, BillingControllerRemoveData, BillingControllerRemoveError, BillingControllerFindOneData, BillingControllerUpdateData, BillingControllerUpdateError, BillingControllerUpdateResponse, PaymentsControllerPayData, PaymentsControllerPayError, PaymentsControllerPayResponse, PaymentsControllerFindAllData, PaymentsControllerCreateData, PaymentsControllerCreateError, PaymentsControllerCreateResponse, PaymentsControllerRemoveData, PaymentsControllerRemoveError, PaymentsControllerFindOneData, PaymentsControllerUpdateData, PaymentsControllerUpdateError, PaymentsControllerUpdateResponse, ProgramControllerFindAllData, ProgramControllerFindAllError, ProgramControllerFindAllResponse, ProgramControllerCreateData, ProgramControllerCreateError, ProgramControllerCreateResponse, ProgramControllerRemoveData, ProgramControllerRemoveError, ProgramControllerRemoveResponse, ProgramControllerFindOneData, ProgramControllerUpdateData, ProgramControllerUpdateError, ProgramControllerUpdateResponse, ChatbotControllerPromptData, ChatbotControllerPromptError, ChatbotControllerPromptResponse, MajorControllerFindAllData, MajorControllerFindAllError, MajorControllerFindAllResponse, MajorControllerCreateData, MajorControllerCreateError, MajorControllerCreateResponse, MajorControllerRemoveData, MajorControllerRemoveError, MajorControllerRemoveResponse, MajorControllerFindOneData, MajorControllerUpdateData, MajorControllerUpdateError, MajorControllerUpdateResponse } from '../types.gen';
+import type { TestControllerTestStudentData, TestControllerTestAdminData, TestControllerTestData, TestControllerTestResponse, UsersControllerFindAllData, UsersControllerFindAllError, UsersControllerFindAllResponse, UsersControllerCreateData, UsersControllerCreateError, UsersControllerCreateResponse, UsersControllerCreateStudentData, UsersControllerCreateStudentError, UsersControllerCreateStudentResponse, UsersControllerCreateStaffData, UsersControllerCreateStaffError, UsersControllerCreateStaffResponse, UsersControllerInviteUserData, UsersControllerInviteUserError, UsersControllerInviteUserResponse, UsersControllerGetMeData, UsersControllerUpdateOwnUserDetailsData, UsersControllerUpdateOwnUserDetailsError, UsersControllerUpdateOwnUserDetailsResponse, UsersControllerUpdateUserStudentDetailsData, UsersControllerUpdateUserStudentDetailsError, UsersControllerUpdateUserStudentDetailsResponse, UsersControllerUpdateUserStaffDetailsData, UsersControllerUpdateUserStaffDetailsError, UsersControllerUpdateUserStaffDetailsResponse, UsersControllerRemoveData, UsersControllerRemoveError, UsersControllerRemoveResponse, UsersControllerFindOneData, UsersControllerUpdateUserStatusData, UsersControllerUpdateUserStatusError, UsersControllerUpdateUserStatusResponse, CoursesControllerFindAllData, CoursesControllerFindAllError, CoursesControllerFindAllResponse, CoursesControllerCreateData, CoursesControllerCreateError, CoursesControllerCreateResponse, CoursesControllerRemoveData, CoursesControllerRemoveError, CoursesControllerRemoveResponse, CoursesControllerFindOneData, CoursesControllerUpdateData, CoursesControllerUpdateError, CoursesControllerUpdateResponse, AuthControllerGetMetadataData, AuthControllerLoginData, AuthControllerLoginError, AuthControllerLoginResponse, BillingControllerFindAllData, BillingControllerFindAllError, BillingControllerFindAllResponse, BillingControllerCreateData, BillingControllerCreateError, BillingControllerCreateResponse, BillingControllerRemoveData, BillingControllerRemoveError, BillingControllerFindOneData, BillingControllerUpdateData, BillingControllerUpdateError, BillingControllerUpdateResponse, PaymentsControllerPayData, PaymentsControllerPayError, PaymentsControllerPayResponse, PaymentsControllerFindAllData, PaymentsControllerCreateData, PaymentsControllerCreateError, PaymentsControllerCreateResponse, PaymentsControllerRemoveData, PaymentsControllerRemoveError, PaymentsControllerFindOneData, PaymentsControllerUpdateData, PaymentsControllerUpdateError, PaymentsControllerUpdateResponse, ProgramControllerFindAllData, ProgramControllerFindAllError, ProgramControllerFindAllResponse, ProgramControllerCreateData, ProgramControllerCreateError, ProgramControllerCreateResponse, ProgramControllerRemoveData, ProgramControllerRemoveError, ProgramControllerRemoveResponse, ProgramControllerFindOneData, ProgramControllerUpdateData, ProgramControllerUpdateError, ProgramControllerUpdateResponse, ChatbotControllerPromptData, ChatbotControllerPromptError, ChatbotControllerPromptResponse, MajorControllerFindAllData, MajorControllerFindAllError, MajorControllerFindAllResponse, MajorControllerCreateData, MajorControllerCreateError, MajorControllerCreateResponse, MajorControllerRemoveData, MajorControllerRemoveError, MajorControllerRemoveResponse, MajorControllerFindOneData, MajorControllerUpdateData, MajorControllerUpdateError, MajorControllerUpdateResponse } from '../types.gen';
 import { client as _heyApiClient } from '../client.gen';
 
 export type QueryKey<TOptions extends Options> = [
@@ -538,6 +538,11 @@ export const usersControllerUpdateUserStatusMutation = (options?: Partial<Option
 
 export const coursesControllerFindAllQueryKey = (options?: Options<CoursesControllerFindAllData>) => createQueryKey('coursesControllerFindAll', options);
 
+/**
+ * Retrive all courses
+ * Retrives a paginated list of courses based on the provided filters.
+ * Requires `ADMIN` role.
+ */
 export const coursesControllerFindAllOptions = (options?: Options<CoursesControllerFindAllData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
@@ -553,8 +558,44 @@ export const coursesControllerFindAllOptions = (options?: Options<CoursesControl
     });
 };
 
+export const coursesControllerFindAllInfiniteQueryKey = (options?: Options<CoursesControllerFindAllData>): QueryKey<Options<CoursesControllerFindAllData>> => createQueryKey('coursesControllerFindAll', options, true);
+
+/**
+ * Retrive all courses
+ * Retrives a paginated list of courses based on the provided filters.
+ * Requires `ADMIN` role.
+ */
+export const coursesControllerFindAllInfiniteOptions = (options?: Options<CoursesControllerFindAllData>) => {
+    return infiniteQueryOptions<CoursesControllerFindAllResponse, CoursesControllerFindAllError, InfiniteData<CoursesControllerFindAllResponse>, QueryKey<Options<CoursesControllerFindAllData>>, number | Pick<QueryKey<Options<CoursesControllerFindAllData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<CoursesControllerFindAllData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await coursesControllerFindAll({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: coursesControllerFindAllInfiniteQueryKey(options)
+    });
+};
+
 export const coursesControllerCreateQueryKey = (options: Options<CoursesControllerCreateData>) => createQueryKey('coursesControllerCreate', options);
 
+/**
+ * Creates a course
+ * This operations creates a new course.
+ * Requires `ADMIN` role.
+ */
 export const coursesControllerCreateOptions = (options: Options<CoursesControllerCreateData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
@@ -570,8 +611,13 @@ export const coursesControllerCreateOptions = (options: Options<CoursesControlle
     });
 };
 
-export const coursesControllerCreateMutation = (options?: Partial<Options<CoursesControllerCreateData>>): UseMutationOptions<CoursesControllerCreateResponse, DefaultError, Options<CoursesControllerCreateData>> => {
-    const mutationOptions: UseMutationOptions<CoursesControllerCreateResponse, DefaultError, Options<CoursesControllerCreateData>> = {
+/**
+ * Creates a course
+ * This operations creates a new course.
+ * Requires `ADMIN` role.
+ */
+export const coursesControllerCreateMutation = (options?: Partial<Options<CoursesControllerCreateData>>): UseMutationOptions<CoursesControllerCreateResponse, CoursesControllerCreateError, Options<CoursesControllerCreateData>> => {
+    const mutationOptions: UseMutationOptions<CoursesControllerCreateResponse, CoursesControllerCreateError, Options<CoursesControllerCreateData>> = {
         mutationFn: async (localOptions) => {
             const { data } = await coursesControllerCreate({
                 ...options,
@@ -584,8 +630,13 @@ export const coursesControllerCreateMutation = (options?: Partial<Options<Course
     return mutationOptions;
 };
 
-export const coursesControllerRemoveMutation = (options?: Partial<Options<CoursesControllerRemoveData>>): UseMutationOptions<CoursesControllerRemoveResponse, DefaultError, Options<CoursesControllerRemoveData>> => {
-    const mutationOptions: UseMutationOptions<CoursesControllerRemoveResponse, DefaultError, Options<CoursesControllerRemoveData>> = {
+/**
+ * Delete a course
+ * This operation permanently deletes a course from the system.
+ * Requires `ADMIN` role.
+ */
+export const coursesControllerRemoveMutation = (options?: Partial<Options<CoursesControllerRemoveData>>): UseMutationOptions<CoursesControllerRemoveResponse, CoursesControllerRemoveError, Options<CoursesControllerRemoveData>> => {
+    const mutationOptions: UseMutationOptions<CoursesControllerRemoveResponse, CoursesControllerRemoveError, Options<CoursesControllerRemoveData>> = {
         mutationFn: async (localOptions) => {
             const { data } = await coursesControllerRemove({
                 ...options,
@@ -600,6 +651,10 @@ export const coursesControllerRemoveMutation = (options?: Partial<Options<Course
 
 export const coursesControllerFindOneQueryKey = (options: Options<CoursesControllerFindOneData>) => createQueryKey('coursesControllerFindOne', options);
 
+/**
+ * Retrieve a specific course by ID
+ * Requires `ADMIN` role.
+ */
 export const coursesControllerFindOneOptions = (options: Options<CoursesControllerFindOneData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
@@ -615,8 +670,13 @@ export const coursesControllerFindOneOptions = (options: Options<CoursesControll
     });
 };
 
-export const coursesControllerUpdateMutation = (options?: Partial<Options<CoursesControllerUpdateData>>): UseMutationOptions<CoursesControllerUpdateResponse, DefaultError, Options<CoursesControllerUpdateData>> => {
-    const mutationOptions: UseMutationOptions<CoursesControllerUpdateResponse, DefaultError, Options<CoursesControllerUpdateData>> = {
+/**
+ * Update a course
+ * This operation updates the details of an existing course.
+ * Requires `ADMIN` role.
+ */
+export const coursesControllerUpdateMutation = (options?: Partial<Options<CoursesControllerUpdateData>>): UseMutationOptions<CoursesControllerUpdateResponse, CoursesControllerUpdateError, Options<CoursesControllerUpdateData>> => {
+    const mutationOptions: UseMutationOptions<CoursesControllerUpdateResponse, CoursesControllerUpdateError, Options<CoursesControllerUpdateData>> = {
         mutationFn: async (localOptions) => {
             const { data } = await coursesControllerUpdate({
                 ...options,

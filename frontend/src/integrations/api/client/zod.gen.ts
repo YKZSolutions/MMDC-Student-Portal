@@ -367,9 +367,103 @@ export const zPaginatedUsersDto = z.object({
     users: z.array(zUserWithRelations)
 });
 
-export const zCreateCourseDto = z.object({});
+export const zCreateCourseDto = z.object({
+    courseCode: z.string(),
+    name: z.string(),
+    description: z.string(),
+    year: z.string(),
+    semester: z.string(),
+    units: z.int(),
+    majorIds: z.optional(z.array(z.uuid())),
+    prereqIds: z.optional(z.array(z.uuid())),
+    coreqIds: z.optional(z.array(z.uuid()))
+});
 
-export const zUpdateCourseDto = z.object({});
+export const zMajor = z.object({
+    id: z.string(),
+    programId: z.string(),
+    get courses(): z.ZodOptional {
+        return z.optional(z.array(zCourse));
+    },
+    name: z.string(),
+    description: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zCourse = z.object({
+    id: z.string(),
+    major: z.optional(z.array(zMajor)),
+    get prereqs(): z.ZodOptional {
+        return z.optional(z.array(z.lazy((): any => {
+            return zCourse;
+        })));
+    },
+    get prereqFor(): z.ZodOptional {
+        return z.optional(z.array(z.lazy((): any => {
+            return zCourse;
+        })));
+    },
+    get coreqs(): z.ZodOptional {
+        return z.optional(z.array(z.lazy((): any => {
+            return zCourse;
+        })));
+    },
+    get coreqFor(): z.ZodOptional {
+        return z.optional(z.array(z.lazy((): any => {
+            return zCourse;
+        })));
+    },
+    courseCode: z.string(),
+    name: z.string(),
+    description: z.string(),
+    year: z.string(),
+    semester: z.string(),
+    units: z.int(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zCourseDto = z.object({
+    id: z.string(),
+    courseCode: z.string(),
+    name: z.string(),
+    description: z.string(),
+    year: z.string(),
+    semester: z.string(),
+    units: z.int(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPaginatedCoursesDto = z.object({
+    meta: zPaginationMetaDto,
+    courses: z.array(zCourseDto)
+});
+
+export const zUpdateCourseDto = z.object({
+    courseCode: z.optional(z.string()),
+    name: z.optional(z.string()),
+    description: z.optional(z.string()),
+    year: z.optional(z.string()),
+    semester: z.optional(z.string()),
+    units: z.optional(z.int()),
+    majorIds: z.optional(z.array(z.uuid())),
+    prereqIds: z.optional(z.array(z.uuid())),
+    coreqIds: z.optional(z.array(z.uuid()))
+});
 
 export const zUserStatus = z.enum([
     'active',
@@ -383,47 +477,33 @@ export const zAuthMetadataDto = z.object({
     user_id: z.optional(z.string())
 });
 
-export const zBillStatus = z.enum([
-    'paid',
-    'unpaid',
-    'overpaid'
+export const zBillType = z.enum([
+    'full',
+    'installment'
 ]);
 
-export const zCreateBillDtoNoBreakdown = z.object({
-    invoiceId: z.string(),
+export const zCreateBillDto = z.object({
     payerName: z.string(),
     payerEmail: z.string(),
-    billType: z.string(),
-    status: zBillStatus,
-    receivableAmount: z.string(),
-    receiptedAmount: z.string(),
-    outstandingAmount: z.string(),
+    billType: zBillType,
+    amountToPay: z.string(),
     dueAt: z.iso.datetime(),
-    issuedAt: z.iso.datetime()
-});
-
-export const zBillingCostBreakdown = z.object({
-    cost: z.string(),
-    name: z.string(),
-    category: z.string()
+    issuedAt: z.iso.datetime(),
+    costBreakdown: z.object({})
 });
 
 export const zCreateBillingDto = z.object({
-    bill: zCreateBillDtoNoBreakdown,
-    costBreakdown: z.array(zBillingCostBreakdown),
+    bill: zCreateBillDto,
     userId: z.optional(z.uuid())
 });
 
 export const zBillDto = z.object({
     id: z.string(),
-    invoiceId: z.string(),
+    invoiceId: z.int(),
     payerName: z.string(),
     payerEmail: z.string(),
-    billType: z.string(),
-    status: zBillStatus,
-    receivableAmount: z.string(),
-    receiptedAmount: z.string(),
-    outstandingAmount: z.string(),
+    billType: zBillType,
+    amountToPay: z.string(),
     dueAt: z.iso.datetime(),
     issuedAt: z.iso.datetime(),
     costBreakdown: z.object({}),
@@ -436,19 +516,40 @@ export const zBillDto = z.object({
 });
 
 export const zPaginatedBillsDto = z.object({
-    bills: z.array(zBillDto),
-    meta: z.object({})
+    meta: zPaginationMetaDto,
+    bills: z.array(zBillDto)
+});
+
+export const zDetailedBillDto = z.object({
+    id: z.string(),
+    invoiceId: z.int(),
+    payerName: z.string(),
+    payerEmail: z.string(),
+    billType: zBillType,
+    amountToPay: z.string(),
+    dueAt: z.iso.datetime(),
+    issuedAt: z.iso.datetime(),
+    costBreakdown: z.object({}),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    totalPaid: z.string(),
+    status: z.enum([
+        'unpaid',
+        'partial',
+        'paid',
+        'overpaid'
+    ])
 });
 
 export const zUpdateBillDto = z.object({
-    invoiceId: z.optional(z.string()),
     payerName: z.optional(z.string()),
     payerEmail: z.optional(z.string()),
-    billType: z.optional(z.string()),
-    status: z.optional(zBillStatus),
-    receivableAmount: z.optional(z.string()),
-    receiptedAmount: z.optional(z.string()),
-    outstandingAmount: z.optional(z.string()),
+    billType: z.optional(zBillType),
+    amountToPay: z.optional(z.string()),
     dueAt: z.optional(z.iso.datetime()),
     issuedAt: z.optional(z.iso.datetime()),
     costBreakdown: z.optional(z.object({}))
@@ -506,9 +607,17 @@ export const zPaymentIntentResponseDto = z.object({
     data: zPaymentIntentDataDto
 });
 
+export const zPaymentType = z.enum([
+    'card',
+    'paymaya',
+    'gcash',
+    'qrph',
+    'manual'
+]);
+
 export const zCreateBillPaymentDto = z.object({
     amountPaid: z.string(),
-    paymentType: z.string(),
+    paymentType: zPaymentType,
     notes: z.string(),
     paymentDate: z.iso.datetime(),
     paymongoData: z.optional(z.union([
@@ -526,7 +635,7 @@ export const zCreatePaymentDto = z.object({
 export const zBillPaymentDto = z.object({
     id: z.string(),
     amountPaid: z.string(),
-    paymentType: z.string(),
+    paymentType: zPaymentType,
     notes: z.string(),
     paymentDate: z.iso.datetime(),
     paymongoData: z.union([
@@ -543,7 +652,7 @@ export const zBillPaymentDto = z.object({
 
 export const zUpdateBillPaymentDto = z.object({
     amountPaid: z.optional(z.string()),
-    paymentType: z.optional(z.string()),
+    paymentType: z.optional(zPaymentType),
     notes: z.optional(z.string()),
     paymentDate: z.optional(z.iso.datetime()),
     paymongoData: z.optional(z.union([
@@ -621,59 +730,6 @@ export const zCreateMajorDto = z.object({
     programId: z.uuid()
 });
 
-export const zCourse = z.object({
-    id: z.string(),
-    get major(): z.ZodOptional {
-        return z.optional(z.array(zMajor));
-    },
-    get prereqs(): z.ZodOptional {
-        return z.optional(z.array(z.lazy((): any => {
-            return zCourse;
-        })));
-    },
-    get prereqFor(): z.ZodOptional {
-        return z.optional(z.array(z.lazy((): any => {
-            return zCourse;
-        })));
-    },
-    get coreqs(): z.ZodOptional {
-        return z.optional(z.array(z.lazy((): any => {
-            return zCourse;
-        })));
-    },
-    get coreqFor(): z.ZodOptional {
-        return z.optional(z.array(z.lazy((): any => {
-            return zCourse;
-        })));
-    },
-    courseCode: z.string(),
-    name: z.string(),
-    description: z.string(),
-    year: z.string(),
-    semester: z.string(),
-    units: z.int(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zMajor = z.object({
-    id: z.string(),
-    programId: z.string(),
-    courses: z.optional(z.array(zCourse)),
-    name: z.string(),
-    description: z.string(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
 export const zMajorDto = z.object({
     id: z.string(),
     name: z.string(),
@@ -729,7 +785,7 @@ export const zUsersControllerFindAllData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number()).default(1),
+        page: z.optional(z.number().gte(1)).default(1),
         role: z.optional(z.enum([
             'student',
             'mentor',
@@ -863,10 +919,13 @@ export const zUsersControllerUpdateUserStatusResponse = z.object({
 export const zCoursesControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1)
+    }))
 });
 
-export const zCoursesControllerFindAllResponse = z.string();
+export const zCoursesControllerFindAllResponse = zPaginatedCoursesDto;
 
 export const zCoursesControllerCreateData = z.object({
     body: zCreateCourseDto,
@@ -874,17 +933,21 @@ export const zCoursesControllerCreateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zCoursesControllerCreateResponse = z.string();
+export const zCoursesControllerCreateResponse = zCourse;
 
 export const zCoursesControllerRemoveData = z.object({
     body: z.optional(z.never()),
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
 });
 
-export const zCoursesControllerRemoveResponse = z.string();
+export const zCoursesControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
 
 export const zCoursesControllerFindOneData = z.object({
     body: z.optional(z.never()),
@@ -894,7 +957,7 @@ export const zCoursesControllerFindOneData = z.object({
     query: z.optional(z.never())
 });
 
-export const zCoursesControllerFindOneResponse = z.string();
+export const zCoursesControllerFindOneResponse = zCourse;
 
 export const zCoursesControllerUpdateData = z.object({
     body: zUpdateCourseDto,
@@ -904,7 +967,7 @@ export const zCoursesControllerUpdateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zCoursesControllerUpdateResponse = z.string();
+export const zCoursesControllerUpdateResponse = zCourse;
 
 export const zAuthControllerGetMetadataData = z.object({
     body: z.optional(z.never()),
@@ -932,8 +995,8 @@ export const zBillingControllerFindAllData = z.object({
             'asc',
             'desc'
         ])),
+        type: z.optional(zBillType),
         page: z.optional(z.number()).default(1),
-        excludeSoftDeleted: z.optional(z.boolean()).default(false),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
             'status',
@@ -942,11 +1005,11 @@ export const zBillingControllerFindAllData = z.object({
             'createdAt'
         ])),
         status: z.optional(z.enum([
-            'paid',
             'unpaid',
+            'partial',
+            'paid',
             'overpaid'
-        ])),
-        type: z.optional(z.string())
+        ]))
     }))
 });
 
@@ -965,7 +1028,9 @@ export const zBillingControllerRemoveData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
 });
 
 export const zBillingControllerFindOneData = z.object({
@@ -976,7 +1041,7 @@ export const zBillingControllerFindOneData = z.object({
     query: z.optional(z.never())
 });
 
-export const zBillingControllerFindOneResponse = zBillDto;
+export const zBillingControllerFindOneResponse = zDetailedBillDto;
 
 export const zBillingControllerUpdateData = z.object({
     body: zUpdateBillDto,
@@ -1023,7 +1088,9 @@ export const zPaymentsControllerRemoveData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
 });
 
 export const zPaymentsControllerFindOneData = z.object({
@@ -1051,7 +1118,7 @@ export const zProgramControllerFindAllData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number()).default(1)
+        page: z.optional(z.number().gte(1)).default(1)
     }))
 });
 
@@ -1124,7 +1191,7 @@ export const zMajorControllerFindAllData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number()).default(1)
+        page: z.optional(z.number().gte(1)).default(1)
     }))
 });
 
