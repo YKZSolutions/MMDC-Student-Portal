@@ -332,20 +332,24 @@ export type AuthMetadataDto = {
 
 export type BillType = 'full' | 'installment';
 
-export type CreateBillDto = {
+export type CreateBillDtoNoBreakdown = {
     payerName: string;
     payerEmail: string;
     billType: BillType;
     amountToPay: string;
     dueAt: string;
     issuedAt: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
+};
+
+export type BillingCostBreakdown = {
+    cost: string;
+    name: string;
+    category: string;
 };
 
 export type CreateBillingDto = {
-    bill: CreateBillDto;
+    bill: CreateBillDtoNoBreakdown;
+    costBreakdown: Array<BillingCostBreakdown>;
     userId?: string;
 };
 
@@ -366,9 +370,25 @@ export type BillDto = {
     deletedAt: string | null;
 };
 
+export type SingleBillDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    amountToPay: string;
+    dueAt: string;
+    issuedAt: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+};
+
 export type PaginatedBillsDto = {
     meta: PaginationMetaDto;
-    bills: Array<BillDto>;
+    bills: Array<SingleBillDto>;
 };
 
 export type DetailedBillDto = {
@@ -1224,8 +1244,9 @@ export type BillingControllerFindAllData = {
         sortOrder?: 'asc' | 'desc';
         type?: BillType;
         page?: number;
+        excludeSoftDeleted?: boolean;
         search?: string;
-        sort?: 'status' | 'amount' | 'dueAt' | 'createdAt';
+        sort?: 'amountToPay' | 'totalPaid' | 'dueAt' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
     url: '/billing';
@@ -1255,6 +1276,11 @@ export type BillingControllerCreateData = {
 };
 
 export type BillingControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1285,6 +1311,11 @@ export type BillingControllerRemoveData = {
 };
 
 export type BillingControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1333,6 +1364,11 @@ export type BillingControllerUpdateData = {
 };
 
 export type BillingControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1413,6 +1449,11 @@ export type PaymentsControllerCreateData = {
 };
 
 export type PaymentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1443,6 +1484,11 @@ export type PaymentsControllerRemoveData = {
 };
 
 export type PaymentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1491,6 +1537,11 @@ export type PaymentsControllerUpdateData = {
 };
 
 export type PaymentsControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;

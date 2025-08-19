@@ -482,18 +482,24 @@ export const zBillType = z.enum([
     'installment'
 ]);
 
-export const zCreateBillDto = z.object({
+export const zCreateBillDtoNoBreakdown = z.object({
     payerName: z.string(),
     payerEmail: z.string(),
     billType: zBillType,
     amountToPay: z.string(),
     dueAt: z.iso.datetime(),
-    issuedAt: z.iso.datetime(),
-    costBreakdown: z.object({})
+    issuedAt: z.iso.datetime()
+});
+
+export const zBillingCostBreakdown = z.object({
+    cost: z.string(),
+    name: z.string(),
+    category: z.string()
 });
 
 export const zCreateBillingDto = z.object({
-    bill: zCreateBillDto,
+    bill: zCreateBillDtoNoBreakdown,
+    costBreakdown: z.array(zBillingCostBreakdown),
     userId: z.optional(z.uuid())
 });
 
@@ -515,9 +521,33 @@ export const zBillDto = z.object({
     ])
 });
 
+export const zSingleBillDto = z.object({
+    id: z.string(),
+    invoiceId: z.int(),
+    payerName: z.string(),
+    payerEmail: z.string(),
+    billType: zBillType,
+    amountToPay: z.string(),
+    dueAt: z.iso.datetime(),
+    issuedAt: z.iso.datetime(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    totalPaid: z.string(),
+    status: z.enum([
+        'unpaid',
+        'partial',
+        'paid',
+        'overpaid'
+    ])
+});
+
 export const zPaginatedBillsDto = z.object({
     meta: zPaginationMetaDto,
-    bills: z.array(zBillDto)
+    bills: z.array(zSingleBillDto)
 });
 
 export const zDetailedBillDto = z.object({
@@ -997,10 +1027,11 @@ export const zBillingControllerFindAllData = z.object({
         ])),
         type: z.optional(zBillType),
         page: z.optional(z.number()).default(1),
+        excludeSoftDeleted: z.optional(z.boolean()).default(false),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
-            'status',
-            'amount',
+            'amountToPay',
+            'totalPaid',
             'dueAt',
             'createdAt'
         ])),
