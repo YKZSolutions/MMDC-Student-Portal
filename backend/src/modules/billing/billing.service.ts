@@ -69,10 +69,14 @@ export class BillingService {
     logArgsMessage: ({ filter }) => `Fetching bills for page=${filter.page}`,
     logSuccessMessage: (res) => `Fetched bills with ${res.meta.totalCount}`,
   })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
+      new NotFoundException(`User with id=${userId} was not found`),
+  })
   async findAll(
     @LogParam('filter') filters: FilterBillDto,
     role: Role,
-    userId: string,
+    @LogParam('userId') userId: string,
   ): Promise<PaginatedBillsDto> {
     const user = role !== 'admin' ? userId : null;
 
@@ -213,6 +217,10 @@ export class BillingService {
     logArgsMessage: ({ id }) => `Updating bill with id=${id}`,
     logSuccessMessage: (res) => `Updated the bill with id=${res.id}`,
   })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Bill with id=${id} was not found`),
+  })
   async update(
     @LogParam('id') id: string,
     updateBillingDto: UpdateBillDto,
@@ -238,6 +246,10 @@ export class BillingService {
   @Log({
     logArgsMessage: ({ id }) => `Removing bill with id=${id}`,
     logSuccessMessage: (res) => res.message,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Bill with id=${id} was not found`),
   })
   async remove(
     @LogParam('id') id: string,

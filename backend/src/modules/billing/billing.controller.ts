@@ -34,7 +34,7 @@ export class BillingController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   create(@Body() createBillingDto: CreateBillingDto) {
     return this.billingService.create(
       createBillingDto.bill,
@@ -86,7 +86,7 @@ export class BillingController {
    */
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   update(@Param('id') id: string, @Body() updateBillingDto: UpdateBillDto) {
     return this.billingService.update(id, updateBillingDto);
   }
@@ -103,7 +103,7 @@ export class BillingController {
    *   - If the bill is already softly deleted, a **permanent delete** is executed.
    */
   @Delete(':id')
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   remove(
     @Param('id') id: string,
     @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,

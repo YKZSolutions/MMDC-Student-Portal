@@ -56,7 +56,7 @@ export class PaymentsController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   create(
     @Param('billId') billId: string,
     @Body() createPaymentDto: CreatePaymentDto,
@@ -105,7 +105,7 @@ export class PaymentsController {
    */
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   update(
     @Param('id') id: string,
     @Body() updatePaymentDto: UpdateBillPaymentDto,
@@ -126,7 +126,7 @@ export class PaymentsController {
    */
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
   remove(
     @Param('id') id: string,
     @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
