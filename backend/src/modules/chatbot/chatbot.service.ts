@@ -22,6 +22,7 @@ import {
   UserStudentContext,
 } from '@/modules/chatbot/dto/user-context.dto';
 import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
+import { N8nService } from '@/lib/n8n/n8n.service';
 
 @Injectable()
 export class ChatbotService {
@@ -34,6 +35,7 @@ export class ChatbotService {
     private readonly coursesService: CoursesService,
     private readonly supabase: SupabaseService,
     private readonly programService: SupabaseService,
+    private readonly n8n: N8nService,
   ) {}
 
   private mapUserToContext(
@@ -122,14 +124,14 @@ export class ChatbotService {
           const args = functionCall.args as FilterUserDto;
           const count = await this.usersService.countAll(args);
           functionCallResult.push(
-            `${text}: ${count} users found with the following filters: ${JSON.stringify(args)}`,
+            `${text}: ${count} users found with filter ${JSON.stringify(args)}`,
           );
           break;
         }
         case 'search_vector': {
           this.logger.debug(`[${method}] Function call: ${functionCall.name}`);
           const args = functionCall.args as { query: string; limit: number };
-          const vector = await this.handleVectorSearch(args.query, args.limit);
+          const vector = await this.handleVectorSearch(args.query);
           functionCallResult.push(
             `${text}: Vector search for "${args.query}": ${JSON.stringify(vector)}`,
           );
@@ -158,8 +160,10 @@ export class ChatbotService {
     return result;
   }
 
-  async handleVectorSearch(query: string, limit: number = 10): Promise<string> {
-    const embedding = await this.gemini.generateEmbedding(query);
-    return ''; //TODO: Implement vector search from supabase
+  async handleVectorSearch(query: string): Promise<string> {
+    const res = await this.n8n.searchVector(query);
+
+    // Keep it short for the LLM tools call; you can pass richer JSON if desired
+    return res.output;
   }
 }

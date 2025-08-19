@@ -1,4 +1,4 @@
-import { BillStatus, Prisma } from '@prisma/client';
+import { BillType, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { User, type User as UserAsType } from './user.entity';
 import {
@@ -25,9 +25,10 @@ export class Bill {
   @ApiHideProperty()
   billPayments?: BillPaymentAsType[];
   @ApiProperty({
-    type: 'string',
+    type: 'integer',
+    format: 'int32',
   })
-  invoiceId: string;
+  invoiceId: number;
   @ApiProperty({
     type: 'string',
   })
@@ -37,29 +38,15 @@ export class Bill {
   })
   payerEmail: string;
   @ApiProperty({
-    type: 'string',
+    enum: BillType,
+    enumName: 'BillType',
   })
-  billType: string;
-  @ApiProperty({
-    enum: BillStatus,
-    enumName: 'BillStatus',
-  })
-  status: BillStatus;
+  billType: BillType;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
   })
-  receivableAmount: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  receiptedAmount: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  outstandingAmount: Prisma.Decimal;
+  amountToPay: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
