@@ -3,13 +3,13 @@ import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { HttpService } from '@nestjs/axios';
 import {
+  HttpException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { AxiosError } from 'axios';
 import crypto from 'crypto';
 import { CustomPrismaService } from 'nestjs-prisma';
@@ -17,12 +17,6 @@ import { firstValueFrom } from 'rxjs';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 import { PaymentIntentResponseDto } from './dto/payment-intent.dto';
-import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class PaymentsService {
@@ -89,26 +83,23 @@ export class PaymentsService {
    * @param createPaymentDto - The DTO containing payment data (amount, payment date, etc.)
    * @returns Data of the created payment entry
    */
-  @Log({
-    logArgsMessage: ({ billId }) => `Creating payment for bill=${billId}`,
-    logSuccessMessage: (_, { billId }) => `Created payment for bill ${billId}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { billId }) =>
-      new NotFoundException(`Bill with id=${billId} was not found`),
-  })
   async create(
-    @LogParam('billId') billId: string,
+    billId: string,
     createPaymentDto: CreatePaymentDto,
   ): Promise<BillPaymentDto> {
-    const payment = await this.prisma.client.billPayment.create({
-      data: {
-        ...createPaymentDto.payment,
-        billId: billId,
-      },
-    });
+    try {
+      const payment = await this.prisma.client.billPayment.create({
+        data: {
+          ...createPaymentDto.payment,
+          billId: billId,
+        },
+      });
 
-    return payment;
+      return payment;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException('Error creating the payment');
+    }
   }
 
   /**
@@ -120,33 +111,30 @@ export class PaymentsService {
    * @param userId - The user's ID
    * @returns An paginated list of all payments.
    */
-  @Log({
-    logArgsMessage: ({ billId }) => `Fetching payments for bill=${billId}`,
-    logSuccessMessage: (_, { billId }) => `Fetched payments for bill ${billId}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { billId }) =>
-      new NotFoundException(`Payments with billId=${billId} were not found`),
-  })
   async findAll(
-    @LogParam('billId') billId: string,
+    billId: string,
     role: Role,
     userId: string,
   ): Promise<BillPaymentDto[]> {
-    const payment = await this.prisma.client.billPayment.findMany({
-      where: {
-        billId,
-        ...(role !== 'admin' && {
-          bill: {
-            userId,
-          },
-        }),
-      },
-      orderBy: {
-        paymentDate: 'desc',
-      },
-    });
-    return payment;
+    try {
+      const payment = await this.prisma.client.billPayment.findMany({
+        where: {
+          billId,
+          ...(role !== 'admin' && {
+            bill: {
+              userId,
+            },
+          }),
+        },
+        orderBy: {
+          paymentDate: 'desc',
+        },
+      });
+      return payment;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException('Error creating the payment');
+    }
   }
 
   /**
@@ -159,31 +147,28 @@ export class PaymentsService {
    * @returns The payment object if found.
    * @throws NotFoundException - If there are no payment with the specified id
    */
-  @Log({
-    logArgsMessage: ({ id }) => `Fetching payment with id=${id}`,
-    logSuccessMessage: (_, { id }) => `Fetched payment with id ${id}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Payment id=${id} was not found`),
-  })
   async findOne(
-    @LogParam('id') id: string,
+    id: string,
     role: Role,
     userId: string,
   ): Promise<BillPaymentDto> {
-    const payment = await this.prisma.client.billPayment.findFirstOrThrow({
-      where: {
-        id,
-        ...(role !== 'admin' && {
-          bill: {
-            userId,
-          },
-        }),
-      },
-    });
+    try {
+      const payment = await this.prisma.client.billPayment.findFirstOrThrow({
+        where: {
+          id,
+          ...(role !== 'admin' && {
+            bill: {
+              userId,
+            },
+          }),
+        },
+      });
 
-    return payment;
+      return payment;
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) throw err;
+      throw new InternalServerErrorException('Error creating the payment');
+    }
   }
 
   /**
@@ -193,24 +178,21 @@ export class PaymentsService {
    * @param updatePaymentDto - The DTO with updated payment data.
    * @returns The updated payment object.
    */
-  @Log({
-    logArgsMessage: ({ id }) => `Updating payment with id=${id}`,
-    logSuccessMessage: (_, { id }) => `Updated payment with id ${id}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Payment id=${id} was not found`),
-  })
   async update(
-    @LogParam('id') id: string,
+    id: string,
     updatePaymentDto: UpdateBillPaymentDto,
   ): Promise<BillPaymentDto> {
-    const payment = await this.prisma.client.billPayment.update({
-      where: { id },
-      data: updatePaymentDto,
-    });
+    try {
+      const payment = await this.prisma.client.billPayment.update({
+        where: { id },
+        data: updatePaymentDto,
+      });
 
-    return payment;
+      return payment;
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) throw err;
+      throw new InternalServerErrorException('Error creating the payment');
+    }
   }
 
   /**
@@ -225,43 +207,44 @@ export class PaymentsService {
    * @param directDelete - Whether to skip soft delete and directly remove the payment.
    * @returns A message indicating the result.
    */
-  @Log({
-    logArgsMessage: ({ id }) => `Deleting payment with id=${id}`,
-    logSuccessMessage: (res) => res.message,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Payment id=${id} was not found`),
-  })
   async remove(
-    @LogParam('id') id: string,
+    id: string,
     directDelete?: boolean,
   ): Promise<{ message: string }> {
-    if (!directDelete) {
-      const payment = await this.prisma.client.billPayment.findFirstOrThrow({
+    try {
+      if (!directDelete) {
+        const payment = await this.prisma.client.billPayment.findFirstOrThrow({
+          where: { id: id },
+        });
+        if (!payment.deletedAt) {
+          await this.prisma.client.billPayment.update({
+            where: { id: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
+
+          return {
+            message: 'Payment has been soft deleted',
+          };
+        }
+      }
+
+      await this.prisma.client.billPayment.delete({
         where: { id: id },
       });
-      if (!payment.deletedAt) {
-        await this.prisma.client.billPayment.update({
-          where: { id: id },
-          data: {
-            deletedAt: new Date(),
-          },
-        });
 
-        return {
-          message: 'Payment has been soft deleted',
-        };
-      }
+      return {
+        message: 'Payment has been permanently deleted',
+      };
+    } catch (err) {
+      this.logger.error(err);
+      if (err instanceof Prisma.PrismaClientKnownRequestError) throw err;
+
+      if (err instanceof HttpException) throw err;
+
+      throw new InternalServerErrorException('Error deleting the payment');
     }
-
-    await this.prisma.client.billPayment.delete({
-      where: { id: id },
-    });
-
-    return {
-      message: 'Payment has been permanently deleted',
-    };
   }
 
   /**

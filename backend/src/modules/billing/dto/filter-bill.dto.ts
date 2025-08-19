@@ -4,8 +4,8 @@ import { Type } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 enum FilterBillSort {
-  amountToPay = 'amountToPay',
-  totalPaid = 'totalPaid',
+  status = 'status',
+  amount = 'amount',
   dueAt = 'dueAt',
   createdAt = 'createdAt',
 }
@@ -15,10 +15,9 @@ export enum SortOrder {
   desc = 'desc',
 }
 
-export enum BillStatus {
-  unpaid = 'unpaid',
-  partial = 'partial',
+enum BillStatus {
   paid = 'paid',
+  unpaid = 'unpaid',
   overpaid = 'overpaid',
 }
 
@@ -40,10 +39,6 @@ export class FilterBillDto {
   @IsEnum(BillStatus)
   status?: BillStatus;
 
-  @ApiPropertyOptional({
-    enumName: 'BillType',
-    enum: BillType,
-  })
   @IsOptional()
   @IsEnum(BillType)
   type?: BillType;

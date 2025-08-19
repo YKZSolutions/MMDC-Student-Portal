@@ -46,7 +46,7 @@ interface PayMongoWebhookBase<T extends string, R> {
 // A generic Source resource (e.g., for gcash/grabpay authorization via source.chargeable)
 export interface PayMongoSource {
   id: string;
-  type: "card" | "gcash" | "paymaya";
+  type: "source";
   attributes: {
     amount: number;
     currency: string;
