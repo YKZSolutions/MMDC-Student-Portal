@@ -20,6 +20,7 @@ import { IconMessageChatbot, IconSend, IconX } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 import type { Turn } from '@/integrations/api/client'
+import ReactMarkdown, { type Components } from 'react-markdown'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -49,10 +50,10 @@ const Chatbot = ({
   const addMessage = async (userInput: string) => {
     // Add the user's message to the state
     const userMessage = { role: 'user' as const, content: userInput };
-    
+
     // Get the current messages including the new user message
     const updatedMessages = [...messages, userMessage];
-    
+
     // Update the UI immediately with the user's message
     setMessages(updatedMessages);
 
@@ -265,21 +266,168 @@ const ChatHeader = ({ onClose }: { onClose: () => void }) => {
   )
 }
 
-const BotMessage = ({message}: {message: string}) =>{
+const BotMessage = ({ message }: { message: string }) => {
   const theme = useMantineTheme()
+
+  const components: Components = {
+    h1: ({ node, ...props }) => (
+      <h3
+        style={{
+          margin: '0 0 8px 0',
+          fontSize: '1rem',
+          fontWeight: 700,
+          lineHeight: 1.3,
+          color: theme.black,
+        }}
+        {...props}
+      />
+    ),
+    h2: ({ node, ...props }) => (
+      <h4
+        style={{
+          margin: '8px 0 6px 0',
+          fontSize: '0.875rem',
+          fontWeight: 700,
+          lineHeight: 1.35,
+          color: theme.black,
+        }}
+        {...props}
+      />
+    ),
+    h3: ({ node, ...props }) => (
+      <h5
+        style={{
+          margin: '8px 0 6px 0',
+          fontSize: '0.85rem',
+          fontWeight: 700,
+          lineHeight: 1.4,
+          color: theme.black,
+        }}
+        {...props}
+      />
+    ),
+    p: ({ node, ...props }) => (
+      <p
+        style={{
+          margin: '6px 0',
+          fontSize: '0.875rem',
+          lineHeight: 1.5,
+          color: theme.black,
+        }}
+        {...props}
+      />
+    ),
+    ul: ({ node, ordered, ...props }: { node?: any; ordered?: boolean; className?: string; children?: React.ReactNode }) => (
+      <ul
+        style={{
+          margin: '6px 0',
+          paddingLeft: 24,
+          lineHeight: 1.5,
+        }}
+        {...props}
+      />
+    ),
+    ol: ({ node, ordered, ...props }: { node?: any; ordered?: boolean; className?: string; children?: React.ReactNode }) => (
+      <ol
+        style={{
+          margin: '6px 0',
+          paddingLeft: 24,
+          lineHeight: 1.5,
+        }}
+        {...props}
+      />
+    ),
+    li: ({ node, ...props }) => (
+      <li
+        style={{
+          margin: '4px 0',
+          fontSize: '0.875rem',
+        }}
+        {...props}
+      />
+    ),
+    a: ({ node, href, ...props }) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          color: theme.colors.blue[5],
+          textDecoration: 'underline',
+          fontWeight: 500,
+          transition: 'color 0.2s ease',
+        }}
+      className="hover:text-blue-600"
+        {...props}
+      />
+    ),
+    strong: ({ node, ...props }) => (
+      <strong
+        style={{
+          fontWeight: 700,
+        }}
+        {...props}
+      />
+    ),
+    em: ({ node, ...props }) => (
+      <em
+        style={{
+          fontStyle: 'italic',
+        }}
+        {...props}
+      />
+    ),
+    code: ({ node, inline, ...props }: { node?: any; inline?: boolean; className?: string; children?: React.ReactNode }) =>
+      inline ? (
+        <code
+          style={{
+            background: theme.colors.gray[0],
+            padding: '0 3px',
+            borderRadius: 4,
+            fontSize: '0.75em',
+            color: theme.colors.blue[5],
+          }}
+          {...props}
+        />
+      ) : (
+        <pre
+          style={{
+            background: theme.colors.gray[0],
+            padding: 12,
+            borderRadius: 6,
+            overflowX: 'auto',
+            margin: '8px 0',
+            fontSize: '0.75em',
+            color: theme.colors.gray[7]
+          }}
+        >
+          <code {...props} />
+        </pre>
+      ),
+    hr: () => (
+      <hr
+        style={{
+          border: 'none',
+          borderTop: `1px solid ${
+            theme.colors.gray[3]
+          }`,
+          margin: '16px 0',
+        }}
+      />
+    ),
+  }
+
   return (
     <Box
       p={'md'}
       bdrs={'12px 12px 12px 4px'}
       bg={theme.colors.gray[1]}
-      maw = "85%"
+      maw="95%"
       style={{
         alignSelf: 'flex-start',
       }}
     >
-      <Text size="sm">
-        {message}
-      </Text>
+      <ReactMarkdown components={components}>{message}</ReactMarkdown>
     </Box>
   )
 }
@@ -291,7 +439,7 @@ const UserMessage = ({message}: {message: string}) =>{
       p={'md'}
       bdrs={'12px 12px 4px 12px'}
       bg={theme.colors.gray[1]}
-      maw = "85%"
+      maw = "90%"
       style={{
         alignSelf: 'flex-end',
       }}
@@ -312,7 +460,7 @@ type ChatMessagesProps = {
 const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMessagesProps) => {
   return (
     <Stack
-      gap = "sm"
+      gap="sm"
       p={'lg'}
       flex={1}
       style={{
@@ -325,16 +473,20 @@ const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMess
         msg.role === 'user' ? (
           <UserMessage key={index} message={msg.content} />
         ) : (
-          <BotMessage key={index} message={msg.content}/>
-        )
+          <BotMessage key={index} message={msg.content} />
+        ),
       )}
 
       {isSending && (
-        <Skeleton visible={isSending} height={36} bdrs={'12px 12px 12px 4px'}/>
+        <Skeleton visible={isSending} height={36} bdrs={'12px 12px 12px 4px'} />
       )}
 
       {isError && (
-        <BotMessage message={'An error occurred while processing your request. Please try again later.'}/>
+        <BotMessage
+          message={
+            'An error occurred while processing your request. Please try again later.'
+          }
+        />
       )}
     </Stack>
   )

@@ -35,6 +35,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-draggable": "^4.5.0",
+    "react-markdown": "^10.1.0",
     "tailwind-preset-mantine": "^2.1.0",
     "zod": "^4.0.11"
   },

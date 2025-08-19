@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { BillType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -45,8 +46,8 @@ export class FilterBillDto {
   status?: BillStatus;
 
   @IsOptional()
-  @IsString()
-  type?: string;
+  @IsEnum(BillType)
+  type?: BillType;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
