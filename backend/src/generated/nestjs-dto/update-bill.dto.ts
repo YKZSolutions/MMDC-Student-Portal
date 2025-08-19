@@ -1,4 +1,4 @@
-import { BillStatus, Prisma } from '@prisma/client';
+import { BillType, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -15,13 +15,6 @@ export class UpdateBillDto {
   })
   @IsOptional()
   @IsString()
-  invoiceId?: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
   payerName?: string;
   @ApiProperty({
     type: 'string',
@@ -31,20 +24,13 @@ export class UpdateBillDto {
   @IsString()
   payerEmail?: string;
   @ApiProperty({
-    type: 'string',
+    enum: BillType,
+    enumName: 'BillType',
     required: false,
   })
   @IsOptional()
-  @IsString()
-  billType?: string;
-  @ApiProperty({
-    enum: BillStatus,
-    enumName: 'BillStatus',
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(BillStatus)
-  status?: BillStatus;
+  @IsEnum(BillType)
+  billType?: BillType;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -52,23 +38,7 @@ export class UpdateBillDto {
   })
   @IsOptional()
   @IsDecimal()
-  receivableAmount?: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    required: false,
-  })
-  @IsOptional()
-  @IsDecimal()
-  receiptedAmount?: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    required: false,
-  })
-  @IsOptional()
-  @IsDecimal()
-  outstandingAmount?: Prisma.Decimal;
+  amountToPay?: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

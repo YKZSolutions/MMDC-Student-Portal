@@ -14,6 +14,12 @@ import { Prisma, Role } from '@prisma/client';
 import { FilterBillDto } from './dto/filter-bill.dto';
 import { PageNumberPaginationMeta } from 'prisma-extension-pagination';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class BillingService {
@@ -30,25 +36,28 @@ export class BillingService {
    * @param createBillingDto - The DTO containing billing data (amount, due date, etc.)
    * @param userId - (Optional) The ID of the user the bill is associated with.
    * @returns The created billing object in DTO format.
-   * @throws InternalServerErrorException - If the database operation fails.
+   * @throws NotFoundException - If the user with the id was not found
    */
+  @Log({
+    logArgsMessage: ({ userId }) => `Creating bill for user=${userId}`,
+    logSuccessMessage: (_, { userId }) => `Created bill for user ${userId}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
+      new NotFoundException(`User with id=${userId} was not found`),
+  })
   async create(
     createBillingDto: CreateBillDto,
-    userId?: string,
+    @LogParam('userId') userId?: string,
   ): Promise<BillDto> {
-    try {
-      const billing = await this.prisma.client.bill.create({
-        data: {
-          ...createBillingDto,
-          userId,
-        },
-      });
+    const billing = await this.prisma.client.bill.create({
+      data: {
+        ...createBillingDto,
+        userId,
+      },
+    });
 
-      return billing;
-    } catch (err) {
-      this.logger.error(err);
-      throw new InternalServerErrorException('Error creating the bill');
-    }
+    return billing;
   }
 
   /**
@@ -76,11 +85,18 @@ export class BillingService {
 
       if (filters.type) where.billType = filters.type;
 
-      if (filters.status) where.status = filters.status;
+      // if (filters.status)
+      //   where.billPayments = {
+      //     every: {
+      //       amountPaid: {
+      //         gt: 100,
+      //       },
+      //     },
+      //   };
 
       if (filters.search) {
         where.OR = [
-          { invoiceId: { contains: filters.search, mode: 'insensitive' } },
+          { invoiceId: { equals: Number(filters.search) } },
           { payerName: { contains: filters.search, mode: 'insensitive' } },
           { payerEmail: { contains: filters.search, mode: 'insensitive' } },
         ];
