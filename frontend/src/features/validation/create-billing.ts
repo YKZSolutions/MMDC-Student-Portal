@@ -10,7 +10,9 @@ export const CreateBillFormSchema = z.object({
   bill: z.object({
     ...zodBill,
 
-    billType: zodBill.billType.nonempty('Bill type cannot be empty.'),
+    billType: z.enum(zodBill.billType.options, {
+      error: 'Invalid bill type.',
+    }),
 
     dueAt: z
       .string()
