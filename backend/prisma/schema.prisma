@@ -254,7 +254,7 @@ model BillPayment {
   bill   Bill   @relation(fields: [billId], references: [id])
 
   amountPaid   Decimal  @db.Decimal(10, 2)
-  paymentType  String
+  paymentType  PaymentType
   notes        String
   paymentDate  DateTime
   /// [PayMongoData]
