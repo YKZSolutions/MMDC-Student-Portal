@@ -2,7 +2,11 @@ import RoleComponentManager from '@/components/role-component-manager'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { useAuth } from '@/features/auth/auth.hook'
 import { SuspendedBillingTableRows } from '@/features/billing/suspense'
-import type { BillDto, PaginationMetaDto } from '@/integrations/api/client'
+import type {
+  BillDto,
+  PaginationMetaDto,
+  SingleBillDto,
+} from '@/integrations/api/client'
 import {
   billingControllerFindAllOptions,
   billingControllerFindAllQueryKey,
@@ -71,7 +75,7 @@ function BillingQueryProvider({
   },
 }: {
   children: (props: {
-    currentInvoices: BillDto[]
+    currentInvoices: SingleBillDto[]
     meta: PaginationMetaDto
     message: string
     totalPages: number
@@ -87,13 +91,15 @@ function BillingQueryProvider({
       query: {
         search,
         page,
-        ...(excludeSoftDeleted &&
-          authUser.role !== 'admin' && { excludeSoftDeleted }),
+        // ...(excludeSoftDeleted &&
+        //   authUser.role !== 'admin' && { excludeSoftDeleted }),
       },
     }),
   )
 
   const currentInvoices = data.bills || []
+
+  console.log(currentInvoices)
 
   const meta = data.meta as PaginationMetaDto
   const limit = 10
@@ -433,7 +439,7 @@ function BillingTable() {
                     <Text size="sm" fw={500}>
                       <NumberFormatter
                         prefix="&#8369;"
-                        value={invoice.outstandingAmount}
+                        value={invoice.amountToPay}
                         thousandSeparator
                       />
                     </Text>
