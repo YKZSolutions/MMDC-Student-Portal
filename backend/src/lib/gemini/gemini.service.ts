@@ -7,6 +7,8 @@ import {
   UserStudentContext,
 } from '@/modules/chatbot/dto/user-context.dto';
 import { Turn } from '@/modules/chatbot/dto/prompt.dto';
+import { ConfigService } from '@nestjs/config';
+import { EnvVars } from '@/config/env.schema';
 
 @Injectable()
 export class GeminiService {
@@ -14,9 +16,9 @@ export class GeminiService {
   private readonly gemini: GoogleGenAI;
   private readonly model: string = 'gemini-2.5-flash';
 
-  constructor() {
+  constructor(private readonly configService: ConfigService<EnvVars>) {
     this.gemini = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
+      apiKey: this.configService.get('GEMINI_API_KEY'),
     });
   }
 
