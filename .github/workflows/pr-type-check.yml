@@ -47,6 +47,9 @@ jobs:
     name: Backend Type Checking
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    env:
+      DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
+      DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
 
     steps:
       - name: Checkout Repository Code
@@ -78,6 +81,10 @@ jobs:
       - name: Generate Prisma Types
         working-directory: ./backend
         run: pnpm prisma-gen
+
+      - name: Generate Prisma SQL Types
+        working-directory: ./backend
+        run: pnpm prisma-gen-sql
 
       - name: Run TypeScript Type Check
         working-directory: ./backend

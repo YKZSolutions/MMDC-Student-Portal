@@ -12,6 +12,7 @@
     "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
     "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
     "backend:prisma-gen": "pnpm --filter backend prisma-gen",
+    "backend:prisma-gen-sql": "pnpm --filter backend prisma-gen-sql",
     "backend:api": "concurrently -k -s first -n backend,fetch \"pnpm backend\" \"wait-on http://localhost:3001/api/json && pnpm --filter scripts fetch-spec\"",
     "supabase": "pnpm --filter supabase supabase:start",
     "cypress": "pnpm --filter cypress cy:open"
