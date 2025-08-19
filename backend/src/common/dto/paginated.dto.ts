@@ -1,8 +1,8 @@
 import { PaginationMetaDto } from '@/modules/meta/dto/pagination-meta.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  PageNumberPagination,
   PageNumberCounters,
+  PageNumberPaginationMeta,
 } from 'prisma-extension-pagination/dist/types';
 
 export class PaginatedDto {
@@ -11,5 +11,5 @@ export class PaginatedDto {
     additionalProperties: true,
     nullable: false,
   })
-  meta: PageNumberPagination & PageNumberCounters;
+  meta: PageNumberPaginationMeta & PageNumberCounters;
 }
