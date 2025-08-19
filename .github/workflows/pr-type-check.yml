@@ -50,7 +50,10 @@ jobs:
     name: Backend Type Checking
     timeout-minutes: 5
     runs-on: ubuntu-latest
-
+    env:
+      DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
+      DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
+      
     steps:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
