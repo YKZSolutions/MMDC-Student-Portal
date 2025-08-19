@@ -1,9 +1,6 @@
 name: PR Type Checking (Frontend & Backend)
 
 on:
-  push:
-    branches:
-      - "fix/cap-92"
   pull_request:
     branches:
       - "main"
@@ -53,7 +50,7 @@ jobs:
     env:
       DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
       DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
-      
+
     steps:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
