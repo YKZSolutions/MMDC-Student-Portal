@@ -5,7 +5,11 @@ const RoleEnum = ['student', 'mentor', 'admin'];
 
 export const vectorSearchFn: FunctionDeclaration = {
   name: 'search_vector',
-  description: 'Search for documents using vector search.',
+  description:
+    'Search for documents using vector search. It answers general questions. Such as about school information, policies, procedures:\n' +
+    '- "When is the enrollment?"\n' +
+    '- "What are the school hours?"\n' +
+    '- "How do I book a mentoring session?"',
   parameters: {
     type: Type.OBJECT,
     properties: {
