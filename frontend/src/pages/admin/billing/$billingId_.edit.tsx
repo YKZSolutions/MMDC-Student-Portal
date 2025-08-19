@@ -1,25 +1,25 @@
 import AsyncEmployeeCombobox from '@/features/billing/async-employee-combobox'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
 import {
-    CreateBillFormSchema,
-    type CreateBillFormValues,
+  CreateBillFormSchema,
+  type CreateBillFormValues,
 } from '@/features/validation/create-billing'
 import { billingControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
-    ActionIcon,
-    Box,
-    Button,
-    Container,
-    Divider,
-    Group,
-    NumberInput,
-    rem,
-    Select,
-    Stack,
-    Tabs,
-    Text,
-    TextInput,
-    Title,
+  ActionIcon,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Group,
+  NumberInput,
+  rem,
+  Select,
+  Stack,
+  Tabs,
+  Text,
+  TextInput,
+  Title,
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
@@ -61,16 +61,12 @@ function EditBillingPage() {
     mode: 'uncontrolled',
     initialValues: {
       bill: {
-        billType: '',
+        billType: 'full',
         dueAt: '',
-        invoiceId: crypto.randomUUID(),
-        issuedAt: new Date().toISOString(),
-        outstandingAmount: '0',
         payerEmail: '',
         payerName: '',
-        receiptedAmount: '0',
-        receivableAmount: '0',
-        status: 'unpaid',
+        amountToPay: '',
+        issuedAt: new Date().toISOString(),
       },
       costBreakdown: [],
       userId: '',
