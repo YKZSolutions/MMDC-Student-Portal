@@ -53,4 +53,5 @@ export interface CourseDetailProps {
     time: string
   }
   classMeetings: ClassMeeting[]
+  onClick: () => void
 }
