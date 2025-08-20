@@ -33,6 +33,8 @@ import {
 } from '@tabler/icons-react'
 import { useState } from 'react'
 import type { Course, CourseDetailProps, EnrolledAcademicTerm } from '@/features/courses/types.ts'
+import { useNavigate } from '@tanstack/react-router'
+import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 
 const MockCourseData: Course[] = [
     {
@@ -292,6 +294,12 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
 }
 
 const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'list' }) => {
+  const navigate = useNavigate()
+  const handleClick = async () => {
+    await navigate({
+      to: `/courses/${course.courseCode}`,
+    })
+  }
     return variant === 'grid' ? (
         <CourseCard
             courseName={course.courseName}
@@ -300,6 +308,7 @@ const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'li
             sectionName={course.sectionName}
             sectionSchedule={course.sectionSchedule}
             classMeetings={course.classMeetings}
+            onClick={handleClick}
         />
     ) : (
         <CourseListRow
@@ -309,6 +318,7 @@ const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'li
             sectionName={course.sectionName}
             sectionSchedule={course.sectionSchedule}
             classMeetings={course.classMeetings}
+            onClick={handleClick}
         />
     )
 }
@@ -320,12 +330,14 @@ const CourseCard = ({
   sectionName,
   sectionSchedule,
   classMeetings,
+  onClick,
 }: CourseDetailProps) => {
     const theme = useMantineTheme()
     const currentMeeting = useCurrentMeeting(classMeetings)
+    const [hovered, setHovered] = useState(false)
 
     return (
-    <Card withBorder radius="md" p="xs" shadow="sm">
+    <Card withBorder radius="md" p="xs" shadow={hovered ? 'sm' : 'xs'} style={{cursor: 'pointer'}} onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       {/*Image*/}
       <Flex pos="relative">
         <Image
@@ -347,39 +359,37 @@ const CourseCard = ({
           bdrs="md"
           bg="black"
           opacity={0.75}
+          style={{ textDecoration: hovered ? 'underline' : 'none' }}
         >
           {courseCode} • {sectionName}
         </Text>
       </Flex>
       {/*Course Details*/}
-      <Group justify="space-between" wrap="nowrap" mt="md">
-        <Stack gap={4} w={'16rem'}>
-          <Group h={'4rem'}>
-              <Title fw={600} order={3} w={'65%'} lineClamp={2}>
-                  {courseName}
-              </Title>
-              <QuickActions />
-          </Group>
-            <AttendButton meetingLink={currentMeeting?.meetingLink} disabled={!currentMeeting} />
-            <Group gap="0.5rem">
+      <Group justify="space-between" wrap="nowrap" mt="xs">
+        <Stack gap={'md'} w={'16rem'} px={'xs'}>
+          <Stack mt={'xs'}>
+            <Title order={3} w={'100%'} lineClamp={1} c={theme.primaryColor} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
+              {courseName}
+            </Title>
+            <Text fw={400} size={'sm'} c={theme.colors.dark[3]} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
+              {sectionSchedule.day} {sectionSchedule.time}
+            </Text>
+          </Stack>
+          <AttendButton meetingLink={currentMeeting?.meetingLink} disabled={!currentMeeting} />
+          <Group justify="space-between">
+            <Group gap="0.25rem">
+              <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                Completed
+              </Text>
+              <Group gap="0">
+                <RingProgress size={20} thickness={3} sections={[{ value: courseProgress * 100, color: theme.colors.blue[5] }]} />
                 <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                    {sectionSchedule.day} {sectionSchedule.time}
+                  {courseProgress * 100}%
                 </Text>
-                <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                    |
-                </Text>
-                <Group gap="0.25rem">
-                    <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                        Completed
-                    </Text>
-                    <Group gap="0">
-                        <RingProgress size={20} thickness={3} sections={[{ value: courseProgress * 100, color: theme.colors.blue[5] }]} />
-                        <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                            {courseProgress * 100}%
-                        </Text>
-                    </Group>
-                </Group>
+              </Group>
             </Group>
+            <QuickActions />
+          </Group>
         </Stack>
       </Group>
     </Card>
@@ -387,28 +397,30 @@ const CourseCard = ({
 }
 
 const CourseListRow = ({
-                        courseName,
-                        courseCode,
-                        courseProgress,
-                        sectionName,
-                        sectionSchedule,
-                        classMeetings,
+                         courseName,
+                         courseCode,
+                         courseProgress,
+                         sectionName,
+                         sectionSchedule,
+                         classMeetings,
+                         onClick
                     }: CourseDetailProps) => {
     const theme = useMantineTheme()
     const currentMeeting = useCurrentMeeting(classMeetings)
+  const [hovered, setHovered] = useState(false)
 
     return (
-        <Card withBorder radius="md" p="0" shadow="xs" w={'100%'}>
+        <Card withBorder radius="md" p="0" shadow={hovered ? 'sm' : 'xs'} w={'100%'} style={{cursor: 'pointer'}}  onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <Group justify="space-between" wrap="nowrap">
                 <Box bg={theme.colors.primary[1]} h={'100%'} w={'5%'}></Box>
                 <Stack w={'65%'} p={'xs'} justify={'space-between'}>
                     <Group gap={'xs'}>
-                        <Title fw={600} order={3} lineClamp={1} maw={'75%'}>
+                        <Title order={3} lineClamp={1} maw={'75%'} c={theme.primaryColor} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
                             {courseName}
                         </Title>
                         <QuickActions />
                     </Group>
-                    <Text >
+                    <Text fw={400} size={'sm'} c={theme.colors.dark[3]} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
                         {courseCode} • {sectionName} | {sectionSchedule.day} {sectionSchedule.time}
                     </Text>
                 </Stack>
@@ -434,7 +446,6 @@ const AttendButton = ({ meetingLink, disabled }: { meetingLink?: string; disable
     return (
         <Button
             leftSection={<IconVideo/>}
-            my="xs"
             size="xs"
             radius="xl"
             variant="filled"
@@ -469,58 +480,6 @@ const QuickActions = () => {
         </Group>
     )
 }
-
-const CourseTasksSummary = ({
-                              courses,
-                            }: {courses: Course[]}) => {
-  const theme = useMantineTheme()
-  return (
-    <Paper withBorder radius={'md'} shadow="xs" p="lg">
-      <Stack gap={'sm'}>
-        <Center>
-          <Title c={'dark.7'} variant="hero" order={4} fw={700}>
-            Weekly Tasks
-          </Title>
-        </Center>
-        {courses.filter((course) => course.activities.length > 0).length === 0 ? (
-          <Stack gap={'md'}>
-            <Title c={'dark.7'} variant="hero" order={6} fw={400}>
-              Congratulations! You have completed all your tasks for the week.
-            </Title>
-          </Stack>
-        ) : (
-          courses.filter((course) => course.activities.length > 0).map((course, index) => (
-            <Stack gap={'sm'}>
-              <Title c={'dark.7'} variant="hero" order={5} fw={700}>
-                {course.courseName}
-              </Title>
-              <Divider />
-              <Stack gap={'md'}>
-                {course.activities.map((activity, activityIndex) => (
-                  <Group justify="space-between" align="center" key={activityIndex}>
-                    <Stack gap={'xs'}>
-                      <Text fw={500} size={'xs'} truncate={'end'}>{activity.activityName}</Text>
-                      <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                        Due: {activity.dueDate} | {activity.dueTime}
-                      </Text>
-                    </Stack>
-                    <Button
-                      variant="default"
-                      radius={'md'}
-                      size={'xs'}
-                    >
-                      Submit
-                    </Button>
-                  </Group>
-                ))}
-              </Stack>
-            </Stack>
-          )))}
-      </Stack>
-    </Paper>
-  )
-}
-
 
 const toDate = (dateStr: string, timeStr: string) => {
     // dateStr: 'YYYY-MM-DD', timeStr: 'h:mm AM/PM'
