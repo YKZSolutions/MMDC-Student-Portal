@@ -15,12 +15,9 @@ import {
   ActionIcon,
   Tooltip,
   TextInput,
-  Popover,
-  SegmentedControl,
   Combobox,
   useCombobox,
   InputBase,
-  Input,
   Grid,
   Paper,
   Center,
@@ -28,184 +25,152 @@ import {
 } from '@mantine/core'
 import {
   IconCalendar,
-  IconCards,
-  IconFilter2,
-  IconGrid4x4,
-  IconGridPatternFilled,
-  IconLayoutGrid,
   IconLayoutGridFilled,
   IconList,
   IconMessage,
-  IconPlus,
   IconSearch,
   IconVideo,
-  IconWindow,
 } from '@tabler/icons-react'
 import { useState } from 'react'
-
-type Course = {
-    courseName: string,
-    courseCode: string,
-    courseProgress: number,
-    sectionName: string,
-    sectionSchedule: {
-        day: string,
-        time: string
-    },
-    classMeetings: {
-        date: string,
-        timeStart: string,
-        timeEnd: string,
-        meetingLink: string
-    }[],
-    activities: {
-        activityName: string,
-        dueDate: string,
-        dueTime: string
-    }[]
-}
+import type { Course, CourseDetailProps, EnrolledAcademicTerm } from '@/features/courses/types.ts'
 
 const MockCourseData: Course[] = [
-  {
-    courseName: 'Web Technology Applications',
-    courseCode: 'MO-IT200',
-    courseProgress: 0.5,
-    sectionName: 'A2101',
-    sectionSchedule: {
-      day: 'MWF',
-      time: '10:00 - 11:00 AM',
+    {
+        courseName: 'Web Technology Applications',
+        courseCode: 'MO-IT200',
+        courseProgress: 0.5,
+        sectionName: 'A2101',
+        sectionSchedule: {
+            day: 'MWF',
+            time: '10:00 - 11:00 AM',
+        },
+        classMeetings: [
+            {
+                date: '2025-08-20',
+                timeStart: '3:00 AM',
+                timeEnd: '4:00 AM',
+                meetingLink: 'https://zoom.us',
+            }
+        ],
+        activities: []
     },
-    classMeetings: [
-      {
-        date: '2025-08-20',
-        timeStart: '3:00 AM',
-        timeEnd: '4:00 AM',
-        meetingLink: 'https://zoom.us',
-      }
-    ],
-    activities: []
-  },
-  {
-    courseName: 'Web Technology Applications',
-    courseCode: 'MO-IT200',
-    courseProgress: 0.5,
-    sectionName: 'A2101',
-    sectionSchedule: {
-      day: 'TTHS',
-      time: '10:00 - 11:00 AM',
+    {
+        courseName: 'Web Technology Applications',
+        courseCode: 'MO-IT200',
+        courseProgress: 0.5,
+        sectionName: 'A2101',
+        sectionSchedule: {
+            day: 'TTHS',
+            time: '10:00 - 11:00 AM',
+        },
+        classMeetings: [
+            {
+                date: '2025-08-20',
+                timeStart: '3:00 AM',
+                timeEnd: '4:00 AM',
+                meetingLink: 'https://zoom.us',
+            }
+        ],
+        activities: []
     },
-    classMeetings: [
-      {
-        date: '2025-08-20',
-        timeStart: '3:00 AM',
-        timeEnd: '4:00 AM',
-        meetingLink: 'https://zoom.us',
-      }
-    ],
-    activities: []
-  },
-  {
-    courseName: 'Web Technology Applications',
-    courseCode: 'MO-IT200',
-    courseProgress: 0.5,
-    sectionName: 'A2101',
-    sectionSchedule: {
-      day: 'MWF',
-      time: '8:00 - 9:00 AM',
+    {
+        courseName: 'Web Technology Applications',
+        courseCode: 'MO-IT200',
+        courseProgress: 0.5,
+        sectionName: 'A2101',
+        sectionSchedule: {
+            day: 'MWF',
+            time: '8:00 - 9:00 AM',
+        },
+        classMeetings: [
+            {
+                date: '2025-08-20',
+                timeStart: '3:00 AM',
+                timeEnd: '4:00 AM',
+                meetingLink: 'https://zoom.us',
+            }
+        ],
+        activities: []
     },
-    classMeetings: [
-      {
-        date: '2025-08-20',
-        timeStart: '3:00 AM',
-        timeEnd: '4:00 AM',
-        meetingLink: 'https://zoom.us',
-      }
-    ],
-    activities: []
-  },
-  {
-    courseName: 'Web Technology Applications',
-    courseCode: 'MO-IT200',
-    courseProgress: 0.5,
-    sectionName: 'A2101',
-    sectionSchedule: {
-      day: 'MWF',
-      time: '8:00 - 9:00 AM',
+    {
+        courseName: 'Web Technology Applications',
+        courseCode: 'MO-IT200',
+        courseProgress: 0.5,
+        sectionName: 'A2101',
+        sectionSchedule: {
+            day: 'MWF',
+            time: '8:00 - 9:00 AM',
+        },
+        classMeetings: [
+            {
+                date: '2025-08-20',
+                timeStart: '3:45 PM',
+                timeEnd: '10:00 PM',
+                meetingLink: 'https://zoom.us',
+            }
+        ],
+        activities: []
     },
-    classMeetings: [
-      {
-        date: '2025-08-20',
-        timeStart: '3:45 PM',
-        timeEnd: '10:00 PM',
-        meetingLink: 'https://zoom.us',
-      }
-    ],
-    activities: []
-  },
-  {
-    courseName: 'Capstone 2',
-    courseCode: 'MO-IT201',
-    courseProgress: 0.5,
-    sectionName: 'A2101',
-    sectionSchedule: {
-      day: 'TTHS',
-      time: '8:00 - 9:00 AM',
+    {
+        courseName: 'Capstone 2',
+        courseCode: 'MO-IT201',
+        courseProgress: 0.5,
+        sectionName: 'A2101',
+        sectionSchedule: {
+            day: 'TTHS',
+            time: '8:00 - 9:00 AM',
+        },
+        classMeetings: [
+            {
+                date: '2025-08-20',
+                timeStart: '12:00 AM',
+                timeEnd: '11:59 PM',
+                meetingLink: 'https://zoom.us',
+            }
+        ],
+        activities: [
+            {
+                activityName: 'Assignment 1',
+                dueDate: 'Aug 20, 2025',
+                dueTime: '11:59 PM',
+            },
+            {
+                activityName: 'Assignment 2',
+                dueDate: 'Aug 20, 2025',
+                dueTime: '11:59 PM',
+            }
+        ]
     },
-    classMeetings: [
-      {
-        date: '2025-08-20',
-        timeStart: '12:00 AM',
-        timeEnd: '11:59 PM',
-        meetingLink: 'https://zoom.us',
-      }
-    ],
-    activities: [
-      {
-        activityName: 'Assignment 1',
-        dueDate: 'Aug 20, 2025',
-        dueTime: '11:59 PM',
-      },
-      {
-        activityName: 'Assignment 2',
-        dueDate: 'Aug 20, 2025',
-        dueTime: '11:59 PM',
-      }
-    ]
-  }
 ]
 
-const academicTerms = [
-  {
-    schoolYear: 'SY 2024-2025',
-    term: 'Term 1',
-    isCurrent: false
-  },
-  {
-    schoolYear: 'SY 2024-2025',
-    term: 'Term 2',
-    isCurrent: false
-  },
-  {
-    schoolYear: 'SY 2024-2025',
-    term: 'Term 3',
-    isCurrent: false
-  },
-  {
-    schoolYear: 'SY 2025-2026',
-    term: 'Term 1',
-    isCurrent: true
-  }
-]
-
-const CoursesStudentPage = () => {
+const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademicTerm[] }) => {
   const theme = useMantineTheme()
+  const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState<'grid' | 'list'>('grid')
 
-  const currentTerm = academicTerms.find(term => term.isCurrent)
-  const [selectedTerm, setSelectedTerm] = useState<string | null>(`${currentTerm?.schoolYear} - ${currentTerm?.term}`)
+  const currentTerm = academicTerms.find((term) => term.isCurrent)
+  const [selectedTerm, setSelectedTerm] = useState<string | null>(
+    `${currentTerm?.schoolYear} - ${currentTerm?.term}`,
+  )
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
-  });
+  })
+
+  //TODO: implement API call to get courses, get it by academic term Id
+  const [courses, setCourses] = useState<Course[]>(MockCourseData)
+
+  const handleSearch = (query: string) => {
+    if (query.trim() === '') {
+      setSearchQuery('')
+      setCourses(MockCourseData)
+    } else {
+      setSearchQuery(query)
+      const filteredCourses = courses.filter((course) =>
+        course.courseName.toLowerCase().includes(query.toLowerCase()),
+      )
+      setCourses(filteredCourses)
+    }
+  }
 
   return (
     <Container fluid m={0}>
@@ -229,6 +194,8 @@ const CoursesStudentPage = () => {
                     placeholder="Search courses"
                     radius="md"
                     leftSection={<IconSearch size="75%" />}
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
                   />
                 </Flex>
                 <Group gap={'md'}>
@@ -307,15 +274,15 @@ const CoursesStudentPage = () => {
               </Group>
               {/*Courses*/}
               <Flex gap={'md'} wrap={'wrap'}>
-                  {MockCourseData.map((course, index) => (
-                      <CourseItem key={index} course={course} variant={view} />
-                  ))}
+                {courses.map((course, index) => (
+                  <CourseItem key={index} course={course} variant={view} />
+                ))}
               </Flex>
             </Stack>
           </Grid.Col>
           {/*Upcoming Tasks*/}
           <Grid.Col span={3}>
-            <CourseTasksSummary courses={MockCourseData} />
+            <CourseTasksSummary courses={courses} />
           </Grid.Col>
         </Grid>
       </Stack>
@@ -343,81 +310,6 @@ const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'li
             classMeetings={course.classMeetings}
         />
     )
-}
-
-
-type CourseTasksSummaryProps = {
-    courses: Course[];
-}
-
-const CourseTasksSummary = ({
-    courses,
-}: CourseTasksSummaryProps) => {
-    const theme = useMantineTheme()
-    return (
-        <Paper withBorder radius={'md'} shadow="xs" p="lg">
-            <Stack gap={'sm'}>
-                <Center>
-                    <Title c={'dark.7'} variant="hero" order={4} fw={700}>
-                        Weekly Tasks
-                    </Title>
-                </Center>
-                {courses.filter((course) => course.activities.length > 0).length === 0 ? (
-                    <Stack gap={'md'}>
-                        <Title c={'dark.7'} variant="hero" order={6} fw={400}>
-                            Congratulations! You have completed all your tasks for the week.
-                        </Title>
-                    </Stack>
-                ) : (
-                    courses.filter((course) => course.activities.length > 0).map((course, index) => (
-                        <Stack gap={'sm'}>
-                            <Title c={'dark.7'} variant="hero" order={5} fw={700}>
-                                {course.courseName}
-                            </Title>
-                            <Divider />
-                            <Stack gap={'md'}>
-                                {course.activities.map((activity, activityIndex) => (
-                                    <Group justify="space-between" align="center" key={activityIndex}>
-                                        <Stack gap={'xs'}>
-                                            <Text fw={500} size={'xs'} truncate={'end'}>{activity.activityName}</Text>
-                                            <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                                                Due: {activity.dueDate} | {activity.dueTime}
-                                            </Text>
-                                        </Stack>
-                                        <Button
-                                            variant="default"
-                                            radius={'md'}
-                                            size={'xs'}
-                                        >
-                                            Submit
-                                        </Button>
-                                    </Group>
-                                ))}
-                            </Stack>
-                        </Stack>
-                    )))}
-            </Stack>
-        </Paper>
-    )
-}
-
-type ClassMeeting = {
-  date: string
-  timeStart: string
-  timeEnd: string
-  meetingLink: string
-}
-
-type CourseDetailProps = {
-  courseName: string
-  courseCode: string
-  courseProgress: number
-  sectionName: string
-  sectionSchedule: {
-    day: string
-    time: string
-  }
-  classMeetings: ClassMeeting[]
 }
 
 const CourseCard = ({
@@ -558,7 +450,7 @@ const AttendButton = ({ meetingLink, disabled }: { meetingLink?: string; disable
     )
 }
 
-
+//TODO: implement action function for booking a mentoring session and navigating to gspace
 const QuickActions = () => {
     const theme = useMantineTheme()
     return (
@@ -575,6 +467,57 @@ const QuickActions = () => {
             </Tooltip>
         </Group>
     )
+}
+
+const CourseTasksSummary = ({
+                              courses,
+                            }: {courses: Course[]}) => {
+  const theme = useMantineTheme()
+  return (
+    <Paper withBorder radius={'md'} shadow="xs" p="lg">
+      <Stack gap={'sm'}>
+        <Center>
+          <Title c={'dark.7'} variant="hero" order={4} fw={700}>
+            Weekly Tasks
+          </Title>
+        </Center>
+        {courses.filter((course) => course.activities.length > 0).length === 0 ? (
+          <Stack gap={'md'}>
+            <Title c={'dark.7'} variant="hero" order={6} fw={400}>
+              Congratulations! You have completed all your tasks for the week.
+            </Title>
+          </Stack>
+        ) : (
+          courses.filter((course) => course.activities.length > 0).map((course, index) => (
+            <Stack gap={'sm'}>
+              <Title c={'dark.7'} variant="hero" order={5} fw={700}>
+                {course.courseName}
+              </Title>
+              <Divider />
+              <Stack gap={'md'}>
+                {course.activities.map((activity, activityIndex) => (
+                  <Group justify="space-between" align="center" key={activityIndex}>
+                    <Stack gap={'xs'}>
+                      <Text fw={500} size={'xs'} truncate={'end'}>{activity.activityName}</Text>
+                      <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                        Due: {activity.dueDate} | {activity.dueTime}
+                      </Text>
+                    </Stack>
+                    <Button
+                      variant="default"
+                      radius={'md'}
+                      size={'xs'}
+                    >
+                      Submit
+                    </Button>
+                  </Group>
+                ))}
+              </Stack>
+            </Stack>
+          )))}
+      </Stack>
+    </Paper>
+  )
 }
 
 
@@ -599,6 +542,5 @@ const useCurrentMeeting = (classMeetings: Course['classMeetings']) => {
       return now >= earlyJoin && now <= end
     })
 }
-
 
 export default CoursesStudentPage
