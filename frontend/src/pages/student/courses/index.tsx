@@ -157,15 +157,16 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
   })
 
   //TODO: implement API call to get courses, get it by academic term Id
-  const [courses, setCourses] = useState<Course[]>(MockCourseData)
+  const coursesData = MockCourseData
+  const [courses, setCourses] = useState<Course[]>(coursesData)
 
   const handleSearch = (query: string) => {
     if (query.trim() === '') {
       setSearchQuery('')
-      setCourses(MockCourseData)
+      setCourses(coursesData)
     } else {
       setSearchQuery(query)
-      const filteredCourses = courses.filter((course) =>
+      const filteredCourses = coursesData.filter((course) =>
         course.courseName.toLowerCase().includes(query.toLowerCase()),
       )
       setCourses(filteredCourses)
