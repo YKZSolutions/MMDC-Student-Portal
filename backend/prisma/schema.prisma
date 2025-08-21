@@ -260,11 +260,13 @@ model EnrollableCourses {
   /// @DtoApiHidden
   course Course @relation(fields: [courseId], references: [id]) 
 
-  periodId String // Each enrollable belong to one enrollment period
+  periodId String // Each enrollable belongs to one enrollment period
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
 
   enrolledCourses EnrolledCourses[]
+
+  sections EnrollableSections[] // Enrollable can have multiple sections
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -289,7 +291,11 @@ model EnrollableSections {
   mentorId String // Each section belong to one mentor
   /// @DtoApiHidden
   user User @relation(fields: [mentorId], references: [id])
-  
+
+  enrollableId String // Each section belong to one enrollable
+  /// @DtoApiHidden
+  enrollableCourse EnrollableCourses @relation(fields: [enrollableId], references: [id])
+
   maxSlot Int
 
   startSched String
