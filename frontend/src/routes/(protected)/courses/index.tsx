@@ -9,8 +9,6 @@ export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
 })
 
-
-
 function RouteComponent() {
     const { authUser } = useAuth('protected')
     const enrolledTerms: EnrolledAcademicTerm[] = [

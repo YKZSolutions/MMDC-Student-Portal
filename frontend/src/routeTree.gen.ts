@@ -26,6 +26,10 @@ import { Route as protectedEnrollmentPeriodIdRouteImport } from './routes/(prote
 import { Route as protectedCoursesCourseIdRouteImport } from './routes/(protected)/courses/$courseId'
 import { Route as protectedBillingRedirectRouteImport } from './routes/(protected)/billing/redirect'
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
+import { Route as protectedCoursesCourseIdIndexRouteImport } from './routes/(protected)/courses/$courseId/index'
+import { Route as protectedCoursesCourseIdSubmissionsIndexRouteImport } from './routes/(protected)/courses/$courseId/submissions/index'
+import { Route as protectedCoursesCourseIdModulesIndexRouteImport } from './routes/(protected)/courses/$courseId/modules/index'
+import { Route as protectedCoursesCourseIdGradesIndexRouteImport } from './routes/(protected)/courses/$courseId/grades/index'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
   id: '/(protected)',
@@ -117,6 +121,30 @@ const protectedBillingBillingIdRoute =
     path: '/billing/$billingId',
     getParentRoute: () => protectedRouteRoute,
   } as any)
+const protectedCoursesCourseIdIndexRoute =
+  protectedCoursesCourseIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => protectedCoursesCourseIdRoute,
+  } as any)
+const protectedCoursesCourseIdSubmissionsIndexRoute =
+  protectedCoursesCourseIdSubmissionsIndexRouteImport.update({
+    id: '/submissions/',
+    path: '/submissions/',
+    getParentRoute: () => protectedCoursesCourseIdRoute,
+  } as any)
+const protectedCoursesCourseIdModulesIndexRoute =
+  protectedCoursesCourseIdModulesIndexRouteImport.update({
+    id: '/modules/',
+    path: '/modules/',
+    getParentRoute: () => protectedCoursesCourseIdRoute,
+  } as any)
+const protectedCoursesCourseIdGradesIndexRoute =
+  protectedCoursesCourseIdGradesIndexRouteImport.update({
+    id: '/grades/',
+    path: '/grades/',
+    getParentRoute: () => protectedCoursesCourseIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof protectedRouteRouteWithChildren
@@ -126,7 +154,7 @@ export interface FileRoutesByFullPath {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/billing/redirect': typeof protectedBillingRedirectRoute
-  '/courses/$courseId': typeof protectedCoursesCourseIdRoute
+  '/courses/$courseId': typeof protectedCoursesCourseIdRouteWithChildren
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/billing': typeof protectedBillingIndexRoute
   '/courses': typeof protectedCoursesIndexRoute
@@ -135,6 +163,10 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof protectedNotificationsIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
+  '/courses/$courseId/': typeof protectedCoursesCourseIdIndexRoute
+  '/courses/$courseId/grades': typeof protectedCoursesCourseIdGradesIndexRoute
+  '/courses/$courseId/modules': typeof protectedCoursesCourseIdModulesIndexRoute
+  '/courses/$courseId/submissions': typeof protectedCoursesCourseIdSubmissionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof protectedRouteRouteWithChildren
@@ -144,7 +176,6 @@ export interface FileRoutesByTo {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/billing/redirect': typeof protectedBillingRedirectRoute
-  '/courses/$courseId': typeof protectedCoursesCourseIdRoute
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/billing': typeof protectedBillingIndexRoute
   '/courses': typeof protectedCoursesIndexRoute
@@ -153,6 +184,10 @@ export interface FileRoutesByTo {
   '/notifications': typeof protectedNotificationsIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
+  '/courses/$courseId': typeof protectedCoursesCourseIdIndexRoute
+  '/courses/$courseId/grades': typeof protectedCoursesCourseIdGradesIndexRoute
+  '/courses/$courseId/modules': typeof protectedCoursesCourseIdModulesIndexRoute
+  '/courses/$courseId/submissions': typeof protectedCoursesCourseIdSubmissionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -164,7 +199,7 @@ export interface FileRoutesById {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/(protected)/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/(protected)/billing/redirect': typeof protectedBillingRedirectRoute
-  '/(protected)/courses/$courseId': typeof protectedCoursesCourseIdRoute
+  '/(protected)/courses/$courseId': typeof protectedCoursesCourseIdRouteWithChildren
   '/(protected)/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/(protected)/billing/': typeof protectedBillingIndexRoute
   '/(protected)/courses/': typeof protectedCoursesIndexRoute
@@ -173,6 +208,10 @@ export interface FileRoutesById {
   '/(protected)/notifications/': typeof protectedNotificationsIndexRoute
   '/(protected)/profile/': typeof protectedProfileIndexRoute
   '/(protected)/users/': typeof protectedUsersIndexRoute
+  '/(protected)/courses/$courseId/': typeof protectedCoursesCourseIdIndexRoute
+  '/(protected)/courses/$courseId/grades/': typeof protectedCoursesCourseIdGradesIndexRoute
+  '/(protected)/courses/$courseId/modules/': typeof protectedCoursesCourseIdModulesIndexRoute
+  '/(protected)/courses/$courseId/submissions/': typeof protectedCoursesCourseIdSubmissionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -193,6 +232,10 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/users'
+    | '/courses/$courseId/'
+    | '/courses/$courseId/grades'
+    | '/courses/$courseId/modules'
+    | '/courses/$courseId/submissions'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -202,7 +245,6 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/billing/$billingId'
     | '/billing/redirect'
-    | '/courses/$courseId'
     | '/enrollment/$periodId'
     | '/billing'
     | '/courses'
@@ -211,6 +253,10 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/users'
+    | '/courses/$courseId'
+    | '/courses/$courseId/grades'
+    | '/courses/$courseId/modules'
+    | '/courses/$courseId/submissions'
   id:
     | '__root__'
     | '/'
@@ -230,6 +276,10 @@ export interface FileRouteTypes {
     | '/(protected)/notifications/'
     | '/(protected)/profile/'
     | '/(protected)/users/'
+    | '/(protected)/courses/$courseId/'
+    | '/(protected)/courses/$courseId/grades/'
+    | '/(protected)/courses/$courseId/modules/'
+    | '/(protected)/courses/$courseId/submissions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -362,13 +412,64 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedBillingBillingIdRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/courses/$courseId/': {
+      id: '/(protected)/courses/$courseId/'
+      path: '/'
+      fullPath: '/courses/$courseId/'
+      preLoaderRoute: typeof protectedCoursesCourseIdIndexRouteImport
+      parentRoute: typeof protectedCoursesCourseIdRoute
+    }
+    '/(protected)/courses/$courseId/submissions/': {
+      id: '/(protected)/courses/$courseId/submissions/'
+      path: '/submissions'
+      fullPath: '/courses/$courseId/submissions'
+      preLoaderRoute: typeof protectedCoursesCourseIdSubmissionsIndexRouteImport
+      parentRoute: typeof protectedCoursesCourseIdRoute
+    }
+    '/(protected)/courses/$courseId/modules/': {
+      id: '/(protected)/courses/$courseId/modules/'
+      path: '/modules'
+      fullPath: '/courses/$courseId/modules'
+      preLoaderRoute: typeof protectedCoursesCourseIdModulesIndexRouteImport
+      parentRoute: typeof protectedCoursesCourseIdRoute
+    }
+    '/(protected)/courses/$courseId/grades/': {
+      id: '/(protected)/courses/$courseId/grades/'
+      path: '/grades'
+      fullPath: '/courses/$courseId/grades'
+      preLoaderRoute: typeof protectedCoursesCourseIdGradesIndexRouteImport
+      parentRoute: typeof protectedCoursesCourseIdRoute
+    }
   }
 }
+
+interface protectedCoursesCourseIdRouteChildren {
+  protectedCoursesCourseIdIndexRoute: typeof protectedCoursesCourseIdIndexRoute
+  protectedCoursesCourseIdGradesIndexRoute: typeof protectedCoursesCourseIdGradesIndexRoute
+  protectedCoursesCourseIdModulesIndexRoute: typeof protectedCoursesCourseIdModulesIndexRoute
+  protectedCoursesCourseIdSubmissionsIndexRoute: typeof protectedCoursesCourseIdSubmissionsIndexRoute
+}
+
+const protectedCoursesCourseIdRouteChildren: protectedCoursesCourseIdRouteChildren =
+  {
+    protectedCoursesCourseIdIndexRoute: protectedCoursesCourseIdIndexRoute,
+    protectedCoursesCourseIdGradesIndexRoute:
+      protectedCoursesCourseIdGradesIndexRoute,
+    protectedCoursesCourseIdModulesIndexRoute:
+      protectedCoursesCourseIdModulesIndexRoute,
+    protectedCoursesCourseIdSubmissionsIndexRoute:
+      protectedCoursesCourseIdSubmissionsIndexRoute,
+  }
+
+const protectedCoursesCourseIdRouteWithChildren =
+  protectedCoursesCourseIdRoute._addFileChildren(
+    protectedCoursesCourseIdRouteChildren,
+  )
 
 interface protectedRouteRouteChildren {
   protectedBillingBillingIdRoute: typeof protectedBillingBillingIdRoute
   protectedBillingRedirectRoute: typeof protectedBillingRedirectRoute
-  protectedCoursesCourseIdRoute: typeof protectedCoursesCourseIdRoute
+  protectedCoursesCourseIdRoute: typeof protectedCoursesCourseIdRouteWithChildren
   protectedEnrollmentPeriodIdRoute: typeof protectedEnrollmentPeriodIdRoute
   protectedBillingIndexRoute: typeof protectedBillingIndexRoute
   protectedCoursesIndexRoute: typeof protectedCoursesIndexRoute
@@ -382,7 +483,7 @@ interface protectedRouteRouteChildren {
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedBillingBillingIdRoute: protectedBillingBillingIdRoute,
   protectedBillingRedirectRoute: protectedBillingRedirectRoute,
-  protectedCoursesCourseIdRoute: protectedCoursesCourseIdRoute,
+  protectedCoursesCourseIdRoute: protectedCoursesCourseIdRouteWithChildren,
   protectedEnrollmentPeriodIdRoute: protectedEnrollmentPeriodIdRoute,
   protectedBillingIndexRoute: protectedBillingIndexRoute,
   protectedCoursesIndexRoute: protectedCoursesIndexRoute,
