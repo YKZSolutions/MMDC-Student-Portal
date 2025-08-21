@@ -22,6 +22,8 @@ import {
   Paper,
   Center,
   Progress,
+  Select,
+  type ComboboxItem,
 } from '@mantine/core'
 import {
   IconCalendar,
@@ -148,20 +150,18 @@ const MockCourseData: Course[] = [
 
 const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademicTerm[] }) => {
   const theme = useMantineTheme()
-  const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState<'grid' | 'list'>('grid')
 
-  const currentTerm = academicTerms.find((term) => term.isCurrent)
-  const [selectedTerm, setSelectedTerm] = useState<string | null>(
-    `${currentTerm?.schoolYear} - ${currentTerm?.term}`,
-  )
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
-  })
+  const formatTerm = (academicTerm: EnrolledAcademicTerm | undefined) => {
+    return academicTerm ? `${academicTerm.schoolYear} - ${academicTerm.term}` : 'N/A'
+  }
+
+  const currentTerm = formatTerm(academicTerms.find((term) => term.isCurrent))
 
   //TODO: implement API call to get courses, get it by academic term Id
   const coursesData = MockCourseData
   const [courses, setCourses] = useState<Course[]>(coursesData)
+
 
   return (
     <Container fluid m={0}>
@@ -182,43 +182,14 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
               <Group justify="space-between" align="start">
                 <SearchComponent data={coursesData} identifier={'courseName'} setData={setCourses} placeholder={"Search courses"}/>
                 <Group gap={'md'}>
-                  <Combobox
-                    store={combobox}
-                    onOptionSubmit={(val) => {
-                      setSelectedTerm(val)
-                      combobox.closeDropdown()
-                    }}
+                  <Select
+                    data={academicTerms.map((term) => (`${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}` ))}
+                    defaultValue={currentTerm}
+                    allowDeselect={false}
                     variant="default"
                     radius={'md'}
-                    size={'xs'}
-                  >
-                    <Combobox.Target>
-                      <InputBase
-                        component="button"
-                        type="button"
-                        pointer
-                        rightSection={<Combobox.Chevron />}
-                        rightSectionPointerEvents="none"
-                        onClick={() => combobox.toggleDropdown()}
-                      >
-                        {selectedTerm}
-                      </InputBase>
-                    </Combobox.Target>
-
-                    <Combobox.Dropdown>
-                      <Combobox.Options>
-                        {academicTerms.map((item) => (
-                          <Combobox.Option
-                            value={`${item.schoolYear} - ${item.term}`}
-                            key={`${item.schoolYear} - ${item.term}`}
-                          >
-                            {`${item.schoolYear} - ${item.term}`}{' '}
-                            {`${item.isCurrent ? '(Current)' : ''}`}
-                          </Combobox.Option>
-                        ))}
-                      </Combobox.Options>
-                    </Combobox.Dropdown>
-                  </Combobox>
+                    size={'sm'}
+                  />
                   <Button.Group>
                     <Button
                       variant="default"
