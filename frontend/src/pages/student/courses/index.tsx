@@ -35,6 +35,7 @@ import { useState } from 'react'
 import type { Course, CourseDetailProps, EnrolledAcademicTerm } from '@/features/courses/types.ts'
 import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
+import SearchComponent from '@/components/search-component.tsx'
 
 const MockCourseData: Course[] = [
     {
@@ -162,19 +163,6 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
   const coursesData = MockCourseData
   const [courses, setCourses] = useState<Course[]>(coursesData)
 
-  const handleSearch = (query: string) => {
-    if (query.trim() === '') {
-      setSearchQuery('')
-      setCourses(coursesData)
-    } else {
-      setSearchQuery(query)
-      const filteredCourses = coursesData.filter((course) =>
-        course.courseName.toLowerCase().includes(query.toLowerCase()),
-      )
-      setCourses(filteredCourses)
-    }
-  }
-
   return (
     <Container fluid m={0}>
       <Stack gap={'lg'}>
@@ -192,15 +180,7 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
             <Stack gap={'md'} mr={'md'}>
               {/*Filters*/}
               <Group justify="space-between" align="start">
-                <Flex gap="md" align="center">
-                  <TextInput
-                    placeholder="Search courses"
-                    radius="md"
-                    leftSection={<IconSearch size="75%" />}
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                  />
-                </Flex>
+                <SearchComponent data={coursesData} identifier={'courseName'} setData={setCourses} placeholder={"Search courses"}/>
                 <Group gap={'md'}>
                   <Combobox
                     store={combobox}
