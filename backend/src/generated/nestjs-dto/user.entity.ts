@@ -21,6 +21,14 @@ import {
   Notification,
   type Notification as NotificationAsType,
 } from './notification.entity';
+import {
+  EnrolledCourses,
+  type EnrolledCourses as EnrolledCoursesAsType,
+} from './enrolledCourses.entity';
+import {
+  EnrollableSections,
+  type EnrollableSections as EnrollableSectionsAsType,
+} from './enrollableSections.entity';
 
 export class User {
   @ApiProperty({
@@ -39,6 +47,18 @@ export class User {
   bills?: BillAsType[];
   @ApiHideProperty()
   notifications?: NotificationAsType[];
+  @ApiProperty({
+    type: () => EnrolledCourses,
+    isArray: true,
+    required: false,
+  })
+  enrolledCourses?: EnrolledCoursesAsType[];
+  @ApiProperty({
+    type: () => EnrollableSections,
+    isArray: true,
+    required: false,
+  })
+  sectionsHandled?: EnrollableSectionsAsType[];
   @ApiProperty({
     type: 'string',
   })

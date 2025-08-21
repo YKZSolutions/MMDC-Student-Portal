@@ -1,16 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Major, type Major as MajorAsType } from './major.entity';
+import {
+  EnrollableCourses,
+  type EnrollableCourses as EnrollableCoursesAsType,
+} from './enrollableCourses.entity';
 
 export class Course {
   @ApiProperty({
     type: 'string',
   })
   id: string;
-  @ApiProperty({
-    type: () => Major,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   major?: MajorAsType[];
   @ApiProperty({
     type: () => Course,
@@ -61,6 +61,8 @@ export class Course {
     format: 'int32',
   })
   units: number;
+  @ApiHideProperty()
+  enrollableCourses?: EnrollableCoursesAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
