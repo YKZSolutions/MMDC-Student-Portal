@@ -38,6 +38,7 @@ function NavButton({ item, fuzzy }: NavButtonProps) {
       color={isActive ? undefined : 'gray'}
       to={item.link}
       fullWidth
+      data-cy={`${item.label.toLowerCase()}-link`}
     >
       {item.label}
     </Button>

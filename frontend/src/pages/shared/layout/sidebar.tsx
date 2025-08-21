@@ -81,6 +81,7 @@ function AccountButton(props: AccountButtonProps) {
               name={`${data?.firstName} ${data?.lastName}`}
             />
           }
+          data-cy="my-account-button"
         >
           <Stack gap={0} align="start" w="100%">
             <Text className="text-left w-full" c="dark" fw={500} w="100%">
@@ -105,6 +106,7 @@ function AccountButton(props: AccountButtonProps) {
           onClick={onLogoutClick}
           color="red"
           leftSection={<IconLogout size={14} />}
+          data-cy="logout-button"
         >
           Logout
         </Menu.Item>
