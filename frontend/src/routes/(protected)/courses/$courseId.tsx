@@ -77,8 +77,8 @@ function RouteComponent() {
       fuzzy: true,
     },
     {
-      link: `/courses/${courseId}/submissions`,
-      label: 'Submissions',
+      link: `/courses/${courseId}/assignments`,
+      label: 'Assignments',
       fuzzy: true,
     },
     {
