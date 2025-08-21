@@ -23,7 +23,7 @@ const SearchComponent = <T extends object>({
     setData(filteredData)
   }
 
-  return (<Flex gap="md" align="center">
+  return (
     <TextInput
       placeholder={placeholder}
       radius="md"
@@ -31,7 +31,7 @@ const SearchComponent = <T extends object>({
       value={searchQuery}
       onChange={(e) => handleSearch(e.target.value)}
     />
-  </Flex>)
+  )
 }
 
 export default SearchComponent
