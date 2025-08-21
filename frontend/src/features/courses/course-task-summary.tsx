@@ -42,7 +42,7 @@ const CourseTasksSummary = ({
                     <Stack gap={'xs'}>
                       <Text fw={500} size={'xs'} truncate={'end'}>{activity.activityName}</Text>
                       <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                        Due: {activity.dueDate} | {activity.dueTime}
+                        {activity.dueDate} at {activity.dueTime}
                       </Text>
                     </Stack>
                     <Button
