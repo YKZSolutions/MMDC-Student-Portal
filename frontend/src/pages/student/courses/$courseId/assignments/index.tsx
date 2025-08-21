@@ -21,15 +21,41 @@ interface AssignmentData {
   id: string
   title: string
   description: string
-  dueDate: string
-  dueTime: string
+  dueTimestamp: string
   status: 'completed' | 'pending' | 'late' | 'locked'
+  submissionTimestamp?: string
 }
 const mockAssignmentsData: AssignmentData[] = [
-  { id: '1', title: 'Project 1', description: 'Submit project report', dueDate: '2022-12-31', dueTime: '23:59', status: 'pending' },
-  { id: '2', title: 'Assignment 2', description: 'Submit assignment', dueDate: '2023-01-15', dueTime: '11:59', status: 'late' },
-  { id: '3', title: 'Project 2', description: 'Submit project report', dueDate: '2022-10-31', dueTime: '23:59', status: 'completed' },
-  { id: '4', title: 'Assignment 1', description: 'Submit assignment', dueDate: '2022-11-15', dueTime: '11:59', status: 'completed' },
+  {
+    id: '1',
+    title: 'Project 1',
+    description: 'Submit project report',
+    dueTimestamp: '2022-12-31T23:59',
+    status: 'pending',
+  },
+  {
+    id: '2',
+    title: 'Assignment 2',
+    description: 'Submit assignment',
+    dueTimestamp: '2023-01-15T11:59',
+    status: 'late',
+  },
+  {
+    id: '3',
+    title: 'Project 2',
+    description: 'Submit project report',
+    dueTimestamp: '2022-10-31T23:59',
+    status: 'completed',
+    submissionTimestamp: '2022-10-20T12:30',
+  },
+  {
+    id: '4',
+    title: 'Assignment 1',
+    description: 'Submit assignment',
+    dueTimestamp: '2022-11-15T11:59',
+    status: 'completed',
+    submissionTimestamp: '2022-11-10T09:30',
+  },
 ]
 const AssignmentsPageStudentView = () => {
   const [activeTab, setActiveTab] = useState<'todo' | 'completed'>('todo')
@@ -96,8 +122,17 @@ const AssignmentsPanel = ({assignments}: {assignments: AssignmentData[]})=>{
 
 const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
   const theme = useMantineTheme();
-  const dueDate = dayjs(assignment.dueDate).format('MMM D')
-  const dueTime = dayjs(assignment.dueDate).format('h:mm A')
+  const dueDateTime = dayjs(assignment.dueTimestamp);
+  const dueDate = dueDateTime.format('MMM D');
+  const dueTime = dueDateTime.format('h:mm A');
+
+  let submissionDate;
+  let submissionTime;
+  if (assignment.submissionTimestamp) {
+    const submissionDateTime = dayjs(assignment.submissionTimestamp);
+    submissionDate = submissionDateTime.format('MMM D');
+    submissionTime = submissionDateTime.format('h:mm A');
+  }
 
   return (
     <Card withBorder radius="md" p="lg" shadow="xs">
@@ -115,6 +150,16 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
             <Text size="sm" c="dimmed">
               Due: {dueDate} at {dueTime}
             </Text>
+            {submissionDate && (
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">
+                  |
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Submitted: {submissionDate} at {submissionTime}
+                </Text>
+              </Group>
+            )}
           </Group>
         </Stack>
 
