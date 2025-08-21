@@ -47,6 +47,11 @@ model User {
   bills          Bill[]
   /// @DtoApiHidden
   notifications  Notification[]
+  // @DtoApiHidden
+  enrolledCourses EnrolledCourses[]
+  // @DtoApiHidden
+  sectionsHandled EnrollableSections[]
+
 
   firstName  String
   middleName String?
@@ -170,6 +175,8 @@ model Major {
   programId String   @db.Uuid
   /// @DtoApiHidden
   program   Program  @relation(fields: [programId], references: [id])
+
+  /// @DtoApiHidden
   courses   Course[]
 
   name        String @unique
@@ -185,6 +192,8 @@ model Major {
 
 model Course {
   id    String  @id @default(uuid()) @db.Uuid
+
+  /// @DtoApiHidden
   major Major[]
 
   prereqs   Course[] @relation("CoursePrereq")
@@ -199,6 +208,126 @@ model Course {
   year        String
   semester    String
   units       Int
+
+  /// @DtoApiHidden
+  enrollableCourses EnrollableCourses[] // A course can have multiple enrollable i.e. offerings
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum EnrollmentStatus {
+  draft
+  upcoming
+  active
+  extended
+  closed
+  canceled
+  archived
+}
+
+model EnrollmentPeriod {
+  id  String @id @default(uuid()) @db.Uuid
+
+  startYear Int
+  endYear Int
+
+  term Int
+  
+  startDate DateTime
+  endDate DateTime
+
+  status EnrollmentStatus
+
+  enrollableCourses EnrollableCourses[] // An enrollment can have multiple enrollable courses
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model EnrollableCourses {
+  id  String @id @default(uuid()) @db.Uuid
+
+  courseId String // Each enrollable belongs to one course
+  /// @DtoApiHidden
+  course Course @relation(fields: [courseId], references: [id]) 
+
+  periodId String // Each enrollable belong to one enrollment period
+  /// @DtoApiHidden
+  enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
+
+  enrolledCourses EnrolledCourses[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum Days {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+}
+
+model EnrollableSections {
+  id  String @id @default(uuid()) @db.Uuid
+
+  mentorId String // Each section belong to one mentor
+  /// @DtoApiHidden
+  user User @relation(fields: [mentorId], references: [id])
+  
+  maxSlot Int
+
+  startSched String
+  endSched String
+
+  days Days[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum EnrolledCourseStatus {
+  enlisted
+  enrolled
+  dropped
+  completed
+}
+
+model EnrolledCourses {
+  id  String @id @default(uuid()) @db.Uuid
+
+  //
+  enrollableId String // Each enrolled courses belong to one enrollable
+  /// @DtoApiHidden
+  enrollable EnrollableCourses @relation(fields: [enrollableId], references: [id])
+
+  status EnrolledCourseStatus
+
+  studentId String // Each enrolled course belong to one user i.e student
+  /// @DtoApiHidden
+  user User @relation(fields: [studentId], references: [id])
+
+  startedAt DateTime
+  completedAt DateTime
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
