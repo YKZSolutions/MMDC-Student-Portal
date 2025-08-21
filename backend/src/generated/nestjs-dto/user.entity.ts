@@ -22,13 +22,13 @@ import {
   type Notification as NotificationAsType,
 } from './notification.entity';
 import {
-  EnrolledCourses,
-  type EnrolledCourses as EnrolledCoursesAsType,
-} from './enrolledCourses.entity';
+  EnrolledCourse,
+  type EnrolledCourse as EnrolledCourseAsType,
+} from './enrolledCourse.entity';
 import {
-  EnrollableSections,
-  type EnrollableSections as EnrollableSectionsAsType,
-} from './enrollableSections.entity';
+  CourseSection,
+  type CourseSection as CourseSectionAsType,
+} from './courseSection.entity';
 
 export class User {
   @ApiProperty({
@@ -47,18 +47,10 @@ export class User {
   bills?: BillAsType[];
   @ApiHideProperty()
   notifications?: NotificationAsType[];
-  @ApiProperty({
-    type: () => EnrolledCourses,
-    isArray: true,
-    required: false,
-  })
-  enrolledCourses?: EnrolledCoursesAsType[];
-  @ApiProperty({
-    type: () => EnrollableSections,
-    isArray: true,
-    required: false,
-  })
-  sectionsHandled?: EnrollableSectionsAsType[];
+  @ApiHideProperty()
+  enrolledCourses?: EnrolledCourseAsType[];
+  @ApiHideProperty()
+  courseSections?: CourseSectionAsType[];
   @ApiProperty({
     type: 'string',
   })

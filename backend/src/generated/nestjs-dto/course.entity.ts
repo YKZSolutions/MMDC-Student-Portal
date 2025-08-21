@@ -1,9 +1,9 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Major, type Major as MajorAsType } from './major.entity';
 import {
-  EnrollableCourses,
-  type EnrollableCourses as EnrollableCoursesAsType,
-} from './enrollableCourses.entity';
+  CourseOffering,
+  type CourseOffering as CourseOfferingAsType,
+} from './courseOffering.entity';
 
 export class Course {
   @ApiProperty({
@@ -62,7 +62,7 @@ export class Course {
   })
   units: number;
   @ApiHideProperty()
-  enrollableCourses?: EnrollableCoursesAsType[];
+  courseOfferings?: CourseOfferingAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -48,9 +48,9 @@ model User {
   /// @DtoApiHidden
   notifications  Notification[]
   /// @DtoApiHidden
-  enrolledCourses EnrolledCourses[]
+  enrolledCourses EnrolledCourse[]
   /// @DtoApiHidden
-  sectionsHandled EnrollableSections[]
+  courseSections CourseSection[]
 
 
   firstName  String
@@ -210,7 +210,7 @@ model Course {
   units       Int
 
   /// @DtoApiHidden
-  enrollableCourses EnrollableCourses[] // A course can have multiple enrollable i.e. offerings
+  courseOfferings CourseOffering[] // A course can have multiple offerings
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -243,7 +243,7 @@ model EnrollmentPeriod {
 
   status EnrollmentStatus
 
-  enrollableCourses EnrollableCourses[] // An enrollment can have multiple enrollable courses
+  courseOfferings CourseOffering[] // An enrollment can have multiple offerings
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -253,7 +253,7 @@ model EnrollmentPeriod {
   deletedAt DateTime?
 }
 
-model EnrollableCourses {
+model CourseOffering {
   id  String @id @default(uuid()) @db.Uuid
 
   courseId String // Each enrollable belongs to one course
@@ -264,9 +264,9 @@ model EnrollableCourses {
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
 
-  enrolledCourses EnrolledCourses[]
+  enrolledCourses EnrolledCourse[] // Each offering can have multiple enrolled
 
-  sections EnrollableSections[] // Enrollable can have multiple sections
+  courseSections CourseSection[] // Each offering can have multiple sections
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -285,16 +285,16 @@ enum Days {
   saturday
 }
 
-model EnrollableSections {
+model CourseSection {
   id  String @id @default(uuid()) @db.Uuid
 
   mentorId String // Each section belong to one mentor
   /// @DtoApiHidden
   user User @relation(fields: [mentorId], references: [id])
 
-  enrollableId String // Each section belong to one enrollable
+  courseOfferingId String // Each section belong to one offering
   /// @DtoApiHidden
-  enrollableCourse EnrollableCourses @relation(fields: [enrollableId], references: [id])
+  courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
   maxSlot Int
 
@@ -318,13 +318,12 @@ enum EnrolledCourseStatus {
   completed
 }
 
-model EnrolledCourses {
+model EnrolledCourse {
   id  String @id @default(uuid()) @db.Uuid
 
-  //
-  enrollableId String // Each enrolled courses belong to one enrollable
+  courseOfferingId String // Each enrolled courses belong to one offering
   /// @DtoApiHidden
-  enrollable EnrollableCourses @relation(fields: [enrollableId], references: [id])
+  courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
   status EnrolledCourseStatus
 

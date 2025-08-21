@@ -1,51 +1,47 @@
-import { EnrollmentStatus } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { Days } from '@prisma/client';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { User, type User as UserAsType } from './user.entity';
 import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
 
-export class EnrollmentPeriod {
+export class CourseSection {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  startYear: number;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  endYear: number;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  term: number;
+  mentorId: string;
+  @ApiHideProperty()
+  user?: UserAsType;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
   })
-  startDate: Date;
+  courseOfferingId: string;
+  @ApiHideProperty()
+  courseOffering?: CourseOfferingAsType;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  maxSlot: number;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
   })
-  endDate: Date;
+  startSched: string;
   @ApiProperty({
-    enum: EnrollmentStatus,
-    enumName: 'EnrollmentStatus',
+    type: 'string',
   })
-  status: EnrollmentStatus;
+  endSched: string;
   @ApiProperty({
-    type: () => CourseOffering,
     isArray: true,
-    required: false,
+    enum: Days,
+    enumName: 'Days',
   })
-  courseOfferings?: CourseOfferingAsType[];
+  days: Days[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
