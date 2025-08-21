@@ -47,9 +47,9 @@ model User {
   bills          Bill[]
   /// @DtoApiHidden
   notifications  Notification[]
-  // @DtoApiHidden
+  /// @DtoApiHidden
   enrolledCourses EnrolledCourses[]
-  // @DtoApiHidden
+  /// @DtoApiHidden
   sectionsHandled EnrollableSections[]
 
 
