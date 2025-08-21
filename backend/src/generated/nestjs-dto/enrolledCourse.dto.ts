@@ -1,28 +1,26 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Program, type Program as ProgramAsType } from './program.entity';
-import { Course, type Course as CourseAsType } from './course.entity';
+import { EnrolledCourseStatus } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class Major {
+export class EnrolledCourseDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'string',
+    enum: EnrolledCourseStatus,
+    enumName: 'EnrolledCourseStatus',
   })
-  programId: string;
-  @ApiHideProperty()
-  program?: ProgramAsType;
-  @ApiHideProperty()
-  courses?: CourseAsType[];
+  status: EnrolledCourseStatus;
   @ApiProperty({
     type: 'string',
+    format: 'date-time',
   })
-  name: string;
+  startedAt: Date;
   @ApiProperty({
     type: 'string',
+    format: 'date-time',
   })
-  description: string;
+  completedAt: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
