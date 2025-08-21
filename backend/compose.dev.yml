@@ -1,0 +1,9 @@
+services:
+  nestjs:
+    build:
+      context: ..
+      dockerfile: ./backend/Dockerfile
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
