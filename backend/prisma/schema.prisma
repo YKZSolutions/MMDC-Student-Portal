@@ -233,6 +233,8 @@ enum EnrollmentStatus {
 model EnrollmentPeriod {
   id  String @id @default(uuid()) @db.Uuid
 
+  courseOfferings CourseOffering[] // An enrollment can have multiple offerings
+
   startYear Int
   endYear Int
 
@@ -242,8 +244,6 @@ model EnrollmentPeriod {
   endDate DateTime
 
   status EnrollmentStatus
-
-  courseOfferings CourseOffering[] // An enrollment can have multiple offerings
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -256,11 +256,11 @@ model EnrollmentPeriod {
 model CourseOffering {
   id  String @id @default(uuid()) @db.Uuid
 
-  courseId String // Each enrollable belongs to one course
+  courseId String @db.Uuid // Each enrollable belongs to one course
   /// @DtoApiHidden
   course Course @relation(fields: [courseId], references: [id]) 
 
-  periodId String // Each enrollable belongs to one enrollment period
+  periodId String @db.Uuid  // Each enrollable belongs to one enrollment period
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
 
@@ -288,11 +288,11 @@ enum Days {
 model CourseSection {
   id  String @id @default(uuid()) @db.Uuid
 
-  mentorId String // Each section belong to one mentor
+  mentorId String @db.Uuid // Each section belong to one mentor
   /// @DtoApiHidden
   user User @relation(fields: [mentorId], references: [id])
 
-  courseOfferingId String // Each section belong to one offering
+  courseOfferingId String @db.Uuid  // Each section belong to one offering
   /// @DtoApiHidden
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
@@ -321,16 +321,15 @@ enum EnrolledCourseStatus {
 model EnrolledCourse {
   id  String @id @default(uuid()) @db.Uuid
 
-  courseOfferingId String // Each enrolled courses belong to one offering
+  courseOfferingId String  @db.Uuid  // Each enrolled courses belong to one offering
   /// @DtoApiHidden
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
-  status EnrolledCourseStatus
-
-  studentId String // Each enrolled course belong to one user i.e student
+  studentId String  @db.Uuid  // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
   user User @relation(fields: [studentId], references: [id])
 
+  status EnrolledCourseStatus
   startedAt DateTime
   completedAt DateTime
 

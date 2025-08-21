@@ -18,16 +18,16 @@ export class EnrolledCourse {
   @ApiHideProperty()
   courseOffering?: CourseOfferingAsType;
   @ApiProperty({
-    enum: EnrolledCourseStatus,
-    enumName: 'EnrolledCourseStatus',
-  })
-  status: EnrolledCourseStatus;
-  @ApiProperty({
     type: 'string',
   })
   studentId: string;
   @ApiHideProperty()
   user?: UserAsType;
+  @ApiProperty({
+    enum: EnrolledCourseStatus,
+    enumName: 'EnrolledCourseStatus',
+  })
+  status: EnrolledCourseStatus;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

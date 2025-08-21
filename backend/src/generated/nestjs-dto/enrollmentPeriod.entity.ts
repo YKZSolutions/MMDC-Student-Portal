@@ -11,6 +11,12 @@ export class EnrollmentPeriod {
   })
   id: string;
   @ApiProperty({
+    type: () => CourseOffering,
+    isArray: true,
+    required: false,
+  })
+  courseOfferings?: CourseOfferingAsType[];
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
@@ -40,12 +46,6 @@ export class EnrollmentPeriod {
     enumName: 'EnrollmentStatus',
   })
   status: EnrollmentStatus;
-  @ApiProperty({
-    type: () => CourseOffering,
-    isArray: true,
-    required: false,
-  })
-  courseOfferings?: CourseOfferingAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
