@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import SubmissionsPageStudentView from '@/pages/student/courses/$courseId/submissions'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseId/submissions/',
@@ -7,5 +8,5 @@ export const Route = createFileRoute(
 })
 
 function RouteComponent() {
-  return <div>Hello "/(protected)/courses/$courseId/submissions/"!</div>
+  return <SubmissionsPageStudentView></SubmissionsPageStudentView>
 }
