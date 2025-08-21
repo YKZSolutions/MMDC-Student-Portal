@@ -26,6 +26,7 @@ import {
   IconWriting,
 } from '@tabler/icons-react'
 import { useState, useEffect } from "react";
+import SubmissionButton from '@/components/submission-button.tsx'
 
 const CourseModulesPage = () => {
   const [allExpanded, setAllExpanded] = useState(false);
@@ -358,14 +359,8 @@ const ModuleItem = ({item}: {item: ModuleSubsectionItemData}) => {
             type={item.type}
           />
         </Group>
-        {item.status === 'locked' ? (
-          <Button disabled>Locked</Button>
-        ) : item.status === 'late' ? (
-          <Button color="red">Submit Late</Button>
-        ) : item.status === 'completed' ? (
-          <Button>View Submission</Button>
-        ) : (
-          <Button>Submit</Button>
+        {item.type !== 'readings' && (
+          <SubmissionButton status={item.status} onClick={() => {}} />
         )}
       </Group>
     )
