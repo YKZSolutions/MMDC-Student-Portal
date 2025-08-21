@@ -1,6 +1,7 @@
 import {
   createFileRoute,
   Outlet,
+  useLocation,
   useMatchRoute,
   useNavigate,
   useParams,
@@ -16,7 +17,7 @@ import {
     Button,
   Group,
   Box,
-  useMantineTheme,
+  useMantineTheme, Select,
 } from '@mantine/core'
 
 export const Route = createFileRoute('/(protected)/courses/$courseId')({
@@ -48,21 +49,70 @@ const SubNavButton = ({ item }: { item: SubNavItem }) => {
     )
 }
 
-const SubNavBar = ({navItems}: {navItems: SubNavItem[]}) => {
-    return (
-        <Stack gap={'sm'} mt={'md'} mr={'sm'} h={'100vh'} style={{position: 'sticky', top: 0}}>
-            {navItems.map((item, index) => (
-                <SubNavButton key={index} item={item}/>
-            ))}
-        </Stack>
-    )
+interface CourseBasicDetails {
+  courseId: string
+  courseName: string
 }
 
+const SubNavBar = ({navItems, courses}: {navItems: SubNavItem[], courses: CourseBasicDetails[]}) => {
+  const { courseId } = useParams({ from: '/(protected)/courses/$courseId' })
+  const currentCourse = courses.find((course) => course.courseId === courseId)!
+  const getCourseId = (courseName: string) => {
+    return courses.find((course) => course.courseName === courseName)!.courseId
+  }
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  return (
+    <Stack
+      gap={'sm'}
+      mt={'md'}
+      mr={'md'}
+      h={'100vh'}
+      style={{ position: 'sticky', top: 0 }}
+    >
+      <Select
+        data={courses.map((course) => course.courseName)}
+        defaultValue={currentCourse.courseName}
+        onChange={async (value) => {
+          if (value) {
+            const newCourseId = getCourseId(value)
+            const newPath = location.pathname.replace(courseId, newCourseId)
+            await navigate({ to: newPath })
+          }
+        }}
+      />
+      {navItems.map((item, index) => (
+        <SubNavButton key={index} item={item} />
+      ))}
+    </Stack>
+  )
+}
+
+const mockCourses: CourseBasicDetails[] = [
+    {
+        courseId: 'MO-IT200',
+        courseName: 'Web Technology Applications',
+    },
+    {
+        courseId: 'MO-IT351',
+        courseName: 'Data Structures & Algorithms',
+    },
+    {
+        courseId: 'MO-IT400',
+        courseName: 'Capstone 1',
+    },
+    {
+        courseId: 'MO-IT500',
+        courseName: 'Capstone 2',
+    },
+]
 
 function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
 
+  const courses: CourseBasicDetails[] = mockCourses
   const { courseId } = useParams({ from: '/(protected)/courses/$courseId' })
 
   const studentNavItems: SubNavItem[] = [
@@ -109,7 +159,7 @@ function RouteComponent() {
         <RoleComponentManager
           currentRole={authUser.role}
           roleRender={{
-            student: <SubNavBar navItems={studentNavItems} />,
+            student: <SubNavBar navItems={studentNavItems} courses={courses}/>,
           }}
         />
       </Box>
