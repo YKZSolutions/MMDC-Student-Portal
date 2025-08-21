@@ -999,8 +999,8 @@ export const zBillingControllerFindAllData = z.object({
         page: z.optional(z.number()).default(1),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
-            'status',
-            'amount',
+            'amountToPay',
+            'totalPaid',
             'dueAt',
             'createdAt'
         ])),

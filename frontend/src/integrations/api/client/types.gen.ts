@@ -1225,7 +1225,7 @@ export type BillingControllerFindAllData = {
         type?: BillType;
         page?: number;
         search?: string;
-        sort?: 'status' | 'amount' | 'dueAt' | 'createdAt';
+        sort?: 'amountToPay' | 'totalPaid' | 'dueAt' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
     url: '/billing';
@@ -1255,6 +1255,11 @@ export type BillingControllerCreateData = {
 };
 
 export type BillingControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1285,6 +1290,11 @@ export type BillingControllerRemoveData = {
 };
 
 export type BillingControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1333,6 +1343,11 @@ export type BillingControllerUpdateData = {
 };
 
 export type BillingControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1413,6 +1428,11 @@ export type PaymentsControllerCreateData = {
 };
 
 export type PaymentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1443,6 +1463,11 @@ export type PaymentsControllerRemoveData = {
 };
 
 export type PaymentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1491,6 +1516,11 @@ export type PaymentsControllerUpdateData = {
 };
 
 export type PaymentsControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
