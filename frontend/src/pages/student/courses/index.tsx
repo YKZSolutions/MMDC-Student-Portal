@@ -178,7 +178,7 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
             <Stack gap={'md'} mr={'md'}>
               {/*Filters*/}
               <Group justify="space-between" align="start">
-                <SearchComponent data={coursesData} identifier={'courseName'} setData={setCourses} placeholder={"Search courses"}/>
+                <SearchComponent data={coursesData} identifiers={['courseName']} setData={setCourses} placeholder={"Search courses"}/>
                 <Group gap={'md'}>
                   <Select
                     data={academicTerms.map((term) => (`${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}`))}

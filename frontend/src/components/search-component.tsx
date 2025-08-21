@@ -5,12 +5,12 @@ import { IconSearch } from '@tabler/icons-react'
 const SearchComponent = <T extends object>({
   data,
   setData,
-  identifier,
+  identifiers,
   placeholder,
 }: {
   data: T[],
   setData: React.Dispatch<React.SetStateAction<T[]>>,
-  identifier: keyof T,
+  identifiers: (keyof T)[],
   placeholder: string
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,7 +18,9 @@ const SearchComponent = <T extends object>({
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     const filteredData = data.filter((value: any) =>
-      value[identifier].toLowerCase().includes(query.toLowerCase()),
+      identifiers.some((identifier) =>
+        value[identifier].toLowerCase().includes(query.toLowerCase()),
+      ),
     )
     setData(filteredData)
   }

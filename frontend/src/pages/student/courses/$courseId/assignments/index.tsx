@@ -95,7 +95,7 @@ const AssignmentsPageStudentView = () => {
           </Tabs.List>
 
           <Stack gap={'md'} p={'md'}>
-            <SearchComponent data={getAssignments()} setData={setFilteredAssignments} identifier={'title'} placeholder={'Search for assignments'} />
+            <SearchComponent data={getAssignments()} setData={setFilteredAssignments} identifiers={['title']} placeholder={'Search for assignments'} />
 
             <Tabs.Panel value="todo">
               <AssignmentsPanel assignments={filteredAssignments} />
@@ -131,8 +131,8 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
         <Stack flex={1} justify="space-between" gap="xs">
           <Group>
             <Title order={4} fw={600}>{assignment.title}</Title>
-            <Badge color={assignment.status} variant="light" size="sm" tt="capitalize">
-              {assignment.status.replace('-', ' ')}
+            <Badge color={assignment.status} variant="outline" size="md">
+              {assignment.status}
             </Badge>
           </Group>
           <Group gap="xs" wrap="nowrap">

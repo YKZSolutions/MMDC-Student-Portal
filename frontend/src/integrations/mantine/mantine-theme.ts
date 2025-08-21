@@ -13,9 +13,11 @@ const customColors = {
 
 const submissionStatusColors = {
   completed: colorsTuple('#008000'),
+  submitted: colorsTuple('#008000'),
   pending: colorsTuple('#FFA500'),
   late: colorsTuple('#FF0000'),
   locked: colorsTuple('#808080'),
+  graded: colorsTuple('#0000FF'),
 }
 
 type CustomColors = keyof typeof customColors
