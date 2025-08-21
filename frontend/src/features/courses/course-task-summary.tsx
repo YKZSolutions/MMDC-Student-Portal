@@ -10,6 +10,7 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
+import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 
 const CourseTasksSummary = ({
                               courses,
@@ -42,7 +43,7 @@ const CourseTasksSummary = ({
                     <Stack gap={'xs'}>
                       <Text fw={500} size={'xs'} truncate={'end'}>{activity.activityName}</Text>
                       <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                        {activity.dueDate} at {activity.dueTime}
+                        {formatTimestampToDateTimeText(activity.dueTimestamp, 'by')}
                       </Text>
                     </Stack>
                     <Button

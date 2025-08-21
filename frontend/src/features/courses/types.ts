@@ -15,13 +15,12 @@ export interface Course {
   }[],
   activities: {
     activityName: string,
-    dueDate: string,
-    dueTime: string
+    dueTimestamp: string
   }[]
 }
 
 export interface EnrolledAcademicTerm {
-    termId: string
+  termId: string
   schoolYear: string
   term: string
   isCurrent: boolean

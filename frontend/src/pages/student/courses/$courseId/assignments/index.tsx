@@ -16,6 +16,7 @@ import SearchComponent from '@/components/search-component.tsx'
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import SubmissionButton from '@/components/submission-button.tsx'
+import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 
 interface AssignmentData {
   id: string
@@ -122,17 +123,6 @@ const AssignmentsPanel = ({assignments}: {assignments: AssignmentData[]})=>{
 
 const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
   const theme = useMantineTheme();
-  const dueDateTime = dayjs(assignment.dueTimestamp);
-  const dueDate = dueDateTime.format('MMM D');
-  const dueTime = dueDateTime.format('h:mm A');
-
-  let submissionDate;
-  let submissionTime;
-  if (assignment.submissionTimestamp) {
-    const submissionDateTime = dayjs(assignment.submissionTimestamp);
-    submissionDate = submissionDateTime.format('MMM D');
-    submissionTime = submissionDateTime.format('h:mm A');
-  }
 
   return (
     <Card withBorder radius="md" p="lg" shadow="xs">
@@ -148,15 +138,15 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
           <Group gap="xs" wrap="nowrap">
             <IconClock size={16} color={theme.colors.gray[6]} />
             <Text size="sm" c="dimmed">
-              Due: {dueDate} at {dueTime}
+              Due: {formatTimestampToDateTimeText(assignment.dueTimestamp, 'by')}
             </Text>
-            {submissionDate && (
+            {assignment.submissionTimestamp && (
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">
                   |
                 </Text>
                 <Text size="sm" c="dimmed">
-                  Submitted: {submissionDate} at {submissionTime}
+                  Submitted: {formatTimestampToDateTimeText(assignment.dueTimestamp)}
                 </Text>
               </Group>
             )}

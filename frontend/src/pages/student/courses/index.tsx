@@ -136,13 +136,11 @@ const MockCourseData: Course[] = [
         activities: [
             {
                 activityName: 'Assignment 1',
-                dueDate: 'Aug 20, 2025',
-                dueTime: '11:59 PM',
+                dueTimestamp: '2025-08-20T23:59:59',
             },
             {
                 activityName: 'Assignment 2',
-                dueDate: 'Aug 20, 2025',
-                dueTime: '11:59 PM',
+                dueTimestamp: '2025-08-20T23:59:59',
             }
         ]
     },
@@ -183,8 +181,8 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
                 <SearchComponent data={coursesData} identifier={'courseName'} setData={setCourses} placeholder={"Search courses"}/>
                 <Group gap={'md'}>
                   <Select
-                    data={academicTerms.map((term) => (`${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}` ))}
-                    defaultValue={currentTerm}
+                    data={academicTerms.map((term) => (`${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}`))}
+                    defaultValue={`(Current) ${currentTerm}`}
                     allowDeselect={false}
                     variant="default"
                     radius={'md'}
