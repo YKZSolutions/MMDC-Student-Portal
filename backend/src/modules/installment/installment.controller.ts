@@ -32,9 +32,9 @@ export class InstallmentController {
   }
 
   /**
-   * Fetch a single payment
+   * Fetch a single installment
    * @remarks
-   * If the user is not an admin, they are only limited to querying their own payments.
+   * If the user is not an admin, they are only limited to querying their own installments.
    */
   @Get(':id')
   @ApiException(() => NotFoundException)
