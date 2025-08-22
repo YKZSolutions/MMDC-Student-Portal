@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import AssignmentsPageStudentView from '@/pages/student/courses/$courseId/assignments'
+import CourseAssignmentsPage from '@/pages/student/courses/$courseId/assignments/course-assignments.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
-import GradesPageStudentView from '@/pages/student/courses/$courseId/grades'
+import GradesPageStudentView from '@/pages/student/courses/$courseId/grades/course-grades.tsx'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseId/assignments/',
@@ -11,12 +11,5 @@ export const Route = createFileRoute(
 })
 
 function RouteComponent() {
-  const { authUser } = useAuth('protected')
-
-  return <RoleComponentManager
-    currentRole={authUser.role}
-    roleRender={{
-      student: <AssignmentsPageStudentView />,
-    }}
-  />
+  return <CourseAssignmentsPage/>
 }
