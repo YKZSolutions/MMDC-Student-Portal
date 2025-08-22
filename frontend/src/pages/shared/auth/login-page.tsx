@@ -1,6 +1,14 @@
 import { useAuth } from '@/features/auth/auth.hook'
 import { zUserCredentialsDto } from '@/integrations/api/client/zod.gen'
-import { Button, Card, Container, Group, Stack, TextInput, Title } from '@mantine/core'
+import {
+  Button,
+  Card,
+  Container,
+  Group,
+  Stack,
+  TextInput,
+  Title,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
@@ -48,6 +56,7 @@ function LoginPage() {
               label="Email"
               placeholder="john@email.com"
               disabled={form.submitting}
+              data-cy="email-input"
               {...form.getInputProps('email')}
             />
             <TextInput
@@ -55,17 +64,23 @@ function LoginPage() {
               placeholder="Type your password here..."
               type="password"
               disabled={form.submitting}
+              data-cy="password-input"
               {...form.getInputProps('password')}
             />
             <Group justify="end" className="text-sm">
               <Link
                 to="/reset-password"
                 className="underline decoration-dotted text-blue-950 hover:text-blue-600"
+                data-cy="forgot-password-link"
               >
                 Forgot Password?
               </Link>
             </Group>
-            <Button type="submit" loading={form.submitting}>
+            <Button
+              type="submit"
+              loading={form.submitting}
+              data-cy="login-button"
+            >
               Login
             </Button>
           </Stack>
