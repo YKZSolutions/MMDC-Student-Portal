@@ -262,7 +262,6 @@ export type CreateCourseDto = {
 
 export type Course = {
     id: string;
-    major?: Array<Major>;
     prereqs?: Array<Course>;
     prereqFor?: Array<Course>;
     coreqs?: Array<Course>;
@@ -273,17 +272,6 @@ export type Course = {
     year: string;
     semester: string;
     units: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type Major = {
-    id: string;
-    programId: string;
-    courses?: Array<Course>;
-    name: string;
-    description: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -330,15 +318,14 @@ export type AuthMetadataDto = {
     user_id?: string;
 };
 
-export type BillType = 'full' | 'installment';
+export type PaymentScheme = 'full' | 'installment1' | 'installment2';
 
 export type CreateBillDto = {
     payerName: string;
     payerEmail: string;
-    billType: BillType;
-    amountToPay: string;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
     dueAt: string;
-    issuedAt: string;
     costBreakdown: {
         [key: string]: unknown;
     };
@@ -354,10 +341,9 @@ export type BillDto = {
     invoiceId: number;
     payerName: string;
     payerEmail: string;
-    billType: BillType;
-    amountToPay: string;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
     dueAt: string;
-    issuedAt: string;
     costBreakdown: {
         [key: string]: unknown;
     };
@@ -376,10 +362,9 @@ export type DetailedBillDto = {
     invoiceId: number;
     payerName: string;
     payerEmail: string;
-    billType: BillType;
-    amountToPay: string;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
     dueAt: string;
-    issuedAt: string;
     costBreakdown: {
         [key: string]: unknown;
     };
@@ -393,10 +378,9 @@ export type DetailedBillDto = {
 export type UpdateBillDto = {
     payerName?: string;
     payerEmail?: string;
-    billType?: BillType;
-    amountToPay?: string;
+    paymentScheme?: PaymentScheme;
+    totalAmount?: string;
     dueAt?: string;
-    issuedAt?: string;
     costBreakdown?: {
         [key: string]: unknown;
     };
@@ -450,6 +434,7 @@ export type PaymentIntentResponseDto = {
 export type PaymentType = 'card' | 'paymaya' | 'gcash' | 'qrph' | 'manual';
 
 export type CreateBillPaymentDto = {
+    installmentOrder: number;
     amountPaid: string;
     paymentType: PaymentType;
     notes: string;
@@ -467,6 +452,7 @@ export type CreatePaymentDto = {
 
 export type BillPaymentDto = {
     id: string;
+    installmentOrder: number;
     amountPaid: string;
     paymentType: PaymentType;
     notes: string;
@@ -480,6 +466,7 @@ export type BillPaymentDto = {
 };
 
 export type UpdateBillPaymentDto = {
+    installmentOrder?: number;
     amountPaid?: string;
     paymentType?: PaymentType;
     notes?: string;
@@ -543,6 +530,16 @@ export type ChatbotResponseDto = {
 export type CreateMajorDto = {
     major: CreateMajorDto;
     programId: string;
+};
+
+export type Major = {
+    id: string;
+    programId: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type MajorDto = {
@@ -1222,10 +1219,10 @@ export type BillingControllerFindAllData = {
     path?: never;
     query?: {
         sortOrder?: 'asc' | 'desc';
-        type?: BillType;
+        scheme?: PaymentScheme;
         page?: number;
         search?: string;
-        sort?: 'status' | 'amount' | 'dueAt' | 'createdAt';
+        sort?: 'amountToPay' | 'totalPaid' | 'dueAt' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
     url: '/billing';
@@ -1255,6 +1252,11 @@ export type BillingControllerCreateData = {
 };
 
 export type BillingControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1285,6 +1287,11 @@ export type BillingControllerRemoveData = {
 };
 
 export type BillingControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1333,6 +1340,11 @@ export type BillingControllerUpdateData = {
 };
 
 export type BillingControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1413,6 +1425,11 @@ export type PaymentsControllerCreateData = {
 };
 
 export type PaymentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1443,6 +1460,11 @@ export type PaymentsControllerRemoveData = {
 };
 
 export type PaymentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1491,6 +1513,11 @@ export type PaymentsControllerUpdateData = {
 };
 
 export type PaymentsControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -1872,6 +1899,34 @@ export type MajorControllerUpdateResponses = {
 };
 
 export type MajorControllerUpdateResponse = MajorControllerUpdateResponses[keyof MajorControllerUpdateResponses];
+
+export type InstallmentControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/installment';
+};
+
+export type InstallmentControllerFindAllResponses = {
+    200: string;
+};
+
+export type InstallmentControllerFindAllResponse = InstallmentControllerFindAllResponses[keyof InstallmentControllerFindAllResponses];
+
+export type InstallmentControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/installment/{id}';
+};
+
+export type InstallmentControllerFindOneResponses = {
+    200: string;
+};
+
+export type InstallmentControllerFindOneResponse = InstallmentControllerFindOneResponses[keyof InstallmentControllerFindOneResponses];
 
 export type ClientOptions = {
     baseUrl: string;
