@@ -27,6 +27,7 @@ import {
 } from '@mantine/core'
 import {
   IconCalendar,
+  IconEdit,
   IconLayoutGridFilled,
   IconList,
   IconMessage,
@@ -38,6 +39,8 @@ import type { Course, CourseDetailProps, EnrolledAcademicTerm } from '@/features
 import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
+import RoleComponentManager from '@/components/role-component-manager.tsx'
+import { useAuth } from '@/features/auth/auth.hook.ts'
 
 const MockCourseData: Course[] = [
     {
@@ -60,8 +63,8 @@ const MockCourseData: Course[] = [
         activities: []
     },
     {
-        courseName: 'Web Technology Applications',
-        courseCode: 'MO-IT200',
+        courseName: 'Data Structures and Algorithms',
+        courseCode: 'MO-IT351',
         courseProgress: 0.5,
         sectionName: 'A2101',
         sectionSchedule: {
@@ -78,28 +81,10 @@ const MockCourseData: Course[] = [
         ],
         activities: []
     },
+
     {
-        courseName: 'Web Technology Applications',
-        courseCode: 'MO-IT200',
-        courseProgress: 0.5,
-        sectionName: 'A2101',
-        sectionSchedule: {
-            day: 'MWF',
-            time: '8:00 - 9:00 AM',
-        },
-        classMeetings: [
-            {
-                date: '2025-08-20',
-                timeStart: '3:00 AM',
-                timeEnd: '4:00 AM',
-                meetingLink: 'https://zoom.us',
-            }
-        ],
-        activities: []
-    },
-    {
-        courseName: 'Web Technology Applications',
-        courseCode: 'MO-IT200',
+        courseName: 'Capstone 1',
+        courseCode: 'MO-IT400',
         courseProgress: 0.5,
         sectionName: 'A2101',
         sectionSchedule: {
@@ -118,7 +103,7 @@ const MockCourseData: Course[] = [
     },
     {
         courseName: 'Capstone 2',
-        courseCode: 'MO-IT201',
+        courseCode: 'MO-IT500',
         courseProgress: 0.5,
         sectionName: 'A2101',
         sectionSchedule: {
@@ -127,7 +112,7 @@ const MockCourseData: Course[] = [
         },
         classMeetings: [
             {
-                date: '2025-08-20',
+                date: '2025-08-22',
                 timeStart: '12:00 AM',
                 timeEnd: '11:59 PM',
                 meetingLink: 'https://zoom.us',
@@ -272,6 +257,16 @@ const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'li
     )
 }
 
+const handleMeetingClick = (meetingLink?: string) => {
+  if (meetingLink) {
+    window.open(meetingLink, '_blank', 'noopener,noreferrer')
+  }
+}
+
+const handleManageCourseClick = () => {
+
+}
+
 const CourseCard = ({
   courseName,
   courseCode,
@@ -324,7 +319,11 @@ const CourseCard = ({
               {sectionSchedule.day} {sectionSchedule.time}
             </Text>
           </Stack>
-          <AttendButton meetingLink={currentMeeting?.meetingLink} disabled={!currentMeeting} />
+          <CardActionButton
+            disabled={!currentMeeting}
+            onMeetingClick={()=> handleMeetingClick(currentMeeting?.meetingLink)}
+            onManageCourseClick={()=> handleManageCourseClick()}>
+          </CardActionButton>
           <Group justify="space-between">
             <Group gap="0.25rem">
               <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
@@ -354,8 +353,8 @@ const CourseListRow = ({
                          classMeetings,
                          onClick
                     }: CourseDetailProps) => {
-    const theme = useMantineTheme()
-    const currentMeeting = useCurrentMeeting(classMeetings)
+  const theme = useMantineTheme()
+  const currentMeeting = useCurrentMeeting(classMeetings)
   const [hovered, setHovered] = useState(false)
 
     return (
@@ -374,60 +373,94 @@ const CourseListRow = ({
                     </Text>
                 </Stack>
                 <Stack w={'30%'} p={'xs'} justify={'space-between'}>
-                    <AttendButton meetingLink={currentMeeting?.meetingLink} disabled={!currentMeeting} />
-                    <Group gap="xs" >
-                        <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                            Completed:
-                        </Text>
-                        <Progress color={theme.colors.blue[5]} value={50} w={'50%'}/>
-                        <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                            {courseProgress * 100}%
-                        </Text>
-                    </Group>
+                  <CardActionButton
+                    disabled={!currentMeeting}
+                    onMeetingClick={()=> handleMeetingClick(currentMeeting?.meetingLink)}
+                    onManageCourseClick={()=> handleManageCourseClick()}>
+                  </CardActionButton>
+                  <Group gap="xs" >
+                    <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                      Completed:
+                    </Text>
+                    <Progress color={theme.colors.blue[5]} value={50} w={'50%'}/>
+                    <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                      {courseProgress * 100}%
+                    </Text>
+                  </Group>
                 </Stack>
             </Group>
         </Card>
     )
 }
 
-const AttendButton = ({ meetingLink, disabled }: { meetingLink?: string; disabled: boolean }) => {
-    const theme = useMantineTheme()
-    return (
-        <Button
-            leftSection={<IconVideo/>}
-            size="xs"
-            radius="xl"
-            variant="filled"
-            color={theme.colors.primary[0]}
-            disabled={disabled}
-            onClick={() => {
-                if (!disabled && meetingLink) {
-                    window.open(meetingLink, '_blank', 'noopener,noreferrer')
-                }
-            }}
-        >
-            Attend
-        </Button>
+const CardActionButton = ({ disabled, onMeetingClick, onManageCourseClick }: { disabled: boolean; onMeetingClick: () => void; onManageCourseClick: () => void}) => {
+  const { authUser } = useAuth('protected')
+  return (
+    <RoleComponentManager
+      currentRole={authUser.role}
+      roleRender={{
+        student: (
+          <>
+            <Button
+              leftSection={<IconVideo/>}
+              size="xs"
+              radius="xl"
+              variant="filled"
+              disabled={disabled}
+              onClick={onMeetingClick}
+            >
+              Attend
+            </Button>
+          </>
+        ),
+        admin: (
+          <>
+            <Button
+              leftSection={<IconEdit/>}
+              size="xs"
+              radius="xl"
+              variant="filled"
+              onClick={onManageCourseClick}
+            >Manage Course
+            </Button>
+          </>
+        ),
+      }}
+    />
     )
 }
 
 //TODO: implement action function for booking a mentoring session and navigating to gspace
 const QuickActions = () => {
-    const theme = useMantineTheme()
+  const theme = useMantineTheme()
+  const { authUser } = useAuth('protected')
+
+  const IconButton = (label: string, icon: React.ReactNode) => {
     return (
-        <Group gap="xs">
-            <Tooltip label="Book a Mentoring Session" withArrow color={theme.colors.dark[6]}>
-                <ActionIcon color={theme.colors.dark[6]} variant="white" radius="lg" bd={`1px solid ${theme.colors.dark[0]}`}>
-                    <IconCalendar size={'60%'} stroke={1.5}/>
-                </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Got to Chat" withArrow color={theme.colors.dark[6]}>
-                <ActionIcon color={theme.colors.dark[6]} variant="white" radius="lg" bd={`1px solid ${theme.colors.dark[0]}`}>
-                    <IconMessage size={'50%'} stroke={1.5}/>
-                </ActionIcon>
-            </Tooltip>
-        </Group>
+      <Tooltip label={label} withArrow color={theme.colors.dark[6]}>
+        <ActionIcon color={theme.colors.dark[6]} variant="white" radius="lg" bd={`1px solid ${theme.colors.dark[0]}`}>
+          {icon}
+        </ActionIcon>
+      </Tooltip>
     )
+  }
+  return (
+    <Group gap="xs">
+      {/*TODO: Add badge for mentoring session*/}
+      <RoleComponentManager
+        currentRole={authUser.role}
+        roleRender={{
+          student: IconButton("Book Mentoring Session", <IconCalendar size={'60%'} stroke={1.5} />),
+          admin: IconButton("Manage Mentoring Sessions", <IconCalendar size={'60%'} stroke={1.5} />)
+        }}
+      />
+      <Tooltip label="Got to Chat" withArrow color={theme.colors.dark[6]}>
+        <ActionIcon color={theme.colors.dark[6]} variant="white" radius="lg" bd={`1px solid ${theme.colors.dark[0]}`}>
+          <IconMessage size={'50%'} stroke={1.5}/>
+        </ActionIcon>
+      </Tooltip>
+    </Group>
+  )
 }
 
 const toDate = (dateStr: string, timeStr: string) => {
