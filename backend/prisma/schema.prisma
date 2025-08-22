@@ -409,9 +409,9 @@ model BillPayment {
   billId String @db.Uuid
   /// @DtoApiHidden
   bill   Bill   @relation(fields: [billId], references: [id])
-  installmentId String @db.Uuid
+  installmentId String? @db.Uuid
   /// @DtoApiHidden
-  installment   BillInstallment   @relation(fields: [installmentId], references: [id])
+  installment   BillInstallment?   @relation(fields: [installmentId], references: [id])
 
   installmentOrder Int
   amountPaid   Decimal  @db.Decimal(10, 2)

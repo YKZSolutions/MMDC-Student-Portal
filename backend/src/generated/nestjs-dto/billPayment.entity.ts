@@ -19,10 +19,11 @@ export class BillPayment {
   bill?: BillAsType;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  installmentId: string;
+  installmentId: string | null;
   @ApiHideProperty()
-  installment?: BillInstallmentAsType;
+  installment?: BillInstallmentAsType | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
