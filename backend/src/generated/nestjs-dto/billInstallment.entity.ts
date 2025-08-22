@@ -1,8 +1,12 @@
-import { Days } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
+import { Bill, type Bill as BillAsType } from './bill.entity';
+import {
+  BillPayment,
+  type BillPayment as BillPaymentAsType,
+} from './billPayment.entity';
 
-export class EnrollableSections {
+export class BillInstallment {
   @ApiProperty({
     type: 'string',
   })
@@ -10,28 +14,30 @@ export class EnrollableSections {
   @ApiProperty({
     type: 'string',
   })
-  mentorId: string;
+  billId: string;
   @ApiHideProperty()
-  user?: UserAsType;
+  bill?: BillAsType;
+  @ApiHideProperty()
+  billPayments?: BillPaymentAsType[];
+  @ApiProperty({
+    type: 'string',
+  })
+  name: string;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
-  maxSlot: number;
+  installmentOrder: number;
   @ApiProperty({
     type: 'string',
+    format: 'Decimal.js',
   })
-  startSched: string;
+  amountToPay: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
+    format: 'date-time',
   })
-  endSched: string;
-  @ApiProperty({
-    isArray: true,
-    enum: Days,
-    enumName: 'Days',
-  })
-  days: Days[];
+  dueAt: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

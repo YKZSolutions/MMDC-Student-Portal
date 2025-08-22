@@ -1,26 +1,30 @@
-import { EnrolledCourseStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class EnrolledCoursesDto {
+export class BillInstallmentDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    enum: EnrolledCourseStatus,
-    enumName: 'EnrolledCourseStatus',
+    type: 'string',
   })
-  status: EnrolledCourseStatus;
+  name: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  installmentOrder: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+  })
+  amountToPay: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  startedAt: Date;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-  })
-  completedAt: Date;
+  dueAt: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
