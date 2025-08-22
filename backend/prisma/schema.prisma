@@ -341,9 +341,10 @@ model EnrolledCourse {
   deletedAt DateTime?
 }
 
-enum BillType {
+enum PaymentScheme {
   full
-  installment
+  installment1
+  installment2
 }
 
 model Bill {
@@ -352,18 +353,40 @@ model Bill {
 
   user         User?         @relation(fields: [userId], references: [id])
   /// @DtoApiHidden
+  billInstallments BillInstallment[]
+  /// @DtoApiHidden
   billPayments BillPayment[]
 
   invoiceId     Int      @default(autoincrement())
   payerName     String
   payerEmail    String
-  billType      BillType
-  amountToPay   Decimal  @db.Decimal(10, 2)
+  paymentScheme      PaymentScheme
+  totalAmount   Decimal  @db.Decimal(10, 2)
   dueAt         DateTime
-  issuedAt      DateTime
   /// [CostBreakdown]
   /// @DtoOverrideType(PrismaJson.CostBreakdown)
   costBreakdown Json
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model BillInstallment {
+  id String @id @default(uuid()) @db.Uuid
+  billId String @db.Uuid
+  /// @DtoApiHidden
+  bill   Bill   @relation(fields: [billId], references: [id])
+  /// @DtoApiHidden
+  billPayments BillPayment[]
+
+  name String
+  installmentOrder Int
+  amountToPay Decimal  @db.Decimal(10, 2)
+  dueAt         DateTime
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -386,7 +409,11 @@ model BillPayment {
   billId String @db.Uuid
   /// @DtoApiHidden
   bill   Bill   @relation(fields: [billId], references: [id])
+  installmentId String @db.Uuid
+  /// @DtoApiHidden
+  installment   BillInstallment   @relation(fields: [installmentId], references: [id])
 
+  installmentOrder Int
   amountPaid   Decimal  @db.Decimal(10, 2)
   paymentType  PaymentType
   notes        String

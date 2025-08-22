@@ -1,6 +1,10 @@
 import { PaymentType, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Bill, type Bill as BillAsType } from './bill.entity';
+import {
+  BillInstallment,
+  type BillInstallment as BillInstallmentAsType,
+} from './billInstallment.entity';
 
 export class BillPayment {
   @ApiProperty({
@@ -13,6 +17,17 @@ export class BillPayment {
   billId: string;
   @ApiHideProperty()
   bill?: BillAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  installmentId: string;
+  @ApiHideProperty()
+  installment?: BillInstallmentAsType;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  installmentOrder: number;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

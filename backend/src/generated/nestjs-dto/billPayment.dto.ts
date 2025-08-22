@@ -7,6 +7,11 @@ export class BillPaymentDto {
   })
   id: string;
   @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  installmentOrder: number;
+  @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
   })
