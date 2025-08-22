@@ -64,6 +64,8 @@ export class PaymentsService {
             metadata: {
               userId: userId,
               billingId: billId,
+              installmentId: initiatePayment.installmentId,
+              installmentOrder: initiatePayment.installmentOrder,
             },
           },
         },

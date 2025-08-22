@@ -38,6 +38,7 @@ export class BillingController {
   create(@Body() createBillingDto: CreateBillingDto) {
     return this.billingService.create(
       createBillingDto.bill,
+      createBillingDto.dueDates,
       createBillingDto.userId,
     );
   }
