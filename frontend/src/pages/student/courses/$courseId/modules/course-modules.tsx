@@ -9,6 +9,8 @@ import {
   Flex,
   useMantineTheme,
   Badge,
+    ActionIcon,
+    Menu
 } from '@mantine/core'
 import {
   IconAlarm,
@@ -16,17 +18,22 @@ import {
   IconCheck,
   IconCircle,
   IconCircleCheck,
+  IconDotsVertical,
   IconEdit,
   IconFile,
   IconFlag,
   IconLock,
   IconPencil,
+  IconSettings,
   IconSubtask,
+  IconTrash,
   IconUrgent,
   IconWriting,
 } from '@tabler/icons-react'
 import { useState, useEffect } from "react";
 import SubmissionButton from '@/components/submission-button.tsx'
+import RoleComponentManager from "@/components/role-component-manager.tsx";
+import {useAuth} from "@/features/auth/auth.hook.ts";
 
 const CourseModulesPage = () => {
   const [allExpanded, setAllExpanded] = useState(false);
@@ -189,13 +196,6 @@ interface ModuleData {
   subsection: ModuleSubsectionData[]
 }
 
-interface ModuleSubsectionItemData {
-  label: string;
-  description: string;
-  type: 'readings' | 'assignment' | 'draft' | 'milestone' | 'survey';
-  status: 'completed' | 'pending' | 'late' | 'locked';
-}
-
 interface ModuleSubsectionData {
   label: string;
   description: string;
@@ -203,12 +203,21 @@ interface ModuleSubsectionData {
   items: ModuleSubsectionItemData[]
 }
 
+interface ModuleSubsectionItemData {
+  label: string;
+  description: string;
+  type: 'readings' | 'assignment' | 'draft' | 'milestone' | 'survey';
+  status?: 'completed' | 'pending' | 'late' | 'locked';
+}
+
 interface AccordionLabelProps {
     label: string;
     description: string;
-    type: 'default' | 'submission' | 'readings' | 'assignment' | 'draft' | 'milestone' | 'survey';
+    type: 'module' | 'submission' | 'readings' | 'assignment' | 'draft' | 'milestone' | 'survey';
     completedItemsCount?: number;
     totalItemsCount?: number;
+    isItem?: boolean;
+    status?: 'completed' | 'pending' | 'late' | 'locked';
 }
 
 const getIcon = (type: string) => {
@@ -230,24 +239,73 @@ const getIcon = (type: string) => {
     }
 }
 
-function AccordionLabel({ label, description, type = 'default', completedItemsCount, totalItemsCount }: AccordionLabelProps) {
-  return (
-      <Group justify="space-between">
-          <Group wrap="nowrap">
-              {getIcon(type)}
-              <Stack gap={'0'}>
-                  <Text>{label}</Text>
-                  <Text size="sm" c="dimmed" fw={400}>
-                      {description}
-                  </Text>
-              </Stack>
-          </Group>
-          {totalItemsCount && (
-              <Text>
-                  Completed: <strong>{completedItemsCount}</strong> out of <strong>{totalItemsCount}</strong>
-              </Text>
-          )}
-      </Group>
+function AccordionLabel({ label, description, type = 'module', completedItemsCount, totalItemsCount, isItem, status}: AccordionLabelProps) {
+    const { authUser } = useAuth('protected');
+
+    const handleDelete = () => {
+
+    }
+
+    return (
+        <Group justify="space-between" align="center" h={'100%'} mt={isItem ? 'xs' : 'none'}>
+            <Group wrap="nowrap">
+                {isItem && (getStatusIcon(status!))}
+                {getIcon(type)}
+                <Stack gap={'0'}>
+                    <Text>{label}</Text>
+                    <Text size="sm" c="dimmed" fw={400}>
+                        {description}
+                    </Text>
+                </Stack>
+            </Group>
+            <RoleComponentManager
+                currentRole={authUser.role}
+                roleRender={{
+                    student: (
+                        <>
+                            {
+                                isItem ? type !== 'readings' && (
+                                        <SubmissionButton status={status!} onClick={() => {}} />
+                                    ) : totalItemsCount && (
+                                    <Text>
+                                        Completed: <strong>{completedItemsCount}</strong> out of <strong>{totalItemsCount}</strong>
+                                    </Text>
+                                )
+                            }
+                        </>
+                    ),
+                    admin: (
+                        <>
+                            <Group>
+                                <ActionIcon variant="subtle" radius="lg" >
+                                    <IconEdit size={'70%'}/>
+                                </ActionIcon>
+                                <Menu shadow="md" width={200}>
+                                    <Menu.Target>
+                                        <ActionIcon variant="default" radius="lg">
+                                            <IconDotsVertical size={'70%'}/>
+                                        </ActionIcon>
+                                    </Menu.Target>
+
+                                    <Menu.Dropdown>
+                                        <Menu.Label>Actions</Menu.Label>
+                                        <Menu.Item leftSection={<IconSettings size={14} />}>
+                                            Settings
+                                        </Menu.Item>
+                                        <Menu.Item
+                                            color="red"
+                                            leftSection={<IconTrash size={14} />}
+                                        >
+                                            Delete {type}
+                                        </Menu.Item>
+                                    </Menu.Dropdown>
+                                </Menu>
+                            </Group>
+                        </>
+                    )
+                }}
+            />
+        </Group>
     )
 }
 
@@ -282,7 +340,7 @@ const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
         <AccordionLabel
           label={item.label}
           description={item.description}
-          type={'default'}
+          type={'module'}
           completedItemsCount={getCompletedItemsCount(item.subsection.flatMap((sub) => sub.items))}
           totalItemsCount={item.subsection.flatMap((sub) => sub.items).length}
         />
@@ -307,13 +365,21 @@ const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
                   totalItemsCount={subsection.items.length}
                 />
               </Accordion.Control>
-              <Accordion.Panel
-                style={{ borderTop: `1px solid ${theme.colors.gray[3]}` }}
-              >
                 {subsection.items.map((item) => (
-                  <ModuleItem item={item} key={item.label}></ModuleItem>
+                    <Accordion.Panel
+                        style={{ borderTop: `1px solid ${theme.colors.gray[3]}`}}
+                        m={0}
+                        p={0}
+                    >
+                        <AccordionLabel
+                            label={item.label}
+                            description={item.description}
+                            type={item.type}
+                            isItem={true}
+                            status={item.status}
+                        />
+                    </Accordion.Panel>
                 ))}
-              </Accordion.Panel>
             </Accordion.Item>
           ))}
         </Accordion>
@@ -335,35 +401,19 @@ const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
   )
 }
 
-const ModuleItem = ({item}: {item: ModuleSubsectionItemData}) => {
-    return (
-      <Group p={'0'} mt={'xs'} justify={'space-between'}>
-        <Group>
-          {(() => {
-            switch (item.status) {
-              case 'completed':
-                return <IconCircleCheck size={18} color="green" />;
-              case 'pending':
-                return <IconCircle size={18} color="gray" />;
-              case 'late':
-                return <IconUrgent size={18} color="red" />;
-              case 'locked':
-                return <IconLock size={18} color="gray" />;
-              default:
-                return <IconCircle size={18} color="gray" />;
-            }
-          })()}
-          <AccordionLabel
-            label={item.label}
-            description={item.description}
-            type={item.type}
-          />
-        </Group>
-        {item.type !== 'readings' && (
-          <SubmissionButton status={item.status} onClick={() => {}} />
-        )}
-      </Group>
-    )
+const getStatusIcon = (status: string) => {
+    switch (status) {
+        case 'completed':
+            return <IconCircleCheck size={18} color="green" />;
+        case 'pending':
+            return <IconCircle size={18} color="gray" />;
+        case 'late':
+            return <IconUrgent size={18} color="red" />;
+        case 'locked':
+            return <IconLock size={18} color="gray" />;
+        default:
+            return <IconCircle size={18} color="gray" />;
+    }
 }
 
 export default CourseModulesPage
