@@ -460,6 +460,15 @@ export const zAuthMetadataDto = z.object({
     user_id: z.optional(z.string())
 });
 
+export const zBillType = z.enum([
+    'academic',
+    'administrative',
+    'facilities',
+    'studentServices',
+    'activities',
+    'penalties'
+]);
+
 export const zPaymentScheme = z.enum([
     'full',
     'installment1',
@@ -475,9 +484,9 @@ export const zBillingCostBreakdown = z.object({
 export const zCreateBillingTypedBreakdownDto = z.object({
     payerName: z.string(),
     payerEmail: z.string(),
+    billType: zBillType,
     paymentScheme: zPaymentScheme,
     totalAmount: z.string(),
-    dueAt: z.iso.datetime(),
     costBreakdown: z.array(zBillingCostBreakdown)
 });
 
@@ -492,9 +501,9 @@ export const zBillDto = z.object({
     invoiceId: z.int(),
     payerName: z.string(),
     payerEmail: z.string(),
+    billType: zBillType,
     paymentScheme: zPaymentScheme,
     totalAmount: z.string(),
-    dueAt: z.iso.datetime(),
     costBreakdown: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -509,9 +518,9 @@ export const zBillItemDto = z.object({
     invoiceId: z.int(),
     payerName: z.string(),
     payerEmail: z.string(),
+    billType: zBillType,
     paymentScheme: zPaymentScheme,
     totalAmount: z.string(),
-    dueAt: z.iso.datetime(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -540,9 +549,9 @@ export const zDetailedBillDto = z.object({
     invoiceId: z.int(),
     payerName: z.string(),
     payerEmail: z.string(),
+    billType: zBillType,
     paymentScheme: zPaymentScheme,
     totalAmount: z.string(),
-    dueAt: z.iso.datetime(),
     costBreakdown: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -562,9 +571,9 @@ export const zDetailedBillDto = z.object({
 export const zUpdateBillDto = z.object({
     payerName: z.optional(z.string()),
     payerEmail: z.optional(z.string()),
+    billType: z.optional(zBillType),
     paymentScheme: z.optional(zPaymentScheme),
     totalAmount: z.optional(z.string()),
-    dueAt: z.optional(z.iso.datetime()),
     costBreakdown: z.optional(z.object({}))
 });
 
@@ -1048,13 +1057,13 @@ export const zBillingControllerFindAllData = z.object({
             'desc'
         ])),
         scheme: z.optional(zPaymentScheme),
+        type: z.optional(zBillType),
         page: z.optional(z.number()).default(1),
         excludeSoftDeleted: z.optional(z.boolean()).default(false),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
             'amountToPay',
             'totalPaid',
-            'dueAt',
             'createdAt'
         ])),
         status: z.optional(z.enum([

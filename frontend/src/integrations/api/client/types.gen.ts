@@ -318,6 +318,8 @@ export type AuthMetadataDto = {
     user_id?: string;
 };
 
+export type BillType = 'academic' | 'administrative' | 'facilities' | 'studentServices' | 'activities' | 'penalties';
+
 export type PaymentScheme = 'full' | 'installment1' | 'installment2';
 
 export type BillingCostBreakdown = {
@@ -329,9 +331,9 @@ export type BillingCostBreakdown = {
 export type CreateBillingTypedBreakdownDto = {
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    dueAt: string;
     costBreakdown: Array<BillingCostBreakdown>;
 };
 
@@ -346,9 +348,9 @@ export type BillDto = {
     invoiceId: number;
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    dueAt: string;
     costBreakdown: {
         [key: string]: unknown;
     };
@@ -362,9 +364,9 @@ export type BillItemDto = {
     invoiceId: number;
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    dueAt: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -385,9 +387,9 @@ export type DetailedBillDto = {
     invoiceId: number;
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    dueAt: string;
     costBreakdown: {
         [key: string]: unknown;
     };
@@ -401,9 +403,9 @@ export type DetailedBillDto = {
 export type UpdateBillDto = {
     payerName?: string;
     payerEmail?: string;
+    billType?: BillType;
     paymentScheme?: PaymentScheme;
     totalAmount?: string;
-    dueAt?: string;
     costBreakdown?: {
         [key: string]: unknown;
     };
@@ -1258,10 +1260,11 @@ export type BillingControllerFindAllData = {
     query?: {
         sortOrder?: 'asc' | 'desc';
         scheme?: PaymentScheme;
+        type?: BillType;
         page?: number;
         excludeSoftDeleted?: boolean;
         search?: string;
-        sort?: 'amountToPay' | 'totalPaid' | 'dueAt' | 'createdAt';
+        sort?: 'amountToPay' | 'totalPaid' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
     url: '/billing';
