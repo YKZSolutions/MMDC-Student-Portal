@@ -5,6 +5,7 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { BillDto } from '@/generated/nestjs-dto/bill.dto';
+import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
