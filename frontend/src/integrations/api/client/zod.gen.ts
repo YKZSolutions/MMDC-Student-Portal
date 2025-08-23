@@ -552,7 +552,6 @@ export const zDetailedBillDto = z.object({
     billType: zBillType,
     paymentScheme: zPaymentScheme,
     totalAmount: z.string(),
-    costBreakdown: z.object({}),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -565,7 +564,11 @@ export const zDetailedBillDto = z.object({
         'partial',
         'paid',
         'overpaid'
-    ])
+    ]),
+    totalInstallments: z.number(),
+    paidInstallments: z.number(),
+    installmentDueDates: z.array(z.iso.datetime()),
+    costBreakdown: z.array(zBillingCostBreakdown)
 });
 
 export const zUpdateBillDto = z.object({

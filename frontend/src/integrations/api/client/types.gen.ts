@@ -390,14 +390,15 @@ export type DetailedBillDto = {
     billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
     totalPaid: string;
     status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+    totalInstallments: number;
+    paidInstallments: number;
+    installmentDueDates: Array<string>;
+    costBreakdown: Array<BillingCostBreakdown>;
 };
 
 export type UpdateBillDto = {
