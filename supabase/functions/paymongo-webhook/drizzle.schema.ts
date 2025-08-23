@@ -1,5 +1,6 @@
 import {
   decimal,
+  integer,
   json,
   pgEnum,
   pgTable,
@@ -19,7 +20,9 @@ export const paymentTypeEnum = pgEnum("PaymentType", [
 export const BillPayment = pgTable("BillPayment", {
   id: uuid("id").primaryKey(),
   billId: uuid("billId").notNull(),
+  installmentId: uuid("installmentId"),
 
+  installmentOrder: integer("installmentOrder").notNull(),
   amountPaid: decimal("amountPaid", { precision: 10, scale: 2 }).notNull(),
   paymentType: paymentTypeEnum("paymentType").notNull(),
   notes: text("notes").notNull(),
