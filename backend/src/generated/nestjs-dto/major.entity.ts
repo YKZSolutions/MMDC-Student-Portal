@@ -13,11 +13,7 @@ export class Major {
   programId: string;
   @ApiHideProperty()
   program?: ProgramAsType;
-  @ApiProperty({
-    type: () => Course,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   courses?: CourseAsType[];
   @ApiProperty({
     type: 'string',

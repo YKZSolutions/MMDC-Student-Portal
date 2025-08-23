@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm } from '@mantine/form'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { getRouteApi } from '@tanstack/react-router'
-import {passwordValidator} from "@/features/validation/custom-validaitons.ts";
+import { passwordValidator } from '@/features/validation/custom-validaitons.ts'
 
 const route = getRouteApi('/(auth)/update-password')
 
@@ -18,7 +18,7 @@ const UpdatePasswordPage = () => {
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      password: ''
+      password: '',
     },
     validate: zod4Resolver(passwordValidator),
   })
@@ -45,26 +45,27 @@ const UpdatePasswordPage = () => {
         <Title order={2} className="text-center pb-5">
           Update your password
         </Title>
-        <p className="text-center text-sm pb-5">
-          Enter new password
-        </p>
+        <p className="text-center text-sm pb-5">Enter new password</p>
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
             <TextInput
               label="Password"
               type="password"
               disabled={form.submitting}
+              data-cy="password-input"
               {...form.getInputProps('password')}
             />
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
             {isSuccess && (
               <p className="text-green-500 text-sm">
                 Password has been updated, you can now log in.
               </p>
             )}
-            <Button type="submit" loading={form.submitting}>
+            <Button
+              type="submit"
+              loading={form.submitting}
+              data-cy="update-button"
+            >
               Update
             </Button>
           </Stack>

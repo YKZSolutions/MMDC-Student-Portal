@@ -1,4 +1,4 @@
-import { BillType, Prisma } from '@prisma/client';
+import { BillType, PaymentScheme, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BillDto {
@@ -25,20 +25,15 @@ export class BillDto {
   })
   billType: BillType;
   @ApiProperty({
+    enum: PaymentScheme,
+    enumName: 'PaymentScheme',
+  })
+  paymentScheme: PaymentScheme;
+  @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
   })
-  amountToPay: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-  })
-  dueAt: Date;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-  })
-  issuedAt: Date;
+  totalAmount: Prisma.Decimal;
   @ApiProperty({
     type: () => Object,
   })

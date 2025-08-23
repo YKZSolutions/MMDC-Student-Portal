@@ -4,12 +4,20 @@ import {
   IsDateString,
   IsDecimal,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
 } from 'class-validator';
 
 export class CreateBillPaymentDto {
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  @IsNotEmpty()
+  @IsInt()
+  installmentOrder: number;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

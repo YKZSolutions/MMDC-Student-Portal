@@ -17,6 +17,7 @@ import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
 import { ProgramModule } from './modules/program/program.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MajorModule } from './modules/major/major.module';
+import { InstallmentModule } from './modules/installment/installment.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MajorModule } from './modules/major/major.module';
     ProgramModule,
     ChatbotModule,
     MajorModule,
+    InstallmentModule,
   ],
   controllers: [],
   providers: [

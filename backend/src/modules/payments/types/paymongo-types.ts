@@ -22,6 +22,8 @@ export type PaymentDataType =
 interface CustomMetadata {
   billingId?: string;
   userId?: string;
+  installmentId?: string;
+  installmentOrder?: number;
 }
 
 // ===== Base Webhook Envelope =====
