@@ -1,8 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import CourseAssignmentsPage from '@/pages/student/courses/$courseId/assignments/course-assignments.tsx'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import RoleComponentManager from '@/components/role-component-manager.tsx'
-import GradesPageStudentView from '@/pages/student/courses/$courseId/grades/course-grades.tsx'
+import CourseAssignments from '@/pages/shared/courses/$courseId/assignments/course-assignments.tsx'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseCode/assignments/',
@@ -11,5 +8,5 @@ export const Route = createFileRoute(
 })
 
 function RouteComponent() {
-  return <CourseAssignmentsPage/>
+  return <CourseAssignments/>
 }

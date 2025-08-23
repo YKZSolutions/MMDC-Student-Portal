@@ -58,7 +58,7 @@ const mockAssignmentsData: AssignmentData[] = [
     submissionTimestamp: '2022-11-10T09:30',
   },
 ]
-const AssignmentsPageStudentView = () => {
+const CourseAssignments = () => {
   const [activeTab, setActiveTab] = useState<'todo' | 'completed'>('todo')
 
   const todoAssignments = mockAssignmentsData.filter((assignment) => assignment.status !== 'completed')
@@ -162,4 +162,4 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
   );
 }
 
-export default AssignmentsPageStudentView
+export default CourseAssignments
