@@ -466,23 +466,24 @@ export const zPaymentScheme = z.enum([
     'installment2'
 ]);
 
-export const zCreateBillDtoNoBreakdown = z.object({
-    payerName: z.string(),
-    payerEmail: z.string(),
-    paymentScheme: zPaymentScheme,
-    totalAmount: z.string(),
-    dueAt: z.iso.datetime()
-});
-
 export const zBillingCostBreakdown = z.object({
     cost: z.string(),
     name: z.string(),
     category: z.string()
 });
 
+export const zCreateBillingNoBreakdownDto = z.object({
+    payerName: z.string(),
+    payerEmail: z.string(),
+    paymentScheme: zPaymentScheme,
+    totalAmount: z.string(),
+    dueAt: z.iso.datetime(),
+    costBreakdown: z.array(zBillingCostBreakdown)
+});
+
 export const zCreateBillingDto = z.object({
-    bill: zCreateBillDtoNoBreakdown,
-    costBreakdown: z.array(zBillingCostBreakdown),
+    dueDates: z.array(z.iso.datetime()),
+    bill: zCreateBillingNoBreakdownDto,
     userId: z.optional(z.uuid())
 });
 
@@ -503,7 +504,7 @@ export const zBillDto = z.object({
     ])
 });
 
-export const zSingleBillDto = z.object({
+export const zBillItemDto = z.object({
     id: z.string(),
     invoiceId: z.int(),
     payerName: z.string(),
@@ -523,12 +524,15 @@ export const zSingleBillDto = z.object({
         'partial',
         'paid',
         'overpaid'
-    ])
+    ]),
+    totalInstallments: z.number(),
+    paidInstallments: z.number(),
+    installmentDueDates: z.array(z.iso.datetime())
 });
 
 export const zPaginatedBillsDto = z.object({
     meta: zPaginationMetaDto,
-    bills: z.array(zSingleBillDto)
+    bills: z.array(zBillItemDto)
 });
 
 export const zDetailedBillDto = z.object({
@@ -564,7 +568,30 @@ export const zUpdateBillDto = z.object({
     costBreakdown: z.optional(z.object({}))
 });
 
+export const zBillInstallmentItemDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    installmentOrder: z.int(),
+    amountToPay: z.string(),
+    dueAt: z.iso.datetime(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    totalPaid: z.string(),
+    status: z.enum([
+        'unpaid',
+        'partial',
+        'paid',
+        'overpaid'
+    ])
+});
+
 export const zInitiatePaymentDto = z.object({
+    installmentId: z.optional(z.uuid()),
+    installmentOrder: z.optional(z.number()),
     description: z.optional(z.string()),
     statementDescriptor: z.optional(z.string()),
     amount: z.number()
@@ -624,8 +651,7 @@ export const zPaymentType = z.enum([
     'manual'
 ]);
 
-export const zCreateBillPaymentDto = z.object({
-    installmentOrder: z.int(),
+export const zCreatePayment = z.object({
     amountPaid: z.string(),
     paymentType: zPaymentType,
     notes: z.string(),
@@ -637,7 +663,8 @@ export const zCreateBillPaymentDto = z.object({
 });
 
 export const zCreatePaymentDto = z.object({
-    payment: zCreateBillPaymentDto,
+    payment: zCreatePayment,
+    installmentId: z.optional(z.uuid()),
     description: z.optional(z.string()),
     statementDescriptor: z.optional(z.string())
 });
@@ -1078,6 +1105,26 @@ export const zBillingControllerUpdateData = z.object({
 });
 
 export const zBillingControllerUpdateResponse = zBillDto;
+
+export const zInstallmentControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        billId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zInstallmentControllerFindAllResponse = z.array(zBillInstallmentItemDto);
+
+export const zInstallmentControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zInstallmentControllerFindOneResponse = zBillInstallmentItemDto;
 
 export const zPaymentsControllerPayData = z.object({
     body: zInitiatePaymentDto,
