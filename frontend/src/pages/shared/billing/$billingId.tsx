@@ -2,7 +2,6 @@ import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
 import { mapBillingDetails } from '@/features/billing/helpers'
-import type { IFrontendBillingCostBreakdown } from '@/features/billing/types'
 import type { DetailedBillDto } from '@/integrations/api/client'
 import { billingControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
@@ -27,7 +26,7 @@ import {
   IconArrowLeft,
   IconPlus,
   IconUpload,
-  type ReactNode
+  type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
@@ -189,9 +188,7 @@ function BillingIdPage() {
             {({ currentInvoice }) => (
               <BillingFeeBreakdown
                 open={open}
-                fees={
-                  currentInvoice.costBreakdown as unknown as IFrontendBillingCostBreakdown[]
-                }
+                fees={currentInvoice.costBreakdown}
               />
             )}
           </BillingIdQueryProvider>
@@ -201,7 +198,11 @@ function BillingIdPage() {
   )
 }
 
-export function BillingPrefaceDetails({ invoice }: { invoice: DetailedBillDto }) {
+export function BillingPrefaceDetails({
+  invoice,
+}: {
+  invoice: DetailedBillDto
+}) {
   const billingDetails = mapBillingDetails(invoice)
 
   const midIndex = Math.ceil(billingDetails.length / 2)
