@@ -1,14 +1,6 @@
-import { BillDto } from '@/generated/nestjs-dto/bill.dto';
-import { ApiProperty } from '@nestjs/swagger';
-import { Prisma } from '@prisma/client';
-import { FilterBillDto } from './filter-bill.dto';
+import { BillingCostBreakdown } from './create-billing.dto';
+import { BillItemDto } from './paginated-bills.dto';
 
-export class DetailedBillDto extends BillDto {
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  totalPaid: Prisma.Decimal;
-
-  status: FilterBillDto['status'];
+export class DetailedBillDto extends BillItemDto {
+  costBreakdown: BillingCostBreakdown[];
 }

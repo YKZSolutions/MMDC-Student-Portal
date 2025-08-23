@@ -17,9 +17,9 @@ import {
 import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
-import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
+import { DetailedBillDto } from './dto/detailed-bill.dto';
 
 @Injectable()
 export class BillingService {
@@ -201,6 +201,22 @@ export class BillingService {
       },
     });
 
+    const billInstallments = await this.installmentService.findAll(
+      bill.id,
+      role,
+      userId,
+    );
+
+    const totalInstallments = billInstallments.length || 1;
+
+    const paidInstallments = billInstallments.filter(
+      (installment) => installment.status === 'paid',
+    ).length;
+
+    const installmentDueDates = billInstallments.map(
+      (installment) => installment.dueAt,
+    );
+
     const totalPaid = billPayments._sum.amountPaid || Decimal(0);
 
     const status: BillStatus = (() => {
@@ -222,6 +238,9 @@ export class BillingService {
       ...bill,
       totalPaid,
       status,
+      installmentDueDates,
+      totalInstallments,
+      paidInstallments,
     };
   }
 
