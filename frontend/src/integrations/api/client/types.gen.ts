@@ -320,19 +320,23 @@ export type AuthMetadataDto = {
 
 export type PaymentScheme = 'full' | 'installment1' | 'installment2';
 
-export type CreateBillDto = {
+export type CreateBillDtoNoBreakdown = {
     payerName: string;
     payerEmail: string;
     paymentScheme: PaymentScheme;
     totalAmount: string;
     dueAt: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
+};
+
+export type BillingCostBreakdown = {
+    cost: string;
+    name: string;
+    category: string;
 };
 
 export type CreateBillingDto = {
-    bill: CreateBillDto;
+    bill: CreateBillDtoNoBreakdown;
+    costBreakdown: Array<BillingCostBreakdown>;
     userId?: string;
 };
 
@@ -352,9 +356,24 @@ export type BillDto = {
     deletedAt: string | null;
 };
 
+export type SingleBillDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
+    dueAt: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+};
+
 export type PaginatedBillsDto = {
     meta: PaginationMetaDto;
-    bills: Array<BillDto>;
+    bills: Array<SingleBillDto>;
 };
 
 export type DetailedBillDto = {
@@ -1221,6 +1240,7 @@ export type BillingControllerFindAllData = {
         sortOrder?: 'asc' | 'desc';
         scheme?: PaymentScheme;
         page?: number;
+        excludeSoftDeleted?: boolean;
         search?: string;
         sort?: 'amountToPay' | 'totalPaid' | 'dueAt' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
@@ -1899,34 +1919,6 @@ export type MajorControllerUpdateResponses = {
 };
 
 export type MajorControllerUpdateResponse = MajorControllerUpdateResponses[keyof MajorControllerUpdateResponses];
-
-export type InstallmentControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/installment';
-};
-
-export type InstallmentControllerFindAllResponses = {
-    200: string;
-};
-
-export type InstallmentControllerFindAllResponse = InstallmentControllerFindAllResponses[keyof InstallmentControllerFindAllResponses];
-
-export type InstallmentControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/installment/{id}';
-};
-
-export type InstallmentControllerFindOneResponses = {
-    200: string;
-};
-
-export type InstallmentControllerFindOneResponse = InstallmentControllerFindOneResponses[keyof InstallmentControllerFindOneResponses];
 
 export type ClientOptions = {
     baseUrl: string;

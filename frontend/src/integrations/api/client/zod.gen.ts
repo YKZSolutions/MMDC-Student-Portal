@@ -466,17 +466,23 @@ export const zPaymentScheme = z.enum([
     'installment2'
 ]);
 
-export const zCreateBillDto = z.object({
+export const zCreateBillDtoNoBreakdown = z.object({
     payerName: z.string(),
     payerEmail: z.string(),
     paymentScheme: zPaymentScheme,
     totalAmount: z.string(),
-    dueAt: z.iso.datetime(),
-    costBreakdown: z.object({})
+    dueAt: z.iso.datetime()
+});
+
+export const zBillingCostBreakdown = z.object({
+    cost: z.string(),
+    name: z.string(),
+    category: z.string()
 });
 
 export const zCreateBillingDto = z.object({
-    bill: zCreateBillDto,
+    bill: zCreateBillDtoNoBreakdown,
+    costBreakdown: z.array(zBillingCostBreakdown),
     userId: z.optional(z.uuid())
 });
 
@@ -497,9 +503,32 @@ export const zBillDto = z.object({
     ])
 });
 
+export const zSingleBillDto = z.object({
+    id: z.string(),
+    invoiceId: z.int(),
+    payerName: z.string(),
+    payerEmail: z.string(),
+    paymentScheme: zPaymentScheme,
+    totalAmount: z.string(),
+    dueAt: z.iso.datetime(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    totalPaid: z.string(),
+    status: z.enum([
+        'unpaid',
+        'partial',
+        'paid',
+        'overpaid'
+    ])
+});
+
 export const zPaginatedBillsDto = z.object({
     meta: zPaginationMetaDto,
-    bills: z.array(zBillDto)
+    bills: z.array(zSingleBillDto)
 });
 
 export const zDetailedBillDto = z.object({
@@ -993,6 +1022,7 @@ export const zBillingControllerFindAllData = z.object({
         ])),
         scheme: z.optional(zPaymentScheme),
         page: z.optional(z.number()).default(1),
+        excludeSoftDeleted: z.optional(z.boolean()).default(false),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
             'amountToPay',
@@ -1234,21 +1264,3 @@ export const zMajorControllerUpdateData = z.object({
 });
 
 export const zMajorControllerUpdateResponse = zMajor;
-
-export const zInstallmentControllerFindAllData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zInstallmentControllerFindAllResponse = z.string();
-
-export const zInstallmentControllerFindOneData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zInstallmentControllerFindOneResponse = z.string();
