@@ -3,19 +3,14 @@ import {
   Stack,
   Title,
   Button,
-  Box,
   Text,
   Accordion,
-  Flex,
   useMantineTheme,
-  Badge,
-    ActionIcon,
-    Menu
+  ActionIcon,
+  Menu
 } from '@mantine/core'
 import {
-  IconAlarm,
   IconBook,
-  IconCheck,
   IconCircle,
   IconCircleCheck,
   IconDotsVertical,
@@ -25,7 +20,6 @@ import {
   IconLock,
   IconPencil,
   IconSettings,
-  IconSubtask,
   IconTrash,
   IconUrgent,
   IconWriting,
@@ -35,7 +29,7 @@ import SubmissionButton from '@/components/submission-button.tsx'
 import RoleComponentManager from "@/components/role-component-manager.tsx";
 import {useAuth} from "@/features/auth/auth.hook.ts";
 
-const CourseModulesPage = () => {
+const CourseModules = () => {
   const [allExpanded, setAllExpanded] = useState(false);
   
   const toggleExpandAll = () => {
@@ -416,4 +410,4 @@ const getStatusIcon = (status: string) => {
     }
 }
 
-export default CourseModulesPage
+export default CourseModules
