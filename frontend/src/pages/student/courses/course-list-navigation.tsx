@@ -34,8 +34,10 @@ import CourseQuickActions from '@/features/courses/course-quick-actions.tsx'
 
 const MockCourseData: Course[] = [
   {
-    courseName: 'Web Technology Applications',
-    courseCode: 'MO-IT200',
+    courseDetails: {
+      courseName: 'Web Technology Applications',
+      courseCode: 'MO-IT200',
+    },
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -55,8 +57,10 @@ const MockCourseData: Course[] = [
     activities: [],
   },
   {
-    courseName: 'Data Structures and Algorithms',
-    courseCode: 'MO-IT351',
+    courseDetails: {
+      courseName: 'Data Structures and Algorithms',
+      courseCode: 'MO-IT351',
+    },
     courseProgress: 0.5,
     section:{
       sectionName: 'A2101',
@@ -76,8 +80,10 @@ const MockCourseData: Course[] = [
   },
 
   {
-    courseName: 'Capstone 1',
-    courseCode: 'MO-IT400',
+    courseDetails: {
+      courseName: 'Capstone 1',
+      courseCode: 'MO-IT400',
+    },
     courseProgress: 0.5,
     section:{
       sectionName: 'A2101',
@@ -96,8 +102,10 @@ const MockCourseData: Course[] = [
     activities: [],
   },
   {
-    courseName: 'Capstone 2',
-    courseCode: 'MO-IT500',
+    courseDetails: {
+      courseName: 'Capstone 2',
+      courseCode: 'MO-IT500',
+    },
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -138,8 +146,7 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
 
   //TODO: implement API call to get courses, get it by academic term Id
   const coursesData = MockCourseData
-  const [courses, setCourses] = useState<Course[]>(coursesData)
-
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>(coursesData)
 
   return (
     <Container fluid m={0}>
@@ -158,7 +165,7 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
             <Stack gap={'md'} mr={'md'}>
               {/*Filters*/}
               <Group justify="space-between" align="start">
-                <SearchComponent data={coursesData} identifiers={['courseName']} setData={setCourses} placeholder={"Search courses"}/>
+                <SearchComponent data={coursesData} onFilter={setFilteredCourses} identifiers={[['courseDetails', 'courseName']]} placeholder={"Search courses"}/>
                 <Group gap={'md'}>
                   <Select
                     data={academicTerms.map((term) => (`${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}`))}
@@ -206,7 +213,7 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
               </Group>
               {/*Courses*/}
               <Flex gap={'md'} wrap={'wrap'}>
-                {courses.map((course, index) => (
+                {filteredCourses.map((course, index) => (
                   <CourseItem key={index} course={course} variant={view} />
                 ))}
               </Flex>
@@ -214,7 +221,7 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
           </Grid.Col>
           {/*Upcoming Tasks*/}
           <Grid.Col span={3}>
-            <CourseTasksSummary courses={courses} />
+            <CourseTasksSummary courses={filteredCourses} />
           </Grid.Col>
         </Grid>
       </Stack>
@@ -224,28 +231,28 @@ const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademic
 
 const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'list' }) => {
   const navigate = useNavigate()
+
   const handleClick = async () => {
     await navigate({
-      to: `/courses/${course.courseCode}`,
+      to: `/courses/${course.courseDetails.courseCode}`,
     })
   }
-    return variant === 'grid' ? (
-        <CourseCard
-            courseName={course.courseName}
-            courseCode={course.courseCode}
-            courseProgress={course.courseProgress}
-            section={course.section}
-            onClick={handleClick}
-        />
-    ) : (
-        <CourseListRow
-            courseName={course.courseName}
-            courseCode={course.courseCode}
-            courseProgress={course.courseProgress}
-            section={course.section}
-            onClick={handleClick}
-        />
-    )
+
+  return variant === 'grid' ? (
+    <CourseCard
+      courseDetails={course.courseDetails}
+      courseProgress={course.courseProgress}
+      section={course.section}
+      onClick={handleClick}
+    />
+  ) : (
+    <CourseListRow
+      courseDetails={course.courseDetails}
+      courseProgress={course.courseProgress}
+      section={course.section}
+      onClick={handleClick}
+    />
+  )
 }
 
 const handleManageCourseClick = () => {
@@ -258,14 +265,16 @@ interface CourseDetailProps extends Omit<Course, 'activities'> {
 
 const CourseCard =
   ({
-    courseName,
-    courseCode,
-    courseProgress,
-    section,
-    onClick,
+     courseDetails,
+     courseProgress,
+     section,
+     onClick,
    }: CourseDetailProps) => {
     const theme = useMantineTheme()
+
     const { sectionName, sectionSchedule, classMeetings } = section
+    const { courseName, courseCode } = courseDetails
+
     const { currentMeeting } = useCurrentMeeting(classMeetings)
     const [hovered, setHovered] = useState(false)
 
@@ -340,14 +349,16 @@ const CourseCard =
 
 const CourseListRow =
   ({
-     courseName,
-     courseCode,
+     courseDetails,
      courseProgress,
      section,
      onClick,
    }: CourseDetailProps) => {
     const theme = useMantineTheme()
+
     const { sectionName, sectionSchedule, classMeetings } = section
+    const { courseName, courseCode } = courseDetails
+
     const { currentMeeting } = useCurrentMeeting(classMeetings)
     const [hovered, setHovered] = useState(false)
 

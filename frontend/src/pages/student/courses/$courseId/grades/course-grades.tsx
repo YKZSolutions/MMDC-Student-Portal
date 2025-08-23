@@ -106,7 +106,7 @@ const GradesPageStudentView = () => {
         <Title>Grades</Title>
       </Group>
       <Group justify="space-between" align="start">
-        <SearchComponent data={grades} setData={setFilteredItems} identifiers={['name', 'type', 'submittedBy']} placeholder={'Search...'} />
+        <SearchComponent data={grades} onFilter={setFilteredItems} identifiers={['name', 'type', 'submittedBy']} placeholder={'Search...'} />
         <Group gap={rem(5)} justify="end" align="center">
           <Button
             variant="default"
