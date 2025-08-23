@@ -61,12 +61,11 @@ function CreateBillingPage() {
     mode: 'uncontrolled',
     initialValues: {
       bill: {
-        billType: 'full',
+        paymentScheme: 'full',
         dueAt: '',
-        issuedAt: new Date().toISOString(),
         payerEmail: '',
         payerName: '',
-        amountToPay: '',
+        totalAmount: '',
       },
       costBreakdown: [],
       userId: '',

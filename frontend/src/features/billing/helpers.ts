@@ -31,8 +31,8 @@ export function mapBillingDetails(invoice: BillDto) {
       icon: IconCalendarEvent,
     },
     {
-      label: 'Bill Type',
-      value: invoice.billType,
+      label: 'Payment Scheme',
+      value: invoice.paymentScheme,
       icon: IconSchool,
     },
   ]

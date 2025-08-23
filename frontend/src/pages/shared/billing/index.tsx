@@ -431,7 +431,7 @@ function BillingTable() {
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm" c={'dark.3'} fw={500}>
-                      {dayjs(invoice.issuedAt).format('MMM D, YYYY')}
+                      {dayjs(invoice.createdAt).format('MMM D, YYYY')}
                     </Text>
                   </Table.Td>
 
@@ -439,7 +439,7 @@ function BillingTable() {
                     <Text size="sm" fw={500}>
                       <NumberFormatter
                         prefix="&#8369;"
-                        value={invoice.amountToPay}
+                        value={invoice.totalAmount}
                         thousandSeparator
                       />
                     </Text>

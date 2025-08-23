@@ -10,8 +10,12 @@ export const CreateBillFormSchema = z.object({
   bill: z.object({
     ...zodBill,
 
-    billType: z.enum(zodBill.billType.options, {
-      error: 'Invalid bill type.',
+    // billType: z.enum(zodBill.billType.options, {
+    //   error: 'Invalid bill type.',
+    // }),
+
+    paymentScheme: z.enum(zodBill.paymentScheme.options, {
+      error: 'Invalid payment scheme.',
     }),
 
     dueAt: z
