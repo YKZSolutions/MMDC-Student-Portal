@@ -23,7 +23,7 @@ function BillingFeeBreakdown({
   const grouped = groupBy(fees, 'category')
 
   const totalNumber = (Array.isArray(fees) ? fees : []).reduce(
-    (sum, item) => sum.plus(new Decimal(item?.cost ?? 0)),
+    (sum, item) => sum.plus(new Decimal(item?.cost || 0)),
     new Decimal(0),
   )
 
