@@ -134,7 +134,7 @@ const MockCourseData: Course[] = [
   },
 ]
 
-const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademicTerm[] }) => {
+const CourseDashboard = ({ academicTerms }: { academicTerms: EnrolledAcademicTerm[] }) => {
   const theme = useMantineTheme()
   const [view, setView] = useState<'grid' | 'list'>('grid')
 
@@ -425,4 +425,4 @@ const CourseCardActionButton = ({ currentMeeting }: { currentMeeting?: ClassMeet
 }
 
 
-export default CoursesStudentPage
+export default CourseDashboard

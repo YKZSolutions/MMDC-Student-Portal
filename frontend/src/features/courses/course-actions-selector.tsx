@@ -11,7 +11,7 @@ import {
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import CourseCreationProcessModal from '@/features/courses/course-creation-process-modal.tsx'
+import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
 
 const CourseActionsSelector = ({
@@ -35,6 +35,7 @@ const CourseActionsSelector = ({
         <Divider></Divider>
         <Grid my={'sm'}>
           {/*TODO: add more content types, these are just placeholders*/}
+          {/*Modal for each content type are currently not implemented*/}
           <GridCol span={6}>
             <CardWithModal
               title={'Course'}

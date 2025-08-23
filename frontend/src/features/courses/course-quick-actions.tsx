@@ -1,4 +1,3 @@
-//TODO: implement action function for booking a mentoring session and navigating to gspace
 import React from 'react'
 import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core'
 import { IconCalendar, IconMessage } from '@tabler/icons-react'
@@ -6,6 +5,7 @@ import { IconCalendar, IconMessage } from '@tabler/icons-react'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 
+//TODO: implement action function for booking a mentoring session and navigating to gspace
 const CourseQuickActions = () => {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')

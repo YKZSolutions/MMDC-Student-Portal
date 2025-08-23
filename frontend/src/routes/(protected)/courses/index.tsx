@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import CoursesPage from '@/pages/student/courses/course-list-navigation.tsx'
+import CoursesPage from '@/pages/student/courses/course-dashboard.tsx'
 import type { Course, EnrolledAcademicTerm } from "@/features/courses/types"
 
 export const Route = createFileRoute('/(protected)/courses/')({
