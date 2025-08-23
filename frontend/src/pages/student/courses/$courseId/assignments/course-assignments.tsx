@@ -95,7 +95,7 @@ const AssignmentsPageStudentView = () => {
           </Tabs.List>
 
           <Stack gap={'md'} p={'md'}>
-            <SearchComponent data={getAssignments()} setData={setFilteredAssignments} identifiers={['title']} placeholder={'Search for assignments'} />
+            <SearchComponent data={getAssignments()} onFilter={setFilteredAssignments} identifiers={['title']} placeholder={'Search for assignments'} />
 
             <Tabs.Panel value="todo">
               <AssignmentsPanel assignments={filteredAssignments} />
