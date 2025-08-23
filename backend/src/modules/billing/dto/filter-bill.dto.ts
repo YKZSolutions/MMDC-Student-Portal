@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { BillType, PaymentScheme } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
@@ -69,7 +69,7 @@ export class FilterBillDto {
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === 'true')
   @IsBoolean()
-  excludeSoftDeleted?: boolean;
+  isDeleted?: boolean;
 }
