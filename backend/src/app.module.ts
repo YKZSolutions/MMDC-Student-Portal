@@ -18,6 +18,7 @@ import { ProgramModule } from './modules/program/program.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MajorModule } from './modules/major/major.module';
 import { InstallmentModule } from './modules/installment/installment.module';
+import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { InstallmentModule } from './modules/installment/installment.module';
     ChatbotModule,
     MajorModule,
     InstallmentModule,
+    EnrollmentModule,
   ],
   controllers: [],
   providers: [
