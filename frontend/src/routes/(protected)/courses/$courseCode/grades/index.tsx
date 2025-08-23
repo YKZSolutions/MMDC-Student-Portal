@@ -1,13 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import CourseGradesPage from '@/pages/student/courses/$courseId/grades/course-grades.tsx'
-import CourseOverviewStudentView from '@/pages/student/courses/$courseId/course-overview.tsx'
-import RoleComponentManager from '@/components/role-component-manager.tsx'
-import { useAuth } from '@/features/auth/auth.hook.ts'
+import CourseGrades from '@/pages/shared/courses/$courseId/grades/course-grades.tsx'
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode/grades/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <CourseGradesPage />
+  return <CourseGrades />
 }

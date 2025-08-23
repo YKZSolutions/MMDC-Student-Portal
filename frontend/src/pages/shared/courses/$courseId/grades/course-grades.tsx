@@ -96,7 +96,7 @@ const mockGrades: GradesData[] = [
   },
 ]
 
-const GradesPageStudentView = () => {
+const CourseGrades = () => {
   const grades = mockGrades
   const [filteredItems, setFilteredItems] = useState<GradesData[]>(grades)
 
@@ -232,4 +232,4 @@ function GradesTableRow({ grades }: { grades: GradesData[] }) {
   ))
 }
 
-export default GradesPageStudentView
+export default CourseGrades
