@@ -1,5 +1,5 @@
 import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
@@ -12,9 +12,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class CreateBillDtoNoBreakdown extends OmitType(CreateBillDto, [
-  'costBreakdown',
-]) {}
 export class CreateBillingDto {
   @ValidateNested()
   @Type(() => CreateBillDto)
