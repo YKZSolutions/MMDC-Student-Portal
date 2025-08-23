@@ -9,12 +9,13 @@ import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaymentScheme, Prisma, Role } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import {
   getBillingWithPayment,
   getBillingWithPaymentMeta,
 } from '@prisma/client/sql';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateBillingDto } from './dto/create-billing.dto';
+import { InstallmentService } from '../installment/installment.service';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
@@ -24,6 +25,7 @@ export class BillingService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly installmentService: InstallmentService,
   ) {}
 
   /**
@@ -42,16 +44,33 @@ export class BillingService {
     [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
       new NotFoundException(`User with id=${userId} was not found`),
   })
-  async create(createBillingDto: CreateBillingDto): Promise<BillDto> {
-    const billing = await this.prisma.client.bill.create({
-      data: {
-        ...createBillingDto.bill,
-        costBreakdown: createBillingDto.costBreakdown,
-        userId: createBillingDto.userId,
-      },
+  async create(
+    createBillingDto: CreateBillDto,
+    dueDates: string[],
+    @LogParam('userId') userId?: string,
+  ): Promise<BillDto> {
+    const transaction = this.prisma.client.$transaction(async (tx) => {
+      const billing = await tx.bill.create({
+        data: {
+          ...createBillingDto,
+          userId,
+        },
+      });
+
+      await this.installmentService.create(
+        {
+          billId: billing.id,
+          paymentScheme: createBillingDto.paymentScheme,
+          totalAmount: createBillingDto.totalAmount,
+          dueDates: dueDates,
+        },
+        tx,
+      );
+
+      return billing;
     });
 
-    return billing;
+    return transaction;
   }
 
   /**
@@ -106,6 +125,9 @@ export class BillingService {
         ...bill,
         status: bill.status ? BillStatus[bill.status] : BillStatus.unpaid,
         totalPaid: bill.totalPaid || Prisma.Decimal(0),
+        totalInstallments: Number(bill.totalInstallments) || 1,
+        paidInstallments: Number(bill.paidInstallments) || 0,
+        installmentDueDates: bill.installmentDueDates || [bill.dueAt],
       };
     });
 
@@ -152,7 +174,7 @@ export class BillingService {
     role: Role,
     userId: string,
   ): Promise<DetailedBillDto> {
-    const bill = await this.prisma.client.bill.findUnique({
+    const bill = await this.prisma.client.bill.findFirstOrThrow({
       where: {
         id,
         ...(role !== 'admin' && {
@@ -163,10 +185,6 @@ export class BillingService {
       },
     });
 
-    if (!bill) {
-      throw new NotFoundException(`Bill with id=${id} not found`);
-    }
-
     const billPayments = await this.prisma.client.billPayment.aggregate({
       where: { billId: bill?.id },
       _sum: {
@@ -174,13 +192,7 @@ export class BillingService {
       },
     });
 
-    const totalPaid = billPayments._sum.amountPaid;
-
-    if (!totalPaid) {
-      throw new NotFoundException(
-        `Bill payments of bill with id=${id} not found`,
-      );
-    }
+    const totalPaid = billPayments._sum.amountPaid || Decimal(0);
 
     const status: BillStatus = (() => {
       switch (true) {

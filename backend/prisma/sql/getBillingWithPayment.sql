@@ -24,7 +24,30 @@ WITH bills AS (
       WHEN COALESCE(SUM(payment."amountPaid"), 0) < bill."totalAmount" THEN 'partial'
       WHEN COALESCE(SUM(payment."amountPaid"), 0) = bill."totalAmount" THEN 'paid'
       ELSE 'overpaid'
-    END AS "status"
+    END AS "status",
+    (
+      SELECT COUNT(*)
+      FROM "BillInstallment" i
+      WHERE i."billId" = bill.id
+    ) AS "totalInstallments",
+
+    (
+      SELECT COUNT(*)
+      FROM (
+        SELECT i.id
+        FROM "BillInstallment" i
+        LEFT JOIN "BillPayment" p ON p."installmentId" = i.id
+        WHERE i."billId" = bill.id
+        GROUP BY i.id
+        HAVING COALESCE(SUM(p."amountPaid"), 0) >= i."amountToPay"
+      ) sub
+    ) AS "paidInstallments",
+
+    (
+      SELECT array_agg(i."dueAt" ORDER BY i."dueAt")
+      FROM "BillInstallment" i
+      WHERE i."billId" = bill.id
+    ) AS "installmentDueDates"
   FROM "Bill" bill
   LEFT JOIN "BillPayment" payment ON payment."billId" = bill.id
   WHERE

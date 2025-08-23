@@ -3,6 +3,8 @@ import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsArray,
+  IsDateString,
   IsDecimal,
   IsOptional,
   IsString,
@@ -15,12 +17,22 @@ export class CreateBillDtoNoBreakdown extends OmitType(CreateBillDto, [
 ]) {}
 export class CreateBillingDto {
   @ValidateNested()
-  @Type(() => CreateBillDtoNoBreakdown)
-  bill: CreateBillDtoNoBreakdown;
+  @Type(() => CreateBillDto)
+  bill: CreateBillDto;
 
-  @ValidateNested({ each: true })
-  @Type(() => BillingCostBreakdown)
-  costBreakdown: BillingCostBreakdown[];
+  @ApiProperty({
+    type: 'string',
+    isArray: true,
+    format: 'date-time',
+    example: [
+      '2025-01-01T00:00:00Z',
+      '2025-02-01T12:30:00Z',
+      '2025-03-01T12:30:00Z',
+    ],
+  })
+  @IsArray()
+  @IsDateString({}, { each: true })
+  dueDates: string[];
 
   @IsOptional()
   @IsUUID()

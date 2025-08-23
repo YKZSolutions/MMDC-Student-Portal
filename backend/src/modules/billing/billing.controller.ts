@@ -2,7 +2,9 @@ import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import {
+  CurrentAuthUser
+} from '@/common/interfaces/auth.user-metadata';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
@@ -36,7 +38,11 @@ export class BillingController {
   @Roles(Role.ADMIN)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   create(@Body() createBillingDto: CreateBillingDto) {
-    return this.billingService.create(createBillingDto);
+    return this.billingService.create(
+      createBillingDto.bill,
+      createBillingDto.dueDates,
+      createBillingDto.userId,
+    );
   }
 
   /**
@@ -50,12 +56,9 @@ export class BillingController {
   @ApiException(() => NotFoundException)
   findAll(
     @Query(new ValidationPipe({ transform: true })) filters: FilterBillDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     const { role, user_id } = user.user_metadata;
-
-    if (!role || !user_id)
-      throw new NotFoundException('User metadata role and id not found');
 
     return this.billingService.findAll(filters, role, user_id);
   }
@@ -67,11 +70,8 @@ export class BillingController {
    */
   @Get(':id')
   @ApiException(() => NotFoundException)
-  findOne(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+  findOne(@Param('id') id: string, @CurrentUser() user: CurrentAuthUser) {
     const { role, user_id } = user.user_metadata;
-
-    if (!role || !user_id)
-      throw new NotFoundException('User metadata not found');
 
     return this.billingService.findOne(id, role, user_id);
   }
