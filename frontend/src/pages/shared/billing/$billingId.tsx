@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth/auth.hook'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
 import { mapBillingDetails } from '@/features/billing/helpers'
 import type { IFrontendBillingCostBreakdown } from '@/features/billing/types'
-import type { BillDto } from '@/integrations/api/client'
+import type { DetailedBillDto } from '@/integrations/api/client'
 import { billingControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   ActionIcon,
@@ -68,7 +68,7 @@ const route = getRouteApi('/(protected)/billing/$billingId')
 function BillingIdQueryProvider({
   children,
 }: {
-  children: (props: { currentInvoice: BillDto }) => ReactNode
+  children: (props: { currentInvoice: DetailedBillDto }) => ReactNode
 }) {
   const { data } = useSuspenseQuery(
     billingControllerFindOneOptions({
@@ -76,7 +76,7 @@ function BillingIdQueryProvider({
     }),
   )
 
-  const currentInvoice = data as BillDto
+  const currentInvoice = data as DetailedBillDto
 
   console.log('currentInvoice', currentInvoice)
 
@@ -201,7 +201,7 @@ function BillingIdPage() {
   )
 }
 
-export function BillingPrefaceDetails({ invoice }: { invoice: BillDto }) {
+export function BillingPrefaceDetails({ invoice }: { invoice: DetailedBillDto }) {
   const billingDetails = mapBillingDetails(invoice)
 
   const midIndex = Math.ceil(billingDetails.length / 2)
