@@ -326,7 +326,7 @@ export type BillingCostBreakdown = {
     category: string;
 };
 
-export type CreateBillingNoBreakdownDto = {
+export type CreateBillingTypedBreakdownDto = {
     payerName: string;
     payerEmail: string;
     paymentScheme: PaymentScheme;
@@ -337,7 +337,7 @@ export type CreateBillingNoBreakdownDto = {
 
 export type CreateBillingDto = {
     dueDates: Array<string>;
-    bill: CreateBillingNoBreakdownDto;
+    bill: CreateBillingTypedBreakdownDto;
     userId?: string;
 };
 

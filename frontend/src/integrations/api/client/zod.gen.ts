@@ -472,7 +472,7 @@ export const zBillingCostBreakdown = z.object({
     category: z.string()
 });
 
-export const zCreateBillingNoBreakdownDto = z.object({
+export const zCreateBillingTypedBreakdownDto = z.object({
     payerName: z.string(),
     payerEmail: z.string(),
     paymentScheme: zPaymentScheme,
@@ -483,7 +483,7 @@ export const zCreateBillingNoBreakdownDto = z.object({
 
 export const zCreateBillingDto = z.object({
     dueDates: z.array(z.iso.datetime()),
-    bill: zCreateBillingNoBreakdownDto,
+    bill: zCreateBillingTypedBreakdownDto,
     userId: z.optional(z.uuid())
 });
 
