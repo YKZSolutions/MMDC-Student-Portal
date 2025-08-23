@@ -5,7 +5,6 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { BillDto } from '@/generated/nestjs-dto/bill.dto';
-import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -17,6 +16,9 @@ import {
 } from '@prisma/client/sql';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
+import {
+  CreateBillingDto
+} from './dto/create-billing.dto';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
@@ -46,7 +48,7 @@ export class BillingService {
       new NotFoundException(`User with id=${userId} was not found`),
   })
   async create(
-    createBillingDto: CreateBillDto,
+    createBillingDto: CreateBillingDto['bill'],
     dueDates: string[],
     @LogParam('userId') userId?: string,
   ): Promise<BillDto> {
