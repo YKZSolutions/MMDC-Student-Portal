@@ -40,9 +40,12 @@ import { useDebouncedCallback } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
+  IconEye,
   IconFilter2,
+  IconPencil,
   IconPlus,
   IconSearch,
+  IconTrash,
   IconUpload,
   type ReactNode,
 } from '@tabler/icons-react'
@@ -59,13 +62,18 @@ const segmentedControlOptions = [
   { label: 'Unpaid', value: 'unpaid' },
   { label: 'Partial', value: 'partial' },
   { label: 'Overpaid', value: 'overpaid' },
-  { label: 'Deleted', value: 'deleted' },
+  { label: 'Trash', value: 'deleted' },
 ] as const
 
 interface IBillingQuery {
   search: string
   page: number
   tab: (typeof segmentedControlOptions)[number]['value']
+}
+
+interface IBillingSearchParams {
+  search: string
+  tab: IBillingQuery['tab']
 }
 
 function BillingQueryProvider({
@@ -124,10 +132,7 @@ function BillingQueryProvider({
 }
 
 function BillingPage() {
-  const searchParam: {
-    search: string
-    tab: IBillingQuery['tab']
-  } = route.useSearch()
+  const searchParam: IBillingSearchParams = route.useSearch()
   const navigate = useNavigate()
 
   const queryDefaultValues = {
@@ -282,14 +287,27 @@ function BillingPage() {
 }
 
 function BillingTable({ query }: { query: IBillingQuery }) {
+  const searchParam: IBillingSearchParams = route.useSearch()
   const navigate = useNavigate()
   const { authUser } = useAuth('protected')
 
   const { mutateAsync: remove } = useAppMutation(
     billingControllerRemoveMutation,
     {
-      loading: { title: 'Deleting the bill.', message: 'Please wait...' },
-      success: { title: 'Bill Deleted', message: 'The bill has been deleted.' },
+      loading:
+        searchParam.tab !== 'deleted'
+          ? { title: 'Moving to Trash', message: 'Please wait...' }
+          : { title: 'Deleting Bill', message: 'Please wait...' },
+      success:
+        searchParam.tab !== 'deleted'
+          ? {
+              title: 'Bill moved to Trash',
+              message: 'The bill has been successfully moved to Trash.',
+            }
+          : {
+              title: 'Bill Deleted',
+              message: 'The bill has been permanently deleted.',
+            },
       error: {
         title: 'Failed to delete the bill.',
         message:
@@ -504,27 +522,37 @@ function BillingTable({ query }: { query: IBillingQuery }) {
                                 onClick={(e) => e.stopPropagation()}
                                 variant="subtle"
                                 color="gray"
-                                radius={'xl'}
+                                radius="xl"
                               >
                                 <IconDotsVertical size={20} stroke={1.5} />
                               </ActionIcon>
                             </Menu.Target>
+
                             <Menu.Dropdown>
                               <Menu.Item
+                                leftSection={<IconEye size={16} stroke={1.5} />}
                                 onClick={(e) =>
                                   handleMenuAction(invoice.id, e).view()
                                 }
                               >
                                 View Details
                               </Menu.Item>
+
                               <Menu.Item
+                                leftSection={
+                                  <IconPencil size={16} stroke={1.5} />
+                                }
                                 onClick={(e) =>
                                   handleMenuAction(invoice.id, e).edit()
                                 }
                               >
                                 Edit
                               </Menu.Item>
+
                               <Menu.Item
+                                leftSection={
+                                  <IconTrash size={16} stroke={1.5} />
+                                }
                                 onClick={(e) =>
                                   handleMenuAction(invoice.id, e).delete()
                                 }
