@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import CoursesPage from '@/pages/student/courses/course-dashboard.tsx'
 import type { Course, EnrolledAcademicTerm } from "@/features/courses/types"
+import CourseDashboard from '@/pages/shared/courses/course-dashboard.tsx'
 
 export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
@@ -41,8 +41,8 @@ function RouteComponent() {
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        student: <CoursesPage academicTerms={enrolledTerms} />,
-        admin: <CoursesPage academicTerms={enrolledTerms} />, //TODO: change to all terms
+        student: <CourseDashboard academicTerms={enrolledTerms} />,
+        admin: <CourseDashboard academicTerms={enrolledTerms} />, //TODO: change to all terms
         // mentor: <CoursesMentorPage />,
       }}
     />
