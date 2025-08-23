@@ -62,7 +62,7 @@ function EditBillingPage() {
     initialValues: {
       bill: {
         paymentScheme: 'full',
-        dueAt: '',
+        billType: 'academic',
         payerEmail: '',
         payerName: '',
         totalAmount: '',
@@ -135,12 +135,12 @@ function EditBillingPage() {
             key={form.key('bill.dueAt')}
             {...form.getInputProps('bill.dueAt')}
             value={
-              form.getValues().bill.dueAt
-                ? new Date(form.getValues().bill.dueAt)
+              form.getValues().dueDates.length > 0
+                ? new Date(form.getValues().dueDates[0])
                 : null
             }
             onChange={(val) =>
-              form.getInputProps('bill.dueAt').onChange(`${val}T00:00:00Z`)
+              form.getInputProps('dueDates').onChange([`${val}T00:00:00Z`])
             }
           />
           <Select
@@ -251,7 +251,10 @@ function EditBillingPage() {
                                 .bill.costBreakdown.filter(
                                   (_, i) => i !== index,
                                 )
-                              form.setFieldValue('bill.costBreakdown', newBreakdown)
+                              form.setFieldValue(
+                                'bill.costBreakdown',
+                                newBreakdown,
+                              )
                             }}
                           >
                             <IconTrash size={18} />
