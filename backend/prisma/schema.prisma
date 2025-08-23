@@ -341,6 +341,15 @@ model EnrolledCourse {
   deletedAt DateTime?
 }
 
+enum BillType {
+  academic
+  administrative
+  facilities
+  studentServices
+  activities
+  penalties
+}
+
 enum PaymentScheme {
   full
   installment1
@@ -360,9 +369,9 @@ model Bill {
   invoiceId     Int      @default(autoincrement())
   payerName     String
   payerEmail    String
+  billType      BillType
   paymentScheme      PaymentScheme
   totalAmount   Decimal  @db.Decimal(10, 2)
-  dueAt         DateTime
   /// [CostBreakdown]
   /// @DtoOverrideType(PrismaJson.CostBreakdown)
   costBreakdown Json
