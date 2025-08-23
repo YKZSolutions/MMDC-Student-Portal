@@ -12,6 +12,8 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { BillInstallmentDto } from '@/generated/nestjs-dto/billInstallment.dto';
+import { BillStatus } from '../billing/dto/filter-bill.dto';
+import { BillInstallmentItemDto } from './dto/list-installment.dto';
 
 type PrismaTransaction = Parameters<
   Parameters<ExtendedPrismaClient['$transaction']>[0]
@@ -96,8 +98,8 @@ export class InstallmentService {
     @LogParam('billId') billId: string,
     role: Role,
     userId: string,
-  ): Promise<BillInstallmentDto[]> {
-    return this.prisma.client.billInstallment.findMany({
+  ): Promise<BillInstallmentItemDto[]> {
+    const installments = await this.prisma.client.billInstallment.findMany({
       where: {
         billId,
         ...(role !== 'admin' && {
@@ -109,6 +111,43 @@ export class InstallmentService {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        billPayments: {
+          select: {
+            amountPaid: true,
+          },
+        },
+      },
+    });
+
+    return installments.map((installment) => {
+      const totalPaid = installment.billPayments.reduce(
+        (acc, p) => acc.add(p.amountPaid),
+        Decimal(0),
+      );
+
+      const status: BillStatus = (() => {
+        switch (true) {
+          case totalPaid.eq(0):
+            return BillStatus.unpaid;
+          case totalPaid.lessThan(installment.amountToPay):
+            return BillStatus.partial;
+          case totalPaid.eq(installment.amountToPay):
+            return BillStatus.paid;
+          case totalPaid.greaterThan(installment.amountToPay):
+            return BillStatus.overpaid;
+          default:
+            return BillStatus.unpaid;
+        }
+      })();
+
+      const { billPayments, ...installmentPayload } = installment;
+
+      return {
+        ...installmentPayload,
+        totalPaid,
+        status,
+      };
     });
   }
 
@@ -134,17 +173,53 @@ export class InstallmentService {
     @LogParam('id') id: string,
     role: Role,
     userId: string,
-  ): Promise<BillInstallmentDto> {
-    return this.prisma.client.billInstallment.findFirstOrThrow({
-      where: {
-        id,
-        ...(role !== 'admin' && {
-          bill: {
-            userId,
+  ): Promise<BillInstallmentItemDto> {
+    const installment =
+      await this.prisma.client.billInstallment.findFirstOrThrow({
+        where: {
+          id,
+          ...(role !== 'admin' && {
+            bill: {
+              userId,
+            },
+          }),
+        },
+        include: {
+          billPayments: {
+            select: {
+              amountPaid: true,
+            },
           },
-        }),
-      },
-    });
+        },
+      });
+
+    const totalPaid = installment.billPayments.reduce(
+      (acc, p) => acc.add(p.amountPaid),
+      Decimal(0),
+    );
+
+    const status: BillStatus = (() => {
+      switch (true) {
+        case totalPaid.eq(0):
+          return BillStatus.unpaid;
+        case totalPaid.lessThan(installment.amountToPay):
+          return BillStatus.partial;
+        case totalPaid.eq(installment.amountToPay):
+          return BillStatus.paid;
+        case totalPaid.greaterThan(installment.amountToPay):
+          return BillStatus.overpaid;
+        default:
+          return BillStatus.unpaid;
+      }
+    })();
+
+    const { billPayments, ...installmentPayload } = installment;
+
+    return {
+      ...installmentPayload,
+      totalPaid,
+      status,
+    };
   }
 
   update(id: number, updateInstallmentDto: UpdateInstallmentDto) {

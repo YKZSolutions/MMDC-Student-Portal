@@ -33,11 +33,14 @@ WITH bills AS (
 
     (
       SELECT COUNT(*)
-      FROM "BillInstallment" i
-      LEFT JOIN "BillPayment" p ON p."installmentId" = i.id
-      WHERE i."billId" = bill.id
-      GROUP BY i.id
-      HAVING COALESCE(SUM(p."amountPaid"), 0) >= i."amountToPay"
+      FROM (
+        SELECT i.id
+        FROM "BillInstallment" i
+        LEFT JOIN "BillPayment" p ON p."installmentId" = i.id
+        WHERE i."billId" = bill.id
+        GROUP BY i.id
+        HAVING COALESCE(SUM(p."amountPaid"), 0) >= i."amountToPay"
+      ) sub
     ) AS "paidInstallments",
 
     (

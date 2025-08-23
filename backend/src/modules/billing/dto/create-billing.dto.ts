@@ -19,15 +19,14 @@ export class CreateBillingDto {
     isArray: true,
     format: 'date-time',
     example: [
-      '2025-01-01T00:00:00.000Z',
-      '2025-02-01T12:30:00.000Z',
-      '2025-03-01T12:30:00.000Z',
+      '2025-01-01T00:00:00Z',
+      '2025-02-01T12:30:00Z',
+      '2025-03-01T12:30:00Z',
     ],
   })
   @IsArray()
   @IsDateString({}, { each: true })
-  @Type(() => Date)
-  dueDates: Date[];
+  dueDates: string[];
 
   @IsOptional()
   @IsUUID()

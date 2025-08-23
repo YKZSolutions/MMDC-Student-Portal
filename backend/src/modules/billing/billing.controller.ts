@@ -20,7 +20,10 @@ import { Role } from '@/common/enums/roles.enum';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { FilterBillDto } from './dto/filter-bill.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import {
+  AuthUser,
+  CurrentAuthUser,
+} from '@/common/interfaces/auth.user-metadata';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 
 @ApiBearerAuth()
@@ -54,12 +57,9 @@ export class BillingController {
   @ApiException(() => NotFoundException)
   findAll(
     @Query(new ValidationPipe({ transform: true })) filters: FilterBillDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     const { role, user_id } = user.user_metadata;
-
-    if (!role || !user_id)
-      throw new NotFoundException('User metadata role and id not found');
 
     return this.billingService.findAll(filters, role, user_id);
   }
@@ -71,11 +71,8 @@ export class BillingController {
    */
   @Get(':id')
   @ApiException(() => NotFoundException)
-  findOne(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+  findOne(@Param('id') id: string, @CurrentUser() user: CurrentAuthUser) {
     const { role, user_id } = user.user_metadata;
-
-    if (!role || !user_id)
-      throw new NotFoundException('User metadata not found');
 
     return this.billingService.findOne(id, role, user_id);
   }

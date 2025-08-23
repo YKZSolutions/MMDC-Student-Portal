@@ -19,6 +19,7 @@ import {
 } from '@prisma/client/sql';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { InstallmentService } from '../installment/installment.service';
+import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class BillingService {
@@ -46,7 +47,7 @@ export class BillingService {
   })
   async create(
     createBillingDto: CreateBillDto,
-    dueDates: Date[],
+    dueDates: string[],
     @LogParam('userId') userId?: string,
   ): Promise<BillDto> {
     const transaction = this.prisma.client.$transaction(async (tx) => {
@@ -174,7 +175,7 @@ export class BillingService {
     role: Role,
     userId: string,
   ): Promise<DetailedBillDto> {
-    const bill = await this.prisma.client.bill.findUnique({
+    const bill = await this.prisma.client.bill.findFirstOrThrow({
       where: {
         id,
         ...(role !== 'admin' && {
@@ -185,10 +186,6 @@ export class BillingService {
       },
     });
 
-    if (!bill) {
-      throw new NotFoundException(`Bill with id=${id} not found`);
-    }
-
     const billPayments = await this.prisma.client.billPayment.aggregate({
       where: { billId: bill?.id },
       _sum: {
@@ -196,13 +193,7 @@ export class BillingService {
       },
     });
 
-    const totalPaid = billPayments._sum.amountPaid;
-
-    if (!totalPaid) {
-      throw new NotFoundException(
-        `Bill payments of bill with id=${id} not found`,
-      );
-    }
+    const totalPaid = billPayments._sum.amountPaid || Decimal(0);
 
     const status: BillStatus = (() => {
       switch (true) {

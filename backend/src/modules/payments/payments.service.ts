@@ -103,9 +103,15 @@ export class PaymentsService {
     @LogParam('billId') billId: string,
     createPaymentDto: CreatePaymentDto,
   ): Promise<BillPaymentDto> {
+    const installment = await this.prisma.client.billInstallment.findFirst({
+      where: { id: createPaymentDto.installmentId },
+    });
+
     const payment = await this.prisma.client.billPayment.create({
       data: {
         ...createPaymentDto.payment,
+        installmentId: installment?.id,
+        installmentOrder: installment?.installmentOrder || 0,
         billId: billId,
       },
     });
