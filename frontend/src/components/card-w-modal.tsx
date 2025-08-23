@@ -1,0 +1,44 @@
+import React, { type JSX, useState } from 'react'
+import type { ModalProp } from '@/features/courses/types.ts'
+import { useDisclosure } from '@mantine/hooks'
+import { Card, Group, Stack, Text, Title } from '@mantine/core'
+
+interface ActionCardProps {
+  title: string
+  description: string
+  icon: JSX.Element
+  modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
+}
+
+const CardWithModal = ({title, description, icon, modalComponent: ModalComponent}: ActionCardProps) => {
+  const [hovered, setHovered] = useState(false)
+  const [actionModalOpened, { open, close }] = useDisclosure(false)
+
+  return (
+    <>
+      <Card
+        withBorder
+        radius="md"
+        p="xs"
+        shadow={hovered ? 'sm' : 'xs'}
+        style={{ cursor: 'pointer' }}
+        onClick={open}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <Stack gap={'xs'}>
+          <Group gap={'xs'}>
+            {icon}
+            <Title order={4} fw={500}>
+              {title}
+            </Title>
+          </Group>
+          <Text size={'sm'}>{description}</Text>
+        </Stack>
+      </Card>
+      <ModalComponent opened={actionModalOpened} closeModal={close} />
+    </>
+  )
+}
+
+export default CardWithModal
