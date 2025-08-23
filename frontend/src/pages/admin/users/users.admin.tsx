@@ -37,7 +37,7 @@ import {
   Text,
   TextInput,
   Title,
-  UnstyledButton
+  UnstyledButton,
 } from '@mantine/core'
 import { useDebouncedCallback } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
@@ -113,6 +113,15 @@ function UsersPage() {
   }
 
   const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
+
+  // Since searchParam is debounced,
+  // this is what we need to pass to the query provider
+  // This will ensure that the query is also debounced
+  const debouncedQuery = {
+    search: searchParam.search || '',
+    page: query.page,
+    role: query.role,
+  } as IUsersQuery
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -317,10 +326,10 @@ function UsersPage() {
           </Flex>
         </Flex>
 
-        <UsersTable props={query} />
+        <UsersTable props={debouncedQuery} />
 
         <Suspense fallback={<SuspendedPagination />}>
-          <UsersQueryProvider props={query}>
+          <UsersQueryProvider props={debouncedQuery}>
             {(props) => (
               <Group justify="flex-end">
                 <Text size="sm">{props.message}</Text>
