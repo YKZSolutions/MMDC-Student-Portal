@@ -53,17 +53,18 @@ import { Suspense, useState } from 'react'
 const route = getRouteApi('/(protected)/billing/')
 
 const segmentedControlOptions = [
-  { label: 'All', value: 'All' },
-  { label: 'Paid', value: 'Paid' },
-  { label: 'Unpaid', value: 'Unpaid' },
-  { label: 'Overdue', value: 'Overdue' },
-  { label: 'Deleted', value: 'Deleted' },
-]
+  { label: 'All', value: 'all' },
+  { label: 'Paid', value: 'paid' },
+  { label: 'Unpaid', value: 'unpaid' },
+  { label: 'Partial', value: 'partial' },
+  { label: 'Overpaid', value: 'overpaid' },
+  { label: 'Deleted', value: 'deleted' },
+] as const
 
 interface IBillingQuery {
   search: string
   page: number
-  excludeSoftDeleted?: boolean
+  tab: (typeof segmentedControlOptions)[number]['value']
 }
 
 function BillingQueryProvider({
@@ -71,7 +72,7 @@ function BillingQueryProvider({
   props = {
     search: '',
     page: 1,
-    excludeSoftDeleted: true,
+    tab: 'all',
   },
 }: {
   children: (props: {
@@ -82,17 +83,22 @@ function BillingQueryProvider({
   }) => ReactNode
   props?: IBillingQuery
 }) {
-  const { authUser } = useAuth('protected')
+  const { search, page, tab } = props
 
-  const { search, page, excludeSoftDeleted } = props
+  const status: BillItemDto['status'] | undefined =
+    tab && !['all', 'deleted'].includes(tab)
+      ? (tab as BillItemDto['status'])
+      : undefined
+
+  const isDeleted = tab === 'deleted' || undefined
 
   const { data } = useSuspenseQuery(
     billingControllerFindAllOptions({
       query: {
         search,
         page,
-        // ...(excludeSoftDeleted &&
-        //   authUser.role !== 'admin' && { excludeSoftDeleted }),
+        status,
+        isDeleted,
       },
     }),
   )
@@ -119,17 +125,31 @@ function BillingQueryProvider({
 function BillingPage() {
   const searchParam: {
     search: string
+    tab: IBillingQuery['tab']
   } = route.useSearch()
   const navigate = useNavigate()
 
   const queryDefaultValues = {
     search: searchParam.search || '',
     page: 1,
+    tab: searchParam.tab || ('all' as IBillingQuery['tab']),
   }
 
   const [query, setQuery] = useState<IBillingQuery>(queryDefaultValues)
 
   const { authUser } = useAuth('protected')
+
+  const handleTabChange = (value: IBillingQuery['tab']) => {
+    setQuery((prev) => ({ ...prev, tab: value }))
+
+    navigate({
+      to: '/billing',
+      search: (prev) => ({
+        ...prev,
+        tab: value !== 'all' ? value : undefined,
+      }),
+    })
+  }
 
   return (
     <Container fluid m={0}>
@@ -182,9 +202,10 @@ function BillingPage() {
         <Group justify="space-between" align="center">
           <SegmentedControl
             bd={'1px solid gray.2'}
-            radius={'md'}
-            data={segmentedControlOptions}
+            data={[...segmentedControlOptions]}
+            defaultValue="all"
             color="primary"
+            onChange={(value) => handleTabChange(value as IBillingQuery['tab'])}
           />
           <Group gap="sm">
             {' '}
@@ -206,7 +227,7 @@ function BillingPage() {
           </Group>
         </Group>
 
-        <BillingTable />
+        <BillingTable query={query} />
 
         <Suspense fallback={<SuspendedPagination />}>
           <BillingQueryProvider props={query}>
@@ -228,7 +249,7 @@ function BillingPage() {
   )
 }
 
-function BillingTable() {
+function BillingTable({ query }: { query: IBillingQuery }) {
   const navigate = useNavigate()
   const { authUser } = useAuth('protected')
 
@@ -361,7 +382,7 @@ function BillingTable() {
         }}
       >
         <Suspense fallback={<SuspendedBillingTableRows />}>
-          <BillingQueryProvider>
+          <BillingQueryProvider props={query}>
             {(props) =>
               props.currentInvoices.map((invoice) => (
                 <Table.Tr
