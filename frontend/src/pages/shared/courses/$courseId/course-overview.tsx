@@ -1,7 +1,7 @@
 import React from 'react'
 import { Container } from '@mantine/core'
 
-const CourseOverviewStudentView = () => {
+const CourseOverview = () => {
   return (
     <Container>
       Course Overview (contains course details, syllabus, mentor details, etc.)
@@ -9,4 +9,4 @@ const CourseOverviewStudentView = () => {
   )
 }
 
-export default CourseOverviewStudentView
+export default CourseOverview
