@@ -13,6 +13,7 @@ import {
   billingControllerRemoveMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -36,18 +37,15 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { notifications } from '@mantine/notifications'
 import {
-  IconCheck,
   IconDotsVertical,
   IconFilter2,
   IconPlus,
   IconSearch,
   IconUpload,
-  IconX,
   type ReactNode,
 } from '@tabler/icons-react'
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, useState } from 'react'
@@ -234,48 +232,26 @@ function BillingTable() {
   const navigate = useNavigate()
   const { authUser } = useAuth('protected')
 
-  const { mutateAsync: remove } = useMutation({
-    ...billingControllerRemoveMutation(),
-    onMutate: () => {
-      const notifId = notifications.show({
-        loading: true,
-        title: `Deleting the bill.`,
-        message: `Performing the action, please wait.`,
-        autoClose: false,
-        withCloseButton: false,
-      })
-
-      return { notifId }
+  const { mutateAsync: remove } = useAppMutation(
+    billingControllerRemoveMutation,
+    {
+      loading: { title: 'Deleting the bill.', message: 'Please wait...' },
+      success: { title: 'Bill Deleted', message: 'The bill has been deleted.' },
+      error: {
+        title: 'Failed to delete the bill.',
+        message:
+          'An error occurred while trying to delete the bill. Please try again.',
+      },
     },
-    onSuccess: async (_, __, context) => {
-      const { queryClient } = getContext()
-      queryClient.removeQueries({
-        queryKey: billingControllerFindAllQueryKey(),
-      })
-
-      notifications.update({
-        id: context.notifId,
-        color: 'teal',
-        title: `Bill Deleted`,
-        message: `The bill has been deleted.`,
-        icon: <IconCheck size={18} />,
-        loading: false,
-        autoClose: 1500,
-      })
+    {
+      onSuccess: async () => {
+        const { queryClient } = getContext()
+        queryClient.removeQueries({
+          queryKey: billingControllerFindAllQueryKey(),
+        })
+      },
     },
-
-    onError: (_, __, context) => {
-      notifications.update({
-        id: context?.notifId,
-        color: 'red',
-        title: `Failed to delete the bill.`,
-        message: `An error occurred while trying to delete the bill. Please try again.`,
-        icon: <IconX size={18} />,
-        loading: false,
-        autoClose: 3000,
-      })
-    },
-  })
+  )
 
   const handleMenuAction = (
     id: BillDto['id'],

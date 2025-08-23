@@ -10,6 +10,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { zBillingControllerCreateData } from '@/integrations/api/client/zod.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatToLabel } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -30,9 +31,7 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
-import { notifications } from '@mantine/notifications'
-import { IconCheck, IconPlus, IconTrash, IconX } from '@tabler/icons-react'
-import { useMutation } from '@tanstack/react-query'
+import { IconPlus, IconTrash } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
@@ -110,52 +109,31 @@ function CreateBillingPage() {
     },
   })
 
-  const { mutateAsync: create, isPending } = useMutation({
-    ...billingControllerCreateMutation(),
-
-    onMutate: () => {
-      const id = notifications.show({
-        loading: true,
+  const { mutateAsync: create, isPending } = useAppMutation(
+    billingControllerCreateMutation,
+    {
+      loading: {
         title: 'Creating bill',
         message: 'Please wait while the bill is being created.',
-        autoClose: false,
-        withCloseButton: false,
-      })
-      return { notifId: id }
-    },
-
-    onSuccess: (_, __, context) => {
-      const { queryClient } = getContext()
-
-      queryClient.removeQueries({
-        queryKey: billingControllerFindAllQueryKey(),
-      })
-
-      navigate({ to: '/billing' })
-
-      notifications.update({
-        id: context?.notifId,
-        color: 'teal',
-        title: 'Bill Created',
-        message: 'The bill has been created.',
-        icon: <IconCheck size={18} />,
-        loading: false,
-        autoClose: 1500,
-      })
-    },
-
-    onError: (_, __, context) => {
-      notifications.update({
-        id: context?.notifId,
-        color: 'red',
+      },
+      success: { title: 'Bill Created', message: 'The bill has been created.' },
+      error: {
         title: 'Failed',
         message: 'Something went wrong while creating the bill.',
-        icon: <IconX size={18} />,
-        loading: false,
-        autoClose: 3000,
-      })
+      },
     },
-  })
+    {
+      onSuccess: () => {
+        const { queryClient } = getContext()
+
+        queryClient.removeQueries({
+          queryKey: billingControllerFindAllQueryKey(),
+        })
+
+        navigate({ to: '/billing' })
+      },
+    },
+  )
 
   const handleCreate = () => {
     if (form.validate().hasErrors) return console.log(form.getValues())
