@@ -5,10 +5,13 @@ import {
   type CreateBillFormValues,
 } from '@/features/validation/create-billing'
 import { billingControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { zBillingControllerCreateData } from '@/integrations/api/client/zod.gen'
+import { formatToLabel } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
   Button,
+  Collapse,
   Container,
   Divider,
   Group,
@@ -28,14 +31,21 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
-const billTypes = [
-  'Academic',
-  'Administrative',
-  'Facilities',
-  'Student Services',
-  'Activities',
-  'Penalties',
-]
+const paymentSchemes =
+  zBillingControllerCreateData.shape.body.shape.bill.shape.paymentScheme.options.map(
+    (scheme) => ({
+      value: scheme,
+      label: formatToLabel(scheme),
+    }),
+  )
+
+const billTypes =
+  zBillingControllerCreateData.shape.body.shape.bill.shape.billType.options.map(
+    (type) => ({
+      value: type,
+      label: formatToLabel(type),
+    }),
+  )
 
 const billCategories = [
   'Tuition Fee',
@@ -62,7 +72,7 @@ function CreateBillingPage() {
     initialValues: {
       bill: {
         paymentScheme: 'full',
-        dueAt: '',
+        billType: 'academic',
         payerEmail: '',
         payerName: '',
         totalAmount: '',
@@ -72,9 +82,30 @@ function CreateBillingPage() {
       userId: '',
     },
     validate: zod4Resolver(CreateBillFormSchema),
+    onValuesChange: (values, _prevValues) => {
+      // re-validate when payment scheme changes
+      if (values.bill.paymentScheme !== _prevValues.bill.paymentScheme) {
+        form.validate()
+      }
+
+      // append T00:00:00Z to all dueDates that do not have time component
+      if (
+        values.dueDates.length > 0 &&
+        values.dueDates.some((date) => !date?.endsWith('T00:00:00Z'))
+      ) {
+        form.setFieldValue(
+          'dueDates',
+          values.dueDates.map((date) =>
+            date && !date.endsWith('T00:00:00Z')
+              ? `${date}T00:00:00Z`
+              : date || '',
+          ),
+        )
+      }
+    },
   })
 
-  console.log(form.getValues())
+  console.log(form.getValues(), form.errors)
 
   const { mutateAsync: create, isPending } = useMutation({
     ...billingControllerCreateMutation(),
@@ -86,7 +117,7 @@ function CreateBillingPage() {
   })
 
   const handleCreate = () => {
-    if (form.validate().hasErrors) return
+    if (form.validate().hasErrors) return console.log(form.getValues())
 
     create({
       body: {
@@ -105,12 +136,10 @@ function CreateBillingPage() {
             )
             .toString(),
         },
-        // costBreakdown: form.getValues().costBreakdown.map((item) => ({
-        //   name: item.name,
-        //   cost: item.cost.toString(), // Since we are using NumberInput, cost will be a number
-        //   category: item.category,
-        // })),
-        dueDates: form.getValues().dueDates,
+        dueDates:
+          form.getValues().bill.paymentScheme === 'full'
+            ? [form.getValues().dueDates[0]]
+            : form.getValues().dueDates,
         userId: form.getValues().userId,
       },
     })
@@ -131,23 +160,19 @@ function CreateBillingPage() {
         <AsyncEmployeeCombobox form={form} />
 
         {/* Due Date and Bill Type */}
-        <Group grow gap="md">
-          <DatePickerInput
-            label="Due Date"
-            placeholder="Pick date"
-            withAsterisk
-            key={form.key('bill.dueAt')}
-            {...form.getInputProps('bill.dueAt')}
-            value={
-              form.getValues().bill.dueAt
-                ? new Date(form.getValues().bill.dueAt)
-                : null
-            }
-            onChange={(val) =>
-              form.getInputProps('bill.dueAt').onChange(`${val}T00:00:00Z`)
-            }
-          />
+        <Group grow gap="md" align="start">
           <Select
+            allowDeselect={false}
+            label="Payment Scheme"
+            placeholder="Pick one"
+            data={paymentSchemes}
+            withAsterisk
+            key={form.key('bill.paymentScheme')}
+            {...form.getInputProps('bill.paymentScheme')}
+          />
+
+          <Select
+            allowDeselect={false}
             label="Bill Type"
             placeholder="Pick one"
             data={billTypes}
@@ -156,6 +181,37 @@ function CreateBillingPage() {
             {...form.getInputProps('bill.billType')}
           />
         </Group>
+
+        <Stack>
+          <DatePickerInput
+            label={
+              form.getValues().bill.paymentScheme === 'full'
+                ? 'Due Date'
+                : 'Down Payment'
+            }
+            placeholder="Pick date"
+            withAsterisk
+            key={form.key(`dueDates.0`)}
+            {...form.getInputProps(`dueDates.0`)}
+            error={form.errors.dueDates ? form.errors.dueDates : undefined}
+          />
+          <Collapse in={form.getValues().bill.paymentScheme !== 'full'}>
+            <Stack>
+              {Array.from({ length: 2 }, (_, index) => (
+                <DatePickerInput
+                  label={`Installment ${index + 1}`}
+                  placeholder="Pick date"
+                  withAsterisk
+                  key={form.key(`dueDates.${index + 1}`)}
+                  {...form.getInputProps(`dueDates.${index + 1}`)}
+                  error={
+                    form.errors.dueDates ? form.errors.dueDates : undefined
+                  }
+                />
+              ))}
+            </Stack>
+          </Collapse>
+        </Stack>
 
         {/* Computation Breakdown */}
 
@@ -206,7 +262,7 @@ function CreateBillingPage() {
                           )}
                           onChange={(value) => {
                             form.setFieldValue(
-                              `costBreakdown.${index}.category`,
+                              `bill.costBreakdown.${index}.category`,
                               value || '',
                             )
                           }}
@@ -215,15 +271,17 @@ function CreateBillingPage() {
                           label="Name"
                           placeholder="Enter name"
                           withAsterisk
-                          key={form.key(`costBreakdown.${index}.name`)}
-                          {...form.getInputProps(`costBreakdown.${index}.name`)}
+                          key={form.key(`bill.costBreakdown.${index}.name`)}
+                          {...form.getInputProps(
+                            `bill.costBreakdown.${index}.name`,
+                          )}
                         />
 
                         <Group
                           wrap="nowrap"
                           gap="sm"
                           align={
-                            form.errors[`costBreakdown.${index}.cost`]
+                            form.errors[`bill.costBreakdown.${index}.cost`]
                               ? 'center'
                               : 'end'
                           }
@@ -234,9 +292,10 @@ function CreateBillingPage() {
                             decimalScale={2}
                             fixedDecimalScale
                             withAsterisk
-                            key={form.key(`costBreakdown.${index}.cost`)}
+                            thousandSeparator=","
+                            key={form.key(`bill.costBreakdown.${index}.cost`)}
                             {...form.getInputProps(
-                              `costBreakdown.${index}.cost`,
+                              `bill.costBreakdown.${index}.cost`,
                             )}
                           />
 
@@ -245,7 +304,7 @@ function CreateBillingPage() {
                             color="red"
                             radius={'xl'}
                             mb={
-                              form.errors[`costBreakdown.${index}.cost`]
+                              form.errors[`bill.costBreakdown.${index}.cost`]
                                 ? rem(-3.5)
                                 : rem(5)
                             }
@@ -255,7 +314,10 @@ function CreateBillingPage() {
                                 .bill.costBreakdown.filter(
                                   (_, i) => i !== index,
                                 )
-                              form.setFieldValue('costBreakdown', newBreakdown)
+                              form.setFieldValue(
+                                'bill.costBreakdown',
+                                newBreakdown,
+                              )
                             }}
                           >
                             <IconTrash size={18} />
@@ -287,7 +349,7 @@ function CreateBillingPage() {
               borderColor: form.errors['costBreakdown'] ? 'red' : '',
             }}
             onClick={() => {
-              form.setFieldValue('costBreakdown', [
+              form.setFieldValue('bill.costBreakdown', [
                 ...form.getValues().bill.costBreakdown,
                 // when you push new items into costBreakdown
                 {
@@ -307,9 +369,9 @@ function CreateBillingPage() {
             </Group>
           </Button>
 
-          {form.errors['costBreakdown'] && (
+          {form.errors['bill.costBreakdown'] && (
             <Text size="xs" c="red">
-              {form.errors['costBreakdown']}
+              {form.errors['bill.costBreakdown']}
             </Text>
           )}
         </Stack>
