@@ -4,7 +4,7 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
 import { BillDto } from '@/generated/nestjs-dto/bill.dto';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
-import { PaymentScheme, Prisma, Role } from '@prisma/client';
+import { BillType, PaymentScheme, Prisma, Role } from '@prisma/client';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
 import { Log } from '@/common/decorators/log.decorator';
@@ -103,6 +103,7 @@ export class BillingService {
     const offset = (page - 1) * limit;
 
     const scheme = filters.scheme ? PaymentScheme[filters.scheme] : null;
+    const billType = filters.type ? BillType[filters.type] : null;
     const status = filters.status || null;
     const search = filters.search || null;
     const sort = filters.sort || null;
@@ -113,6 +114,7 @@ export class BillingService {
         limit,
         offset,
         scheme,
+        billType,
         status,
         search,
         user,
@@ -128,12 +130,12 @@ export class BillingService {
         totalPaid: bill.totalPaid || Prisma.Decimal(0),
         totalInstallments: Number(bill.totalInstallments) || 1,
         paidInstallments: Number(bill.paidInstallments) || 0,
-        installmentDueDates: bill.installmentDueDates || [bill.dueAt],
+        installmentDueDates: bill.installmentDueDates || [],
       };
     });
 
     const totalResult = await this.prisma.client.$queryRawTyped(
-      getBillingWithPaymentMeta(scheme, status, search, user),
+      getBillingWithPaymentMeta(scheme, billType, status, search, user),
     );
 
     const totalCount = Number(totalResult[0]?.count ?? 0);

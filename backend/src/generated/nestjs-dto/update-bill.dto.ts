@@ -1,12 +1,6 @@
-import { PaymentScheme, Prisma } from '@prisma/client';
+import { BillType, PaymentScheme, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsDecimal,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDecimal, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class UpdateBillDto {
   @ApiProperty({
@@ -24,6 +18,14 @@ export class UpdateBillDto {
   @IsString()
   payerEmail?: string;
   @ApiProperty({
+    enum: BillType,
+    enumName: 'BillType',
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(BillType)
+  billType?: BillType;
+  @ApiProperty({
     enum: PaymentScheme,
     enumName: 'PaymentScheme',
     required: false,
@@ -39,14 +41,6 @@ export class UpdateBillDto {
   @IsOptional()
   @IsDecimal()
   totalAmount?: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-  })
-  @IsOptional()
-  @IsDateString()
-  dueAt?: Date;
   @ApiProperty({
     type: () => Object,
     required: false,
