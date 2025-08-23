@@ -1,15 +1,17 @@
 import { useDisclosure } from '@mantine/hooks'
 import { Button } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
-import React from 'react'
+import React, { type JSX } from 'react'
 
 type ButtonWithModalProps = {
   label: string
+  icon?: JSX.Element
   modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
 }
 
 const ButtonWithModal = ({
   label,
+  icon,
   modalComponent: ModalComponent,
 }: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
@@ -19,7 +21,7 @@ const ButtonWithModal = ({
       <Button
         mb={'md'}
         bg={'secondary'}
-        leftSection={<IconPlus />}
+        leftSection={icon}
         onClick={open}
       >
         {label}

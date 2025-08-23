@@ -12,7 +12,16 @@ import { useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import { ContentType, type ModalProp } from '@/features/courses/types.ts'
 import { getChildTypeFromParentType } from '@/utils/helpers.ts'
-import { IconArrowsLeft, IconCircleCheck, IconMailOpened, IconShieldCheck, IconUserCheck, IconX } from '@tabler/icons-react'
+import {
+  IconArrowsLeft,
+  IconCircleCheck,
+  IconMailOpened,
+  IconNotebook,
+  IconPencil,
+  IconShieldCheck,
+  IconUserCheck,
+  IconX,
+} from '@tabler/icons-react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
 import ModuleCreationCard from '@/features/courses/module-creation-card.tsx'
@@ -75,14 +84,14 @@ const CourseCreationProcessModal = ({
             allowNextStepsSelect={false}
           >
             <Stepper.Step
-              icon={<IconUserCheck size={18} />}
+              icon={<IconPencil size={18} />}
               label="Step 1"
               description="Identify the course"
             />
             <Stepper.Step
-              icon={<IconMailOpened size={18} />}
+              icon={<IconNotebook size={18} />}
               label="Step 2"
-              description="Verify email"
+              description="Manage modules"
             />
             <Stepper.Step
               icon={<IconShieldCheck size={18} />}
@@ -130,7 +139,7 @@ const CourseCreationProcessModal = ({
               data={''}
               gap='lg'
               h='100%'
-              p='xl'
+              p='lg'
               m={'xs'}
               style={{
                 overflowY: 'auto',

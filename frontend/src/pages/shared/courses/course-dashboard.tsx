@@ -20,10 +20,16 @@ import {
   IconDeviceDesktop,
   IconLayoutGridFilled,
   IconList,
+  IconPlus,
   IconVideo,
 } from '@tabler/icons-react'
 import React, { useState } from 'react'
-import type { ClassMeeting, Course, EnrolledAcademicTerm } from '@/features/courses/types.ts'
+import type {
+  AcademicProgram,
+  ClassMeeting,
+  Course,
+  EnrolledAcademicTerm,
+} from '@/features/courses/types.ts'
 import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
@@ -31,7 +37,12 @@ import { useCurrentMeeting } from '@/features/courses/course-editor/useCurrentMe
 import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseQuickActions from '@/features/courses/course-quick-actions.tsx'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import ButtonWithModal from '@/components/btn-w-modal.tsx'
+import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
 
+// TODO: Consider adding program and/or department and major to the course data
+// TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
 const MockCourseData: Course[] = [
   {
     courseDetails: {
@@ -134,7 +145,29 @@ const MockCourseData: Course[] = [
   },
 ]
 
+const mockAcademicPrograms: AcademicProgram[] = [
+  {
+    program: 'Bachelor of Science in Information Technology',
+    programCode: 'BSIT',
+    major: 'Software Development',
+    majorCode: 'SD',
+  },
+  {
+    program: 'Bachelor of Science in Computer Science',
+    programCode: 'BSCS',
+    major: 'Software Engineering',
+    majorCode: 'SE',
+  },
+  {
+    program: 'Bachelor of Science in Information Systems',
+    programCode: 'BSIS',
+    major: 'Information Systems',
+    majorCode: 'IS',
+  }
+]
+
 const CourseDashboard = ({ academicTerms }: { academicTerms: EnrolledAcademicTerm[] }) => {
+  const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
   const [view, setView] = useState<'grid' | 'list'>('grid')
 
@@ -148,15 +181,21 @@ const CourseDashboard = ({ academicTerms }: { academicTerms: EnrolledAcademicTer
   const coursesData = MockCourseData
   const [filteredCourses, setFilteredCourses] = useState<Course[]>(coursesData)
 
+  const academicPrograms = mockAcademicPrograms
+  const [selectedAcademicProgram, setSelectedAcademicProgram] = useState<AcademicProgram>(academicPrograms[0])
+
   return (
     <Container fluid m={0}>
       <Stack gap={'lg'}>
         {/* Page Hero */}
-        <Box>
+        <Group justify="space-between" align="center">
           <Title c={'dark.7'} variant="hero" order={2} fw={700}>
             All Courses
           </Title>
-        </Box>
+          {authUser.role !== 'student' && (
+            <ButtonWithModal label={"Add Course"} icon={<IconPlus />} modalComponent={CourseCreationProcessModal}></ButtonWithModal>
+          )}
+        </Group>
 
         <Divider />
 
@@ -166,7 +205,18 @@ const CourseDashboard = ({ academicTerms }: { academicTerms: EnrolledAcademicTer
               {/*Filters*/}
               <Group justify="space-between" align="start">
                 <SearchComponent data={coursesData} onFilter={setFilteredCourses} identifiers={[['courseDetails', 'courseName']]} placeholder={"Search courses"}/>
-                <Group gap={'md'}>
+                <Group gap={'md'} align="center" justify="flex-end">
+                  {authUser.role !== 'student' && (
+                    <Select
+                      data={academicPrograms.map((program) => program.programCode)}
+                      defaultValue={selectedAcademicProgram.programCode}
+                      allowDeselect={false}
+                      variant="default"
+                      radius={'md'}
+                      size={'sm'}
+                      w={'20%'}
+                    />
+                  )}
                   <Select
                     data={academicTerms.map((term) => (`${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}`))}
                     defaultValue={`(Current) ${currentTerm}`}
@@ -375,7 +425,7 @@ const CourseListRow =
           onMouseLeave={() => setHovered(false)}
         >
             <Group justify="space-between" wrap="nowrap">
-                <Box bg={theme.colors.primary[1]} h={'100%'} w={'5%'}></Box>
+                <Box bg={theme.colors.primary[1]} h={'100%'} w={'20px'}></Box>
                 <Stack w={'65%'} p={'xs'} justify={'space-between'}>
                     <Group gap={'xs'}>
                         <Title order={3} lineClamp={1} maw={'75%'} c={theme.primaryColor} style={{ textDecoration: hovered ? 'underline' : 'none' }}>

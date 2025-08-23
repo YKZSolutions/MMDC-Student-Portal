@@ -48,6 +48,13 @@ export interface ClassMeeting {
   meetingLink: string
 }
 
+export interface AcademicProgram {
+  program: string
+  programCode: string
+  major: string
+  majorCode: string
+}
+
 export enum ContentType {
   Module = "module",
   Subsection = "subsection",

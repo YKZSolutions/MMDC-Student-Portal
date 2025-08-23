@@ -5,8 +5,8 @@ import { IconCategory } from '@tabler/icons-react'
 const CourseCreationCard = () => {
   return (
     <Card radius="lg" p={0} h={'100%'}>
-      <Box bg={'yellow'} h={'16%'}></Box>
-      <Stack justify="space-between" h={'100%'} my={'lg'} p={'lg'}>
+      <Box bg={'yellow'} h={'64px'}></Box>
+      <Stack justify="space-between" h={'100%'} my={'lg'} p={'xl'}>
         <Input
           variant="unstyled"
           placeholder="Course Title"

@@ -1,7 +1,8 @@
-import { Grid, Group, Text, Input } from "@mantine/core";
+import { Group, Text, Input, Flex } from '@mantine/core'
 import { IconCategory } from "@tabler/icons-react";
+import React, { type ComponentPropsWithoutRef } from 'react'
 
-interface FormRowProps {
+type FormRowProps = {
   icon?: React.ReactNode;
   label: string;
   placeholder?: string;
@@ -10,16 +11,21 @@ interface FormRowProps {
 export default function FormRow({ icon = <IconCategory />, label, placeholder = "Empty" }: FormRowProps) {
   return (
     <Group>
-      <Group gap="xs" h="100%" align="center" w="125">
+      <Group gap="xs" align="center" w={125}>
         {icon}
         <Text>{label}</Text>
       </Group>
-      <Input
-        variant="unstyled"
-        placeholder={placeholder}
-        fw={400}
-        size="md"
-      />
+
+      {/* Flexible input wrapper */}
+      <Flex flex={1}>
+        <Input
+          variant="unstyled"
+          placeholder={placeholder}
+          fw={400}
+          size="md"
+          w="100%"
+        />
+      </Flex>
     </Group>
   );
 }
