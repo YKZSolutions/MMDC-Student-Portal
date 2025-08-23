@@ -34,7 +34,7 @@ const CourseTasksSummary = ({
           courses.filter((course) => course.activities.length > 0).map((course, index) => (
             <Stack gap={'sm'}>
               <Title c={'dark.7'} variant="hero" order={5} fw={700}>
-                {course.courseName}
+                {course.courseDetails.courseName}
               </Title>
               <Divider />
               <Stack gap={'md'}>
