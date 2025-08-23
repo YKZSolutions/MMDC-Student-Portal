@@ -4,8 +4,12 @@ import {
   CreateBillFormSchema,
   type CreateBillFormValues,
 } from '@/features/validation/create-billing'
-import { billingControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  billingControllerCreateMutation,
+  billingControllerFindAllQueryKey,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import { zBillingControllerCreateData } from '@/integrations/api/client/zod.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { formatToLabel } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -105,11 +109,15 @@ function CreateBillingPage() {
     },
   })
 
-  console.log(form.getValues(), form.errors)
-
   const { mutateAsync: create, isPending } = useMutation({
     ...billingControllerCreateMutation(),
     onSuccess: () => {
+      const { queryClient } = getContext()
+      // Triggers a refetch, hence showing a loading state
+      queryClient.removeQueries({
+        queryKey: billingControllerFindAllQueryKey(),
+      })
+
       navigate({
         to: '/billing',
       })
