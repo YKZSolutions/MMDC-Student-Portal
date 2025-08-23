@@ -1,8 +1,11 @@
 import { useAuth } from '@/features/auth/auth.hook'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
 import { mapBillingDetails } from '@/features/billing/helpers'
-import type { DetailedBillDto } from '@/integrations/api/client'
-import { billingControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import type { BillPaymentDto, DetailedBillDto } from '@/integrations/api/client'
+import {
+  billingControllerFindOneOptions,
+  paymentsControllerFindAllOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   ActionIcon,
   Button,
@@ -80,6 +83,26 @@ function BillingIdQueryProvider({
   })
 }
 
+function BillingPaymentHistoryQueryProvider({
+  children,
+}: {
+  children: (props: { paymentHistory: BillPaymentDto[] }) => ReactNode
+}) {
+  const { data } = useSuspenseQuery(
+    paymentsControllerFindAllOptions({
+      path: {
+        billId: route.useParams().billingId,
+      },
+    }),
+  )
+
+  const paymentHistory = data
+
+  return children({
+    paymentHistory,
+  })
+}
+
 function BillingIdPage() {
   const navigate = useNavigate()
 
@@ -132,18 +155,38 @@ function BillingIdPage() {
           </Title>
         }
       >
-        <Timeline active={1} bulletSize={24}>
-          {paymentHistory.map((history) => (
-            <Timeline.Item title={history.title}>
-              <Text c="dimmed" size="sm">
-                {history.description}
-              </Text>
-              <Text size="xs" mt={4}>
-                {dayjs(history.timestamp).format('MMM D, YYYY')}
-              </Text>
-            </Timeline.Item>
-          ))}
-        </Timeline>
+        <Suspense fallback={<></>}>
+          <BillingPaymentHistoryQueryProvider>
+            {(props) => (
+              <Timeline active={props.paymentHistory.length} bulletSize={24}>
+                {props.paymentHistory.map((history) => (
+                  <Timeline.Item key={history.id} title="Payment Received">
+                    <Text c="dimmed" size="sm">
+                      Paid{' '}
+                      <Text fw={600} component="span" inherit>
+                        <NumberFormatter
+                          value={history.amountPaid}
+                          prefix="₱ "
+                          thousandSeparator
+                        />
+                      </Text>{' '}
+                      via{' '}
+                      <Text fw={600} component="span" inherit>
+                        {history.paymentType.toUpperCase()}
+                      </Text>
+                    </Text>
+
+                    <Text size="xs" mt={4}>
+                      {dayjs(history.paymentDate).format(
+                        'ddd, MMM D, YYYY h:mm A',
+                      )}
+                    </Text>
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            )}
+          </BillingPaymentHistoryQueryProvider>
+        </Suspense>
       </Drawer>
 
       <Stack gap={'lg'}>
@@ -241,12 +284,25 @@ function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
 
   return invoice.billInstallments.map((installment) => (
     <Card key={installment.id} withBorder px="lg" radius="md">
-      <Group justify="space-between">
-        <Stack gap={rem(5)}>
-          <Text size="sm" fw={500}>
+      <Group justify="space-between" align="flex-start">
+        <Stack gap={rem(3)}>
+          {/* Installment Name */}
+          <Text size="sm" fw={600}>
             {installment.name}
           </Text>
-          <Text size="sm" c="dark.5">
+
+          {/* Due Date */}
+          <Text size="xs" c="dark.4">
+            Due on{' '}
+            {new Date(installment.dueAt).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </Text>
+
+          {/* Amount */}
+          <Text size="sm" fw={500} c="dark.7">
             <NumberFormatter
               value={installment.amountToPay}
               prefix="₱ "
@@ -277,7 +333,7 @@ function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
             })
           }
         >
-          Pay
+          {installment.status === 'paid' ? 'Paid' : 'Pay'}
         </Button>
       </Group>
     </Card>
