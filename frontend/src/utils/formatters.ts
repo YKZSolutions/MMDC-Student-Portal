@@ -21,3 +21,8 @@ export function formatTimestampToDateTimeText(timestamp: string, separator: stri
 
   return `${date} ${separator} ${time}`;
 }
+
+export const capitalizeFirstLetter = (string: string) => {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
