@@ -1,6 +1,12 @@
+import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
 import { mapBillingDetails } from '@/features/billing/helpers'
+import {
+  SuspendedBillingBreakdown,
+  SuspendedBillingInstallment,
+  SuspendedBillingPreface,
+} from '@/features/billing/suspense'
 import type { BillPaymentDto, DetailedBillDto } from '@/integrations/api/client'
 import {
   billingControllerFindOneOptions,
@@ -14,14 +20,16 @@ import {
   Drawer,
   Flex,
   Group,
+  LoadingOverlay,
   NumberFormatter,
   rem,
   SimpleGrid,
+  Skeleton,
   Stack,
   Text,
   ThemeIcon,
   Timeline,
-  Title,
+  Title
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
@@ -155,7 +163,15 @@ function BillingIdPage() {
           </Title>
         }
       >
-        <Suspense fallback={<></>}>
+        <Suspense
+          fallback={
+            <LoadingOverlay
+              visible
+              zIndex={1000}
+              overlayProps={{ radius: 'sm', blur: 2 }}
+            />
+          }
+        >
           <BillingPaymentHistoryQueryProvider>
             {(props) => (
               <Timeline active={props.paymentHistory.length} bulletSize={24}>
@@ -190,7 +206,7 @@ function BillingIdPage() {
       </Drawer>
 
       <Stack gap={'lg'}>
-        <Suspense fallback={<></>}>
+        <Suspense fallback={<SuspendedBillingPreface />}>
           <BillingIdQueryProvider>
             {({ currentInvoice }) => (
               <BillingPrefaceDetails invoice={currentInvoice} />
@@ -199,7 +215,14 @@ function BillingIdPage() {
         </Suspense>
 
         <Group grow align="flex-start" gap={'lg'}>
-          <Suspense fallback={<></>}>
+          <Suspense
+            fallback={
+              <Stack gap={'xs'}>
+                <Skeleton height={rem(20)} w={rem(150)} />
+                <SuspendedBillingBreakdown />
+              </Stack>
+            }
+          >
             <BillingIdQueryProvider>
               {({ currentInvoice }) => (
                 <Stack gap={'xs'}>
@@ -212,7 +235,14 @@ function BillingIdPage() {
               )}
             </BillingIdQueryProvider>
           </Suspense>
-          <Suspense fallback={<></>}>
+          <Suspense
+            fallback={
+              <Stack gap={'xs'}>
+                <Skeleton height={rem(20)} w={rem(150)} />
+                <SuspendedBillingInstallment />
+              </Stack>
+            }
+          >
             <BillingIdQueryProvider>
               {({ currentInvoice }) => (
                 <Stack gap={'xs'}>
@@ -281,6 +311,7 @@ export function BillingPrefaceDetails({
 
 function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
   const { billingId } = route.useParams()
+  const { authUser } = useAuth('protected')
 
   return invoice.billInstallments.map((installment) => (
     <Card key={installment.id} withBorder px="lg" radius="md">
@@ -311,30 +342,39 @@ function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
           </Text>
         </Stack>
 
-        <Button
-          size="xs"
-          disabled={installment.status === 'paid'}
-          onClick={() =>
-            modals.openContextModal({
-              modal: 'ewallet',
-              innerProps: {
-                amount: Decimal(installment.amountToPay).mul(100).toNumber(),
-                installmentId: installment.id,
-                installmentOrder: installment.installmentOrder,
-                description:
-                  'Payment for installment ' +
-                  installment.name +
-                  ' of invoice #' +
-                  invoice.invoiceId,
-                statementDescriptor:
-                  'MMDC Installment ' + `invoice #${invoice.invoiceId}`,
-                billingId,
-              },
-            })
-          }
-        >
-          {installment.status === 'paid' ? 'Paid' : 'Pay'}
-        </Button>
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <Button
+                size="xs"
+                disabled={installment.status === 'paid'}
+                onClick={() =>
+                  modals.openContextModal({
+                    modal: 'ewallet',
+                    innerProps: {
+                      amount: Decimal(installment.amountToPay)
+                        .mul(100)
+                        .toNumber(),
+                      installmentId: installment.id,
+                      installmentOrder: installment.installmentOrder,
+                      description:
+                        'Payment for installment ' +
+                        installment.name +
+                        ' of invoice #' +
+                        invoice.invoiceId,
+                      statementDescriptor:
+                        'MMDC Installment ' + `invoice #${invoice.invoiceId}`,
+                      billingId,
+                    },
+                  })
+                }
+              >
+                {installment.status === 'paid' ? 'Paid' : 'Pay'}
+              </Button>
+            ),
+          }}
+        />
       </Group>
     </Card>
   ))
