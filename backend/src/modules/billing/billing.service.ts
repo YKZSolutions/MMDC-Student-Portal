@@ -84,7 +84,8 @@ export class BillingService {
    * @returns A paginated list of all bills.
    */
   @Log({
-    logArgsMessage: ({ filter }) => `Fetching bills for page=${filter.page}`,
+    logArgsMessage: ({ filter }) =>
+      `Fetching bills for filter=${JSON.stringify(filter)}`,
     logSuccessMessage: (res) => `Fetched bills with ${res.meta.totalCount}`,
   })
   @PrismaError({
@@ -108,6 +109,7 @@ export class BillingService {
     const search = filters.search || null;
     const sort = filters.sort || null;
     const sortDir = filters.sortOrder || 'desc';
+    const isDeleted = filters.isDeleted || false;
 
     const fetchedBills = await this.prisma.client.$queryRawTyped(
       getBillingWithPayment(
@@ -120,6 +122,7 @@ export class BillingService {
         user,
         sort,
         sortDir,
+        isDeleted,
       ),
     );
 
@@ -135,7 +138,14 @@ export class BillingService {
     });
 
     const totalResult = await this.prisma.client.$queryRawTyped(
-      getBillingWithPaymentMeta(scheme, billType, status, search, user),
+      getBillingWithPaymentMeta(
+        scheme,
+        billType,
+        status,
+        search,
+        user,
+        isDeleted,
+      ),
     );
 
     const totalCount = Number(totalResult[0]?.count ?? 0);
