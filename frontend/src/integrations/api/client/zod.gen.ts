@@ -603,8 +603,8 @@ export const zUpdateBillDto = z.object({
 });
 
 export const zInitiatePaymentDto = z.object({
-    installmentId: z.optional(z.uuid()),
-    installmentOrder: z.optional(z.number()),
+    installmentId: z.uuid(),
+    installmentOrder: z.number(),
     description: z.optional(z.string()),
     statementDescriptor: z.optional(z.string()),
     amount: z.number()

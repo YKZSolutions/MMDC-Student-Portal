@@ -427,8 +427,8 @@ export type UpdateBillDto = {
 };
 
 export type InitiatePaymentDto = {
-    installmentId?: string;
-    installmentOrder?: number;
+    installmentId: string;
+    installmentOrder: number;
     description?: string;
     statementDescriptor?: string;
     amount: number;
