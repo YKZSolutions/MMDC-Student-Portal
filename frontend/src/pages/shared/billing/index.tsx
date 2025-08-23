@@ -4,8 +4,8 @@ import { useAuth } from '@/features/auth/auth.hook'
 import { SuspendedBillingTableRows } from '@/features/billing/suspense'
 import type {
   BillDto,
+  BillItemDto,
   PaginationMetaDto,
-  SingleBillDto,
 } from '@/integrations/api/client'
 import {
   billingControllerFindAllOptions,
@@ -75,7 +75,7 @@ function BillingQueryProvider({
   },
 }: {
   children: (props: {
-    currentInvoices: SingleBillDto[]
+    currentInvoices: BillItemDto[]
     meta: PaginationMetaDto
     message: string
     totalPages: number
