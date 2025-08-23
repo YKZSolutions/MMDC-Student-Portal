@@ -16,9 +16,7 @@ import {
 } from '@prisma/client/sql';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
-import {
-  CreateBillingDto
-} from './dto/create-billing.dto';
+import { CreateBillingDto } from './dto/create-billing.dto';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
@@ -275,18 +273,27 @@ export class BillingService {
         where: { id: id },
       });
       if (!payment.deletedAt) {
-        await this.prisma.client.bill.update({
-          where: { id: id },
-          data: {
-            deletedAt: new Date(),
-          },
-        });
+        this.prisma.client.$transaction(async (tx) => {
+          await tx.billPayment.updateMany({
+            where: { billId: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
 
-        await this.prisma.client.billPayment.updateMany({
-          where: { billId: id },
-          data: {
-            deletedAt: new Date(),
-          },
+          await tx.billInstallment.updateMany({
+            where: { billId: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
+
+          await tx.bill.updateMany({
+            where: { id: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
         });
 
         return {
@@ -295,12 +302,18 @@ export class BillingService {
       }
     }
 
-    await this.prisma.client.bill.delete({
-      where: { id: id },
-    });
+    this.prisma.client.$transaction(async (tx) => {
+      await tx.billPayment.deleteMany({
+        where: { billId: id },
+      });
 
-    await this.prisma.client.billPayment.deleteMany({
-      where: { billId: id },
+      await tx.billInstallment.deleteMany({
+        where: { billId: id },
+      });
+
+      await tx.bill.delete({
+        where: { id: id },
+      });
     });
 
     return {
