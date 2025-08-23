@@ -44,6 +44,7 @@ import {
   IconPlus,
   IconSearch,
   IconUpload,
+  IconX,
   type ReactNode,
 } from '@tabler/icons-react'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
@@ -235,10 +236,43 @@ function BillingTable() {
 
   const { mutateAsync: remove } = useMutation({
     ...billingControllerRemoveMutation(),
-    onSuccess: async () => {
+    onMutate: () => {
+      const notifId = notifications.show({
+        loading: true,
+        title: `Deleting the bill.`,
+        message: `Performing the action, please wait.`,
+        autoClose: false,
+        withCloseButton: false,
+      })
+
+      return { notifId }
+    },
+    onSuccess: async (_, __, context) => {
       const { queryClient } = getContext()
       queryClient.removeQueries({
         queryKey: billingControllerFindAllQueryKey(),
+      })
+
+      notifications.update({
+        id: context.notifId,
+        color: 'teal',
+        title: `Bill Deleted`,
+        message: `The bill has been deleted.`,
+        icon: <IconCheck size={18} />,
+        loading: false,
+        autoClose: 1500,
+      })
+    },
+
+    onError: (_, __, context) => {
+      notifications.update({
+        id: context?.notifId,
+        color: 'red',
+        title: `Failed to delete the bill.`,
+        message: `An error occurred while trying to delete the bill. Please try again.`,
+        icon: <IconX size={18} />,
+        loading: false,
+        autoClose: 3000,
       })
     },
   })
@@ -278,26 +312,10 @@ function BillingTable() {
             labels: { confirm: 'Delete', cancel: 'Cancel' },
             confirmProps: { color: 'red' },
             onConfirm: async () => {
-              const notifId = notifications.show({
-                loading: true,
-                title: `Deleting the bill.`,
-                message: `Performing the action, please wait.`,
-                autoClose: false,
-                withCloseButton: false,
-              })
               await remove({
                 path: {
                   id: id,
                 },
-              })
-              notifications.update({
-                id: notifId,
-                color: 'teal',
-                title: `Bill Deleted`,
-                message: `The bill has been deleted.`,
-                icon: <IconCheck size={18} />,
-                loading: false,
-                autoClose: 1500,
               })
             },
           })
