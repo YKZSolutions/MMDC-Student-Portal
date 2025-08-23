@@ -5,7 +5,7 @@ import RoleComponentManager from '@/components/role-component-manager.tsx'
 import GradesPageStudentView from '@/pages/student/courses/$courseId/grades/course-grades.tsx'
 
 export const Route = createFileRoute(
-  '/(protected)/courses/$courseId/assignments/',
+  '/(protected)/courses/$courseCode/assignments/',
 )({
   component: RouteComponent,
 })

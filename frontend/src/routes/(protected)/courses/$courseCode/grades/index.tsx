@@ -4,7 +4,7 @@ import CourseOverviewStudentView from '@/pages/student/courses/$courseId/course-
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 
-export const Route = createFileRoute('/(protected)/courses/$courseId/grades/')({
+export const Route = createFileRoute('/(protected)/courses/$courseCode/grades/')({
   component: RouteComponent,
 })
 

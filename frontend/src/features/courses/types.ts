@@ -1,6 +1,10 @@
+export interface CourseBasicDetails {
+  courseName: string
+  courseCode: string
+}
+
 export interface Course {
-  courseName: string,
-  courseCode: string,
+  courseDetails: CourseBasicDetails,
   courseProgress: number,
   section: Section,
   activities: Activity[]
@@ -48,4 +52,9 @@ export enum ContentType {
   Module = "module",
   Subsection = "subsection",
   Item = "item",
+}
+
+export interface ModalProp {
+  opened: boolean
+  closeModal: () => void
 }
