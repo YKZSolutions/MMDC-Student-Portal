@@ -36,6 +36,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
+import { useDebouncedCallback } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
@@ -137,6 +138,15 @@ function BillingPage() {
 
   const [query, setQuery] = useState<IBillingQuery>(queryDefaultValues)
 
+  // Since searchParam is debounced,
+  // this is what we need to pass to the query provider
+  // This will ensure that the query is also debounced
+  const debouncedQuery = {
+    search: searchParam.search || '',
+    page: query.page,
+    tab: query.tab,
+  } as IBillingQuery
+
   const { authUser } = useAuth('protected')
 
   const handleTabChange = (value: IBillingQuery['tab']) => {
@@ -150,6 +160,27 @@ function BillingPage() {
       }),
     })
   }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+
+    setQuery((prev) => ({
+      ...prev,
+      search: value,
+    }))
+
+    handleNavigate(value)
+  }
+
+  const handleNavigate = useDebouncedCallback(async (value: string) => {
+    navigate({
+      to: '/billing',
+      search: (prev) => ({
+        ...prev,
+        search: value.trim() || undefined,
+      }),
+    })
+  }, 200)
 
   return (
     <Container fluid m={0}>
@@ -215,6 +246,7 @@ function BillingPage() {
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
               w={rem(250)}
+              onChange={handleSearch}
             />
             <Button
               variant="default"
@@ -227,10 +259,10 @@ function BillingPage() {
           </Group>
         </Group>
 
-        <BillingTable query={query} />
+        <BillingTable query={debouncedQuery} />
 
         <Suspense fallback={<SuspendedPagination />}>
-          <BillingQueryProvider props={query}>
+          <BillingQueryProvider props={debouncedQuery}>
             {(props) => (
               <Group justify="flex-end">
                 <Text size="sm">{props.message}</Text>
