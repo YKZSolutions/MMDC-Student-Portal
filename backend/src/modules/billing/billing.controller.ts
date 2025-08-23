@@ -2,9 +2,7 @@ import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
-import {
-  CurrentAuthUser
-} from '@/common/interfaces/auth.user-metadata';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
@@ -101,10 +99,7 @@ export class BillingController {
    */
   @Delete(':id')
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(
-    @Param('id') id: string,
-    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
-  ) {
+  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
     return this.billingService.remove(id, query?.directDelete);
   }
 }

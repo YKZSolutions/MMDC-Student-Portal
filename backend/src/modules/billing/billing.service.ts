@@ -257,7 +257,8 @@ export class BillingService {
    * @returns A message indicating the result.
    */
   @Log({
-    logArgsMessage: ({ id }) => `Removing bill with id=${id}`,
+    logArgsMessage: ({ id, directDelete }) =>
+      `Removing bill with id=${id}, directDelete=${directDelete}`,
     logSuccessMessage: (res) => res.message,
   })
   @PrismaError({
@@ -266,7 +267,7 @@ export class BillingService {
   })
   async remove(
     @LogParam('id') id: string,
-    directDelete?: boolean,
+    @LogParam('directDelete') directDelete?: boolean,
   ): Promise<{ message: string }> {
     if (!directDelete) {
       const payment = await this.prisma.client.bill.findFirstOrThrow({
