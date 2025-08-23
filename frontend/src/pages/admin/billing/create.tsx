@@ -30,7 +30,8 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
-import { IconPlus, IconTrash } from '@tabler/icons-react'
+import { notifications } from '@mantine/notifications'
+import { IconCheck, IconPlus, IconTrash, IconX } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
@@ -111,15 +112,47 @@ function CreateBillingPage() {
 
   const { mutateAsync: create, isPending } = useMutation({
     ...billingControllerCreateMutation(),
-    onSuccess: () => {
+
+    onMutate: () => {
+      const id = notifications.show({
+        loading: true,
+        title: 'Creating bill',
+        message: 'Please wait while the bill is being created.',
+        autoClose: false,
+        withCloseButton: false,
+      })
+      return { notifId: id }
+    },
+
+    onSuccess: (_, __, context) => {
       const { queryClient } = getContext()
-      // Triggers a refetch, hence showing a loading state
+
       queryClient.removeQueries({
         queryKey: billingControllerFindAllQueryKey(),
       })
 
-      navigate({
-        to: '/billing',
+      navigate({ to: '/billing' })
+
+      notifications.update({
+        id: context?.notifId,
+        color: 'teal',
+        title: 'Bill Created',
+        message: 'The bill has been created.',
+        icon: <IconCheck size={18} />,
+        loading: false,
+        autoClose: 1500,
+      })
+    },
+
+    onError: (_, __, context) => {
+      notifications.update({
+        id: context?.notifId,
+        color: 'red',
+        title: 'Failed',
+        message: 'Something went wrong while creating the bill.',
+        icon: <IconX size={18} />,
+        loading: false,
+        autoClose: 3000,
       })
     },
   })
