@@ -8,23 +8,22 @@ import type { Role } from '@/integrations/api/client'
 type DefaultRoles = Role
 
 type RoleBasedActionButtonProps = {
-  disabled: boolean;
   render: {
     [K in DefaultRoles]?: {
       icon: React.ReactNode;
       text: string;
       click: () => void;
+      disabled?: boolean;
     }
   }
 }
 
 const RoleBasedActionButton = ({
-  disabled,
   render,
 }: RoleBasedActionButtonProps) => {
   const { authUser } = useAuth('protected')
   const { role } = authUser
-  const { icon, text, click } = render[role] || {}
+  const { icon, text, click, disabled } = render[role] || {}
 
   if (!icon || !text || !click) {
     return null

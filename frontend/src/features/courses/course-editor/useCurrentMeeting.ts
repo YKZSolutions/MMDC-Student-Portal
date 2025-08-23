@@ -1,7 +1,7 @@
-import type { Course } from '@/features/courses/types.ts'
+import type { ClassMeeting } from '@/features/courses/types.ts'
 import dayjs from 'dayjs'
 
-export function useCurrentMeeting(classMeetings: Course['classMeetings']){
+export function useCurrentMeeting(classMeetings: ClassMeeting[]){
   const now = new Date()
   let start;
   let end;

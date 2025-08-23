@@ -2,21 +2,24 @@ export interface Course {
   courseName: string,
   courseCode: string,
   courseProgress: number,
-  sectionName: string,
-  sectionSchedule: {
-    day: string,
-    time: string
-  },
-  classMeetings: {
-    date: string,
-    timeStart: string,
-    timeEnd: string,
-    meetingLink: string
-  }[],
-  activities: {
-    activityName: string,
-    dueTimestamp: string
-  }[]
+  section: Section,
+  activities: Activity[]
+}
+
+export interface SectionSchedule {
+  day: string
+  time: string
+}
+
+export interface Section {
+  sectionName: string
+  sectionSchedule: SectionSchedule
+  classMeetings: ClassMeeting[]
+}
+
+export interface Activity {
+  activityName: string
+  dueTimestamp: string
 }
 
 export interface EnrolledAcademicTerm {
@@ -36,21 +39,13 @@ export interface EnrolledCourse {
 }
 
 export interface ClassMeeting {
-  date: string
-  timeStart: string
-  timeEnd: string
+  startTimeStamp: string
+  endTimeStamp: string
   meetingLink: string
 }
 
-export interface CourseDetailProps {
-  courseName: string
-  courseCode: string
-  courseProgress: number
-  sectionName: string
-  sectionSchedule: {
-    day: string
-    time: string
-  }
-  classMeetings: ClassMeeting[]
-  onClick: () => void
+export enum ContentType {
+  Module = "module",
+  Subsection = "subsection",
+  Item = "item",
 }

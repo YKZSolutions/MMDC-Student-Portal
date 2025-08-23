@@ -12,123 +12,118 @@ import {
   RingProgress,
   useMantineTheme,
   Button,
-  ActionIcon,
-  Tooltip,
-  TextInput,
-  Combobox,
-  useCombobox,
-  InputBase,
   Grid,
-  Paper,
-  Center,
   Progress,
   Select,
-  type ComboboxItem,
 } from '@mantine/core'
 import {
-  IconCalendar,
-  IconEdit,
+  IconDeviceDesktop,
   IconLayoutGridFilled,
   IconList,
-  IconMessage,
-  IconSearch,
   IconVideo,
 } from '@tabler/icons-react'
-import { useState } from 'react'
-import type { Course, CourseDetailProps, EnrolledAcademicTerm } from '@/features/courses/types.ts'
+import React, { useState } from 'react'
+import type { ClassMeeting, Course, EnrolledAcademicTerm } from '@/features/courses/types.ts'
 import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
-import RoleComponentManager from '@/components/role-component-manager.tsx'
-import { useAuth } from '@/features/auth/auth.hook.ts'
+import { useCurrentMeeting } from '@/features/courses/course-editor/useCurrentMeeting.ts'
+import { handleMeetingClick } from '@/utils/handlers.ts'
+import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
+import CourseQuickActions from '@/features/courses/course-quick-actions.tsx'
 
 const MockCourseData: Course[] = [
-    {
-        courseName: 'Web Technology Applications',
-        courseCode: 'MO-IT200',
-        courseProgress: 0.5,
-        sectionName: 'A2101',
-        sectionSchedule: {
-            day: 'MWF',
-            time: '10:00 - 11:00 AM',
+  {
+    courseName: 'Web Technology Applications',
+    courseCode: 'MO-IT200',
+    courseProgress: 0.5,
+    section: {
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'MWF',
+        time: '10:00 - 11:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2023-08-20T10:00',
+          endTimeStamp: '2023-08-20T11:00',
+          meetingLink: 'https://zoom.us',
         },
-        classMeetings: [
-            {
-                date: '2025-08-20',
-                timeStart: '3:00 AM',
-                timeEnd: '4:00 AM',
-                meetingLink: 'https://zoom.us',
-            }
-        ],
-        activities: []
-    },
-    {
-        courseName: 'Data Structures and Algorithms',
-        courseCode: 'MO-IT351',
-        courseProgress: 0.5,
-        sectionName: 'A2101',
-        sectionSchedule: {
-            day: 'TTHS',
-            time: '10:00 - 11:00 AM',
-        },
-        classMeetings: [
-            {
-                date: '2025-08-20',
-                timeStart: '3:00 AM',
-                timeEnd: '4:00 AM',
-                meetingLink: 'https://zoom.us',
-            }
-        ],
-        activities: []
+      ],
     },
 
-    {
-        courseName: 'Capstone 1',
-        courseCode: 'MO-IT400',
-        courseProgress: 0.5,
-        sectionName: 'A2101',
-        sectionSchedule: {
-            day: 'MWF',
-            time: '8:00 - 9:00 AM',
+    activities: [],
+  },
+  {
+    courseName: 'Data Structures and Algorithms',
+    courseCode: 'MO-IT351',
+    courseProgress: 0.5,
+    section:{
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'TTHS',
+        time: '10:00 - 11:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2023-08-20T10:00',
+          endTimeStamp: '2023-08-20T11:00',
+          meetingLink: 'https://zoom.us',
         },
-        classMeetings: [
-            {
-                date: '2025-08-20',
-                timeStart: '3:45 PM',
-                timeEnd: '10:00 PM',
-                meetingLink: 'https://zoom.us',
-            }
-        ],
-        activities: []
+      ],
     },
-    {
-        courseName: 'Capstone 2',
-        courseCode: 'MO-IT500',
-        courseProgress: 0.5,
-        sectionName: 'A2101',
-        sectionSchedule: {
-            day: 'TTHS',
-            time: '8:00 - 9:00 AM',
+    activities: [],
+  },
+
+  {
+    courseName: 'Capstone 1',
+    courseCode: 'MO-IT400',
+    courseProgress: 0.5,
+    section:{
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'MWF',
+        time: '8:00 - 9:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2023-08-20T15:45',
+          endTimeStamp: '2023-08-20T22:00',
+          meetingLink: 'https://zoom.us',
         },
-        classMeetings: [
-            {
-                date: '2025-08-22',
-                timeStart: '12:00 AM',
-                timeEnd: '11:59 PM',
-                meetingLink: 'https://zoom.us',
-            }
-        ],
-        activities: [
-            {
-                activityName: 'Assignment 1',
-                dueTimestamp: '2025-08-20T23:59:59',
-            },
-            {
-                activityName: 'Assignment 2',
-                dueTimestamp: '2025-08-20T23:59:59',
-            }
-        ]
+      ],
     },
+    activities: [],
+  },
+  {
+    courseName: 'Capstone 2',
+    courseCode: 'MO-IT500',
+    courseProgress: 0.5,
+    section: {
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'TTHS',
+        time: '8:00 - 9:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2025-08-23T00:00',
+          endTimeStamp: '2025-08-29T23:59',
+          meetingLink: 'https://zoom.us',
+        }
+      ],
+    },
+    activities: [
+      {
+        activityName: 'Assignment 1',
+        dueTimestamp: '2025-08-20T23:59:59',
+      },
+      {
+        activityName: 'Assignment 2',
+        dueTimestamp: '2025-08-20T23:59:59',
+      }
+    ]
+  },
 ]
 
 const CoursesStudentPage = ({ academicTerms }: { academicTerms: EnrolledAcademicTerm[] }) => {
@@ -239,9 +234,7 @@ const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'li
             courseName={course.courseName}
             courseCode={course.courseCode}
             courseProgress={course.courseProgress}
-            sectionName={course.sectionName}
-            sectionSchedule={course.sectionSchedule}
-            classMeetings={course.classMeetings}
+            section={course.section}
             onClick={handleClick}
         />
     ) : (
@@ -249,116 +242,127 @@ const CourseItem = ({ course, variant }: { course: Course; variant: 'grid' | 'li
             courseName={course.courseName}
             courseCode={course.courseCode}
             courseProgress={course.courseProgress}
-            sectionName={course.sectionName}
-            sectionSchedule={course.sectionSchedule}
-            classMeetings={course.classMeetings}
+            section={course.section}
             onClick={handleClick}
         />
     )
-}
-
-const handleMeetingClick = (meetingLink?: string) => {
-  if (meetingLink) {
-    window.open(meetingLink, '_blank', 'noopener,noreferrer')
-  }
 }
 
 const handleManageCourseClick = () => {
 
 }
 
-const CourseCard = ({
-  courseName,
-  courseCode,
-  courseProgress,
-  sectionName,
-  sectionSchedule,
-  classMeetings,
-  onClick,
-}: CourseDetailProps) => {
+interface CourseDetailProps extends Omit<Course, 'activities'> {
+  onClick: () => void
+}
+
+const CourseCard =
+  ({
+    courseName,
+    courseCode,
+    courseProgress,
+    section,
+    onClick,
+   }: CourseDetailProps) => {
     const theme = useMantineTheme()
-    const currentMeeting = useCurrentMeeting(classMeetings)
+    const { sectionName, sectionSchedule, classMeetings } = section
+    const { currentMeeting } = useCurrentMeeting(classMeetings)
     const [hovered, setHovered] = useState(false)
 
     return (
-    <Card withBorder radius="md" p="xs" shadow={hovered ? 'sm' : 'xs'} style={{cursor: 'pointer'}} onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      {/*Image*/}
-      <Flex pos="relative">
-        <Image
-          src="https://images.unsplash.com/photo-1511275539165-cc46b1ee89bf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          alt="Norway"
-          radius='md'
-          w='100%'
-          h='5.375rem'
-        />
-        <Text
-          pos="absolute"
-          top="4px"
-          left="4px"
-          size="0.625em"
-          fw={500}
-          c="white"
-          px="sm"
-          py="xs"
-          bdrs="md"
-          bg="black"
-          opacity={0.75}
-          style={{ textDecoration: hovered ? 'underline' : 'none' }}
-        >
-          {courseCode} • {sectionName}
-        </Text>
-      </Flex>
-      {/*Course Details*/}
-      <Group justify="space-between" wrap="nowrap" mt="xs">
-        <Stack gap={'md'} w={'16rem'} px={'xs'}>
-          <Stack mt={'xs'}>
-            <Title order={3} w={'100%'} lineClamp={1} c={theme.primaryColor} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
-              {courseName}
-            </Title>
-            <Text fw={400} size={'sm'} c={theme.colors.dark[3]} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
-              {sectionSchedule.day} {sectionSchedule.time}
-            </Text>
-          </Stack>
-          <CardActionButton
-            disabled={!currentMeeting}
-            onMeetingClick={()=> handleMeetingClick(currentMeeting?.meetingLink)}
-            onManageCourseClick={()=> handleManageCourseClick()}>
-          </CardActionButton>
-          <Group justify="space-between">
-            <Group gap="0.25rem">
-              <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                Completed
+      <Card
+        withBorder
+        radius="md"
+        p="xs"
+        shadow={hovered ? 'sm' : 'xs'}
+        style={{cursor: 'pointer'}}
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {/*Image*/}
+        <Flex pos="relative">
+          <Image
+            src="https://images.unsplash.com/photo-1511275539165-cc46b1ee89bf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Norway"
+            radius='md'
+            w='100%'
+            h='5.375rem'
+          />
+          <Text
+            pos="absolute"
+            top="4px"
+            left="4px"
+            size="0.625em"
+            fw={500}
+            c="white"
+            px="sm"
+            py="xs"
+            bdrs="md"
+            bg="black"
+            opacity={0.75}
+            style={{ textDecoration: hovered ? 'underline' : 'none' }}
+          >
+            {courseCode} • {sectionName}
+          </Text>
+        </Flex>
+        {/*Course Details*/}
+        <Group justify="space-between" wrap="nowrap" mt="xs">
+          <Stack gap={'md'} w={'16rem'} px={'xs'}>
+            <Stack mt={'xs'}>
+              <Title order={3} w={'100%'} lineClamp={1} c={theme.primaryColor} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
+                {courseName}
+              </Title>
+              <Text fw={400} size={'sm'} c={theme.colors.dark[3]} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
+                {sectionSchedule.day} {sectionSchedule.time}
               </Text>
-              <Group gap="0">
-                <RingProgress size={20} thickness={3} sections={[{ value: courseProgress * 100, color: theme.colors.blue[5] }]} />
+            </Stack>
+            <CourseCardActionButton currentMeeting={currentMeeting} />
+            <Group justify="space-between">
+              <Group gap="0.25rem">
                 <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                  {courseProgress * 100}%
+                  Completed
                 </Text>
+                <Group gap="0">
+                  <RingProgress size={20} thickness={3} sections={[{ value: courseProgress * 100, color: theme.colors.blue[5] }]} />
+                  <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                    {courseProgress * 100}%
+                  </Text>
+                </Group>
               </Group>
+              <CourseQuickActions />
             </Group>
-            <QuickActions />
-          </Group>
-        </Stack>
-      </Group>
-    </Card>
-  )
+          </Stack>
+        </Group>
+      </Card>
+    )
 }
 
-const CourseListRow = ({
-                         courseName,
-                         courseCode,
-                         courseProgress,
-                         sectionName,
-                         sectionSchedule,
-                         classMeetings,
-                         onClick
-                    }: CourseDetailProps) => {
-  const theme = useMantineTheme()
-  const currentMeeting = useCurrentMeeting(classMeetings)
-  const [hovered, setHovered] = useState(false)
+const CourseListRow =
+  ({
+     courseName,
+     courseCode,
+     courseProgress,
+     section,
+     onClick,
+   }: CourseDetailProps) => {
+    const theme = useMantineTheme()
+    const { sectionName, sectionSchedule, classMeetings } = section
+    const { currentMeeting } = useCurrentMeeting(classMeetings)
+    const [hovered, setHovered] = useState(false)
 
     return (
-        <Card withBorder radius="md" p="0" shadow={hovered ? 'sm' : 'xs'} w={'100%'} style={{cursor: 'pointer'}}  onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+        <Card
+          withBorder
+          radius="md"
+          p="0"
+          shadow={hovered ? 'sm' : 'xs'}
+          w={'100%'}
+          style={{cursor: 'pointer'}}
+          onClick={onClick}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+        >
             <Group justify="space-between" wrap="nowrap">
                 <Box bg={theme.colors.primary[1]} h={'100%'} w={'5%'}></Box>
                 <Stack w={'65%'} p={'xs'} justify={'space-between'}>
@@ -366,18 +370,14 @@ const CourseListRow = ({
                         <Title order={3} lineClamp={1} maw={'75%'} c={theme.primaryColor} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
                             {courseName}
                         </Title>
-                        <QuickActions />
+                        <CourseQuickActions />
                     </Group>
                     <Text fw={400} size={'sm'} c={theme.colors.dark[3]} style={{ textDecoration: hovered ? 'underline' : 'none' }}>
                         {courseCode} • {sectionName} | {sectionSchedule.day} {sectionSchedule.time}
                     </Text>
                 </Stack>
                 <Stack w={'30%'} p={'xs'} justify={'space-between'}>
-                  <CardActionButton
-                    disabled={!currentMeeting}
-                    onMeetingClick={()=> handleMeetingClick(currentMeeting?.meetingLink)}
-                    onManageCourseClick={()=> handleManageCourseClick()}>
-                  </CardActionButton>
+                  <CourseCardActionButton currentMeeting={currentMeeting} />
                   <Group gap="xs" >
                     <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
                       Completed:
@@ -393,96 +393,25 @@ const CourseListRow = ({
     )
 }
 
-const CardActionButton = ({ disabled, onMeetingClick, onManageCourseClick }: { disabled: boolean; onMeetingClick: () => void; onManageCourseClick: () => void}) => {
-  const { authUser } = useAuth('protected')
+const CourseCardActionButton = ({ currentMeeting }: { currentMeeting?: ClassMeeting }) => {
   return (
-    <RoleComponentManager
-      currentRole={authUser.role}
-      roleRender={{
-        student: (
-          <>
-            <Button
-              leftSection={<IconVideo/>}
-              size="xs"
-              radius="xl"
-              variant="filled"
-              disabled={disabled}
-              onClick={onMeetingClick}
-            >
-              Attend
-            </Button>
-          </>
-        ),
-        admin: (
-          <>
-            <Button
-              leftSection={<IconEdit/>}
-              size="xs"
-              radius="xl"
-              variant="filled"
-              onClick={onManageCourseClick}
-            >Manage Course
-            </Button>
-          </>
-        ),
+    <RoleBasedActionButton
+      render={{
+        student: {
+          icon: <IconVideo size={16} />,
+          text: 'Join Meeting',
+          click: () => handleMeetingClick(currentMeeting?.meetingLink),
+          disabled: !currentMeeting
+        },
+        admin: {
+          icon: <IconDeviceDesktop size={16} />,
+          text: 'Manage Course',
+          click: () => handleManageCourseClick(),
+        },
       }}
     />
-    )
-}
-
-//TODO: implement action function for booking a mentoring session and navigating to gspace
-const QuickActions = () => {
-  const theme = useMantineTheme()
-  const { authUser } = useAuth('protected')
-
-  const IconButton = (label: string, icon: React.ReactNode) => {
-    return (
-      <Tooltip label={label} withArrow color={theme.colors.dark[6]}>
-        <ActionIcon color={theme.colors.dark[6]} variant="white" radius="lg" bd={`1px solid ${theme.colors.dark[0]}`}>
-          {icon}
-        </ActionIcon>
-      </Tooltip>
-    )
-  }
-  return (
-    <Group gap="xs">
-      {/*TODO: Add badge for mentoring session*/}
-      <RoleComponentManager
-        currentRole={authUser.role}
-        roleRender={{
-          student: IconButton("Book Mentoring Session", <IconCalendar size={'60%'} stroke={1.5} />),
-          admin: IconButton("Manage Mentoring Sessions", <IconCalendar size={'60%'} stroke={1.5} />)
-        }}
-      />
-      <Tooltip label="Got to Chat" withArrow color={theme.colors.dark[6]}>
-        <ActionIcon color={theme.colors.dark[6]} variant="white" radius="lg" bd={`1px solid ${theme.colors.dark[0]}`}>
-          <IconMessage size={'50%'} stroke={1.5}/>
-        </ActionIcon>
-      </Tooltip>
-    </Group>
   )
 }
 
-const toDate = (dateStr: string, timeStr: string) => {
-    // dateStr: 'YYYY-MM-DD', timeStr: 'h:mm AM/PM'
-    const [y, m, d] = dateStr.split('-').map(Number)
-    const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
-    if (!match) return new Date(NaN)
-    const [, hh, mm, ampm] = match
-    let hour = parseInt(hh, 10) % 12
-    if (ampm.toUpperCase() === 'PM') hour += 12
-    const minute = parseInt(mm, 10)
-    return new Date(y, m - 1, d, hour, minute, 0, 0)
-}
-
-const useCurrentMeeting = (classMeetings: Course['classMeetings']) => {
-    const now = new Date()
-    return classMeetings.find((meeting) => {
-      const start = toDate(meeting.date, meeting.timeStart)
-      const earlyJoin = new Date(start.getTime() - 15 * 60 * 1000) // 15 minutes before start
-      const end = toDate(meeting.date, meeting.timeEnd)
-      return now >= earlyJoin && now <= end
-    })
-}
 
 export default CoursesStudentPage
