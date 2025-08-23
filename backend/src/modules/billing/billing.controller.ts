@@ -15,8 +15,7 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  ValidationPipe,
+  Query
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
@@ -53,7 +52,7 @@ export class BillingController {
   @Get()
   @ApiException(() => NotFoundException)
   findAll(
-    @Query(new ValidationPipe({ transform: true })) filters: FilterBillDto,
+    @Query() filters: FilterBillDto,
     @CurrentUser() user: CurrentAuthUser,
   ) {
     const { role, user_id } = user.user_metadata;
