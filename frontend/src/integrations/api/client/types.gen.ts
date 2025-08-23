@@ -1262,7 +1262,7 @@ export type BillingControllerFindAllData = {
         scheme?: PaymentScheme;
         type?: BillType;
         page?: number;
-        excludeSoftDeleted?: boolean;
+        isDeleted?: boolean;
         search?: string;
         sort?: 'amountToPay' | 'totalPaid' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';

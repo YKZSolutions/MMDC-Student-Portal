@@ -1059,7 +1059,7 @@ export const zBillingControllerFindAllData = z.object({
         scheme: z.optional(zPaymentScheme),
         type: z.optional(zBillType),
         page: z.optional(z.number()).default(1),
-        excludeSoftDeleted: z.optional(z.boolean()).default(false),
+        isDeleted: z.optional(z.boolean()).default(false),
         search: z.optional(z.string()),
         sort: z.optional(z.enum([
             'amountToPay',
