@@ -1,4 +1,3 @@
-import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
 import { mapBillingDetails } from '@/features/billing/helpers'
@@ -23,15 +22,11 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
-import {
-  IconArrowLeft,
-  IconPlus,
-  IconUpload,
-  type ReactNode,
-} from '@tabler/icons-react'
+import { IconArrowLeft, IconUpload, type ReactNode } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
+import Decimal from 'decimal.js'
 import { Suspense } from 'react'
 
 const paymentHistory = [
@@ -87,7 +82,6 @@ function BillingIdQueryProvider({
 
 function BillingIdPage() {
   const navigate = useNavigate()
-  const { billingId } = route.useParams()
 
   const [opened, { open, close }] = useDisclosure(false)
 
@@ -125,30 +119,6 @@ function BillingIdPage() {
           >
             Export
           </Button>
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              student: (
-                <Button
-                  variant="filled"
-                  radius={'md'}
-                  leftSection={<IconPlus size={20} />}
-                  lts={rem(0.25)}
-                  onClick={() =>
-                    modals.openContextModal({
-                      modal: 'ewallet',
-                      innerProps: {
-                        amount: 20000,
-                        billingId,
-                      },
-                    })
-                  }
-                >
-                  Pay Bill
-                </Button>
-              ),
-            }}
-          />
         </Group>
       </Flex>
 
@@ -176,7 +146,7 @@ function BillingIdPage() {
         </Timeline>
       </Drawer>
 
-      <Stack>
+      <Stack gap={'lg'}>
         <Suspense fallback={<></>}>
           <BillingIdQueryProvider>
             {({ currentInvoice }) => (
@@ -185,27 +155,31 @@ function BillingIdPage() {
           </BillingIdQueryProvider>
         </Suspense>
 
-        <Suspense fallback={<></>}>
-          <BillingIdQueryProvider>
-            {({ currentInvoice }) => (
-              <BillingInstallments invoice={currentInvoice} />
-            )}
-          </BillingIdQueryProvider>
-        </Suspense>
-
-        <Suspense fallback={<></>}>
-          <BillingIdQueryProvider>
-            {({ currentInvoice }) => (
-              <Stack gap={'xs'}>
-                <Text fw={500}>Billing Breakdown</Text>
-                <BillingFeeBreakdown
-                  open={open}
-                  fees={currentInvoice.costBreakdown}
-                />
-              </Stack>
-            )}
-          </BillingIdQueryProvider>
-        </Suspense>
+        <Group grow align="flex-start" gap={'lg'}>
+          <Suspense fallback={<></>}>
+            <BillingIdQueryProvider>
+              {({ currentInvoice }) => (
+                <Stack gap={'xs'}>
+                  <Text fw={500}>Billing Breakdown</Text>
+                  <BillingFeeBreakdown
+                    open={open}
+                    fees={currentInvoice.costBreakdown}
+                  />
+                </Stack>
+              )}
+            </BillingIdQueryProvider>
+          </Suspense>
+          <Suspense fallback={<></>}>
+            <BillingIdQueryProvider>
+              {({ currentInvoice }) => (
+                <Stack gap={'xs'}>
+                  <Text fw={500}>Installments</Text>
+                  <BillingInstallments invoice={currentInvoice} />
+                </Stack>
+              )}
+            </BillingIdQueryProvider>
+          </Suspense>
+        </Group>
       </Stack>
     </Container>
   )
@@ -263,19 +237,48 @@ export function BillingPrefaceDetails({
 }
 
 function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
+  const { billingId } = route.useParams()
+
   return invoice.billInstallments.map((installment) => (
-    <Card withBorder px="lg" radius="md">
+    <Card key={installment.id} withBorder px="lg" radius="md">
       <Group justify="space-between">
-        <Stack gap={'xs'}>
+        <Stack gap={rem(5)}>
           <Text size="sm" fw={500}>
             {installment.name}
           </Text>
           <Text size="sm" c="dark.5">
-            <NumberFormatter value={installment.amountToPay} prefix="₱ " />
+            <NumberFormatter
+              value={installment.amountToPay}
+              prefix="₱ "
+              thousandSeparator
+            />
           </Text>
         </Stack>
 
-        <Button>Pay</Button>
+        <Button
+          size="xs"
+          disabled={installment.status === 'paid'}
+          onClick={() =>
+            modals.openContextModal({
+              modal: 'ewallet',
+              innerProps: {
+                amount: Decimal(installment.amountToPay).mul(100).toNumber(),
+                installmentId: installment.id,
+                installmentOrder: installment.installmentOrder,
+                description:
+                  'Payment for installment ' +
+                  installment.name +
+                  ' of invoice #' +
+                  invoice.invoiceId,
+                statementDescriptor:
+                  'MMDC Installment ' + `invoice #${invoice.invoiceId}`,
+                billingId,
+              },
+            })
+          }
+        >
+          Pay
+        </Button>
       </Group>
     </Card>
   ))

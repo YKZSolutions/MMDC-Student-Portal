@@ -5,7 +5,10 @@ import type {
   IPaymentMethodResponse,
   PaymentMethod,
 } from '@/features/billing/types'
-import type { PaymentIntentDataDto } from '@/integrations/api/client'
+import type {
+  InitiatePaymentDto,
+  PaymentIntentDataDto,
+} from '@/integrations/api/client'
 import { paymentsControllerPayOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Button,
@@ -36,8 +39,7 @@ const ewallets = [
   },
 ]
 
-interface IEwalletModalQueryProvider {
-  amount: number
+interface IEwalletModalQueryProvider extends InitiatePaymentDto {
   billingId: string
 }
 
@@ -71,13 +73,24 @@ function EwalletModalQueryProvider({
   }) => ReactNode
   props: IEwalletModalQueryProvider
 }) {
-  const { amount, billingId } = props
+  const {
+    amount,
+    billingId,
+    installmentId,
+    installmentOrder,
+    description,
+    statementDescriptor,
+  } = props
 
   // Payment Intent Creation
   const { data, isFetching, isPending, isError } = useSuspenseQuery({
     ...paymentsControllerPayOptions({
       body: {
-        amount: amount,
+        amount,
+        installmentId,
+        installmentOrder,
+        description,
+        statementDescriptor,
       },
       path: { billId: billingId },
     }),
@@ -97,11 +110,14 @@ export default function EwalletModal({
   context,
   id,
   innerProps,
-}: ContextModalProps<{
-  amount: number
-  billingId: string
-}>) {
-  const { billingId, amount } = innerProps
+}: ContextModalProps<IEwalletModalQueryProvider>) {
+  const {
+    billingId,
+    installmentId,
+    installmentOrder,
+    description,
+    statementDescriptor,
+  } = innerProps
 
   const [selectedWallet, setSelectedWallet] = useState<PaymentMethod | null>(
     null,
@@ -262,12 +278,7 @@ export default function EwalletModal({
             </>
           }
         >
-          <EwalletModalQueryProvider
-            props={{
-              amount,
-              billingId,
-            }}
-          >
+          <EwalletModalQueryProvider props={innerProps}>
             {(props) => (
               <>
                 <LoadingOverlay
