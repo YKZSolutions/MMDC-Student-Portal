@@ -11,7 +11,7 @@ import {
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import CourseActionsModal from '@/features/courses/course-actions-modal.tsx'
+import CourseCreationProcessModal from '@/features/courses/course-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
 
 const CourseActionsSelector = ({
@@ -40,7 +40,7 @@ const CourseActionsSelector = ({
               title={'Course'}
               description={'Create a new course that students can enroll in.'}
               icon={<IconBook />}
-              modalComponent={CourseActionsModal}
+              modalComponent={CourseCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -50,7 +50,7 @@ const CourseActionsSelector = ({
                 'Create a new module that contains assignments and other content.'
               }
               icon={<IconBook />}
-              modalComponent={CourseActionsModal}
+              modalComponent={CourseCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -60,7 +60,7 @@ const CourseActionsSelector = ({
                 'Create a new educational content that can be used in modules.'
               }
               icon={<IconBook />}
-              modalComponent={CourseActionsModal}
+              modalComponent={CourseCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -70,7 +70,7 @@ const CourseActionsSelector = ({
                 'Create a new assignment or task that students can complete.'
               }
               icon={<IconBook />}
-              modalComponent={CourseActionsModal}
+              modalComponent={CourseCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -80,7 +80,7 @@ const CourseActionsSelector = ({
                 'Create a new student group that can be used to grade multiple students at once.'
               }
               icon={<IconBook />}
-              modalComponent={CourseActionsModal}
+              modalComponent={CourseCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -88,7 +88,7 @@ const CourseActionsSelector = ({
               title={'Progress Report'}
               description={'Create a new progress report that admins can view.'}
               icon={<IconBook />}
-              modalComponent={CourseActionsModal}
+              modalComponent={CourseCreationProcessModal}
             />
           </GridCol>
         </Grid>
