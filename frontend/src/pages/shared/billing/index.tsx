@@ -58,6 +58,7 @@ const segmentedControlOptions = [
   { label: 'Paid', value: 'Paid' },
   { label: 'Unpaid', value: 'Unpaid' },
   { label: 'Overdue', value: 'Overdue' },
+  { label: 'Deleted', value: 'Deleted' },
 ]
 
 interface IBillingQuery {
@@ -236,7 +237,7 @@ function BillingTable() {
     ...billingControllerRemoveMutation(),
     onSuccess: async () => {
       const { queryClient } = getContext()
-      queryClient.invalidateQueries({
+      queryClient.removeQueries({
         queryKey: billingControllerFindAllQueryKey(),
       })
     },
