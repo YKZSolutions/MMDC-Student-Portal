@@ -17,9 +17,9 @@ import {
 import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
+import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
-import { DetailedBillDto } from './dto/detailed-bill.dto';
 
 @Injectable()
 export class BillingService {
@@ -241,6 +241,7 @@ export class BillingService {
       installmentDueDates,
       totalInstallments,
       paidInstallments,
+      billInstallments,
     };
   }
 

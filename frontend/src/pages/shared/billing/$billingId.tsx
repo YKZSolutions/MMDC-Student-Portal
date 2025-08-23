@@ -12,6 +12,7 @@ import {
   Drawer,
   Flex,
   Group,
+  NumberFormatter,
   rem,
   SimpleGrid,
   Stack,
@@ -183,13 +184,25 @@ function BillingIdPage() {
             )}
           </BillingIdQueryProvider>
         </Suspense>
+
         <Suspense fallback={<></>}>
           <BillingIdQueryProvider>
             {({ currentInvoice }) => (
-              <BillingFeeBreakdown
-                open={open}
-                fees={currentInvoice.costBreakdown}
-              />
+              <BillingInstallments invoice={currentInvoice} />
+            )}
+          </BillingIdQueryProvider>
+        </Suspense>
+
+        <Suspense fallback={<></>}>
+          <BillingIdQueryProvider>
+            {({ currentInvoice }) => (
+              <Stack gap={'xs'}>
+                <Text fw={500}>Billing Breakdown</Text>
+                <BillingFeeBreakdown
+                  open={open}
+                  fees={currentInvoice.costBreakdown}
+                />
+              </Stack>
             )}
           </BillingIdQueryProvider>
         </Suspense>
@@ -247,6 +260,25 @@ export function BillingPrefaceDetails({
       ))}
     </SimpleGrid>
   )
+}
+
+function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
+  return invoice.billInstallments.map((installment) => (
+    <Card withBorder px="lg" radius="md">
+      <Group justify="space-between">
+        <Stack gap={'xs'}>
+          <Text size="sm" fw={500}>
+            {installment.name}
+          </Text>
+          <Text size="sm" c="dark.5">
+            <NumberFormatter value={installment.amountToPay} prefix="₱ " />
+          </Text>
+        </Stack>
+
+        <Button>Pay</Button>
+      </Group>
+    </Card>
+  ))
 }
 
 export default BillingIdPage

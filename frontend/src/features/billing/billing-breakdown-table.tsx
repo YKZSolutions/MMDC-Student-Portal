@@ -36,13 +36,13 @@ function BillingFeeBreakdown({
         highlightOnHover
         highlightOnHoverColor="gray.0"
       >
-        {Object.entries(grouped).map(([category, items]) => (
+        {Object.entries(grouped).map(([category, items], index) => (
           <React.Fragment key={category}>
             <Table.Thead>
               <Table.Tr bg="gray.1" c="dark.7">
                 <Table.Th>{category}</Table.Th>
                 <Table.Th>
-                  {open && (
+                  {open && index === 0 && (
                     <Group w="100%">
                       <Button
                         size="xs"
