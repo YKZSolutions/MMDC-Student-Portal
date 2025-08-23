@@ -42,6 +42,7 @@ import {
   IconDotsVertical,
   IconEye,
   IconFilter2,
+  IconInbox,
   IconPencil,
   IconPlus,
   IconSearch,
@@ -52,7 +53,7 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { Suspense, useState } from 'react'
+import React, { Suspense, useMemo, useState } from 'react'
 
 const route = getRouteApi('/(protected)/billing/')
 
@@ -244,7 +245,6 @@ function BillingPage() {
             onChange={(value) => handleTabChange(value as IBillingQuery['tab'])}
           />
           <Group gap="sm">
-            {' '}
             {/* Changed spacing to gap */}
             <TextInput
               placeholder="Search name/email"
@@ -287,9 +287,116 @@ function BillingPage() {
 }
 
 function BillingTable({ query }: { query: IBillingQuery }) {
-  const searchParam: IBillingSearchParams = route.useSearch()
   const navigate = useNavigate()
   const { authUser } = useAuth('protected')
+
+  /**
+   * Count the number of columns in the table based on the user's role.
+   * This is used to set the `colSpan` attribute for the "No bills found" row.
+   */
+  const columnCount = useMemo(() => {
+    console.log('changed')
+    return React.Children.count(
+      authUser.role === 'admin'
+        ? AdminBillingTableHeader().props.children
+        : StudentBillingTableHeader().props.children,
+    )
+  }, [authUser.role])
+
+  return (
+    <Table
+      verticalSpacing={'md'}
+      highlightOnHover
+      highlightOnHoverColor="gray.0"
+      style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+      styles={{
+        th: {
+          fontWeight: 500,
+        },
+      }}
+    >
+      <Table.Thead>
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            admin: <AdminBillingTableHeader />,
+            student: <StudentBillingTableHeader />,
+          }}
+        />
+      </Table.Thead>
+      <Table.Tbody
+        style={{
+          cursor: 'pointer',
+        }}
+      >
+        <Suspense fallback={<SuspendedBillingTableRows />}>
+          <BillingQueryProvider props={query}>
+            {(props) =>
+              props.currentInvoices.length == 0 ? (
+                <Table.Tr>
+                  <Table.Td colSpan={columnCount}>
+                    <Flex
+                      align="center"
+                      justify="center"
+                      direction="column"
+                      py="xl"
+                      c="dark.3"
+                    >
+                      <IconInbox size={36} stroke={1.5} />
+                      <Text mt="sm" fw={500}>
+                        No bills found
+                      </Text>
+                      <Text fz="sm" c="dark.2">
+                        Try other search terms or filters.
+                      </Text>
+                    </Flex>
+                  </Table.Td>
+                </Table.Tr>
+              ) : (
+                props.currentInvoices.map((invoice) => (
+                  <RoleComponentManager
+                    key={invoice.id}
+                    currentRole={authUser.role}
+                    roleRender={{
+                      admin: <AdminBillingTableBody invoice={invoice} />,
+                      student: <StudentBillingTableBody invoice={invoice} />,
+                    }}
+                  />
+                ))
+              )
+            }
+          </BillingQueryProvider>
+        </Suspense>
+      </Table.Tbody>
+    </Table>
+  )
+}
+
+function AdminBillingTableHeader() {
+  return (
+    <Table.Tr
+      style={{
+        border: '0px',
+      }}
+      bg={'gray.1'}
+      c={'dark.5'}
+    >
+      <Table.Th>
+        <Checkbox size="sm" />
+      </Table.Th>
+      <Table.Th>Invoice ID</Table.Th>
+      <Table.Th>User</Table.Th>
+      <Table.Th>Status</Table.Th>
+      <Table.Th>Issue Date</Table.Th>
+      <Table.Th>Amount</Table.Th>
+      <Table.Th></Table.Th>
+    </Table.Tr>
+  )
+}
+
+function AdminBillingTableBody({ invoice }: { invoice: BillItemDto }) {
+  const searchParam: IBillingSearchParams = route.useSearch()
+  const navigate = useNavigate()
 
   const { mutateAsync: remove } = useAppMutation(
     billingControllerRemoveMutation,
@@ -369,210 +476,177 @@ function BillingTable({ query }: { query: IBillingQuery }) {
         },
       }
     )
+  return (
+    <Table.Tr
+      key={invoice.id}
+      onClick={(e) =>
+        navigate({
+          to: '/billing/' + invoice.id,
+        })
+      }
+    >
+      <Table.Td>
+        <Checkbox size="sm" />
+      </Table.Td>
+      <Table.Td>
+        <Tooltip withArrow position="bottom" label={invoice.id}>
+          <Text
+            className="max-w-[17ch]"
+            size="sm"
+            c={'dark.3'}
+            truncate
+            fw={500}
+          >
+            {invoice.id}
+          </Text>
+        </Tooltip>
+      </Table.Td>
+      <Table.Td>
+        <Flex gap={'sm'} align={'center'}>
+          <Flex direction={'column'}>
+            <Text fw={600}>{invoice.payerName}</Text>
+            <Text fz={'sm'} fw={500} c={'dark.2'}>
+              {invoice.payerEmail}
+            </Text>
+          </Flex>
+        </Flex>
+      </Table.Td>
+      <Table.Td>
+        <Badge variant="light" radius="lg">
+          <Text className="capitalize" fz={'xs'} fw={500}>
+            {invoice.status}
+          </Text>
+        </Badge>
+      </Table.Td>
+      <Table.Td>
+        <Text size="sm" c={'dark.3'} fw={500}>
+          {dayjs(invoice.createdAt).format('MMM D, YYYY')}
+        </Text>
+      </Table.Td>
+
+      <Table.Td>
+        <Text size="sm" fw={500}>
+          <NumberFormatter
+            prefix="&#8369;"
+            value={invoice.totalAmount}
+            thousandSeparator
+          />
+        </Text>
+      </Table.Td>
+
+      <Table.Td>
+        <Menu shadow="md" width={200}>
+          <Menu.Target>
+            <ActionIcon
+              onClick={(e) => e.stopPropagation()}
+              variant="subtle"
+              color="gray"
+              radius="xl"
+            >
+              <IconDotsVertical size={20} stroke={1.5} />
+            </ActionIcon>
+          </Menu.Target>
+
+          <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<IconEye size={16} stroke={1.5} />}
+              onClick={(e) => handleMenuAction(invoice.id, e).view()}
+            >
+              View Details
+            </Menu.Item>
+
+            <Menu.Item
+              leftSection={<IconPencil size={16} stroke={1.5} />}
+              onClick={(e) => handleMenuAction(invoice.id, e).edit()}
+            >
+              Edit
+            </Menu.Item>
+
+            <Menu.Item
+              leftSection={<IconTrash size={16} stroke={1.5} />}
+              onClick={(e) => handleMenuAction(invoice.id, e).delete()}
+              c="red"
+            >
+              Delete
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      </Table.Td>
+    </Table.Tr>
+  )
+}
+
+function StudentBillingTableHeader() {
+  return (
+    <Table.Tr
+      style={{
+        border: '0px',
+      }}
+      bg={'gray.1'}
+      c={'dark.5'}
+    >
+      <Table.Th>Invoice ID</Table.Th>
+      <Table.Th>Bill Type</Table.Th>
+      <Table.Th>Status</Table.Th>
+      <Table.Th>Due Date</Table.Th>
+      <Table.Th>Amount</Table.Th>
+    </Table.Tr>
+  )
+}
+
+function StudentBillingTableBody({ invoice }: { invoice: BillItemDto }) {
+  const navigate = useNavigate()
 
   return (
-    <Table
-      verticalSpacing={'md'}
-      highlightOnHover
-      highlightOnHoverColor="gray.0"
-      style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-      styles={{
-        th: {
-          fontWeight: 500,
-        },
-      }}
+    <Table.Tr
+      key={invoice.id}
+      onClick={(e) =>
+        navigate({
+          to: '/billing/' + invoice.id,
+        })
+      }
     >
-      <Table.Thead>
-        <Table.Tr
-          style={{
-            border: '0px',
-          }}
-          bg={'gray.1'}
-          c={'dark.5'}
-        >
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              admin: (
-                <Table.Th>
-                  <Checkbox size="sm" />
-                </Table.Th>
-              ),
-            }}
+      <Table.Td>
+        <Tooltip withArrow position="bottom" label={invoice.id}>
+          <Text
+            className="max-w-[17ch]"
+            size="sm"
+            c={'dark.3'}
+            truncate
+            fw={500}
+          >
+            {invoice.id}
+          </Text>
+        </Tooltip>
+      </Table.Td>
+      <Table.Td>
+        <Text fz={'sm'} fw={500} c={'dark.3'}>
+          Tuition Fee
+        </Text>
+      </Table.Td>
+      <Table.Td>
+        <Badge variant="light" radius="lg">
+          <Text className="capitalize" fz={'xs'} fw={500}>
+            {invoice.status}
+          </Text>
+        </Badge>
+      </Table.Td>
+      <Table.Td>
+        <Text size="sm" c={'dark.3'} fw={500}>
+          {dayjs(invoice.createdAt).format('MMM D, YYYY')}
+        </Text>
+      </Table.Td>
+
+      <Table.Td>
+        <Text size="sm" fw={500}>
+          <NumberFormatter
+            prefix="&#8369;"
+            value={invoice.totalAmount}
+            thousandSeparator
           />
-          <Table.Th>Invoice ID</Table.Th>
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              admin: <Table.Th>User</Table.Th>,
-              student: <Table.Th>Bill Type</Table.Th>,
-            }}
-          />
-          <Table.Th>Status</Table.Th>
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              admin: <Table.Th>Issue Date</Table.Th>,
-              student: <Table.Th>Due Date</Table.Th>,
-            }}
-          />
-
-          <Table.Th>Amount</Table.Th>
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              admin: <Table.Th></Table.Th>,
-            }}
-          />
-        </Table.Tr>
-      </Table.Thead>
-      <Table.Tbody
-        style={{
-          cursor: 'pointer',
-        }}
-      >
-        <Suspense fallback={<SuspendedBillingTableRows />}>
-          <BillingQueryProvider props={query}>
-            {(props) =>
-              props.currentInvoices.map((invoice) => (
-                <Table.Tr
-                  key={invoice.id}
-                  onClick={(e) =>
-                    navigate({
-                      to: '/billing/' + invoice.id,
-                    })
-                  }
-                >
-                  <RoleComponentManager
-                    currentRole={authUser.role}
-                    roleRender={{
-                      admin: (
-                        <Table.Td>
-                          <Checkbox size="sm" />
-                        </Table.Td>
-                      ),
-                    }}
-                  />
-                  <Table.Td>
-                    <Tooltip withArrow position="bottom" label={invoice.id}>
-                      <Text
-                        className="max-w-[17ch]"
-                        size="sm"
-                        c={'dark.3'}
-                        truncate
-                        fw={500}
-                      >
-                        {invoice.id}
-                      </Text>
-                    </Tooltip>
-                  </Table.Td>
-                  <Table.Td>
-                    <RoleComponentManager
-                      currentRole={authUser.role}
-                      roleRender={{
-                        admin: (
-                          <Flex gap={'sm'} align={'center'}>
-                            <Flex direction={'column'}>
-                              <Text fw={600}>{invoice.payerName}</Text>
-                              <Text fz={'sm'} fw={500} c={'dark.2'}>
-                                {invoice.payerEmail}
-                              </Text>
-                            </Flex>
-                          </Flex>
-                        ),
-                        student: (
-                          <Text fz={'sm'} fw={500} c={'dark.3'}>
-                            Tuition Fee
-                          </Text>
-                        ),
-                      }}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge variant="light" radius="lg">
-                      <Text className="capitalize" fz={'xs'} fw={500}>
-                        {invoice.status}
-                      </Text>
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c={'dark.3'} fw={500}>
-                      {dayjs(invoice.createdAt).format('MMM D, YYYY')}
-                    </Text>
-                  </Table.Td>
-
-                  <Table.Td>
-                    <Text size="sm" fw={500}>
-                      <NumberFormatter
-                        prefix="&#8369;"
-                        value={invoice.totalAmount}
-                        thousandSeparator
-                      />
-                    </Text>
-                  </Table.Td>
-
-                  <RoleComponentManager
-                    currentRole={authUser.role}
-                    roleRender={{
-                      admin: (
-                        <Table.Td>
-                          <Menu shadow="md" width={200}>
-                            <Menu.Target>
-                              <ActionIcon
-                                onClick={(e) => e.stopPropagation()}
-                                variant="subtle"
-                                color="gray"
-                                radius="xl"
-                              >
-                                <IconDotsVertical size={20} stroke={1.5} />
-                              </ActionIcon>
-                            </Menu.Target>
-
-                            <Menu.Dropdown>
-                              <Menu.Item
-                                leftSection={<IconEye size={16} stroke={1.5} />}
-                                onClick={(e) =>
-                                  handleMenuAction(invoice.id, e).view()
-                                }
-                              >
-                                View Details
-                              </Menu.Item>
-
-                              <Menu.Item
-                                leftSection={
-                                  <IconPencil size={16} stroke={1.5} />
-                                }
-                                onClick={(e) =>
-                                  handleMenuAction(invoice.id, e).edit()
-                                }
-                              >
-                                Edit
-                              </Menu.Item>
-
-                              <Menu.Item
-                                leftSection={
-                                  <IconTrash size={16} stroke={1.5} />
-                                }
-                                onClick={(e) =>
-                                  handleMenuAction(invoice.id, e).delete()
-                                }
-                                c="red"
-                              >
-                                Delete
-                              </Menu.Item>
-                            </Menu.Dropdown>
-                          </Menu>
-                        </Table.Td>
-                      ),
-                    }}
-                  />
-                </Table.Tr>
-              ))
-            }
-          </BillingQueryProvider>
-        </Suspense>
-      </Table.Tbody>
-    </Table>
+        </Text>
+      </Table.Td>
+    </Table.Tr>
   )
 }
 
