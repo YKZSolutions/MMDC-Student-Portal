@@ -8,7 +8,7 @@ import { BillDto } from '@/generated/nestjs-dto/bill.dto';
 import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { BillType, Prisma, Role } from '@prisma/client';
+import { PaymentScheme, Prisma, Role } from '@prisma/client';
 import {
   getBillingWithPayment,
   getBillingWithPaymentMeta,
@@ -82,7 +82,7 @@ export class BillingService {
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    const type = filters.type ? BillType[filters.type] : null;
+    const scheme = filters.scheme ? PaymentScheme[filters.scheme] : null;
     const status = filters.status || null;
     const search = filters.search || null;
     const sort = filters.sort || null;
@@ -92,7 +92,7 @@ export class BillingService {
       getBillingWithPayment(
         limit,
         offset,
-        type,
+        scheme,
         status,
         search,
         user,
@@ -110,7 +110,7 @@ export class BillingService {
     });
 
     const totalResult = await this.prisma.client.$queryRawTyped(
-      getBillingWithPaymentMeta(type, status, search, user),
+      getBillingWithPaymentMeta(scheme, status, search, user),
     );
 
     const totalCount = Number(totalResult[0]?.count ?? 0);
@@ -186,11 +186,11 @@ export class BillingService {
       switch (true) {
         case totalPaid.eq(0):
           return BillStatus.unpaid;
-        case totalPaid.lessThan(bill.amountToPay):
+        case totalPaid.lessThan(bill.totalAmount):
           return BillStatus.partial;
-        case totalPaid.eq(bill.amountToPay):
+        case totalPaid.eq(bill.totalAmount):
           return BillStatus.paid;
-        case totalPaid.greaterThan(bill.amountToPay):
+        case totalPaid.greaterThan(bill.totalAmount):
           return BillStatus.overpaid;
         default:
           return BillStatus.unpaid;
