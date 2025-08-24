@@ -1,30 +1,26 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
   InternalServerErrorException,
-  Query,
-  ValidationPipe,
   NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Query
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
 import { FilterBillDto } from './dto/filter-bill.dto';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import {
-  AuthUser,
-  CurrentAuthUser,
-} from '@/common/interfaces/auth.user-metadata';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 
 @ApiBearerAuth()
 @Controller('billing')
@@ -56,7 +52,7 @@ export class BillingController {
   @Get()
   @ApiException(() => NotFoundException)
   findAll(
-    @Query(new ValidationPipe({ transform: true })) filters: FilterBillDto,
+    @Query() filters: FilterBillDto,
     @CurrentUser() user: CurrentAuthUser,
   ) {
     const { role, user_id } = user.user_metadata;
@@ -102,10 +98,7 @@ export class BillingController {
    */
   @Delete(':id')
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(
-    @Param('id') id: string,
-    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
-  ) {
+  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
     return this.billingService.remove(id, query?.directDelete);
   }
 }

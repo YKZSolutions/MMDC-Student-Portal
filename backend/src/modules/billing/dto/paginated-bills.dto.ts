@@ -4,7 +4,7 @@ import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { FilterBillDto } from './filter-bill.dto';
 
-class BillItemDto extends OmitType(BillDto, ['costBreakdown']) {
+export class BillItemDto extends OmitType(BillDto, ['costBreakdown']) {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

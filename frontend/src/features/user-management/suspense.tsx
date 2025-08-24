@@ -1,15 +1,6 @@
-import { Flex, Group, rem, Skeleton, Table } from '@mantine/core'
+import { Flex, rem, Skeleton, Table } from '@mantine/core'
 
-export function SuspendedPagination() {
-  return (
-    <Group justify="flex-end">
-      <Skeleton visible height={rem(30)} width={rem('20%')} />
-      <Skeleton visible height={rem(30)} width={rem('10%')} />
-    </Group>
-  )
-}
-
-export function SuspendedTableRows() {
+export function SuspendedUserTableRows() {
   return (
     <>
       <Table.Tr>

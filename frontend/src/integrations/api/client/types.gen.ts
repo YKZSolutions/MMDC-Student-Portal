@@ -318,21 +318,28 @@ export type AuthMetadataDto = {
     user_id?: string;
 };
 
+export type BillType = 'academic' | 'administrative' | 'facilities' | 'studentServices' | 'activities' | 'penalties';
+
 export type PaymentScheme = 'full' | 'installment1' | 'installment2';
 
-export type CreateBillDto = {
+export type BillingCostBreakdown = {
+    cost: string;
+    name: string;
+    category: string;
+};
+
+export type CreateBillingTypedBreakdownDto = {
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    dueAt: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
+    costBreakdown: Array<BillingCostBreakdown>;
 };
 
 export type CreateBillingDto = {
-    bill: CreateBillDto;
+    dueDates: Array<string>;
+    bill: CreateBillingTypedBreakdownDto;
     userId?: string;
 };
 
@@ -341,9 +348,9 @@ export type BillDto = {
     invoiceId: number;
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
-    dueAt: string;
     costBreakdown: {
         [key: string]: unknown;
     };
@@ -352,22 +359,35 @@ export type BillDto = {
     deletedAt: string | null;
 };
 
-export type PaginatedBillsDto = {
-    meta: PaginationMetaDto;
-    bills: Array<BillDto>;
-};
-
-export type DetailedBillDto = {
+export type BillItemDto = {
     id: string;
     invoiceId: number;
     payerName: string;
     payerEmail: string;
+    billType: BillType;
     paymentScheme: PaymentScheme;
     totalAmount: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+    totalInstallments: number;
+    paidInstallments: number;
+    installmentDueDates: Array<string>;
+};
+
+export type PaginatedBillsDto = {
+    meta: PaginationMetaDto;
+    bills: Array<BillItemDto>;
+};
+
+export type BillInstallmentItemDto = {
+    id: string;
+    name: string;
+    installmentOrder: number;
+    amountToPay: string;
     dueAt: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -375,18 +395,40 @@ export type DetailedBillDto = {
     status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
 };
 
+export type DetailedBillDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+    totalInstallments: number;
+    paidInstallments: number;
+    installmentDueDates: Array<string>;
+    costBreakdown: Array<BillingCostBreakdown>;
+    billInstallments: Array<BillInstallmentItemDto>;
+};
+
 export type UpdateBillDto = {
     payerName?: string;
     payerEmail?: string;
+    billType?: BillType;
     paymentScheme?: PaymentScheme;
     totalAmount?: string;
-    dueAt?: string;
     costBreakdown?: {
         [key: string]: unknown;
     };
 };
 
 export type InitiatePaymentDto = {
+    installmentId: string;
+    installmentOrder: number;
     description?: string;
     statementDescriptor?: string;
     amount: number;
@@ -433,8 +475,7 @@ export type PaymentIntentResponseDto = {
 
 export type PaymentType = 'card' | 'paymaya' | 'gcash' | 'qrph' | 'manual';
 
-export type CreateBillPaymentDto = {
-    installmentOrder: number;
+export type CreatePayment = {
     amountPaid: string;
     paymentType: PaymentType;
     notes: string;
@@ -445,7 +486,8 @@ export type CreateBillPaymentDto = {
 };
 
 export type CreatePaymentDto = {
-    payment: CreateBillPaymentDto;
+    payment: CreatePayment;
+    installmentId?: string;
     description?: string;
     statementDescriptor?: string;
 };
@@ -1220,9 +1262,11 @@ export type BillingControllerFindAllData = {
     query?: {
         sortOrder?: 'asc' | 'desc';
         scheme?: PaymentScheme;
+        type?: BillType;
         page?: number;
+        isDeleted?: boolean;
         search?: string;
-        sort?: 'amountToPay' | 'totalPaid' | 'dueAt' | 'createdAt';
+        sort?: 'amountToPay' | 'totalPaid' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
     url: '/billing';
@@ -1359,6 +1403,56 @@ export type BillingControllerUpdateResponses = {
 };
 
 export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
+
+export type InstallmentControllerFindAllData = {
+    body?: never;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/installments';
+};
+
+export type InstallmentControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type InstallmentControllerFindAllError = InstallmentControllerFindAllErrors[keyof InstallmentControllerFindAllErrors];
+
+export type InstallmentControllerFindAllResponses = {
+    200: Array<BillInstallmentItemDto>;
+};
+
+export type InstallmentControllerFindAllResponse = InstallmentControllerFindAllResponses[keyof InstallmentControllerFindAllResponses];
+
+export type InstallmentControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/installments/{id}';
+};
+
+export type InstallmentControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type InstallmentControllerFindOneError = InstallmentControllerFindOneErrors[keyof InstallmentControllerFindOneErrors];
+
+export type InstallmentControllerFindOneResponses = {
+    200: BillInstallmentItemDto;
+};
+
+export type InstallmentControllerFindOneResponse = InstallmentControllerFindOneResponses[keyof InstallmentControllerFindOneResponses];
 
 export type PaymentsControllerPayData = {
     body: InitiatePaymentDto;
@@ -1899,34 +1993,6 @@ export type MajorControllerUpdateResponses = {
 };
 
 export type MajorControllerUpdateResponse = MajorControllerUpdateResponses[keyof MajorControllerUpdateResponses];
-
-export type InstallmentControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/installment';
-};
-
-export type InstallmentControllerFindAllResponses = {
-    200: string;
-};
-
-export type InstallmentControllerFindAllResponse = InstallmentControllerFindAllResponses[keyof InstallmentControllerFindAllResponses];
-
-export type InstallmentControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/installment/{id}';
-};
-
-export type InstallmentControllerFindOneResponses = {
-    200: string;
-};
-
-export type InstallmentControllerFindOneResponse = InstallmentControllerFindOneResponses[keyof InstallmentControllerFindOneResponses];
 
 export type ClientOptions = {
     baseUrl: string;

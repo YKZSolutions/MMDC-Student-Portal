@@ -1,5 +1,17 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
+import { mapBillingDetails } from '@/features/billing/helpers'
+import {
+  SuspendedBillingBreakdown,
+  SuspendedBillingInstallment,
+  SuspendedBillingPreface,
+} from '@/features/billing/suspense'
+import type { BillPaymentDto, DetailedBillDto } from '@/integrations/api/client'
+import {
+  billingControllerFindOneOptions,
+  paymentsControllerFindAllOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   ActionIcon,
   Button,
@@ -8,96 +20,25 @@ import {
   Drawer,
   Flex,
   Group,
+  LoadingOverlay,
   NumberFormatter,
-  Paper,
   rem,
   SimpleGrid,
+  Skeleton,
   Stack,
-  Table,
   Text,
   ThemeIcon,
   Timeline,
-  Title,
+  Title
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
-import {
-  IconArrowLeft,
-  IconCalendarEvent,
-  IconCash,
-  IconFileInvoice,
-  IconHistory,
-  IconMail,
-  IconPlus,
-  IconReceipt2,
-  IconReportMoney,
-  IconSchool,
-  IconUpload,
-  IconUser,
-} from '@tabler/icons-react'
+import { IconArrowLeft, IconUpload, type ReactNode } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-
-const bills = {
-  bill_no: '8229',
-  due_date: '10-03-2023',
-  amount: 16632.0,
-  outstanding: 0.0,
-  status: 'settled',
-  payer_details: {
-    payer_name: 'Test Namezuela',
-    receivable: 16632.0,
-    receipted: 16632.0,
-    refund: 0.0,
-    discount: 0.0,
-    outstanding_amount: 0.0,
-    invoice_no: 'P60009',
-  },
-  fees: [
-    {
-      description: 'Lec Subject/s',
-      amount: 10696.0,
-    },
-    {
-      description: 'Lab Subject/s',
-      amount: 7000.0,
-    },
-  ],
-  miscellaneous_fees: [
-    {
-      description: 'Campus Life Prog Fund',
-      amount: 390.0,
-    },
-    {
-      description: 'E-Resource Fee',
-      amount: 675.0,
-    },
-    {
-      description: 'Health Services Fee',
-      amount: 465.0,
-    },
-    {
-      description: 'IT Infrastructure Fee',
-      amount: 2680.0,
-    },
-    {
-      description: 'Library Fee',
-      amount: 1205.0,
-    },
-    {
-      description: 'Registration Fee',
-      amount: 725.0,
-    },
-    {
-      description: 'Student Council Fee',
-      amount: 40.0,
-    },
-    {
-      description: 'Supplementary Fee',
-      amount: 735.0,
-    },
-  ],
-}
+import Decimal from 'decimal.js'
+import { Suspense } from 'react'
 
 const paymentHistory = [
   {
@@ -130,9 +71,48 @@ const paymentHistory = [
 
 const route = getRouteApi('/(protected)/billing/$billingId')
 
+function BillingIdQueryProvider({
+  children,
+}: {
+  children: (props: { currentInvoice: DetailedBillDto }) => ReactNode
+}) {
+  const { data } = useSuspenseQuery(
+    billingControllerFindOneOptions({
+      path: { id: route.useParams().billingId },
+    }),
+  )
+
+  const currentInvoice = data as DetailedBillDto
+
+  console.log('currentInvoice', currentInvoice)
+
+  return children({
+    currentInvoice,
+  })
+}
+
+function BillingPaymentHistoryQueryProvider({
+  children,
+}: {
+  children: (props: { paymentHistory: BillPaymentDto[] }) => ReactNode
+}) {
+  const { data } = useSuspenseQuery(
+    paymentsControllerFindAllOptions({
+      path: {
+        billId: route.useParams().billingId,
+      },
+    }),
+  )
+
+  const paymentHistory = data
+
+  return children({
+    paymentHistory,
+  })
+}
+
 function BillingIdPage() {
   const navigate = useNavigate()
-  const { billingId } = route.useParams()
 
   const [opened, { open, close }] = useDisclosure(false)
 
@@ -170,51 +150,6 @@ function BillingIdPage() {
           >
             Export
           </Button>
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              student: (
-                <Button
-                  variant="filled"
-                  radius={'md'}
-                  leftSection={<IconPlus size={20} />}
-                  lts={rem(0.25)}
-                  onClick={() =>
-                    // mutateMethod({
-                    //   name: 'Jose Rizal',
-                    //   email: 'joserizal@gmail.com',
-                    //   phone: '09000000000',
-                    //   metadata: {
-                    //     key: 'value',
-                    //     key2: 'value',
-                    //   },
-                    // })
-                    modals.openContextModal({
-                      modal: 'ewallet',
-                      innerProps: {
-                        amount: 20000,
-                        billingId,
-                      },
-                    })
-                  }
-                >
-                  Pay Bill
-                </Button>
-              ),
-            }}
-          />
-
-          {/* <Button
-            variant="outline"
-            radius={'md'}
-            leftSection={<IconUpload size={20} />}
-            c={'gray.7'}
-            color="gray.4"
-            lts={rem(0.25)}
-            onClick={() => mutateAttach(dataIntent)}
-          >
-            Attach
-          </Button> */}
         </Group>
       </Flex>
 
@@ -228,156 +163,108 @@ function BillingIdPage() {
           </Title>
         }
       >
-        <Timeline active={1} bulletSize={24}>
-          {paymentHistory.map((history) => (
-            <Timeline.Item title={history.title}>
-              <Text c="dimmed" size="sm">
-                {history.description}
-              </Text>
-              <Text size="xs" mt={4}>
-                {dayjs(history.timestamp).format('MMM D, YYYY')}
-              </Text>
-            </Timeline.Item>
-          ))}
-        </Timeline>
+        <Suspense
+          fallback={
+            <LoadingOverlay
+              visible
+              zIndex={1000}
+              overlayProps={{ radius: 'sm', blur: 2 }}
+            />
+          }
+        >
+          <BillingPaymentHistoryQueryProvider>
+            {(props) => (
+              <Timeline active={props.paymentHistory.length} bulletSize={24}>
+                {props.paymentHistory.map((history) => (
+                  <Timeline.Item key={history.id} title="Payment Received">
+                    <Text c="dimmed" size="sm">
+                      Paid{' '}
+                      <Text fw={600} component="span" inherit>
+                        <NumberFormatter
+                          value={history.amountPaid}
+                          prefix="₱ "
+                          thousandSeparator
+                        />
+                      </Text>{' '}
+                      via{' '}
+                      <Text fw={600} component="span" inherit>
+                        {history.paymentType.toUpperCase()}
+                      </Text>
+                    </Text>
+
+                    <Text size="xs" mt={4}>
+                      {dayjs(history.paymentDate).format(
+                        'ddd, MMM D, YYYY h:mm A',
+                      )}
+                    </Text>
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            )}
+          </BillingPaymentHistoryQueryProvider>
+        </Suspense>
       </Drawer>
 
-      <Stack>
-        <BillingPrefaceDetails />
-        <BillingFeeBreakdown open={open} />
+      <Stack gap={'lg'}>
+        <Suspense fallback={<SuspendedBillingPreface />}>
+          <BillingIdQueryProvider>
+            {({ currentInvoice }) => (
+              <BillingPrefaceDetails invoice={currentInvoice} />
+            )}
+          </BillingIdQueryProvider>
+        </Suspense>
+
+        <Group grow align="flex-start" gap={'lg'}>
+          <Suspense
+            fallback={
+              <Stack gap={'xs'}>
+                <Skeleton height={rem(20)} w={rem(150)} />
+                <SuspendedBillingBreakdown />
+              </Stack>
+            }
+          >
+            <BillingIdQueryProvider>
+              {({ currentInvoice }) => (
+                <Stack gap={'xs'}>
+                  <Text fw={500}>Billing Breakdown</Text>
+                  <BillingFeeBreakdown
+                    open={open}
+                    fees={currentInvoice.costBreakdown}
+                  />
+                </Stack>
+              )}
+            </BillingIdQueryProvider>
+          </Suspense>
+          <Suspense
+            fallback={
+              <Stack gap={'xs'}>
+                <Skeleton height={rem(20)} w={rem(150)} />
+                <SuspendedBillingInstallment />
+              </Stack>
+            }
+          >
+            <BillingIdQueryProvider>
+              {({ currentInvoice }) => (
+                <Stack gap={'xs'}>
+                  <Text fw={500}>Installments</Text>
+                  <BillingInstallments invoice={currentInvoice} />
+                </Stack>
+              )}
+            </BillingIdQueryProvider>
+          </Suspense>
+        </Group>
       </Stack>
     </Container>
   )
 }
 
-// function BillingPrefaceDetails() {
-//   return (
-//     <Group align="start" justify="space-between">
-//       <Paper withBorder radius={'md'} className="flex-1/3">
-//         <Table
-//           styles={{
-//             td: {
-//               textAlign: 'end',
-//             },
-//             th: {
-//               backgroundColor: 'var(--mantine-color-gray-1)',
-//               color: 'var(--mantine-color-dark-7)',
-//             },
-//           }}
-//           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-//           variant="vertical"
-//           layout="fixed"
-//           withRowBorders={false}
-//         >
-//           <Table.Tbody>
-//             <Table.Tr>
-//               <Table.Th w={160}>Invoice ID</Table.Th>
-//               <Table.Td>P60009</Table.Td>
-//             </Table.Tr>
+export function BillingPrefaceDetails({
+  invoice,
+}: {
+  invoice: DetailedBillDto
+}) {
+  const billingDetails = mapBillingDetails(invoice)
 
-//             <Table.Tr>
-//               <Table.Th>Payer Name</Table.Th>
-//               <Table.Td>Test Namezuela</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Payer Email</Table.Th>
-//               <Table.Td>test@email.com</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Due Date</Table.Th>
-//               <Table.Td>February 24, 2025</Table.Td>
-//             </Table.Tr>
-//           </Table.Tbody>
-//         </Table>
-//       </Paper>
-//       <Paper withBorder radius={'md'} className="flex-1/3">
-//         <Table
-//           styles={{
-//             td: {
-//               textAlign: 'end',
-//             },
-//             th: {
-//               backgroundColor: 'var(--mantine-color-gray-1)',
-//               color: 'var(--mantine-color-dark-7)',
-//             },
-//           }}
-//           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-//           variant="vertical"
-//           layout="fixed"
-//           withRowBorders={false}
-//         >
-//           <Table.Tbody>
-//             <Table.Tr>
-//               <Table.Th w={160}>Bill Type</Table.Th>
-//               <Table.Td>Tuition Fee</Table.Td>
-//             </Table.Tr>
-//             <Table.Tr>
-//               <Table.Th>Receivable Amount</Table.Th>
-//               <Table.Td>16,632.00</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Receipted Amount</Table.Th>
-//               <Table.Td>16,632.00</Table.Td>
-//             </Table.Tr>
-
-//             <Table.Tr>
-//               <Table.Th>Outstanding Amount</Table.Th>
-//               <Table.Td>0</Table.Td>
-//             </Table.Tr>
-//           </Table.Tbody>
-//         </Table>
-//       </Paper>
-//     </Group>
-//   )
-// }
-
-const billingDetails = [
-  {
-    label: 'Invoice ID',
-    value: 'P60009',
-    icon: IconFileInvoice,
-  },
-  {
-    label: 'Payer Name',
-    value: 'Test Namezuela',
-    icon: IconUser,
-  },
-  {
-    label: 'Payer Email',
-    value: 'test@email.com',
-    icon: IconMail,
-  },
-  {
-    label: 'Due Date',
-    value: 'February 24, 2025',
-    icon: IconCalendarEvent,
-  },
-  {
-    label: 'Bill Type',
-    value: 'Tuition Fee',
-    icon: IconSchool,
-  },
-  {
-    label: 'Receivable Amount',
-    value: '16,632.0',
-    icon: IconCash,
-  },
-  {
-    label: 'Receipted Amount',
-    value: '16,632.0',
-    icon: IconReceipt2,
-  },
-  {
-    label: 'Outstanding Amount',
-    value: 0,
-    icon: IconReportMoney,
-  },
-]
-
-export function BillingPrefaceDetails() {
   const midIndex = Math.ceil(billingDetails.length / 2)
   const firstHalf = billingDetails.slice(0, midIndex)
   const secondHalf = billingDetails.slice(midIndex)
@@ -405,11 +292,11 @@ export function BillingPrefaceDetails() {
                 >
                   <detail.icon />
                 </ThemeIcon>
-                <Stack gap={rem(3)}>
+                <Stack gap={rem(3)} className="truncate">
                   <Text c="dimmed" fz="xs">
                     {detail.label}
                   </Text>
-                  <Text fw={500} size="sm">
+                  <Text fw={500} size="sm" truncate>
                     {detail.value}
                   </Text>
                 </Stack>
@@ -422,119 +309,75 @@ export function BillingPrefaceDetails() {
   )
 }
 
-function BillingFeeBreakdown({ open }: { open: () => void }) {
-  return (
-    <Paper radius={'md'} withBorder>
-      <Table
-        verticalSpacing={'md'}
-        highlightOnHover
-        highlightOnHoverColor="gray.0"
-        style={{ borderRadius: rem('5px'), overflow: 'hidden' }}
-        styles={{
-          th: {
-            fontWeight: 500,
-          },
-        }}
-      >
-        <Table.Thead>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.7'}
-          >
-            <Table.Th>Tuition Fees</Table.Th>
-            <Table.Th>
-              <Group w={'100%'}>
-                <Button
-                  size="xs"
-                  ml={'auto'}
-                  variant="outline"
-                  radius={'md'}
-                  leftSection={<IconHistory size={20} />}
-                  c={'gray.7'}
-                  color="gray.4"
-                  lts={rem(0.25)}
-                  onClick={() => open()}
-                >
-                  History
-                </Button>
-              </Group>
-            </Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {bills.fees.map((bill) => (
-            <Table.Tr key={bill.description}>
-              <Table.Td>{bill.description}</Table.Td>
-              <Table.Td
-                style={{
-                  textAlign: 'end',
-                }}
-              >
-                <NumberFormatter
-                  prefix="₱ "
-                  value={bill.amount}
-                  thousandSeparator
-                />
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
+function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
+  const { billingId } = route.useParams()
+  const { authUser } = useAuth('protected')
 
-        <Table.Thead>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.5'}
-          >
-            <Table.Th>Miscellaneous Fees</Table.Th>
-            <Table.Th></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {bills.miscellaneous_fees.map((misc) => (
-            <Table.Tr key={misc.description}>
-              <Table.Td>{misc.description}</Table.Td>
-              <Table.Td
-                style={{
-                  textAlign: 'end',
-                }}
-              >
-                <NumberFormatter
-                  prefix="₱ "
-                  value={misc.amount}
-                  thousandSeparator
-                />
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
+  return invoice.billInstallments.map((installment) => (
+    <Card key={installment.id} withBorder px="lg" radius="md">
+      <Group justify="space-between" align="flex-start">
+        <Stack gap={rem(3)}>
+          {/* Installment Name */}
+          <Text size="sm" fw={600}>
+            {installment.name}
+          </Text>
 
-        <Table.Tbody>
-          <Table.Tr
-            style={{
-              border: '0px',
-            }}
-            bg={'gray.1'}
-            c={'dark.7'}
-          >
-            <Table.Th>Total</Table.Th>
-            <Table.Th
-              style={{
-                textAlign: 'end',
-              }}
-            >
-              <NumberFormatter prefix="₱ " value={30000} thousandSeparator />
-            </Table.Th>
-          </Table.Tr>
-        </Table.Tbody>
-      </Table>
-    </Paper>
-  )
+          {/* Due Date */}
+          <Text size="xs" c="dark.4">
+            Due on{' '}
+            {new Date(installment.dueAt).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </Text>
+
+          {/* Amount */}
+          <Text size="sm" fw={500} c="dark.7">
+            <NumberFormatter
+              value={installment.amountToPay}
+              prefix="₱ "
+              thousandSeparator
+            />
+          </Text>
+        </Stack>
+
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <Button
+                size="xs"
+                disabled={installment.status === 'paid'}
+                onClick={() =>
+                  modals.openContextModal({
+                    modal: 'ewallet',
+                    innerProps: {
+                      amount: Decimal(installment.amountToPay)
+                        .mul(100)
+                        .toNumber(),
+                      installmentId: installment.id,
+                      installmentOrder: installment.installmentOrder,
+                      description:
+                        'Payment for installment ' +
+                        installment.name +
+                        ' of invoice #' +
+                        invoice.invoiceId,
+                      statementDescriptor:
+                        'MMDC Installment ' + `invoice #${invoice.invoiceId}`,
+                      billingId,
+                    },
+                  })
+                }
+              >
+                {installment.status === 'paid' ? 'Paid' : 'Pay'}
+              </Button>
+            ),
+          }}
+        />
+      </Group>
+    </Card>
+  ))
 }
 
 export default BillingIdPage
