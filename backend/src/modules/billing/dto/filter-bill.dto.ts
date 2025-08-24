@@ -1,7 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { BillType, PaymentScheme } from '@prisma/client';
-import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 enum FilterBillSort {
   amountToPay = 'amountToPay',
@@ -60,4 +66,10 @@ export class FilterBillDto {
   @Type(() => Number)
   @IsNumber()
   page?: number;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  @IsBoolean()
+  isDeleted?: boolean;
 }

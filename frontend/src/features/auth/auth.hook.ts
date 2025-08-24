@@ -1,5 +1,6 @@
 import type { Role } from '@/integrations/api/client'
 import { supabase } from '@/integrations/supabase/supabase-client'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
 import type {
   AuthError,
   AuthResponse,
@@ -8,6 +9,8 @@ import type {
   UserResponse,
 } from '@supabase/supabase-js'
 import { useRouteContext } from '@tanstack/react-router'
+
+const { queryClient } = getContext()
 
 /**
  * Represents an authenticated user with their associated role
@@ -32,7 +35,8 @@ const login = async (
   email: string,
   password: string,
 ): Promise<AuthResponse> => {
-  const response: AuthTokenResponsePassword = await supabase.auth.signInWithPassword({ email, password })
+  const response: AuthTokenResponsePassword =
+    await supabase.auth.signInWithPassword({ email, password })
 
   if (response && response.data.session) {
     console.log(response.data.session.access_token)
@@ -47,6 +51,9 @@ const login = async (
  * @returns {Promise<{error: Error | null}>} Error object if logout fails
  */
 const logout = async (): Promise<{ error: Error | null }> => {
+  // Clear TanStack cache if the user decides to logout
+  queryClient.clear()
+
   return await supabase.auth.signOut()
 }
 
@@ -79,10 +86,9 @@ const updateUserPassword = async (
   })
 }
 
-
 /**
  * Custom React hook for authentication functionality
- * 
+ *
  * @template Route - The route type ('protected' or other routes)
  * @param {Route} route - The route type to determine authentication context
  * @returns {Object} Authentication context with user and auth methods
@@ -90,19 +96,21 @@ const updateUserPassword = async (
  * @returns {Function} login - Function to handle user login
  * @returns {Function} logout - Function to handle user logout
  * @returns {Function} requestPasswordReset - Function to handle password reset requests
- * 
+ *
  * @example
  * // In a protected route component
  * const { authUser, login } = useAuth('protected');
- * 
+ *
  * @example
  * // In a public route component
  * const { login } = useAuth();
  */
-export function useAuth<Route extends 'protected'>(route: Route): {
-  authUser: AuthUser;
-  login: typeof login;
-  logout: typeof logout;
+export function useAuth<Route extends 'protected'>(
+  route: Route,
+): {
+  authUser: AuthUser
+  login: typeof login
+  logout: typeof logout
   requestPasswordReset: typeof requestPasswordReset
   updateUserPassword: typeof updateUserPassword
 }
@@ -113,10 +121,12 @@ export function useAuth<Route extends 'protected'>(route: Route): {
  * @param {Exclude<Route, 'protected'>} [route] - Optional route parameter
  * @returns {Object} Authentication context with null user and auth methods
  */
-export function useAuth<Route extends string>(route?: Exclude<Route, 'protected'>): {
-  authUser: null;
-  login: typeof login;
-  logout: typeof logout;
+export function useAuth<Route extends string>(
+  route?: Exclude<Route, 'protected'>,
+): {
+  authUser: null
+  login: typeof login
+  logout: typeof logout
   requestPasswordReset: typeof requestPasswordReset
   updateUserPassword: typeof updateUserPassword
 }
@@ -129,7 +139,7 @@ export function useAuth(route?: string) {
       login,
       logout,
       requestPasswordReset,
-      updateUserPassword
+      updateUserPassword,
     }
   }
 
@@ -138,6 +148,6 @@ export function useAuth(route?: string) {
     login,
     logout,
     requestPasswordReset,
-    updateUserPassword
+    updateUserPassword,
   }
 }

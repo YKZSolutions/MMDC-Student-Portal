@@ -1,13 +1,11 @@
 import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class InitiatePaymentDto {
-  @IsOptional()
   @IsUUID()
-  installmentId?: string;
+  installmentId: string;
 
-  @IsOptional()
   @IsNumber()
-  installmentOrder?: number;
+  installmentOrder: number;
 
   @IsOptional()
   @IsString()
