@@ -37,7 +37,7 @@ export type AssignmentStatus = 'open' | 'closed' | 'locked'
  * - `attachments`: An optional array of strings, typically used to store URLs or paths to additional resources or files related to the assignment.
  * - `status`: Represents the current state of the assignment, as defined by an {@link AssignmentStatus} type.
  */
-export interface AssignmentBase {
+export interface Assignment {
   id: string
   title: string
   description: string
@@ -73,7 +73,7 @@ export type SubmissionStatus = 'submitted' | 'pending' | 'late' | 'missed'
  * - `submissionTimestamp`: An optional timestamp representing the time when the student submitted the assignment.
  * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
  */
-export interface SubmissionBase {
+export interface Submission {
   submissionStatus: SubmissionStatus
   submissionLink?: string
   submissionTimestamp?: string
@@ -82,14 +82,14 @@ export interface SubmissionBase {
 
 /**
  * Represents the submission details from a student for a specific assignment.
- * Extends the base properties provided by the {@link SubmissionBase} interface.
+ * Extends the base properties provided by the {@link Submission} interface.
  *
  * Properties:
  * - `id`: A unique identifier for the submission.
  * - `assignmentId`: The ID of the assignment associated with the submission.
  * - `studentId`: The ID of the student who submitted the assignment.
  */
-export interface StudentSubmission extends SubmissionBase {
+export interface StudentSubmission extends Submission {
   id: string
   assignmentId: string
   studentId: string
@@ -97,7 +97,7 @@ export interface StudentSubmission extends SubmissionBase {
 
 /**
  * Represents the submission details from a group for a specific assignment.
- * Extends the base properties provided by the {@link SubmissionBase} interface.
+ * Extends the base properties provided by the {@link Submission} interface.
  *
  * Properties:
  * - `id`: A unique identifier for the submission.
@@ -105,7 +105,7 @@ export interface StudentSubmission extends SubmissionBase {
  * - `groupId`: The ID of the group who submitted the assignment.
  * - `memberIds`: An array of IDs representing the members of the group who submitted the assignment.
  */
-export interface GroupSubmission extends SubmissionBase {
+export interface GroupSubmission extends Submission {
   id: string
   assignmentId: string
   groupId: string
@@ -115,14 +115,14 @@ export interface GroupSubmission extends SubmissionBase {
 /**
  * Represents a student's assignment that includes information about the assignment,
  * its submission details, and optional grade information. This interface extends common
- * properties from {@link AssignmentBase} and {@link SubmissionBase} to consolidate assignment-specific
+ * properties from {@link Assignment} and {@link Submission} to consolidate assignment-specific
  * and submission-related data.
  *
  * Properties:
  * - `assignmentId`: The ID of the assignment associated with the submission.
  * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
  */
-export interface StudentAssignment extends AssignmentBase, SubmissionBase {
+export interface StudentAssignment extends Assignment, Submission {
   assignmentId: string
   grade?: Grade
 }
@@ -167,12 +167,12 @@ export interface GroupSubmissionSummary {
 
 /**
  * Represents an assignment from a mentor's perspective, including submission summaries.
- * Extends the base properties provided by the {@link AssignmentBase} interface.
+ * Extends the base properties provided by the {@link Assignment} interface.
  *
  * Properties:
  * - `submissions`: An array of submission summaries, which can be either individual
  *   {@link AssignmentSubmissionSummary} or group {@link GroupSubmissionSummary} submissions.
  */
-export interface MentorAssignment extends AssignmentBase {
+export interface MentorAssignment extends Assignment {
   submissions: (AssignmentSubmissionSummary | GroupSubmissionSummary)[]
 }
