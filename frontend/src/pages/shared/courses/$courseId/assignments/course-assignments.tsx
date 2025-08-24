@@ -1,9 +1,5 @@
 import {
-  Badge,
-  Box,
-  Button,
-  Card,
-  Flex,
+
   Group,
   Stack,
   Tabs,
@@ -20,54 +16,142 @@ import {
 } from '@tabler/icons-react'
 import SearchComponent from '@/components/search-component.tsx'
 import React, { useState } from 'react'
-import SubmissionButton from '@/components/submission-button.tsx'
-import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import AssignmentPanel from '@/features/courses/assignments/assignment-panel.tsx'
-import type { AssignmentData } from '@/features/courses/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type { Role } from '@/integrations/api/client'
+import type {
+  MentorAssignment,
+  StudentAssignment,
+} from '@/features/courses/assignments/types.ts'
+import {
+  getFutureDate,
+  getPastDate,
+} from '@/utils/helpers.ts'
 
-const mockAssignmentsData: AssignmentData[] = [
+export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '1',
-    title: 'Project 1',
+    title: 'Pending',
     description: 'Submit project report',
-    dueTimestamp: '2022-12-31T23:59',
+    type: 'assignment',
+    dueDate: getFutureDate(2),
+    createdAt: getPastDate(1),
+    mode: 'individual',
+    status: 'open',
     submissionStatus: 'pending',
   },
   {
     id: '2',
-    title: 'Assignment 2',
+    title: 'Draft',
     description: 'Submit assignment',
-    dueTimestamp: '2023-01-15T11:59',
-    submissionStatus: 'late',
+    type: 'draft',
+    dueDate: getFutureDate(2),
+    createdAt: getPastDate(1),
+    mode: 'individual',
+    status: 'open',
+    submissionStatus: 'draft',
   },
   {
     id: '3',
-    title: 'Project 2',
+    title: 'Submitted',
     description: 'Submit project report',
-    dueTimestamp: '2022-10-31T23:59',
-    submissionStatus: 'completed',
-    submissionTimestamp: '2022-10-20T12:30',
+    type: 'other',
+    dueDate: getFutureDate(2),
+    createdAt: getPastDate(1),
+    mode: 'individual',
+    status: 'open',
+    submissionStatus: 'submitted',
+    submissionTimestamp: getPastDate(1),
   },
   {
     id: '4',
-    title: 'Assignment 1',
+    title: 'Ready for Grading',
     description: 'Submit assignment',
-    dueTimestamp: '2022-11-15T11:59',
-    submissionStatus: 'completed',
-    submissionTimestamp: '2022-11-10T09:30',
+    type: 'milestone',
+    dueDate: getFutureDate(2),
+    createdAt: getPastDate(1),
+    mode: 'individual',
+    status: 'open',
+    submissionStatus: 'ready-for-grading',
+    submissionTimestamp: getPastDate(1),
   },
+  {
+    id: '5',
+    title: 'Graded Individual Project',
+    description: 'Submit project report',
+    type: 'milestone',
+    dueDate: getFutureDate(2),
+    createdAt: getPastDate(1),
+    mode: 'individual',
+    status: 'open',
+    submissionStatus: 'graded',
+    submissionTimestamp: getPastDate(1),
+    grade: {
+      id: '1',
+      assignmentId: '5',
+      studentId: 'stud1',
+      score: 90,
+      maxScore: 100,
+      feedback: 'Great job!',
+      gradedBy: 'teacher1',
+      gradedAt: getPastDate(1),
+    }
+  },
+  {
+    id: '6',
+    title: 'Graded Group Project',
+    description: 'Submit project report',
+    type: 'milestone',
+    dueDate: getFutureDate(2),
+    createdAt: getPastDate(7),
+    mode: 'individual',
+    status: 'open',
+    submissionStatus: 'graded',
+    submissionTimestamp: getPastDate(1),
+    grade: {
+      id: '1',
+      assignmentId: '6',
+      groupId: 'grp1',
+      groupMemberIds: ['stud1', 'stud2', 'stud3'],
+      score: 90,
+      maxScore: 100,
+      feedback: 'Great job!',
+      gradedBy: 'teacher1',
+      gradedAt: getPastDate(1),
+    }
+  },
+  {
+    id: '7',
+    title: 'Late',
+    description: 'Submit assignment',
+    type: 'assignment',
+    dueDate: getPastDate(1),
+    createdAt: getPastDate(2),
+    mode: 'individual',
+    status: 'open',
+    submissionStatus: 'pending',
+  },
+  {
+    id: '8',
+    title: 'Missed',
+    description: 'Submit assignment',
+    type: 'assignment',
+    dueDate: getPastDate(1),
+    createdAt: getPastDate(2),
+    mode: 'individual',
+    status: 'closed',
+    submissionStatus: 'pending',
+  }
 ]
 
 type RoleBasedAssignmentConfig = {
-  [K in Role]?: {
+  [K in Role]: {
     tabs: {
       value: string
       label: string
       icon: React.ReactNode
     }[]
-    filterFn: (a: AssignmentData) => boolean
+    filterFn: (a: StudentAssignment | MentorAssignment) => boolean
   }
 }
 
@@ -75,25 +159,51 @@ type RoleBasedAssignmentConfig = {
 const roleConfig: RoleBasedAssignmentConfig = {
   student: {
     tabs: [
-      { value: "todo", label: "Todo", icon: <IconSend size={12}/> },
-      { value: "completed", label: "Completed", icon: <IconHistory size={12}/> }
+      { value: 'todo', label: 'Todo', icon: <IconSend size={12} /> },
+      {
+        value: 'completed',
+        label: 'Completed',
+        icon: <IconHistory size={12} />,
+      },
     ],
-    filterFn: (a: AssignmentData) => a.submissionStatus !== "completed"
+    filterFn: (a: StudentAssignment | MentorAssignment) => {
+      return 'submissionStatus' in a ? a.submissionStatus === 'pending' : false
+    },
   },
   admin: {
     tabs: [
-      { value: "assigned", label: "Assigned", icon: <IconBook size={12}/> },
-      { value: "graded", label: "Graded", icon: <IconCheck size={12}/> }
+      { value: 'submitted', label: 'Submitted', icon: <IconBook size={12} /> },
+      { value: 'to-grade', label: 'To Grade', icon: <IconBook size={12} /> },
+      { value: 'graded', label: 'Graded', icon: <IconCheck size={12} /> },
     ],
-    filterFn: (a: AssignmentData) => a.submissionStatus === "assigned"
-  }
-};
+    filterFn: (a: StudentAssignment | MentorAssignment) => {
+      return 'submissions' in a
+        ? a.submissions.some((s) => s.submissionStatus === 'submitted')
+        : false
+    },
+  },
+  mentor: {
+    tabs: [
+      { value: 'submitted', label: 'Submitted', icon: <IconBook size={12} /> },
+      { value: 'to-grade', label: 'To Grade', icon: <IconBook size={12} /> },
+      { value: 'graded', label: 'Graded', icon: <IconCheck size={12} /> },
+    ],
+    filterFn: (a: StudentAssignment | MentorAssignment) => {
+      return 'submissions' in a
+        ? a.submissions.some((s) => s.submissionStatus === 'submitted')
+        : false
+    },
+  },
+}
 
 const CourseAssignments = () => {
   const { authUser } = useAuth('protected')
 
-  const [activeTab, setActiveTab] = useState(roleConfig[authUser.role]?.tabs[0].value);
-  const [filteredAssignments, setFilteredAssignments] = useState<AssignmentData[]>([]);
+  const [activeTab, setActiveTab] = useState(roleConfig[authUser.role].tabs[0].value);
+
+  const todoAssignments = mockAssignmentsData.filter((assignment) => assignment.submissionStatus === 'pending')
+  const completedAssignments = mockAssignmentsData.filter((assignment) => assignment.submissionStatus === 'graded')
+  const [filteredAssignments, setFilteredAssignments] = useState<StudentAssignment[]>([]);
 
   const getAssignments = () => {
     return activeTab === "todo" ? todoAssignments : completedAssignments
@@ -116,12 +226,11 @@ const CourseAssignments = () => {
           value={activeTab} onChange={handleTabChange}
         >
           <Tabs.List>
-            <Tabs.Tab value="todo" leftSection={<IconSend size={12} />}>
-              Todo
-            </Tabs.Tab>
-            <Tabs.Tab value="completed" leftSection={<IconHistory size={12} />}>
-              Completed
-            </Tabs.Tab>
+            {roleConfig[authUser.role].tabs.map(tab => (
+              <Tabs.Tab key={tab.value} value={tab.value} leftSection={tab.icon}>
+                {tab.label}
+              </Tabs.Tab>
+            ))}
           </Tabs.List>
 
           <Stack gap={'md'} p={'md'}>

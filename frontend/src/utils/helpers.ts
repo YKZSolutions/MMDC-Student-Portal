@@ -17,6 +17,11 @@ export function isPastDueDate(date: string) {
     return dueDate < today;
 }
 
-export function isMissed (date: string){
+// TODO: remove these if not needed, these are currently used for mocking dates
+export function getFutureDate(daysToAdd: number) {
+    return new Date(new Date().setDate(new Date().getDate() + daysToAdd)).toISOString();
+}
 
+export function getPastDate(daysToSubtract: number) {
+    return new Date(new Date().setDate(new Date().getDate() - daysToSubtract)).toISOString();
 }

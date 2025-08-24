@@ -18,6 +18,8 @@ export type AssignmentMode = 'individual' | 'group'
  */
 export type AssignmentStatus = 'open' | 'closed'
 
+export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
+
 /**
  * Represents the base structure of an assignment entity.
  *
@@ -39,6 +41,7 @@ export type AssignmentStatus = 'open' | 'closed'
 export interface Assignment {
   id: string
   title: string
+  type: AssignmentType
   description: string
   createdAt: string
   updatedAt?: string

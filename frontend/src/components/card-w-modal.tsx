@@ -1,5 +1,4 @@
 import React, { type ComponentPropsWithoutRef, type JSX, useState } from 'react'
-import type { ModalProp } from '@/features/courses/types.ts'
 import { useDisclosure } from '@mantine/hooks'
 import {
   type BoxProps,

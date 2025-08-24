@@ -1,4 +1,4 @@
-export interface ModalProp {
+export interface CustomModalProp {
   opened: boolean
   closeModal: () => void
 }

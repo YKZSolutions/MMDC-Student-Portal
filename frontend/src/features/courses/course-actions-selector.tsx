@@ -1,5 +1,3 @@
-import type { ModalProp } from '@/features/courses/types.ts'
-import { useDisclosure } from '@mantine/hooks'
 import {
   Button,
   Divider,
@@ -13,11 +11,12 @@ import {
 import { IconBook } from '@tabler/icons-react'
 import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
+import type { CustomModalProp } from '@/components/types.ts'
 
 const CourseActionsSelector = ({
                            opened,
                            closeModal,
-                         }: ModalProp) => {
+                         }: CustomModalProp) => {
   return (
     <Modal
       opened={opened}

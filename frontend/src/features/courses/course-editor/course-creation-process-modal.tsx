@@ -10,27 +10,26 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
-import { ContentType, type ModalProp } from '@/features/courses/types.ts'
 import { getChildTypeFromParentType } from '@/utils/helpers.ts'
 import {
   IconArrowsLeft,
   IconCircleCheck,
-  IconMailOpened,
   IconNotebook,
   IconPencil,
   IconShieldCheck,
-  IconUserCheck,
   IconX,
 } from '@tabler/icons-react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
 import ModuleCreationCard from '@/features/courses/module-creation-card.tsx'
 import CourseCreationCard from '@/features/courses/course-creation-card.tsx'
+import type { CustomModalProp } from '@/components/types.ts'
+import type { ContentType } from '@/features/courses/types.ts'
 
 const CourseCreationProcessModal = ({
   opened,
   closeModal,
-}: ModalProp) => {
+}: CustomModalProp) => {
   const theme = useMantineTheme()
   const [active, setActive] = useState(0)
   const nextStep = () =>
@@ -41,7 +40,7 @@ const CourseCreationProcessModal = ({
   const [isDragging, setIsDragging] = useState(false)
 
   const [rightPaneOpen, { open, close }] = useDisclosure(false) //For Content Details Editor Drawer
-  const [childType, setChildType] = useState<string>(ContentType.Module)
+  const [childType, setChildType] = useState<ContentType>('module')
 
   const handleAdd = (
     parentId?: string | number,

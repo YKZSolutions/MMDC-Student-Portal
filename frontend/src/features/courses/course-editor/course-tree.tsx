@@ -28,9 +28,9 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useTreeConnectors } from '@/features/courses/course-editor/useTreeConnectors.ts'
-import { ContentType } from '@/features/courses/types.ts'
 import {capitalizeFirstLetter} from "@/utils/formatters.ts";
 import {getChildTypeFromParentType} from "@/utils/helpers.ts";
+import type { ContentType } from '@/features/courses/types.ts'
 
 interface NodeData {
   parentType?: ContentType;
@@ -45,33 +45,33 @@ const mockData: CourseNodeModel[] = [
     parent: '0', 
     text: "Module 1",
     droppable: true,
-    data: { type: ContentType.Module }
+    data: { type: 'module' }
   },
   { 
     id: '2', 
     parent: '1', 
     text: "Subsection A",
     droppable: true,
-    data: { type: ContentType.Subsection }
+    data: { type: 'subsection' }
   },
   { 
     id: '3', 
     parent: '2', 
     text: "Lesson 1", 
-    data: { type: ContentType.Item }
+    data: { type: 'item' }
   },
   {
     id: '4',
     parent: '2',
     text: "Lesson 2",
-    data: { type: ContentType.Item }
+    data: { type: 'item' }
   },
   {
     id: '5',
     parent: '1',
     text: "Subsection B",
     droppable: true,
-    data: { type: ContentType.Subsection }
+    data: { type: 'item' }
   },
 ];
 
@@ -128,7 +128,6 @@ function injectData(nodes: CourseNodeModel[]): CourseNodeModel[] {
       };
     }
   }
-
 
   return augmented
 }

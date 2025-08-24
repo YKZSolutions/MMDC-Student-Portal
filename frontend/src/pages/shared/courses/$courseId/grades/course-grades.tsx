@@ -1,14 +1,10 @@
 import type { IUsersQuery } from '@/features/user-management/types.ts'
 import {
-  ActionIcon,
   Badge,
   Button,
   Center,
-  Checkbox,
   Flex,
   Group,
-  Menu,
-  Pill,
   rem,
   Stack,
   Table,
@@ -17,75 +13,18 @@ import {
 } from '@mantine/core'
 import { Suspense, useState } from 'react'
 import { SuspendedTableRows } from '@/pages/admin/users/users.admin.suspense.tsx'
-import type { UserWithRelations } from '@/integrations/api/client'
-import { useMutation } from '@tanstack/react-query'
-import {
-  usersControllerFindAllQueryKey,
-  usersControllerRemoveMutation,
-  usersControllerUpdateUserStatusMutation,
-} from '@/integrations/api/client/@tanstack/react-query.gen.ts'
-import { getContext } from '@/integrations/tanstack-query/root-provider.tsx'
-import { notifications } from '@mantine/notifications'
-import { IconCancel, IconCheck, IconDotsVertical, IconFilter2, IconPencil, IconTrash } from '@tabler/icons-react'
-import { modals } from '@mantine/modals'
 import SupabaseAvatar from '@/components/supabase-avatar.tsx'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket.ts'
 import dayjs from 'dayjs'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SearchComponent from '@/components/search-component.tsx'
-
-const mockGrades: GradesData[] = [
-  {
-    id: '1',
-    name: 'Assignment 1',
-    type: 'assignment',
-    dueTimestamp: '2023-01-01T00:00:00Z',
-    submissionTimestamp: '2023-01-01T00:00:00Z',
-    submittedBy: 'John Doe',
-    group: 'Group A',
-    status: 'graded',
-    grade: '18',
-    maxGrade: '20',
-  },
-  {
-    id: '2',
-    name: 'Assignment 2',
-    type: 'assignment',
-    dueTimestamp: '2023-01-01T00:00:00Z',
-    submissionTimestamp: '2023-01-01T00:00:00Z',
-    submittedBy: 'John Doe',
-    group: 'Individual',
-    status: 'graded',
-    grade: '20',
-    maxGrade: '20',
-  },
-  {
-    id: '3',
-    name: 'Draft Milestone 1',
-    type: 'draft',
-    dueTimestamp: '2023-01-01T00:00:00Z',
-    submissionTimestamp: '2023-01-01T00:00:00Z',
-    submittedBy: 'John Doe',
-    group: 'Individual',
-    status: 'submitted',
-    maxGrade: '100',
-  },
-  {
-    id: '4',
-    name: 'Milestone 1',
-    type: 'milestone',
-    dueTimestamp: '2023-01-01T00:00:00Z',
-    submissionTimestamp: '2023-01-01T00:00:00Z',
-    submittedBy: 'John Doe',
-    group: 'Individual',
-    status: 'late',
-    maxGrade: '100',
-  },
-]
+import type { Grade } from '@/features/courses/grades/types.ts'
+import type { StudentAssignment } from '@/features/courses/assignments/types.ts'
+import { mockAssignmentsData } from '@/pages/shared/courses/$courseId/assignments/course-assignments.tsx'
 
 const CourseGrades = () => {
-  const grades = mockGrades
-  const [filteredItems, setFilteredItems] = useState<GradesData[]>(grades)
+  const grades = mockAssignmentsData
+  const [filteredItems, setFilteredItems] = useState<StudentAssignment[]>(grades)
 
   return (
     <Stack gap={'md'}>
@@ -93,7 +32,7 @@ const CourseGrades = () => {
         <Title>Grades</Title>
       </Group>
       <Group justify="space-between" align="start">
-        <SearchComponent data={grades} onFilter={setFilteredItems} identifiers={['name', 'type', 'submittedBy']} placeholder={'Search...'} />
+        <SearchComponent data={grades} onFilter={setFilteredItems} identifiers={['title', 'type', /*'submittedBy'*/]} placeholder={'Search...'} />
         <Group gap={rem(5)} justify="end" align="center">
           <Button
             variant="default"
@@ -109,7 +48,7 @@ const CourseGrades = () => {
   )
 }
 
-function GradesTable({grades}: { grades: GradesData[] }) {
+function GradesTable({grades}: { grades: StudentAssignment[] }) {
   return (
     <Table
       highlightOnHover
@@ -133,8 +72,8 @@ function GradesTable({grades}: { grades: GradesData[] }) {
           <Table.Th>Type</Table.Th>
           <Table.Th>Due</Table.Th>
           <Table.Th>Submitted At</Table.Th>
-          <Table.Th>Submitted By</Table.Th>
-          <Table.Th>Group</Table.Th>
+          {/*<Table.Th>Submitted By</Table.Th>*/}
+          {/*<Table.Th>Group</Table.Th>*/}
           <Table.Th>Status</Table.Th>
           <Table.Th>Grade</Table.Th>
           <Table.Th w={0}></Table.Th>
@@ -149,7 +88,7 @@ function GradesTable({grades}: { grades: GradesData[] }) {
   )
 }
 
-function GradesTableRow({ grades }: { grades: GradesData[] }) {
+function GradesTableRow({ grades }: { grades: StudentAssignment[] }) {
   if (grades.length === 0)
     return (
       <Table.Tr>
@@ -166,41 +105,41 @@ function GradesTableRow({ grades }: { grades: GradesData[] }) {
   return grades.map((item) => (
     <Table.Tr key={item.id}>
       <Table.Td>
-        <Text >{item.name}</Text>
+        <Text >{item.title}</Text>
       </Table.Td>
       <Table.Td>
         <Text >{item.type}</Text>
       </Table.Td>
       <Table.Td>
         <Text size="sm" c={'dark.3'} fw={500}>
-          {formatTimestampToDateTimeText(item.dueTimestamp, 'by')}
+          {formatTimestampToDateTimeText(item.dueDate, 'by')}
         </Text>
       </Table.Td>
       <Table.Td>
         <Text size="sm" c={'dark.3'} fw={500}>
-          {formatTimestampToDateTimeText(item.submissionTimestamp)}
+          {formatTimestampToDateTimeText(item.submissionTimestamp!)}
         </Text>
       </Table.Td>
-      <Table.Td>
-        <Flex gap={'sm'} align={'center'} py={rem(5)}>
-          <SupabaseAvatar
-            bucket={SupabaseBuckets.USER_AVATARS}
-            path={item.id}
-            imageType="jpg"
-            name={`${item.submittedBy}`}
-          />
-          <Flex direction={'column'}>
-            <Text fw={600}>
-              {item.submittedBy}
-            </Text>
-          </Flex>
-        </Flex>
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm" c={'dark.3'} fw={500}>
-          {item.group}
-        </Text>
-      </Table.Td>
+      {/*<Table.Td>*/}
+      {/*  <Flex gap={'sm'} align={'center'} py={rem(5)}>*/}
+      {/*    <SupabaseAvatar*/}
+      {/*      bucket={SupabaseBuckets.USER_AVATARS}*/}
+      {/*      path={item.id}*/}
+      {/*      imageType="jpg"*/}
+      {/*      name={`${item.submittedBy}`}*/}
+      {/*    />*/}
+      {/*    <Flex direction={'column'}>*/}
+      {/*      <Text fw={600}>*/}
+      {/*        {item.submittedBy}*/}
+      {/*      </Text>*/}
+      {/*    </Flex>*/}
+      {/*  </Flex>*/}
+      {/*</Table.Td>*/}
+      {/*<Table.Td>*/}
+      {/*  <Text size="sm" c={'dark.3'} fw={500}>*/}
+      {/*    {item.group}*/}
+      {/*  </Text>*/}
+      {/*</Table.Td>*/}
       <Table.Td>
         <Badge
           color={item.status}
@@ -212,7 +151,7 @@ function GradesTableRow({ grades }: { grades: GradesData[] }) {
       </Table.Td>
       <Table.Td>
         <Text size="md" c={'dark.3'} fw={500}>
-          {item.grade ? item.grade : '-'} / {item.maxGrade}
+          {item.grade?.score ?? '-'} / {item.grade?.maxScore}
         </Text>
       </Table.Td>
     </Table.Tr>
