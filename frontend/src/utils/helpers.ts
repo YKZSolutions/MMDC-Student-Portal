@@ -11,3 +11,12 @@ export function getChildTypeFromParentType(parentType?: string) {
     }
 }
 
+export function isPastDueDate(date: string) {
+    const today = new Date();
+    const dueDate = new Date(date);
+    return dueDate < today;
+}
+
+export function isMissed (date: string){
+
+}
