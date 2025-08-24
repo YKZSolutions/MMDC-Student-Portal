@@ -9,10 +9,10 @@ import {
 } from '@mantine/core'
 import { IconClock } from '@tabler/icons-react'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import SubmissionButton from '@/components/submission-button.tsx'
-import type { AssignmentData } from '@/features/courses/types.ts'
+import SubmitButton from '@/components/submit-button.tsx'
+import type { StudentAssignment } from '@/features/courses/assignments/types.ts'
 
-const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
+const AssignmentCard = ({ assignment }: { assignment: StudentAssignment }) => {
   const theme = useMantineTheme();
 
   return (
@@ -21,15 +21,21 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
         {/* Left Section: Title, Description, and Status */}
         <Stack flex={1} justify="space-between" gap="xs">
           <Group>
-            <Title order={4} fw={600}>{assignment.title}</Title>
-            <Badge color={assignment.submissionStatus} variant="outline" size="md">
+            <Title order={4} fw={600}>
+              {assignment.title}
+            </Title>
+            <Badge
+              color={assignment.submissionStatus}
+              variant="outline"
+              size="md"
+            >
               {assignment.submissionStatus}
             </Badge>
           </Group>
           <Group gap="xs" wrap="nowrap">
             <IconClock size={16} color={theme.colors.gray[6]} />
             <Text size="sm" c="dimmed">
-              Due: {formatTimestampToDateTimeText(assignment.dueTimestamp, 'by')}
+              Due: {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
             </Text>
             {assignment.submissionTimestamp && (
               <Group gap="xs" wrap="nowrap">
@@ -37,7 +43,7 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
                   |
                 </Text>
                 <Text size="sm" c="dimmed">
-                  Submitted: {formatTimestampToDateTimeText(assignment.dueTimestamp)}
+                  Submitted: {formatTimestampToDateTimeText(assignment.dueDate)}
                 </Text>
               </Group>
             )}
@@ -46,11 +52,16 @@ const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
 
         {/* Right Section: Action Button */}
         <Stack align="flex-end" justify="center" flex={1}>
-          <SubmissionButton status={assignment.submissionStatus} onClick={() => {}} />
+          <SubmitButton
+            submissionStatus={assignment.submissionStatus}
+            onClick={() => {}}
+            dueDate={assignment.dueDate}
+            assignmentStatus={assignment.status}
+          />
         </Stack>
       </Group>
     </Card>
-  );
+  )
 }
 
 export default AssignmentCard
