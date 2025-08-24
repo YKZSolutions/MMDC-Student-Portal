@@ -461,13 +461,13 @@ const CourseCardActionButton = ({ currentMeeting }: { currentMeeting?: ClassMeet
         student: {
           icon: <IconVideo size={16} />,
           text: 'Join Meeting',
-          click: () => handleMeetingClick(currentMeeting?.meetingLink),
+          onClick: () => handleMeetingClick(currentMeeting?.meetingLink),
           disabled: !currentMeeting
         },
         admin: {
           icon: <IconDeviceDesktop size={16} />,
           text: 'Manage Course',
-          click: () => handleManageCourseClick(),
+          onClick: () => handleManageCourseClick(),
         },
       }}
     />

@@ -11,42 +11,43 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import { IconClock, IconHistory, IconSend } from '@tabler/icons-react'
+import {
+  IconBook,
+  IconCheck,
+  IconClock,
+  IconHistory,
+  IconSend,
+} from '@tabler/icons-react'
 import SearchComponent from '@/components/search-component.tsx'
-import { useEffect, useState } from 'react'
-import dayjs from 'dayjs'
+import React, { useState } from 'react'
 import SubmissionButton from '@/components/submission-button.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
+import AssignmentPanel from '@/features/courses/assignments/assignment-panel.tsx'
+import type { AssignmentData } from '@/features/courses/types.ts'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import type { Role } from '@/integrations/api/client'
 
-interface AssignmentData {
-  id: string
-  title: string
-  description: string
-  dueTimestamp: string
-  status: 'completed' | 'pending' | 'late' | 'locked'
-  submissionTimestamp?: string
-}
 const mockAssignmentsData: AssignmentData[] = [
   {
     id: '1',
     title: 'Project 1',
     description: 'Submit project report',
     dueTimestamp: '2022-12-31T23:59',
-    status: 'pending',
+    submissionStatus: 'pending',
   },
   {
     id: '2',
     title: 'Assignment 2',
     description: 'Submit assignment',
     dueTimestamp: '2023-01-15T11:59',
-    status: 'late',
+    submissionStatus: 'late',
   },
   {
     id: '3',
     title: 'Project 2',
     description: 'Submit project report',
     dueTimestamp: '2022-10-31T23:59',
-    status: 'completed',
+    submissionStatus: 'completed',
     submissionTimestamp: '2022-10-20T12:30',
   },
   {
@@ -54,16 +55,45 @@ const mockAssignmentsData: AssignmentData[] = [
     title: 'Assignment 1',
     description: 'Submit assignment',
     dueTimestamp: '2022-11-15T11:59',
-    status: 'completed',
+    submissionStatus: 'completed',
     submissionTimestamp: '2022-11-10T09:30',
   },
 ]
-const CourseAssignments = () => {
-  const [activeTab, setActiveTab] = useState<'todo' | 'completed'>('todo')
 
-  const todoAssignments = mockAssignmentsData.filter((assignment) => assignment.status !== 'completed')
-  const completedAssignments = mockAssignmentsData.filter((assignment) => assignment.status === 'completed')
-  const [filteredAssignments, setFilteredAssignments] = useState<AssignmentData[]>(todoAssignments)
+type RoleBasedAssignmentConfig = {
+  [K in Role]?: {
+    tabs: {
+      value: string
+      label: string
+      icon: React.ReactNode
+    }[]
+    filterFn: (a: AssignmentData) => boolean
+  }
+}
+
+// TODO: Add more for other roles
+const roleConfig: RoleBasedAssignmentConfig = {
+  student: {
+    tabs: [
+      { value: "todo", label: "Todo", icon: <IconSend size={12}/> },
+      { value: "completed", label: "Completed", icon: <IconHistory size={12}/> }
+    ],
+    filterFn: (a: AssignmentData) => a.submissionStatus !== "completed"
+  },
+  admin: {
+    tabs: [
+      { value: "assigned", label: "Assigned", icon: <IconBook size={12}/> },
+      { value: "graded", label: "Graded", icon: <IconCheck size={12}/> }
+    ],
+    filterFn: (a: AssignmentData) => a.submissionStatus === "assigned"
+  }
+};
+
+const CourseAssignments = () => {
+  const { authUser } = useAuth('protected')
+
+  const [activeTab, setActiveTab] = useState(roleConfig[authUser.role]?.tabs[0].value);
+  const [filteredAssignments, setFilteredAssignments] = useState<AssignmentData[]>([]);
 
   const getAssignments = () => {
     return activeTab === "todo" ? todoAssignments : completedAssignments
@@ -98,68 +128,17 @@ const CourseAssignments = () => {
             <SearchComponent data={getAssignments()} onFilter={setFilteredAssignments} identifiers={['title']} placeholder={'Search for assignments'} />
 
             <Tabs.Panel value="todo">
-              <AssignmentsPanel assignments={filteredAssignments} />
+              <AssignmentPanel assignments={filteredAssignments} />
             </Tabs.Panel>
 
             <Tabs.Panel value="completed">
-              <AssignmentsPanel assignments={filteredAssignments} />
+              <AssignmentPanel assignments={filteredAssignments} />
             </Tabs.Panel>
           </Stack>
         </Tabs>
       </Stack>
     </Stack>
   )
-}
-
-const AssignmentsPanel = ({assignments}: {assignments: AssignmentData[]})=>{
-  return (
-    <Stack gap={'md'}>
-      {assignments.map((assignment) => (
-        <AssignmentCard key={assignment.id} assignment={assignment} />
-      ))}
-    </Stack>
-  )
-}
-
-const AssignmentCard = ({ assignment }: { assignment: AssignmentData }) => {
-  const theme = useMantineTheme();
-
-  return (
-    <Card withBorder radius="md" p="lg" shadow="xs">
-      <Group justify="space-between" align="stretch">
-        {/* Left Section: Title, Description, and Status */}
-        <Stack flex={1} justify="space-between" gap="xs">
-          <Group>
-            <Title order={4} fw={600}>{assignment.title}</Title>
-            <Badge color={assignment.status} variant="outline" size="md">
-              {assignment.status}
-            </Badge>
-          </Group>
-          <Group gap="xs" wrap="nowrap">
-            <IconClock size={16} color={theme.colors.gray[6]} />
-            <Text size="sm" c="dimmed">
-              Due: {formatTimestampToDateTimeText(assignment.dueTimestamp, 'by')}
-            </Text>
-            {assignment.submissionTimestamp && (
-              <Group gap="xs" wrap="nowrap">
-                <Text size="sm" c="dimmed">
-                  |
-                </Text>
-                <Text size="sm" c="dimmed">
-                  Submitted: {formatTimestampToDateTimeText(assignment.dueTimestamp)}
-                </Text>
-              </Group>
-            )}
-          </Group>
-        </Stack>
-
-        {/* Right Section: Action Button */}
-        <Stack align="flex-end" justify="center" flex={1}>
-          <SubmissionButton status={assignment.status} onClick={() => {}} />
-        </Stack>
-      </Group>
-    </Card>
-  );
 }
 
 export default CourseAssignments

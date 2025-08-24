@@ -34,19 +34,6 @@ import dayjs from 'dayjs'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SearchComponent from '@/components/search-component.tsx'
 
-interface GradesData {
-  id: string
-  name: string
-  type: string
-  dueTimestamp: string
-  submissionTimestamp: string
-  submittedBy: string
-  group: string
-  status: string
-  grade?: string
-  maxGrade: string
-}
-
 const mockGrades: GradesData[] = [
   {
     id: '1',

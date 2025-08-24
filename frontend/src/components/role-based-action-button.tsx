@@ -1,31 +1,30 @@
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
-import { Button } from '@mantine/core'
-import { IconEdit, IconVideo } from '@tabler/icons-react'
-import React from 'react'
+import { type BoxProps, Button } from '@mantine/core'
+import React, { type ComponentPropsWithoutRef } from 'react'
 import type { Role } from '@/integrations/api/client'
-
-type DefaultRoles = Role
 
 type RoleBasedActionButtonProps = {
   render: {
-    [K in DefaultRoles]?: {
+    [K in Role]?: {
       icon: React.ReactNode;
       text: string;
-      click: () => void;
+      onClick: () => void;
       disabled?: boolean;
     }
   }
-}
+} & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection' | 'disabled'>
+  & BoxProps
 
 const RoleBasedActionButton = ({
   render,
+  ...buttonProps
 }: RoleBasedActionButtonProps) => {
   const { authUser } = useAuth('protected')
   const { role } = authUser
-  const { icon, text, click, disabled } = render[role] || {}
+  const { icon, text, onClick, disabled } = render[role] || {}
 
-  if (!icon || !text || !click) {
+  if (!icon || !text || !onClick) {
     return null
   }
 
@@ -36,7 +35,8 @@ const RoleBasedActionButton = ({
       radius="xl"
       variant="filled"
       disabled={disabled}
-      onClick={click}
+      onClick={onClick}
+      {...buttonProps}
     >
       {text}
     </Button>
