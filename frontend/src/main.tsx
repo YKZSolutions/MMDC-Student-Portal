@@ -17,6 +17,9 @@ import { theme } from './integrations/mantine/mantine-theme.ts'
 import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
 
+// Listen to auth token refresh
+import './integrations/supabase/supabase-auth-event.ts'
+
 // Create a new router instance
 const router = createRouter({
   routeTree,
