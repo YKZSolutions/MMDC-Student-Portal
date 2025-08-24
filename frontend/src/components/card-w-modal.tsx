@@ -1,16 +1,25 @@
-import React, { type JSX, useState } from 'react'
+import React, { type ComponentPropsWithoutRef, type JSX, useState } from 'react'
 import type { ModalProp } from '@/features/courses/types.ts'
 import { useDisclosure } from '@mantine/hooks'
-import { Card, Group, Stack, Text, Title } from '@mantine/core'
+import {
+  type BoxProps,
+  Button,
+  Card,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 
-interface ActionCardProps {
+type ActionCardProps = {
   title: string
   description: string
   icon: JSX.Element
   modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
-}
+} & ComponentPropsWithoutRef<typeof Card>
+  & BoxProps
 
-const CardWithModal = ({title, description, icon, modalComponent: ModalComponent}: ActionCardProps) => {
+const CardWithModal = ({title, description, icon, modalComponent: ModalComponent, ...cardProps}: ActionCardProps) => {
   const [hovered, setHovered] = useState(false)
   const [actionModalOpened, { open, close }] = useDisclosure(false)
 
@@ -25,6 +34,7 @@ const CardWithModal = ({title, description, icon, modalComponent: ModalComponent
         onClick={open}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        {...cardProps}
       >
         <Stack gap={'xs'}>
           <Group gap={'xs'}>

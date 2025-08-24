@@ -18,7 +18,7 @@ import {
   IconFile,
   IconFlag,
   IconLock,
-  IconPencil,
+  IconPencil, IconPlus,
   IconSettings,
   IconTrash,
   IconUrgent,
@@ -28,8 +28,11 @@ import { useState, useEffect } from "react";
 import SubmissionButton from '@/components/submission-button.tsx'
 import RoleComponentManager from "@/components/role-component-manager.tsx";
 import {useAuth} from "@/features/auth/auth.hook.ts";
+import ButtonWithModal from '@/components/btn-w-modal.tsx'
+import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
 
 const CourseModules = () => {
+  const { authUser } = useAuth('protected')
   const [allExpanded, setAllExpanded] = useState(false);
   
   const toggleExpandAll = () => {
@@ -38,11 +41,20 @@ const CourseModules = () => {
 
   return (
     <Stack>
-      <Group justify="space-between" align="start">
+      <Group justify="space-between" align="center">
         <Title>Course Name | Course Modules</Title>
-        <Button onClick={toggleExpandAll}>
-          {allExpanded ? 'Collapse All' : 'Expand All'}
-        </Button>
+        <Group align="center">
+          <Button onClick={toggleExpandAll} w={120}>
+            {allExpanded ? 'Collapse All' : 'Expand All'}
+          </Button>
+          {authUser.role === 'admin' && (
+            <ButtonWithModal
+              label={'Add New Content'}
+              icon={<IconPlus />}
+              modalComponent={CourseCreationProcessModal}
+            />
+          )}
+        </Group>
       </Group>
       <Stack>
         <ModuleCard allExpanded={allExpanded} />

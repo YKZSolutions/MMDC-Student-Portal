@@ -5,6 +5,7 @@ import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
 import CourseActionsSelector from '@/features/courses/course-actions-selector.tsx'
+import { IconPlus } from '@tabler/icons-react'
 
 export interface CourseNavItem {
   link: string
@@ -55,10 +56,16 @@ const CourseNavBar = ({
       h={'100vh'}
       style={{ position: 'sticky', top: 0 }}
     >
+      {/*TODO: this might be different for different admin roles*/}
       <RoleComponentManager
         currentRole={authUser.role}
         roleRender={{
-          admin: <ButtonWithModal label={'Add New Content'} modalComponent={CourseActionsSelector} />,
+          admin: <ButtonWithModal
+            label={'Add New Content'}
+            icon={<IconPlus />}
+            modalComponent={CourseActionsSelector}
+            mb={'md'}
+          />,
         }}
       />
       <Select

@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  type BoxProps,
   Stack,
   Textarea,
   useMantineTheme,
@@ -17,6 +18,7 @@ type ContentDetailsEditorProps = {
   type: string;
   data: any;
 } & ComponentPropsWithoutRef<typeof Stack>
+  & BoxProps
 
 // Originally Used as a Right Pane details editor
 // TODO: Add expanded state, and render according to type
