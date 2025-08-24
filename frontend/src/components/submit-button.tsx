@@ -15,7 +15,7 @@ import type {
 import {isPastDueDate} from "@/utils/helpers.ts";
 
 type SubmissionButtonProps = {
-    submissionStatus?: SubmissionStatus
+    submissionStatus: SubmissionStatus
     dueDate: string
     assignmentStatus: AssignmentStatus
     onClick: () => void
@@ -27,16 +27,18 @@ const SubmitButton = ({
                           dueDate,
                           onClick
                       }: SubmissionButtonProps) => {
-    const isLate= isPastDueDate(dueDate)
+    const isPending = submissionStatus === 'pending'
+    const isLate= isPending ? isPastDueDate(dueDate) : false
     let isMissed = false
 
     function getLabel() {
-        if (assignmentStatus === 'closed' && !submissionStatus) {
+        if (assignmentStatus === 'closed' && isPending) {
             isMissed = true
             return 'You have missed this assignment'
         }
 
-        if (!submissionStatus) return isLate ? 'Submit Late' : 'Submit'
+        if (isLate) return 'Submit Late'
+        if (isPending) return 'Submit'
 
         if (submissionStatus === 'draft') return 'View Draft'
         if (submissionStatus === 'graded') return 'View Grade'
@@ -52,7 +54,7 @@ const SubmitButton = ({
             }
             onClick={onClick}
             disabled={isMissed}
-            color={isLate && !submissionStatus ? submissionStatus : 'primary'}
+            color={isLate ? submissionStatus : 'primary'}
         >
             {getLabel()}
         </Button>

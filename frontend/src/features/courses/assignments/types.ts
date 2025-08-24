@@ -13,11 +13,10 @@ export type AssignmentMode = 'individual' | 'group'
  * Represents the possible statuses for an assignment.
  *
  * The `AssignmentStatus` type indicates the current state of an assignment using one of the following string values:
- * - `open`: The assignment is available and accessible.
- * - `closed`: The assignment is no longer available, but it is not restricted.
- * - `locked`: The assignment is restricted and cannot be accessed.
+ * - `open`: The assignment accepts submissions and is available for grading.
+ * - `closed`: The assignment is closed and submissions are no longer accepted.
  */
-export type AssignmentStatus = 'open' | 'closed' | 'locked'
+export type AssignmentStatus = 'open' | 'closed'
 
 /**
  * Represents the base structure of an assignment entity.
@@ -44,7 +43,7 @@ export interface Assignment {
   createdAt: string
   updatedAt?: string
   dueDate: string // ISO string
-  mode: AssignmentMode // determines submission/grade type
+  mode: AssignmentMode
   points?: number // max points
   attachments?: string[]
   status: AssignmentStatus
@@ -55,12 +54,13 @@ export interface Assignment {
  *
  * The `SubmissionStatus` type is used to define the status of a student's assignment submission.
  * It can be one of the following:
- * - `submitted`: The student has submitted the assignment.
- * - `pending`: The student has submitted the assignment but it is awaiting review.
- * - `late`: The student has submitted the assignment after the due date.
- * - `missed`: The student has not submitted the assignment before the due date.
+ * - `pending`: Waiting for submission.
+ * - `draft`: The submission is submitted in a draft state, only seen by students.
+ * - `submitted`: The submission is marked ready for feedback and review.
+ * - `ready-for-grading`: The submission is ready for grading.
+ * - `graded`: The submission has been graded and is available for viewing.
  */
-export type SubmissionStatus = 'submitted' | 'pending' | 'late' | 'missed'
+export type SubmissionStatus = 'pending' | 'draft' | 'submitted' | 'ready-for-grading' | 'graded'
 
 /**
  * Represents the base structure for a student's or group's submission.
@@ -119,11 +119,9 @@ export interface GroupSubmission extends Submission {
  * and submission-related data.
  *
  * Properties:
- * - `assignmentId`: The ID of the assignment associated with the submission.
  * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
  */
 export interface StudentAssignment extends Assignment, Submission {
-  assignmentId: string
   grade?: Grade
 }
 
