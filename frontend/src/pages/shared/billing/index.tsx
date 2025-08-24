@@ -422,9 +422,9 @@ function AdminBillingTableBody({ invoice }: { invoice: BillItemDto }) {
       },
     },
     {
-      onSuccess: async () => {
+      onSuccess: () => {
         const { queryClient } = getContext()
-        queryClient.removeQueries({
+        queryClient.invalidateQueries({
           queryKey: billingControllerFindAllQueryKey(),
         })
       },
