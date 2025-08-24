@@ -33,15 +33,6 @@ export interface EnrolledAcademicTerm {
   isCurrent: boolean
 }
 
-export interface EnrolledCourse {
-    academicTerm: {
-        schoolYear: string
-        term: string
-        isCurrent: boolean
-    }
-    courses: Course[]
-}
-
 export interface ClassMeeting {
   startTimeStamp: string
   endTimeStamp: string
@@ -55,13 +46,5 @@ export interface AcademicProgram {
   majorCode: string
 }
 
-export enum ContentType {
-  Module = "module",
-  Subsection = "subsection",
-  Item = "item",
-}
 
-export interface ModalProp {
-  opened: boolean
-  closeModal: () => void
-}
+export type ContentType = 'module' | 'subsection' | 'item'
