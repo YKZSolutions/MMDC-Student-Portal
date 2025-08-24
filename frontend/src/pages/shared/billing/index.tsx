@@ -240,7 +240,7 @@ function BillingPage() {
           <SegmentedControl
             bd={'1px solid gray.2'}
             data={[...segmentedControlOptions]}
-            defaultValue="all"
+            defaultValue={searchParam.tab || 'all'}
             color="primary"
             onChange={(value) => handleTabChange(value as IBillingQuery['tab'])}
           />
