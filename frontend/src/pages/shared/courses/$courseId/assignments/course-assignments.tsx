@@ -195,11 +195,12 @@ const CourseAssignments = () => {
 
   const todoAssignments = mockAssignmentsData.filter((assignment) => assignment.submissionStatus === 'pending')
   const completedAssignments = mockAssignmentsData.filter((assignment) => assignment.submissionStatus === 'graded')
-  const [filteredAssignments, setFilteredAssignments] = useState<StudentAssignment[]>([]);
 
   const getAssignments = () => {
     return activeTab === "todo" ? todoAssignments : completedAssignments
   }
+
+  const [filteredAssignments, setFilteredAssignments] = useState<StudentAssignment[]>(getAssignments);
 
   const handleTabChange = (value: string | null) => {
     if (value === "todo" || value === "completed") {
