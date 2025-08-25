@@ -11,20 +11,25 @@ const customColors = {
   secondary: colorsTuple('#BE0000'),
 } satisfies Record<string, MantineColorsTuple>
 
-const submissionStatusColors = {
-  completed: colorsTuple('#008000'),
-  submitted: colorsTuple('#008000'),
-  pending: colorsTuple('#FFA500'),
-  late: colorsTuple('#FF0000'),
-  locked: colorsTuple('#808080'),
-  graded: colorsTuple('#0000FF'),
+const statusColors = {
+  completed: colorsTuple('#65c66d'),
+  submitted: colorsTuple('#65c66d'),
+
+  open: colorsTuple('#65c66d'),
+  closed: colorsTuple('#cbced2'),
+
+  pending: colorsTuple('#F57C69'),
+  draft: colorsTuple('#cbced2'),
+  late: colorsTuple('#F57C69'),
+  'ready-for-grading': colorsTuple('#F9BD34'),
+  graded: colorsTuple('#65c66d'),
 }
 
 type CustomColors = keyof typeof customColors
-type SubmissionStatusColors = keyof typeof submissionStatusColors
+type StatusColors = keyof typeof statusColors
 
 // Merge the Mantine's built in colors ya dig?
-type ExtendedColors = DefaultMantineColor | CustomColors | SubmissionStatusColors
+type ExtendedColors = DefaultMantineColor | CustomColors | StatusColors
 
 declare module '@mantine/core' {
   export interface MantineThemeColorsOverride {
@@ -36,6 +41,6 @@ export const theme = createTheme({
   primaryColor: 'primary',
   colors: {
     ...customColors,
-    ...submissionStatusColors
+    ...statusColors
   },
 })

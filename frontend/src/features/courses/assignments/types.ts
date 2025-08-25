@@ -1,4 +1,3 @@
-// --- Assignment base ---
 import type { Grade } from '@/features/courses/grades/types.ts'
 
 /**
@@ -34,6 +33,7 @@ export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
  * - `mode`: Indicates the submission or grading mode, defined by an {@link AssignmentMode} type.
  * - `points`: An optional field representing the maximum points available for the assignment.
  * - `status`: Represents the current state of the assignment, as defined by an {@link AssignmentStatus} type.
+ * - `rubricId`: An optional string representing the ID of the rubric associated with the assignment.
  */
 export interface Assignment {
     id: string
@@ -44,6 +44,7 @@ export interface Assignment {
     mode: AssignmentMode
     points?: number // max points
     status: AssignmentStatus
+    rubricId?: string;
 }
 
 /**
@@ -52,7 +53,7 @@ export interface Assignment {
  * The `SubmissionStatus` type is used to define the status of a student's assignment submission.
  * It can be one of the following:
  * - `pending`: Waiting for submission.
- * - `draft`: The submission is submitted in a draft state, only seen by students.
+ * - `draft`: The submission is submitted in a draft state, work only seen by students.
  * - `submitted`: The submission is marked ready for feedback and review.
  * - `ready-for-grading`: The submission is ready for grading.
  * - `graded`: The submission has been graded and is available for viewing.
@@ -68,13 +69,21 @@ export type SubmissionStatus = 'pending' | 'draft' | 'submitted' | 'ready-for-gr
  * - `submissionStatus`: Indicates the status of the submission, defined by a {@link SubmissionStatus} type.
  * - `submissionLink`: An optional string representing the link to the student's submission.
  * - `submissionTimestamp`: An optional timestamp representing the time when the student submitted the assignment.
+ * - `attemptNumber`: An optional integer representing the number of attempts made by the student.
+ * - `resubmissionAllowed`: A boolean indicating whether resubmissions are allowed for the assignment.
+ * - `isLate`: A boolean indicating whether the student is late for the assignment.
+ * - `lateDays`: An optional integer representing the number of late days remaining for the assignment.
  * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
  */
 export interface Submission {
-  submissionStatus: SubmissionStatus
-  submissionLink?: string
-  submissionTimestamp?: string
-  grade?: Grade
+    submissionStatus: SubmissionStatus
+    submissionLink?: string
+    submissionTimestamp?: string
+    attemptNumber?: number;
+    resubmissionAllowed?: boolean;
+    isLate?: boolean;
+    lateDays?: number;
+    grade?: Grade
 }
 
 /**
@@ -107,6 +116,7 @@ export interface GroupSubmission extends Submission {
   assignmentId: string
   groupId: string
   memberIds: string[] // snapshot of members when submitted
+
 }
 
 /**
@@ -115,8 +125,17 @@ export interface GroupSubmission extends Submission {
  * properties from {@link Assignment} and {@link Submission} to consolidate assignment-specific
  * and submission-related data.
  *
+ * Properties:
+ * - `submissionId`: An optional string representing the ID of the submission.
+ * - `groupId`: An optional string representing the ID of the group associated with the assignment.
+ * - `groupName`: An optional string representing the name of the group associated with the assignment.
+ *
  */
-export interface StudentAssignment extends Assignment, Submission {}
+export interface StudentAssignment extends Assignment, Submission {
+    submissionId?: string;
+    groupId?: string;
+    groupName?: string;
+}
 
 /**
  * Represents a summary of an individual student's assignment submission.
@@ -141,19 +160,17 @@ export interface AssignmentSubmissionSummary {
  *
  * Properties:
  * - `groupId`: The ID of the group that submitted the assignment.
- * - `groupName`: The name of the group that submitted the assignment.
+ * - `members`: An array of IDs representing the members of the group who submitted the assignment.
  * - `submissionStatus`: The current status of the submission, defined by a {@link SubmissionStatus} type.
  * - `submittedAt`: An optional timestamp indicating when the assignment was submitted.
  * - `grade`: An optional number representing the grade received for the submission.
- * - `memberCount`: The number of members in the group at the time of submission.
  */
 export interface GroupSubmissionSummary {
   groupId: string
-  groupName: string
+  members: string[]
   submissionStatus: SubmissionStatus
   submittedAt?: string
   grade?: number
-  memberCount: number
 }
 
 /**

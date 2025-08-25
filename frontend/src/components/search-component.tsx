@@ -20,10 +20,20 @@ const SearchComponent = <T extends object>({
 }: SearchComponentProps<T>) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Helper function to get a nested value from an object
-  const getNestedValue = (obj: any, path: string[]): any => {
-    return path.reduce((currentObj, key) => (currentObj && currentObj[key] !== undefined ? currentObj[key] : null), obj);
-  };
+  const getNestedValues = (obj: any, path: string[]): any[] => {
+    return path.reduce((values, key) => {
+      if (!values.length) return []
+
+      return values.flatMap((val) => {
+        if (val == null) return []
+        const next = val[key]
+
+        if (Array.isArray(next)) return next
+        if (next !== undefined) return [next]
+        return []
+      })
+    }, [obj])
+  }
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -34,22 +44,22 @@ const SearchComponent = <T extends object>({
 
     const filteredData = data.filter((item: T) => {
       return identifiers.some((identifier) => {
-        let value: any;
+        let values: any[]
+
         if (Array.isArray(identifier)) {
-          // It's a nested identifier, so use the helper function
-          value = getNestedValue(item, identifier);
+          values = getNestedValues(item, identifier)
         } else {
-          // It's a top-level identifier
-          value = item[identifier];
+          values = [item[identifier]]
         }
 
-        // Only search on string values that are not null or undefined
-        if (typeof value === 'string') {
-          return value.toLowerCase().includes(query.toLowerCase());
-        }
-        return false;
-      });
-    });
+        // Match if *any* string value contains the query
+        return values.some(
+          (value) =>
+            typeof value === 'string' &&
+            value.toLowerCase().includes(query.toLowerCase()),
+        )
+      })
+    })
 
     onFilter(filteredData);
   };
