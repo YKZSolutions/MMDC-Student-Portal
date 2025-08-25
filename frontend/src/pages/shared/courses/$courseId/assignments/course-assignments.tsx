@@ -20,7 +20,7 @@ import AssignmentPanel from '@/features/courses/assignments/assignment-panel.tsx
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type { Role } from '@/integrations/api/client'
 import type {
-  MentorAssignment,
+  AssignmentSubmissionReport,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import {
@@ -35,7 +35,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit project report',
     type: 'assignment',
     dueDate: getFutureDate(2),
-    createdAt: getPastDate(1),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'pending',
@@ -46,7 +45,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit assignment',
     type: 'draft',
     dueDate: getFutureDate(2),
-    createdAt: getPastDate(1),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'draft',
@@ -57,7 +55,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit project report',
     type: 'other',
     dueDate: getFutureDate(2),
-    createdAt: getPastDate(1),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'submitted',
@@ -69,7 +66,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit assignment',
     type: 'milestone',
     dueDate: getFutureDate(2),
-    createdAt: getPastDate(1),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'ready-for-grading',
@@ -81,7 +77,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit project report',
     type: 'milestone',
     dueDate: getFutureDate(2),
-    createdAt: getPastDate(1),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'graded',
@@ -103,7 +98,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit project report',
     type: 'milestone',
     dueDate: getFutureDate(2),
-    createdAt: getPastDate(7),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'graded',
@@ -126,7 +120,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit assignment',
     type: 'assignment',
     dueDate: getPastDate(1),
-    createdAt: getPastDate(2),
     mode: 'individual',
     status: 'open',
     submissionStatus: 'pending',
@@ -137,7 +130,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
     description: 'Submit assignment',
     type: 'assignment',
     dueDate: getPastDate(1),
-    createdAt: getPastDate(2),
     mode: 'individual',
     status: 'closed',
     submissionStatus: 'pending',
@@ -151,7 +143,7 @@ type RoleBasedAssignmentConfig = {
       label: string
       icon: React.ReactNode
     }[]
-    filterFn: (a: StudentAssignment | MentorAssignment) => boolean
+    filterFn: (a: StudentAssignment | AssignmentSubmissionReport) => boolean
   }
 }
 
@@ -166,7 +158,7 @@ const roleConfig: RoleBasedAssignmentConfig = {
         icon: <IconHistory size={12} />,
       },
     ],
-    filterFn: (a: StudentAssignment | MentorAssignment) => {
+    filterFn: (a: StudentAssignment | AssignmentSubmissionReport) => {
       return 'submissionStatus' in a ? a.submissionStatus === 'pending' : false
     },
   },
@@ -176,7 +168,7 @@ const roleConfig: RoleBasedAssignmentConfig = {
       { value: 'to-grade', label: 'To Grade', icon: <IconBook size={12} /> },
       { value: 'graded', label: 'Graded', icon: <IconCheck size={12} /> },
     ],
-    filterFn: (a: StudentAssignment | MentorAssignment) => {
+    filterFn: (a: StudentAssignment | AssignmentSubmissionReport) => {
       return 'submissions' in a
         ? a.submissions.some((s) => s.submissionStatus === 'submitted')
         : false
@@ -188,7 +180,7 @@ const roleConfig: RoleBasedAssignmentConfig = {
       { value: 'to-grade', label: 'To Grade', icon: <IconBook size={12} /> },
       { value: 'graded', label: 'Graded', icon: <IconCheck size={12} /> },
     ],
-    filterFn: (a: StudentAssignment | MentorAssignment) => {
+    filterFn: (a: StudentAssignment | AssignmentSubmissionReport) => {
       return 'submissions' in a
         ? a.submissions.some((s) => s.submissionStatus === 'submitted')
         : false

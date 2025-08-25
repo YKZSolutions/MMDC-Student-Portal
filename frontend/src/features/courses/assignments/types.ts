@@ -30,26 +30,20 @@ export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
  * - `id`: A unique identifier for the assignment.
  * - `title`: The title or name of the assignment.
  * - `description`: A brief description of the assignment's purpose or details.
- * - `createdAt`: A timestamp that indicates when the assignment was created.
- * - `updatedAt`: An optional timestamp for when the assignment was last updated.
  * - `dueDate`: A required ISO 8601-compliant string representing the assignment's due date and time.
  * - `mode`: Indicates the submission or grading mode, defined by an {@link AssignmentMode} type.
  * - `points`: An optional field representing the maximum points available for the assignment.
- * - `attachments`: An optional array of strings, typically used to store URLs or paths to additional resources or files related to the assignment.
  * - `status`: Represents the current state of the assignment, as defined by an {@link AssignmentStatus} type.
  */
 export interface Assignment {
-  id: string
-  title: string
-  type: AssignmentType
-  description: string
-  createdAt: string
-  updatedAt?: string
-  dueDate: string // ISO string
-  mode: AssignmentMode
-  points?: number // max points
-  attachments?: string[]
-  status: AssignmentStatus
+    id: string
+    title: string
+    type: AssignmentType
+    description: string
+    dueDate: string // ISO string
+    mode: AssignmentMode
+    points?: number // max points
+    status: AssignmentStatus
 }
 
 /**
@@ -121,12 +115,8 @@ export interface GroupSubmission extends Submission {
  * properties from {@link Assignment} and {@link Submission} to consolidate assignment-specific
  * and submission-related data.
  *
- * Properties:
- * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
  */
-export interface StudentAssignment extends Assignment, Submission {
-  grade?: Grade
-}
+export interface StudentAssignment extends Assignment, Submission {}
 
 /**
  * Represents a summary of an individual student's assignment submission.
@@ -167,13 +157,13 @@ export interface GroupSubmissionSummary {
 }
 
 /**
- * Represents an assignment from a mentor's perspective, including submission summaries.
+ * Represents a report of an assignment's submissions, including both individual and group submissions.
  * Extends the base properties provided by the {@link Assignment} interface.
  *
  * Properties:
  * - `submissions`: An array of submission summaries, which can be either individual
  *   {@link AssignmentSubmissionSummary} or group {@link GroupSubmissionSummary} submissions.
  */
-export interface MentorAssignment extends Assignment {
+export interface AssignmentSubmissionReport extends Assignment {
   submissions: (AssignmentSubmissionSummary | GroupSubmissionSummary)[]
 }

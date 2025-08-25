@@ -1,3 +1,8 @@
+import type {
+  Assignment,
+  StudentAssignment,
+} from '@/features/courses/assignments/types.ts'
+
 export function getChildTypeFromParentType(parentType?: string) {
     if (!parentType) return "module";
 
@@ -24,4 +29,14 @@ export function getFutureDate(daysToAdd: number) {
 
 export function getPastDate(daysToSubtract: number) {
     return new Date(new Date().setDate(new Date().getDate() - daysToSubtract)).toISOString();
+}
+
+export function getSubmissionStatus (assignment: Assignment | StudentAssignment | undefined){
+  if (!assignment) return undefined
+
+  if ('submissionStatus' in assignment) {
+    return assignment.submissionStatus
+  }
+
+  return undefined
 }

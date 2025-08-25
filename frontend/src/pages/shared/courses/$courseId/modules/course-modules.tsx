@@ -31,9 +31,18 @@ import {useAuth} from "@/features/auth/auth.hook.ts";
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
 import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
 import type {
+  Assignment,
+  AssignmentSubmissionReport,
   AssignmentType,
+  StudentAssignment,
   SubmissionStatus,
 } from '@/features/courses/assignments/types.ts'
+import {
+  getFutureDate,
+  getPastDate,
+  getSubmissionStatus,
+} from '@/utils/helpers.ts'
+import {mockAssignmentsData} from "@/pages/shared/courses/$courseId/assignments/course-assignments.tsx";
 
 const CourseModules = () => {
   const { authUser } = useAuth('protected')
@@ -53,7 +62,7 @@ const CourseModules = () => {
           </Button>
           {authUser.role === 'admin' && (
             <ButtonWithModal
-              label={'Add New Content'}
+              label={'Add New Readings'}
               icon={<IconPlus />}
               modalComponent={CourseCreationProcessModal}
             />
@@ -68,170 +77,172 @@ const CourseModules = () => {
 }
 
 const moduleData: ModuleData[] = [
-  {
-    id: '1',
-    label: 'Module 1',
-    description: 'Description of Module 1',
-    subsection: [
-      {
-        label: 'Readings',
-        description: 'Description of Readings',
-        items: [
-          {
-            label: 'Readings 1',
-            description: 'Description of Readings 1',
-            isRead: true,
-            isSubmission: false,
-            id: '1',
-          },
-        ],
+    {
         id: '1',
-      },
-      {
-        label: 'Output',
-        description: 'Description of Output',
-        items: [
-          {
-            label: 'Assignment 1',
-            description: 'Description of Assignment 1',
-            assignmentType: 'assignment',
-            isSubmission: true,
-            submissionStatus: 'pending',
-            id: '1',
-          },
+        title: 'Module 1',
+        description: 'Description of Module 1',
+        subsection: [
+            {
+                title: 'Readings',
+                description: 'Description of Readings',
+                items: [
+                    {
+                        itemType: 'readings',
+                        readings: {
+                            title: 'Read',
+                            description: 'Description of Readings 1',
+                            isRead: true,
+                        },
+                    },
+                    {
+                        itemType: 'readings',
+                        readings: {
+                            title: 'Not Read',
+                            description: 'Description of Readings 1',
+                            isRead: true,
+                        },
+                    },
+                ],
+                id: '',
+            },
+            {
+                title: 'Output',
+                description: 'Description of Output',
+                items: [
+                    {itemType: 'assignment', assignment: mockAssignmentsData[0]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[1]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[2]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[3]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[4]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[5]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[6]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[7]},
+                ],
+                id: '',
+            },
         ],
-        id: '1',
-      },
-    ],
-  },
-  {
-    id: '2',
-    label: 'Module 2',
-    description: 'Description of Module 2',
-    subsection: [
-      {
-        label: 'Output',
-        description: 'Description of Output',
-        items: [
-          {
-            label: 'Draft',
-            description: 'Description of Draft',
-            assignmentType: 'draft',
-            isSubmission: true,
-            submissionStatus: 'pending',
-            id: '1',
-          },
-          {
-            label: 'Milestone',
-            description: 'Description of Milestone',
-            assignmentType: 'milestone',
-            isSubmission: true,
-            submissionStatus: 'pending',
-            id: '1',
-          },
+    },
+    {
+        id: '2',
+        title: 'Module 2',
+        description: 'Description of Module 2',
+        subsection: [
+            {
+                title: 'Output',
+                description: 'Description of Output',
+                items: [
+                    {itemType: 'assignment', assignment: mockAssignmentsData[0]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[1]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[2]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[3]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[4]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[5]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[6]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[7]},
+                ],
+                id: '',
+            },
         ],
-        id: '1',
-      },
-    ],
-  },
-  {
-    id: '3',
-    label: 'Module 3',
-    description: 'Description of Module 3',
-    subsection: [
-      {
-        label: 'Readings',
-        description: 'Description of Readings',
-        items: [
-          {
-            label: 'Readings 1',
-            description: 'Description of Readings 1',
-            isRead: true,
-            id: '',
-            isSubmission: false,
-          },
+    },
+    {
+        id: '3',
+        title: 'Module 3',
+        description: 'Description of Module 3',
+        subsection: [
+            {
+                title: 'Readings',
+                description: 'Description of Readings',
+                items: [
+                    {
+                        itemType: 'readings',
+                        readings: {
+                            title: 'Read',
+                            description: 'Description of Readings 1',
+                            isRead: true,
+                        },
+                    },
+                    {
+                        itemType: 'readings',
+                        readings: {
+                            title: 'Not Read',
+                            description: 'Description of Readings 1',
+                            isRead: true,
+                        },
+                    },
+                ],
+                id: '',
+            },
+            {
+                title: 'Output',
+                description: 'Description of Output',
+                items: [
+                    {itemType: 'assignment', assignment: mockAssignmentsData[0]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[1]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[2]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[3]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[4]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[5]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[6]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[7]},
+                ],
+                id: '',
+            },
         ],
-        id: '',
-      },
-      {
-        label: 'Output',
-        description: 'Description of Output',
-        items: [
-          {
-            label: 'Draft',
-            description: 'Description of Draft',
-            assignmentType: 'draft',
-            isSubmission: true,
-            submissionStatus: 'pending',
-            id: '',
-          },
+    },
+    {
+        id: '4',
+        title: 'Module 4',
+        description: 'Description of Module 4',
+        subsection: [
+            {
+                title: 'Output',
+                description: 'Description of Output',
+                items: [
+                    {itemType: 'assignment', assignment: mockAssignmentsData[0]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[1]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[2]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[3]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[4]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[5]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[6]},
+                    {itemType: 'assignment', assignment: mockAssignmentsData[7]},
+                ],
+                id: '',
+            },
         ],
-        id: '',
-      },
-    ],
-  },
-  {
-    id: '4',
-    label: 'Module 4',
-    description: 'Description of Module 4',
-    subsection: [
-      {
-        label: 'Output',
-        description: 'Description of Output',
-        items: [
-          {
-            label: 'Draft Revision',
-            description: 'Description of Draft',
-            assignmentType: 'draft',
-            submissionStatus: 'pending',
-            id: '',
-            isSubmission: true,
-          },
-          {
-            label: 'Milestone',
-            description: 'Description of Milestone',
-            assignmentType: 'milestone',
-            submissionStatus: 'pending',
-            id: '',
-            isSubmission: true,
-          },
-          {
-            label: 'Survey',
-            description: 'Description of Survey',
-            assignmentType: 'other',
-            submissionStatus: 'pending',
-            id: '',
-            isSubmission: true,
-          },
-        ],
-        id: '',
-      },
-    ],
-  },
+    },
 ]
 
 interface ModuleBase {
-  id: string;
-  label: string;
-  description: string;
+    id: string;
+    title: string;
+    description: string;
 }
 
 interface ModuleData extends ModuleBase {
-  subsection: ModuleSubsectionData[]
+    subsection: ModuleSubsectionData[]
 }
 
 interface ModuleSubsectionData extends ModuleBase {
-  items: ModuleSubsectionItemData[]
+    items: ModuleSubsectionItemData[]
 }
 
-interface ModuleSubsectionItemData extends ModuleBase {
-  isSubmission: boolean;
-  isRead?: boolean;
-  submissionStatus?: SubmissionStatus;
-  assignmentType?: AssignmentType;
+// TODO: add more fields
+interface Readings {
+    title: string;
+    description: string;
+    isRead: boolean;
 }
 
-const getIcon = (type: string) => {
+type ContentType = 'readings' | 'assignment'
+
+interface ModuleSubsectionItemData {
+    itemType: ContentType
+    readings?: Readings
+    assignment?: Assignment | StudentAssignment
+}
+
+const getIcon = (type: ContentType | AssignmentType) => {
     switch (type) {
         case 'readings':
             return <IconBook size={20} />;
@@ -241,7 +252,7 @@ const getIcon = (type: string) => {
             return <IconEdit size={20} />;
         case 'milestone':
             return <IconFlag size={20} />;
-        case 'survey':
+        case 'other':
             return <IconWriting size={20} />;
         default:
             return null;
@@ -277,6 +288,18 @@ function AccordionLabel({
 
     }
 
+    const getCompletedStatusIcon = (status: string) => {
+        if (
+            status === 'ready-for-grading' ||
+            status === 'graded' ||
+            status === 'read'
+        ) {
+            return <IconCircleCheck size={18} color="green" />;
+        }
+
+        return <IconCircle size={18} color="gray" />;
+    }
+
     return (
       <Group
         justify="space-between"
@@ -285,8 +308,8 @@ function AccordionLabel({
         mt={isItem ? 'xs' : 'none'}
       >
         <Group wrap="nowrap">
-          {isItem && getStatusIcon(submissionStatus!)}
-          {getIcon(assignmentType!)}
+          {isItem && authUser.role === 'student' && getCompletedStatusIcon(isRead ? 'read' : submissionStatus!)}
+          {isItem && getIcon(assignmentType ?? 'readings')}
           <Stack gap={'0'}>
             <Text>{label}</Text>
             <Text size="sm" c="dimmed" fw={400}>
@@ -358,29 +381,36 @@ interface ModuleCardProps {
 const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
   const theme = useMantineTheme()
   const [value, setValue] = useState<string[]>([])
-
-  // Update expanded state when allExpanded prop changes
-  useEffect(() => {
-    if (allExpanded) {
-      const allModuleIds = moduleData.map((module) => module.id)
-      const allSubsectionLabels = moduleData.flatMap((module) =>
-        module.subsection.map((sub) => sub.label),
-      )
-      setValue([...allModuleIds, ...allSubsectionLabels])
-    } else {
-      setValue([])
-    }
-  }, [allExpanded])
+    // Update expanded state when allExpanded prop changes
+    useEffect(() => {
+        if (allExpanded) {
+            const allModuleIds = moduleData.map((module) => module.id)
+            const allSubsectionLabels = moduleData.flatMap((module) =>
+                module.subsection.map((sub) => sub.title),
+            )
+            setValue([...allModuleIds, ...allSubsectionLabels])
+        } else {
+            setValue([])
+        }
+    }, [allExpanded])
 
     const getCompletedItemsCount = (items: ModuleSubsectionItemData[]) => {
-      return items.filter((item) => item.submissionStatus === 'ready-for-grading' || item.submissionStatus === 'graded').length
+      return items.filter((item) => {
+          if (item.itemType === 'readings' && item.readings) {
+              return item.readings.isRead
+          }
+          if (item.itemType === 'assignment' && item.assignment) {
+              const submissionStatus = getSubmissionStatus(item.assignment)
+              return submissionStatus === 'graded' || submissionStatus === 'ready-for-grading';
+          }
+      }).length
     }
 
   const items = moduleData.map((item) => (
-    <Accordion.Item value={item.id} key={item.label}>
-      <Accordion.Control aria-label={item.label}>
+    <Accordion.Item value={item.id} key={item.title}>
+      <Accordion.Control aria-label={item.title}>
         <AccordionLabel
-          label={item.label}
+          label={item.title}
           description={item.description}
           completedItemsCount={getCompletedItemsCount(
             item.subsection.flatMap((sub) => sub.items),
@@ -398,10 +428,10 @@ const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
           radius="md"
         >
           {item.subsection.map((subsection) => (
-            <Accordion.Item value={subsection.label} key={subsection.label}>
-              <Accordion.Control aria-label={subsection.label}>
+            <Accordion.Item value={subsection.title} key={subsection.title}>
+              <Accordion.Control aria-label={subsection.title}>
                 <AccordionLabel
-                  label={subsection.label}
+                  label={subsection.title}
                   description={subsection.description}
                   completedItemsCount={getCompletedItemsCount(subsection.items)}
                   totalItemsCount={subsection.items.length}
@@ -414,12 +444,12 @@ const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
                   p={0}
                 >
                   <AccordionLabel
-                    label={item.label}
-                    description={item.description}
+                    label={item.readings?.title ?? item.assignment?.title ?? 'N/A'}
+                    description={item.readings?.description ?? item.assignment?.description ?? 'N/A'}
                     isItem={true}
-                    isSubmission={item.isSubmission}
-                    assignmentType={item.assignmentType}
-                    submissionStatus={item.submissionStatus}
+                    isRead={item.readings?.isRead ?? false}
+                    assignmentType={item.assignment?.type}
+                    submissionStatus={getSubmissionStatus(item.assignment)}
                   />
                 </Accordion.Panel>
               ))}
@@ -442,20 +472,6 @@ const ModuleCard = ({ allExpanded }: ModuleCardProps) => {
       {items}
     </Accordion>
   )
-}
-
-const getStatusIcon = (status: string) => {
-    switch (status) {
-        case 'completed':
-            return <IconCircleCheck size={18} color="green" />;
-        case 'pending':
-            {
-
-              return <IconCircle size={18} color="gray" />
-            }
-        default:
-            return <IconCircle size={18} color="gray" />;
-    }
 }
 
 export default CourseModules

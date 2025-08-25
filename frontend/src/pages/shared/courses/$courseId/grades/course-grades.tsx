@@ -142,11 +142,11 @@ function GradesTableRow({ grades }: { grades: StudentAssignment[] }) {
       {/*</Table.Td>*/}
       <Table.Td>
         <Badge
-          color={item.status}
+          color={item.submissionStatus}
           variant="outline"
           size="sm"
         >
-          {item.status}
+          {item.submissionStatus}
         </Badge>
       </Table.Td>
       <Table.Td>
