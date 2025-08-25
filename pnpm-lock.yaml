@@ -203,7 +203,7 @@ importers:
         version: 8.2.4(@mantine/core@8.2.1(@mantine/hooks@8.2.1(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@mantine/hooks@8.2.1(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@minoru/react-dnd-treeview':
         specifier: ^3.5.3
-        version: 3.5.3(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@24.1.0)(@types/react@19.1.8)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 3.5.3(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@24.3.0)(@types/react@19.1.8)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@supabase/supabase-js':
         specifier: ^2.53.0
         version: 2.53.0
@@ -245,7 +245,7 @@ importers:
         version: 19.1.0
       react-dnd:
         specifier: ^16.0.1
-        version: 16.0.1(@types/node@24.1.0)(@types/react@19.1.8)(react@19.1.0)
+        version: 16.0.1(@types/node@24.3.0)(@types/react@19.1.8)(react@19.1.0)
       react-dom:
         specifier: ^19.0.0
         version: 19.1.0(react@19.1.0)
@@ -2146,11 +2146,11 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/mdast@4.0.4':
-    resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
-
   '@types/lodash@4.17.20':
     resolution: {integrity: sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==}
+
+  '@types/mdast@4.0.4':
+    resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
 
   '@types/methods@1.1.4':
     resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
@@ -7648,13 +7648,13 @@ snapshots:
 
   '@microsoft/tsdoc@0.15.1': {}
 
-  '@minoru/react-dnd-treeview@3.5.3(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@24.1.0)(@types/react@19.1.8)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@minoru/react-dnd-treeview@3.5.3(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@24.3.0)(@types/react@19.1.8)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@juggle/resize-observer': 3.4.0
       dnd-multi-backend: 8.1.2(dnd-core@16.0.1)
       framer-motion: 11.18.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-dnd: 16.0.1(@types/node@24.1.0)(@types/react@19.1.8)(react@19.1.0)
+      react-dnd: 16.0.1(@types/node@24.3.0)(@types/react@19.1.8)(react@19.1.0)
       react-dnd-html5-backend: 16.0.1
       react-dnd-touch-backend: 16.0.1
       react-dom: 19.1.0(react@19.1.0)
@@ -12230,7 +12230,7 @@ snapshots:
       '@react-dnd/invariant': 4.0.2
       dnd-core: 16.0.1
 
-  react-dnd@16.0.1(@types/node@24.1.0)(@types/react@19.1.8)(react@19.1.0):
+  react-dnd@16.0.1(@types/node@24.3.0)(@types/react@19.1.8)(react@19.1.0):
     dependencies:
       '@react-dnd/invariant': 4.0.2
       '@react-dnd/shallowequal': 4.0.2
@@ -12239,7 +12239,7 @@ snapshots:
       hoist-non-react-statics: 3.3.2
       react: 19.1.0
     optionalDependencies:
-      '@types/node': 24.1.0
+      '@types/node': 24.3.0
       '@types/react': 19.1.8
 
   react-dom@19.1.0(react@19.1.0):

@@ -7,6 +7,7 @@ import {
   Flex,
   Group,
   rem,
+  Skeleton,
   Stack,
   Table,
   Text,
@@ -14,7 +15,6 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { Suspense, useState } from 'react'
-import { SuspendedTableRows } from '@/pages/admin/users/users.admin.suspense.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SearchComponent from '@/components/search-component.tsx'
 import type {
@@ -312,11 +312,10 @@ export const mockMentorGradebook: CourseGradebookForMentor = {
 
 const CourseGrades = () => {
     const role = useAuth('protected').authUser.role
-    const [studentFiltered, setStudentFiltered] = useState<StudentAssignmentGrade[]>(
-        mockStudentGradebook.assignments,
+    const [studentFiltered, setStudentFiltered] = useState<StudentAssignmentGrade[]>([]
+
     )
-    const [mentorFiltered, setMentorFiltered] = useState<CourseGradebookForMentor['assignments']>(
-        mockMentorGradebook.assignments,
+    const [mentorFiltered, setMentorFiltered] = useState<CourseGradebookForMentor['assignments']>([]
     )
 
     return (
@@ -385,7 +384,7 @@ const StudentGradesTable = ({
                 </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-                <Suspense fallback={<SuspendedTableRows />}>
+                <Suspense fallback={<SuspendedTableRows columns={6} />}>
                     {assignments.map((assignment) => {
                         // Get the latest submission
                         const latestSubmission =
@@ -495,7 +494,7 @@ const MentorGradesTable = ({
                 </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-                <Suspense fallback={<SuspendedTableRows />}>
+                <Suspense fallback={<SuspendedTableRows columns={7} />}>
                     {assignments.flatMap((assignment) =>
                         assignment.submissions.map((submission) => (
                             <Table.Tr
@@ -580,5 +579,23 @@ const MentorGradesTable = ({
         </Table>
     </Box>
 )
+
+// --- Suspended Table Rows (Skeleton) ---
+const SuspendedTableRows = ({ columns = 6, rows = 5 }: { columns?: number; rows?: number }) => {
+    return (
+        <>
+            {Array.from({ length: rows }).map((_, rowIdx) => (
+                <Table.Tr key={rowIdx}>
+                    {Array.from({ length: columns }).map((_, colIdx) => (
+                        <Table.Td key={colIdx}>
+                            <Skeleton height={20} radius="sm" />
+                        </Table.Td>
+                    ))}
+                </Table.Tr>
+            ))}
+        </>
+    )
+}
+
 
 export default CourseGrades
