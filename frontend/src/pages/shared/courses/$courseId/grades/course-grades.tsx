@@ -24,6 +24,7 @@ import type {
   StudentAssignmentGrade,
 } from '@/features/courses/grades/types.ts'
 import {useAuth} from "@/features/auth/auth.hook.ts";
+import {IconNote} from "@tabler/icons-react";
 
 export const mockStudentGradebook: CourseGradebookForStudent = {
     courseId: 'course_001',
@@ -319,7 +320,7 @@ const CourseGrades = () => {
     )
 
     return (
-        <Stack gap="md">
+        <Stack gap="md" h={'100%'} w={'100%'}>
             <Group justify="space-between" align="start">
                 <Title>Grades</Title>
             </Group>
@@ -455,19 +456,10 @@ const StudentGradesTable = ({
                                 <Table.Td>
                                     {assignment.currentGrade?.feedback ? (
                                         <Tooltip label={assignment.currentGrade.feedback}>
-                                            <Box
-                                                w={120}
-                                                style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
-                                            >
-                                                <Text size="sm" truncate="end">
-                                                    {assignment.currentGrade.feedback}
-                                                </Text>
-                                            </Box>
+                                            <IconNote size={20} color="blue" />
                                         </Tooltip>
                                     ) : (
-                                        <Text size="sm" c="dimmed">
-                                            No feedback
-                                        </Text>
+                                        <IconNote size={20} color="gray" />
                                     )}
                                 </Table.Td>
                             </Table.Tr>
@@ -558,19 +550,10 @@ const MentorGradesTable = ({
                                 <Table.Td>
                                     {submission.grade?.feedback ? (
                                         <Tooltip label={submission.grade.feedback}>
-                                            <Box
-                                                w={120}
-                                                style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
-                                            >
-                                                <Text size="sm" truncate="end">
-                                                    {submission.grade.feedback}
-                                                </Text>
-                                            </Box>
+                                            <IconNote size={20} color="blue" />
                                         </Tooltip>
                                     ) : (
-                                        <Text size="sm" c="dimmed">
-                                            No feedback
-                                        </Text>
+                                        <IconNote size={20} color="gray" />
                                     )}
                                 </Table.Td>
                                 <Table.Td>

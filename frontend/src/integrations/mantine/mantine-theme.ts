@@ -23,6 +23,7 @@ const statusColors = {
   late: colorsTuple('#F57C69'),
   'ready-for-grading': colorsTuple('#F9BD34'),
   graded: colorsTuple('#65c66d'),
+  missed: colorsTuple('#fc5436'),
 }
 
 type CustomColors = keyof typeof customColors

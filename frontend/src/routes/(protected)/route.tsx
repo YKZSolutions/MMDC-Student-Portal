@@ -40,7 +40,8 @@ function RouteComponent() {
         bg="background"
         gap={0}
         align="start"
-        style={{ position: 'relative', height: '100vh' }}
+        wrap="nowrap"
+        style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
       >
         <Sidebar />
         <Box className="flex-1 h-full p-4 pl-0">
@@ -57,10 +58,11 @@ function RouteComponent() {
               style={{
                 flex: 1,
                 minHeight: 0,
+                minWidth: 0,
                 overflowY: 'auto',
-                scrollbarGutter: 'stable',
               }}
             >
+              {/*Main Content*/}
               <Outlet />
             </Box>
           </Stack>

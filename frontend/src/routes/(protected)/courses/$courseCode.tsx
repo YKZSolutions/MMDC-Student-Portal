@@ -95,7 +95,6 @@ function RouteComponent() {
     <Group
       w="100%"
       h="100%"
-      gap="sm"
       align="stretch"
       style={{
         overflow: 'hidden',
@@ -103,20 +102,18 @@ function RouteComponent() {
     >
       {/* Sub Nav */}
       <Box
-        h="100vh"
-        miw={'12%'}
         style={{
+          width: '175px',
+          minWidth: '175px',
           borderRight: `1px solid ${theme.colors.gray[2]}`,
           overflow: 'hidden',
+          flexShrink: 0,
         }}
       >
-        <RoleComponentManager
-          currentRole={authUser.role}
-          roleRender={{
-            student: <CourseNavBar navItems={studentNavItems} courses={courses} />,
-            admin: <CourseNavBar navItems={adminNavItems} courses={courses} />, //TODO: use all courses
-          }}
-        />
+        <CourseNavBar
+          navItems={authUser.role === 'student' ? studentNavItems : adminNavItems}
+          courses={courses} //TODO: use all courses for admin
+        />,
       </Box>
 
       {/* Main Content */}

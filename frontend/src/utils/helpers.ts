@@ -40,3 +40,4 @@ export function getSubmissionStatus (assignment: Assignment | StudentAssignment 
 
   return undefined
 }
+
