@@ -1,25 +1,25 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateBillDto } from '@/generated/nestjs-dto/create-bill.dto';
-import { BillDto } from '@/generated/nestjs-dto/bill.dto';
-import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
-import { BillType, PaymentScheme, Prisma, Role } from '@prisma/client';
-import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
-import { PaginatedBillsDto } from './dto/paginated-bills.dto';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
+import { BillDto } from '@/generated/nestjs-dto/bill.dto';
+import { UpdateBillDto } from '@/generated/nestjs-dto/update-bill.dto';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BillType, PaymentScheme, Prisma, Role } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import {
   getBillingWithPayment,
   getBillingWithPaymentMeta,
 } from '@prisma/client/sql';
-import { DetailedBillDto } from './dto/detailed-bill.dto';
+import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
-import { Decimal } from '@prisma/client/runtime/library';
+import { CreateBillingDto } from './dto/create-billing.dto';
+import { DetailedBillDto } from './dto/detailed-bill.dto';
+import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
+import { PaginatedBillsDto } from './dto/paginated-bills.dto';
 
 @Injectable()
 export class BillingService {
@@ -46,7 +46,7 @@ export class BillingService {
       new NotFoundException(`User with id=${userId} was not found`),
   })
   async create(
-    createBillingDto: CreateBillDto,
+    createBillingDto: CreateBillingDto['bill'],
     dueDates: string[],
     @LogParam('userId') userId?: string,
   ): Promise<BillDto> {
@@ -84,7 +84,8 @@ export class BillingService {
    * @returns A paginated list of all bills.
    */
   @Log({
-    logArgsMessage: ({ filter }) => `Fetching bills for page=${filter.page}`,
+    logArgsMessage: ({ filter }) =>
+      `Fetching bills for filter=${JSON.stringify(filter)}`,
     logSuccessMessage: (res) => `Fetched bills with ${res.meta.totalCount}`,
   })
   @PrismaError({
@@ -108,6 +109,7 @@ export class BillingService {
     const search = filters.search || null;
     const sort = filters.sort || null;
     const sortDir = filters.sortOrder || 'desc';
+    const isDeleted = filters.isDeleted || false;
 
     const fetchedBills = await this.prisma.client.$queryRawTyped(
       getBillingWithPayment(
@@ -120,6 +122,7 @@ export class BillingService {
         user,
         sort,
         sortDir,
+        isDeleted,
       ),
     );
 
@@ -135,7 +138,14 @@ export class BillingService {
     });
 
     const totalResult = await this.prisma.client.$queryRawTyped(
-      getBillingWithPaymentMeta(scheme, billType, status, search, user),
+      getBillingWithPaymentMeta(
+        scheme,
+        billType,
+        status,
+        search,
+        user,
+        isDeleted,
+      ),
     );
 
     const totalCount = Number(totalResult[0]?.count ?? 0);
@@ -180,11 +190,7 @@ export class BillingService {
     const bill = await this.prisma.client.bill.findFirstOrThrow({
       where: {
         id,
-        ...(role !== 'admin' && {
-          bill: {
-            userId,
-          },
-        }),
+        ...(role !== 'admin' && { userId }),
       },
     });
 
@@ -194,6 +200,22 @@ export class BillingService {
         amountPaid: true,
       },
     });
+
+    const billInstallments = await this.installmentService.findAll(
+      bill.id,
+      role,
+      userId,
+    );
+
+    const totalInstallments = billInstallments.length || 1;
+
+    const paidInstallments = billInstallments.filter(
+      (installment) => installment.status === 'paid',
+    ).length;
+
+    const installmentDueDates = billInstallments.map(
+      (installment) => installment.dueAt,
+    );
 
     const totalPaid = billPayments._sum.amountPaid || Decimal(0);
 
@@ -216,6 +238,10 @@ export class BillingService {
       ...bill,
       totalPaid,
       status,
+      installmentDueDates,
+      totalInstallments,
+      paidInstallments,
+      billInstallments,
     };
   }
 
@@ -257,7 +283,8 @@ export class BillingService {
    * @returns A message indicating the result.
    */
   @Log({
-    logArgsMessage: ({ id }) => `Removing bill with id=${id}`,
+    logArgsMessage: ({ id, directDelete }) =>
+      `Removing bill with id=${id}, directDelete=${directDelete}`,
     logSuccessMessage: (res) => res.message,
   })
   @PrismaError({
@@ -266,25 +293,34 @@ export class BillingService {
   })
   async remove(
     @LogParam('id') id: string,
-    directDelete?: boolean,
+    @LogParam('directDelete') directDelete?: boolean,
   ): Promise<{ message: string }> {
     if (!directDelete) {
       const payment = await this.prisma.client.bill.findFirstOrThrow({
         where: { id: id },
       });
       if (!payment.deletedAt) {
-        await this.prisma.client.bill.update({
-          where: { id: id },
-          data: {
-            deletedAt: new Date(),
-          },
-        });
+        this.prisma.client.$transaction(async (tx) => {
+          await tx.billPayment.updateMany({
+            where: { billId: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
 
-        await this.prisma.client.billPayment.updateMany({
-          where: { billId: id },
-          data: {
-            deletedAt: new Date(),
-          },
+          await tx.billInstallment.updateMany({
+            where: { billId: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
+
+          await tx.bill.updateMany({
+            where: { id: id },
+            data: {
+              deletedAt: new Date(),
+            },
+          });
         });
 
         return {
@@ -293,12 +329,18 @@ export class BillingService {
       }
     }
 
-    await this.prisma.client.bill.delete({
-      where: { id: id },
-    });
+    this.prisma.client.$transaction(async (tx) => {
+      await tx.billPayment.deleteMany({
+        where: { billId: id },
+      });
 
-    await this.prisma.client.billPayment.deleteMany({
-      where: { billId: id },
+      await tx.billInstallment.deleteMany({
+        where: { billId: id },
+      });
+
+      await tx.bill.delete({
+        where: { id: id },
+      });
     });
 
     return {

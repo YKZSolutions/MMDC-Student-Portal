@@ -14,6 +14,19 @@ export function formatPaginationMessage({
   return `Showing ${start} - ${end} of ${total}`
 }
 
+export function formatToLabel(value: string): string {
+  return (
+    value // insert spaces before capital letters
+      .replace(/([A-Z])/g, ' $1')
+      // insert spaces before numbers
+      .replace(/([0-9]+)/g, ' $1')
+      // trim extra spaces
+      .trim()
+      // capitalize each word
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  )
+}
+
 export function formatTimestampToDateTimeText(timestamp: string, separator: string = 'at') {
   const day = dayjs(timestamp);
   const date = day.format('MMM D');

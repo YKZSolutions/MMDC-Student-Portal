@@ -1,3 +1,9 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { BillPaymentDto } from '@/generated/nestjs-dto/billPayment.dto';
 import { UpdateBillPaymentDto } from '@/generated/nestjs-dto/update-billPayment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
@@ -17,12 +23,6 @@ import { firstValueFrom } from 'rxjs';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 import { PaymentIntentResponseDto } from './dto/payment-intent.dto';
-import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class PaymentsService {
@@ -65,7 +65,7 @@ export class PaymentsService {
               userId: userId,
               billingId: billId,
               installmentId: initiatePayment.installmentId,
-              installmentOrder: initiatePayment.installmentOrder,
+              installmentOrder: initiatePayment.installmentOrder.toString(),
             },
           },
         },

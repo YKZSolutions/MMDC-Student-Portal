@@ -1,3 +1,5 @@
+import type { BillingCostBreakdown } from '@/integrations/api/client'
+
 export type PaymentMethod = 'gcash' | 'paymaya'
 export interface IPaymentMethod {
   name?: string
@@ -81,4 +83,10 @@ export interface IPaymentIntentResponse {
       updated_at: number
     }
   }
+}
+
+// Billing Breakdown Table
+// We need an id to fix the rendering issue when creating a computation breakdown
+export interface IFrontendBillingCostBreakdown extends BillingCostBreakdown {
+  id?: string
 }
