@@ -26,8 +26,8 @@ export const studentLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/users',
-    label: 'LMS',
+    link: '/courses',
+    label: 'Courses',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
@@ -68,6 +68,13 @@ export const adminLinks: NavItem[] = [
     label: 'Dashboard',
     Icon: IconGraphFilled,
     IconInactive: IconGraph,
+    fuzzy: true,
+  },
+  {
+    link: '/courses',
+    label: 'Courses',
+    Icon: IconBookFilled,
+    IconInactive: IconBook,
     fuzzy: true,
   },
   {

@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'
+
 export function formatPaginationMessage({
   limit,
   page,
@@ -24,3 +26,16 @@ export function formatToLabel(value: string): string {
       .replace(/\b\w/g, (c) => c.toUpperCase())
   )
 }
+
+export function formatTimestampToDateTimeText(timestamp: string, separator: string = 'at') {
+  const day = dayjs(timestamp);
+  const date = day.format('MMM D');
+  const time = day.format('h:mm A');
+
+  return `${date} ${separator} ${time}`;
+}
+
+export const capitalizeFirstLetter = (string: string) => {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
