@@ -27,20 +27,18 @@ const SubmitButton = ({
                           dueDate,
                           onClick
                       }: SubmissionButtonProps) => {
-    const isPending = submissionStatus === 'pending'
-    const isLate= isPending ? isPastDueDate(dueDate) : false
-    let isMissed = false
+  const isPending = submissionStatus === 'pending'
+  const isDraft = submissionStatus === 'draft'
+  const isLate= isPending ? isPastDueDate(dueDate) : false
+  const isMissed = assignmentStatus === 'closed' && isPending
 
     function getLabel() {
-        if (assignmentStatus === 'closed' && isPending) {
-            isMissed = true
-            return 'You have missed this assignment'
-        }
+        if (isMissed) return 'You have missed this assignment'
 
         if (isLate) return 'Submit Late'
         if (isPending) return 'Submit'
 
-        if (submissionStatus === 'draft') return 'View Draft'
+        if (isDraft) return 'View Draft'
         if (submissionStatus === 'graded') return 'View Grade'
 
         return 'View Submission'
@@ -50,11 +48,11 @@ const SubmitButton = ({
         <Button
             variant="filled"
             leftSection={
-                submissionStatus ? <IconEye size={16} /> : <IconSend size={16} />
+                isPending || isDraft ?  <IconSend size={16} /> : <IconEye size={16} />
             }
             onClick={onClick}
-            disabled={isMissed}
             color={isLate ? submissionStatus : 'primary'}
+            disabled={isMissed}
         >
             {getLabel()}
         </Button>
