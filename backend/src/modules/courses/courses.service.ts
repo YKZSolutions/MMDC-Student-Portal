@@ -1,11 +1,9 @@
-import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
   ConflictException,
   Inject,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
@@ -21,11 +19,10 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
+import { CourseDto } from './dto/course.dto';
 
 @Injectable()
 export class CoursesService {
-  private readonly logger = new Logger(CoursesService.name);
-
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
@@ -74,7 +71,7 @@ export class CoursesService {
       data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
     }
 
-    return await this.prisma.client.course.create({ data });
+    return (await this.prisma.client.course.create({ data })) as CourseDto;
   }
 
   /**
@@ -164,7 +161,7 @@ export class CoursesService {
       throw new BadRequestException('Invalid course ID format');
     }
 
-    return await this.prisma.client.course.findUniqueOrThrow({
+    return (await this.prisma.client.course.findUniqueOrThrow({
       where: { id },
       include: {
         coreqs: {
@@ -174,7 +171,7 @@ export class CoursesService {
           select: { id: true, courseCode: true, name: true },
         },
       },
-    });
+    })) as CourseDto;
   }
 
   /**
@@ -227,7 +224,10 @@ export class CoursesService {
       data.prereqs = { set: prereqIds.map((id) => ({ id })) };
     }
 
-    return await this.prisma.client.course.update({ where: { id }, data });
+    return (await this.prisma.client.course.update({
+      where: { id },
+      data,
+    })) as CourseDto;
   }
 
   /**
