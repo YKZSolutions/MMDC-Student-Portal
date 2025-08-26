@@ -1,3 +1,6 @@
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
+import CreateEnrollablesPage from '@/pages/admin/enrollment/$periodId_.create'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
@@ -7,5 +10,13 @@ export const Route = createFileRoute(
 })
 
 function RouteComponent() {
-  return <div>Hello "/(protected)/enrollment/$periodId_/create"!</div>
+  const { authUser } = useAuth('protected')
+  return (
+    <RoleComponentManager
+      currentRole={authUser.role}
+      roleRender={{
+        admin: <CreateEnrollablesPage />,
+      }}
+    />
+  )
 }
