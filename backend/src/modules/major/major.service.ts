@@ -15,7 +15,7 @@ import { PaginatedMajorsDto } from './dto/paginated-major.dto';
 import { MajorDto } from '@/generated/nestjs-dto/major.dto';
 import { isUUID } from 'class-validator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { CreateMajorDto } from './dto/create-major.dto';
+import { CreateProgramMajorDto } from './dto/create-major.dto';
 
 @Injectable()
 export class MajorService {
@@ -30,20 +30,22 @@ export class MajorService {
    * Creates a new academic major in the database.
    *
    * @async
-   * @param {CreateMajorDto} createMajorDto - Data Transfer Object containing major details to create.
+   * @param {CreateProgramMajorDto} createProgramMajorDto - Data Transfer Object containing major details to create.
    * @returns {Promise<MajorDto>} The created major record.
    *
    * @throws {ConflictException} - If the major name already exists.
    * @throws {Error} Any other unexpected errors.
    */
-  async create(createMajorDto: CreateMajorDto): Promise<MajorDto> {
+  async create(
+    createProgramMajorDto: CreateProgramMajorDto,
+  ): Promise<MajorDto> {
     try {
       const major = await this.prisma.client.major.create({
         data: {
-          name: createMajorDto.major.name,
-          description: createMajorDto.major.description,
+          name: createProgramMajorDto.major.name,
+          description: createProgramMajorDto.major.description,
           program: {
-            connect: { id: createMajorDto.programId },
+            connect: { id: createProgramMajorDto.programId },
           },
         },
       });

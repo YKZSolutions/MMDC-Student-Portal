@@ -21,8 +21,8 @@ import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { Course } from '@/generated/nestjs-dto/course.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import { CourseDto } from './dto/course.dto';
 
 /**
  * @remarks
@@ -40,7 +40,7 @@ export class CoursesController {
    * Requires `ADMIN` role.
    *
    */
-  @ApiCreatedResponse({ type: Course })
+  @ApiCreatedResponse({ type: CourseDto })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Post()
@@ -67,7 +67,7 @@ export class CoursesController {
    * @remarks Requires `ADMIN` role.
    *
    */
-  @ApiOkResponse({ type: Course })
+  @ApiOkResponse({ type: CourseDto })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Get(':id')
@@ -82,7 +82,7 @@ export class CoursesController {
    * This operation updates the details of an existing course.
    * Requires `ADMIN` role.
    */
-  @ApiOkResponse({ type: Course })
+  @ApiOkResponse({ type: CourseDto })
   @ApiException(() => [
     NotFoundException,
     ConflictException,

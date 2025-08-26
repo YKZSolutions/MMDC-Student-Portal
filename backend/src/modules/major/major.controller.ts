@@ -23,7 +23,7 @@ import { PaginatedMajorsDto } from './dto/paginated-major.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { CreateMajorDto } from './dto/create-major.dto';
+import { CreateProgramMajorDto } from './dto/create-major.dto';
 
 /**
  * @remarks
@@ -46,8 +46,8 @@ export class MajorController {
   @ApiCreatedResponse({ type: Major })
   @ApiException(() => ConflictException)
   @ApiException(() => [ConflictException, InternalServerErrorException])
-  create(@Body() createMajorDto: CreateMajorDto) {
-    return this.majorService.create(createMajorDto);
+  create(@Body() createProgramMajorDto: CreateProgramMajorDto) {
+    return this.majorService.create(createProgramMajorDto);
   }
 
   /**
