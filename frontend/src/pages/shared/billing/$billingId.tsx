@@ -230,7 +230,7 @@ function BillingIdPage() {
           </BillingIdQueryProvider>
         </Suspense>
 
-        <Group grow align="flex-start" gap={'lg'}>
+        <Group grow align="flex-start">
           <Suspense
             fallback={
               <Stack gap={'xs'}>
