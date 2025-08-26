@@ -1,0 +1,57 @@
+---
+# The name of your pipeline
+pipeline:
+  type-check:
+    image: node:20
+    pull: true
+    commands:
+      # Install pnpm and make it available in the shell
+    - name: setup-pnpm
+      commands:
+        - npm install -g pnpm
+
+    # Setup for frontend
+    - name: restore-pnpm-frontend
+      commands:
+        - "pnpm store prune" # Clean up old store cache
+        - "pnpm install --no-frozen-lockfile --dir ./frontend"
+      when:
+        path: "frontend/**"
+
+    - name: type-check-frontend
+      commands:
+        - "pnpm --dir ./frontend tsc --noEmit"
+      when:
+        path: "frontend/**"
+
+    # Setup for backend
+    - name: restore-pnpm-backend
+      commands:
+        - "pnpm store prune" # Clean up old store cache
+        - "pnpm install --no-frozen-lockfile --dir ./backend"
+      when:
+        path: "backend/**"
+
+    - name: generate-prisma-types
+      commands:
+        - "pnpm --dir ./backend prisma-gen"
+      when:
+        path: "backend/**"
+
+    - name: generate-prisma-sql-types
+      commands:
+        - "pnpm --dir ./backend prisma-gen-sql"
+      when:
+        path: "backend/**"
+
+    - name: type-check-backend
+      commands:
+        - "pnpm --dir ./backend tsc --noEmit"
+      when:
+        path: "backend/**"
+
+# Event trigger
+trigger:
+  event: push
+  branch:
+    - feat/cap-101
