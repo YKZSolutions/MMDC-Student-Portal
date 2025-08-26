@@ -1,33 +1,34 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
-import { EnrollmentService } from './enrollment.service';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
+import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
 import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
+import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
 import { CreateCourseSectionFullDto } from './dto/create-courseSection.dto';
+import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
+import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
+import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
 import { UpdateCourseSectionDto } from './dto/update-courseSection.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
-import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
-import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
-import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
-import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
+import { EnrollmentService } from './enrollment.service';
 
 @Roles(Role.ADMIN)
 @Controller('enrollment')
@@ -260,8 +261,8 @@ export class EnrollmentController {
   })
   @ApiException(() => [NotFoundException, BadRequestException])
   @Delete(':id')
-  removeEnrollment(@Param('id') id: string) {
-    return this.enrollmentService.removeEnrollment(id);
+  removeEnrollment(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
+    return this.enrollmentService.removeEnrollment(id, query?.directDelete);
   }
 
   /**
