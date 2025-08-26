@@ -5,9 +5,12 @@ import React, { type ComponentPropsWithoutRef, type JSX } from 'react'
 type ButtonWithModalProps = {
   label?: string | JSX.Element
   icon?: JSX.Element
-  modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
-} & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'>
-  & BoxProps
+  modalComponent: React.ComponentType<{
+    opened: boolean
+    closeModal: () => void
+  }>
+} & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'> &
+  BoxProps
 
 
 const ButtonWithModal =
