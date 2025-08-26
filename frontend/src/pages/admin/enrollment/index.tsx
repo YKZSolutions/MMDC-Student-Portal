@@ -1,5 +1,10 @@
 import { useAuth } from '@/features/auth/auth.hook'
-import { formatPaginationMessage } from '@/utils/formatters'
+import type {
+  EnrollmentPeriodDto,
+  PaginationMetaDto,
+} from '@/integrations/api/client'
+import { enrollmentControllerFindAllEnrollmentsOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatPaginationMessage, formatToSchoolYear } from '@/utils/formatters'
 import {
   ActionIcon,
   Badge,
@@ -23,6 +28,7 @@ import {
   IconSearch,
   type ReactNode,
 } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { useState } from 'react'
@@ -101,7 +107,8 @@ function EnrollmentAdminQueryProvider({
   },
 }: {
   children: (props: {
-    enrollmentPeriods: EnrollmentPeriod[]
+    enrollmentPeriods: EnrollmentPeriodDto[]
+    meta: PaginationMetaDto
     message: string
     totalPages: number
   }) => ReactNode
@@ -109,22 +116,27 @@ function EnrollmentAdminQueryProvider({
 }) {
   const { search, page } = props
 
-  // const { data } = useSuspenseQuery(
-  //   usersControllerFindAllOptions({
-  //     query: { search, page, ...(role && { role }) },
-  //   }),
-  // )
+  const { data } = useSuspenseQuery(
+    enrollmentControllerFindAllEnrollmentsOptions({
+      query: {
+        page: page,
+        search: search || undefined,
+      },
+    }),
+  )
 
-  const enrollmentPeriods = mockEnrollmentPeriods
+  const enrollmentPeriods = data.enrollments
 
+  const meta = data.meta
   const limit = 10
-  const total = enrollmentPeriods.length
-  const totalPages = 1
+  const total = meta.totalCount ?? 0
+  const totalPages = meta.pageCount ?? 0
 
   const message = formatPaginationMessage({ limit, page, total })
 
   return children({
     enrollmentPeriods,
+    meta,
     message,
     totalPages,
   })
@@ -255,7 +267,7 @@ function EnrollmentTable() {
               >
                 <Table.Td>
                   <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
-                    {period.school_year}
+                    {formatToSchoolYear(period.startYear, period.endYear)}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -265,12 +277,12 @@ function EnrollmentTable() {
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" c={'dark.3'} fw={500}>
-                    {dayjs(period.start_date).format('MMM D, YYYY')}
+                    {dayjs(period.startDate).format('MMM D, YYYY')}
                   </Text>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" c={'dark.3'} fw={500}>
-                    {dayjs(period.end_date).format('MMM D, YYYY')}
+                    {dayjs(period.endDate).format('MMM D, YYYY')}
                   </Text>
                 </Table.Td>
                 <Table.Td>
