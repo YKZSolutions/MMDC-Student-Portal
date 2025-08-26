@@ -1,4 +1,14 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
+import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
 import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
+import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
@@ -10,22 +20,12 @@ import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
 import { CreateCourseSectionFullDto } from './dto/create-courseSection.dto';
-import { UpdateCourseSectionDto } from './dto/update-courseSection.dto';
-import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
-import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
-import { Log } from '@/common/decorators/log.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
-import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
-import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
 import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
+import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
+import { UpdateCourseSectionDto } from './dto/update-courseSection.dto';
+import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
+import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
 
 @Injectable()
 export class EnrollmentService {
