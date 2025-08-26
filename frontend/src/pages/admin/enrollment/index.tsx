@@ -1,27 +1,27 @@
 import { useAuth } from '@/features/auth/auth.hook'
 import { formatPaginationMessage } from '@/utils/formatters'
 import {
-    ActionIcon,
-    Badge,
-    Box,
-    Button,
-    Container,
-    Group,
-    Menu,
-    Pagination,
-    rem,
-    Stack,
-    Table,
-    Text,
-    TextInput,
-    Title,
+  ActionIcon,
+  Badge,
+  Box,
+  Button,
+  Container,
+  Group,
+  Menu,
+  Pagination,
+  rem,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  Title,
 } from '@mantine/core'
 import {
-    IconDotsVertical,
-    IconFilter2,
-    IconPlus,
-    IconSearch,
-    type ReactNode,
+  IconDotsVertical,
+  IconFilter2,
+  IconPlus,
+  IconSearch,
+  type ReactNode,
 } from '@tabler/icons-react'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
@@ -178,6 +178,7 @@ function EnrollmentAdminPage() {
               radius={'md'}
               leftSection={<IconPlus size={20} />}
               lts={rem(0.25)}
+              onClick={() => navigate({ to: '/enrollment/create' })}
             >
               Create
             </Button>
