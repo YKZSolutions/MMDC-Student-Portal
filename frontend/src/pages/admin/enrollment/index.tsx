@@ -1,10 +1,17 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
 import type {
+  BillDto,
   EnrollmentPeriodDto,
   PaginationMetaDto,
 } from '@/integrations/api/client'
-import { enrollmentControllerFindAllEnrollmentsOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  enrollmentControllerFindAllEnrollmentsOptions,
+  enrollmentControllerFindAllEnrollmentsQueryKey,
+  enrollmentControllerRemoveEnrollmentMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatPaginationMessage, formatToSchoolYear } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -23,11 +30,15 @@ import {
   Title,
 } from '@mantine/core'
 import { useDebouncedCallback } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
+  IconEye,
   IconFilter2,
+  IconPencil,
   IconPlus,
   IconSearch,
+  IconTrash,
   type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -262,6 +273,82 @@ function EnrollmentAdminPage() {
 function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
   const navigate = useNavigate()
 
+  const { mutateAsync: remove } = useAppMutation(
+    enrollmentControllerRemoveEnrollmentMutation,
+    {
+      loading: {
+        title: 'Deleting Enrollment Period',
+        message: 'Please wait while the enrollment period is being deleted...',
+      },
+      success: {
+        title: 'Enrollment Period deleted',
+        message: 'The enrollment period has been successfully deleted.',
+      },
+      error: {
+        title: 'Failed to delete the enrollment period.',
+        message:
+          'An error occurred while trying to delete the enrollment period. Please try again.',
+      },
+    },
+    {
+      onSuccess: () => {
+        const { queryClient } = getContext()
+        queryClient.invalidateQueries({
+          queryKey: enrollmentControllerFindAllEnrollmentsQueryKey(),
+        })
+      },
+    },
+  )
+
+  const handleMenuAction = (
+    id: BillDto['id'],
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) =>
+    // Prevent the list from being clicked when a menu item is clicked
+    (
+      e.stopPropagation(),
+      {
+        view: () => {
+          navigate({
+            to: `/billing/${id}`,
+          })
+        },
+        edit: () => {
+          navigate({
+            to: `/billing/${id}/edit`,
+          })
+        },
+        delete: () => {
+          modals.openConfirmModal({
+            title: (
+              <Text fw={600} c={'dark.7'}>
+                Delete Bill
+              </Text>
+            ),
+            children: (
+              <Text size="sm" c={'dark.3'}>
+                Are you sure you want to delete this bill? This action cannot be
+                undone.
+              </Text>
+            ),
+            centered: true,
+            labels: { confirm: 'Delete', cancel: 'Cancel' },
+            confirmProps: { color: 'red' },
+            onConfirm: async () => {
+              await remove({
+                path: {
+                  id: id,
+                },
+                query: {
+                  directDelete: true,
+                },
+              })
+            },
+          })
+        },
+      }
+    )
+
   return (
     <Table
       verticalSpacing={'md'}
@@ -341,15 +428,36 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
                           onClick={(e) => e.stopPropagation()}
                           variant="subtle"
                           color="gray"
-                          radius={'xl'}
+                          radius="xl"
                         >
                           <IconDotsVertical size={20} stroke={1.5} />
                         </ActionIcon>
                       </Menu.Target>
+
                       <Menu.Dropdown>
-                        <Menu.Item>View Details</Menu.Item>
-                        <Menu.Item>Edit</Menu.Item>
-                        <Menu.Item c="red">Delete</Menu.Item>{' '}
+                        <Menu.Item
+                          leftSection={<IconEye size={16} stroke={1.5} />}
+                          onClick={(e) => handleMenuAction(period.id, e).view()}
+                        >
+                          View Details
+                        </Menu.Item>
+
+                        <Menu.Item
+                          leftSection={<IconPencil size={16} stroke={1.5} />}
+                          onClick={(e) => handleMenuAction(period.id, e).edit()}
+                        >
+                          Edit
+                        </Menu.Item>
+
+                        <Menu.Item
+                          leftSection={<IconTrash size={16} stroke={1.5} />}
+                          onClick={(e) =>
+                            handleMenuAction(period.id, e).delete()
+                          }
+                          c="red"
+                        >
+                          Delete
+                        </Menu.Item>
                       </Menu.Dropdown>
                     </Menu>
                   </Table.Td>
