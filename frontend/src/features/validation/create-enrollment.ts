@@ -3,7 +3,7 @@ import z from 'zod'
 
 const zodEnrollmentPeriodCreate = zCreateEnrollmentPeriodDto.shape
 
-const zodStatusEnum = z.enum(zodEnrollmentPeriodCreate.status.options, {
+export const zodStatusEnum = z.enum(zodEnrollmentPeriodCreate.status.options, {
   error: 'Invalid enrollment status.',
 })
 
@@ -36,3 +36,5 @@ export const CreateEnrollmentPeriodFormSchema = z
 export type CreateEnrollmentPeriodFormValues = z.infer<
   typeof CreateEnrollmentPeriodFormSchema
 >
+
+export type EnrollmentStatus = z.infer<typeof zodStatusEnum>
