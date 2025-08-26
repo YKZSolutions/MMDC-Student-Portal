@@ -23,6 +23,7 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
   IconFilter2,
@@ -439,8 +440,11 @@ function EnrollmentPeriodIdPage() {
                 leftSection={<IconPlus size={20} />}
                 lts={rem(0.25)}
                 onClick={() =>
-                  navigate({
-                    to: `/enrollment/${periodId}/create`,
+                  modals.openContextModal({
+                    modal: 'enrollmentCourseCreate',
+                    innerProps: {
+                      periodId: periodId,
+                    },
                   })
                 }
               >
