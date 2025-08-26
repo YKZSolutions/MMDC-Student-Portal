@@ -1,26 +1,27 @@
 import {
-    CreateEnrollmentPeriodFormSchema,
-    type CreateEnrollmentPeriodFormValues,
+  CreateEnrollmentPeriodFormSchema,
+  type CreateEnrollmentPeriodFormValues,
 } from '@/features/validation/create-enrollment'
 import {
-    billingControllerFindAllQueryKey,
-    enrollmentControllerCreateEnrollmentMutation,
+  billingControllerFindAllQueryKey,
+  enrollmentControllerCreateEnrollmentMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import {
-    Box,
-    Button,
-    Container,
-    Group,
-    Select,
-    Stack,
-    Text,
-    Title,
+  Box,
+  Button,
+  Container,
+  Group,
+  Select,
+  Stack,
+  Text,
+  Title,
 } from '@mantine/core'
-import { DatePickerInput } from '@mantine/dates'
+import { DatePickerInput, YearPickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { useNavigate } from '@tanstack/react-router'
+import dayjs from 'dayjs'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
 function CreateEnrollmentPage() {
@@ -28,10 +29,10 @@ function CreateEnrollmentPage() {
   const form = useForm<CreateEnrollmentPeriodFormValues>({
     mode: 'uncontrolled',
     initialValues: {
-      endDate: new Date(),
-      endYear: new Date().getFullYear(),
-      startDate: new Date(),
-      startYear: new Date().getFullYear(),
+      startDate: dayjs().startOf('day').toDate(),
+      startYear: dayjs().year(),
+      endDate: dayjs().startOf('day').toDate(),
+      endYear: dayjs().add(1, 'year').year(),
       term: 1,
       status: 'draft',
     },
@@ -72,10 +73,10 @@ function CreateEnrollmentPage() {
 
     create({
       body: {
-        endDate: form.getValues().endDate.toISOString(),
-        endYear: form.getValues().endDate.getFullYear(),
         startDate: form.getValues().startDate.toISOString(),
         startYear: form.getValues().startDate.getFullYear(),
+        endDate: form.getValues().endDate.toISOString(),
+        endYear: form.getValues().endDate.getFullYear(),
         term: form.getValues().term,
         status: form.getValues().status,
       },
@@ -93,49 +94,96 @@ function CreateEnrollmentPage() {
         </Text>
       </Box>
       <Stack gap="xl">
-        {/* Term */}
-        <Select
-          allowDeselect={false}
-          label="Term"
-          placeholder="Pick one"
-          data={[
-            { value: '1', label: '1' },
-            { value: '2', label: '2' },
-            { value: '3', label: '3' },
+        <Group grow align="start">
+          {/* Term */}
+          <Select
+            allowDeselect={false}
+            label="Term"
+            placeholder="Pick one"
+            data={[
+              { value: '1', label: '1' },
+              { value: '2', label: '2' },
+              { value: '3', label: '3' },
+            ]}
+            withAsterisk
+            key={form.key('term')}
+            {...form.getInputProps('term')}
+            defaultValue={form.values.term.toString()}
+            onChange={(value) => {
+              if (value) form.setFieldValue('term', Number(value))
+            }}
+          />
+
+          {/* Term Dates */}
+          <DatePickerInput
+            type="range"
+            label={'Term Duration'}
+            placeholder="Pick date"
+            withAsterisk
+            key={form.key(`startDate`)}
+            {...form.getInputProps(`startDate`)}
+            presets={[
+              {
+                value: [
+                  dayjs(form.getValues().startDate).format('YYYY-MM-DD'),
+                  dayjs(form.getValues().startDate)
+                    .add(3, 'months')
+                    .format('YYYY-MM-DD'),
+                ],
+                label: 'Next 3 months',
+              },
+              {
+                value: [
+                  dayjs(form.getValues().startDate).format('YYYY-MM-DD'),
+                  dayjs(form.getValues().startDate)
+                    .add(4, 'months')
+                    .format('YYYY-MM-DD'),
+                ],
+                label: 'Next 4 months',
+              },
+              {
+                value: [
+                  dayjs(form.getValues().startDate).format('YYYY-MM-DD'),
+                  dayjs(form.getValues().startDate)
+                    .add(5, 'months')
+                    .format('YYYY-MM-DD'),
+                ],
+                label: 'Next 5 months',
+              },
+            ]}
+            defaultValue={[
+              form.getValues().startDate,
+              form.getValues().endDate,
+            ]}
+            onChange={(date) => {
+              if (date && date[0] && date[1]) {
+                form.setFieldValue('startDate', dayjs(date[0]).toDate())
+                form.setFieldValue('endDate', dayjs(date[1]).toDate())
+              }
+            }}
+            error={form.errors.startDate ? form.errors.startDate : undefined}
+          />
+        </Group>
+
+        {/* School Year */}
+        <YearPickerInput
+          type="range"
+          label={'School Year'}
+          placeholder="Pick date"
+          withAsterisk
+          key={form.key(`startYear`)}
+          {...form.getInputProps(`startYear`)}
+          defaultValue={[
+            dayjs().year(form.getValues().startYear).toDate(),
+            dayjs().year(form.getValues().endYear).toDate(),
           ]}
-          withAsterisk
-          key={form.key('term')}
-          {...form.getInputProps('term')}
-          defaultValue={form.values.term.toString()}
-          onChange={(value) => {
-            if (value) form.setFieldValue('term', Number(value))
-          }}
-        />
-
-        {/* Start Date */}
-        <DatePickerInput
-          label={'Term Start Date'}
-          placeholder="Pick date"
-          withAsterisk
-          key={form.key(`startDate`)}
-          {...form.getInputProps(`startDate`)}
           onChange={(date) => {
-            if (date) form.setFieldValue('startDate', new Date(date))
+            if (date && date[0] && date[1]) {
+              form.setFieldValue('startYear', dayjs(date[0]).year())
+              form.setFieldValue('endYear', dayjs(date[1]).year())
+            }
           }}
-          error={form.errors.startDate ? form.errors.startDate : undefined}
-        />
-
-        {/* End Date */}
-        <DatePickerInput
-          label={'Term End Date'}
-          placeholder="Pick date"
-          withAsterisk
-          key={form.key(`endDate`)}
-          {...form.getInputProps(`endDate`)}
-          onChange={(date) => {
-            if (date) form.setFieldValue('endDate', new Date(date))
-          }}
-          error={form.errors.endDate ? form.errors.endDate : undefined}
+          error={form.errors.startYear ? form.errors.startYear : undefined}
         />
       </Stack>
 
