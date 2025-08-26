@@ -6,7 +6,7 @@ import RoleComponentManager from '@/components/role-component-manager.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 
 //TODO: implement action function for booking a mentoring session and navigating to gspace
-const CourseQuickActions = () => {
+const CourseDashboardQuickActions = () => {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')
 
@@ -54,4 +54,4 @@ const CourseQuickActions = () => {
   )
 }
 
-export default CourseQuickActions
+export default CourseDashboardQuickActions

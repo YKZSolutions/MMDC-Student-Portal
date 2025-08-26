@@ -36,7 +36,7 @@ import SearchComponent from '@/components/search-component.tsx'
 import { useCurrentMeeting } from '@/features/courses/course-editor/useCurrentMeeting.ts'
 import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
-import CourseQuickActions from '@/features/courses/course-quick-actions.tsx'
+import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
 import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
@@ -433,7 +433,7 @@ const CourseCard = ({
                 </Text>
               </Group>
             </Group>
-            <CourseQuickActions />
+            <CourseDashboardQuickActions />
           </Group>
         </Stack>
       </Group>
@@ -480,7 +480,7 @@ const CourseListRow = ({
             >
               {courseName}
             </Title>
-            <CourseQuickActions />
+            <CourseDashboardQuickActions />
           </Group>
           <Text
             fw={400}

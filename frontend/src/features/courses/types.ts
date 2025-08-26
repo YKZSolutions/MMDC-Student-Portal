@@ -46,4 +46,5 @@ export interface AcademicProgram {
   majorCode: string
 }
 
-export type ContentType = 'module' | 'subsection' | 'item'
+export type ContentTree = 'module' | 'subsection' | 'item'
+export type ContentType = 'readings' | 'assignment'
