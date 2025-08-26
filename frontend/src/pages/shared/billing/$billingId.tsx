@@ -29,7 +29,7 @@ import {
   Text,
   ThemeIcon,
   Timeline,
-  Title
+  Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
@@ -86,8 +86,6 @@ function BillingIdPage() {
   const navigate = useNavigate()
 
   const [opened, { open, close }] = useDisclosure(false)
-
-  const { authUser } = useAuth('protected')
 
   return (
     <Container size={'md'} pb={'lg'} w={'100%'}>
