@@ -74,9 +74,9 @@ function CreateEnrollmentPage() {
     create({
       body: {
         startDate: form.getValues().startDate.toISOString(),
-        startYear: form.getValues().startDate.getFullYear(),
+        startYear: form.getValues().startYear,
         endDate: form.getValues().endDate.toISOString(),
-        endYear: form.getValues().endDate.getFullYear(),
+        endYear: form.getValues().endYear,
         term: form.getValues().term,
         status: form.getValues().status,
       },
