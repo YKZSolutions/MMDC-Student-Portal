@@ -310,25 +310,21 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
       {
         view: () => {
           navigate({
-            to: `/billing/${id}`,
+            to: `/enrollment/${id}`,
           })
         },
-        edit: () => {
-          navigate({
-            to: `/billing/${id}/edit`,
-          })
-        },
+        edit: () => {},
         delete: () => {
           modals.openConfirmModal({
             title: (
               <Text fw={600} c={'dark.7'}>
-                Delete Bill
+                Delete Enrollment Period
               </Text>
             ),
             children: (
               <Text size="sm" c={'dark.3'}>
-                Are you sure you want to delete this bill? This action cannot be
-                undone.
+                Are you sure you want to delete this enrollment period? This
+                action cannot be undone.
               </Text>
             ),
             centered: true,
