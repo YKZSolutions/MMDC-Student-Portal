@@ -99,6 +99,7 @@ function RouteComponent() {
       style={{
         overflow: 'hidden',
       }}
+      gap={0}
     >
       {/* Sub Nav */}
       <Box
@@ -116,12 +117,10 @@ function RouteComponent() {
           }
           courses={courses} //TODO: use all courses for admin
         />
-        ,
       </Box>
 
       {/* Main Content */}
       <Box
-        p="sm"
         style={{
           flex: 1,
           minWidth: 0,
