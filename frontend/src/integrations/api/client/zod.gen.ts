@@ -1500,7 +1500,9 @@ export const zEnrollmentControllerRemoveEnrollmentData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
 });
 
 export const zEnrollmentControllerRemoveEnrollmentResponse = z.object({

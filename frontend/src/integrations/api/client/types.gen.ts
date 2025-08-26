@@ -2256,7 +2256,12 @@ export type EnrollmentControllerRemoveEnrollmentData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
     url: '/enrollment/{id}';
 };
 
