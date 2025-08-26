@@ -1,4 +1,4 @@
-import { Button, Group, Stack } from '@mantine/core'
+import { Button, Group } from '@mantine/core'
 import {
   IconPlus,
   IconViewportShort,
@@ -48,9 +48,7 @@ const CourseModules = () => {
         </Group>
       }
     >
-      <Stack>
-        <CourseModulePanel allExpanded={allExpanded} />
-      </Stack>
+      <CourseModulePanel allExpanded={allExpanded} />
     </CourseMainLayout>
   )
 }
