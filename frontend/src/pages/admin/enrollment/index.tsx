@@ -1,4 +1,5 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
+import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
 import type {
   BillDto,
@@ -15,7 +16,6 @@ import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatPaginationMessage, formatToSchoolYear } from '@/utils/formatters'
 import {
   ActionIcon,
-  Badge,
   Box,
   Button,
   Container,
@@ -410,11 +410,7 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Badge variant="light" radius="lg">
-                      <Text className="capitalize" fz={'xs'} fw={500}>
-                        {period.status}
-                      </Text>
-                    </Badge>
+                    <EnrollmentBadgeStatus period={period} />
                   </Table.Td>
 
                   <Table.Td>

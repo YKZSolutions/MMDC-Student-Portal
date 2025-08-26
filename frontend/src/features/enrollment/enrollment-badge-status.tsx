@@ -1,5 +1,17 @@
-import { Badge, rem, Text } from '@mantine/core';
-import type { EnrollmentStatus } from '../validation/create-enrollment';
+import type { EnrollmentPeriodDto } from '@/integrations/api/client'
+import {
+    enrollmentControllerFindAllEnrollmentsQueryKey,
+    enrollmentControllerFindOneEnrollmentQueryKey,
+    enrollmentControllerUpdateEnrollmentStatusMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import { Badge, Box, Menu, rem, Text } from '@mantine/core'
+import { useLocation } from '@tanstack/react-router'
+import {
+    zodStatusEnum,
+    type EnrollmentStatus,
+} from '../validation/create-enrollment'
 
 const STATUS_STYLES: Record<
   EnrollmentStatus,
@@ -14,15 +26,125 @@ const STATUS_STYLES: Record<
   archived: { color: 'dark', label: 'Archived' },
 }
 
-function EnrollmentBadgeStatus({ status }: { status: EnrollmentStatus }) {
-  const { color, label } = STATUS_STYLES[status]
+function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
+  const { color, label } = STATUS_STYLES[period.status]
+  const location = useLocation()
+
+  const { mutateAsync: updateStatus } = useAppMutation(
+    enrollmentControllerUpdateEnrollmentStatusMutation,
+    {
+      loading: {
+        title: 'Updating Enrollment Status',
+        message: 'Please wait while the enrollment status is being updated.',
+      },
+      success: {
+        title: 'Enrollment Status Updated',
+        message: 'The enrollment status has been updated.',
+      },
+      error: {
+        title: 'Failed to Update Status',
+        message: 'Something went wrong while updating the enrollment status.',
+      },
+    },
+    {
+      onMutate: (variables) => {
+        const previousStatus = period.status
+        period.status = variables.body.status
+        return { previousStatus }
+      },
+      onSuccess: (data, vars) => {
+        const { queryClient } = getContext()
+        period.status = vars.body.status
+
+        const allEnrollmentsKey =
+          enrollmentControllerFindAllEnrollmentsQueryKey()
+        const singleEnrollmentKey =
+          enrollmentControllerFindOneEnrollmentQueryKey({
+            path: { id: period.id },
+          })
+
+        // Invalidate both queries
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: allEnrollmentsKey }),
+          queryClient.invalidateQueries({ queryKey: singleEnrollmentKey }),
+        ])
+
+        // Reset depending on current page
+        const isOnPeriodPage = location.pathname.includes(period.id)
+        queryClient.resetQueries({
+          queryKey: isOnPeriodPage ? allEnrollmentsKey : singleEnrollmentKey,
+        })
+      },
+      onError: (
+        err,
+        vars,
+        context: { previousStatus: EnrollmentStatus } | undefined,
+      ) => {
+        if (context) period.status = context.previousStatus
+      },
+    },
+  )
+
+  const handleStatusChange = async (newStatus: EnrollmentStatus) => {
+    await updateStatus({
+      path: {
+        id: period.id,
+      },
+      body: {
+        status: newStatus,
+      },
+    })
+  }
 
   return (
-    <Badge color={color} radius="xl" size="md" variant="dot">
-      <Text fz={rem(10)} fw={600}>
-        {label}
-      </Text>
-    </Badge>
+    <Menu shadow="md" width={200} trigger="click-hover">
+      <Menu.Target>
+        <Box
+          w={'fit-content'}
+          onClick={(e) => {
+            e.stopPropagation() // prevent click bubbling out of the Menu
+          }}
+        >
+          <Badge
+            style={{ cursor: 'pointer' }}
+            color={color}
+            radius="xl"
+            size={'lg'}
+            variant="dot"
+          >
+            <Text fz={rem(10)} fw={600}>
+              {label}
+            </Text>
+          </Badge>
+        </Box>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Label>Status</Menu.Label>
+        {zodStatusEnum.options.map((statusOption) => (
+          <Menu.Item
+            key={statusOption}
+            onClick={(e) => {
+              e.stopPropagation() // prevent click bubbling out of the Menu
+              handleStatusChange(statusOption)
+            }}
+            disabled={statusOption === period.status}
+          >
+            <Badge
+              style={{ cursor: 'pointer' }}
+              color={STATUS_STYLES[statusOption].color}
+              radius="xl"
+              size={'lg'}
+              variant="dot"
+            >
+              <Text fz={rem(10)} fw={600}>
+                {statusOption}
+              </Text>
+            </Badge>
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
   )
 }
 

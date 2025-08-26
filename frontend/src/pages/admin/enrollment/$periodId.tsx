@@ -1,4 +1,8 @@
-import { formatPaginationMessage } from '@/utils/formatters'
+import { SuspendedPagination } from '@/components/suspense-pagination'
+import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
+import type { EnrollmentPeriodDto } from '@/integrations/api/client'
+import { enrollmentControllerFindOneEnrollmentOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatPaginationMessage, formatToSchoolYear } from '@/utils/formatters'
 import {
   Accordion,
   ActionIcon,
@@ -10,9 +14,9 @@ import {
   Flex,
   Group,
   Pagination,
-  Paper,
   Popover,
   rem,
+  Skeleton,
   Stack,
   Text,
   TextInput,
@@ -28,8 +32,9 @@ import {
   IconTrash,
   type ReactNode,
 } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/$periodId')
@@ -273,19 +278,23 @@ function EnrollmentPeriodAdminQueryProvider({
   },
 }: {
   children: (props: {
+    enrollmentPeriodData: EnrollmentPeriodDto
     courseData: typeof mockCourseData
     message: string
     totalPages: number
   }) => ReactNode
   props?: IEnrollmentPeriodAdminQuery
 }) {
+  const { periodId } = route.useParams()
   const { search, page } = props
 
-  // const { data } = useSuspenseQuery(
-  //   usersControllerFindAllOptions({
-  //     query: { search, page, ...(role && { role }) },
-  //   }),
-  // )
+  const { data: enrollmentPeriodData } = useSuspenseQuery(
+    enrollmentControllerFindOneEnrollmentOptions({
+      path: {
+        id: periodId,
+      },
+    }),
+  )
 
   const courseData = mockCourseData
 
@@ -293,9 +302,14 @@ function EnrollmentPeriodAdminQueryProvider({
   const total = mockCourseData.length
   const totalPages = 1
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const message = formatPaginationMessage({
+    page,
+    total,
+    limit,
+  })
 
   return children({
+    enrollmentPeriodData,
     courseData,
     message,
     totalPages,
@@ -319,33 +333,61 @@ function EnrollmentPeriodIdPage() {
     useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
 
   return (
-    <Container fluid m={0} pb={'lg'}>
+    <Container size={'md'} pb={'lg'}>
       <Stack>
-        <Paper radius={'md'}>
+        <Flex align={'center'}>
+          <Group align="start">
+            <ActionIcon
+              radius={'xl'}
+              variant="subtle"
+              size={'lg'}
+              onClick={() =>
+                navigate({
+                  to: '..',
+                })
+              }
+            >
+              <IconArrowLeft />
+            </ActionIcon>
+            <Suspense
+              fallback={<Skeleton height={20} width={rem(150)} radius="md" />}
+            >
+              <EnrollmentPeriodAdminQueryProvider>
+                {({ enrollmentPeriodData }) => (
+                  <>
+                    <Title c={'dark.7'} order={3} fw={700}>
+                      {formatToSchoolYear(
+                        enrollmentPeriodData.startYear,
+                        enrollmentPeriodData.endYear,
+                      )}
+                    </Title>
+                    <Divider orientation="vertical" />
+                    <Title c={'dark.7'} order={3} fw={700}>
+                      Term {enrollmentPeriodData.term}
+                    </Title>
+                  </>
+                )}
+              </EnrollmentPeriodAdminQueryProvider>
+            </Suspense>
+          </Group>
+        </Flex>
+
+        <Stack gap={0}>
           <Group py={'md'} justify={'space-between'} align="center">
-            <Flex align={'center'}>
-              <Group>
-                <ActionIcon
-                  radius={'xl'}
-                  variant="subtle"
-                  size={'lg'}
-                  onClick={() =>
-                    navigate({
-                      to: '..',
-                    })
-                  }
-                >
-                  <IconArrowLeft />
-                </ActionIcon>
-                <Title c={'dark.7'} order={3} fw={700}>
-                  2023 - 2024
-                </Title>
-                <Divider orientation="vertical" />
-                <Title c={'dark.7'} order={3} fw={700}>
-                  Term 2
-                </Title>
-              </Group>
-            </Flex>
+            <Suspense
+              fallback={<Skeleton height={20} width={rem(150)} radius="md" />}
+            >
+              <EnrollmentPeriodAdminQueryProvider>
+                {({ enrollmentPeriodData }) => (
+                  <Group gap={'xs'}>
+                    <Text fw={600} c={'dark'} fz={'sm'}>
+                      Status:
+                    </Text>
+                    <EnrollmentBadgeStatus period={enrollmentPeriodData} />
+                  </Group>
+                )}
+              </EnrollmentPeriodAdminQueryProvider>
+            </Suspense>
             <Flex align={'center'} gap={5}>
               <TextInput
                 placeholder="Search name/email"
@@ -524,20 +566,22 @@ function EnrollmentPeriodIdPage() {
               </Fragment>
             ))}
           </Accordion>
-        </Paper>
+        </Stack>
 
-        <EnrollmentPeriodAdminQueryProvider>
-          {(props) => (
-            <Group justify="flex-end">
-              <Text size="sm">{props.message}</Text>
-              <Pagination
-                total={props.totalPages}
-                value={query.page}
-                withPages={false}
-              />
-            </Group>
-          )}
-        </EnrollmentPeriodAdminQueryProvider>
+        <Suspense fallback={<SuspendedPagination />}>
+          <EnrollmentPeriodAdminQueryProvider>
+            {(props) => (
+              <Group justify="flex-end">
+                <Text size="sm">{props.message}</Text>
+                <Pagination
+                  total={props.totalPages}
+                  value={query.page}
+                  withPages={false}
+                />
+              </Group>
+            )}
+          </EnrollmentPeriodAdminQueryProvider>
+        </Suspense>
       </Stack>
     </Container>
   )
