@@ -29,7 +29,7 @@ import {
   Text,
   ThemeIcon,
   Timeline,
-  Title
+  Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'

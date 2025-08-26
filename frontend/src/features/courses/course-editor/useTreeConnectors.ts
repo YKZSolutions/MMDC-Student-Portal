@@ -1,35 +1,35 @@
-import { useMemo } from "react";
-import type { NodeModel } from "@minoru/react-dnd-treeview";
+import { useMemo } from 'react'
+import type { NodeModel } from '@minoru/react-dnd-treeview'
 
 export function useTreeConnectors<T>(tree: NodeModel<T>[]) {
   const nodeMap = useMemo(() => {
-    const map = new Map<string | number, NodeModel<T>>();
-    tree.forEach((node) => map.set(node.id, node));
-    return map;
-  }, [tree]);
+    const map = new Map<string | number, NodeModel<T>>()
+    tree.forEach((node) => map.set(node.id, node))
+    return map
+  }, [tree])
 
   const lastChildMap = useMemo(() => {
-    const map = new Map<string | number, true>();
-    const childrenByParent = new Map<string | number, NodeModel<T>[]>();
+    const map = new Map<string | number, true>()
+    const childrenByParent = new Map<string | number, NodeModel<T>[]>()
 
     tree.forEach((node) => {
       if (!childrenByParent.has(node.parent)) {
-        childrenByParent.set(node.parent, []);
+        childrenByParent.set(node.parent, [])
       }
-      childrenByParent.get(node.parent)!.push(node);
-    });
+      childrenByParent.get(node.parent)!.push(node)
+    })
 
     childrenByParent.forEach((children) => {
       if (children.length > 0) {
-        map.set(children[children.length - 1].id, true);
+        map.set(children[children.length - 1].id, true)
       }
-    });
+    })
 
-    return map;
-  }, [tree]);
+    return map
+  }, [tree])
 
   function isLastChild(node: NodeModel<T> | undefined): boolean {
-    return !!node && lastChildMap.has(node.id);
+    return !!node && lastChildMap.has(node.id)
   }
 
   /**
@@ -38,14 +38,14 @@ export function useTreeConnectors<T>(tree: NodeModel<T>[]) {
    * @returns An array of ancestors, from the root down to the immediate parent.
    */
   function getAncestors(node: NodeModel<T>): NodeModel<T>[] {
-    const ancestors: NodeModel<T>[] = [];
-    let current = nodeMap.get(node.parent); // Start from the parent
+    const ancestors: NodeModel<T>[] = []
+    let current = nodeMap.get(node.parent) // Start from the parent
     while (current) {
-      ancestors.unshift(current); // Add to front to keep order: [root, grandparent, parent]
-      current = nodeMap.get(current.parent);
+      ancestors.unshift(current) // Add to front to keep order: [root, grandparent, parent]
+      current = nodeMap.get(current.parent)
     }
-    return ancestors;
+    return ancestors
   }
 
-  return { isLastChild, getAncestors };
+  return { isLastChild, getAncestors }
 }

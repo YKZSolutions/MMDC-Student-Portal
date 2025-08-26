@@ -14,11 +14,20 @@ type ActionCardProps = {
   title: string
   description: string
   icon: JSX.Element
-  modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
-} & ComponentPropsWithoutRef<typeof Card>
-  & BoxProps
+  modalComponent: React.ComponentType<{
+    opened: boolean
+    closeModal: () => void
+  }>
+} & ComponentPropsWithoutRef<typeof Card> &
+  BoxProps
 
-const CardWithModal = ({title, description, icon, modalComponent: ModalComponent, ...cardProps}: ActionCardProps) => {
+const CardWithModal = ({
+  title,
+  description,
+  icon,
+  modalComponent: ModalComponent,
+  ...cardProps
+}: ActionCardProps) => {
   const [hovered, setHovered] = useState(false)
   const [actionModalOpened, { open, close }] = useDisclosure(false)
 

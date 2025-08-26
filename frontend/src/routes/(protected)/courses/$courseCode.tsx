@@ -1,18 +1,18 @@
-import {createFileRoute, Outlet, useLocation, useMatchRoute, useNavigate, useParams,} from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Outlet,
+  useLocation,
+  useMatchRoute,
+  useNavigate,
+  useParams,
+} from '@tanstack/react-router'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
-import {useAuth} from '@/features/auth/auth.hook.ts'
-import {
-  Box,
-  Group,
-  useMantineTheme,
-} from '@mantine/core'
-import {
-  type CourseBasicDetails,
-} from '@/features/courses/types.ts'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import { Box, Group, useMantineTheme } from '@mantine/core'
+import { type CourseBasicDetails } from '@/features/courses/types.ts'
 import CourseNavBar, {
   type CourseNavItem,
 } from '@/features/courses/course-navbar.tsx'
-
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
@@ -20,20 +20,20 @@ export const Route = createFileRoute('/(protected)/courses/$courseCode')({
 
 const mockCourses: CourseBasicDetails[] = [
   {
-      courseCode: 'MO-IT200',
-      courseName: 'Web Technology Applications',
+    courseCode: 'MO-IT200',
+    courseName: 'Web Technology Applications',
   },
   {
-      courseCode: 'MO-IT351',
-      courseName: 'Data Structures & Algorithms',
+    courseCode: 'MO-IT351',
+    courseName: 'Data Structures & Algorithms',
   },
   {
-      courseCode: 'MO-IT400',
-      courseName: 'Capstone 1',
+    courseCode: 'MO-IT400',
+    courseName: 'Capstone 1',
   },
   {
-      courseCode: 'MO-IT500',
-      courseName: 'Capstone 2',
+    courseCode: 'MO-IT500',
+    courseName: 'Capstone 2',
   },
 ]
 
@@ -111,9 +111,12 @@ function RouteComponent() {
         }}
       >
         <CourseNavBar
-          navItems={authUser.role === 'student' ? studentNavItems : adminNavItems}
+          navItems={
+            authUser.role === 'student' ? studentNavItems : adminNavItems
+          }
           courses={courses} //TODO: use all courses for admin
-        />,
+        />
+        ,
       </Box>
 
       {/* Main Content */}

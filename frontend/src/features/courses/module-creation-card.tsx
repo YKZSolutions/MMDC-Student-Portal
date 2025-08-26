@@ -2,7 +2,11 @@ import { Button, Card, Group, Stack, Title } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
 import CourseTree from '@/features/courses/course-editor/course-tree.tsx'
 
-const ModuleCreationCard = ({onAddButtonClick}: {onAddButtonClick: (parentId: string | number, parentType: string) => void}) => {
+const ModuleCreationCard = ({
+  onAddButtonClick,
+}: {
+  onAddButtonClick: (parentId: string | number, parentType: string) => void
+}) => {
   return (
     <Card radius="lg" p={0} h={'100%'}>
       <Group justify="space-between" align="center" p={'xs'}>

@@ -42,10 +42,7 @@ const CourseCreationProcessModal = ({
   const [rightPaneOpen, { open, close }] = useDisclosure(false) //For Content Details Editor Drawer
   const [childType, setChildType] = useState<ContentType>('module')
 
-  const handleAdd = (
-    parentId?: string | number,
-    parentType? : string,
-  ) => {
+  const handleAdd = (parentId?: string | number, parentType?: string) => {
     setChildType(getChildTypeFromParentType(parentType))
     open()
   }
@@ -113,7 +110,9 @@ const CourseCreationProcessModal = ({
           <Panel minSize={30}>
             <Container w={'70%'} p={'xl'} h={'100%'}>
               {active === 0 && <CourseCreationCard />}
-              {active === 1 && <ModuleCreationCard onAddButtonClick={handleAdd} />}
+              {active === 1 && (
+                <ModuleCreationCard onAddButtonClick={handleAdd} />
+              )}
               {active === 2 && <div>Nothing</div>}
               {active === 3 && <div>Final step placeholder</div>}
             </Container>
@@ -136,9 +135,9 @@ const CourseCreationProcessModal = ({
               onClose={close}
               type={childType}
               data={''}
-              gap='lg'
-              h='100%'
-              p='lg'
+              gap="lg"
+              h="100%"
+              p="lg"
               m={'xs'}
               style={{
                 overflowY: 'auto',

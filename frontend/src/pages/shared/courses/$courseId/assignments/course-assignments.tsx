@@ -1,12 +1,4 @@
-import {
-
-  Group,
-  Stack,
-  Tabs,
-  Text,
-  Title,
-  useMantineTheme,
-} from '@mantine/core'
+import { Group, Stack, Tabs, Text, Title, useMantineTheme } from '@mantine/core'
 import {
   IconBook,
   IconCheck,
@@ -23,10 +15,7 @@ import type {
   AssignmentSubmissionReport,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
-import {
-  getFutureDate,
-  getPastDate,
-} from '@/utils/helpers.ts'
+import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
 
 export const mockAssignmentsData: StudentAssignment[] = [
   {
@@ -90,7 +79,7 @@ export const mockAssignmentsData: StudentAssignment[] = [
       feedback: 'Great job!',
       gradedBy: 'teacher1',
       gradedAt: getPastDate(1),
-    }
+    },
   },
   {
     id: '6',
@@ -112,7 +101,7 @@ export const mockAssignmentsData: StudentAssignment[] = [
       feedback: 'Great job!',
       gradedBy: 'teacher1',
       gradedAt: getPastDate(1),
-    }
+    },
   },
   {
     id: '7',
@@ -133,7 +122,7 @@ export const mockAssignmentsData: StudentAssignment[] = [
     mode: 'individual',
     status: 'closed',
     submissionStatus: 'pending',
-  }
+  },
 ]
 
 type RoleBasedAssignmentConfig = {
@@ -191,23 +180,32 @@ const roleConfig: RoleBasedAssignmentConfig = {
 const CourseAssignments = () => {
   const { authUser } = useAuth('protected')
 
-  const [activeTab, setActiveTab] = useState(roleConfig[authUser.role].tabs[0].value);
+  const [activeTab, setActiveTab] = useState(
+    roleConfig[authUser.role].tabs[0].value,
+  )
 
-  const todoAssignments = mockAssignmentsData.filter((assignment) => assignment.submissionStatus === 'pending')
-  const completedAssignments = mockAssignmentsData.filter((assignment) => assignment.submissionStatus === 'graded')
+  const todoAssignments = mockAssignmentsData.filter(
+    (assignment) => assignment.submissionStatus === 'pending',
+  )
+  const completedAssignments = mockAssignmentsData.filter(
+    (assignment) => assignment.submissionStatus === 'graded',
+  )
 
   const getAssignments = () => {
-    return activeTab === "todo" ? todoAssignments : completedAssignments
+    return activeTab === 'todo' ? todoAssignments : completedAssignments
   }
 
-  const [filteredAssignments, setFilteredAssignments] = useState<StudentAssignment[]>(getAssignments);
+  const [filteredAssignments, setFilteredAssignments] =
+    useState<StudentAssignment[]>(getAssignments)
 
   const handleTabChange = (value: string | null) => {
-    if (value === "todo" || value === "completed") {
-      setActiveTab(value);
-      setFilteredAssignments(value === "todo" ? todoAssignments : completedAssignments);
+    if (value === 'todo' || value === 'completed') {
+      setActiveTab(value)
+      setFilteredAssignments(
+        value === 'todo' ? todoAssignments : completedAssignments,
+      )
     }
-  };
+  }
 
   return (
     <Stack>
@@ -215,19 +213,26 @@ const CourseAssignments = () => {
         <Title>Assignments</Title>
       </Group>
       <Stack>
-        <Tabs
-          value={activeTab} onChange={handleTabChange}
-        >
+        <Tabs value={activeTab} onChange={handleTabChange}>
           <Tabs.List>
-            {roleConfig[authUser.role].tabs.map(tab => (
-              <Tabs.Tab key={tab.value} value={tab.value} leftSection={tab.icon}>
+            {roleConfig[authUser.role].tabs.map((tab) => (
+              <Tabs.Tab
+                key={tab.value}
+                value={tab.value}
+                leftSection={tab.icon}
+              >
                 {tab.label}
               </Tabs.Tab>
             ))}
           </Tabs.List>
 
           <Stack gap={'md'} p={'md'}>
-            <SearchComponent data={getAssignments()} onFilter={setFilteredAssignments} identifiers={['title']} placeholder={'Search for assignments'} />
+            <SearchComponent
+              data={getAssignments()}
+              onFilter={setFilteredAssignments}
+              identifiers={['title']}
+              placeholder={'Search for assignments'}
+            />
 
             <Tabs.Panel value="todo">
               <AssignmentPanel assignments={filteredAssignments} />

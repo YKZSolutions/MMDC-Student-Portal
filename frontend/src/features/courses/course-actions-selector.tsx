@@ -13,10 +13,7 @@ import CourseCreationProcessModal from '@/features/courses/course-editor/course-
 import CardWithModal from '@/components/card-w-modal.tsx'
 import type { CustomModalProp } from '@/components/types.ts'
 
-const CourseActionsSelector = ({
-                           opened,
-                           closeModal,
-                         }: CustomModalProp) => {
+const CourseActionsSelector = ({ opened, closeModal }: CustomModalProp) => {
   return (
     <Modal
       opened={opened}

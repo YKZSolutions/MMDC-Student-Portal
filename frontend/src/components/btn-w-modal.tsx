@@ -12,14 +12,12 @@ type ButtonWithModalProps = {
 } & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'> &
   BoxProps
 
-
-const ButtonWithModal =
-  ({
-     label,
-     icon,
-     modalComponent: ModalComponent,
-     ...buttonProps
-   }: ButtonWithModalProps) => {
+const ButtonWithModal = ({
+  label,
+  icon,
+  modalComponent: ModalComponent,
+  ...buttonProps
+}: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
 
   return (
@@ -38,4 +36,3 @@ const ButtonWithModal =
 }
 
 export default ButtonWithModal
-

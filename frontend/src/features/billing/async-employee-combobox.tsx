@@ -1,21 +1,21 @@
 import SupabaseAvatar from '@/components/supabase-avatar'
 import type {
-    PaginationMetaDto,
-    UserWithRelations,
+  PaginationMetaDto,
+  UserWithRelations,
 } from '@/integrations/api/client'
 import { usersControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
-    ActionIcon,
-    Box,
-    Combobox,
-    Group,
-    InputBase,
-    Loader,
-    rem,
-    Text,
-    TextInput,
-    useCombobox,
+  ActionIcon,
+  Box,
+  Combobox,
+  Group,
+  InputBase,
+  Loader,
+  rem,
+  Text,
+  TextInput,
+  useCombobox,
 } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'
 import { useDebouncedValue } from '@mantine/hooks'

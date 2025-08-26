@@ -45,33 +45,41 @@ const Chatbot = ({
 
   const [messages, setMessages] = useState<Turn[]>([])
 
-  const { mutateAsync: create, isPending, isError, isSuccess } = useMutation(chatbotControllerPromptMutation())
+  const {
+    mutateAsync: create,
+    isPending,
+    isError,
+    isSuccess,
+  } = useMutation(chatbotControllerPromptMutation())
 
   const addMessage = async (userInput: string) => {
     // Add the user's message to the state
-    const userMessage = { role: 'user' as const, content: userInput };
+    const userMessage = { role: 'user' as const, content: userInput }
 
     // Get the current messages including the new user message
-    const updatedMessages = [...messages, userMessage];
+    const updatedMessages = [...messages, userMessage]
 
     // Update the UI immediately with the user's message
-    setMessages(updatedMessages);
+    setMessages(updatedMessages)
 
     const res = await create({
       body: {
         question: userInput,
         sessionHistory: messages, // Send all previous messages
       },
-    });
+    })
 
-    const response: string = res.response;
+    const response: string = res.response
 
     // Add the bot's response to the messages
-    setMessages(prev => {
-      const newMessages = [...prev, { role: 'model' as const, content: response }];
+    setMessages((prev) => {
+      const newMessages = [
+        ...prev,
+        { role: 'model' as const, content: response },
+      ]
       // Keep only the last 5 interactions (10 messages: 5 user + 5 bot)
-      return newMessages.slice(-10);
-    });
+      return newMessages.slice(-10)
+    })
   }
 
   useEffect(() => {
@@ -220,14 +228,19 @@ const Chatbot = ({
                 </Button>
               </Popover.Target>
 
-              <Popover.Dropdown
-                p={0}
-                h={'65%'}
-              >
+              <Popover.Dropdown p={0} h={'65%'}>
                 <Stack h={'100%'}>
                   <ChatHeader onClose={handleModalClose} />
-                  <ChatMessages messages={messages} isSending={isPending} isError={isError} />
-                  <ChatInput onSendInput={addMessage} isSending={isPending} isSuccess={isSuccess} />
+                  <ChatMessages
+                    messages={messages}
+                    isSending={isPending}
+                    isError={isError}
+                  />
+                  <ChatInput
+                    onSendInput={addMessage}
+                    isSending={isPending}
+                    isSuccess={isSuccess}
+                  />
                 </Stack>
               </Popover.Dropdown>
             </Popover>
@@ -248,10 +261,12 @@ const ChatHeader = ({ onClose }: { onClose: () => void }) => {
       bg={theme.colors.secondary[0]}
       bdrs={'8px 8px 0 0'}
       style={{
-        borderBottom: `1px solid ${theme.colors.gray[3]}`
+        borderBottom: `1px solid ${theme.colors.gray[3]}`,
       }}
     >
-      <Text fw={600} c={theme.white} size="md">Chat Support</Text>
+      <Text fw={600} c={theme.white} size="md">
+        Chat Support
+      </Text>
       <Button
         variant="subtle"
         size="xs"
@@ -317,7 +332,16 @@ const BotMessage = ({ message }: { message: string }) => {
         {...props}
       />
     ),
-    ul: ({ node, ordered, ...props }: { node?: any; ordered?: boolean; className?: string; children?: React.ReactNode }) => (
+    ul: ({
+      node,
+      ordered,
+      ...props
+    }: {
+      node?: any
+      ordered?: boolean
+      className?: string
+      children?: React.ReactNode
+    }) => (
       <ul
         style={{
           margin: '6px 0',
@@ -327,7 +351,16 @@ const BotMessage = ({ message }: { message: string }) => {
         {...props}
       />
     ),
-    ol: ({ node, ordered, ...props }: { node?: any; ordered?: boolean; className?: string; children?: React.ReactNode }) => (
+    ol: ({
+      node,
+      ordered,
+      ...props
+    }: {
+      node?: any
+      ordered?: boolean
+      className?: string
+      children?: React.ReactNode
+    }) => (
       <ol
         style={{
           margin: '6px 0',
@@ -357,7 +390,7 @@ const BotMessage = ({ message }: { message: string }) => {
           fontWeight: 500,
           transition: 'color 0.2s ease',
         }}
-      className="hover:text-blue-600"
+        className="hover:text-blue-600"
         {...props}
       />
     ),
@@ -377,7 +410,16 @@ const BotMessage = ({ message }: { message: string }) => {
         {...props}
       />
     ),
-    code: ({ node, inline, ...props }: { node?: any; inline?: boolean; className?: string; children?: React.ReactNode }) =>
+    code: ({
+      node,
+      inline,
+      ...props
+    }: {
+      node?: any
+      inline?: boolean
+      className?: string
+      children?: React.ReactNode
+    }) =>
       inline ? (
         <code
           style={{
@@ -398,7 +440,7 @@ const BotMessage = ({ message }: { message: string }) => {
             overflowX: 'auto',
             margin: '8px 0',
             fontSize: '0.75em',
-            color: theme.colors.gray[7]
+            color: theme.colors.gray[7],
           }}
         >
           <code {...props} />
@@ -408,9 +450,7 @@ const BotMessage = ({ message }: { message: string }) => {
       <hr
         style={{
           border: 'none',
-          borderTop: `1px solid ${
-            theme.colors.gray[3]
-          }`,
+          borderTop: `1px solid ${theme.colors.gray[3]}`,
           margin: '16px 0',
         }}
       />
@@ -432,32 +472,34 @@ const BotMessage = ({ message }: { message: string }) => {
   )
 }
 
-const UserMessage = ({message}: {message: string}) =>{
+const UserMessage = ({ message }: { message: string }) => {
   const theme = useMantineTheme()
   return (
     <Box
       p={'md'}
       bdrs={'12px 12px 4px 12px'}
       bg={theme.colors.gray[1]}
-      maw = "90%"
+      maw="90%"
       style={{
         alignSelf: 'flex-end',
       }}
     >
-      <Text size="sm">
-        {message}
-      </Text>
+      <Text size="sm">{message}</Text>
     </Box>
   )
 }
 
 type ChatMessagesProps = {
-  messages: Turn[];
-  isSending?: boolean;
-  isError?: boolean;
+  messages: Turn[]
+  isSending?: boolean
+  isError?: boolean
 }
 
-const ChatMessages = ({ messages, isSending = false, isError = false }: ChatMessagesProps) => {
+const ChatMessages = ({
+  messages,
+  isSending = false,
+  isError = false,
+}: ChatMessagesProps) => {
   return (
     <Stack
       gap="sm"
@@ -529,59 +571,69 @@ const ChatInput = ({
         position: 'relative',
       }}
     >
-        <Textarea
-            placeholder="Type your message..."
-            value={value}
-            onChange={(event) => setValue(event.currentTarget.value)}
-            onKeyDown={handleKeyDown}
-            rightSectionPointerEvents="all"
-            radius="lg"
-            w={'100%'}
-            autosize={true}
-            minRows={1}
-            maxRows={3}
-            disabled={isSending}
-            styles={{
-                input: {
-                    paddingRight: '2.5rem',
-                    resize: 'none',
-                    overflow: 'hidden',
-                    '&:focus': {
-                        overflow: 'auto',
-                    },
-                },
-            }}
-            rightSection={
-                <Flex align={'flex-end'} justify={'flex-end'} h={'100%'} p={'0.25rem'}>
-                    <Button
-                        onClick={() => {
-                            if (!canSend) return;
-                            onSendInput(value);
-                        }}
-                        size="xs"
-                        radius="xl"
-                        loading={isSending}
-                        hidden={!canSend}
-                        bg="transparent"
-                    >
-                        <IconSend color={theme.colors.primary[0]} />
-                    </Button>
-                </Flex>
-            }
-        />
+      <Textarea
+        placeholder="Type your message..."
+        value={value}
+        onChange={(event) => setValue(event.currentTarget.value)}
+        onKeyDown={handleKeyDown}
+        rightSectionPointerEvents="all"
+        radius="lg"
+        w={'100%'}
+        autosize={true}
+        minRows={1}
+        maxRows={3}
+        disabled={isSending}
+        styles={{
+          input: {
+            paddingRight: '2.5rem',
+            resize: 'none',
+            overflow: 'hidden',
+            '&:focus': {
+              overflow: 'auto',
+            },
+          },
+        }}
+        rightSection={
+          <Flex
+            align={'flex-end'}
+            justify={'flex-end'}
+            h={'100%'}
+            p={'0.25rem'}
+          >
+            <Button
+              onClick={() => {
+                if (!canSend) return
+                onSendInput(value)
+              }}
+              size="xs"
+              radius="xl"
+              loading={isSending}
+              hidden={!canSend}
+              bg="transparent"
+            >
+              <IconSend color={theme.colors.primary[0]} />
+            </Button>
+          </Flex>
+        }
+      />
     </Flex>
   )
 }
 
 const DropZoneIndicator = () => (
-  <Affix position={{ top: '12%', left: '50%' }} w={"8rem"} h={"8rem"}
+  <Affix
+    position={{ top: '12%', left: '50%' }}
+    w={'8rem'}
+    h={'8rem'}
     className="rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
     style={{
       zIndex: 999,
-     }}
+    }}
   >
     <Stack align="center" justify="center" h="100%">
-      <Text fw={600} size="md" ta ="center">Drop to hide chatbot</Text>
+      <Text fw={600} size="md" ta="center">
+        Drop to hide chatbot
+      </Text>
     </Stack>
   </Affix>
 )

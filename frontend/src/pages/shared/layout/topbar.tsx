@@ -39,7 +39,14 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
       </Breadcrumbs>
 
       <Group>
-        <ActionIcon variant="subtle" radius="xl" onClick={() => {setChatbotOpen(true); setChatbotFabHidden(false)}}>
+        <ActionIcon
+          variant="subtle"
+          radius="xl"
+          onClick={() => {
+            setChatbotOpen(true)
+            setChatbotFabHidden(false)
+          }}
+        >
           <IconMessageChatbot size={22} />
         </ActionIcon>
         <ActionIcon variant="subtle" radius="xl">

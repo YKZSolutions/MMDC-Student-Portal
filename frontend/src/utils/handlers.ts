@@ -4,4 +4,4 @@ const handleMeetingClick = (meetingLink?: string | undefined) => {
   }
 }
 
-export { handleMeetingClick}
+export { handleMeetingClick }
