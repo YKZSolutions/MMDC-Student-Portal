@@ -11,19 +11,9 @@ export const CreateEnrollmentPeriodFormSchema = z
   .object({
     ...zodEnrollmentPeriodCreate,
     endDate: z.date(),
-    endYear: z
-      .number()
-      .min(
-        new Date().getFullYear(),
-        'End year must be at least the current year',
-      ),
+    endYear: z.number(),
     startDate: z.date(),
-    startYear: z
-      .number()
-      .min(
-        new Date().getFullYear(),
-        'Start year must be at least the current year',
-      ),
+    startYear: z.number(),
     term: z.number().min(1, 'Term must be at least 1'),
     status: zodStatusEnum,
   })
