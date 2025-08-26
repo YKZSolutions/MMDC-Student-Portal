@@ -396,6 +396,11 @@ function EnrollmentPeriodIdPage() {
                 radius={'md'}
                 leftSection={<IconPlus size={20} />}
                 lts={rem(0.25)}
+                onClick={() =>
+                  navigate({
+                    to: `/enrollment/${periodId}/create`,
+                  })
+                }
               >
                 Create
               </Button>
