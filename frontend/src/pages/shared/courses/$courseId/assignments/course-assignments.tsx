@@ -1,11 +1,5 @@
-import { Group, Stack, Tabs, Text, Title, useMantineTheme } from '@mantine/core'
-import {
-  IconBook,
-  IconCheck,
-  IconClock,
-  IconHistory,
-  IconSend,
-} from '@tabler/icons-react'
+import { Stack, Tabs } from '@mantine/core'
+import { IconBook, IconCheck, IconHistory, IconSend } from '@tabler/icons-react'
 import SearchComponent from '@/components/search-component.tsx'
 import React, { useState } from 'react'
 import AssignmentPanel from '@/features/courses/assignments/assignment-panel.tsx'
@@ -16,6 +10,7 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
+import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
 
 export const mockAssignmentsData: StudentAssignment[] = [
   {
@@ -208,10 +203,7 @@ const CourseAssignments = () => {
   }
 
   return (
-    <Stack>
-      <Group justify="space-between" align="start">
-        <Title>Assignments</Title>
-      </Group>
+    <CourseMainLayout title={'Assignments'}>
       <Stack>
         <Tabs value={activeTab} onChange={handleTabChange}>
           <Tabs.List>
@@ -244,7 +236,7 @@ const CourseAssignments = () => {
           </Stack>
         </Tabs>
       </Stack>
-    </Stack>
+    </CourseMainLayout>
   )
 }
 
