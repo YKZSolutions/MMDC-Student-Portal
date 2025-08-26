@@ -1,4 +1,5 @@
-import { useAuth } from '@/features/auth/auth.hook'
+import { SuspendedPagination } from '@/components/suspense-pagination'
+import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
 import type {
   EnrollmentPeriodDto,
   PaginationMetaDto,
@@ -21,6 +22,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
+import { useDebouncedCallback } from '@mantine/hooks'
 import {
   IconDotsVertical,
   IconFilter2,
@@ -31,7 +33,7 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 
 const route = getRouteApi('/(protected)/enrollment/')
 
@@ -155,6 +157,39 @@ function EnrollmentAdminPage() {
 
   const [query, setQuery] = useState<IEnrollmentAdminQuery>(queryDefaultValues)
 
+  const debouncedQuery = {
+    search: searchParam.search || '',
+    page: query.page,
+  } as IEnrollmentAdminQuery
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+
+    setQuery((prev) => ({
+      ...prev,
+      search: value,
+    }))
+
+    handleNavigate(value)
+  }
+
+  const handleNavigate = useDebouncedCallback(async (value: string) => {
+    navigate({
+      to: '/enrollment',
+      search: (prev) => ({
+        ...prev,
+        search: value.trim() || undefined,
+      }),
+    })
+  }, 200)
+
+  const handlePage = (page: IEnrollmentAdminQuery['page']) => {
+    setQuery((prev) => ({
+      ...prev,
+      page,
+    }))
+  }
+
   return (
     <Container fluid m={0} pb={'xl'}>
       <Stack gap={'lg'}>
@@ -176,6 +211,9 @@ function EnrollmentAdminPage() {
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
               w={rem(250)}
+              value={query.search}
+              // TODO: This feature is currently not implemented
+              // onChange={(e) => handleSearch(e)}
             />
             <Button
               variant="default"
@@ -197,30 +235,32 @@ function EnrollmentAdminPage() {
           </Group>
 
           {/* Table */}
-          <EnrollmentTable />
+          <EnrollmentTable props={debouncedQuery} />
 
           {/* Pagination */}
-          <EnrollmentAdminQueryProvider>
-            {(props) => (
-              <Group justify="flex-end">
-                <Text size="sm">{props.message}</Text>
-                <Pagination
-                  total={props.totalPages}
-                  value={query.page}
-                  withPages={false}
-                />
-              </Group>
-            )}
-          </EnrollmentAdminQueryProvider>
+          <Suspense fallback={<SuspendedPagination />}>
+            <EnrollmentAdminQueryProvider>
+              {(props) => (
+                <Group justify="flex-end">
+                  <Text size="sm">{props.message}</Text>
+                  <Pagination
+                    total={props.totalPages}
+                    value={query.page}
+                    onChange={handlePage}
+                    withPages={false}
+                  />
+                </Group>
+              )}
+            </EnrollmentAdminQueryProvider>
+          </Suspense>
         </Stack>
       </Stack>
     </Container>
   )
 }
 
-function EnrollmentTable() {
+function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
   const navigate = useNavigate()
-  const { authUser } = useAuth('protected')
 
   return (
     <Table
@@ -255,67 +295,69 @@ function EnrollmentTable() {
           cursor: 'pointer',
         }}
       >
-        <EnrollmentAdminQueryProvider>
-          {(props) =>
-            props.enrollmentPeriods.map((period) => (
-              <Table.Tr
-                onClick={(e) =>
-                  navigate({
-                    to: '/enrollment/' + period.id,
-                  })
-                }
-              >
-                <Table.Td>
-                  <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
-                    {formatToSchoolYear(period.startYear, period.endYear)}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" c={'dark.3'} fw={500}>
-                    {period.term}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" c={'dark.3'} fw={500}>
-                    {dayjs(period.startDate).format('MMM D, YYYY')}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" c={'dark.3'} fw={500}>
-                    {dayjs(period.endDate).format('MMM D, YYYY')}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Badge variant="light" radius="lg">
-                    <Text className="capitalize" fz={'xs'} fw={500}>
-                      {period.status}
+        <Suspense fallback={<SuspendedAdminEnrollmentTableRows />}>
+          <EnrollmentAdminQueryProvider props={props}>
+            {(props) =>
+              props.enrollmentPeriods.map((period) => (
+                <Table.Tr
+                  onClick={(e) =>
+                    navigate({
+                      to: '/enrollment/' + period.id,
+                    })
+                  }
+                >
+                  <Table.Td>
+                    <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
+                      {formatToSchoolYear(period.startYear, period.endYear)}
                     </Text>
-                  </Badge>
-                </Table.Td>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={'dark.3'} fw={500}>
+                      {period.term}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={'dark.3'} fw={500}>
+                      {dayjs(period.startDate).format('MMM D, YYYY')}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={'dark.3'} fw={500}>
+                      {dayjs(period.endDate).format('MMM D, YYYY')}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge variant="light" radius="lg">
+                      <Text className="capitalize" fz={'xs'} fw={500}>
+                        {period.status}
+                      </Text>
+                    </Badge>
+                  </Table.Td>
 
-                <Table.Td>
-                  <Menu shadow="md" width={200}>
-                    <Menu.Target>
-                      <ActionIcon
-                        onClick={(e) => e.stopPropagation()}
-                        variant="subtle"
-                        color="gray"
-                        radius={'xl'}
-                      >
-                        <IconDotsVertical size={20} stroke={1.5} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item>View Details</Menu.Item>
-                      <Menu.Item>Edit</Menu.Item>
-                      <Menu.Item c="red">Delete</Menu.Item>{' '}
-                    </Menu.Dropdown>
-                  </Menu>
-                </Table.Td>
-              </Table.Tr>
-            ))
-          }
-        </EnrollmentAdminQueryProvider>
+                  <Table.Td>
+                    <Menu shadow="md" width={200}>
+                      <Menu.Target>
+                        <ActionIcon
+                          onClick={(e) => e.stopPropagation()}
+                          variant="subtle"
+                          color="gray"
+                          radius={'xl'}
+                        >
+                          <IconDotsVertical size={20} stroke={1.5} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item>View Details</Menu.Item>
+                        <Menu.Item>Edit</Menu.Item>
+                        <Menu.Item c="red">Delete</Menu.Item>{' '}
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Table.Td>
+                </Table.Tr>
+              ))
+            }
+          </EnrollmentAdminQueryProvider>
+        </Suspense>
       </Table.Tbody>
     </Table>
   )
