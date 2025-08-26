@@ -3,7 +3,7 @@ import { type BoxProps, Button } from '@mantine/core'
 import React, { type ComponentPropsWithoutRef, type JSX } from 'react'
 
 type ButtonWithModalProps = {
-  label: string
+  label?: string | JSX.Element
   icon?: JSX.Element
   modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
 } & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'>
