@@ -97,7 +97,7 @@ function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
   }
 
   return (
-    <Menu shadow="md" width={200} trigger="click-hover">
+    <Menu shadow="md" radius={"md"} width={200} trigger="click-hover">
       <Menu.Target>
         <Box
           w={'fit-content'}

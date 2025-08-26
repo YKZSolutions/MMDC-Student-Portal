@@ -20,11 +20,14 @@ import {
 } from '@mantine/core'
 import { DatePickerInput, YearPickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
-import { useNavigate } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
+const route = getRouteApi('/(protected)/enrollment/$periodId_/create')
+
 function CreateEnrollablesPage() {
+  const { periodId } = route.useParams()
   const navigate = useNavigate()
   const form = useForm<CreateEnrollmentPeriodFormValues>({
     mode: 'uncontrolled',
@@ -71,16 +74,16 @@ function CreateEnrollablesPage() {
   const handleCreate = () => {
     if (form.validate().hasErrors) return console.log(form.getValues())
 
-    create({
-      body: {
-        startDate: form.getValues().startDate.toISOString(),
-        startYear: form.getValues().startYear,
-        endDate: form.getValues().endDate.toISOString(),
-        endYear: form.getValues().endYear,
-        term: form.getValues().term,
-        status: form.getValues().status,
-      },
-    })
+    // create({
+    //   body: {
+    //     startDate: form.getValues().startDate.toISOString(),
+    //     startYear: form.getValues().startYear,
+    //     endDate: form.getValues().endDate.toISOString(),
+    //     endYear: form.getValues().endYear,
+    //     term: form.getValues().term,
+    //     status: form.getValues().status,
+    //   },
+    // })
   }
 
   return (
@@ -191,7 +194,7 @@ function CreateEnrollablesPage() {
       <Group mt="xl" justify="flex-end">
         <Button
           variant="subtle"
-          onClick={() => navigate({ to: '/enrollment' })}
+          onClick={() => navigate({ to: `/enrollment/${periodId}` })}
         >
           Cancel
         </Button>
