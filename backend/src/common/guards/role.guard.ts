@@ -26,13 +26,16 @@ export class RoleGuard implements CanActivate {
 
     if (!user) throw new UnauthorizedException('Role: User data not found');
 
-    const userRoles = user.user_metadata.role;
+    const userRoles = Array.isArray(user.user_metadata.role)
+      ? user.user_metadata.role
+      : [user.user_metadata.role];
 
     if (!userRoles)
       throw new UnauthorizedException('Role of the user is not found');
 
-    const hasRole = requiredRoles.some((role) => userRoles.includes(role));
-
+    const hasRole = requiredRoles.some((role) =>
+      userRoles.map((r) => r.toLowerCase()).includes(role.toLowerCase()),
+    );
     if (!hasRole)
       throw new ForbiddenException(
         "You don't have the necessary role to access this resource",
