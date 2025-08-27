@@ -333,6 +333,256 @@ function EnrollmentPeriodIdPage() {
   const [query, setQuery] =
     useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
 
+  const { mutateAsync: addCourseOffering } = useAppMutation(
+    enrollmentControllerCreateCourseOfferingMutation,
+    {
+      loading: {
+        title: 'Adding course offering',
+        message: 'Please wait while the course offering is being added.',
+      },
+      success: {
+        title: 'Course Offering Added',
+        message: 'The course offering has been added.',
+      },
+      error: {
+        title: 'Failed',
+        message: 'Something went wrong while adding the course offering.',
+      },
+    },
+    {
+      // optimistic update
+      onMutate: async (variables) => {
+        const { queryClient } = getContext()
+        const page = 1 // optimistic insert to first page — adjust if you need to target current page
+        const search = queryDefaultValues.search
+        const allOfferingsKey =
+          enrollmentControllerFindAllCourseOfferingsOptions({
+            query: { page, search: search || undefined },
+          }).queryKey
+        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
+          path: { id: periodId },
+        }).queryKey
+
+        // cancel outgoing refetches
+        await queryClient.cancelQueries({ queryKey: allOfferingsKey })
+        await queryClient.cancelQueries({ queryKey: enrollmentKey })
+
+        // snapshot previous values
+        const previousOfferings = queryClient.getQueryData<any>(
+          allOfferingsKey,
+        ) ?? { courseOfferings: [] }
+        const previousEnrollment = queryClient.getQueryData<any>(enrollmentKey)
+
+        // build optimistic offering using minimal shape expected by UI
+        const tempId = `temp-${Date.now()}`
+        const optimisticOffering = {
+          id: tempId,
+          course: variables.meta?.course,
+          courseSections: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+
+        // optimistically update offerings list
+        queryClient.setQueryData(allOfferingsKey, (old: any) => {
+          if (!old) return { courseOfferings: [optimisticOffering] }
+          return {
+            ...old,
+            courseOfferings: [
+              optimisticOffering,
+              ...(old.courseOfferings ?? []),
+            ],
+          }
+        })
+
+        // optimistically update enrollment detail if exists
+        if (previousEnrollment) {
+          queryClient.setQueryData(enrollmentKey, (old: any) => {
+            if (!old) return old
+            return {
+              ...old,
+              courseOfferings: [
+                optimisticOffering,
+                ...(old.courseOfferings ?? []),
+              ],
+            }
+          })
+        }
+
+        return { previousOfferings, previousEnrollment, tempId }
+      },
+      onSettled: async () => {
+        const { queryClient } = getContext()
+        // ensure fresh data
+        queryClient.invalidateQueries({
+          queryKey: enrollmentControllerFindAllCourseOfferingsOptions({
+            query: { page: query.page, search: query.search || undefined },
+          }).queryKey,
+        })
+        queryClient.invalidateQueries({
+          queryKey: enrollmentControllerFindOneEnrollmentOptions({
+            path: { id: periodId },
+          }).queryKey,
+        })
+      },
+      onError: (err, variables, context: any) => {
+        const { queryClient } = getContext()
+        const page = 1
+        const search = queryDefaultValues.search
+        const allOfferingsKey =
+          enrollmentControllerFindAllCourseOfferingsOptions({
+            query: { page, search: search || undefined },
+          }).queryKey
+        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
+          path: { id: periodId },
+        }).queryKey
+
+        // rollback
+        if (context?.previousOfferings) {
+          queryClient.setQueryData(allOfferingsKey, context.previousOfferings)
+        }
+        if (context?.previousEnrollment) {
+          queryClient.setQueryData(enrollmentKey, context.previousEnrollment)
+        }
+      },
+    },
+  )
+
+  const { mutateAsync: removeCourseOffering } = useAppMutation(
+    enrollmentControllerRemoveCourseOfferingMutation,
+    {
+      loading: {
+        title: 'Removing course offering',
+        message: 'Please wait while the course offering is being removed.',
+      },
+      success: {
+        title: 'Course Offering Removed',
+        message: 'The course offering has been removed.',
+      },
+      error: {
+        title: 'Failed',
+        message: 'Something went wrong while removing the course offering.',
+      },
+    },
+    {
+      // optimistic removal
+      onMutate: async (variables) => {
+        const { queryClient } = getContext()
+        const page = query.page ?? 1
+        const search = query.search ?? ''
+        const allOfferingsKey =
+          enrollmentControllerFindAllCourseOfferingsOptions({
+            query: { page, search: search || undefined },
+          }).queryKey
+        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
+          path: { id: periodId },
+        }).queryKey
+
+        await queryClient.cancelQueries({ queryKey: allOfferingsKey })
+        await queryClient.cancelQueries({ queryKey: enrollmentKey })
+
+        const previousOfferings = queryClient.getQueryData<any>(allOfferingsKey)
+        const previousEnrollment = queryClient.getQueryData<any>(enrollmentKey)
+
+        // remove optimistically
+        queryClient.setQueryData(allOfferingsKey, (old: any) => {
+          if (!old) return old
+          return {
+            ...old,
+            courseOfferings: (old.courseOfferings ?? []).filter(
+              (o: any) => o.id !== variables.path.offeringId,
+            ),
+          }
+        })
+
+        if (previousEnrollment) {
+          queryClient.setQueryData(enrollmentKey, (old: any) => {
+            if (!old) return old
+            return {
+              ...old,
+              courseOfferings: (old.courseOfferings ?? []).filter(
+                (o: any) => o.id !== variables.path.offeringId,
+              ),
+            }
+          })
+        }
+
+        return { previousOfferings, previousEnrollment }
+      },
+      onError: (err, variables, context: any) => {
+        const { queryClient } = getContext()
+        const page = query.page ?? 1
+        const search = query.search ?? ''
+        const allOfferingsKey =
+          enrollmentControllerFindAllCourseOfferingsOptions({
+            query: { page, search: search || undefined },
+          }).queryKey
+        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
+          path: { id: periodId },
+        }).queryKey
+
+        // rollback
+        if (context?.previousOfferings) {
+          queryClient.setQueryData(allOfferingsKey, context.previousOfferings)
+        }
+        if (context?.previousEnrollment) {
+          queryClient.setQueryData(enrollmentKey, context.previousEnrollment)
+        }
+      },
+      onSettled: async () => {
+        const { queryClient } = getContext()
+        queryClient.invalidateQueries({
+          queryKey: enrollmentControllerFindAllCourseOfferingsOptions({
+            query: { page: query.page, search: query.search || undefined },
+          }).queryKey,
+        })
+        queryClient.invalidateQueries({
+          queryKey: enrollmentControllerFindOneEnrollmentOptions({
+            path: { id: periodId },
+          }).queryKey,
+        })
+      },
+      onSuccess: () => {
+        const { queryClient } = getContext()
+
+        queryClient.invalidateQueries({
+          queryKey: enrollmentControllerFindOneEnrollmentQueryKey({
+            path: {
+              id: periodId,
+            },
+          }),
+        })
+      },
+    },
+  )
+
+  const handleSelectCourseOffering = async (course: CourseDto) => {
+    await addCourseOffering({
+      meta: {
+        course: course,
+      },
+      body: {
+        courseId: course.id,
+      },
+      path: {
+        periodId: periodId,
+      },
+    })
+  }
+
+  const handleRemoveCourseOffering = async (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    course: DetailedCourseOfferingDto,
+  ) => {
+    e.stopPropagation()
+    removeCourseOffering({
+      path: {
+        offeringId: course.id,
+        periodId: periodId,
+      },
+    })
+  }
+
   return (
     <Container size={'md'} pb={'lg'}>
       <Stack>
