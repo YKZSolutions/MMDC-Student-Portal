@@ -183,7 +183,12 @@ export class EnrollmentService {
     const page = filters.page || 1;
 
     const [courseOfferings, meta] = await this.prisma.client.courseOffering
-      .paginate()
+      .paginate({
+        include: {
+          course: true,
+          courseSections: true,
+        },
+      })
       .withPages({ limit: 10, page, includePageCount: true });
 
     return { courseOfferings, meta };
