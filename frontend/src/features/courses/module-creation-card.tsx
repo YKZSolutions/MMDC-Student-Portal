@@ -8,8 +8,8 @@ const ModuleCreationCard = ({
   onAddButtonClick: (parentId: string | number, parentType: string) => void
 }) => {
   return (
-    <Card radius="lg" p={0} h={'100%'}>
-      <Group justify="space-between" align="center" p={'xs'}>
+    <Card radius="lg" p={0} h={'100%'} miw={500}>
+      <Group justify="space-between" align="center" p={'xs'} miw={500}>
         <Title order={3}>Module Management</Title>
         <Button
           variant="default"

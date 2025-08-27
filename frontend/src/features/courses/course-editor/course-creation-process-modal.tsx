@@ -67,7 +67,10 @@ const CourseCreationProcessModal = ({
           justify="space-between"
           align="center"
           p={'lg'}
-          style={{ borderBottom: `1px solid ${theme.colors.gray[3]}` }}
+          style={{
+            borderBottom: `1px solid ${theme.colors.gray[3]}`,
+            boxShadow: `0px 4px 24px 0px ${theme.colors.gray[3]}`,
+          }}
         >
           <Button variant="outline" radius={'md'} p={'xs'} onClick={closeModal}>
             <IconX size={18} />
@@ -106,7 +109,7 @@ const CourseCreationProcessModal = ({
         </Group>
         {/*Resizable Panel Component docs: https://react-resizable-panels.vercel.app/ */}
         <PanelGroup direction="horizontal" autoSaveId="persistence">
-          <Panel minSize={30}>
+          <Panel>
             <Container w={'70%'} p={'xl'} h={'100%'}>
               {active === 0 && <CourseCreationCard />}
               {active === 1 && (
@@ -127,6 +130,7 @@ const CourseCreationProcessModal = ({
             style={{
               borderLeft: `1px solid ${rightPaneOpen ? (isDragging ? theme.colors.blue[5] : theme.colors.gray[3]) : 'transparent'}`,
               boxShadow: `0px 8px 24px 0px ${theme.colors.gray[5]}`,
+              zIndex: 1,
             }}
           >
             <ContentDetailsEditor
