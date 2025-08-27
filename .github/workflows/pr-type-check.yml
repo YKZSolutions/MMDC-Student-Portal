@@ -1,6 +1,9 @@
 name: PR Type Checking (Frontend & Backend)
 
 on:
+  push:
+    branches:
+      - "feat/cap-101"
   pull_request:
     branches:
       - "main"
@@ -10,7 +13,7 @@ jobs:
   type-check-frontend:
     name: Frontend Type Checking
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository Code
@@ -46,7 +49,7 @@ jobs:
   type-check-backend:
     name: Backend Type Checking
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
       DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
