@@ -661,12 +661,21 @@ export type PaginatedEnrollmentPeriodsDto = {
     enrollments: Array<EnrollmentPeriodDto>;
 };
 
+export type DetailedCourseOfferingDto = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+    courseSections: Array<CourseSectionDto>;
+};
+
 export type PaginatedCourseOfferingsDto = {
     meta: PaginationMetaDto;
     /**
      * List of course offerings for the current page
      */
-    courseOfferings: Array<CourseOfferingDto>;
+    courseOfferings: Array<DetailedCourseOfferingDto>;
 };
 
 export type PaginatedCourseSectionsDto = {

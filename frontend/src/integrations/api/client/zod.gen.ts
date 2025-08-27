@@ -873,9 +873,21 @@ export const zPaginatedEnrollmentPeriodsDto = z.object({
     enrollments: z.array(zEnrollmentPeriodDto)
 });
 
+export const zDetailedCourseOfferingDto = z.object({
+    id: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zCourseDto,
+    courseSections: z.array(zCourseSectionDto)
+});
+
 export const zPaginatedCourseOfferingsDto = z.object({
     meta: zPaginationMetaDto,
-    courseOfferings: z.array(zCourseOfferingDto)
+    courseOfferings: z.array(zDetailedCourseOfferingDto)
 });
 
 export const zPaginatedCourseSectionsDto = z.object({
