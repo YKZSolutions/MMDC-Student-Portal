@@ -44,7 +44,7 @@ export type ContentType =
   | 'file'
 
 export type ContentNode = CourseModule | ModuleSection | ModuleItem
-export type ContentNodeType = 'module' | 'subsection' | 'item'
+export type ContentNodeType = 'module' | 'section' | 'item'
 
 export interface CourseContentOverview {
   courseId: string

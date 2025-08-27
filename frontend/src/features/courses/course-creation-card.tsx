@@ -1,6 +1,4 @@
 import { Box, Card, Divider, Input, Stack, Textarea } from '@mantine/core'
-import FormRow from '@/components/form-row.tsx'
-import { IconCategory } from '@tabler/icons-react'
 
 const CourseCreationCard = () => {
   return (
@@ -15,10 +13,10 @@ const CourseCreationCard = () => {
         />
         {/*TODO: add actual content types, these are just placeholders*/}
         <Stack gap={'sm'}>
-          <FormRow label="Category" icon={<IconCategory />} />
-          <FormRow label="Title" icon={<IconCategory />} />
-          <FormRow label="Description" icon={<IconCategory />} />
-          <FormRow label="Tags" icon={<IconCategory />} />
+          {/*<FormRow label="Category" icon={<IconCategory />} />*/}
+          {/*<FormRow label="Title" icon={<IconCategory />} />*/}
+          {/*<FormRow label="Description" icon={<IconCategory />} />*/}
+          {/*<FormRow label="Tags" icon={<IconCategory />} />*/}
         </Stack>
         <Stack gap={'0'}>
           <Textarea

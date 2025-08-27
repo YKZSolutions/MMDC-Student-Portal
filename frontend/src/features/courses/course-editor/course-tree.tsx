@@ -34,6 +34,7 @@ import type { ContentNodeType } from '@/features/courses/modules/types.ts'
 interface NodeData {
   parentType?: ContentNodeType
   type: ContentNodeType | 'add-button'
+  contentData?: any
 }
 
 type CourseNodeModel = NodeModel<NodeData>
@@ -42,42 +43,60 @@ const mockData: CourseNodeModel[] = [
   {
     id: '1',
     parent: '0',
-    text: 'Module 1',
+    text: 'Introduction to Biology',
     droppable: true,
-    data: { type: 'module' },
+    data: {
+      type: 'module',
+      contentData: {
+        id: '1',
+        courseId: 'course_1',
+        title: 'Introduction to Biology',
+        position: 1,
+        sections: [],
+      },
+    },
   },
   {
     id: '2',
     parent: '1',
-    text: 'Subsection A',
+    text: 'Readings',
     droppable: true,
-    data: { type: 'subsection' },
+    data: {
+      type: 'section',
+      contentData: {
+        id: 'sec_1',
+        title: 'Readings',
+        position: 1,
+        items: [],
+      },
+    },
   },
   {
     id: '3',
     parent: '2',
-    text: 'Lesson 1',
-    data: { type: 'item' },
-  },
-  {
-    id: '4',
-    parent: '2',
-    text: 'Lesson 2',
-    data: { type: 'item' },
-  },
-  {
-    id: '5',
-    parent: '1',
-    text: 'Subsection B',
-    droppable: true,
-    data: { type: 'item' },
+    text: 'Chapter 1: Cell Structure',
+    data: {
+      type: 'item',
+      contentData: {
+        id: 'item_1',
+        type: 'reading',
+        title: 'Chapter 1: Cell Structure',
+        position: 1,
+        content: {
+          id: 'read_1',
+          title: 'Chapter 1: Cell Structure',
+          fileUrl: '/uploads/cell-structure.pdf',
+          isCompleted: false,
+        },
+      },
+    },
   },
 ]
 
 const reorderArray = (
   array: CourseNodeModel[],
   sourceIndex: number,
-  targetIndex: number, // Add any other properties that your node data might have
+  targetIndex: number,
 ) => {
   const newArray = [...array]
   const element = newArray.splice(sourceIndex, 1)[0]
@@ -130,17 +149,22 @@ function injectData(nodes: CourseNodeModel[]): CourseNodeModel[] {
 }
 
 interface CourseTreeProps {
-  onAddButtonClick: (parentId: string | number, parentType: string) => void
+  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
+  onEditButtonClick: (
+    nodeId: string,
+    nodeType: ContentNodeType,
+    nodeData: any,
+  ) => void
 }
 
-function CourseTree({ onAddButtonClick }: CourseTreeProps) {
+function CourseTree({ onAddButtonClick, onEditButtonClick }: CourseTreeProps) {
   const theme = useMantineTheme()
   const treeWithAddButtons = injectData(mockData)
   const [treeData, setTreeData] =
     useState<CourseNodeModel[]>(treeWithAddButtons)
   const { isLastChild, getAncestors } = useTreeConnectors(treeData)
 
-  const [hoveredId, setHoveredId] = useState<string | number | null>(null)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
     const { dragSourceId, dropTargetId, destinationIndex } = e
@@ -184,6 +208,20 @@ function CourseTree({ onAddButtonClick }: CourseTreeProps) {
         return output
       })
     }
+  }
+
+  const handleEdit = (node: CourseNodeModel) => {
+    if (node.data?.type !== 'add-button' && node.data?.contentData) {
+      onEditButtonClick(
+        node.id as string,
+        node.data.type as ContentNodeType,
+        node.data.contentData,
+      )
+    }
+  }
+
+  const handleDelete = (nodeId: string | number) => {
+    setTreeData((prev) => prev.filter((node) => node.id !== nodeId))
   }
 
   return (
@@ -259,6 +297,8 @@ function CourseTree({ onAddButtonClick }: CourseTreeProps) {
                   hoveredId={hoveredId}
                   setHoveredId={setHoveredId}
                   onAddButtonClick={onAddButtonClick}
+                  onEditButtonClick={handleEdit}
+                  onDeleteButtonClick={handleDelete}
                 />
               </div>
             )
@@ -274,9 +314,11 @@ type NodeProps = {
   isOpen: boolean
   isDropTarget: boolean
   onToggle: () => void
-  hoveredId: string | number | null
-  setHoveredId: (id: string | number | null) => void
-  onAddButtonClick: (parentId: string | number, parentType: string) => void
+  hoveredId: string | null
+  setHoveredId: (id: string | null) => void
+  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
+  onEditButtonClick: (node: CourseNodeModel) => void
+  onDeleteButtonClick: (nodeId: string | number) => void
 }
 
 const NodeRow = ({
@@ -287,6 +329,8 @@ const NodeRow = ({
   hoveredId,
   setHoveredId,
   onAddButtonClick,
+  onEditButtonClick,
+  onDeleteButtonClick,
 }: NodeProps) => {
   const theme = useMantineTheme()
 
@@ -303,7 +347,7 @@ const NodeRow = ({
         }}
         onClick={() =>
           onAddButtonClick(
-            node.parent,
+            node.parent as string,
             getChildTypeFromParentType(node.data?.parentType),
           )
         }
@@ -312,7 +356,7 @@ const NodeRow = ({
         <Text size="sm" fw={500}>
           Add{' '}
           {capitalizeFirstLetter(
-            getChildTypeFromParentType(node.data?.parentType ?? ''),
+            getChildTypeFromParentType(node.data?.parentType),
           )}
         </Text>
       </Group>
@@ -338,7 +382,7 @@ const NodeRow = ({
         transition: 'all 0.2s ease',
         cursor: node.droppable ? 'pointer' : 'default',
       }}
-      onMouseEnter={() => setHoveredId(node.id)}
+      onMouseEnter={() => setHoveredId(node.id as string)}
       onMouseLeave={() => setHoveredId(null)}
     >
       <Group gap={'xs'}>
@@ -371,8 +415,17 @@ const NodeRow = ({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item leftSection={<IconEdit size={14} />}>Edit</Menu.Item>
-          <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
+          <Menu.Item
+            leftSection={<IconEdit size={14} />}
+            onClick={() => onEditButtonClick(node)}
+          >
+            Edit
+          </Menu.Item>
+          <Menu.Item
+            color="red"
+            leftSection={<IconTrash size={14} />}
+            onClick={() => onDeleteButtonClick(node.id)}
+          >
             Delete
           </Menu.Item>
         </Menu.Dropdown>

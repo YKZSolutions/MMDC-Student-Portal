@@ -34,6 +34,9 @@ export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
  * - `points`: An optional field representing the maximum points available for the assignment.
  * - `status`: Represents the current state of the assignment, as defined by an {@link AssignmentStatus} type.
  * - `rubricId`: An optional string representing the ID of the rubric associated with the assignment.
+ * - `allowResubmission`: A boolean indicating whether resubmissions are allowed for the assignment.
+ * - `maxAttempts`: An optional integer representing the maximum number of attempts allowed for the assignment.
+ * - `allowLateSubmission`: A boolean indicating whether late submissions are allowed for the assignment.
  */
 export interface Assignment {
   id: string
@@ -45,6 +48,9 @@ export interface Assignment {
   points?: number // max points
   status: AssignmentStatus
   rubricId?: string
+  allowResubmission?: boolean
+  maxAttempts?: number
+  allowLateSubmission?: boolean
 }
 
 /**
@@ -75,7 +81,6 @@ export type SubmissionStatus =
  * - `submissionLink`: An optional string representing the link to the student's submission.
  * - `submissionTimestamp`: An optional timestamp representing the time when the student submitted the assignment.
  * - `attemptNumber`: An optional integer representing the number of attempts made by the student.
- * - `resubmissionAllowed`: A boolean indicating whether resubmissions are allowed for the assignment.
  * - `isLate`: A boolean indicating whether the student is late for the assignment.
  * - `lateDays`: An optional integer representing the number of late days remaining for the assignment.
  * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
@@ -85,7 +90,6 @@ export interface Submission {
   submissionLink?: string
   submissionTimestamp?: string
   attemptNumber?: number
-  resubmissionAllowed?: boolean
   isLate?: boolean
   lateDays?: number
   grade?: Grade

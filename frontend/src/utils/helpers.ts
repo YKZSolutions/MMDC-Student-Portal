@@ -8,8 +8,8 @@ export function getChildTypeFromParentType(parentType?: string) {
 
   switch (parentType) {
     case 'module':
-      return 'subsection'
-    case 'subsection':
+      return 'section'
+    case 'section':
       return 'item'
     default:
       return 'module'

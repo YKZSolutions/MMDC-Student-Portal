@@ -30,7 +30,6 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
           submissionLink: 'https://example.com/submission/draft1',
           submissionTimestamp: '2023-10-10T14:30:00Z',
           attemptNumber: 1,
-          resubmissionAllowed: true,
           isLate: false,
         },
         {
@@ -38,7 +37,6 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
           submissionLink: 'https://example.com/submission/final',
           submissionTimestamp: '2023-10-15T22:45:00Z',
           attemptNumber: 2,
-          resubmissionAllowed: false,
           isLate: false,
           grade: {
             id: 'grade_001',
@@ -75,7 +73,6 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
           submissionLink: 'https://example.com/proposal/submission',
           submissionTimestamp: '2023-10-24T15:20:00Z',
           attemptNumber: 1,
-          resubmissionAllowed: false,
           isLate: false,
         },
       ],
@@ -90,7 +87,6 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
         {
           submissionStatus: 'pending',
           attemptNumber: 0,
-          resubmissionAllowed: true,
           isLate: false,
         },
       ],
@@ -107,7 +103,6 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
           submissionLink: 'https://example.com/api/submission',
           submissionTimestamp: '2023-10-22T09:15:00Z', // 2 days late
           attemptNumber: 1,
-          resubmissionAllowed: false,
           isLate: true,
           lateDays: 2,
           grade: {
@@ -145,7 +140,6 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
           submissionLink: 'https://example.com/team-project',
           submissionTimestamp: '2023-11-10T20:30:00Z',
           attemptNumber: 1,
-          resubmissionAllowed: false,
           isLate: false,
           grade: {
             id: 'grade_005',
