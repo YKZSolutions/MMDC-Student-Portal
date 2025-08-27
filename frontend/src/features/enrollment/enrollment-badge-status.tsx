@@ -1,16 +1,17 @@
 import type { EnrollmentPeriodDto } from '@/integrations/api/client'
 import {
-    enrollmentControllerFindAllEnrollmentsQueryKey,
-    enrollmentControllerFindOneEnrollmentQueryKey,
-    enrollmentControllerUpdateEnrollmentStatusMutation,
+  enrollmentControllerFindAllEnrollmentsQueryKey,
+  enrollmentControllerFindOneEnrollmentQueryKey,
+  enrollmentControllerUpdateEnrollmentStatusMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { Badge, Box, Menu, rem, Text } from '@mantine/core'
+import { Badge, Box, Menu, rem, Stack, Text } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import { useLocation } from '@tanstack/react-router'
 import {
-    zodStatusEnum,
-    type EnrollmentStatus,
+  zodStatusEnum,
+  type EnrollmentStatus,
 } from '../validation/create-enrollment'
 
 const STATUS_STYLES: Record<
@@ -97,7 +98,7 @@ function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
   }
 
   return (
-    <Menu shadow="md" radius={"md"} width={200} trigger="click-hover">
+    <Menu shadow="md" radius={'md'} width={200} trigger="click-hover">
       <Menu.Target>
         <Box
           w={'fit-content'}
@@ -126,7 +127,41 @@ function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
             key={statusOption}
             onClick={(e) => {
               e.stopPropagation() // prevent click bubbling out of the Menu
-              handleStatusChange(statusOption)
+              modals.openConfirmModal({
+                title: (
+                  <Text fw={600} c="gray.9">
+                    Change status to{' '}
+                    <Text span td="underline">
+                      {statusOption}
+                    </Text>
+                  </Text>
+                ),
+                children: (
+                  <Stack gap="xs">
+                    <Text size="sm" c="gray.7">
+                      Are you sure you want to update this enrollment period's
+                      status to{' '}
+                      <Text span fw={600}>
+                        {statusOption}
+                      </Text>
+                      ?
+                    </Text>
+
+                    {statusOption === 'active' && (
+                      <Text size="sm" c="gray.7">
+                        <Text span size="sm" fw={600}>
+                          Note:
+                        </Text>{' '}
+                        This will automatically close any currently active
+                        enrollment period.
+                      </Text>
+                    )}
+                  </Stack>
+                ),
+                centered: true,
+                labels: { confirm: 'Confirm', cancel: 'Cancel' },
+                onConfirm: async () => await handleStatusChange(statusOption),
+              })
             }}
             disabled={statusOption === period.status}
           >
