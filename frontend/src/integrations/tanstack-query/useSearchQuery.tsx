@@ -71,3 +71,45 @@ export function useSearchQuery<T extends QueryShape>({
     handleInputChange,
   }
 }
+
+/**
+ * For Documentation Purposes, here is the old implementation
+ */
+
+// const queryDefaultValues = {
+//   search: searchParam.search || '',
+//   page: 1,
+//   role: searchParam.role || null,
+// }
+
+// const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
+
+// // Since searchParam is debounced,
+// // this is what we need to pass to the query provider
+// // This will ensure that the query is also debounced
+// const debouncedQuery = {
+//   search: searchParam.search || '',
+//   page: query.page,
+//   role: query.role,
+// } as IUsersQuery
+
+// const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+//   const value = e.target.value
+
+//   setQuery((prev) => ({
+//     ...prev,
+//     search: value,
+//   }))
+
+//   handleNavigate(value)
+// }
+
+// const handleNavigate = useDebouncedCallback(async (value: string) => {
+//   navigate({
+//     to: '/users',
+//     search: (prev) => ({
+//       ...prev,
+//       search: value.trim() || undefined,
+//     }),
+//   })
+// }, 200)
