@@ -211,16 +211,6 @@ function EnrollmentPeriodIdPage() {
           },
         }
       },
-      // onSettled: async (data, error, variables, context) => {
-      //   const { queryClient } = getContext()
-      //   // ensure fresh data
-      //   queryClient.invalidateQueries({
-      //     queryKey: context?.keys.allOfferingsKey,
-      //   })
-      //   queryClient.invalidateQueries({
-      //     queryKey: context?.keys.enrollmentKey,
-      //   })
-      // },
       onError: (err, variables, context) => {
         const { queryClient } = getContext()
         const page = 1
@@ -311,39 +301,23 @@ function EnrollmentPeriodIdPage() {
           },
         }
       },
-      onError: (err, variables, context: any) => {
+      onError: (err, variables, context) => {
         const { queryClient } = getContext()
-        const page = query.page ?? 1
-        const search = query.search ?? ''
-        const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsOptions({
-            query: { page, search: search || undefined },
-          }).queryKey
-        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
-          path: { id: periodId },
-        }).queryKey
 
         // rollback
         if (context?.previousOfferings) {
-          queryClient.setQueryData(allOfferingsKey, context.previousOfferings)
+          queryClient.setQueryData(
+            context.keys.allOfferingsKey,
+            context.previousOfferings,
+          )
         }
         if (context?.previousEnrollment) {
-          queryClient.setQueryData(enrollmentKey, context.previousEnrollment)
+          queryClient.setQueryData(
+            context.keys.enrollmentKey,
+            context.previousEnrollment,
+          )
         }
       },
-      // onSettled: async () => {
-      //   const { queryClient } = getContext()
-      //   queryClient.invalidateQueries({
-      //     queryKey: enrollmentControllerFindAllCourseOfferingsOptions({
-      //       query: { page: query.page, search: query.search || undefined },
-      //     }).queryKey,
-      //   })
-      //   queryClient.invalidateQueries({
-      //     queryKey: enrollmentControllerFindOneEnrollmentOptions({
-      //       path: { id: periodId },
-      //     }).queryKey,
-      //   })
-      // },
     },
   )
 
