@@ -21,11 +21,10 @@ import {
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
 import ModuleCreationCard from '@/features/courses/module-creation-card.tsx'
-import CourseCreationCard from '@/features/courses/course-creation-card.tsx'
 import type { CustomModalProp } from '@/components/types.ts'
 import type { ContentNodeType } from '@/features/courses/modules/types.ts'
 
-const CourseCreationProcessModal = ({
+const ModuleCreationProcessModal = ({
   opened,
   closeModal,
 }: CustomModalProp) => {
@@ -51,7 +50,6 @@ const CourseCreationProcessModal = ({
       opened={opened}
       onClose={closeModal}
       withCloseButton={false}
-      // size="60%"
       fullScreen={true}
       bg={'red'}
       styles={{
@@ -111,7 +109,7 @@ const CourseCreationProcessModal = ({
         <PanelGroup direction="horizontal" autoSaveId="persistence">
           <Panel>
             <Container w={'70%'} p={'xl'} h={'100%'}>
-              {active === 0 && <CourseCreationCard />}
+              {active === 0 && ''}
               {active === 1 && (
                 <ModuleCreationCard onAddButtonClick={handleAdd} />
               )}
@@ -154,4 +152,4 @@ const CourseCreationProcessModal = ({
   )
 }
 
-export default CourseCreationProcessModal
+export default ModuleCreationProcessModal

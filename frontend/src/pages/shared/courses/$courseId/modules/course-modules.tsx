@@ -7,7 +7,7 @@ import {
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
+import ModuleCreationProcessModal from '@/features/courses/course-editor/module-creation-process-modal.tsx'
 import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
 import CourseModulePanel from '@/features/courses/modules/course-module-panel.tsx'
 
@@ -42,7 +42,7 @@ const CourseModules = () => {
             <ButtonWithModal
               label={'Add New Content'}
               icon={<IconPlus />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           )}
         </Group>

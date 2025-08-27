@@ -38,6 +38,7 @@ export interface ModuleItem {
 export type ContentType =
   | 'reading'
   | 'assignment'
+  | 'quiz'
   | 'discussion'
   | 'url'
   | 'file'

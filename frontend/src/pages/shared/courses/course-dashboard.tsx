@@ -1,20 +1,20 @@
 import {
   Box,
+  Button,
   Card,
   Container,
   Divider,
   Flex,
+  Grid,
   Group,
+  Image,
+  Progress,
+  RingProgress,
+  Select,
   Stack,
   Text,
   Title,
-  Image,
-  RingProgress,
   useMantineTheme,
-  Button,
-  Grid,
-  Progress,
-  Select,
 } from '@mantine/core'
 import {
   IconDeviceDesktop,
@@ -39,7 +39,7 @@ import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
+import ModuleCreationProcessModal from '@/features/courses/course-editor/module-creation-process-modal.tsx'
 
 // TODO: Consider adding program and/or department and major to the course data
 // TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
@@ -203,7 +203,7 @@ const CourseDashboard = ({
             <ButtonWithModal
               label={'Add Course'}
               icon={<IconPlus />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             ></ButtonWithModal>
           )}
         </Group>

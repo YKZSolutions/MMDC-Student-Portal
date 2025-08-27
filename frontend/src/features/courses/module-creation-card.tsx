@@ -1,6 +1,6 @@
 import { Button, Card, Group, Stack, Title } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
-import CourseTree from '@/features/courses/course-editor/course-tree.tsx'
+import CourseModuleTree from '@/features/courses/course-editor/course-tree.tsx'
 
 const ModuleCreationCard = ({
   onAddButtonClick,
@@ -22,7 +22,7 @@ const ModuleCreationCard = ({
         </Button>
       </Group>
       <Stack justify="space-between" h={'100%'} my={'lg'} p={'lg'}>
-        <CourseTree onAddButtonClick={onAddButtonClick} />
+        <CourseModuleTree onAddButtonClick={onAddButtonClick} />
       </Stack>
     </Card>
   )

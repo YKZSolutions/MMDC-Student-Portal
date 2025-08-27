@@ -223,17 +223,18 @@ interface ModulePanelProps {
 
 const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
   const theme = useMantineTheme()
-  const [value, setValue] = useState<string[]>([])
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
+
   // Update expanded state when allExpanded prop changes
   useEffect(() => {
     if (allExpanded) {
       const allModuleIds = moduleData.map((module) => module.id)
-      const allSubsectionLabels = moduleData.flatMap((module) =>
-        module.sections.map((sub) => sub.title),
+      const allSectionIds = moduleData.flatMap((module) =>
+        module.sections.map((section) => section.id),
       )
-      setValue([...allModuleIds, ...allSubsectionLabels])
+      setExpandedItems([...allModuleIds, ...allSectionIds])
     } else {
-      setValue([])
+      setExpandedItems([])
     }
   }, [allExpanded])
 
@@ -246,33 +247,35 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
         const submissionStatus = getSubmissionStatus(item.assignment)
         return (
           submissionStatus === 'graded' ||
-          submissionStatus === 'ready-for-grading'
+          submissionStatus === 'ready-for-grading' ||
+          submissionStatus === 'submitted'
         )
       }
+      return false
     }).length
   }
 
-  const items = moduleData.map((item) => (
-    <Accordion.Item value={item.id} key={item.title} bg={'background'}>
+  const modules = moduleData.map((module) => (
+    <Accordion.Item value={module.id} key={module.title} bg={'background'}>
       <CustomAccordionControl
-        title={item.title}
+        title={module.title}
         completedItemsCount={getCompletedItemsCount(
-          item.sections.flatMap((sub) => sub.items),
+          module.sections.flatMap((sub) => sub.items),
         )}
-        totalItemsCount={item.sections.flatMap((sub) => sub.items).length}
+        totalItemsCount={module.sections.flatMap((sub) => sub.items).length}
       />
       <Accordion.Panel>
         <Accordion
           multiple
-          value={value}
-          onChange={setValue}
+          value={expandedItems}
+          onChange={setExpandedItems}
           chevronPosition="left"
           variant="separated"
           radius="md"
         >
-          {item.sections.map((subsection) => (
+          {module.sections.map((subsection) => (
             <Accordion.Item
-              value={subsection.title}
+              value={subsection.id}
               key={subsection.title}
               bg={'white'}
             >
@@ -314,13 +317,13 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
   return (
     <Accordion
       multiple
-      value={value}
-      onChange={setValue}
+      value={expandedItems}
+      onChange={setExpandedItems}
       chevronPosition="left"
       variant="separated"
       radius="md"
     >
-      {items}
+      {modules}
     </Accordion>
   )
 }
