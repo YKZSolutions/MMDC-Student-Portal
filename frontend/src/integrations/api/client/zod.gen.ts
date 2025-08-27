@@ -544,27 +544,6 @@ export const zPaginatedBillsDto = z.object({
     bills: z.array(zBillItemDto)
 });
 
-export const zBillInstallmentItemDto = z.object({
-    id: z.string(),
-    name: z.string(),
-    installmentOrder: z.int(),
-    amountToPay: z.string(),
-    dueAt: z.iso.datetime(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    totalPaid: z.string(),
-    status: z.enum([
-        'unpaid',
-        'partial',
-        'paid',
-        'overpaid'
-    ])
-});
-
 export const zDetailedBillDto = z.object({
     id: z.string(),
     invoiceId: z.int(),
@@ -586,11 +565,7 @@ export const zDetailedBillDto = z.object({
         'paid',
         'overpaid'
     ]),
-    totalInstallments: z.number(),
-    paidInstallments: z.number(),
-    installmentDueDates: z.array(z.iso.datetime()),
-    costBreakdown: z.array(zBillingCostBreakdown),
-    billInstallments: z.array(zBillInstallmentItemDto)
+    costBreakdown: z.array(zBillingCostBreakdown)
 });
 
 export const zUpdateBillDto = z.object({
@@ -600,6 +575,27 @@ export const zUpdateBillDto = z.object({
     paymentScheme: z.optional(zPaymentScheme),
     totalAmount: z.optional(z.string()),
     costBreakdown: z.optional(z.object({}))
+});
+
+export const zBillInstallmentItemDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    installmentOrder: z.int(),
+    amountToPay: z.string(),
+    dueAt: z.iso.datetime(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    totalPaid: z.string(),
+    status: z.enum([
+        'unpaid',
+        'partial',
+        'paid',
+        'overpaid'
+    ])
 });
 
 export const zInitiatePaymentDto = z.object({
@@ -1500,9 +1496,7 @@ export const zEnrollmentControllerRemoveEnrollmentData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.object({
-        directDelete: z.optional(z.boolean())
-    }))
+    query: z.optional(z.never())
 });
 
 export const zEnrollmentControllerRemoveEnrollmentResponse = z.object({

@@ -382,19 +382,6 @@ export type PaginatedBillsDto = {
     bills: Array<BillItemDto>;
 };
 
-export type BillInstallmentItemDto = {
-    id: string;
-    name: string;
-    installmentOrder: number;
-    amountToPay: string;
-    dueAt: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    totalPaid: string;
-    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
-};
-
 export type DetailedBillDto = {
     id: string;
     invoiceId: number;
@@ -408,11 +395,7 @@ export type DetailedBillDto = {
     deletedAt: string | null;
     totalPaid: string;
     status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
-    totalInstallments: number;
-    paidInstallments: number;
-    installmentDueDates: Array<string>;
     costBreakdown: Array<BillingCostBreakdown>;
-    billInstallments: Array<BillInstallmentItemDto>;
 };
 
 export type UpdateBillDto = {
@@ -424,6 +407,19 @@ export type UpdateBillDto = {
     costBreakdown?: {
         [key: string]: unknown;
     };
+};
+
+export type BillInstallmentItemDto = {
+    id: string;
+    name: string;
+    installmentOrder: number;
+    amountToPay: string;
+    dueAt: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
 };
 
 export type InitiatePaymentDto = {
@@ -2256,12 +2252,7 @@ export type EnrollmentControllerRemoveEnrollmentData = {
     path: {
         id: string;
     };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
+    query?: never;
     url: '/enrollment/{id}';
 };
 

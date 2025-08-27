@@ -7,9 +7,14 @@ import {
   SuspendedBillingInstallment,
   SuspendedBillingPreface,
 } from '@/features/billing/suspense'
-import type { BillPaymentDto, DetailedBillDto } from '@/integrations/api/client'
+import type {
+  BillInstallmentItemDto,
+  BillPaymentDto,
+  DetailedBillDto,
+} from '@/integrations/api/client'
 import {
   billingControllerFindOneOptions,
+  installmentControllerFindAllOptions,
   paymentsControllerFindAllOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
@@ -34,7 +39,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { IconArrowLeft, IconUpload, type ReactNode } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import Decimal from 'decimal.js'
@@ -45,20 +50,31 @@ const route = getRouteApi('/(protected)/billing/$billingId')
 function BillingIdQueryProvider({
   children,
 }: {
-  children: (props: { currentInvoice: DetailedBillDto }) => ReactNode
+  children: (props: {
+    currentInvoice: DetailedBillDto
+    currentInstallments: BillInstallmentItemDto[]
+  }) => ReactNode
 }) {
-  const { data } = useSuspenseQuery(
-    billingControllerFindOneOptions({
-      path: { id: route.useParams().billingId },
-    }),
-  )
+  const [{ data: billData }, { data: installmentData }] = useSuspenseQueries({
+    queries: [
+      billingControllerFindOneOptions({
+        path: { id: route.useParams().billingId },
+      }),
+      installmentControllerFindAllOptions({
+        path: {
+          billId: route.useParams().billingId,
+        },
+      }),
+    ],
+  })
 
-  const currentInvoice = data as DetailedBillDto
+  const currentInvoice = billData
 
-  console.log('currentInvoice', currentInvoice)
+  const currentInstallments = installmentData as BillInstallmentItemDto[]
 
   return children({
     currentInvoice,
+    currentInstallments,
   })
 }
 
@@ -183,7 +199,7 @@ function BillingIdPage() {
           </BillingIdQueryProvider>
         </Suspense>
 
-        <Group grow align="flex-start" gap={'lg'}>
+        <Group grow align="flex-start">
           <Suspense
             fallback={
               <Stack gap={'xs'}>
@@ -213,10 +229,13 @@ function BillingIdPage() {
             }
           >
             <BillingIdQueryProvider>
-              {({ currentInvoice }) => (
+              {({ currentInvoice, currentInstallments }) => (
                 <Stack gap={'xs'}>
                   <Text fw={500}>Installments</Text>
-                  <BillingInstallments invoice={currentInvoice} />
+                  <BillingInstallments
+                    invoice={currentInvoice}
+                    installments={currentInstallments}
+                  />
                 </Stack>
               )}
             </BillingIdQueryProvider>
@@ -278,11 +297,17 @@ export function BillingPrefaceDetails({
   )
 }
 
-function BillingInstallments({ invoice }: { invoice: DetailedBillDto }) {
+function BillingInstallments({
+  invoice,
+  installments,
+}: {
+  invoice: DetailedBillDto
+  installments: BillInstallmentItemDto[]
+}) {
   const { billingId } = route.useParams()
   const { authUser } = useAuth('protected')
 
-  return invoice.billInstallments.map((installment) => (
+  return installments.map((installment) => (
     <Card key={installment.id} withBorder px="lg" radius="md">
       <Group justify="space-between" align="flex-start">
         <Stack gap={rem(3)}>
