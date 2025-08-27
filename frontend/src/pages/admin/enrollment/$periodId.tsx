@@ -1,7 +1,18 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
-import type { EnrollmentPeriodDto } from '@/integrations/api/client'
-import { enrollmentControllerFindOneEnrollmentOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import type {
+  CourseDto,
+  DetailedCourseOfferingDto,
+  EnrollmentPeriodDto,
+} from '@/integrations/api/client'
+import {
+  enrollmentControllerCreateCourseOfferingMutation,
+  enrollmentControllerFindAllCourseOfferingsOptions,
+  enrollmentControllerFindOneEnrollmentOptions,
+  enrollmentControllerRemoveCourseOfferingMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatPaginationMessage, formatToSchoolYear } from '@/utils/formatters'
 import {
   Accordion,
@@ -35,236 +46,9 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Suspense, useState } from 'react'
-import { Fragment } from 'react/jsx-runtime'
+import { Fragment, Suspense, useState } from 'react'
 
 const route = getRouteApi('/(protected)/enrollment/$periodId')
-
-const mockCourseData = [
-  {
-    id: 1,
-    name: 'Capstone 1',
-    code: 'MO-IT200',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A1234',
-        schedule: {
-          days: 'MWF',
-          time: '8:00 - 9:00 AM',
-        },
-        takenSlots: 0,
-        maxSlots: 30,
-      },
-      {
-        sectionName: 'H5678',
-        schedule: {
-          days: 'MWF',
-          time: '2:00 - 3:00 PM',
-        },
-        takenSlots: 0,
-        maxSlots: 30,
-      },
-      {
-        sectionName: 'S9101',
-        schedule: {
-          days: 'MWF',
-          time: '8:00 - 9:00 PM',
-        },
-        takenSlots: 0,
-        maxSlots: 30,
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Data Structures & Algorithms',
-    code: 'MO-IT351',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A1122',
-        schedule: {
-          days: 'TTh',
-          time: '10:00 - 11:30 AM',
-        },
-        takenSlots: 15,
-        maxSlots: 30,
-      },
-      {
-        sectionName: 'H3344',
-        schedule: {
-          days: 'MWF',
-          time: '1:00 - 2:00 PM',
-        },
-        takenSlots: 10,
-        maxSlots: 30,
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Web Technology Applications',
-    code: 'MO-BS400',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A5566',
-        schedule: {
-          days: 'MWF',
-          time: '9:00 - 11:00 AM',
-        },
-        takenSlots: 25,
-        maxSlots: 25,
-      },
-      {
-        sectionName: 'H7788',
-        schedule: {
-          days: 'MWF',
-          time: '1:00 - 3:00 PM',
-        },
-        takenSlots: 20,
-        maxSlots: 25,
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Object-Oriented Programming',
-    code: 'MO-IT210',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A4321',
-        schedule: {
-          days: 'MW',
-          time: '10:00 - 11:30 AM',
-        },
-        takenSlots: 12,
-        maxSlots: 35,
-      },
-    ],
-  },
-  {
-    id: 5,
-    name: 'Database Systems',
-    code: 'MO-BS301',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'S8765',
-        schedule: {
-          days: 'TTh',
-          time: '1:30 - 3:00 PM',
-        },
-        takenSlots: 8,
-        maxSlots: 20,
-      },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Human-Computer Interaction',
-    code: 'MO-IT405',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'H9876',
-        schedule: {
-          days: 'F',
-          time: '9:00 - 12:00 PM',
-        },
-        takenSlots: 5,
-        maxSlots: 25,
-      },
-    ],
-  },
-  {
-    id: 7,
-    name: 'Introduction to Psychology',
-    code: 'MO-BS101',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A1111',
-        schedule: {
-          days: 'MWF',
-          time: '9:00 - 10:00 AM',
-        },
-        takenSlots: 18,
-        maxSlots: 40,
-      },
-    ],
-  },
-  {
-    id: 8,
-    name: 'Calculus I',
-    code: 'MO-BS150',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A2222',
-        schedule: {
-          days: 'TTh',
-          time: '8:00 - 9:30 AM',
-        },
-        takenSlots: 20,
-        maxSlots: 25,
-      },
-    ],
-  },
-  {
-    id: 9,
-    name: 'Computer Networks',
-    code: 'MO-IT320',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'H3333',
-        schedule: {
-          days: 'MW',
-          time: '3:00 - 4:30 PM',
-        },
-        takenSlots: 7,
-        maxSlots: 30,
-      },
-    ],
-  },
-  {
-    id: 10,
-    name: 'System Analysis and Design',
-    code: 'MO-IT410',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'S4444',
-        schedule: {
-          days: 'T',
-          time: '1:00 - 4:00 PM',
-        },
-        takenSlots: 10,
-        maxSlots: 15,
-      },
-    ],
-  },
-  {
-    id: 11,
-    name: 'Professional Ethics',
-    code: 'MO-BS220',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A5555',
-        schedule: {
-          days: 'W',
-          time: '10:00 - 12:00 PM',
-        },
-        takenSlots: 11,
-        maxSlots: 20,
-      },
-    ],
-  },
-]
 
 interface IEnrollmentPeriodAdminQuery {
   search: string
@@ -280,7 +64,7 @@ function EnrollmentPeriodAdminQueryProvider({
 }: {
   children: (props: {
     enrollmentPeriodData: EnrollmentPeriodDto
-    courseData: typeof mockCourseData
+    courseOfferings: DetailedCourseOfferingDto[]
     message: string
     totalPages: number
   }) => ReactNode
@@ -297,10 +81,19 @@ function EnrollmentPeriodAdminQueryProvider({
     }),
   )
 
-  const courseData = mockCourseData
+  const { data: courseData } = useSuspenseQuery(
+    enrollmentControllerFindAllCourseOfferingsOptions({
+      query: {
+        page: page,
+        search: search || undefined,
+      },
+    }),
+  )
+
+  const courseOfferings = courseData.courseOfferings
 
   const limit = 10
-  const total = mockCourseData.length
+  const total = courseOfferings.length
   const totalPages = 1
 
   const message = formatPaginationMessage({
@@ -309,9 +102,11 @@ function EnrollmentPeriodAdminQueryProvider({
     limit,
   })
 
+  console.log(courseOfferings)
+
   return children({
     enrollmentPeriodData,
-    courseData,
+    courseOfferings,
     message,
     totalPages,
   })
@@ -396,53 +191,53 @@ function EnrollmentPeriodIdPage() {
         })
 
         // optimistically update enrollment detail if exists
-        if (previousEnrollment) {
-          queryClient.setQueryData(enrollmentKey, (old: any) => {
-            if (!old) return old
-            return {
-              ...old,
-              courseOfferings: [
-                optimisticOffering,
-                ...(old.courseOfferings ?? []),
-              ],
-            }
-          })
-        }
+        queryClient.setQueryData(enrollmentKey, (old: any) => {
+          if (!old) return old
+          return {
+            ...old,
+            courseOfferings: [
+              optimisticOffering,
+              ...(old.courseOfferings ?? []),
+            ],
+          }
+        })
 
-        return { previousOfferings, previousEnrollment, tempId }
+        return {
+          previousOfferings,
+          previousEnrollment,
+          keys: {
+            allOfferingsKey,
+            enrollmentKey,
+          },
+        }
       },
-      onSettled: async () => {
-        const { queryClient } = getContext()
-        // ensure fresh data
-        queryClient.invalidateQueries({
-          queryKey: enrollmentControllerFindAllCourseOfferingsOptions({
-            query: { page: query.page, search: query.search || undefined },
-          }).queryKey,
-        })
-        queryClient.invalidateQueries({
-          queryKey: enrollmentControllerFindOneEnrollmentOptions({
-            path: { id: periodId },
-          }).queryKey,
-        })
-      },
-      onError: (err, variables, context: any) => {
+      // onSettled: async (data, error, variables, context) => {
+      //   const { queryClient } = getContext()
+      //   // ensure fresh data
+      //   queryClient.invalidateQueries({
+      //     queryKey: context?.keys.allOfferingsKey,
+      //   })
+      //   queryClient.invalidateQueries({
+      //     queryKey: context?.keys.enrollmentKey,
+      //   })
+      // },
+      onError: (err, variables, context) => {
         const { queryClient } = getContext()
         const page = 1
         const search = queryDefaultValues.search
-        const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsOptions({
-            query: { page, search: search || undefined },
-          }).queryKey
-        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
-          path: { id: periodId },
-        }).queryKey
 
         // rollback
         if (context?.previousOfferings) {
-          queryClient.setQueryData(allOfferingsKey, context.previousOfferings)
+          queryClient.setQueryData(
+            context?.keys.allOfferingsKey,
+            context.previousOfferings,
+          )
         }
         if (context?.previousEnrollment) {
-          queryClient.setQueryData(enrollmentKey, context.previousEnrollment)
+          queryClient.setQueryData(
+            context?.keys.enrollmentKey,
+            context.previousEnrollment,
+          )
         }
       },
     },
@@ -507,7 +302,14 @@ function EnrollmentPeriodIdPage() {
           })
         }
 
-        return { previousOfferings, previousEnrollment }
+        return {
+          previousOfferings,
+          previousEnrollment,
+          keys: {
+            allOfferingsKey,
+            enrollmentKey,
+          },
+        }
       },
       onError: (err, variables, context: any) => {
         const { queryClient } = getContext()
@@ -529,30 +331,19 @@ function EnrollmentPeriodIdPage() {
           queryClient.setQueryData(enrollmentKey, context.previousEnrollment)
         }
       },
-      onSettled: async () => {
-        const { queryClient } = getContext()
-        queryClient.invalidateQueries({
-          queryKey: enrollmentControllerFindAllCourseOfferingsOptions({
-            query: { page: query.page, search: query.search || undefined },
-          }).queryKey,
-        })
-        queryClient.invalidateQueries({
-          queryKey: enrollmentControllerFindOneEnrollmentOptions({
-            path: { id: periodId },
-          }).queryKey,
-        })
-      },
-      onSuccess: () => {
-        const { queryClient } = getContext()
-
-        queryClient.invalidateQueries({
-          queryKey: enrollmentControllerFindOneEnrollmentQueryKey({
-            path: {
-              id: periodId,
-            },
-          }),
-        })
-      },
+      // onSettled: async () => {
+      //   const { queryClient } = getContext()
+      //   queryClient.invalidateQueries({
+      //     queryKey: enrollmentControllerFindAllCourseOfferingsOptions({
+      //       query: { page: query.page, search: query.search || undefined },
+      //     }).queryKey,
+      //   })
+      //   queryClient.invalidateQueries({
+      //     queryKey: enrollmentControllerFindOneEnrollmentOptions({
+      //       path: { id: periodId },
+      //     }).queryKey,
+      //   })
+      // },
     },
   )
 
@@ -693,7 +484,7 @@ function EnrollmentPeriodIdPage() {
                   modals.openContextModal({
                     modal: 'enrollmentCourseCreate',
                     innerProps: {
-                      periodId: periodId,
+                      onSelect: handleSelectCourseOffering,
                     },
                   })
                 }
@@ -706,119 +497,129 @@ function EnrollmentPeriodIdPage() {
           <Divider />
 
           <Accordion variant="filled">
-            {mockCourseData.map((course, index) => (
-              <Fragment key={course.id}>
-                <Accordion.Item value={course.id.toString()}>
-                  <Accordion.Control py={rem(5)}>
-                    <Group justify="space-between">
-                      <Stack gap={rem(0)}>
-                        <Text fw={500} fz={'md'}>
-                          {course.name}
-                        </Text>
-                        <Stack gap={rem(5)}>
-                          <Text fw={500} fz={'xs'} c={'dark.3'}>
-                            {course.code}
-                          </Text>
-                          <Badge
-                            c="gray.6"
-                            variant="light"
-                            radius="sm"
-                            size="sm"
-                          >
-                            {course.sections.length} section(s)
-                          </Badge>
-                        </Stack>
-                      </Stack>
-
-                      <ActionIcon
-                        component="div"
-                        variant="subtle"
-                        c={'red.4'}
-                        size={'lg'}
-                        radius={'xl'}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <IconTrash size={18} />
-                      </ActionIcon>
-                    </Group>
-                  </Accordion.Control>
-
-                  <Accordion.Panel>
-                    <Stack>
-                      <Divider />
-                      <Stack gap={'xs'}>
-                        <Button
-                          size="md"
-                          className="border-gray-300"
-                          variant="default"
-                          radius={'md'}
-                          c={'dark.4'}
-                        >
-                          <Group gap={rem(5)}>
-                            <IconPlus size={18} />
-                            <Text fz={'sm'} fw={500}>
-                              Add Section
+            <EnrollmentPeriodAdminQueryProvider>
+              {({ courseOfferings }) =>
+                courseOfferings.map((course, index) => (
+                  <Fragment key={course.id}>
+                    <Accordion.Item value={course.id.toString()}>
+                      <Accordion.Control py={rem(5)}>
+                        <Group justify="space-between">
+                          <Stack gap={rem(0)}>
+                            <Text fw={500} fz={'md'}>
+                              {course.course.name}
                             </Text>
-                          </Group>
-                        </Button>
-                        {course.sections.map((section) => (
-                          <Card
-                            key={section.sectionName}
-                            withBorder
-                            radius="md"
-                            py="sm"
+                            <Stack gap={rem(5)}>
+                              <Text fw={500} fz={'xs'} c={'dark.3'}>
+                                {course.course.courseCode}
+                              </Text>
+                              <Badge
+                                c="gray.6"
+                                variant="light"
+                                radius="sm"
+                                size="sm"
+                              >
+                                {course.courseSections.length} section(s)
+                              </Badge>
+                            </Stack>
+                          </Stack>
+
+                          <ActionIcon
+                            component="div"
+                            variant="subtle"
+                            c={'red.4'}
+                            size={'lg'}
+                            radius={'xl'}
+                            onClick={(e) =>
+                              handleRemoveCourseOffering(e, course)
+                            }
                           >
-                            <Group justify="space-between" align="center">
-                              <Stack gap={2}>
-                                <Group gap="xs">
-                                  <Text fw={600} size="md">
-                                    {section.sectionName}
-                                  </Text>
-                                  <Text c="dimmed" size="xs">
-                                    Morning
-                                  </Text>
-                                </Group>
-                                <Text c="dimmed" size="sm">
-                                  {section.schedule.days} |{' '}
-                                  {section.schedule.time}
+                            <IconTrash size={18} />
+                          </ActionIcon>
+                        </Group>
+                      </Accordion.Control>
+
+                      <Accordion.Panel>
+                        <Stack>
+                          <Divider />
+                          <Stack gap={'xs'}>
+                            <Button
+                              size="md"
+                              className="border-gray-300"
+                              variant="default"
+                              radius={'md'}
+                              c={'dark.4'}
+                            >
+                              <Group gap={rem(5)}>
+                                <IconPlus size={18} />
+                                <Text fz={'sm'} fw={500}>
+                                  Add Section
                                 </Text>
-                              </Stack>
-                              <Stack gap={'xs'} align="flex-end">
-                                <Group gap={rem(5)}>
-                                  <ActionIcon
-                                    variant="subtle"
-                                    c={'dark.3'}
-                                    size={'md'}
-                                    radius={'xl'}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <IconPencil size={18} />
-                                  </ActionIcon>
-                                  <ActionIcon
-                                    variant="subtle"
-                                    c={'red.4'}
-                                    size={'md'}
-                                    radius={'xl'}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <IconTrash size={18} />
-                                  </ActionIcon>
+                              </Group>
+                            </Button>
+                            {course.courseSections.map((section) => (
+                              <Card
+                                key={section.id}
+                                withBorder
+                                radius="md"
+                                py="sm"
+                              >
+                                <Group justify="space-between" align="center">
+                                  <Stack gap={2}>
+                                    <Group gap="xs">
+                                      <Text fw={600} size="md">
+                                        {section.name}
+                                      </Text>
+                                      <Text c="dimmed" size="xs">
+                                        Morning
+                                      </Text>
+                                    </Group>
+                                    <Text c="dimmed" size="sm">
+                                      {section.days} | {section.startSched} -{' '}
+                                      {section.endSched}
+                                    </Text>
+                                  </Stack>
+                                  <Stack gap={'xs'} align="flex-end">
+                                    <Group gap={rem(5)}>
+                                      <ActionIcon
+                                        variant="subtle"
+                                        c={'dark.3'}
+                                        size={'md'}
+                                        radius={'xl'}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <IconPencil size={18} />
+                                      </ActionIcon>
+                                      <ActionIcon
+                                        variant="subtle"
+                                        c={'red.4'}
+                                        size={'md'}
+                                        radius={'xl'}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <IconTrash size={18} />
+                                      </ActionIcon>
+                                    </Group>
+                                    <Badge
+                                      c="gray.6"
+                                      variant="light"
+                                      radius="sm"
+                                    >
+                                      {section.maxSlot} / {section.maxSlot}{' '}
+                                      slots
+                                    </Badge>
+                                  </Stack>
                                 </Group>
-                                <Badge c="gray.6" variant="light" radius="sm">
-                                  {section.takenSlots} / {section.maxSlots}{' '}
-                                  slots
-                                </Badge>
-                              </Stack>
-                            </Group>
-                          </Card>
-                        ))}
-                      </Stack>
-                    </Stack>
-                  </Accordion.Panel>
-                </Accordion.Item>
-                <Divider hidden={index == mockCourseData.length - 1} />
-              </Fragment>
-            ))}
+                              </Card>
+                            ))}
+                          </Stack>
+                        </Stack>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                    <Divider hidden={index == courseOfferings.length - 1} />
+                  </Fragment>
+                ))
+              }
+            </EnrollmentPeriodAdminQueryProvider>
           </Accordion>
         </Stack>
 
