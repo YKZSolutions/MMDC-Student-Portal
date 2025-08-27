@@ -345,9 +345,20 @@ export class EnrollmentService {
     @LogParam('id') id: string,
     updateEnrollmentStatusDto: UpdateEnrollmentStatusDto,
   ): Promise<EnrollmentPeriodDto> {
-    return await this.prisma.client.enrollmentPeriod.update({
-      where: { id },
-      data: { ...updateEnrollmentStatusDto },
+    return this.prisma.client.$transaction(async (tx) => {
+      if (updateEnrollmentStatusDto.status === 'active') {
+        // Close all others first
+        await tx.enrollmentPeriod.updateMany({
+          where: { status: 'active', NOT: { id } },
+          data: { status: 'closed' },
+        });
+      }
+
+      // Then update the requested one
+      return tx.enrollmentPeriod.update({
+        where: { id },
+        data: { ...updateEnrollmentStatusDto },
+      });
     });
   }
 
