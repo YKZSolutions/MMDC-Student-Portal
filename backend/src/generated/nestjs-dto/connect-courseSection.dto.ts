@@ -1,11 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class ConnectCourseSectionDto {
   @ApiProperty({
     type: 'string',
+    required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  id: string;
+  id?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
 }
