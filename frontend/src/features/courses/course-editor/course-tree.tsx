@@ -1,17 +1,16 @@
 import {
-  Tree,
-  type NodeModel,
   DndProvider,
-  getDescendants,
   type DropOptions,
-  MultiBackend,
   getBackendOptions,
+  getDescendants,
+  MultiBackend,
+  type NodeModel,
+  Tree,
 } from '@minoru/react-dnd-treeview'
 import React, { useState } from 'react'
 import {
   ActionIcon,
   alpha,
-  Grid,
   Group,
   Menu,
   Stack,
@@ -103,7 +102,7 @@ function injectData(nodes: CourseNodeModel[]): CourseNodeModel[] {
       augmented.push({
         id: `${parentId}-add`,
         parent: parentId,
-        text: '+ Add',
+        text: 'Add',
         droppable: false,
         data: { type: 'add-button' },
       })
@@ -313,7 +312,7 @@ const NodeRow = ({
         <Text size="sm" fw={500}>
           Add{' '}
           {capitalizeFirstLetter(
-            getChildTypeFromParentType(node.data?.parentType ?? 'module'),
+            getChildTypeFromParentType(node.data?.parentType ?? ''),
           )}
         </Text>
       </Group>

@@ -6,13 +6,20 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import FormRow from '@/components/form-row.tsx'
-import { IconCategory, IconChevronsRight } from '@tabler/icons-react'
+import {
+  IconCalendarDue,
+  IconChevronsRight,
+  IconGitPullRequestClosed,
+  IconHourglassEmpty,
+  IconReplace,
+} from '@tabler/icons-react'
 import type { ComponentPropsWithoutRef } from 'react'
+import type { ContentTree } from '@/features/courses/types.ts'
 
 type ContentDetailsEditorProps = {
   opened: boolean
   onClose: () => void
-  type: string
+  type: ContentTree
   data: any
 } & ComponentPropsWithoutRef<typeof Stack> &
   BoxProps
@@ -56,10 +63,28 @@ const ContentDetailsEditor = ({
       />
       {/*TODO: add actual content types, these are just placeholders*/}
       <Stack gap={'sm'}>
-        <FormRow label="Category" />
-        <FormRow label="Title" icon={<IconCategory />} />
-        <FormRow label="Description" placeholder="Enter description" />
-        <FormRow label="Tags" />
+        <FormRow
+          label="Prerequisites"
+          icon={
+            <IconGitPullRequestClosed
+              style={{ width: '24px', height: '24px' }}
+            />
+          }
+        />
+        <FormRow
+          label="Due Date"
+          icon={<IconCalendarDue style={{ width: '24px', height: '24px' }} />}
+        />
+        <FormRow
+          label="Allow Re-submission"
+          icon={<IconReplace style={{ width: '24px', height: '24px' }} />}
+        />
+        <FormRow
+          label="Allow Late Submission"
+          icon={
+            <IconHourglassEmpty style={{ width: '24px', height: '24px' }} />
+          }
+        />
       </Stack>
     </Stack>
   )

@@ -1,7 +1,6 @@
 import {
   Button,
   Container,
-  Divider,
   Group,
   Modal,
   Stack,
@@ -52,23 +51,24 @@ const CourseCreationProcessModal = ({
       opened={opened}
       onClose={closeModal}
       withCloseButton={false}
-      centered
       // size="60%"
       fullScreen={true}
-      radius={'lg'}
-      overlayProps={{
-        backgroundOpacity: 0.35,
-        blur: 1,
-      }}
+      bg={'red'}
       styles={{
         body: {
           height: '100%',
+          padding: 0,
         },
       }}
     >
-      <Stack gap={'sm'} h={'100%'}>
+      <Stack gap={0} h={'100%'}>
         {/*Header*/}
-        <Group justify="space-between" align="center" my={'xs'}>
+        <Group
+          justify="space-between"
+          align="center"
+          p={'lg'}
+          style={{ borderBottom: `1px solid ${theme.colors.gray[3]}` }}
+        >
           <Button variant="outline" radius={'md'} p={'xs'} onClick={closeModal}>
             <IconX size={18} />
           </Button>
@@ -104,7 +104,6 @@ const CourseCreationProcessModal = ({
             </Button>
           </Group>
         </Group>
-        <Divider></Divider>
         {/*Resizable Panel Component docs: https://react-resizable-panels.vercel.app/ */}
         <PanelGroup direction="horizontal" autoSaveId="persistence">
           <Panel minSize={30}>

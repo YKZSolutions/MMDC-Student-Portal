@@ -1,35 +1,32 @@
-import { Group, Text, Input, Flex } from '@mantine/core'
-import { IconCategory } from '@tabler/icons-react'
-import React, { type ComponentPropsWithoutRef } from 'react'
+import { Box, Group, Input, Text, Tooltip } from '@mantine/core'
+import React from 'react'
 
 type FormRowProps = {
-  icon?: React.ReactNode
+  icon: React.ReactNode
   label: string
-  placeholder?: string
+  children?: React.ReactNode
 }
 
-export default function FormRow({
-  icon = <IconCategory />,
-  label,
-  placeholder = 'Empty',
-}: FormRowProps) {
+function FormRow({ icon, label, children }: FormRowProps) {
   return (
-    <Group>
-      <Group gap="xs" align="center" w={125}>
-        {icon}
-        <Text>{label}</Text>
+    <Group align="center" w="100%">
+      {/* Label */}
+      <Group w={145} align="center">
+        <Tooltip label={label} position="top">
+          <Group align="center" w={'100%'} wrap={'nowrap'}>
+            <Box>{icon}</Box>
+            <Text lineClamp={2}>{label}</Text>
+          </Group>
+        </Tooltip>
       </Group>
-
-      {/* Flexible input wrapper */}
-      <Flex flex={1}>
-        <Input
-          variant="unstyled"
-          placeholder={placeholder}
-          fw={400}
-          size="md"
-          w="100%"
-        />
-      </Flex>
+      {/* Input */}
+      {children ? (
+        children
+      ) : (
+        <Input variant="unstyled" placeholder={'Empty'} fw={400} size="md" />
+      )}
     </Group>
   )
 }
+
+export default FormRow
