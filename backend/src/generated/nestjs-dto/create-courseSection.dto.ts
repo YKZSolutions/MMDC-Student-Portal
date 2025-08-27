@@ -4,6 +4,12 @@ import { IsArray, IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateCourseSectionDto {
   @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })

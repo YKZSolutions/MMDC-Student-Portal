@@ -7,6 +7,10 @@ export class CourseSectionDto {
   })
   id: string;
   @ApiProperty({
+    type: 'string',
+  })
+  name: string;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
