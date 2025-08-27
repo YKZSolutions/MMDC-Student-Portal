@@ -1,16 +1,16 @@
-import { EnrolledCourseStatus } from '@prisma/client';
+import { CourseEnrollmentStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsOptional } from 'class-validator';
 
-export class UpdateEnrolledCourseDto {
+export class UpdateCourseEnrollmentDto {
   @ApiProperty({
-    enum: EnrolledCourseStatus,
-    enumName: 'EnrolledCourseStatus',
+    enum: CourseEnrollmentStatus,
+    enumName: 'CourseEnrollmentStatus',
     required: false,
   })
   @IsOptional()
-  @IsEnum(EnrolledCourseStatus)
-  status?: EnrolledCourseStatus;
+  @IsEnum(CourseEnrollmentStatus)
+  status?: CourseEnrollmentStatus;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -23,8 +23,9 @@ export class UpdateEnrolledCourseDto {
     type: 'string',
     format: 'date-time',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsDateString()
-  completedAt?: Date;
+  completedAt?: Date | null;
 }
