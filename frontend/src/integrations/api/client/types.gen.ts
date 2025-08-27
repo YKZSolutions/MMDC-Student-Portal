@@ -635,6 +635,7 @@ export type CourseOfferingDto = {
 export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
 export type CreateCourseSectionFullDto = {
+    name: string;
     maxSlot: number;
     days: Array<Days>;
     startSched: string;
@@ -644,6 +645,7 @@ export type CreateCourseSectionFullDto = {
 
 export type CourseSectionDto = {
     id: string;
+    name: string;
     maxSlot: number;
     startSched: string;
     endSched: string;

@@ -847,6 +847,7 @@ export const zDays = z.enum([
 ]);
 
 export const zCreateCourseSectionFullDto = z.object({
+    name: z.string(),
     maxSlot: z.int(),
     days: z.array(zDays),
     startSched: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
@@ -856,6 +857,7 @@ export const zCreateCourseSectionFullDto = z.object({
 
 export const zCourseSectionDto = z.object({
     id: z.string(),
+    name: z.string(),
     maxSlot: z.int(),
     startSched: z.string(),
     endSched: z.string(),
