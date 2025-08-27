@@ -1,29 +1,62 @@
-import type { ContentType } from '@/features/courses/types.ts'
 import type {
   Assignment,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 
-export interface Readings {
-  title: string
-  isRead: boolean
-}
-
-export interface ModuleData {
+export interface ReadingMaterial {
   id: string
   title: string
-  subsection: ModuleSubsectionData[]
+  content?: string
+  fileUrl?: string
+  isCompleted: boolean
 }
 
-export interface ModuleSubsectionData {
+export interface CourseModule {
+  id: string
+  courseId: string
+  title: string
+  position: number
+  sections: ModuleSection[]
+}
+
+export interface ModuleSection {
   id: string
   title: string
-  items: ModuleSubsectionItemData[]
+  position: number
+  items: ModuleItem[]
 }
 
-export interface ModuleSubsectionItemData {
+export interface ModuleItem {
   id: string
-  itemType: ContentType
-  readings?: Readings
+  type: ContentType
+  title: string
+  position: number
+  content?: ReadingMaterial
   assignment?: Assignment | StudentAssignment
+}
+
+export type ContentType =
+  | 'reading'
+  | 'assignment'
+  | 'discussion'
+  | 'url'
+  | 'file'
+
+export type ContentNode = CourseModule | ModuleSection | ModuleItem
+export type ContentNodeType = 'module' | 'subsection' | 'item'
+
+export interface CourseContentOverview {
+  courseId: string
+  modules: ModuleSummary[]
+  totalItems: number
+  completedItems: number
+}
+
+export interface ModuleSummary {
+  id: string
+  title: string
+  position: number
+  sectionCount: number
+  itemCount: number
+  completedItems: number
 }

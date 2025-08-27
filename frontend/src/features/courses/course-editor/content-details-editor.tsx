@@ -14,12 +14,12 @@ import {
   IconReplace,
 } from '@tabler/icons-react'
 import type { ComponentPropsWithoutRef } from 'react'
-import type { ContentTree } from '@/features/courses/types.ts'
+import type { ContentNodeType } from '@/features/courses/modules/types.ts'
 
 type ContentDetailsEditorProps = {
   opened: boolean
   onClose: () => void
-  type: ContentTree
+  type: ContentNodeType
   data: any
 } & ComponentPropsWithoutRef<typeof Stack> &
   BoxProps

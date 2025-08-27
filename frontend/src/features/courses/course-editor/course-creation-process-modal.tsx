@@ -23,7 +23,7 @@ import ContentDetailsEditor from '@/features/courses/course-editor/content-detai
 import ModuleCreationCard from '@/features/courses/module-creation-card.tsx'
 import CourseCreationCard from '@/features/courses/course-creation-card.tsx'
 import type { CustomModalProp } from '@/components/types.ts'
-import type { ContentTree } from '@/features/courses/types.ts'
+import type { ContentNodeType } from '@/features/courses/modules/types.ts'
 
 const CourseCreationProcessModal = ({
   opened,
@@ -39,7 +39,7 @@ const CourseCreationProcessModal = ({
   const [isDragging, setIsDragging] = useState(false)
 
   const [rightPaneOpen, { open, close }] = useDisclosure(false) //For Content Details Editor Drawer
-  const [childType, setChildType] = useState<ContentTree>('module')
+  const [childType, setChildType] = useState<ContentNodeType>('module')
 
   const handleAdd = (parentId?: string | number, parentType?: string) => {
     setChildType(getChildTypeFromParentType(parentType))

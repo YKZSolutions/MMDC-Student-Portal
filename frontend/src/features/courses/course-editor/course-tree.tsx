@@ -29,11 +29,11 @@ import {
 import { useTreeConnectors } from '@/features/courses/course-editor/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
 import { getChildTypeFromParentType } from '@/utils/helpers.ts'
-import type { ContentTree } from '@/features/courses/types.ts'
+import type { ContentNodeType } from '@/features/courses/modules/types.ts'
 
 interface NodeData {
-  parentType?: ContentTree
-  type: ContentTree | 'add-button'
+  parentType?: ContentNodeType
+  type: ContentNodeType | 'add-button'
 }
 
 type CourseNodeModel = NodeModel<NodeData>

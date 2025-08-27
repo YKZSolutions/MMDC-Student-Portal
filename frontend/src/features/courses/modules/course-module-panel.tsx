@@ -1,4 +1,3 @@
-import CourseModules from '@/pages/shared/courses/$courseId/modules/course-modules.tsx'
 import {
   Accordion,
   type AccordionControlProps,
@@ -15,8 +14,8 @@ import { useEffect, useState } from 'react'
 import { getSubmissionStatus } from '@/utils/helpers.ts'
 import { mockAssignmentsData } from '@/pages/shared/courses/$courseId/assignments/course-assignments.tsx'
 import type {
-  ModuleData,
-  ModuleSubsectionItemData,
+  CourseModule,
+  ModuleItem,
 } from '@/features/courses/modules/types.ts'
 import type {
   AssignmentType,
@@ -37,256 +36,182 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 
-const moduleData: ModuleData[] = [
+const moduleData: CourseModule[] = [
   {
-    id: '1',
-    title: 'Module 1',
-    subsection: [
+    id: 'mod_1',
+    courseId: 'course_1',
+    title: 'Module 1: Introduction to Biology',
+    position: 1,
+    sections: [
       {
+        id: 'sec_1',
         title: 'Readings',
+        position: 1,
         items: [
           {
-            id: '',
-            itemType: 'readings',
-            readings: {
-              title: 'Read',
-              isRead: true,
+            id: 'item_1',
+            type: 'reading',
+            title: 'Chapter 1: Cell Structure',
+            position: 1,
+            content: {
+              id: 'read_1',
+              title: 'Chapter 1: Cell Structure',
+              fileUrl: '/uploads/cell-structure.pdf',
+              isCompleted: true,
             },
           },
           {
-            id: '',
-            itemType: 'readings',
-            readings: {
-              title: 'Not Read',
-              isRead: true,
+            id: 'item_2',
+            type: 'reading',
+            title: 'Chapter 2: DNA Replication',
+            position: 2,
+            content: {
+              id: 'read_2',
+              title: 'Chapter 2: DNA Replication',
+              fileUrl: '/uploads/dna-replication.pdf',
+              isCompleted: false,
             },
           },
         ],
-        id: '',
       },
       {
-        title: 'Output',
+        id: 'sec_2',
+        title: 'Assignments',
+        position: 2,
         items: [
           {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_3',
+            type: 'assignment',
+            title: 'Cell Biology Quiz',
+            position: 1,
             assignment: mockAssignmentsData[0],
           },
           {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_4',
+            type: 'assignment',
+            title: 'DNA Assignment',
+            position: 2,
             assignment: mockAssignmentsData[1],
           },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[2],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[3],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[4],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[5],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[6],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[7],
-          },
         ],
-        id: '',
       },
     ],
   },
   {
-    id: '2',
-    title: 'Module 2',
-    subsection: [
+    id: 'mod_2',
+    courseId: 'course_1',
+    title: 'Module 2: Genetics',
+    position: 2,
+    sections: [
       {
-        title: 'Output',
+        id: 'sec_3',
+        title: 'Assignments',
+        position: 1,
         items: [
           {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[0],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[1],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_5',
+            type: 'assignment',
+            title: 'Genetics Problems',
+            position: 1,
             assignment: mockAssignmentsData[2],
           },
           {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_6',
+            type: 'assignment',
+            title: 'Heredity Quiz',
+            position: 2,
             assignment: mockAssignmentsData[3],
           },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[4],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[5],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[6],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[7],
-          },
         ],
-        id: '',
       },
     ],
   },
   {
-    id: '3',
-    title: 'Module 3',
-    subsection: [
+    id: 'mod_3',
+    courseId: 'course_1',
+    title: 'Module 3: Ecology',
+    position: 3,
+    sections: [
       {
+        id: 'sec_4',
         title: 'Readings',
+        position: 1,
         items: [
           {
-            id: '',
-            itemType: 'readings',
-            readings: {
-              title: 'Read',
-              isRead: true,
+            id: 'item_7',
+            type: 'reading',
+            title: 'Chapter 5: Ecosystems',
+            position: 1,
+            content: {
+              id: 'read_3',
+              title: 'Chapter 5: Ecosystems',
+              fileUrl: '/uploads/ecosystems.pdf',
+              isCompleted: true,
             },
           },
           {
-            id: '',
-            itemType: 'readings',
-            readings: {
-              title: 'Not Read',
-              isRead: true,
+            id: 'item_8',
+            type: 'reading',
+            title: 'Chapter 6: Conservation',
+            position: 2,
+            content: {
+              id: 'read_4',
+              title: 'Chapter 6: Conservation',
+              fileUrl: '/uploads/conservation.pdf',
+              isCompleted: false,
             },
           },
         ],
-        id: '',
       },
       {
-        title: 'Output',
+        id: 'sec_5',
+        title: 'Assignments',
+        position: 2,
         items: [
           {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[0],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[1],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[2],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[3],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_9',
+            type: 'assignment',
+            title: 'Ecosystem Analysis',
+            position: 1,
             assignment: mockAssignmentsData[4],
           },
           {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_10',
+            type: 'assignment',
+            title: 'Conservation Project',
+            position: 2,
             assignment: mockAssignmentsData[5],
           },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[6],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[7],
-          },
         ],
-        id: '',
       },
     ],
   },
   {
-    id: '4',
-    title: 'Module 4',
-    subsection: [
+    id: 'mod_4',
+    courseId: 'course_1',
+    title: 'Module 4: Evolution',
+    position: 4,
+    sections: [
       {
-        title: 'Output',
+        id: 'sec_6',
+        title: 'Assignments',
+        position: 1,
         items: [
           {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[0],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[1],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[2],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[3],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[4],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
-            assignment: mockAssignmentsData[5],
-          },
-          {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_11',
+            type: 'assignment',
+            title: 'Evolution Timeline',
+            position: 1,
             assignment: mockAssignmentsData[6],
           },
           {
-            id: '',
-            itemType: 'assignment',
+            id: 'item_12',
+            type: 'assignment',
+            title: 'Natural Selection Report',
+            position: 2,
             assignment: mockAssignmentsData[7],
           },
         ],
-        id: '',
       },
     ],
   },
@@ -304,7 +229,7 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
     if (allExpanded) {
       const allModuleIds = moduleData.map((module) => module.id)
       const allSubsectionLabels = moduleData.flatMap((module) =>
-        module.subsection.map((sub) => sub.title),
+        module.sections.map((sub) => sub.title),
       )
       setValue([...allModuleIds, ...allSubsectionLabels])
     } else {
@@ -312,12 +237,12 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
     }
   }, [allExpanded])
 
-  const getCompletedItemsCount = (items: ModuleSubsectionItemData[]) => {
+  const getCompletedItemsCount = (items: ModuleItem[]) => {
     return items.filter((item) => {
-      if (item.itemType === 'readings' && item.readings) {
-        return item.readings.isRead
+      if (item.type === 'reading' && item.content) {
+        return item.content.isCompleted
       }
-      if (item.itemType === 'assignment' && item.assignment) {
+      if (item.type === 'assignment' && item.assignment) {
         const submissionStatus = getSubmissionStatus(item.assignment)
         return (
           submissionStatus === 'graded' ||
@@ -329,12 +254,12 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
 
   const items = moduleData.map((item) => (
     <Accordion.Item value={item.id} key={item.title} bg={'background'}>
-      <AccordionControl
+      <CustomAccordionControl
         title={item.title}
         completedItemsCount={getCompletedItemsCount(
-          item.subsection.flatMap((sub) => sub.items),
+          item.sections.flatMap((sub) => sub.items),
         )}
-        totalItemsCount={item.subsection.flatMap((sub) => sub.items).length}
+        totalItemsCount={item.sections.flatMap((sub) => sub.items).length}
       />
       <Accordion.Panel>
         <Accordion
@@ -345,13 +270,13 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
           variant="separated"
           radius="md"
         >
-          {item.subsection.map((subsection) => (
+          {item.sections.map((subsection) => (
             <Accordion.Item
               value={subsection.title}
               key={subsection.title}
               bg={'white'}
             >
-              <AccordionControl
+              <CustomAccordionControl
                 title={subsection.title}
                 completedItemsCount={getCompletedItemsCount(subsection.items)}
                 totalItemsCount={subsection.items.length}
@@ -366,13 +291,13 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
                     },
                   }}
                 >
-                  <AccordionControl
+                  <CustomAccordionControl
                     title={
-                      item.readings?.title ?? item.assignment?.title ?? 'N/A'
+                      item.content?.title ?? item.assignment?.title ?? 'N/A'
                     }
                     isItem={true}
-                    isRead={item.readings?.isRead ?? false}
-                    isSubmission={item.itemType === 'assignment'}
+                    isRead={item.content?.isCompleted ?? false}
+                    isSubmission={item.type === 'assignment'}
                     assignmentType={item.assignment?.type}
                     submissionStatus={getSubmissionStatus(item.assignment)}
                     dueDate={item.assignment?.dueDate}
@@ -413,7 +338,7 @@ type CustomAccordionControlProps = {
   accordionControlProps?: AccordionControlProps
 } & GroupProps
 
-function AccordionControl({
+function CustomAccordionControl({
   title,
   completedItemsCount,
   totalItemsCount,

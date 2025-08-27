@@ -1,12 +1,4 @@
-import {
-  createFileRoute,
-  Outlet,
-  useLocation,
-  useMatchRoute,
-  useNavigate,
-  useParams,
-} from '@tanstack/react-router'
-import RoleComponentManager from '@/components/role-component-manager.tsx'
+import { createFileRoute, Outlet, useParams } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { Box, Group, useMantineTheme } from '@mantine/core'
 import { type CourseBasicDetails } from '@/features/courses/types.ts'
@@ -18,7 +10,7 @@ export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
 
-const mockCourses: CourseBasicDetails[] = [
+export const mockCourses: CourseBasicDetails[] = [
   {
     courseCode: 'MO-IT200',
     courseName: 'Web Technology Applications',
