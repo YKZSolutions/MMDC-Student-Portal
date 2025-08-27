@@ -34,24 +34,23 @@ enum UserStatus {
 }
 
 model User {
-  id             String          @id @default(uuid()) @db.Uuid
+  id              String           @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  userAccount    UserAccount?
+  userAccount     UserAccount?
   /// @DtoApiHidden
-  userDetails    UserDetails?
+  userDetails     UserDetails?
   /// @DtoApiHidden
-  studentDetails StudentDetails?
+  studentDetails  StudentDetails?
   /// @DtoApiHidden
-  staffDetails   StaffDetails?
+  staffDetails    StaffDetails?
   /// @DtoApiHidden
-  bills          Bill[]
+  bills           Bill[]
   /// @DtoApiHidden
-  notifications  Notification[]
+  notifications   Notification[]
   /// @DtoApiHidden
   courseEnrollment CourseEnrollment[]
   /// @DtoApiHidden
-  courseSections CourseSection[]
-
+  courseSections  CourseSection[]
 
   firstName  String
   middleName String?
@@ -171,13 +170,13 @@ model Program {
 }
 
 model Major {
-  id        String   @id @default(uuid()) @db.Uuid
-  programId String   @db.Uuid
+  id        String  @id @default(uuid()) @db.Uuid
+  programId String  @db.Uuid
   /// @DtoApiHidden
-  program   Program  @relation(fields: [programId], references: [id])
+  program   Program @relation(fields: [programId], references: [id])
 
   /// @DtoApiHidden
-  courses   Course[]
+  courses Course[]
 
   name        String @unique
   description String
@@ -191,7 +190,7 @@ model Major {
 }
 
 model Course {
-  id    String  @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
   /// @DtoApiHidden
   major Major[]
@@ -231,17 +230,17 @@ enum EnrollmentStatus {
 }
 
 model EnrollmentPeriod {
-  id  String @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
   courseOfferings CourseOffering[] // An enrollment can have multiple offerings
 
   startYear Int
-  endYear Int
+  endYear   Int
 
   term Int
-  
+
   startDate DateTime
-  endDate DateTime
+  endDate   DateTime
 
   status EnrollmentStatus
 
@@ -254,13 +253,13 @@ model EnrollmentPeriod {
 }
 
 model CourseOffering {
-  id  String @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
   courseId String @db.Uuid // Each offering belongs to one course
   /// @DtoApiHidden
-  course Course @relation(fields: [courseId], references: [id]) 
+  course   Course @relation(fields: [courseId], references: [id])
 
-  periodId String @db.Uuid  // Each offering belongs to one enrollment period
+  periodId         String           @db.Uuid // Each offering belongs to one enrollment period
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
 
@@ -286,22 +285,24 @@ enum Days {
 }
 
 model CourseSection {
-  id  String @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
+
+  name String @unique
 
   mentorId String @db.Uuid // Each section belong to one mentor
   /// @DtoApiHidden
-  user User @relation(fields: [mentorId], references: [id])
+  user     User   @relation(fields: [mentorId], references: [id])
 
-  courseOfferingId String @db.Uuid  // Each section belong to one offering
+  courseOfferingId String         @db.Uuid // Each section belong to one offering
   /// @DtoApiHidden
-  courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
   courseEnrollments CourseEnrollment[] // Each course section has multiple student enrolled
 
   maxSlot Int
 
   startSched String
-  endSched String
+  endSched   String
 
   days Days[]
 
@@ -324,22 +325,22 @@ enum CourseEnrollmentStatus {
 }
 
 model CourseEnrollment {
-  id  String @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  courseOfferingId String  @db.Uuid  // Each enrolled courses belong to one offering
+  courseOfferingId String         @db.Uuid // Each enrolled courses belong to one offering
   /// @DtoApiHidden
-  courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
   courseSectionId String @db.Uuid // Each student enrollment belong to one section
   /// @DtoApiHidden
   courseSection CourseSection @relation(fields: [courseSectionId], references: [id])
 
-  studentId String  @db.Uuid  // Each enrolled course belong to one user i.e student
+  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
-  user User @relation(fields: [studentId], references: [id])
+  user      User   @relation(fields: [studentId], references: [id])
 
-  status CourseEnrollmentStatus
-  startedAt DateTime
+  status      CourseEnrollmentStatus
+  startedAt   DateTime
   completedAt DateTime?
 
   /// @DtoReadOnly
@@ -369,18 +370,18 @@ model Bill {
   id     String  @id @default(uuid()) @db.Uuid
   userId String? @db.Uuid
 
-  user         User?         @relation(fields: [userId], references: [id])
+  user             User?             @relation(fields: [userId], references: [id])
   /// @DtoApiHidden
   billInstallments BillInstallment[]
   /// @DtoApiHidden
-  billPayments BillPayment[]
+  billPayments     BillPayment[]
 
-  invoiceId     Int      @default(autoincrement())
+  invoiceId     Int           @default(autoincrement())
   payerName     String
   payerEmail    String
   billType      BillType
-  paymentScheme      PaymentScheme
-  totalAmount   Decimal  @db.Decimal(10, 2)
+  paymentScheme PaymentScheme
+  totalAmount   Decimal       @db.Decimal(10, 2)
   /// [CostBreakdown]
   /// @DtoOverrideType(PrismaJson.CostBreakdown)
   costBreakdown Json
@@ -394,17 +395,17 @@ model Bill {
 }
 
 model BillInstallment {
-  id String @id @default(uuid()) @db.Uuid
-  billId String @db.Uuid
+  id           String        @id @default(uuid()) @db.Uuid
+  billId       String        @db.Uuid
   /// @DtoApiHidden
-  bill   Bill   @relation(fields: [billId], references: [id])
+  bill         Bill          @relation(fields: [billId], references: [id])
   /// @DtoApiHidden
   billPayments BillPayment[]
 
-  name String
+  name             String
   installmentOrder Int
-  amountToPay Decimal  @db.Decimal(10, 2)
-  dueAt         DateTime
+  amountToPay      Decimal  @db.Decimal(10, 2)
+  dueAt            DateTime
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -423,22 +424,22 @@ enum PaymentType {
 }
 
 model BillPayment {
-  id     String @id @default(uuid()) @db.Uuid
-  billId String @db.Uuid
+  id            String           @id @default(uuid()) @db.Uuid
+  billId        String           @db.Uuid
   /// @DtoApiHidden
-  bill   Bill   @relation(fields: [billId], references: [id])
-  installmentId String? @db.Uuid
+  bill          Bill             @relation(fields: [billId], references: [id])
+  installmentId String?          @db.Uuid
   /// @DtoApiHidden
-  installment   BillInstallment?   @relation(fields: [installmentId], references: [id])
+  installment   BillInstallment? @relation(fields: [installmentId], references: [id])
 
   installmentOrder Int
-  amountPaid   Decimal  @db.Decimal(10, 2)
-  paymentType  PaymentType
-  notes        String
-  paymentDate  DateTime
+  amountPaid       Decimal     @db.Decimal(10, 2)
+  paymentType      PaymentType
+  notes            String
+  paymentDate      DateTime
   /// [PayMongoData]
   /// @DtoOverrideType(PrismaJson.PayMongoData)
-  paymongoData Json?
+  paymongoData     Json?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

@@ -260,21 +260,10 @@ export type CreateCourseDto = {
     coreqIds?: Array<string>;
 };
 
-export type Course = {
+export type CourseRelationDto = {
     id: string;
-    prereqs?: Array<Course>;
-    prereqFor?: Array<Course>;
-    coreqs?: Array<Course>;
-    coreqFor?: Array<Course>;
     courseCode: string;
     name: string;
-    description: string;
-    year: string;
-    semester: string;
-    units: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
 };
 
 export type CourseDto = {
@@ -288,6 +277,10 @@ export type CourseDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    prereqs: Array<CourseRelationDto>;
+    prereqFor: Array<CourseRelationDto>;
+    coreqs: Array<CourseRelationDto>;
+    coreqFor: Array<CourseRelationDto>;
 };
 
 export type PaginatedCoursesDto = {
@@ -566,6 +559,11 @@ export type ChatbotResponseDto = {
 };
 
 export type CreateMajorDto = {
+    name: string;
+    description: string;
+};
+
+export type CreateProgramMajorDto = {
     major: CreateMajorDto;
     programId: string;
 };
@@ -637,6 +635,7 @@ export type CourseOfferingDto = {
 export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
 export type CreateCourseSectionFullDto = {
+    name: string;
     maxSlot: number;
     days: Array<Days>;
     startSched: string;
@@ -646,6 +645,7 @@ export type CreateCourseSectionFullDto = {
 
 export type CourseSectionDto = {
     id: string;
+    name: string;
     maxSlot: number;
     startSched: string;
     endSched: string;
@@ -1177,7 +1177,7 @@ export type CoursesControllerCreateErrors = {
 export type CoursesControllerCreateError = CoursesControllerCreateErrors[keyof CoursesControllerCreateErrors];
 
 export type CoursesControllerCreateResponses = {
-    201: Course;
+    201: CourseDto;
 };
 
 export type CoursesControllerCreateResponse = CoursesControllerCreateResponses[keyof CoursesControllerCreateResponses];
@@ -1244,7 +1244,7 @@ export type CoursesControllerFindOneErrors = {
 export type CoursesControllerFindOneError = CoursesControllerFindOneErrors[keyof CoursesControllerFindOneErrors];
 
 export type CoursesControllerFindOneResponses = {
-    200: Course;
+    200: CourseDto;
 };
 
 export type CoursesControllerFindOneResponse = CoursesControllerFindOneResponses[keyof CoursesControllerFindOneResponses];
@@ -1279,7 +1279,7 @@ export type CoursesControllerUpdateErrors = {
 export type CoursesControllerUpdateError = CoursesControllerUpdateErrors[keyof CoursesControllerUpdateErrors];
 
 export type CoursesControllerUpdateResponses = {
-    200: Course;
+    200: CourseDto;
 };
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
@@ -1957,7 +1957,7 @@ export type MajorControllerFindAllResponses = {
 export type MajorControllerFindAllResponse = MajorControllerFindAllResponses[keyof MajorControllerFindAllResponses];
 
 export type MajorControllerCreateData = {
-    body: CreateMajorDto;
+    body: CreateProgramMajorDto;
     path?: never;
     query?: never;
     url: '/major';
