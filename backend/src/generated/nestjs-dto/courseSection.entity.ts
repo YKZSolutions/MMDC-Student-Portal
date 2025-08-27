@@ -5,6 +5,10 @@ import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
+import {
+  CourseEnrollment,
+  type CourseEnrollment as CourseEnrollmentAsType,
+} from './courseEnrollment.entity';
 
 export class CourseSection {
   @ApiProperty({
@@ -23,6 +27,12 @@ export class CourseSection {
   courseOfferingId: string;
   @ApiHideProperty()
   courseOffering?: CourseOfferingAsType;
+  @ApiProperty({
+    type: () => CourseEnrollment,
+    isArray: true,
+    required: false,
+  })
+  courseEnrollments?: CourseEnrollmentAsType[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',

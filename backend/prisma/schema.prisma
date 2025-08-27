@@ -48,7 +48,7 @@ model User {
   /// @DtoApiHidden
   notifications  Notification[]
   /// @DtoApiHidden
-  enrolledCourses EnrolledCourse[]
+  courseEnrollment CourseEnrollment[]
   /// @DtoApiHidden
   courseSections CourseSection[]
 
@@ -256,15 +256,15 @@ model EnrollmentPeriod {
 model CourseOffering {
   id  String @id @default(uuid()) @db.Uuid
 
-  courseId String @db.Uuid // Each enrollable belongs to one course
+  courseId String @db.Uuid // Each offering belongs to one course
   /// @DtoApiHidden
   course Course @relation(fields: [courseId], references: [id]) 
 
-  periodId String @db.Uuid  // Each enrollable belongs to one enrollment period
+  periodId String @db.Uuid  // Each offering belongs to one enrollment period
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
 
-  enrolledCourses EnrolledCourse[] // Each offering can have multiple enrolled
+  courseEnrollment CourseEnrollment[] // Each offering can have multiple enrollments
 
   courseSections CourseSection[] // Each offering can have multiple sections
 
@@ -296,6 +296,8 @@ model CourseSection {
   /// @DtoApiHidden
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
+  courseEnrollments CourseEnrollment[] // Each course section has multiple student enrolled
+
   maxSlot Int
 
   startSched String
@@ -311,27 +313,34 @@ model CourseSection {
   deletedAt DateTime?
 }
 
-enum EnrolledCourseStatus {
+enum CourseEnrollmentStatus {
   enlisted
+  finalized
   enrolled
-  dropped
   completed
+  incomplete
+  dropped
+  failed
 }
 
-model EnrolledCourse {
+model CourseEnrollment {
   id  String @id @default(uuid()) @db.Uuid
 
   courseOfferingId String  @db.Uuid  // Each enrolled courses belong to one offering
   /// @DtoApiHidden
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
+  courseSectionId String @db.Uuid // Each student enrollment belong to one section
+  /// @DtoApiHidden
+  courseSection CourseSection @relation(fields: [courseSectionId], references: [id])
+
   studentId String  @db.Uuid  // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
   user User @relation(fields: [studentId], references: [id])
 
-  status EnrolledCourseStatus
+  status CourseEnrollmentStatus
   startedAt DateTime
-  completedAt DateTime
+  completedAt DateTime?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

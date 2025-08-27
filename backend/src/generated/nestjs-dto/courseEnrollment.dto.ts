@@ -1,16 +1,16 @@
-import { EnrolledCourseStatus } from '@prisma/client';
+import { CourseEnrollmentStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class EnrolledCourseDto {
+export class CourseEnrollmentDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    enum: EnrolledCourseStatus,
-    enumName: 'EnrolledCourseStatus',
+    enum: CourseEnrollmentStatus,
+    enumName: 'CourseEnrollmentStatus',
   })
-  status: EnrolledCourseStatus;
+  status: CourseEnrollmentStatus;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -19,8 +19,9 @@ export class EnrolledCourseDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',
+    nullable: true,
   })
-  completedAt: Date;
+  completedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
