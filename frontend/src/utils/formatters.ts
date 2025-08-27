@@ -46,3 +46,9 @@ export const capitalizeFirstLetter = (string: string) => {
   if (!string) return ''
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
+
+export function formatOrdinal(n: number) {
+  const suffixes = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0])
+}
