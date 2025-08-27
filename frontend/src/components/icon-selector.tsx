@@ -16,7 +16,7 @@ type ModuleItemIconProps = Omit<IconProps, 'size'> & {
 } & BoxProps
 
 type CompletedStatusIconProps = Omit<IconProps, 'size' | 'color'> & {
-  status: string
+  status: string | undefined
   size?: number
 } & BoxProps
 

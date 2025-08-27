@@ -2,6 +2,8 @@ import {
   Accordion,
   type AccordionControlProps,
   ActionIcon,
+  Box,
+  Card,
   Group,
   type GroupProps,
   Menu,
@@ -17,15 +19,8 @@ import type {
   CourseModule,
   ModuleItem,
 } from '@/features/courses/modules/types.ts'
-import type {
-  AssignmentType,
-  SubmissionStatus,
-} from '@/features/courses/assignments/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import {
-  CompletedStatusIcon,
-  ModuleItemIcon,
-} from '@/components/icon-selector.tsx'
+import { CompletedStatusIcon } from '@/components/icon-selector.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import SubmitButton from '@/components/submit-button.tsx'
@@ -290,20 +285,15 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
                   styles={{
                     content: {
                       padding: '8px',
-                      borderTop: `1px solid ${theme.colors.gray[3]}`,
                     },
                   }}
                 >
-                  <CustomAccordionControl
-                    title={
-                      item.content?.title ?? item.assignment?.title ?? 'N/A'
-                    }
-                    isItem={true}
-                    isRead={item.content?.isCompleted ?? false}
-                    isSubmission={item.type === 'assignment'}
-                    assignmentType={item.assignment?.type}
-                    submissionStatus={getSubmissionStatus(item.assignment)}
-                    dueDate={item.assignment?.dueDate}
+                  <ModuleItemCard
+                    key={item.id}
+                    item={item}
+                    onItemClick={() => {
+                      /* TODO: Handle item click */
+                    }}
                   />
                 </Accordion.Panel>
               ))}
@@ -328,16 +318,90 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
   )
 }
 
+interface ModuleItemCardProps {
+  item: ModuleItem
+  onItemClick: () => void
+}
+
+const ModuleItemCard = ({ item, onItemClick }: ModuleItemCardProps) => {
+  const { authUser } = useAuth('protected')
+  const theme = useMantineTheme()
+
+  return (
+    <Card
+      withBorder
+      radius="md"
+      p="sm"
+      style={{
+        cursor: 'pointer',
+        borderLeft: `3px solid ${item.type === 'reading' ? theme.colors.blue[5] : theme.colors.green[5]}`,
+        boxShadow: `0px 0px 8px ${theme.colors.gray[4]} inset`,
+      }}
+      onClick={onItemClick}
+      bg={'background'}
+    >
+      <Group justify="space-between" align="center">
+        <Group gap="sm">
+          {authUser.role === 'student' && (
+            <CompletedStatusIcon
+              status={
+                item.type === 'reading'
+                  ? item.content?.isCompleted
+                    ? 'read'
+                    : 'unread'
+                  : getSubmissionStatus(item.assignment)
+              }
+            />
+          )}
+
+          <Box>
+            <Text fw={500}>{item.title}</Text>
+            <Text size="sm" c="dimmed">
+              {item.type === 'reading'
+                ? 'Reading Material'
+                : `Due: ${formatTimestampToDateTimeText(item.assignment?.dueDate || '', 'by')}`}
+            </Text>
+          </Box>
+        </Group>
+
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <>
+                {item.type === 'assignment' && (
+                  <SubmitButton
+                    submissionStatus={
+                      getSubmissionStatus(item.assignment) || 'pending'
+                    }
+                    onClick={() => {}}
+                    dueDate={item.assignment?.dueDate || ''}
+                    assignmentStatus={item.assignment?.status || 'open'}
+                  />
+                )}
+              </>
+            ),
+            admin: (
+              <Group gap="xs">
+                <ActionIcon variant="subtle" radius="lg">
+                  <IconEdit size={16} />
+                </ActionIcon>
+                <ActionIcon variant="subtle" color="red" radius="lg">
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Group>
+            ),
+          }}
+        />
+      </Group>
+    </Card>
+  )
+}
+
 type CustomAccordionControlProps = {
   title: string
   completedItemsCount?: number
   totalItemsCount?: number
-  isItem?: boolean
-  isSubmission?: boolean
-  isRead?: boolean
-  assignmentType?: AssignmentType
-  submissionStatus?: SubmissionStatus
-  dueDate?: string
   accordionControlProps?: AccordionControlProps
 } & GroupProps
 
@@ -345,12 +409,6 @@ function CustomAccordionControl({
   title,
   completedItemsCount,
   totalItemsCount,
-  isItem,
-  isSubmission,
-  isRead,
-  assignmentType,
-  submissionStatus,
-  dueDate,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
@@ -363,94 +421,45 @@ function CustomAccordionControl({
       justify="space-between"
       align="center"
       h={'100%'}
-      p={!isItem ? 'lg' : 'xs'}
+      py={'md'}
+      px={'sm'}
       {...props}
     >
-      <Group
-        gap={isItem ? 'md' : 'none'}
-        ml={isItem ? 'xs' : 'none'}
-        wrap="nowrap"
-      >
-        {!isItem && <Accordion.Control w={52} {...accordionControlProps} />}
-
-        {isItem && authUser.role === 'student' && (
-          <CompletedStatusIcon status={isRead ? 'read' : submissionStatus!} />
-        )}
+      <Group wrap="nowrap">
+        <Accordion.Control w={52} {...accordionControlProps} />
 
         <Group gap={'sm'} wrap="nowrap">
-          {isItem && (
-            <ModuleItemIcon type={assignmentType ?? 'readings'} stroke={1} />
-          )}
-
           <Stack gap={'1'}>
             <Title order={4} fw={600}>
               {title}
             </Title>
-            <Text size="md" c={'dark.4'} fw={400}>
-              {isItem
-                ? !isSubmission
-                  ? 'View Content'
-                  : dueDate
-                    ? `Due: ${formatTimestampToDateTimeText(dueDate, 'by')}`
-                    : 'Anytime'
-                : ''}
-            </Text>
           </Stack>
         </Group>
       </Group>
-      <RoleComponentManager
-        currentRole={authUser.role}
-        roleRender={{
-          student: (
-            <>
-              {isItem
-                ? isSubmission && (
-                    <SubmitButton
-                      submissionStatus={submissionStatus!}
-                      onClick={() => {}}
-                      dueDate={''}
-                      assignmentStatus={'open'}
-                    />
-                  )
-                : totalItemsCount && (
-                    <Text>
-                      Completed: <strong>{completedItemsCount}</strong> out of{' '}
-                      <strong>{totalItemsCount}</strong>
-                    </Text>
-                  )}
-            </>
-          ),
-          admin: (
-            <>
-              <Group>
-                <ActionIcon variant="subtle" radius="lg">
-                  <IconEdit size={'70%'} />
-                </ActionIcon>
-                <Menu shadow="md" width={200}>
-                  <Menu.Target>
-                    <ActionIcon variant="default" radius="lg">
-                      <IconDotsVertical size={'70%'} />
-                    </ActionIcon>
-                  </Menu.Target>
+      {authUser.role === 'admin' && (
+        <Group>
+          <ActionIcon variant="subtle" radius="lg">
+            <IconEdit size={'70%'} />
+          </ActionIcon>
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <ActionIcon variant="default" radius="lg">
+                <IconDotsVertical size={'70%'} />
+              </ActionIcon>
+            </Menu.Target>
 
-                  <Menu.Dropdown>
-                    <Menu.Label>Actions</Menu.Label>
-                    <Menu.Item leftSection={<IconSettings size={14} />}>
-                      Settings
-                    </Menu.Item>
-                    <Menu.Item
-                      color="red"
-                      leftSection={<IconTrash size={14} />}
-                    >
-                      Delete {assignmentType}
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Group>
-            </>
-          ),
-        }}
-      />
+            <Menu.Dropdown>
+              <Menu.Label>Actions</Menu.Label>
+              <Menu.Item leftSection={<IconSettings size={14} />}>
+                Settings
+              </Menu.Item>
+              <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
+                Delete Item
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      )}
     </Group>
   )
 }
