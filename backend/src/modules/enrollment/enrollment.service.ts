@@ -2,11 +2,11 @@ import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollm
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
 import { CreateCourseSectionFullDto } from './dto/create-courseSection.dto';
@@ -26,6 +26,8 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
 import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
+import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
+import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -33,6 +35,10 @@ export class EnrollmentService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
+
+  // ===========================================================================
+  // ENROLLMENT PERIOD
+  // ===========================================================================
 
   /**
    * Creates a new enrollment period.
@@ -56,84 +62,6 @@ export class EnrollmentService {
   ): Promise<EnrollmentPeriodDto> {
     return await this.prisma.client.enrollmentPeriod.create({
       data: { ...createEnrollmentPeriodDto },
-    });
-  }
-
-  /**
-   * Creates a new course offering under a specific enrollment period.
-   *
-   * @param periodId - The ID of the enrollment period
-   * @param createCourseOfferingDto - DTO containing the course offering details
-   * @returns The created {@link CourseOfferingDto}
-   *
-   * @throws NotFoundException - If the enrollment period or course does not exist
-   * @throws BadRequestException - If invalid references are provided
-   */
-  @Log({
-    logArgsMessage: ({ periodId, courseOffering }) =>
-      `Creating course offering [${courseOffering.code}] for period [${periodId}]`,
-    logSuccessMessage: (offering, periodId) =>
-      `Course offering [${offering.id}] successfully created for period [${periodId}]`,
-    logErrorMessage: (err, { periodId, courseOffering }) =>
-      `Error creating course offering [${courseOffering.code}] for period [${periodId}] | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RelatedRecordNotFound]: (
-      _,
-      { periodId, courseOffering },
-    ) =>
-      new NotFoundException(
-        `Enrollment period [${periodId}] or Course [${courseOffering.courseId}] does not exist.`,
-      ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { periodId, courseOffering }) =>
-      new BadRequestException(
-        `Invalid reference: Enrollment period [${periodId}] or Course [${courseOffering.courseId}] is invalid.`,
-      ),
-  })
-  async createCourseOffering(
-    @LogParam('periodId') periodId: string,
-    @LogParam('courseOffering')
-    createCourseOfferingDto: CreateCourseOfferingDto,
-  ): Promise<CourseOfferingDto> {
-    return await this.prisma.client.courseOffering.create({
-      data: { ...createCourseOfferingDto, periodId },
-    });
-  }
-
-  /**
-   * Creates a new course section under a specific course offering.
-   *
-   * @param offeringId - The ID of the course offering
-   * @param createCourseSectionFullDto - DTO containing the course section details
-   * @returns The created {@link CourseSectionDto}
-   *
-   * @throws NotFoundException - If the course offering or mentor does not exist
-   * @throws BadRequestException - If invalid references are provided
-   */
-  @Log({
-    logArgsMessage: ({ offeringId, section }) =>
-      `Creating course section [${section.days} ${section.startSched}-${section.endSched}] for offering [${offeringId}]`,
-    logSuccessMessage: (offeringId, section) =>
-      `Course section [${section.id}] successfully created for offering [${offeringId}]`,
-    logErrorMessage: (err, { offeringId }) =>
-      `Error creating course section for offering [${offeringId}] | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RelatedRecordNotFound]: (_, { offeringId, section }) =>
-      new NotFoundException(
-        `Course offering [${offeringId}] or mentor [${section.mentorId}] does not exist.`,
-      ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { offeringId, section }) =>
-      new BadRequestException(
-        `Invalid reference: Course offering [${offeringId}] or mentor [${section.mentorId}] is invalid.`,
-      ),
-  })
-  async createCourseSection(
-    @LogParam('offeringId') offeringId: string,
-    @LogParam('section') createCourseSectionFullDto: CreateCourseSectionFullDto,
-  ): Promise<CourseSectionDto> {
-    return await this.prisma.client.courseSection.create({
-      data: { ...createCourseSectionFullDto, courseOfferingId: offeringId },
     });
   }
 
@@ -164,58 +92,6 @@ export class EnrollmentService {
   }
 
   /**
-   * Retrieves a paginated list of course offerings.
-   *
-   * @param filters - Pagination filters
-   * @returns A paginated list of course offerings
-   */
-  @Log({
-    logArgsMessage: ({ filters }) =>
-      `Fetching course offerings | page: ${filters.page}`,
-    logSuccessMessage: (result) =>
-      `Fetched ${result.courseOfferings.length} course offerings (page ${result.meta.currentPage} of ${result.meta.pageCount})`,
-    logErrorMessage: (err, { filters }) =>
-      `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
-  })
-  async findAllCourseOfferings(
-    @LogParam('filters') filters: BaseFilterDto,
-  ): Promise<PaginatedCourseOfferingsDto> {
-    const page = filters.page || 1;
-
-    const [courseOfferings, meta] = await this.prisma.client.courseOffering
-      .paginate()
-      .withPages({ limit: 10, page, includePageCount: true });
-
-    return { courseOfferings, meta };
-  }
-
-  /**
-   * Retrieves a paginated list of course sections.
-   *
-   * @param filters - Pagination filters
-   * @returns A paginated list of course sections with metadata
-   */
-  @Log({
-    logArgsMessage: ({ filters }) =>
-      `Fetching course sections | page: ${filters.page}`,
-    logSuccessMessage: (result) =>
-      `Fetched ${result.courseSections.length} course sections (page ${result.meta.currentPage} of ${result.meta.pageCount})`,
-    logErrorMessage: (err, { filters }) =>
-      `Error fetching course sections | page: ${filters.page ?? 1} | Error: ${err.message}`,
-  })
-  async findAllCourseSections(
-    @LogParam('filters') filters: BaseFilterDto,
-  ): Promise<PaginatedCourseSectionsDto> {
-    const page = filters.page || 1;
-
-    const [courseSections, meta] = await this.prisma.client.courseSection
-      .paginate()
-      .withPages({ limit: 10, page, includePageCount: true });
-
-    return { courseSections, meta };
-  }
-
-  /**
    * Retrieves a single enrollment period by ID.
    *
    * @param id - The enrollment period ID
@@ -238,81 +114,8 @@ export class EnrollmentService {
   async findOneEnrollment(
     @LogParam('id') id: string,
   ): Promise<EnrollmentPeriodDto> {
-    this.validateUUID(id);
-
     return await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
       where: { id },
-    });
-  }
-
-  /**
-   * Retrieves a single course offering by ID.
-   *
-   * @param offeringId - The course offering ID
-   * @returns The corresponding {@link CourseOfferingDto}
-   *
-   * @throws NotFoundException - If the course offering does not exist
-   * @throws BadRequestException - If the ID format is invalid
-   */
-  @Log({
-    logArgsMessage: ({ offeringId }) =>
-      `Fetching course offering [${offeringId}]`,
-    logSuccessMessage: (offering) =>
-      `Course offering [${offering.id}] successfully retrieved.`,
-    logErrorMessage: (err, { offeringId }) =>
-      `Error fetching course offering [${offeringId}] | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { offeringId }) =>
-      new NotFoundException(`Course offering [${offeringId}] not found.`),
-  })
-  async findOneCourseOffering(
-    @LogParam('offeringId') offeringId: string,
-  ): Promise<CourseOfferingDto> {
-    this.validateUUID(offeringId);
-
-    return await this.prisma.client.courseOffering.findUniqueOrThrow({
-      where: { id: offeringId },
-    });
-  }
-
-  /**
-   * Retrieves a single course section under a specific offering.
-   *
-   * @param offeringId - The course offering ID
-   * @param sectionId - The course section ID
-   * @returns The corresponding {@link CourseSectionDto}
-   *
-   * @throws NotFoundException - If the course section or offering does not exist
-   * @throws BadRequestException - If the ID format is invalid
-   */
-  @Log({
-    logArgsMessage: ({ offeringId, sectionId }) =>
-      `Fetching course section [${sectionId}] for offering [${offeringId}]`,
-    logSuccessMessage: (section) =>
-      `Course section [${section.id}] successfully retrieved.`,
-    logErrorMessage: (err, { sectionId }) =>
-      `Error fetching course section [${sectionId}] | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { sectionId }) =>
-      new NotFoundException(`Course section [${sectionId}] not found.`),
-    [PrismaErrorCode.RelatedRecordNotFound]: (_, { offeringId }) =>
-      new NotFoundException(
-        `Course offering [${offeringId}] not found for this section.`,
-      ),
-  })
-  async findOneCourseSection(
-    @LogParam('offeringId') offeringId: string,
-    @LogParam('sectionId') sectionId: string,
-  ): Promise<CourseSectionDto> {
-    this.validateUUID(offeringId, sectionId);
-
-    return await this.prisma.client.courseSection.findFirstOrThrow({
-      where: { id: sectionId, courseOfferingId: offeringId },
-      include: {
-        courseOffering: true,
-      },
     });
   }
 
@@ -371,8 +174,6 @@ export class EnrollmentService {
     @LogParam('id') id: string,
     updateEnrollmentDto: UpdateEnrollmentDto,
   ): Promise<EnrollmentPeriodDto> {
-    this.validateUUID(id);
-
     const enrollment =
       await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
         where: { id },
@@ -387,6 +188,325 @@ export class EnrollmentService {
     return await this.prisma.client.enrollmentPeriod.update({
       where: { id },
       data: { ...updateEnrollmentDto },
+    });
+  }
+
+  /**
+   * Removes (soft or hard deletes) an enrollment period.
+   *
+   * @param id - The enrollment period ID
+   * @param directDelete - If true, permanently deletes instead of soft-deleting
+   * @returns A confirmation message
+   *
+   * @throws NotFoundException - If the enrollment does not exist
+   * @throws BadRequestException - If the enrollment is closed or still referenced
+   */
+  @Log({
+    logArgsMessage: ({ id, directDelete }) =>
+      `Removing enrollment [${id}] | directDelete: ${directDelete ?? false}`,
+    logSuccessMessage: (_, { id, directDelete }) =>
+      directDelete
+        ? `Enrollment [${id}] permanently deleted.`
+        : `Enrollment [${id}] marked for deletion.`,
+    logErrorMessage: (err, { id }) =>
+      `Error removing enrollment [${id}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Enrollment [${id}] not found.`),
+    [PrismaErrorCode.ForeignKeyConstraint]: (_, { id }) =>
+      new BadRequestException(
+        `Enrollment [${id}] cannot be deleted because it is still referenced by other records.`,
+      ),
+  })
+  async removeEnrollment(
+    @LogParam('id') id: string,
+    @LogParam('directDelete') directDelete?: boolean,
+  ) {
+    const enrollment =
+      await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
+        where: { id },
+      });
+
+    if (enrollment.status === 'closed') {
+      throw new BadRequestException(
+        `Enrollment ${id} is closed and cannot be deleted.`,
+      );
+    }
+
+    if (!directDelete && !enrollment.deletedAt) {
+      await this.prisma.client.enrollmentPeriod.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+
+      return { message: 'Enrollment period marked for deletion' };
+    }
+
+    await this.prisma.client.enrollmentPeriod.delete({
+      where: { id },
+    });
+
+    return { message: 'Enrollment permanently deleted' };
+  }
+
+  // ===========================================================================
+  // COURSE OFFERINGS
+  // ===========================================================================
+
+  /**
+   * Creates a new course offering under a specific enrollment period.
+   *
+   * @param periodId - The ID of the enrollment period
+   * @param createCourseOfferingDto - DTO containing the course offering details
+   * @returns The created {@link CourseOfferingDto}
+   *
+   * @throws NotFoundException - If the enrollment period or course does not exist
+   * @throws BadRequestException - If invalid references are provided
+   */
+  @Log({
+    logArgsMessage: ({ periodId, courseOffering }) =>
+      `Creating course offering [${courseOffering.code}] for period [${periodId}]`,
+    logSuccessMessage: (offering, periodId) =>
+      `Course offering [${offering.id}] successfully created for period [${periodId}]`,
+    logErrorMessage: (err, { periodId, courseOffering }) =>
+      `Error creating course offering [${courseOffering.code}] for period [${periodId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RelatedRecordNotFound]: (
+      _,
+      { periodId, courseOffering },
+    ) =>
+      new NotFoundException(
+        `Enrollment period [${periodId}] or Course [${courseOffering.courseId}] does not exist.`,
+      ),
+    [PrismaErrorCode.ForeignKeyConstraint]: (_, { periodId, courseOffering }) =>
+      new BadRequestException(
+        `Invalid reference: Enrollment period [${periodId}] or Course [${courseOffering.courseId}] is invalid.`,
+      ),
+  })
+  async createCourseOffering(
+    @LogParam('periodId') periodId: string,
+    @LogParam('courseOffering')
+    createCourseOfferingDto: CreateCourseOfferingDto,
+  ): Promise<CourseOfferingDto> {
+    return await this.prisma.client.courseOffering.create({
+      data: { ...createCourseOfferingDto, periodId },
+    });
+  }
+
+  /**
+   * Retrieves a paginated list of course offerings.
+   *
+   * @param filters - Pagination filters
+   * @returns A paginated list of course offerings
+   */
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Fetching course offerings | page: ${filters.page}`,
+    logSuccessMessage: (result) =>
+      `Fetched ${result.courseOfferings.length} course offerings (page ${result.meta.currentPage} of ${result.meta.pageCount})`,
+    logErrorMessage: (err, { filters }) =>
+      `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
+  })
+  async findAllCourseOfferings(
+    @LogParam('filters') filters: BaseFilterDto,
+    periodId?: string,
+  ): Promise<PaginatedCourseOfferingsDto> {
+    const page = filters.page || 1;
+
+    const [courseOfferings, meta] = await this.prisma.client.courseOffering
+      .paginate({
+        where: periodId ? { periodId } : undefined,
+      })
+      .withPages({ limit: 10, page, includePageCount: true });
+
+    return { courseOfferings, meta };
+  }
+
+  /**
+   * Retrieves a single course offering by ID.
+   *
+   * @param offeringId - The course offering ID
+   * @returns The corresponding {@link CourseOfferingDto}
+   *
+   * @throws NotFoundException - If the course offering does not exist
+   * @throws BadRequestException - If the ID format is invalid
+   */
+  @Log({
+    logArgsMessage: ({ offeringId }) =>
+      `Fetching course offering [${offeringId}]`,
+    logSuccessMessage: (offering) =>
+      `Course offering [${offering.id}] successfully retrieved.`,
+    logErrorMessage: (err, { offeringId }) =>
+      `Error fetching course offering [${offeringId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { offeringId }) =>
+      new NotFoundException(`Course offering [${offeringId}] not found.`),
+  })
+  async findOneCourseOffering(
+    @LogParam('offeringId') offeringId: string,
+  ): Promise<CourseOfferingDto> {
+    return await this.prisma.client.courseOffering.findUniqueOrThrow({
+      where: { id: offeringId },
+    });
+  }
+
+  /**
+   * Removes a course offering from a specific enrollment period.
+   *
+   * @param periodId - The enrollment period ID
+   * @param courseOfferingId - The course offering ID
+   * @returns A confirmation message
+   *
+   * @throws NotFoundException - If the course offering does not exist
+   * @throws BadRequestException - If the enrollment is closed or offering is referenced
+   */
+  @Log({
+    logArgsMessage: ({ periodId, courseOfferingId }) =>
+      `Removing course offering [${courseOfferingId}] from period [${periodId}]`,
+    logSuccessMessage: (result) => result.message,
+    logErrorMessage: (err, { courseOfferingId }) =>
+      `Error removing course offering [${courseOfferingId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { courseOfferingId, periodId }) =>
+      new NotFoundException(
+        `Course offering [${courseOfferingId}] not found in enrollment period [${periodId}].`,
+      ),
+    [PrismaErrorCode.ForeignKeyConstraint]: (_, { courseOfferingId }) =>
+      new BadRequestException(
+        `Course offering [${courseOfferingId}] cannot be deleted because it is still referenced by other records (e.g., enrolled courses or sections).`,
+      ),
+  })
+  async removeCourseOffering(
+    @LogParam('periodId') periodId: string,
+    @LogParam('courseOfferingId') courseOfferingId: string,
+  ) {
+    // Check if course offering exists
+    const offering = await this.prisma.client.courseOffering.findFirstOrThrow({
+      where: { id: courseOfferingId, periodId: periodId },
+      include: {
+        enrollmentPeriod: true,
+      },
+    });
+
+    if (offering.enrollmentPeriod.status === 'closed') {
+      throw new BadRequestException(
+        `Enrollment ${periodId} is closed and cannot be deleted.`,
+      );
+    }
+
+    await this.prisma.client.courseOffering.deleteMany({
+      where: { id: courseOfferingId, periodId },
+    });
+
+    return { message: 'Course offering removed successfully' };
+  }
+
+  // ===========================================================================
+  // COURSE SECTIONS
+  // ===========================================================================
+
+  /**
+   * Creates a new course section under a specific course offering.
+   *
+   * @param offeringId - The ID of the course offering
+   * @param createCourseSectionFullDto - DTO containing the course section details
+   * @returns The created {@link CourseSectionDto}
+   *
+   * @throws NotFoundException - If the course offering or mentor does not exist
+   * @throws BadRequestException - If invalid references are provided
+   */
+  @Log({
+    logArgsMessage: ({ offeringId, section }) =>
+      `Creating course section [${section.days} ${section.startSched}-${section.endSched}] for offering [${offeringId}]`,
+    logSuccessMessage: (offeringId, section) =>
+      `Course section [${section.id}] successfully created for offering [${offeringId}]`,
+    logErrorMessage: (err, { offeringId }) =>
+      `Error creating course section for offering [${offeringId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RelatedRecordNotFound]: (_, { offeringId, section }) =>
+      new NotFoundException(
+        `Course offering [${offeringId}] or mentor [${section.mentorId}] does not exist.`,
+      ),
+    [PrismaErrorCode.ForeignKeyConstraint]: (_, { offeringId, section }) =>
+      new BadRequestException(
+        `Invalid reference: Course offering [${offeringId}] or mentor [${section.mentorId}] is invalid.`,
+      ),
+  })
+  async createCourseSection(
+    @LogParam('offeringId') offeringId: string,
+    @LogParam('section') createCourseSectionFullDto: CreateCourseSectionFullDto,
+  ): Promise<CourseSectionDto> {
+    return await this.prisma.client.courseSection.create({
+      data: { ...createCourseSectionFullDto, courseOfferingId: offeringId },
+    });
+  }
+
+  /**
+   * Retrieves a paginated list of course sections.
+   *
+   * @param filters - Pagination filters
+   * @returns A paginated list of course sections with metadata
+   */
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Fetching course sections | page: ${filters.page}`,
+    logSuccessMessage: (result) =>
+      `Fetched ${result.courseSections.length} course sections (page ${result.meta.currentPage} of ${result.meta.pageCount})`,
+    logErrorMessage: (err, { filters }) =>
+      `Error fetching course sections | page: ${filters.page ?? 1} | Error: ${err.message}`,
+  })
+  async findAllCourseSections(
+    @LogParam('filters') filters: BaseFilterDto,
+  ): Promise<PaginatedCourseSectionsDto> {
+    const page = filters.page || 1;
+
+    const [courseSections, meta] = await this.prisma.client.courseSection
+      .paginate()
+      .withPages({ limit: 10, page, includePageCount: true });
+
+    return { courseSections, meta };
+  }
+
+  /**
+   * Retrieves a single course section under a specific offering.
+   *
+   * @param offeringId - The course offering ID
+   * @param sectionId - The course section ID
+   * @returns The corresponding {@link CourseSectionDto}
+   *
+   * @throws NotFoundException - If the course section or offering does not exist
+   * @throws BadRequestException - If the ID format is invalid
+   */
+  @Log({
+    logArgsMessage: ({ offeringId, sectionId }) =>
+      `Fetching course section [${sectionId}] for offering [${offeringId}]`,
+    logSuccessMessage: (section) =>
+      `Course section [${section.id}] successfully retrieved.`,
+    logErrorMessage: (err, { sectionId }) =>
+      `Error fetching course section [${sectionId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { sectionId }) =>
+      new NotFoundException(`Course section [${sectionId}] not found.`),
+    [PrismaErrorCode.RelatedRecordNotFound]: (_, { offeringId }) =>
+      new NotFoundException(
+        `Course offering [${offeringId}] not found for this section.`,
+      ),
+  })
+  async findOneCourseSection(
+    @LogParam('offeringId') offeringId: string,
+    @LogParam('sectionId') sectionId: string,
+  ): Promise<CourseSectionDto> {
+    return await this.prisma.client.courseSection.findFirstOrThrow({
+      where: { id: sectionId, courseOfferingId: offeringId },
+      include: {
+        courseOffering: true,
+      },
     });
   }
 
@@ -426,8 +546,6 @@ export class EnrollmentService {
     @LogParam('sectionId') sectionId: string,
     updateCourseSectionDto: UpdateCourseSectionDto,
   ): Promise<CourseSectionDto> {
-    this.validateUUID(offeringId, sectionId);
-
     const section = await this.prisma.client.courseSection.findFirstOrThrow({
       where: {
         id: sectionId,
@@ -446,121 +564,6 @@ export class EnrollmentService {
       where: { id: sectionId },
       data: { ...updateCourseSectionDto },
     });
-  }
-
-  /**
-   * Removes (soft or hard deletes) an enrollment period.
-   *
-   * @param id - The enrollment period ID
-   * @param directDelete - If true, permanently deletes instead of soft-deleting
-   * @returns A confirmation message
-   *
-   * @throws NotFoundException - If the enrollment does not exist
-   * @throws BadRequestException - If the enrollment is closed or still referenced
-   */
-  @Log({
-    logArgsMessage: ({ id, directDelete }) =>
-      `Removing enrollment [${id}] | directDelete: ${directDelete ?? false}`,
-    logSuccessMessage: (_, { id, directDelete }) =>
-      directDelete
-        ? `Enrollment [${id}] permanently deleted.`
-        : `Enrollment [${id}] marked for deletion.`,
-    logErrorMessage: (err, { id }) =>
-      `Error removing enrollment [${id}] | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Enrollment [${id}] not found.`),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { id }) =>
-      new BadRequestException(
-        `Enrollment [${id}] cannot be deleted because it is still referenced by other records.`,
-      ),
-  })
-  async removeEnrollment(
-    @LogParam('id') id: string,
-    @LogParam('directDelete') directDelete?: boolean,
-  ) {
-    this.validateUUID(id);
-
-    const enrollment =
-      await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
-        where: { id },
-      });
-
-    if (enrollment.status === 'closed') {
-      throw new BadRequestException(
-        `Enrollment ${id} is closed and cannot be deleted.`,
-      );
-    }
-
-    if (!directDelete && !enrollment.deletedAt) {
-      await this.prisma.client.enrollmentPeriod.update({
-        where: { id },
-        data: { deletedAt: new Date() },
-      });
-
-      return { message: 'Enrollment period marked for deletion' };
-    }
-
-    await this.prisma.client.enrollmentPeriod.delete({
-      where: { id },
-    });
-
-    return { message: 'Enrollment permanently deleted' };
-  }
-
-  /**
-   * Removes a course offering from a specific enrollment period.
-   *
-   * @param periodId - The enrollment period ID
-   * @param courseOfferingId - The course offering ID
-   * @returns A confirmation message
-   *
-   * @throws NotFoundException - If the course offering does not exist
-   * @throws BadRequestException - If the enrollment is closed or offering is referenced
-   */
-  @Log({
-    logArgsMessage: ({ periodId, courseOfferingId }) =>
-      `Removing course offering [${courseOfferingId}] from period [${periodId}]`,
-    logSuccessMessage: (result) => result.message,
-    logErrorMessage: (err, { courseOfferingId }) =>
-      `Error removing course offering [${courseOfferingId}] | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { courseOfferingId, periodId }) =>
-      new NotFoundException(
-        `Course offering [${courseOfferingId}] not found in enrollment period [${periodId}].`,
-      ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { courseOfferingId }) =>
-      new BadRequestException(
-        `Course offering [${courseOfferingId}] cannot be deleted because it is still referenced by other records (e.g., enrolled courses or sections).`,
-      ),
-  })
-  async removeCourseOffering(
-    @LogParam('periodId') periodId: string,
-    @LogParam('courseOfferingId') courseOfferingId: string,
-  ) {
-    this.validateUUID(periodId, courseOfferingId);
-
-    // Check if course offering exists
-    const offering = await this.prisma.client.courseOffering.findFirstOrThrow({
-      where: { id: courseOfferingId, periodId: periodId },
-      include: {
-        enrollmentPeriod: true,
-      },
-    });
-
-    if (offering.enrollmentPeriod.status === 'closed') {
-      throw new BadRequestException(
-        `Enrollment ${periodId} is closed and cannot be deleted.`,
-      );
-    }
-
-    await this.prisma.client.courseOffering.deleteMany({
-      where: { id: courseOfferingId, periodId },
-    });
-
-    return { message: 'Course offering removed successfully' };
   }
 
   /**
@@ -594,8 +597,6 @@ export class EnrollmentService {
     @LogParam('offeringId') offeringId: string,
     @LogParam('sectionId') sectionId: string,
   ) {
-    this.validateUUID(offeringId, sectionId);
-
     const section = await this.prisma.client.courseSection.findFirstOrThrow({
       where: {
         id: sectionId,
@@ -623,10 +624,139 @@ export class EnrollmentService {
     return { message: 'Section removed successfully' };
   }
 
-  private validateUUID(...ids: string[]) {
-    ids.forEach((id) => {
-      if (!isUUID(id))
-        throw new BadRequestException(`Invalid ID format: ${id}`);
+  // ===========================================================================
+  // STUDENT ENROLLMENT
+  // ===========================================================================
+
+  async createCourseEnrollment(
+    courseSectionId: string,
+    createCourseEnrollmentDto: StudentIdentifierDto,
+  ): Promise<CourseEnrollmentDto> {
+    const { studentId } = createCourseEnrollmentDto;
+    // Retrieve course section, offering, and enrollment period
+    const {
+      id: sectionId,
+      maxSlot,
+      courseOffering: {
+        id: offeringId,
+        enrollmentPeriod: { status: periodStatus },
+      },
+    } = await this.prisma.client.courseSection.findUniqueOrThrow({
+      where: { id: courseSectionId },
+      include: {
+        courseOffering: {
+          select: {
+            id: true,
+            periodId: true,
+            enrollmentPeriod: { select: { status: true } },
+          },
+        },
+      },
+    });
+
+    // Validate enrollment period
+    if (['closed', 'archived', 'cancelled'].includes(periodStatus)) {
+      throw new BadRequestException('Enrollment period already closed.');
+    }
+
+    const enrollment = await this.prisma.client.$transaction(async (tx) => {
+      const enrolled = await tx.courseEnrollment.findFirst({
+        where: {
+          studentId: studentId,
+          courseOfferingId: offeringId,
+        },
+      });
+
+      // Validate if student is already enrolled in the course
+      if (enrolled) {
+        throw new ConflictException('Already enrolled in this course offering');
+      }
+
+      const count = await tx.courseEnrollment.count({
+        where: {
+          courseSectionId: sectionId,
+          deletedAt: null,
+        },
+      });
+
+      // Validate no of currently enrolled student
+      if (count >= maxSlot) {
+        throw new BadRequestException(
+          'This section has reached its maximum capacity.',
+        );
+      }
+
+      // create course enrollment record
+      return tx.courseEnrollment.create({
+        data: {
+          studentId: studentId,
+          courseOfferingId: offeringId,
+          courseSectionId: sectionId,
+          status: 'enlisted',
+          startedAt: new Date(),
+        },
+      });
+    });
+    return enrollment;
+  }
+
+  async dropCourseEnrollment(sectionId: string, dto: StudentIdentifierDto) {
+    const { studentId } = dto;
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const courseEnrollment = await tx.courseEnrollment.findFirst({
+        where: { studentId, courseSectionId: sectionId, deletedAt: null },
+      });
+
+      if (!courseEnrollment) {
+        throw new NotFoundException(
+          'Enrollment record not found or already dropped.',
+        );
+      }
+
+      await tx.courseEnrollment.update({
+        where: { id: courseEnrollment.id },
+        data: {
+          status: 'dropped',
+          deletedAt: new Date(),
+        },
+      });
+
+      return {
+        message: `Successfully dropped course enrollment for section ${sectionId}.`,
+      };
+    });
+  }
+
+  async finalizeEnrollment(dto: StudentIdentifierDto) {
+    const { studentId } = dto;
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const enslisted = await tx.courseEnrollment.findMany({
+        where: { studentId, status: 'enlisted', deletedAt: null },
+      });
+
+      if (!enslisted.length) {
+        throw new BadRequestException(
+          'No enslisted enrollments found to finalize.',
+        );
+      }
+
+      await tx.courseEnrollment.updateMany({
+        where: {
+          studentId,
+          status: 'enlisted',
+          deletedAt: null,
+        },
+        data: {
+          status: 'finalized',
+        },
+      });
+
+      return {
+        message: `Successfilly finalized ${enslisted.length} course enrollment(s).`,
+        studentId,
+      };
     });
   }
 }
