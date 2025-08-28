@@ -10,7 +10,7 @@ import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
 import CourseActionsSelector from '@/features/courses/course-actions-selector.tsx'
-import { IconPlus } from '@tabler/icons-react'
+import { IconTool } from '@tabler/icons-react'
 
 export interface CourseNavItem {
   link: string
@@ -70,8 +70,8 @@ const CourseNavBar = ({
         roleRender={{
           admin: (
             <ButtonWithModal
-              label={'Create New ...'}
-              icon={<IconPlus />}
+              label={'Manage Course'}
+              icon={<IconTool size={18} />}
               modalComponent={CourseActionsSelector}
               mb={'md'}
             />
@@ -83,8 +83,8 @@ const CourseNavBar = ({
         defaultValue={currentCourse.courseName}
         onChange={async (value) => {
           if (value) {
-            const newCourseId = getCourseCode(value)
-            const newPath = location.pathname.replace(courseCode, newCourseId)
+            const newCourseCode = getCourseCode(value)
+            const newPath = location.pathname.replace(courseCode, newCourseCode)
             await navigate({ to: newPath })
           }
         }}

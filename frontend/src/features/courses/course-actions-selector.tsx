@@ -18,7 +18,7 @@ const CourseActionsSelector = ({ opened, closeModal }: CustomModalProp) => {
     <Modal
       opened={opened}
       onClose={closeModal}
-      title={<Title order={3}>Create new content</Title>}
+      title={<Title order={3}>Manage Course</Title>}
       centered
       size="lg"
       radius={'md'}
