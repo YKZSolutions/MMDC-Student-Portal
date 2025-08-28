@@ -640,7 +640,7 @@ export type CreateCourseSectionFullDto = {
     days: Array<Days>;
     startSched: string;
     endSched: string;
-    mentorId: string;
+    mentorId?: string;
 };
 
 export type CourseSectionDto = {
