@@ -86,6 +86,7 @@ function EnrollmentPeriodAdminQueryProvider({
       query: {
         page: page,
         search: search || undefined,
+        periodId,
       },
     }),
   )
