@@ -1,5 +1,9 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
+import {
+  EditSectionFormSchema,
+  type EditSectionFormValues,
+} from '@/features/validation/edit-course-offering-subject'
 import type {
   CourseDto,
   CourseSectionDto,
@@ -15,6 +19,7 @@ import {
   enrollmentControllerFindOneEnrollmentQueryKey,
   enrollmentControllerRemoveCourseOfferingMutation,
   enrollmentControllerRemoveCourseSectionMutation,
+  enrollmentControllerUpdateCourseSectionMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -28,13 +33,17 @@ import {
   Accordion,
   ActionIcon,
   Badge,
+  Box,
   Button,
   Card,
+  Collapse,
   Container,
   Divider,
   Flex,
   Group,
   LoadingOverlay,
+  MultiSelect,
+  NumberInput,
   Pagination,
   Popover,
   rem,
@@ -43,9 +52,11 @@ import {
   Text,
   TextInput,
   Title,
-  UnstyledButton
+  UnstyledButton,
 } from '@mantine/core'
-import { randomId } from '@mantine/hooks'
+import { TimePicker } from '@mantine/dates'
+import { useForm } from '@mantine/form'
+import { randomId, useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
@@ -54,11 +65,13 @@ import {
   IconPlus,
   IconSearch,
   IconTrash,
+  IconX,
   type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { Fragment, Suspense, useState } from 'react'
 
 const route = getRouteApi('/(protected)/enrollment/$periodId')
@@ -486,8 +499,8 @@ function CourseOfferingAccordionPanel({
     await addCourseSection({
       body: {
         days: ['monday', 'wednesday', 'friday'],
-        startSched: '16:00',
-        endSched: '17:00',
+        startSched: '08:00',
+        endSched: '09:00',
         maxSlot: 60,
         name: randomId('new-section-'),
       },
@@ -547,6 +560,8 @@ function CourseOfferingSubjectCard({
   section: CourseSectionDto
   course: DetailedCourseOfferingDto
 }) {
+  const [opened, { toggle }] = useDisclosure(false)
+
   const { mutateAsync: removeCourseSection, isPending } = useAppMutation(
     enrollmentControllerRemoveCourseSectionMutation,
     {
@@ -598,49 +613,207 @@ function CourseOfferingSubjectCard({
         zIndex={1000}
         overlayProps={{ radius: 'sm', blur: 2 }}
       />
-      <Group justify="space-between" align="center">
-        <Stack gap={2}>
-          <Group gap="xs">
-            <Text fw={600} size="md">
-              {section.name}
+      <Box>
+        <Group justify="space-between" align="center">
+          <Stack gap={2}>
+            <Group gap="xs">
+              <Text fw={600} size="md">
+                {section.name}
+              </Text>
+              <Text c="dimmed" size="xs">
+                {formatToTimeOfDay(section.startSched, section.endSched)}
+              </Text>
+            </Group>
+            <Text c="dimmed" size="sm">
+              {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
+              {section.endSched}
             </Text>
-            <Text c="dimmed" size="xs">
-              {formatToTimeOfDay(section.startSched, section.endSched)}
-            </Text>
-          </Group>
-          <Text c="dimmed" size="sm">
-            {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
-            {section.endSched}
-          </Text>
-        </Stack>
-        <Stack gap={'xs'} align="flex-end">
-          <Group gap={rem(5)}>
-            <ActionIcon
-              variant="subtle"
-              c={'dark.3'}
-              size={'md'}
-              radius={'xl'}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <IconPencil size={18} />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              c={'red.4'}
-              size={'md'}
-              radius={'xl'}
-              onClick={(e) => handleRemoveCourseSection(e, course, section)}
-            >
-              <IconTrash size={18} />
-            </ActionIcon>
-          </Group>
-          <Badge c="gray.6" variant="light" radius="sm">
-            {section.maxSlot} / {section.maxSlot} slots
-          </Badge>
-        </Stack>
-      </Group>
+          </Stack>
+          <Stack gap={'xs'} align="flex-end">
+            <Group gap={rem(5)}>
+              <ActionIcon
+                variant="subtle"
+                c={'dark.3'}
+                size={'md'}
+                radius={'xl'}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggle()
+                }}
+              >
+                {opened ? <IconX size={18} /> : <IconPencil size={18} />}
+              </ActionIcon>
+              <ActionIcon
+                variant="subtle"
+                c={'red.4'}
+                size={'md'}
+                radius={'xl'}
+                onClick={(e) => handleRemoveCourseSection(e, course, section)}
+              >
+                <IconTrash size={18} />
+              </ActionIcon>
+            </Group>
+            <Badge c="gray.6" variant="light" radius="sm">
+              {section.maxSlot} / {section.maxSlot} slots
+            </Badge>
+          </Stack>
+        </Group>
+
+        <Collapse in={opened} keepMounted={false}>
+          <Stack pt={'sm'}>
+            <Divider />
+
+            <CourseOfferingSectionEditForm
+              section={section}
+              offeringId={course.id}
+              onCancel={toggle}
+              onSaved={toggle}
+            />
+          </Stack>
+        </Collapse>
+      </Box>
     </Card>
   )
 }
+
+function CourseOfferingSectionEditForm({
+  section,
+  offeringId,
+  onCancel,
+  onSaved,
+}: {
+  section: CourseSectionDto
+  offeringId: string
+  onCancel: () => void
+  onSaved: () => void
+}) {
+  const form = useForm<EditSectionFormValues>({
+    mode: 'uncontrolled',
+    initialValues: { ...section, mentorId: '' },
+    validate: zod4Resolver(EditSectionFormSchema),
+  })
+
+  const { mutateAsync: updateSection, isPending: updating } = useAppMutation(
+    enrollmentControllerUpdateCourseSectionMutation,
+    {
+      loading: {
+        title: 'Updating section ' + section.name,
+        message: 'Saving changes...',
+      },
+      success: {
+        title: 'Saved',
+        message: 'Section updated successfully.',
+      },
+      error: {
+        title: 'Failed',
+        message: 'Unable to update section.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const allOfferingsKey =
+          enrollmentControllerFindAllCourseOfferingsQueryKey()
+        await queryClient.cancelQueries({ queryKey: allOfferingsKey })
+        await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
+      },
+    },
+  )
+
+  const dayOptions = [
+    { value: 'monday', label: 'Monday' },
+    { value: 'tuesday', label: 'Tuesday' },
+    { value: 'wednesday', label: 'Wednesday' },
+    { value: 'thursday', label: 'Thursday' },
+    { value: 'friday', label: 'Friday' },
+    { value: 'saturday', label: 'Saturday' },
+    { value: 'sunday', label: 'Sunday' },
+  ]
+
+  const handleSubmit = async () => {
+    if (form.validate().hasErrors) return
+
+    await updateSection({
+      path: { offeringId, sectionId: section.id },
+      body: {
+        ...form.getValues(),
+        mentorId: form.getValues().mentorId || undefined,
+      },
+    })
+
+    onSaved()
+  }
+
+  return (
+    <Stack gap="xs">
+      <Group justify="space-between" align="center">
+        <Stack gap={0}>
+          <Text fw={700}>Edit Section</Text>
+          <Text size="xs" c="dimmed">
+            {section.name || 'Untitled section'}
+          </Text>
+        </Stack>
+        <Badge variant="light" color="blue" radius="xl" size="sm">
+          Editing
+        </Badge>
+      </Group>
+      <TextInput
+        radius={'md'}
+        label="Section name"
+        {...form.getInputProps('name')}
+      />
+
+      <MultiSelect
+        radius={'md'}
+        label="Days"
+        data={dayOptions}
+        styles={{
+          pill: {
+            backgroundColor: 'var(--mantine-color-gray-2)',
+          },
+        }}
+        {...form.getInputProps('days')}
+        placeholder="Select days"
+      />
+
+      <Group grow align="flex-start">
+        <TimePicker
+          radius={'md'}
+          label="Start (HH:mm)"
+          {...form.getInputProps('startSched')}
+        />
+        <TimePicker
+          radius={'md'}
+          label="End (HH:mm)"
+          {...form.getInputProps('endSched')}
+        />
+      </Group>
+
+      <Group grow align="flex-start">
+        <NumberInput
+          radius={'md'}
+          label="Max slots"
+          min={1}
+          {...form.getInputProps('maxSlot')}
+        />
+        <TextInput
+          radius={'md'}
+          label="Mentor ID (optional)"
+          placeholder="mentor id (uuid)"
+          {...form.getInputProps('mentorId')}
+        />
+      </Group>
+
+      <Group gap="sm" justify="flex-end" pt={'lg'}>
+        <Button variant="subtle" onClick={onCancel} disabled={updating}>
+          Cancel
+        </Button>
+        <Button loading={updating} onClick={() => handleSubmit()}>
+          Save changes
+        </Button>
+      </Group>
+    </Stack>
+  )
+}
+//
 
 export default EnrollmentPeriodIdPage
