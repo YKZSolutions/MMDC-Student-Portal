@@ -1,13 +1,20 @@
 import React, { type ComponentPropsWithoutRef, type JSX, useState } from 'react'
-import { useDisclosure } from '@mantine/hooks'
-import { type BoxProps, Card, Group, Stack, Text, Title } from '@mantine/core'
-import type { CustomModalProp } from '@/components/types.ts'
+import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import {
+  type BoxProps,
+  Card,
+  Group,
+  type ModalProps,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 
 type ActionCardProps = {
   title: string
   description: string
   icon: JSX.Element
-  modalComponent: React.ComponentType<CustomModalProp>
+  modalComponent: React.ComponentType<ModalProps>
   fullOnMobile?: boolean
 } & ComponentPropsWithoutRef<typeof Card> &
   BoxProps
@@ -22,6 +29,7 @@ const CardWithModal = ({
 }: ActionCardProps) => {
   const [hovered, setHovered] = useState(false)
   const [actionModalOpened, { open, close }] = useDisclosure(false)
+  const isMobile = useMediaQuery('(max-width: 50em)')
 
   return (
     <>
@@ -48,8 +56,8 @@ const CardWithModal = ({
       </Card>
       <ModalComponent
         opened={actionModalOpened}
-        closeModal={close}
-        fullOnMobile={fullOnMobile}
+        onClose={close}
+        fullScreen={isMobile && fullOnMobile}
       />
     </>
   )

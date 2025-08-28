@@ -4,6 +4,7 @@ import {
   Center,
   Group,
   Modal,
+  type ModalProps,
   Stack,
   Stepper,
   Text,
@@ -19,7 +20,6 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import CourseModuleCreationCard from '@/features/courses/modules/course-module-creation-card.tsx'
-import type { CustomModalProp } from '@/components/types.ts'
 import CourseModuleReviewStep from '@/features/courses/modules/course-module-review-step.tsx'
 import {
   type CourseNodeModel,
@@ -32,8 +32,9 @@ import { convertTreeToCourseModules } from '@/utils/helpers.ts'
 
 const ModuleCreationProcessModal = ({
   opened,
-  closeModal,
-}: CustomModalProp) => {
+  onClose,
+  ...props
+}: ModalProps) => {
   const theme = useMantineTheme()
   const { courseCode } = useParams({
     from: '/(protected)/courses/$courseCode/modules/',
@@ -84,22 +85,26 @@ const ModuleCreationProcessModal = ({
       label: 'Confirmation',
       description: 'Course created successfully',
       icon: <IconCircleCheck size={18} />,
-      content: <ConfirmationStep onFinish={closeModal} />,
+      content: <ConfirmationStep onFinish={onClose} />,
     },
   ]
 
   return (
     <Modal
       opened={opened}
-      onClose={closeModal}
+      onClose={onClose}
       withCloseButton={false}
-      fullScreen={true}
+      removeScrollProps={{ allowPinchZoom: true }}
       styles={{
         body: {
-          height: '100%',
           padding: 0,
         },
+        content: {
+          overflow: 'hidden',
+          height: '100%',
+        },
       }}
+      {...props}
     >
       <Stack gap={0} h="100%">
         {/* Header */}
@@ -114,7 +119,7 @@ const ModuleCreationProcessModal = ({
         >
           <Button
             variant="subtle"
-            onClick={closeModal}
+            onClick={onClose}
             leftSection={<IconX size={16} />}
           >
             Cancel

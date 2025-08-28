@@ -1,12 +1,11 @@
-import { useDisclosure } from '@mantine/hooks'
-import { type BoxProps, Button } from '@mantine/core'
+import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { type BoxProps, Button, type ModalProps } from '@mantine/core'
 import React, { type ComponentPropsWithoutRef, type JSX } from 'react'
-import type { CustomModalProp } from '@/components/types.ts'
 
 type ButtonWithModalProps = {
   label?: string | JSX.Element
   icon?: JSX.Element
-  modalComponent: React.ComponentType<CustomModalProp>
+  modalComponent: React.ComponentType<ModalProps>
   fullOnMobile?: boolean
 } & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'> &
   BoxProps
@@ -19,6 +18,7 @@ const ButtonWithModal = ({
   ...buttonProps
 }: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
+  const isMobile = useMediaQuery('(max-width: 50em)')
 
   return (
     <>
@@ -32,8 +32,8 @@ const ButtonWithModal = ({
       </Button>
       <ModalComponent
         opened={opened}
-        closeModal={close}
-        fullOnMobile={fullOnMobile}
+        onClose={close}
+        fullScreen={isMobile && fullOnMobile}
       />
     </>
   )

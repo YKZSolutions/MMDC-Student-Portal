@@ -5,19 +5,19 @@ import {
   Grid,
   GridCol,
   Modal,
+  type ModalProps,
   Stack,
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
 import ModuleCreationProcessModal from '@/features/courses/course-editor/module-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
-import type { CustomModalProp } from '@/components/types.ts'
 
-const CourseActionsSelector = ({ opened, closeModal }: CustomModalProp) => {
+const CourseActionsSelector = ({ opened, onClose, ...props }: ModalProps) => {
   return (
     <Modal
       opened={opened}
-      onClose={closeModal}
+      onClose={onClose}
       title={<Title order={3}>Manage Course</Title>}
       centered
       size="lg"
@@ -26,6 +26,7 @@ const CourseActionsSelector = ({ opened, closeModal }: CustomModalProp) => {
         backgroundOpacity: 0.35,
         blur: 1,
       }}
+      {...props}
     >
       <Stack gap={'sm'}>
         <Divider></Divider>
@@ -95,7 +96,7 @@ const CourseActionsSelector = ({ opened, closeModal }: CustomModalProp) => {
             variant={'default'}
             radius={'md'}
             size={'sm'}
-            onClick={closeModal}
+            onClick={onClose}
           >
             Cancel
           </Button>
