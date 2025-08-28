@@ -5,9 +5,9 @@ import {
   type EnrollmentPeriod as EnrollmentPeriodAsType,
 } from './enrollmentPeriod.entity';
 import {
-  EnrolledCourse,
-  type EnrolledCourse as EnrolledCourseAsType,
-} from './enrolledCourse.entity';
+  CourseEnrollment,
+  type CourseEnrollment as CourseEnrollmentAsType,
+} from './courseEnrollment.entity';
 import {
   CourseSection,
   type CourseSection as CourseSectionAsType,
@@ -31,11 +31,11 @@ export class CourseOffering {
   @ApiHideProperty()
   enrollmentPeriod?: EnrollmentPeriodAsType;
   @ApiProperty({
-    type: () => EnrolledCourse,
+    type: () => CourseEnrollment,
     isArray: true,
     required: false,
   })
-  enrolledCourses?: EnrolledCourseAsType[];
+  courseEnrollment?: CourseEnrollmentAsType[];
   @ApiProperty({
     type: () => CourseSection,
     isArray: true,

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class ConnectEnrolledCourseDto {
+export class ConnectCourseEnrollmentDto {
   @ApiProperty({
     type: 'string',
   })

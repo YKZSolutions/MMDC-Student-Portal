@@ -22,9 +22,9 @@ import {
   type Notification as NotificationAsType,
 } from './notification.entity';
 import {
-  EnrolledCourse,
-  type EnrolledCourse as EnrolledCourseAsType,
-} from './enrolledCourse.entity';
+  CourseEnrollment,
+  type CourseEnrollment as CourseEnrollmentAsType,
+} from './courseEnrollment.entity';
 import {
   CourseSection,
   type CourseSection as CourseSectionAsType,
@@ -48,7 +48,7 @@ export class User {
   @ApiHideProperty()
   notifications?: NotificationAsType[];
   @ApiHideProperty()
-  enrolledCourses?: EnrolledCourseAsType[];
+  courseEnrollment?: CourseEnrollmentAsType[];
   @ApiHideProperty()
   courseSections?: CourseSectionAsType[];
   @ApiProperty({
