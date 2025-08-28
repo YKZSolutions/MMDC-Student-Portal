@@ -18,7 +18,7 @@ const CourseActionsSelector = ({ opened, onClose, ...props }: ModalProps) => {
     <Modal
       opened={opened}
       onClose={onClose}
-      title={<Title order={3}>Manage Course</Title>}
+      title={<Title order={3}>Manage Content</Title>}
       centered
       size="lg"
       radius={'md'}

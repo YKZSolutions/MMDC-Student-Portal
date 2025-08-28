@@ -70,7 +70,7 @@ const CourseNavBar = ({
         roleRender={{
           admin: (
             <ButtonWithModal
-              label={'Manage Course'}
+              label={'Manage Content'}
               icon={<IconTool size={18} />}
               modalComponent={CourseActionsSelector}
               mb={'md'}

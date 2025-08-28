@@ -20,7 +20,7 @@ import {
   IconDeviceDesktop,
   IconLayoutGridFilled,
   IconList,
-  IconPlus,
+  IconTool,
   IconVideo,
 } from '@tabler/icons-react'
 import React, { useState } from 'react'
@@ -201,8 +201,8 @@ const CourseDashboard = ({
           </Title>
           {authUser.role !== 'student' && (
             <ButtonWithModal
-              label={'Add Course'}
-              icon={<IconPlus />}
+              label={'Manage Course'}
+              icon={<IconTool />}
               modalComponent={CourseCreationModal}
             ></ButtonWithModal>
           )}
@@ -525,7 +525,7 @@ const CourseCardActionButton = ({
         },
         admin: {
           icon: <IconDeviceDesktop size={16} />,
-          text: 'Manage Course',
+          text: 'Manage Content',
           onClick: () => handleManageCourseClick(),
         },
       }}
