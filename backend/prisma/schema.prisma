@@ -289,9 +289,9 @@ model CourseSection {
 
   name String @unique
 
-  mentorId String @db.Uuid // Each section belong to one mentor
+  mentorId String? @db.Uuid // make mentor optional
   /// @DtoApiHidden
-  user     User   @relation(fields: [mentorId], references: [id])
+  user     User?   @relation(fields: [mentorId], references: [id], onDelete: SetNull)
 
   courseOfferingId String         @db.Uuid // Each section belong to one offering
   /// @DtoApiHidden

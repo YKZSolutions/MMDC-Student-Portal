@@ -21,10 +21,11 @@ export class CourseSection {
   name: string;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  mentorId: string;
+  mentorId: string | null;
   @ApiHideProperty()
-  user?: UserAsType;
+  user?: UserAsType | null;
   @ApiProperty({
     type: 'string',
   })

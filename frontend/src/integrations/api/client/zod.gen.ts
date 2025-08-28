@@ -852,7 +852,7 @@ export const zCreateCourseSectionFullDto = z.object({
     days: z.array(zDays),
     startSched: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
     endSched: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
-    mentorId: z.uuid()
+    mentorId: z.optional(z.uuid())
 });
 
 export const zCourseSectionDto = z.object({
