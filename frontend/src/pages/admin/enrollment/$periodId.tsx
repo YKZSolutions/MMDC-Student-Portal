@@ -2,14 +2,19 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import type {
   CourseDto,
+  CourseSectionDto,
   DetailedCourseOfferingDto,
   EnrollmentPeriodDto,
 } from '@/integrations/api/client'
 import {
   enrollmentControllerCreateCourseOfferingMutation,
+  enrollmentControllerCreateCourseSectionMutation,
   enrollmentControllerFindAllCourseOfferingsOptions,
+  enrollmentControllerFindAllCourseOfferingsQueryKey,
   enrollmentControllerFindOneEnrollmentOptions,
+  enrollmentControllerFindOneEnrollmentQueryKey,
   enrollmentControllerRemoveCourseOfferingMutation,
+  enrollmentControllerRemoveCourseSectionMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -114,6 +119,8 @@ function EnrollmentPeriodAdminQueryProvider({
 }
 
 function EnrollmentPeriodIdPage() {
+  const { queryClient } = getContext()
+
   const navigate = useNavigate()
   const { periodId } = route.useParams()
 
@@ -146,90 +153,20 @@ function EnrollmentPeriodIdPage() {
       },
     },
     {
-      // optimistic update
-      onMutate: async (variables) => {
-        const { queryClient } = getContext()
-        const page = 1 // optimistic insert to first page — adjust if you need to target current page
-        const search = queryDefaultValues.search
+      onSuccess: async () => {
         const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsOptions({
-            query: { page, search: search || undefined },
-          }).queryKey
-        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
+          enrollmentControllerFindAllCourseOfferingsQueryKey()
+
+        const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
           path: { id: periodId },
-        }).queryKey
+        })
 
         // cancel outgoing refetches
         await queryClient.cancelQueries({ queryKey: allOfferingsKey })
         await queryClient.cancelQueries({ queryKey: enrollmentKey })
 
-        // snapshot previous values
-        const previousOfferings = queryClient.getQueryData<any>(
-          allOfferingsKey,
-        ) ?? { courseOfferings: [] }
-        const previousEnrollment = queryClient.getQueryData<any>(enrollmentKey)
-
-        // build optimistic offering using minimal shape expected by UI
-        const tempId = `temp-${Date.now()}`
-        const optimisticOffering = {
-          id: tempId,
-          course: variables.meta?.course,
-          courseSections: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-
-        // optimistically update offerings list
-        queryClient.setQueryData(allOfferingsKey, (old: any) => {
-          if (!old) return { courseOfferings: [optimisticOffering] }
-          return {
-            ...old,
-            courseOfferings: [
-              optimisticOffering,
-              ...(old.courseOfferings ?? []),
-            ],
-          }
-        })
-
-        // optimistically update enrollment detail if exists
-        queryClient.setQueryData(enrollmentKey, (old: any) => {
-          if (!old) return old
-          return {
-            ...old,
-            courseOfferings: [
-              optimisticOffering,
-              ...(old.courseOfferings ?? []),
-            ],
-          }
-        })
-
-        return {
-          previousOfferings,
-          previousEnrollment,
-          keys: {
-            allOfferingsKey,
-            enrollmentKey,
-          },
-        }
-      },
-      onError: (err, variables, context) => {
-        const { queryClient } = getContext()
-        const page = 1
-        const search = queryDefaultValues.search
-
-        // rollback
-        if (context?.previousOfferings) {
-          queryClient.setQueryData(
-            context?.keys.allOfferingsKey,
-            context.previousOfferings,
-          )
-        }
-        if (context?.previousEnrollment) {
-          queryClient.setQueryData(
-            context?.keys.enrollmentKey,
-            context.previousEnrollment,
-          )
-        }
+        await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
+        await queryClient.invalidateQueries({ queryKey: enrollmentKey })
       },
     },
   )
@@ -251,73 +188,57 @@ function EnrollmentPeriodIdPage() {
       },
     },
     {
-      // optimistic removal
-      onMutate: async (variables) => {
-        const { queryClient } = getContext()
-        const page = query.page ?? 1
-        const search = query.search ?? ''
+      onSuccess: async () => {
         const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsOptions({
-            query: { page, search: search || undefined },
-          }).queryKey
-        const enrollmentKey = enrollmentControllerFindOneEnrollmentOptions({
-          path: { id: periodId },
-        }).queryKey
+          enrollmentControllerFindAllCourseOfferingsQueryKey()
 
+        const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
+          path: { id: periodId },
+        })
+
+        // cancel outgoing refetches
         await queryClient.cancelQueries({ queryKey: allOfferingsKey })
         await queryClient.cancelQueries({ queryKey: enrollmentKey })
 
-        const previousOfferings = queryClient.getQueryData<any>(allOfferingsKey)
-        const previousEnrollment = queryClient.getQueryData<any>(enrollmentKey)
-
-        // remove optimistically
-        queryClient.setQueryData(allOfferingsKey, (old: any) => {
-          if (!old) return old
-          return {
-            ...old,
-            courseOfferings: (old.courseOfferings ?? []).filter(
-              (o: any) => o.id !== variables.path.offeringId,
-            ),
-          }
-        })
-
-        if (previousEnrollment) {
-          queryClient.setQueryData(enrollmentKey, (old: any) => {
-            if (!old) return old
-            return {
-              ...old,
-              courseOfferings: (old.courseOfferings ?? []).filter(
-                (o: any) => o.id !== variables.path.offeringId,
-              ),
-            }
-          })
-        }
-
-        return {
-          previousOfferings,
-          previousEnrollment,
-          keys: {
-            allOfferingsKey,
-            enrollmentKey,
-          },
-        }
+        await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
+        await queryClient.invalidateQueries({ queryKey: enrollmentKey })
       },
-      onError: (err, variables, context) => {
-        const { queryClient } = getContext()
+    },
+  )
 
-        // rollback
-        if (context?.previousOfferings) {
-          queryClient.setQueryData(
-            context.keys.allOfferingsKey,
-            context.previousOfferings,
-          )
-        }
-        if (context?.previousEnrollment) {
-          queryClient.setQueryData(
-            context.keys.enrollmentKey,
-            context.previousEnrollment,
-          )
-        }
+  const { mutateAsync: addCourseSection } = useAppMutation(
+    enrollmentControllerCreateCourseSectionMutation,
+    {
+      loading: {
+        title: 'Adding course section',
+        message: 'Please wait while the course section is being added.',
+      },
+      success: {
+        title: 'Course Section Added',
+        message: 'The course section has been added.',
+      },
+      error: {
+        title: 'Failed',
+        message: 'Something went wrong while adding the course section.',
+      },
+    },
+    {},
+  )
+
+  const { mutateAsync: removeCourseSection } = useAppMutation(
+    enrollmentControllerRemoveCourseSectionMutation,
+    {
+      loading: {
+        title: 'Removing course section',
+        message: 'Please wait while the course section is being removed.',
+      },
+      success: {
+        title: 'Course Section Removed',
+        message: 'The course section has been removed.',
+      },
+      error: {
+        title: 'Failed',
+        message: 'Something went wrong while removing the course section.',
       },
     },
   )
@@ -341,10 +262,40 @@ function EnrollmentPeriodIdPage() {
     course: DetailedCourseOfferingDto,
   ) => {
     e.stopPropagation()
-    removeCourseOffering({
+    await removeCourseOffering({
       path: {
         offeringId: course.id,
         periodId: periodId,
+      },
+    })
+  }
+
+  const handleAddCourseSection = async (course: DetailedCourseOfferingDto) => {
+    await addCourseSection({
+      body: {
+        days: ['monday'],
+        startSched: '08:00',
+        endSched: '12:00',
+        maxSlot: 0,
+        name: 'New Course Section',
+      },
+      path: {
+        offeringId: course.id,
+      },
+    })
+  }
+
+  const handleRemoveCourseSection = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    course: DetailedCourseOfferingDto,
+    section: CourseSectionDto,
+  ) => {
+    e.stopPropagation()
+
+    await removeCourseSection({
+      path: {
+        sectionId: section.id,
+        offeringId: course.id,
       },
     })
   }
@@ -472,129 +423,138 @@ function EnrollmentPeriodIdPage() {
           <Divider />
 
           <Accordion variant="filled">
-            <EnrollmentPeriodAdminQueryProvider>
-              {({ courseOfferings }) =>
-                courseOfferings.map((course, index) => (
-                  <Fragment key={course.id}>
-                    <Accordion.Item value={course.id.toString()}>
-                      <Accordion.Control py={rem(5)}>
-                        <Group justify="space-between">
-                          <Stack gap={rem(0)}>
-                            <Text fw={500} fz={'md'}>
-                              {course.course.name}
-                            </Text>
-                            <Stack gap={rem(5)}>
-                              <Text fw={500} fz={'xs'} c={'dark.3'}>
-                                {course.course.courseCode}
+            <Suspense>
+              <EnrollmentPeriodAdminQueryProvider>
+                {({ courseOfferings }) =>
+                  courseOfferings.map((course, index) => (
+                    <Fragment key={course.id}>
+                      <Accordion.Item value={course.id.toString()}>
+                        <Accordion.Control py={rem(5)}>
+                          <Group justify="space-between">
+                            <Stack gap={rem(0)}>
+                              <Text fw={500} fz={'md'}>
+                                {course.course.name}
                               </Text>
-                              <Badge
-                                c="gray.6"
-                                variant="light"
-                                radius="sm"
-                                size="sm"
+                              <Stack gap={rem(5)}>
+                                <Text fw={500} fz={'xs'} c={'dark.3'}>
+                                  {course.course.courseCode}
+                                </Text>
+                                <Badge
+                                  c="gray.6"
+                                  variant="light"
+                                  radius="sm"
+                                  size="sm"
+                                >
+                                  {course.courseSections.length} section(s)
+                                </Badge>
+                              </Stack>
+                            </Stack>
+
+                            <ActionIcon
+                              component="div"
+                              variant="subtle"
+                              c={'red.4'}
+                              size={'lg'}
+                              radius={'xl'}
+                              onClick={(e) =>
+                                handleRemoveCourseOffering(e, course)
+                              }
+                            >
+                              <IconTrash size={18} />
+                            </ActionIcon>
+                          </Group>
+                        </Accordion.Control>
+
+                        <Accordion.Panel>
+                          <Stack>
+                            <Divider />
+                            <Stack gap={'xs'}>
+                              <Button
+                                size="md"
+                                className="border-gray-300"
+                                variant="default"
+                                radius={'md'}
+                                c={'dark.4'}
+                                onClick={(e) => handleAddCourseSection(course)}
                               >
-                                {course.courseSections.length} section(s)
-                              </Badge>
+                                <Group gap={rem(5)}>
+                                  <IconPlus size={18} />
+                                  <Text fz={'sm'} fw={500}>
+                                    Add Section
+                                  </Text>
+                                </Group>
+                              </Button>
+                              {course.courseSections.map((section) => (
+                                <Card
+                                  key={section.id}
+                                  withBorder
+                                  radius="md"
+                                  py="sm"
+                                >
+                                  <Group justify="space-between" align="center">
+                                    <Stack gap={2}>
+                                      <Group gap="xs">
+                                        <Text fw={600} size="md">
+                                          {section.name}
+                                        </Text>
+                                        <Text c="dimmed" size="xs">
+                                          Morning
+                                        </Text>
+                                      </Group>
+                                      <Text c="dimmed" size="sm">
+                                        {section.days} | {section.startSched} -{' '}
+                                        {section.endSched}
+                                      </Text>
+                                    </Stack>
+                                    <Stack gap={'xs'} align="flex-end">
+                                      <Group gap={rem(5)}>
+                                        <ActionIcon
+                                          variant="subtle"
+                                          c={'dark.3'}
+                                          size={'md'}
+                                          radius={'xl'}
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <IconPencil size={18} />
+                                        </ActionIcon>
+                                        <ActionIcon
+                                          variant="subtle"
+                                          c={'red.4'}
+                                          size={'md'}
+                                          radius={'xl'}
+                                          onClick={(e) =>
+                                            handleRemoveCourseSection(
+                                              e,
+                                              course,
+                                              section,
+                                            )
+                                          }
+                                        >
+                                          <IconTrash size={18} />
+                                        </ActionIcon>
+                                      </Group>
+                                      <Badge
+                                        c="gray.6"
+                                        variant="light"
+                                        radius="sm"
+                                      >
+                                        {section.maxSlot} / {section.maxSlot}{' '}
+                                        slots
+                                      </Badge>
+                                    </Stack>
+                                  </Group>
+                                </Card>
+                              ))}
                             </Stack>
                           </Stack>
-
-                          <ActionIcon
-                            component="div"
-                            variant="subtle"
-                            c={'red.4'}
-                            size={'lg'}
-                            radius={'xl'}
-                            onClick={(e) =>
-                              handleRemoveCourseOffering(e, course)
-                            }
-                          >
-                            <IconTrash size={18} />
-                          </ActionIcon>
-                        </Group>
-                      </Accordion.Control>
-
-                      <Accordion.Panel>
-                        <Stack>
-                          <Divider />
-                          <Stack gap={'xs'}>
-                            <Button
-                              size="md"
-                              className="border-gray-300"
-                              variant="default"
-                              radius={'md'}
-                              c={'dark.4'}
-                            >
-                              <Group gap={rem(5)}>
-                                <IconPlus size={18} />
-                                <Text fz={'sm'} fw={500}>
-                                  Add Section
-                                </Text>
-                              </Group>
-                            </Button>
-                            {course.courseSections.map((section) => (
-                              <Card
-                                key={section.id}
-                                withBorder
-                                radius="md"
-                                py="sm"
-                              >
-                                <Group justify="space-between" align="center">
-                                  <Stack gap={2}>
-                                    <Group gap="xs">
-                                      <Text fw={600} size="md">
-                                        {section.name}
-                                      </Text>
-                                      <Text c="dimmed" size="xs">
-                                        Morning
-                                      </Text>
-                                    </Group>
-                                    <Text c="dimmed" size="sm">
-                                      {section.days} | {section.startSched} -{' '}
-                                      {section.endSched}
-                                    </Text>
-                                  </Stack>
-                                  <Stack gap={'xs'} align="flex-end">
-                                    <Group gap={rem(5)}>
-                                      <ActionIcon
-                                        variant="subtle"
-                                        c={'dark.3'}
-                                        size={'md'}
-                                        radius={'xl'}
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <IconPencil size={18} />
-                                      </ActionIcon>
-                                      <ActionIcon
-                                        variant="subtle"
-                                        c={'red.4'}
-                                        size={'md'}
-                                        radius={'xl'}
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <IconTrash size={18} />
-                                      </ActionIcon>
-                                    </Group>
-                                    <Badge
-                                      c="gray.6"
-                                      variant="light"
-                                      radius="sm"
-                                    >
-                                      {section.maxSlot} / {section.maxSlot}{' '}
-                                      slots
-                                    </Badge>
-                                  </Stack>
-                                </Group>
-                              </Card>
-                            ))}
-                          </Stack>
-                        </Stack>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                    <Divider hidden={index == courseOfferings.length - 1} />
-                  </Fragment>
-                ))
-              }
-            </EnrollmentPeriodAdminQueryProvider>
+                        </Accordion.Panel>
+                      </Accordion.Item>
+                      <Divider hidden={index == courseOfferings.length - 1} />
+                    </Fragment>
+                  ))
+                }
+              </EnrollmentPeriodAdminQueryProvider>
+            </Suspense>
           </Accordion>
         </Stack>
 
