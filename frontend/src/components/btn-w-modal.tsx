@@ -35,7 +35,7 @@ const ButtonWithModal = ({
         opened={opened}
         onClose={close}
         fullScreen={shouldFull}
-        radius={shouldFull ? 0 : 'md'}
+        radius={shouldFull ? 0 : 'lg'}
         transitionProps={{
           transition: shouldFull ? 'fade' : 'fade-down',
           duration: 200,

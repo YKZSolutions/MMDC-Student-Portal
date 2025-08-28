@@ -3,27 +3,27 @@ import {
   Card,
   Center,
   Divider,
-  Input,
   Modal,
   type ModalProps,
+  Select,
   Stack,
   Textarea,
   useMantineTheme,
 } from '@mantine/core'
 
-const CourseCreationModal = ({ opened, onClose, ...props }: ModalProps) => {
+const CourseCreationModal = ({
+  opened,
+  onClose,
+  radius,
+  ...props
+}: ModalProps) => {
   const theme = useMantineTheme()
   return (
-    <Modal.Root
-      radius="md"
-      size={'lg'}
-      opened={opened}
-      onClose={onClose}
-      {...props}
-    >
+    <Modal.Root size={'lg'} opened={opened} onClose={onClose} {...props}>
       <Modal.Overlay />
-      <Modal.Content h={'100%'} style={{ overflow: 'hidden' }}>
+      <Modal.Content h={'100%'} style={{ overflow: 'hidden' }} radius={radius}>
         <Modal.Header
+          h={'8%'}
           style={{
             borderBottom: `${theme.colors.gray[3]} 1px solid`,
             boxShadow: `0px 4px 12px 0px ${theme.colors.gray[3]}`,
@@ -34,17 +34,12 @@ const CourseCreationModal = ({ opened, onClose, ...props }: ModalProps) => {
           </Modal.Title>
           <Modal.CloseButton />
         </Modal.Header>
-        <Modal.Body h={'100%'} bg={'background'}>
+        <Modal.Body h={'92%'} bg={'background'}>
           <Center h={'100%'} p={'xl'}>
-            <Card withBorder radius={'md'} shadow="xs" p={0} h={'100%'}>
-              <Box bg={'yellow'} h={'64px'}></Box>
+            <Card withBorder radius={'lg'} shadow="xs" p={0} h={'100%'}>
+              <Box bg={'yellow'} h={'56px'}></Box>
               <Stack justify="space-between" h={'100%'} my={'lg'} p={'xl'}>
-                <Input
-                  variant="unstyled"
-                  placeholder="Course Title"
-                  fw={600}
-                  size="2rem"
-                />
+                <Select />
                 {/*TODO: add actual content types, these are just placeholders*/}
                 <Stack gap={'sm'}>
                   {/*<FormRow label="Category" icon={<IconCategory />} />*/}
