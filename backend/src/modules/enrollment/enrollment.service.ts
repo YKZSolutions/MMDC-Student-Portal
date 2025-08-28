@@ -190,7 +190,11 @@ export class EnrollmentService {
         where: filters.periodId ? { periodId: filters.periodId } : undefined,
         include: {
           course: true,
-          courseSections: true,
+          courseSections: {
+            include: {
+              user: true,
+            },
+          },
         },
       })
       .withPages({ limit: 10, page, includePageCount: true });
