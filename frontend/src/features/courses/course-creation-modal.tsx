@@ -1,15 +1,18 @@
 import {
   Box,
   Card,
-  Center,
+  Container,
   Divider,
+  Group,
   Modal,
   type ModalProps,
   Select,
   Stack,
   Textarea,
+  TextInput,
   useMantineTheme,
 } from '@mantine/core'
+import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 
 const CourseCreationModal = ({
   opened,
@@ -18,6 +21,12 @@ const CourseCreationModal = ({
   ...props
 }: ModalProps) => {
   const theme = useMantineTheme()
+  const courses = mockCourseBasicDetails
+
+  function handleCourseChange(value: string | null) {
+    console.log(value)
+  }
+
   return (
     <Modal.Root size={'lg'} opened={opened} onClose={onClose} {...props}>
       <Modal.Overlay />
@@ -35,17 +44,51 @@ const CourseCreationModal = ({
           <Modal.CloseButton />
         </Modal.Header>
         <Modal.Body h={'92%'} bg={'background'}>
-          <Center h={'100%'} p={'xl'}>
+          <Container h={'100%'} p={'xl'}>
             <Card withBorder radius={'lg'} shadow="xs" p={0} h={'100%'}>
               <Box bg={'yellow'} h={'56px'}></Box>
-              <Stack justify="space-between" h={'100%'} my={'lg'} p={'xl'}>
-                <Select />
+              <Stack justify="space-between" h={'100%'} my={'sm'} p={'xl'}>
+                <Select
+                  label="Course"
+                  placeholder="Select a course"
+                  data={courses.map((course) => course.courseName)}
+                  defaultValue={courses[0].courseName}
+                  searchable
+                  onChange={handleCourseChange}
+                  size="lg"
+                  radius="md"
+                  inputSize="md"
+                  labelProps={{
+                    fz: '1.5rem',
+                  }}
+                />
                 {/*TODO: add actual content types, these are just placeholders*/}
                 <Stack gap={'sm'}>
-                  {/*<FormRow label="Category" icon={<IconCategory />} />*/}
-                  {/*<FormRow label="Title" icon={<IconCategory />} />*/}
-                  {/*<FormRow label="Description" icon={<IconCategory />} />*/}
-                  {/*<FormRow label="Tags" icon={<IconCategory />} />*/}
+                  <Group justify="space-between">
+                    <TextInput
+                      label={'Course Name'}
+                      placeholder="Enter course name"
+                    />
+                    <TextInput
+                      label={'Course Code'}
+                      placeholder="Enter course code"
+                    />
+                  </Group>
+                  <Group justify="space-between">
+                    <TextInput label={'Year Start'} placeholder="Enter year" />
+                    <TextInput label={'Year End'} placeholder="Enter year" />
+                  </Group>
+                  <Group justify="space-between">
+                    <TextInput
+                      label={'Semester'}
+                      placeholder="Enter semester"
+                    />
+                    <TextInput
+                      label={'Units'}
+                      type="number"
+                      placeholder="Enter units"
+                    />
+                  </Group>
                 </Stack>
                 <Stack gap={'0'}>
                   <Textarea
@@ -57,7 +100,7 @@ const CourseCreationModal = ({
                 </Stack>
               </Stack>
             </Card>
-          </Center>
+          </Container>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>
