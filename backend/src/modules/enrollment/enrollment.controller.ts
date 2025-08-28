@@ -29,6 +29,7 @@ import { UpdateCourseSectionDto } from './dto/update-courseSection.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
 import { EnrollmentService } from './enrollment.service';
+import { FilterCourseOfferingDto } from './dto/filter-courseOffering.dto';
 
 @Roles(Role.ADMIN)
 @Controller('enrollment')
@@ -111,7 +112,7 @@ export class EnrollmentController {
   @ApiOkResponse({ type: PaginatedCourseOfferingsDto })
   @ApiException(() => [BadRequestException])
   @Get('/offerings')
-  findAllCourseOfferings(@Query() filters: BaseFilterDto) {
+  findAllCourseOfferings(@Query() filters: FilterCourseOfferingDto) {
     return this.enrollmentService.findAllCourseOfferings(filters);
   }
 

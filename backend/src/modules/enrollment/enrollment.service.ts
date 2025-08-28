@@ -20,6 +20,7 @@ import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
 import { CreateCourseSectionFullDto } from './dto/create-courseSection.dto';
+import { FilterCourseOfferingDto } from './dto/filter-courseOffering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
 import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
@@ -178,12 +179,15 @@ export class EnrollmentService {
       `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
   })
   async findAllCourseOfferings(
-    @LogParam('filters') filters: BaseFilterDto,
+    @LogParam('filters') filters: FilterCourseOfferingDto,
   ): Promise<PaginatedCourseOfferingsDto> {
     const page = filters.page || 1;
 
+    if (filters.periodId) this.validateUUID(filters.periodId);
+
     const [courseOfferings, meta] = await this.prisma.client.courseOffering
       .paginate({
+        where: filters.periodId ? { periodId: filters.periodId } : undefined,
         include: {
           course: true,
           courseSections: true,
