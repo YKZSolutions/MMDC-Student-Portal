@@ -8,6 +8,7 @@ type ActionCardProps = {
   description: string
   icon: JSX.Element
   modalComponent: React.ComponentType<CustomModalProp>
+  fullOnMobile?: boolean
 } & ComponentPropsWithoutRef<typeof Card> &
   BoxProps
 
@@ -16,6 +17,7 @@ const CardWithModal = ({
   description,
   icon,
   modalComponent: ModalComponent,
+  fullOnMobile = true,
   ...cardProps
 }: ActionCardProps) => {
   const [hovered, setHovered] = useState(false)
@@ -44,7 +46,11 @@ const CardWithModal = ({
           <Text size={'sm'}>{description}</Text>
         </Stack>
       </Card>
-      <ModalComponent opened={actionModalOpened} closeModal={close} />
+      <ModalComponent
+        opened={actionModalOpened}
+        closeModal={close}
+        fullOnMobile={fullOnMobile}
+      />
     </>
   )
 }

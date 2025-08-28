@@ -7,6 +7,7 @@ type ButtonWithModalProps = {
   label?: string | JSX.Element
   icon?: JSX.Element
   modalComponent: React.ComponentType<CustomModalProp>
+  fullOnMobile?: boolean
 } & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'> &
   BoxProps
 
@@ -14,6 +15,7 @@ const ButtonWithModal = ({
   label,
   icon,
   modalComponent: ModalComponent,
+  fullOnMobile = true,
   ...buttonProps
 }: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
@@ -28,7 +30,11 @@ const ButtonWithModal = ({
       >
         {label}
       </Button>
-      <ModalComponent opened={opened} closeModal={close} />
+      <ModalComponent
+        opened={opened}
+        closeModal={close}
+        fullOnMobile={fullOnMobile}
+      />
     </>
   )
 }
