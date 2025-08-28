@@ -19,8 +19,8 @@ import {
   IconNotebook,
   IconX,
 } from '@tabler/icons-react'
-import CourseModuleCreationCard from '@/features/courses/modules/course-module-creation-card.tsx'
-import CourseModuleReviewStep from '@/features/courses/modules/course-module-review-step.tsx'
+import ModuleCreationCard from '@/features/courses/modules/module-creation-card.tsx'
+import ModuleReviewStep from '@/features/courses/modules/module-review-step.tsx'
 import {
   type CourseNodeModel,
   mockModuleTreeData,
@@ -66,14 +66,14 @@ const ModuleCreationProcessModal = ({
       label: 'Module Management',
       description: 'Organize course content',
       icon: <IconNotebook size={18} />,
-      content: <CourseModuleCreationCard />,
+      content: <ModuleCreationCard />,
     },
     {
       label: 'Review',
       description: 'Confirm your settings',
       icon: <IconChecklist size={18} />,
       content: (
-        <CourseModuleReviewStep
+        <ModuleReviewStep
           onNext={nextStep}
           onBack={prevStep}
           courseModules={convertTreeToCourseModules(courseStructure)}

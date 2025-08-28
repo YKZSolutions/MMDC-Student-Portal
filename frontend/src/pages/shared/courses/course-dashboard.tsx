@@ -33,7 +33,7 @@ import type {
 import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
-import { useCurrentMeeting } from '@/features/courses/course-editor/useCurrentMeeting.ts'
+import { useCurrentMeeting } from '@/features/courses/useCurrentMeeting.ts'
 import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'

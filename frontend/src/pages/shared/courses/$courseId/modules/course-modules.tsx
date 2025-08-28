@@ -7,9 +7,9 @@ import {
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import ModuleCreationProcessModal from '@/features/courses/course-editor/module-creation-process-modal.tsx'
+import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
-import CourseModulePanel from '@/features/courses/modules/course-module-panel.tsx'
+import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
 
 const CourseModules = () => {
   const { authUser } = useAuth('protected')
@@ -48,7 +48,7 @@ const CourseModules = () => {
         </Group>
       }
     >
-      <CourseModulePanel allExpanded={allExpanded} />
+      <ModuleListPanel allExpanded={allExpanded} />
     </CourseMainLayout>
   )
 }

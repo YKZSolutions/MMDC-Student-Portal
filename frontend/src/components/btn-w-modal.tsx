@@ -19,6 +19,7 @@ const ButtonWithModal = ({
 }: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
   const isMobile = useMediaQuery('(max-width: 50em)')
+  const shouldFull = isMobile && fullOnMobile
 
   return (
     <>
@@ -33,7 +34,12 @@ const ButtonWithModal = ({
       <ModalComponent
         opened={opened}
         onClose={close}
-        fullScreen={isMobile && fullOnMobile}
+        fullScreen={shouldFull}
+        radius={shouldFull ? 0 : 'md'}
+        transitionProps={{
+          transition: shouldFull ? 'fade' : 'fade-down',
+          duration: 200,
+        }}
       />
     </>
   )

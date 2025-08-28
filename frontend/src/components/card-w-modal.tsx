@@ -28,8 +28,9 @@ const CardWithModal = ({
   ...cardProps
 }: ActionCardProps) => {
   const [hovered, setHovered] = useState(false)
-  const [actionModalOpened, { open, close }] = useDisclosure(false)
+  const [opened, { open, close }] = useDisclosure(false)
   const isMobile = useMediaQuery('(max-width: 50em)')
+  const shouldFull = isMobile && fullOnMobile
 
   return (
     <>
@@ -55,9 +56,14 @@ const CardWithModal = ({
         </Stack>
       </Card>
       <ModalComponent
-        opened={actionModalOpened}
+        opened={opened}
         onClose={close}
-        fullScreen={isMobile && fullOnMobile}
+        fullScreen={shouldFull}
+        radius={shouldFull ? 0 : 'md'}
+        transitionProps={{
+          transition: shouldFull ? 'fade' : 'fade-down',
+          duration: 200,
+        }}
       />
     </>
   )

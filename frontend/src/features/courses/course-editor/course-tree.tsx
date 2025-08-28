@@ -25,7 +25,7 @@ import {
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react'
-import { useTreeConnectors } from '@/features/courses/course-editor/useTreeConnectors.ts'
+import { useTreeConnectors } from '@/features/courses/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
 import { getChildTypeFromParentType } from '@/utils/helpers.ts'
 import {

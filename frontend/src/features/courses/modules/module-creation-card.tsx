@@ -16,7 +16,7 @@ interface EditorState {
   mode: 'create' | 'edit'
 }
 
-const CourseModuleCreationCard = () => {
+const ModuleCreationCard = () => {
   const theme = useMantineTheme()
   const [editorState, setEditorState] = useState<EditorState>({
     type: 'module',
@@ -117,4 +117,4 @@ const CourseModuleCreationCard = () => {
   )
 }
 
-export default CourseModuleCreationCard
+export default ModuleCreationCard

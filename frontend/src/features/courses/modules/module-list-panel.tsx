@@ -219,7 +219,7 @@ interface ModulePanelProps {
   isPreview?: boolean
 }
 
-const CourseModulePanel = ({
+const ModuleListPanel = ({
   allExpanded,
   modules: externalModules,
   isPreview = false,
@@ -485,4 +485,4 @@ function CustomAccordionControl({
   )
 }
 
-export default CourseModulePanel
+export default ModuleListPanel

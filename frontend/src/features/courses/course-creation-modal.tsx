@@ -13,8 +13,8 @@ const CourseCreationModal = ({ opened, onClose, ...props }: ModalProps) => {
     <Modal.Root
       radius="md"
       p={0}
+      size={'lg'}
       h={'100%'}
-      w={'100%'}
       opened={opened}
       onClose={onClose}
       {...props}

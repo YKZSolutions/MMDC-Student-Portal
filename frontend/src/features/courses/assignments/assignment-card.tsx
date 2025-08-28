@@ -11,7 +11,7 @@ import { IconClock } from '@tabler/icons-react'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SubmitButton from '@/components/submit-button.tsx'
 import type { StudentAssignment } from '@/features/courses/assignments/types.ts'
-import { useSubmissionDetails } from '@/features/courses/course-editor/useSubmissionDetails.ts'
+import { useSubmissionDetails } from '@/features/courses/useSubmissionDetails.ts'
 
 const AssignmentCard = ({ assignment }: { assignment: StudentAssignment }) => {
   const theme = useMantineTheme()

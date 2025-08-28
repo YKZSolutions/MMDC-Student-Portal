@@ -10,7 +10,7 @@ import {
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import ModuleCreationProcessModal from '@/features/courses/course-editor/module-creation-process-modal.tsx'
+import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
 
 const CourseActionsSelector = ({ opened, onClose, ...props }: ModalProps) => {

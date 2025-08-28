@@ -12,7 +12,7 @@ import {
   Title,
 } from '@mantine/core'
 import { IconEye, IconInfoCircle, IconListCheck } from '@tabler/icons-react'
-import CourseModulePanel from '@/features/courses/modules/course-module-panel.tsx'
+import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
 import {
   type CourseModule,
   type ModuleItem,
@@ -27,7 +27,7 @@ interface ReviewStepProps {
   courseInfo: CourseBasicDetails
 }
 
-const CourseModuleReviewStep = ({
+const ModuleReviewStep = ({
   onNext,
   onBack,
   courseModules,
@@ -113,7 +113,7 @@ const CourseModuleReviewStep = ({
         </Tabs.List>
 
         <Tabs.Panel value="preview" pt="md">
-          <CourseModulePanel
+          <ModuleListPanel
             allExpanded={true}
             isPreview={true}
             modules={courseModules}
@@ -176,4 +176,4 @@ const CourseModuleReviewStep = ({
   )
 }
 
-export default CourseModuleReviewStep
+export default ModuleReviewStep
