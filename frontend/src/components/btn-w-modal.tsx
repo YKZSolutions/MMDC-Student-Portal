@@ -18,7 +18,7 @@ const ButtonWithModal = ({
   ...buttonProps
 }: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
-  const isMobile = useMediaQuery('(max-width: 50em)')
+  const isMobile = useMediaQuery('(max-width: 768px)')
   const shouldFull = isMobile && fullOnMobile
 
   return (

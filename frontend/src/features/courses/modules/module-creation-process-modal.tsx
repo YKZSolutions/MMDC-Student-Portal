@@ -1,11 +1,13 @@
 import {
   Box,
   Button,
-  Center,
+  Container,
   Group,
   Modal,
   type ModalProps,
+  ScrollArea,
   Select,
+  Stack,
   Stepper,
   Text,
   ThemeIcon,
@@ -29,6 +31,7 @@ import {
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import { convertTreeToCourseModules } from '@/utils/helpers.ts'
 import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
+import { useMediaQuery } from '@mantine/hooks'
 
 type ModuleCreationProcessModal = {
   courseCode?: string
@@ -41,24 +44,26 @@ const ModuleCreationProcessModal = ({
   ...props
 }: ModuleCreationProcessModal) => {
   const theme = useMantineTheme()
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`)
+
+  // TODO: Populate this with actual course data
   const [courseInfo, setCourseInfo] = useState<CourseBasicDetails | undefined>(
     mockCourseBasicDetails.find((course) => course.courseCode === courseCode),
   )
-  console.log(courseInfo)
 
   const [activeStep, setActiveStep] = useState(0)
   const [courseStructure, setCourseStructure] =
     useState<CourseNodeModel[]>(mockModuleTreeData) // TODO: populate this with actual data
 
-  const nextStep = () =>
+  const nextStep = () => {
     setActiveStep((current) => (current < 3 ? current + 1 : current))
-  const prevStep = () =>
+  }
+  const prevStep = () => {
     setActiveStep((current) => (current > 0 ? current - 1 : current))
+  }
 
-  // TODO: Populated with the actual course structure data
   useEffect(() => {
     if (opened) {
-      // In a real implementation, this would gather data from the state
       setCourseStructure(mockModuleTreeData)
     }
   }, [opened])
@@ -103,6 +108,24 @@ const ModuleCreationProcessModal = ({
       content: <ConfirmationStep onFinish={onClose} />,
     },
   ]
+
+  const stepper = (
+    <Stepper
+      active={activeStep}
+      onStepClick={setActiveStep}
+      orientation={isMobile ? 'vertical' : 'horizontal'}
+      size={isMobile ? 'sm' : 'md'}
+      maw={isMobile ? '100%' : 900}
+      flex={1}
+      h={'auto'}
+      p={isMobile ? 'md' : 'xl'}
+    >
+      {steps.map((step, index) => (
+        <Stepper.Step key={index} icon={step.icon} label={step.label} />
+      ))}
+    </Stepper>
+  )
+
   return (
     <Modal.Root
       opened={opened}
@@ -110,10 +133,28 @@ const ModuleCreationProcessModal = ({
       withCloseButton={false}
       removeScrollProps={{ allowPinchZoom: true }}
       {...props}
-      fullScreen={true}
+      fullScreen
+      yOffset={0}
+      xOffset={0}
     >
-      <Modal.Content h={'100%'} style={{ overflow: 'hidden' }}>
-        <Modal.Header h={'10%'}>
+      <Modal.Content
+        style={{
+          overflow: 'hidden',
+          width: '100vw',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* HEADER */}
+        <Modal.Header
+          h="10%"
+          mih={isMobile ? 50 : 70}
+          style={{
+            borderBottom: `${theme.colors.gray[3]} 1px solid`,
+            boxShadow: `0px 4px 12px 0px ${theme.colors.gray[3]}`,
+            borderRadius: '0',
+          }}
+        >
           <Button
             variant="subtle"
             onClick={onClose}
@@ -122,16 +163,7 @@ const ModuleCreationProcessModal = ({
             Cancel
           </Button>
 
-          <Stepper
-            active={activeStep}
-            onStepClick={setActiveStep}
-            flex={1}
-            maw={900}
-          >
-            {steps.map((step, index) => (
-              <Stepper.Step key={index} icon={step.icon} label={step.label} />
-            ))}
-          </Stepper>
+          {!isMobile && stepper}
 
           <Group>
             <Button
@@ -146,13 +178,21 @@ const ModuleCreationProcessModal = ({
             </Button>
           </Group>
         </Modal.Header>
-        <Modal.Body
-          h={'90%'}
-          bg={'background'}
-          style={{ overflowY: 'auto', scrollbarGutter: 'stable' }}
-        >
-          {/* Content */}
-          {steps[activeStep].content}
+
+        {/* BODY */}
+        <Modal.Body h={'100%'} p={0}>
+          <Group
+            h="100%"
+            p={0}
+            justify={isMobile ? 'start' : 'center'}
+            align={'stretch'}
+            wrap="nowrap"
+          >
+            <Stack w={isMobile ? '20%' : 0}>{isMobile && stepper}</Stack>
+            <ScrollArea flex={1}>
+              <Stack>{steps[activeStep].content}</Stack>
+            </ScrollArea>
+          </Group>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>
@@ -187,7 +227,7 @@ const CourseSelector = ({ onCourseChange }: CourseSelectorProps) => {
   }, [selectedCourse])
 
   return (
-    <Center h="90%">
+    <Container h="100%" mt={'10%'}>
       <Box ta="center">
         <Title order={3} mb="sm">
           Select Course
@@ -206,14 +246,13 @@ const CourseSelector = ({ onCourseChange }: CourseSelectorProps) => {
           size="md"
           radius="md"
           inputSize="md"
-          mb="xl"
           labelProps={{
             fz: '1.5rem',
             fw: 600,
           }}
         />
       </Box>
-    </Center>
+    </Container>
   )
 }
 
@@ -223,7 +262,7 @@ interface ConfirmationStepProps {
 
 const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
   return (
-    <Center h="90%">
+    <Container h="100%" mt={'10%'}>
       <Box ta="center">
         <ThemeIcon color="green" size="xl" radius="xl" mb="md">
           <IconCircleCheck size={24} />
@@ -236,7 +275,7 @@ const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
         </Text>
         <Button onClick={onFinish}>Return to Course Dashboard</Button>
       </Box>
-    </Center>
+    </Container>
   )
 }
 
