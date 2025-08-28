@@ -1463,7 +1463,8 @@ export const zEnrollmentControllerFindAllCourseOfferingsData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        periodId: z.optional(z.uuid())
     }))
 });
 

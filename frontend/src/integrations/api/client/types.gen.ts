@@ -2210,6 +2210,7 @@ export type EnrollmentControllerFindAllCourseOfferingsData = {
     query?: {
         search?: string;
         page?: number;
+        periodId?: string;
     };
     url: '/enrollment/offerings';
 };
