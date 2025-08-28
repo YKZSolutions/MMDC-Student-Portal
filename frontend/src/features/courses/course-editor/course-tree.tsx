@@ -96,11 +96,16 @@ interface CourseTreeProps {
     nodeType: ContentNodeType,
     nodeData: any,
   ) => void
+  courseCode: string
 }
 
-function CourseTree({ onAddButtonClick, onEditButtonClick }: CourseTreeProps) {
+function CourseTree({
+  onAddButtonClick,
+  onEditButtonClick,
+  courseCode,
+}: CourseTreeProps) {
   const theme = useMantineTheme()
-  const treeWithAddButtons = injectData(mockModuleTreeData)
+  const treeWithAddButtons = injectData(mockModuleTreeData) //TODO: replace with actual data
   const [treeData, setTreeData] =
     useState<CourseNodeModel[]>(treeWithAddButtons)
   const { isLastChild, getAncestors } = useTreeConnectors(treeData)

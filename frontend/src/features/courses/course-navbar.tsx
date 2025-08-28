@@ -9,7 +9,7 @@ import { Button, Select, Stack } from '@mantine/core'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import CourseActionsSelector from '@/features/courses/course-actions-selector.tsx'
+import CourseActionsModal from '@/features/courses/course-actions-modal.tsx'
 import { IconTool } from '@tabler/icons-react'
 
 export interface CourseNavItem {
@@ -72,7 +72,7 @@ const CourseNavBar = ({
             <ButtonWithModal
               label={'Manage Content'}
               icon={<IconTool size={18} />}
-              modalComponent={CourseActionsSelector}
+              modalComponent={CourseActionsModal}
               mb={'md'}
             />
           ),

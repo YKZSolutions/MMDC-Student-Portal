@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   Container,
   Divider,
@@ -8,11 +9,11 @@ import {
   type ModalProps,
   Select,
   Stack,
-  Textarea,
   TextInput,
   useMantineTheme,
 } from '@mantine/core'
 import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
+import { YearPickerInput } from '@mantine/dates'
 
 const CourseCreationModal = ({
   opened,
@@ -38,7 +39,7 @@ const CourseCreationModal = ({
             boxShadow: `0px 4px 12px 0px ${theme.colors.gray[3]}`,
           }}
         >
-          <Modal.Title fw={600} fz={'h3'}>
+          <Modal.Title fw={600} fz={'h4'}>
             Manage Course
           </Modal.Title>
           <Modal.CloseButton />
@@ -46,8 +47,8 @@ const CourseCreationModal = ({
         <Modal.Body h={'92%'} bg={'background'}>
           <Container h={'100%'} p={'xl'}>
             <Card withBorder radius={'lg'} shadow="xs" p={0} h={'100%'}>
-              <Box bg={'yellow'} h={'56px'}></Box>
-              <Stack justify="space-between" h={'100%'} my={'sm'} p={'xl'}>
+              <Box bg={'primary'} h={'56px'}></Box>
+              <Stack justify="space-between" h={'100%'} p={'xl'}>
                 <Select
                   label="Course"
                   placeholder="Select a course"
@@ -55,49 +56,68 @@ const CourseCreationModal = ({
                   defaultValue={courses[0].courseName}
                   searchable
                   onChange={handleCourseChange}
-                  size="lg"
+                  size="md"
                   radius="md"
                   inputSize="md"
                   labelProps={{
                     fz: '1.5rem',
+                    fw: 600,
                   }}
                 />
                 {/*TODO: add actual content types, these are just placeholders*/}
                 <Stack gap={'sm'}>
-                  <Group justify="space-between">
+                  <Group>
                     <TextInput
                       label={'Course Name'}
                       placeholder="Enter course name"
+                      defaultValue={courses[0].courseName}
+                      flex={1}
                     />
                     <TextInput
                       label={'Course Code'}
                       placeholder="Enter course code"
+                      defaultValue={courses[0].courseCode}
+                      flex={1}
                     />
                   </Group>
                   <Group justify="space-between">
-                    <TextInput label={'Year Start'} placeholder="Enter year" />
-                    <TextInput label={'Year End'} placeholder="Enter year" />
+                    <YearPickerInput
+                      label={'Year Start'}
+                      placeholder="Enter year"
+                      flex={1}
+                    />
+                    <YearPickerInput
+                      label={'Year End'}
+                      placeholder="Enter year"
+                      flex={1}
+                    />
                   </Group>
                   <Group justify="space-between">
                     <TextInput
                       label={'Semester'}
                       placeholder="Enter semester"
+                      flex={1}
                     />
                     <TextInput
                       label={'Units'}
                       type="number"
                       placeholder="Enter units"
+                      flex={1}
                     />
                   </Group>
                 </Stack>
                 <Stack gap={'0'}>
-                  <Textarea
+                  <TextInput
                     variant="unstyled"
-                    label=""
-                    placeholder="Type description here..."
+                    label="Description"
+                    value={'This is a description of the course.'}
+                    contentEditable={false}
                   />
                   <Divider />
                 </Stack>
+                <Button variant="filled" radius={'md'} size={'lg'}>
+                  Proceed to Course Management
+                </Button>
               </Stack>
             </Card>
           </Container>

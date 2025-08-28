@@ -13,7 +13,7 @@ import { IconBook } from '@tabler/icons-react'
 import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
 
-const CourseActionsSelector = ({ opened, onClose, ...props }: ModalProps) => {
+const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
   return (
     <Modal
       opened={opened}
@@ -106,4 +106,4 @@ const CourseActionsSelector = ({ opened, onClose, ...props }: ModalProps) => {
   )
 }
 
-export default CourseActionsSelector
+export default CourseActionsModal

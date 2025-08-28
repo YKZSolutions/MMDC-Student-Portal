@@ -5,7 +5,7 @@ import {
   Group,
   Modal,
   type ModalProps,
-  Stack,
+  Select,
   Stepper,
   Text,
   ThemeIcon,
@@ -17,6 +17,7 @@ import {
   IconChecklist,
   IconCircleCheck,
   IconNotebook,
+  IconSelect,
   IconX,
 } from '@tabler/icons-react'
 import ModuleCreationCard from '@/features/courses/modules/module-creation-card.tsx'
@@ -26,19 +27,20 @@ import {
   mockModuleTreeData,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import { useParams } from '@tanstack/react-router'
-import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 import { convertTreeToCourseModules } from '@/utils/helpers.ts'
+import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
+
+type ModuleCreationProcessModal = {
+  courseCode?: string
+} & ModalProps
 
 const ModuleCreationProcessModal = ({
   opened,
   onClose,
+  courseCode,
   ...props
-}: ModalProps) => {
+}: ModuleCreationProcessModal) => {
   const theme = useMantineTheme()
-  const { courseCode } = useParams({
-    from: '/(protected)/courses/$courseCode/modules/',
-  })
   const [courseInfo, setCourseInfo] = useState<CourseBasicDetails | undefined>(
     mockCourseBasicDetails.find((course) => course.courseCode === courseCode),
   )
@@ -61,21 +63,35 @@ const ModuleCreationProcessModal = ({
     }
   }, [opened])
 
+  // Determine if the "Next" button should be enabled
+  const isNextEnabled = () => {
+    switch (activeStep) {
+      case 0:
+        return !!courseInfo // Next is enabled only if a course is selected
+      // TODO: Add more cases for other steps if they have specific validation needs
+      case 1: // Example for Module Management step
+      case 2: // Example for Review step
+      default:
+        return true
+    }
+  }
+
   const steps = [
     {
+      label: 'Select Course',
+      icon: <IconSelect size={18} />,
+      content: <CourseSelector onCourseChange={setCourseInfo} />,
+    },
+    {
       label: 'Module Management',
-      description: 'Organize course content',
       icon: <IconNotebook size={18} />,
-      content: <ModuleCreationCard />,
+      content: <ModuleCreationCard courseCode={courseCode} />,
     },
     {
       label: 'Review',
-      description: 'Confirm your settings',
       icon: <IconChecklist size={18} />,
       content: (
         <ModuleReviewStep
-          onNext={nextStep}
-          onBack={prevStep}
           courseModules={convertTreeToCourseModules(courseStructure)}
           courseInfo={courseInfo as CourseBasicDetails}
         />
@@ -83,40 +99,21 @@ const ModuleCreationProcessModal = ({
     },
     {
       label: 'Confirmation',
-      description: 'Course created successfully',
       icon: <IconCircleCheck size={18} />,
       content: <ConfirmationStep onFinish={onClose} />,
     },
   ]
-
   return (
-    <Modal
+    <Modal.Root
       opened={opened}
       onClose={onClose}
       withCloseButton={false}
       removeScrollProps={{ allowPinchZoom: true }}
-      styles={{
-        body: {
-          padding: 0,
-        },
-        content: {
-          overflow: 'hidden',
-          height: '100%',
-        },
-      }}
       {...props}
+      fullScreen={true}
     >
-      <Stack gap={0} h="100%">
-        {/* Header */}
-        <Group
-          justify="space-between"
-          align="center"
-          p={'lg'}
-          style={{
-            borderBottom: `1px solid ${theme.colors.gray[3]}`,
-            boxShadow: `0px 4px 24px 0px ${theme.colors.gray[3]}`,
-          }}
-        >
+      <Modal.Content h={'100%'} style={{ overflow: 'hidden' }}>
+        <Modal.Header h={'10%'}>
           <Button
             variant="subtle"
             onClick={onClose}
@@ -126,20 +123,13 @@ const ModuleCreationProcessModal = ({
           </Button>
 
           <Stepper
-            w={'50%'}
             active={activeStep}
             onStepClick={setActiveStep}
-            size="sm"
+            flex={1}
+            maw={900}
           >
             {steps.map((step, index) => (
-              <Stepper.Step
-                key={index}
-                icon={step.icon}
-                label={step.label}
-                description={
-                  activeStep === index ? step.description : undefined
-                }
-              />
+              <Stepper.Step key={index} icon={step.icon} label={step.label} />
             ))}
           </Stepper>
 
@@ -151,16 +141,79 @@ const ModuleCreationProcessModal = ({
             >
               Back
             </Button>
-            <Button onClick={nextStep} w={75}>
+            <Button onClick={nextStep} w={75} disabled={!isNextEnabled()}>
               {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
             </Button>
           </Group>
-        </Group>
+        </Modal.Header>
+        <Modal.Body
+          h={'90%'}
+          bg={'background'}
+          style={{ overflowY: 'auto', scrollbarGutter: 'stable' }}
+        >
+          {/* Content */}
+          {steps[activeStep].content}
+        </Modal.Body>
+      </Modal.Content>
+    </Modal.Root>
+  )
+}
 
-        {/* Content */}
-        {steps[activeStep].content}
-      </Stack>
-    </Modal>
+type CourseSelectorProps = {
+  onCourseChange: (course: CourseBasicDetails) => void
+}
+
+const CourseSelector = ({ onCourseChange }: CourseSelectorProps) => {
+  const courses = mockCourseBasicDetails
+  const [selectedCourse, setSelectedCourse] =
+    useState<CourseBasicDetails | null>(courses.length > 0 ? courses[0] : null)
+
+  const handleCourseChange = (value: string | null) => {
+    if (value) {
+      const course = courses.find((course) => course.courseName === value)
+      if (course) {
+        setSelectedCourse(course)
+      }
+    } else {
+      setSelectedCourse(null)
+    }
+  }
+
+  useEffect(() => {
+    // Call onCourseChange only if a course is selected
+    if (selectedCourse) {
+      onCourseChange(selectedCourse)
+    }
+  }, [selectedCourse])
+
+  return (
+    <Center h="90%">
+      <Box ta="center">
+        <Title order={3} mb="sm">
+          Select Course
+        </Title>
+        <Text c="dimmed" mb="xl">
+          Select the course you want to manage content for.
+        </Text>
+        <Select
+          label="Course"
+          placeholder="Select a course"
+          data={courses.map((course) => course.courseName)}
+          value={selectedCourse?.courseName}
+          searchable
+          onChange={handleCourseChange}
+          allowDeselect={false}
+          size="md"
+          radius="md"
+          inputSize="md"
+          mb="xl"
+          labelProps={{
+            fz: '1.5rem',
+            fw: 600,
+          }}
+        />
+      </Box>
+    </Center>
   )
 }
 
@@ -170,7 +223,7 @@ interface ConfirmationStepProps {
 
 const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
   return (
-    <Center h="100%">
+    <Center h="90%">
       <Box ta="center">
         <ThemeIcon color="green" size="xl" radius="xl" mb="md">
           <IconCircleCheck size={24} />

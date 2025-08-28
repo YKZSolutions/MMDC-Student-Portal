@@ -16,8 +16,13 @@ interface EditorState {
   mode: 'create' | 'edit'
 }
 
-const ModuleCreationCard = () => {
+type ModuleCreationCardProps = {
+  courseCode?: string
+}
+
+const ModuleCreationCard = ({ courseCode }: ModuleCreationCardProps) => {
   const theme = useMantineTheme()
+
   const [editorState, setEditorState] = useState<EditorState>({
     type: 'module',
     data: null,
@@ -67,7 +72,7 @@ const ModuleCreationCard = () => {
   return (
     <PanelGroup direction="horizontal">
       <Panel minSize={30}>
-        <Container h={'100%'} p={'xl'}>
+        <Container p="xl">
           <Group justify="space-between" align="center" mb="md">
             <Title order={4}>Course Structure</Title>
             <Button
@@ -83,6 +88,7 @@ const ModuleCreationCard = () => {
           <CourseTree
             onAddButtonClick={handleAdd}
             onEditButtonClick={handleEdit}
+            courseCode={courseCode!}
           />
         </Container>
       </Panel>

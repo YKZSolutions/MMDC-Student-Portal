@@ -2,7 +2,6 @@ import {
   Alert,
   Badge,
   Box,
-  Button,
   Card,
   Container,
   Group,
@@ -21,18 +20,11 @@ import {
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 
 interface ReviewStepProps {
-  onNext: () => void
-  onBack: () => void
   courseModules: CourseModule[]
   courseInfo: CourseBasicDetails
 }
 
-const ModuleReviewStep = ({
-  onNext,
-  onBack,
-  courseModules,
-  courseInfo,
-}: ReviewStepProps) => {
+const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
   // Count total number of modules
   // By iterating over courseModules array and summing the length of sections
   // for each module
@@ -117,8 +109,6 @@ const ModuleReviewStep = ({
             allExpanded={true}
             isPreview={true}
             modules={courseModules}
-            // TODO: update to adapt this to use the courseStructure data
-            // instead of the imported moduleData
           />
         </Tabs.Panel>
 
@@ -164,14 +154,6 @@ const ModuleReviewStep = ({
           </Card>
         </Tabs.Panel>
       </Tabs>
-
-      {/* Action Buttons */}
-      <Group justify="space-between" mt="xl">
-        <Button variant="default" onClick={onBack}>
-          Back to Editing
-        </Button>
-        <Button onClick={onNext}>Confirm and Create Course</Button>
-      </Group>
     </Container>
   )
 }
