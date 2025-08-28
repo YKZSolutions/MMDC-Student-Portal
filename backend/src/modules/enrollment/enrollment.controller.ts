@@ -9,6 +9,7 @@ import {
   Query,
   BadRequestException,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
@@ -28,11 +29,15 @@ import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
 import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
+import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
 
-@Roles(Role.ADMIN)
 @Controller('enrollment')
 export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
+
+  // ===========================================================================
+  // ENROLLMENT PERIOD
+  // ===========================================================================
 
   /**
    * Creates a new enrollment period
@@ -43,47 +48,10 @@ export class EnrollmentController {
    */
   @ApiCreatedResponse({ type: EnrollmentPeriodDto })
   @ApiException(() => [BadRequestException])
-  @Post()
+  @Roles(Role.ADMIN)
+  @Post('/periods')
   createEnrollment(@Body() dto: CreateEnrollmentPeriodDto) {
     return this.enrollmentService.createEnrollment(dto);
-  }
-
-  /**
-   * Creates a new course offering under a specific enrollment period
-   *
-   * @remarks
-   * Requires `ADMIN` role.
-   *
-   * @throws NotFoundException If the enrollment period or course does not exist
-   * @throws BadRequestException If invalid references are provided
-   */
-  @ApiCreatedResponse({ type: CourseOfferingDto })
-  @ApiException(() => [NotFoundException, BadRequestException])
-  @Post('/:periodId/offerings')
-  createCourseOffering(
-    @Param('periodId') periodId: string,
-    @Body() dto: CreateCourseOfferingDto,
-  ) {
-    return this.enrollmentService.createCourseOffering(periodId, dto);
-  }
-
-  /**
-   * Creates a new course section under a specific course offering
-   *
-   * @remarks
-   * Requires `ADMIN` role.
-   *
-   * @throws NotFoundException If the course offering or mentor does not exist
-   * @throws BadRequestException If invalid references are provided
-   */
-  @ApiCreatedResponse({ type: CourseSectionDto })
-  @ApiException(() => [NotFoundException, BadRequestException])
-  @Post('/offerings/:offeringId/sections')
-  createCourseSection(
-    @Param('offeringId') offeringId: string,
-    @Body() dto: CreateCourseSectionFullDto,
-  ) {
-    return this.enrollmentService.createCourseSection(offeringId, dto);
   }
 
   /**
@@ -95,37 +63,10 @@ export class EnrollmentController {
    */
   @ApiOkResponse({ type: PaginatedEnrollmentPeriodsDto })
   @ApiException(() => [BadRequestException])
-  @Get()
+  @Roles(Role.ADMIN)
+  @Get('/periods')
   findAllEnrollments(@Query() filters: BaseFilterDto) {
     return this.enrollmentService.findAllEnrollments(filters);
-  }
-
-  /**
-   * Retrieves all course offerings
-   *
-   * @remarks
-   * Fetches a paginated list of course offerings.
-   * Requires `ADMIN` role.
-   */
-  @ApiOkResponse({ type: PaginatedCourseOfferingsDto })
-  @ApiException(() => [BadRequestException])
-  @Get('/offerings')
-  findAllCourseOfferings(@Query() filters: BaseFilterDto) {
-    return this.enrollmentService.findAllCourseOfferings(filters);
-  }
-
-  /**
-   * Retrieves all course sections
-   *
-   * @remarks
-   * Fetches a paginated list of course sections.
-   * Requires `ADMIN` role.
-   */
-  @ApiOkResponse({ type: PaginatedCourseSectionsDto })
-  @ApiException(() => [BadRequestException])
-  @Get('/sections')
-  findAllCourseSections(@Query() filters: BaseFilterDto) {
-    return this.enrollmentService.findAllCourseSections(filters);
   }
 
   /**
@@ -139,65 +80,10 @@ export class EnrollmentController {
    */
   @ApiOkResponse({ type: EnrollmentPeriodDto })
   @ApiException(() => [NotFoundException, BadRequestException])
-  @Get(':id')
-  findOneEnrollment(@Param('id') id: string) {
-    return this.enrollmentService.findOneEnrollment(id);
-  }
-
-  /**
-   * Retrieves a specific course offering by ID
-   *
-   * @remarks
-   * Requires `ADMIN` role.
-   *
-   * @throws NotFoundException If the offering does not exist
-   * @throws BadRequestException If ID format is invalid
-   */
-  @ApiOkResponse({ type: CourseOfferingDto })
-  @ApiException(() => [NotFoundException, BadRequestException])
-  @Get('/offerings/:offeringId')
-  findOneCourseOffering(@Param('offeringId') offeringId: string) {
-    return this.enrollmentService.findOneCourseOffering(offeringId);
-  }
-
-  /**
-   * Retrieves a specific course section under a course offering
-   *
-   * @remarks
-   * Requires `ADMIN` role.
-   *
-   * @throws NotFoundException If the section or offering does not exist
-   * @throws BadRequestException If ID format is invalid
-   */
-  @ApiOkResponse({ type: CourseSectionDto })
-  @ApiException(() => [NotFoundException, BadRequestException])
-  @Get('/offerings/:offeringId/sections/:sectionId')
-  findOneCourseSection(
-    @Param('offeringId') offeringId: string,
-    @Param('sectionId') sectionId: string,
-  ) {
-    return this.enrollmentService.findOneCourseSection(offeringId, sectionId);
-  }
-
-  /**
-   * Updates the status of an enrollment period
-   *
-   * @remarks
-   * Requires `ADMIN` role.
-   *
-   * @throws NotFoundException If the enrollment does not exist
-   */
-  @ApiOkResponse({ type: EnrollmentPeriodDto })
-  @ApiException(() => [NotFoundException])
-  @Patch('/:id/status')
-  updateEnrollmentStatus(
-    @Param('id') id: string,
-    @Body() updateEnrollmentStatusDto: UpdateEnrollmentStatusDto,
-  ) {
-    return this.enrollmentService.updateEnrollmentStatus(
-      id,
-      updateEnrollmentStatusDto,
-    );
+  @Roles(Role.ADMIN)
+  @Get('/periods/:periodId')
+  findOneEnrollment(@Param('periodId', new ParseUUIDPipe()) periodId: string) {
+    return this.enrollmentService.findOneEnrollment(periodId);
   }
 
   /**
@@ -211,35 +97,37 @@ export class EnrollmentController {
    */
   @ApiOkResponse({ type: EnrollmentPeriodDto })
   @ApiException(() => [NotFoundException, BadRequestException])
-  @Patch(':id')
+  @Roles(Role.ADMIN)
+  @Patch('/periods/:periodId')
   updateEnrollment(
-    @Param('id') id: string,
+    @Param('periodId', new ParseUUIDPipe()) periodId: string,
     @Body() updateEnrollmentDto: UpdateEnrollmentDto,
   ) {
-    return this.enrollmentService.updateEnrollment(id, updateEnrollmentDto);
+    return this.enrollmentService.updateEnrollment(
+      periodId,
+      updateEnrollmentDto,
+    );
   }
 
   /**
-   * Updates a course section under a specific course offering
+   * Updates the status of an enrollment period
    *
    * @remarks
    * Requires `ADMIN` role.
    *
-   * @throws NotFoundException If the section does not exist
-   * @throws BadRequestException If invalid relations or closed enrollment
+   * @throws NotFoundException If the enrollment does not exist
    */
-  @ApiOkResponse({ type: CourseSectionDto })
-  @ApiException(() => [NotFoundException, BadRequestException])
-  @Patch('/offerings/:offeringId/sections/:sectionId')
-  updateCourseSection(
-    @Param('offeringId') offeringId: string,
-    @Param('sectionId') sectionId: string,
-    @Body() updateCourseSectionDto: UpdateCourseSectionDto,
+  @ApiOkResponse({ type: EnrollmentPeriodDto })
+  @ApiException(() => [NotFoundException])
+  @Roles(Role.ADMIN)
+  @Patch('periods/:periodId/status')
+  updateEnrollmentStatus(
+    @Param('periodId', new ParseUUIDPipe()) periodId: string,
+    @Body() updateEnrollmentStatusDto: UpdateEnrollmentStatusDto,
   ) {
-    return this.enrollmentService.updateCourseSection(
-      offeringId,
-      sectionId,
-      updateCourseSectionDto,
+    return this.enrollmentService.updateEnrollmentStatus(
+      periodId,
+      updateEnrollmentStatusDto,
     );
   }
 
@@ -259,9 +147,84 @@ export class EnrollmentController {
     },
   })
   @ApiException(() => [NotFoundException, BadRequestException])
-  @Delete(':id')
-  removeEnrollment(@Param('id') id: string) {
-    return this.enrollmentService.removeEnrollment(id);
+  @Roles(Role.ADMIN)
+  @Delete('/periods/:periodId')
+  removeEnrollment(@Param('periodId', new ParseUUIDPipe()) periodId: string) {
+    return this.enrollmentService.removeEnrollment(periodId);
+  }
+
+  // ===========================================================================
+  // COURSE OFFERINGS
+  // ===========================================================================
+  /**
+   * Creates a new course offering under a specific enrollment period
+   *
+   * @remarks
+   * Requires `ADMIN` role.
+   *
+   * @throws NotFoundException If the enrollment period or course does not exist
+   * @throws BadRequestException If invalid references are provided
+   */
+  @ApiCreatedResponse({ type: CourseOfferingDto })
+  @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
+  @Post('/periods/:periodId/offerings')
+  createCourseOffering(
+    @Param('periodId', new ParseUUIDPipe()) periodId: string,
+    @Body() dto: CreateCourseOfferingDto,
+  ) {
+    return this.enrollmentService.createCourseOffering(periodId, dto);
+  }
+
+  /**
+   * Retrieves all course offerings
+   *
+   * @remarks
+   * Fetches a paginated list of course offerings.
+   * Requires `ADMIN` role.
+   */
+  @ApiOkResponse({ type: PaginatedCourseOfferingsDto })
+  @ApiException(() => [BadRequestException])
+  @Roles(Role.ADMIN)
+  @Get('/offerings')
+  findAllCourseOfferings(@Query() filters: BaseFilterDto) {
+    return this.enrollmentService.findAllCourseOfferings(filters);
+  }
+
+  /**
+   * Retrieves all course offerings in a specific enrollment period
+   *
+   * @remarks
+   * Fetches a paginated list of course offerings for the given period.
+   * Requires `ADMIN` or `STUDENT` role.
+   */
+  @ApiOkResponse({ type: PaginatedCourseOfferingsDto })
+  @Roles(Role.ADMIN, Role.STUDENT)
+  @Get('/periods/:periodId/offerings')
+  findCourseOfferingsByPeriod(
+    @Param('periodId', new ParseUUIDPipe()) periodId: string,
+    @Query() filters: BaseFilterDto,
+  ) {
+    return this.enrollmentService.findAllCourseOfferings(filters, periodId);
+  }
+
+  /**
+   * Retrieves a specific course offering by ID
+   *
+   * @remarks
+   * Requires `ADMIN` role.
+   *
+   * @throws NotFoundException If the offering does not exist
+   * @throws BadRequestException If ID format is invalid
+   */
+  @ApiOkResponse({ type: CourseOfferingDto })
+  @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
+  @Get('/offerings/:offeringId')
+  findOneCourseOffering(
+    @Param('offeringId', new ParseUUIDPipe()) offeringId: string,
+  ) {
+    return this.enrollmentService.findOneCourseOffering(offeringId);
   }
 
   /**
@@ -280,12 +243,100 @@ export class EnrollmentController {
     },
   })
   @ApiException(() => [NotFoundException, BadRequestException])
-  @Delete(':periodId/offerings/:offeringId')
+  @Roles(Role.ADMIN)
+  @Delete('/periods/:periodId/offerings/:offeringId')
   removeCourseOffering(
-    @Param('periodId') periodId: string,
-    @Param('offeringId') offeringId: string,
+    @Param('periodId', new ParseUUIDPipe()) periodId: string,
+    @Param('offeringId', new ParseUUIDPipe()) offeringId: string,
   ) {
     return this.enrollmentService.removeCourseOffering(periodId, offeringId);
+  }
+
+  // ===========================================================================
+  // COURSE SECTIONS
+  // ===========================================================================
+
+  /**
+   * Retrieves all course sections
+   *
+   * @remarks
+   * Fetches a paginated list of course sections.
+   * Requires `ADMIN` role.
+   */
+  @ApiOkResponse({ type: PaginatedCourseSectionsDto })
+  @ApiException(() => [BadRequestException])
+  @Roles(Role.ADMIN, Role.STUDENT)
+  @Get('periods/:periodId/sections')
+  findAllCourseSections(
+    @Param('periodId', new ParseUUIDPipe()) periodId: string,
+    @Query() filters: BaseFilterDto,
+  ) {
+    return this.enrollmentService.findAllCourseSections(filters);
+  }
+
+  /**
+   * Creates a new course section under a specific course offering
+   *
+   * @remarks
+   * Requires `ADMIN` role.
+   *
+   * @throws NotFoundException If the course offering or mentor does not exist
+   * @throws BadRequestException If invalid references are provided
+   */
+  @ApiCreatedResponse({ type: CourseSectionDto })
+  @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
+  @Post('/offerings/:offeringId/sections')
+  createCourseSection(
+    @Param('offeringId', new ParseUUIDPipe()) offeringId: string,
+    @Body() dto: CreateCourseSectionFullDto,
+  ) {
+    return this.enrollmentService.createCourseSection(offeringId, dto);
+  }
+
+  /**
+   * Retrieves a specific course section under a course offering
+   *
+   * @remarks
+   * Requires `ADMIN` role.
+   *
+   * @throws NotFoundException If the section or offering does not exist
+   * @throws BadRequestException If ID format is invalid
+   */
+  @ApiOkResponse({ type: CourseSectionDto })
+  @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
+  @Get('/offerings/:offeringId/sections/:sectionId')
+  findOneCourseSection(
+    @Param('offeringId', new ParseUUIDPipe()) offeringId: string,
+    @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
+  ) {
+    return this.enrollmentService.findOneCourseSection(offeringId, sectionId);
+  }
+
+  /**
+   * Updates a course section under a specific course offering
+   *
+   * @remarks
+   * Requires `ADMIN` role.
+   *
+   * @throws NotFoundException If the section does not exist
+   * @throws BadRequestException If invalid relations or closed enrollment
+   */
+  @ApiOkResponse({ type: CourseSectionDto })
+  @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
+  @Patch('/offerings/:offeringId/sections/:sectionId')
+  updateCourseSection(
+    @Param('offeringId') offeringId: string,
+    @Param('sectionId') sectionId: string,
+    @Body() updateCourseSectionDto: UpdateCourseSectionDto,
+  ) {
+    return this.enrollmentService.updateCourseSection(
+      offeringId,
+      sectionId,
+      updateCourseSectionDto,
+    );
   }
 
   /**
@@ -304,11 +355,39 @@ export class EnrollmentController {
     },
   })
   @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
   @Delete('offerings/:offeringId/sections/:sectionId')
   removeCourseSection(
     @Param('offeringId') offeringId: string,
     @Param('sectionId') sectionId: string,
   ) {
     return this.enrollmentService.removeCourseSection(offeringId, sectionId);
+  }
+
+  // ===========================================================================
+  // STUDENT ENROLLMENT
+  // ===========================================================================
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @Post('/sections/:sectionId/enroll')
+  createCourseEnrollment(
+    @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
+    @Body() dto: StudentIdentifierDto,
+  ) {
+    return this.enrollmentService.createCourseEnrollment(sectionId, dto);
+  }
+
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @Delete('/sections/:sectionId')
+  dropCourseEnrollment(
+    @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
+    @Body() dto: StudentIdentifierDto,
+  ) {
+    return this.enrollmentService.dropCourseEnrollment(sectionId, dto);
+  }
+
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @Post('/enrollment/finalize')
+  finalizeCourseEnrollment(@Body() dto: StudentIdentifierDto) {
+    return this.enrollmentService.finalizeEnrollment(dto);
   }
 }
