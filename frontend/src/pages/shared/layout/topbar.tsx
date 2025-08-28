@@ -6,7 +6,7 @@ import {
   IconMessageChatbot,
 } from '@tabler/icons-react'
 import { Link, useLocation, useParams } from '@tanstack/react-router'
-import { mockCourses } from '@/routes/(protected)/courses/$courseCode.tsx'
+import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 
 type TopBarProps = {
   setChatbotOpen: (open: boolean) => void
@@ -20,7 +20,7 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
 
   // TODO: Replace with actual course data from the backend
   const course = courseCode
-    ? mockCourses.find((c) => c.courseCode === courseCode)
+    ? mockCourseBasicDetails.find((c) => c.courseCode === courseCode)
     : null
 
   const paths = location.pathname.split('/').slice(1)

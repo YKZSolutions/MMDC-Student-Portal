@@ -17,7 +17,12 @@ export type AssignmentMode = 'individual' | 'group'
  */
 export type AssignmentStatus = 'open' | 'closed'
 
-export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
+export type AssignmentType =
+  | 'assignment'
+  | 'draft'
+  | 'milestone'
+  | 'quiz'
+  | 'other'
 
 /**
  * Represents the base structure of an assignment entity.
