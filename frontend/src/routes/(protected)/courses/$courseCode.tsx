@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
 
-export const mockCourses: CourseBasicDetails[] = [
+export const mockCourseBasicDetails: CourseBasicDetails[] = [
   {
     courseCode: 'MO-IT200',
     courseName: 'Web Technology Applications',
@@ -33,7 +33,7 @@ function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
 
-  const courses: CourseBasicDetails[] = mockCourses
+  const courses: CourseBasicDetails[] = mockCourseBasicDetails
   const { courseCode } = useParams({ from: '/(protected)/courses/$courseCode' })
 
   const studentNavItems: CourseNavItem[] = [
@@ -96,8 +96,8 @@ function RouteComponent() {
       {/* Sub Nav */}
       <Box
         style={{
-          width: '175px',
-          minWidth: '175px',
+          width: '180px',
+          minWidth: '180px',
           borderRight: `1px solid ${theme.colors.gray[2]}`,
           overflow: 'hidden',
           flexShrink: 0,
