@@ -756,15 +756,17 @@ function CourseOfferingSectionEditForm({
           Editing
         </Badge>
       </Group>
+
       <TextInput
-        radius={'md'}
-        label="Section name"
+        radius="md"
+        label="Section title"
+        placeholder="Enter section title"
         {...form.getInputProps('name')}
       />
 
       <MultiSelect
-        radius={'md'}
-        label="Days"
+        radius="md"
+        label="Schedule days"
         data={dayOptions}
         styles={{
           pill: {
@@ -772,38 +774,39 @@ function CourseOfferingSectionEditForm({
           },
         }}
         {...form.getInputProps('days')}
-        placeholder="Select days"
+        placeholder="Choose days"
       />
 
       <Group grow align="flex-start">
         <TimePicker
-          radius={'md'}
-          label="Start (HH:mm)"
+          radius="md"
+          label="Start time"
           {...form.getInputProps('startSched')}
         />
         <TimePicker
-          radius={'md'}
-          label="End (HH:mm)"
+          radius="md"
+          label="End time"
           {...form.getInputProps('endSched')}
         />
       </Group>
 
       <Group grow align="flex-start">
         <NumberInput
-          radius={'md'}
-          label="Max slots"
+          radius="md"
+          label="Maximum slots"
           min={1}
+          placeholder="e.g. 30"
           {...form.getInputProps('maxSlot')}
         />
         <TextInput
-          radius={'md'}
-          label="Mentor ID (optional)"
-          placeholder="mentor id (uuid)"
+          radius="md"
+          label="Assigned mentor (optional)"
+          placeholder="Enter mentor ID"
           {...form.getInputProps('mentorId')}
         />
       </Group>
 
-      <Group gap="sm" justify="flex-end" pt={'lg'}>
+      <Group gap="sm" justify="flex-end" pt="lg">
         <Button variant="subtle" onClick={onCancel} disabled={updating}>
           Cancel
         </Button>
