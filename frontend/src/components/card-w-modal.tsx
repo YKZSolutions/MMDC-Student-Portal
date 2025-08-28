@@ -1,23 +1,13 @@
 import React, { type ComponentPropsWithoutRef, type JSX, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
-import {
-  type BoxProps,
-  Button,
-  Card,
-  Group,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core'
+import { type BoxProps, Card, Group, Stack, Text, Title } from '@mantine/core'
+import type { CustomModalProp } from '@/components/types.ts'
 
 type ActionCardProps = {
   title: string
   description: string
   icon: JSX.Element
-  modalComponent: React.ComponentType<{
-    opened: boolean
-    closeModal: () => void
-  }>
+  modalComponent: React.ComponentType<CustomModalProp>
 } & ComponentPropsWithoutRef<typeof Card> &
   BoxProps
 
