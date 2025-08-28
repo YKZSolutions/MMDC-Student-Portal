@@ -1,6 +1,9 @@
 import { Button, Container, Group, Title, useMantineTheme } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
-import type { ContentNode, ContentNodeType, } from '@/features/courses/modules/types.ts'
+import type {
+  ContentNode,
+  ContentNodeType,
+} from '@/features/courses/modules/types.ts'
 import CourseTree from '@/features/courses/course-editor/course-tree.tsx'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
@@ -13,7 +16,7 @@ interface EditorState {
   mode: 'create' | 'edit'
 }
 
-const ModuleCreationCard = () => {
+const CourseModuleCreationCard = () => {
   const theme = useMantineTheme()
   const [editorState, setEditorState] = useState<EditorState>({
     type: 'module',
@@ -38,7 +41,7 @@ const ModuleCreationCard = () => {
   const handleEdit = (
     nodeId: string,
     nodeType: ContentNodeType,
-    nodeData: any,
+    nodeData: ContentNode,
   ) => {
     setEditorState({
       type: nodeType,
@@ -114,4 +117,4 @@ const ModuleCreationCard = () => {
   )
 }
 
-export default ModuleCreationCard
+export default CourseModuleCreationCard

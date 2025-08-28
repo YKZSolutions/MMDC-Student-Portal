@@ -4,7 +4,6 @@ import {
   getBackendOptions,
   getDescendants,
   MultiBackend,
-  type NodeModel,
   Tree,
 } from '@minoru/react-dnd-treeview'
 import React, { useState } from 'react'
@@ -29,69 +28,11 @@ import {
 import { useTreeConnectors } from '@/features/courses/course-editor/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
 import { getChildTypeFromParentType } from '@/utils/helpers.ts'
-import type { ContentNodeType } from '@/features/courses/modules/types.ts'
-
-interface NodeData {
-  parentType?: ContentNodeType
-  type: ContentNodeType | 'add-button'
-  contentData?: any
-}
-
-type CourseNodeModel = NodeModel<NodeData>
-
-const mockData: CourseNodeModel[] = [
-  {
-    id: '1',
-    parent: '0',
-    text: 'Introduction to Biology',
-    droppable: true,
-    data: {
-      type: 'module',
-      contentData: {
-        id: '1',
-        courseId: 'course_1',
-        title: 'Introduction to Biology',
-        position: 1,
-        sections: [],
-      },
-    },
-  },
-  {
-    id: '2',
-    parent: '1',
-    text: 'Readings',
-    droppable: true,
-    data: {
-      type: 'section',
-      contentData: {
-        id: 'sec_1',
-        title: 'Readings',
-        position: 1,
-        items: [],
-      },
-    },
-  },
-  {
-    id: '3',
-    parent: '2',
-    text: 'Chapter 1: Cell Structure',
-    data: {
-      type: 'item',
-      contentData: {
-        id: 'item_1',
-        type: 'reading',
-        title: 'Chapter 1: Cell Structure',
-        position: 1,
-        content: {
-          id: 'read_1',
-          title: 'Chapter 1: Cell Structure',
-          fileUrl: '/uploads/cell-structure.pdf',
-          isCompleted: false,
-        },
-      },
-    },
-  },
-]
+import {
+  type ContentNodeType,
+  type CourseNodeModel,
+  mockModuleTreeData,
+} from '@/features/courses/modules/types.ts'
 
 const reorderArray = (
   array: CourseNodeModel[],
@@ -159,7 +100,7 @@ interface CourseTreeProps {
 
 function CourseTree({ onAddButtonClick, onEditButtonClick }: CourseTreeProps) {
   const theme = useMantineTheme()
-  const treeWithAddButtons = injectData(mockData)
+  const treeWithAddButtons = injectData(mockModuleTreeData)
   const [treeData, setTreeData] =
     useState<CourseNodeModel[]>(treeWithAddButtons)
   const { isLastChild, getAncestors } = useTreeConnectors(treeData)

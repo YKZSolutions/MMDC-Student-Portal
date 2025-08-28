@@ -1,12 +1,5 @@
 import React from 'react'
-import {
-  IconCircle,
-  IconCircleCheck,
-  IconEye,
-  IconLock,
-  IconSend,
-  IconUrgent,
-} from '@tabler/icons-react'
+import { IconEye, IconSend } from '@tabler/icons-react'
 import { Button } from '@mantine/core'
 import type {
   AssignmentStatus,
@@ -18,6 +11,7 @@ type SubmissionButtonProps = {
   submissionStatus: SubmissionStatus
   dueDate: string
   assignmentStatus: AssignmentStatus
+  isPreview?: boolean
   onClick: () => void
 }
 
@@ -26,6 +20,7 @@ const SubmitButton = ({
   assignmentStatus,
   dueDate,
   onClick,
+  isPreview,
 }: SubmissionButtonProps) => {
   const isPending = submissionStatus === 'pending'
   const isDraft = submissionStatus === 'draft'
@@ -33,6 +28,7 @@ const SubmitButton = ({
   const isMissed = assignmentStatus === 'closed' && isPending
 
   function getLabel() {
+    if (isPreview) return 'Preview Action'
     if (isMissed) return 'You have missed this assignment'
 
     if (isLate) return 'Submit Late'
@@ -52,7 +48,7 @@ const SubmitButton = ({
       }
       onClick={onClick}
       color={isLate ? submissionStatus : 'primary'}
-      disabled={isMissed}
+      disabled={isMissed || isPreview}
     >
       {getLabel()}
     </Button>

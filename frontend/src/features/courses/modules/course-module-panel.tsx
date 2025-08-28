@@ -30,8 +30,9 @@ import {
   IconSettings,
   IconTrash,
 } from '@tabler/icons-react'
+import type { Role } from '@/integrations/api/client'
 
-const moduleData: CourseModule[] = [
+export const moduleData: CourseModule[] = [
   {
     id: 'mod_1',
     courseId: 'course_1',
@@ -214,17 +215,24 @@ const moduleData: CourseModule[] = [
 
 interface ModulePanelProps {
   allExpanded: boolean
+  modules?: CourseModule[]
+  isPreview?: boolean
 }
 
-const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
+const CourseModulePanel = ({
+  allExpanded,
+  modules: externalModules,
+  isPreview = false,
+}: ModulePanelProps) => {
   const theme = useMantineTheme()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const modules = externalModules || moduleData
 
   // Update expanded state when allExpanded prop changes
   useEffect(() => {
     if (allExpanded) {
-      const allModuleIds = moduleData.map((module) => module.id)
-      const allSectionIds = moduleData.flatMap((module) =>
+      const allModuleIds = modules.map((module) => module.id)
+      const allSectionIds = modules.flatMap((module) =>
         module.sections.map((section) => section.id),
       )
       setExpandedItems([...allModuleIds, ...allSectionIds])
@@ -250,7 +258,7 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
     }).length
   }
 
-  const modules = moduleData.map((module) => (
+  const moduleItems = modules.map((module) => (
     <Accordion.Item value={module.id} key={module.title} bg={'background'}>
       <CustomAccordionControl
         title={module.title}
@@ -258,6 +266,7 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
           module.sections.flatMap((sub) => sub.items),
         )}
         totalItemsCount={module.sections.flatMap((sub) => sub.items).length}
+        isPreview={isPreview}
       />
       <Accordion.Panel>
         <Accordion
@@ -278,6 +287,7 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
                 title={subsection.title}
                 completedItemsCount={getCompletedItemsCount(subsection.items)}
                 totalItemsCount={subsection.items.length}
+                isPreview={isPreview}
               />
 
               {subsection.items.map((item) => (
@@ -294,6 +304,7 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
                     onItemClick={() => {
                       /* TODO: Handle item click */
                     }}
+                    isPreview={isPreview}
                   />
                 </Accordion.Panel>
               ))}
@@ -313,7 +324,7 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
       variant="separated"
       radius="md"
     >
-      {modules}
+      {moduleItems}
     </Accordion>
   )
 }
@@ -321,10 +332,16 @@ const CourseModulePanel = ({ allExpanded }: ModulePanelProps) => {
 interface ModuleItemCardProps {
   item: ModuleItem
   onItemClick: () => void
+  isPreview?: boolean
 }
 
-const ModuleItemCard = ({ item, onItemClick }: ModuleItemCardProps) => {
+const ModuleItemCard = ({
+  item,
+  onItemClick,
+  isPreview = false,
+}: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
+  const role: Role = isPreview ? 'student' : authUser.role
   const theme = useMantineTheme()
 
   return (
@@ -342,7 +359,7 @@ const ModuleItemCard = ({ item, onItemClick }: ModuleItemCardProps) => {
     >
       <Group justify="space-between" align="center">
         <Group gap="sm">
-          {authUser.role === 'student' && (
+          {role === 'student' && (
             <CompletedStatusIcon
               status={
                 item.type === 'reading'
@@ -365,7 +382,7 @@ const ModuleItemCard = ({ item, onItemClick }: ModuleItemCardProps) => {
         </Group>
 
         <RoleComponentManager
-          currentRole={authUser.role}
+          currentRole={role}
           roleRender={{
             student: (
               <>
@@ -377,6 +394,7 @@ const ModuleItemCard = ({ item, onItemClick }: ModuleItemCardProps) => {
                     onClick={() => {}}
                     dueDate={item.assignment?.dueDate || ''}
                     assignmentStatus={item.assignment?.status || 'open'}
+                    isPreview={isPreview}
                   />
                 )}
               </>
@@ -402,6 +420,7 @@ type CustomAccordionControlProps = {
   title: string
   completedItemsCount?: number
   totalItemsCount?: number
+  isPreview?: boolean
   accordionControlProps?: AccordionControlProps
 } & GroupProps
 
@@ -409,10 +428,12 @@ function CustomAccordionControl({
   title,
   completedItemsCount,
   totalItemsCount,
+  isPreview = false,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
   const { authUser } = useAuth('protected')
+  const role: Role = isPreview ? 'student' : authUser.role
 
   const handleDelete = () => {}
 
@@ -436,7 +457,7 @@ function CustomAccordionControl({
           </Stack>
         </Group>
       </Group>
-      {authUser.role === 'admin' && (
+      {role === 'admin' && (
         <Group>
           <ActionIcon variant="subtle" radius="lg">
             <IconEdit size={'70%'} />

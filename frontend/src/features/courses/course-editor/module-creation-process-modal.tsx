@@ -1,58 +1,90 @@
 import {
+  Box,
   Button,
+  Center,
   Group,
   Modal,
   Stack,
   Stepper,
+  Text,
+  ThemeIcon,
+  Title,
   useMantineTheme,
 } from '@mantine/core'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   IconChecklist,
   IconCircleCheck,
   IconNotebook,
-  IconPencil,
   IconX,
 } from '@tabler/icons-react'
-import ModuleCreationCard from '@/features/courses/module-creation-card.tsx'
+import CourseModuleCreationCard from '@/features/courses/modules/course-module-creation-card.tsx'
 import type { CustomModalProp } from '@/components/types.ts'
+import CourseModuleReviewStep from '@/features/courses/modules/course-module-review-step.tsx'
+import {
+  type CourseNodeModel,
+  mockModuleTreeData,
+} from '@/features/courses/modules/types.ts'
+import type { CourseBasicDetails } from '@/features/courses/types.ts'
+import { useParams } from '@tanstack/react-router'
+import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
+import { convertTreeToCourseModules } from '@/utils/helpers.ts'
 
 const ModuleCreationProcessModal = ({
   opened,
   closeModal,
 }: CustomModalProp) => {
   const theme = useMantineTheme()
+  const { courseCode } = useParams({
+    from: '/(protected)/courses/$courseCode/modules/',
+  })
+  const [courseInfo, setCourseInfo] = useState<CourseBasicDetails | undefined>(
+    mockCourseBasicDetails.find((course) => course.courseCode === courseCode),
+  )
+  console.log(courseInfo)
+
   const [activeStep, setActiveStep] = useState(0)
+  const [courseStructure, setCourseStructure] =
+    useState<CourseNodeModel[]>(mockModuleTreeData) // TODO: populate this with actual data
 
   const nextStep = () =>
     setActiveStep((current) => (current < 3 ? current + 1 : current))
   const prevStep = () =>
     setActiveStep((current) => (current > 0 ? current - 1 : current))
 
+  // TODO: Populated with the actual course structure data
+  useEffect(() => {
+    if (opened) {
+      // In a real implementation, this would gather data from the state
+      setCourseStructure(mockModuleTreeData)
+    }
+  }, [opened])
+
   const steps = [
-    {
-      label: 'Course Details',
-      description: 'Identify the course',
-      icon: <IconPencil size={18} />,
-      content: '<CourseDetailsForm onNext={nextStep} />',
-    },
     {
       label: 'Module Management',
       description: 'Organize course content',
       icon: <IconNotebook size={18} />,
-      content: <ModuleCreationCard />,
+      content: <CourseModuleCreationCard />,
     },
     {
       label: 'Review',
       description: 'Confirm your settings',
       icon: <IconChecklist size={18} />,
-      content: '<ReviewStep onNext={nextStep} />',
+      content: (
+        <CourseModuleReviewStep
+          onNext={nextStep}
+          onBack={prevStep}
+          courseModules={convertTreeToCourseModules(courseStructure)}
+          courseInfo={courseInfo as CourseBasicDetails}
+        />
+      ),
     },
     {
       label: 'Confirmation',
       description: 'Course created successfully',
       icon: <IconCircleCheck size={18} />,
-      content: '<ConfirmationStep onFinish={closeModal} />',
+      content: <ConfirmationStep onFinish={closeModal} />,
     },
   ]
 
@@ -124,6 +156,29 @@ const ModuleCreationProcessModal = ({
         {steps[activeStep].content}
       </Stack>
     </Modal>
+  )
+}
+
+interface ConfirmationStepProps {
+  onFinish: () => void
+}
+
+const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
+  return (
+    <Center h="100%">
+      <Box ta="center">
+        <ThemeIcon color="green" size="xl" radius="xl" mb="md">
+          <IconCircleCheck size={24} />
+        </ThemeIcon>
+        <Title order={3} mb="sm">
+          Course Created Successfully!
+        </Title>
+        <Text c="dimmed" mb="xl">
+          Your course has been created and is now ready for students to access.
+        </Text>
+        <Button onClick={onFinish}>Return to Course Dashboard</Button>
+      </Box>
+    </Center>
   )
 }
 
