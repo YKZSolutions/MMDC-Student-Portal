@@ -16,11 +16,11 @@ interface EditorState {
   mode: 'create' | 'edit'
 }
 
-type ModuleCreationCardProps = {
+type ModuleCreationPanelProps = {
   courseCode?: string
 }
 
-const ModuleCreationCard = ({ courseCode }: ModuleCreationCardProps) => {
+const ModuleCreationPanel = ({ courseCode }: ModuleCreationPanelProps) => {
   const theme = useMantineTheme()
 
   const [editorState, setEditorState] = useState<EditorState>({
@@ -70,7 +70,7 @@ const ModuleCreationCard = ({ courseCode }: ModuleCreationCardProps) => {
   }
 
   return (
-    <PanelGroup direction="horizontal">
+    <PanelGroup direction="horizontal" style={{ height: '100%' }}>
       <Panel minSize={30}>
         <Container p="xl">
           <Group justify="space-between" align="center" mb="md">
@@ -123,4 +123,4 @@ const ModuleCreationCard = ({ courseCode }: ModuleCreationCardProps) => {
   )
 }
 
-export default ModuleCreationCard
+export default ModuleCreationPanel

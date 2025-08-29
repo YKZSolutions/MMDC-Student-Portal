@@ -1,11 +1,9 @@
 import {
-  Box,
   Button,
   Container,
   Group,
   Modal,
   type ModalProps,
-  ScrollArea,
   Select,
   Stack,
   Stepper,
@@ -23,7 +21,7 @@ import {
   IconSelect,
   IconX,
 } from '@tabler/icons-react'
-import ModuleCreationCard from '@/features/courses/modules/module-creation-card.tsx'
+import ModuleCreationPanel from '@/features/courses/modules/module-creation-panel.tsx'
 import ModuleReviewStep from '@/features/courses/modules/module-review-step.tsx'
 import {
   type CourseNodeModel,
@@ -91,7 +89,7 @@ const ModuleCreationProcessModal = ({
     {
       label: 'Module Management',
       icon: <IconNotebook size={18} />,
-      content: <ModuleCreationCard courseCode={courseCode} />,
+      content: <ModuleCreationPanel courseCode={courseCode} />,
     },
     {
       label: 'Review',
@@ -199,13 +197,26 @@ const ModuleCreationProcessModal = ({
         </Modal.Header>
 
         {/* BODY */}
-        <Modal.Body h={'100%'} p={0}>
-          <Group w={isMobile ? '100%' : 0} wrap={'nowrap'}>
-            {isMobile && stepper}
-          </Group>
-          <ScrollArea h="91%">
-            <Stack>{steps[activeStep].content}</Stack>
-          </ScrollArea>
+        <Modal.Body
+          p={0}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 70px)',
+            overflow: 'hidden',
+          }}
+        >
+          {isMobile && stepper}
+          <Stack
+            style={{
+              flex: 1,
+              overflow: 'auto',
+            }}
+          >
+            <Stack flex={'1 0 auto'} style={{ overflow: 'auto' }}>
+              {steps[activeStep].content}
+            </Stack>
+          </Stack>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>
@@ -240,12 +251,10 @@ const CourseSelector = ({ onCourseChange }: CourseSelectorProps) => {
   }, [selectedCourse])
 
   return (
-    <Container h="100%" mt={'10%'}>
-      <Box ta="center">
-        <Title order={3} mb="sm">
-          Select Course
-        </Title>
-        <Text c="dimmed" mb="xl">
+    <Container h="100%">
+      <Stack ta="center" h="100%" mt={'35%'} gap="lg">
+        <Title order={3}>Select Course</Title>
+        <Text c="dimmed" mb="md">
           Select the course you want to manage content for.
         </Text>
         <Select
@@ -264,7 +273,7 @@ const CourseSelector = ({ onCourseChange }: CourseSelectorProps) => {
             fw: 600,
           }}
         />
-      </Box>
+      </Stack>
     </Container>
   )
 }
@@ -275,8 +284,8 @@ interface ConfirmationStepProps {
 
 const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
   return (
-    <Container h="100%" mt={'10%'}>
-      <Box ta="center">
+    <Container h="100%">
+      <Stack ta="center" h="100%" mt={'35%'} align="center">
         <ThemeIcon color="green" size="xl" radius="xl" mb="md">
           <IconCircleCheck size={24} />
         </ThemeIcon>
@@ -292,7 +301,7 @@ const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
           </Button>
           <Button onClick={onFinish}>Publish Course</Button>
         </Stack>
-      </Box>
+      </Stack>
     </Container>
   )
 }

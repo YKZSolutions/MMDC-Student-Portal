@@ -2,11 +2,8 @@ import {
   Affix,
   Box,
   Button,
-  CloseButton,
-  Container,
   Flex,
   Group,
-  Input,
   Popover,
   Skeleton,
   Stack,
@@ -160,7 +157,7 @@ const Chatbot = ({
             position: 'fixed',
             inset: 0,
             backgroundColor: 'rgba(0,0,0,0.2)',
-            zIndex: 998,
+            zIndex: 10,
             pointerEvents: 'none',
           }}
         />
@@ -171,7 +168,7 @@ const Chatbot = ({
           position: 'fixed',
           inset: 0,
           pointerEvents: 'none',
-          zIndex: 1000,
+          zIndex: 10,
         }}
       >
         <Draggable
