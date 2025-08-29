@@ -4,6 +4,13 @@ import { IsArray, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateCourseSectionDto {
   @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,

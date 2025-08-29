@@ -1,6 +1,6 @@
 import { CreateCourseSectionDto } from '@/generated/nestjs-dto/create-courseSection.dto';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
 
 export class CreateCourseSectionFullDto extends OmitType(
   CreateCourseSectionDto,
@@ -26,7 +26,7 @@ export class CreateCourseSectionFullDto extends OmitType(
   })
   endSched: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsUUID()
-  mentorId: string;
+  mentorId?: string;
 }

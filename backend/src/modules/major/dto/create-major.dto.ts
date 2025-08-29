@@ -1,21 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
-import { CreateMajorDto as GeneratedCreateMajorDto } from '@/generated/nestjs-dto/create-major.dto';
+import { CreateMajorDto } from '@/generated/nestjs-dto/create-major.dto';
 import { Type } from 'class-transformer';
 
-export class CreateMajorDto {
-  @ApiProperty({
-    type: GeneratedCreateMajorDto,
-  })
+export class CreateProgramMajorDto {
+  @ApiProperty({ type: () => CreateMajorDto })
   @ValidateNested()
-  @Type(() => GeneratedCreateMajorDto)
-  major: GeneratedCreateMajorDto;
+  @Type(() => CreateMajorDto)
+  major: CreateMajorDto;
 
   @ApiProperty({
     type: 'string',
+    format: 'uuid',
   })
-  @IsString()
-  @IsNotEmpty()
   @IsUUID()
+  @IsNotEmpty()
   programId: string;
 }
