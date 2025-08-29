@@ -9,6 +9,7 @@ import {
   Select,
   Stack,
   Stepper,
+  Tabs,
   Text,
   ThemeIcon,
   Title,
@@ -110,20 +111,40 @@ const ModuleCreationProcessModal = ({
   ]
 
   const stepper = (
-    <Stepper
-      active={activeStep}
-      onStepClick={setActiveStep}
-      orientation={isMobile ? 'vertical' : 'horizontal'}
-      size={isMobile ? 'sm' : 'md'}
-      maw={isMobile ? '100%' : 900}
-      flex={1}
-      h={'auto'}
-      p={isMobile ? 'md' : 'xl'}
-    >
-      {steps.map((step, index) => (
-        <Stepper.Step key={index} icon={step.icon} label={step.label} />
-      ))}
-    </Stepper>
+    <>
+      {isMobile ? (
+        <Tabs
+          value={steps[activeStep].label}
+          onChange={(_value) =>
+            setActiveStep(steps.findIndex((step) => step.label === _value) || 0)
+          }
+          w={'100%'}
+        >
+          <Tabs.List grow>
+            {steps.map((step, index) => (
+              <Tabs.Tab key={index} value={step.label}>
+                {step.label}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs>
+      ) : (
+        <Stepper
+          active={activeStep}
+          onStepClick={setActiveStep}
+          orientation="horizontal"
+          size="md"
+          maw={900}
+          flex={1}
+          h="auto"
+          p="xl"
+        >
+          {steps.map((step, index) => (
+            <Stepper.Step key={index} icon={step.icon} label={step.label} />
+          ))}
+        </Stepper>
+      )}
+    </>
   )
 
   return (
@@ -141,19 +162,17 @@ const ModuleCreationProcessModal = ({
         style={{
           overflow: 'hidden',
           width: '100vw',
-          display: 'flex',
-          flexDirection: 'column',
+          height: '100vh',
         }}
       >
         {/* HEADER */}
         <Modal.Header
-          h="10%"
-          mih={isMobile ? 50 : 70}
           style={{
             borderBottom: `${theme.colors.gray[3]} 1px solid`,
             boxShadow: `0px 4px 12px 0px ${theme.colors.gray[3]}`,
             borderRadius: '0',
           }}
+          h={isMobile ? 50 : 70}
         >
           <Button
             variant="subtle"
@@ -181,18 +200,12 @@ const ModuleCreationProcessModal = ({
 
         {/* BODY */}
         <Modal.Body h={'100%'} p={0}>
-          <Group
-            h="100%"
-            p={0}
-            justify={isMobile ? 'start' : 'center'}
-            align={'stretch'}
-            wrap="nowrap"
-          >
-            <Stack w={isMobile ? '20%' : 0}>{isMobile && stepper}</Stack>
-            <ScrollArea flex={1}>
-              <Stack>{steps[activeStep].content}</Stack>
-            </ScrollArea>
+          <Group w={isMobile ? '100%' : 0} wrap={'nowrap'}>
+            {isMobile && stepper}
           </Group>
+          <ScrollArea h="91%">
+            <Stack>{steps[activeStep].content}</Stack>
+          </ScrollArea>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>

@@ -52,7 +52,7 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
   )
 
   return (
-    <Container p="xl">
+    <Container h="100%" p="xl" mb={'xl'}>
       <Title order={3} mb="lg">
         Review Course Structure
       </Title>
@@ -95,12 +95,12 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
 
       {/* Preview Tabs */}
       <Tabs defaultValue="preview">
-        <Tabs.List>
+        <Tabs.List grow>
           <Tabs.Tab value="preview" leftSection={<IconEye size={14} />}>
-            Student Preview
+            Preview
           </Tabs.Tab>
           <Tabs.Tab value="summary" leftSection={<IconListCheck size={14} />}>
-            Detailed Summary
+            Summary
           </Tabs.Tab>
         </Tabs.List>
 
