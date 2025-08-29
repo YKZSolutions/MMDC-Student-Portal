@@ -286,7 +286,12 @@ const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
         <Text c="dimmed" mb="xl">
           Your course has been created and is now ready for students to access.
         </Text>
-        <Button onClick={onFinish}>Return to Course Dashboard</Button>
+        <Stack>
+          <Button variant="default" onClick={onFinish}>
+            Manage Other Courses
+          </Button>
+          <Button onClick={onFinish}>Publish Course</Button>
+        </Stack>
       </Box>
     </Container>
   )
