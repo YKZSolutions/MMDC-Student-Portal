@@ -1,6 +1,7 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import AsyncMentorCombobox from '@/features/enrollment/async-mentor-combobox'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
+import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
 import {
   EditSectionFormSchema,
   type EditSectionFormValues,
@@ -346,7 +347,9 @@ function EnrollmentPeriodIdPage() {
           </Transition>
 
           <Accordion variant="filled">
-            <Suspense>
+            <Suspense
+              fallback={<SuspendedAdminEnrollmentCourseOfferingCards />}
+            >
               <EnrollmentPeriodAdminQueryProvider>
                 {({ courseOfferings }) => (
                   <>
@@ -725,10 +728,7 @@ function CourseOfferingSubjectCard({
               {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
               {section.endSched}
             </Text>
-            <Text
-              c={'gray.6'}
-              size="sm"
-            >
+            <Text c={'gray.6'} size="sm">
               {section.mentorId
                 ? `${section.user?.firstName} ${section.user?.lastName}`
                 : 'No Mentor Assigned'}
