@@ -502,7 +502,7 @@ function CourseOfferingAccordionControl({
         <ActionIcon
           component="div"
           variant="subtle"
-          c={isDeletingDisabled ? 'gray' : 'red'}
+          c={isDeletingDisabled ? 'gray' : 'red.4'}
           size={'lg'}
           radius={'xl'}
           disabled={isDeletingDisabled}
