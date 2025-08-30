@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend\" \"pnpm backend\"",
+    "dev:apis": "pnpm run backend:api && pnpm run frontend:api",
+    "dev:prepare": "pnpm run backend:prisma-gen && pnpm run backend:prisma-gen-sql && pnpm run backend:api && pnpm run frontend:api",
     "dev:local": "concurrently -k -n FRONTEND,BACKEND -c cyan,magenta \"pnpm frontend:local\" \"pnpm backend:local\"",
     "frontend": "cross-env SUPABASE_ENV=cloud pnpm --filter frontend dev",
     "frontend:local": "cross-env SUPABASE_ENV=local pnpm --filter frontend dev",
