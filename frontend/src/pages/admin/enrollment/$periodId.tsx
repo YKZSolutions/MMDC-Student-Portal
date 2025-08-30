@@ -370,7 +370,10 @@ function EnrollmentPeriodIdPage() {
                     )}
                     {courseOfferings.map((course, index) => (
                       <Fragment key={course.id}>
-                        <Accordion.Item value={course.id.toString()}>
+                        <Accordion.Item
+                          value={course.id.toString()}
+                          pos={'relative'}
+                        >
                           <Accordion.Control py={rem(5)}>
                             <CourseOfferingAccordionControl
                               course={course}
@@ -420,7 +423,10 @@ function CourseOfferingAccordionControl({
 }) {
   const isDeletingDisabled = course.courseSections.length > 0
 
-  const { mutateAsync: removeCourseOffering } = useAppMutation(
+  const {
+    mutateAsync: removeCourseOffering,
+    isPending: removeCourseOfferingIsPending,
+  } = useAppMutation(
     enrollmentControllerRemoveCourseOfferingMutation,
     {
       loading: {
@@ -488,6 +494,11 @@ function CourseOfferingAccordionControl({
   }
   return (
     <Group justify="space-between">
+      <LoadingOverlay
+        visible={removeCourseOfferingIsPending}
+        zIndex={10} // This is to avoid unnecessary flashing of the blur
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       <Stack gap={rem(0)}>
         <Text fw={500} fz={'md'}>
           {course.course.name}
