@@ -8,7 +8,7 @@ import type {
   CourseDto,
   CourseSectionDto,
   DetailedCourseOfferingDto,
-  EnrollmentPeriodDto,
+  EnrollmentPeriodDto
 } from '@/integrations/api/client'
 import {
   enrollmentControllerCreateCourseOfferingMutation,
@@ -41,6 +41,7 @@ import {
   Divider,
   Flex,
   Group,
+  Loader,
   LoadingOverlay,
   MultiSelect,
   NumberInput,
@@ -52,6 +53,7 @@ import {
   Text,
   TextInput,
   Title,
+  Transition,
   UnstyledButton,
 } from '@mantine/core'
 import { TimePicker } from '@mantine/dates'
@@ -60,6 +62,7 @@ import { randomId, useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
+  IconBook,
   IconFilter2,
   IconPencil,
   IconPlus,
@@ -156,7 +159,11 @@ function EnrollmentPeriodIdPage() {
   const [query, setQuery] =
     useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
 
-  const { mutateAsync: addCourseOffering } = useAppMutation(
+  const {
+    mutateAsync: addCourseOffering,
+    variables: addCourseVariables,
+    isPending: addCourseIsPending,
+  } = useAppMutation(
     enrollmentControllerCreateCourseOfferingMutation,
     {
       loading: {
@@ -204,6 +211,8 @@ function EnrollmentPeriodIdPage() {
       },
     })
   }
+
+  console.log(addCourseVariables)
 
   return (
     <Container size={'md'} pb={'lg'}>
@@ -326,6 +335,18 @@ function EnrollmentPeriodIdPage() {
           </Group>
 
           <Divider />
+
+          <Transition
+            mounted={addCourseIsPending}
+            transition="fade-down"
+            duration={50}
+          >
+            {(styles) => (
+              <Group p={'xs'} w={'100%'} style={styles}>
+                <Loader mx={'auto'} />
+              </Group>
+            )}
+          </Transition>
 
           <Accordion variant="filled">
             <Suspense>
