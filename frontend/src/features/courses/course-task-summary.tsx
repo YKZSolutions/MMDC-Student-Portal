@@ -12,9 +12,7 @@ import {
 } from '@mantine/core'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 
-const CourseTasksSummary = ({
-                              courses,
-                            }: {courses: Course[]}) => {
+const CourseTasksSummary = ({ courses }: { courses: Course[] }) => {
   const theme = useMantineTheme()
   return (
     <Paper withBorder radius={'md'} shadow="xs" p="lg">
@@ -24,40 +22,49 @@ const CourseTasksSummary = ({
             Weekly Tasks
           </Title>
         </Center>
-        {courses.filter((course) => course.activities.length > 0).length === 0 ? (
+        {courses.filter((course) => course.activities.length > 0).length ===
+        0 ? (
           <Stack gap={'md'}>
             <Title c={'dark.7'} variant="hero" order={6} fw={400}>
               Congratulations! You have completed all your tasks for the week.
             </Title>
           </Stack>
         ) : (
-          courses.filter((course) => course.activities.length > 0).map((course, index) => (
-            <Stack gap={'sm'}>
-              <Title c={'dark.7'} variant="hero" order={5} fw={700}>
-                {course.courseDetails.courseName}
-              </Title>
-              <Divider />
-              <Stack gap={'md'}>
-                {course.activities.map((activity, activityIndex) => (
-                  <Group justify="space-between" align="center" key={activityIndex}>
-                    <Stack gap={'xs'}>
-                      <Text fw={500} size={'xs'} truncate={'end'}>{activity.activityName}</Text>
-                      <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                        {formatTimestampToDateTimeText(activity.dueTimestamp, 'by')}
-                      </Text>
-                    </Stack>
-                    <Button
-                      variant="default"
-                      radius={'md'}
-                      size={'xs'}
+          courses
+            .filter((course) => course.activities.length > 0)
+            .map((course, index) => (
+              <Stack gap={'sm'}>
+                <Title c={'dark.7'} variant="hero" order={5} fw={700}>
+                  {course.courseDetails.courseName}
+                </Title>
+                <Divider />
+                <Stack gap={'md'}>
+                  {course.activities.map((activity, activityIndex) => (
+                    <Group
+                      justify="space-between"
+                      align="center"
+                      key={activityIndex}
                     >
-                      Submit
-                    </Button>
-                  </Group>
-                ))}
+                      <Stack gap={'xs'}>
+                        <Text fw={500} size={'xs'} truncate={'end'}>
+                          {activity.activityName}
+                        </Text>
+                        <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                          {formatTimestampToDateTimeText(
+                            activity.dueTimestamp,
+                            'by',
+                          )}
+                        </Text>
+                      </Stack>
+                      <Button variant="default" radius={'md'} size={'xs'}>
+                        Submit
+                      </Button>
+                    </Group>
+                  ))}
+                </Stack>
               </Stack>
-            </Stack>
-          )))}
+            ))
+        )}
       </Stack>
     </Paper>
   )

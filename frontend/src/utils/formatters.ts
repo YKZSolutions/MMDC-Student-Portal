@@ -37,6 +37,13 @@ export function formatTimestampToDateTimeText(
   const day = dayjs(timestamp)
   const date = day.format('MMM D')
   const time = day.format('h:mm A')
+export function formatTimestampToDateTimeText(
+  timestamp: string,
+  separator: string = 'at',
+) {
+  const day = dayjs(timestamp)
+  const date = day.format('MMM D')
+  const time = day.format('h:mm A')
 
   return `${date} ${separator} ${time}`
 }
