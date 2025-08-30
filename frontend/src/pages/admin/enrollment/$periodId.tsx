@@ -465,12 +465,25 @@ function CourseOfferingAccordionControl({
     // Disable button if there are course sections
     if (isDeletingDisabled) return
 
-    // Call the mutation
-    await removeCourseOffering({
-      path: {
-        offeringId: course.id,
-        periodId: periodId,
-      },
+    modals.openConfirmModal({
+      title: 'Delete Course Offering',
+      centered: true,
+      children: (
+        <Text size="sm">
+          Are you sure you want to remove this course offering? This action
+          cannot be undone.
+        </Text>
+      ),
+      labels: { confirm: 'Remove', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () =>
+        // Call the mutation
+        await removeCourseOffering({
+          path: {
+            offeringId: course.id,
+            periodId: periodId,
+          },
+        }),
     })
   }
   return (
@@ -506,21 +519,7 @@ function CourseOfferingAccordionControl({
           size={'lg'}
           radius={'xl'}
           disabled={isDeletingDisabled}
-          onClick={(e) =>
-            modals.openConfirmModal({
-              title: 'Delete Course Offering',
-              centered: true,
-              children: (
-                <Text size="sm">
-                  Are you sure you want to remove this course offering? This
-                  action cannot be undone.
-                </Text>
-              ),
-              labels: { confirm: 'Remove', cancel: 'Cancel' },
-              confirmProps: { color: 'red' },
-              onConfirm: () => handleRemoveCourseOffering(e, course),
-            })
-          }
+          onClick={(e) => handleRemoveCourseOffering(e, course)}
         >
           <IconTrash size={18} />
         </ActionIcon>
@@ -672,11 +671,24 @@ function CourseOfferingSubjectCard({
   ) => {
     e.stopPropagation()
 
-    await removeCourseSection({
-      path: {
-        sectionId: section.id,
-        offeringId: course.id,
-      },
+    modals.openConfirmModal({
+      title: 'Delete Course Section',
+      centered: true,
+      children: (
+        <Text size="sm">
+          Are you sure you want to remove this course section? This action
+          cannot be undone.
+        </Text>
+      ),
+      labels: { confirm: 'Remove', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () =>
+        await removeCourseSection({
+          path: {
+            sectionId: section.id,
+            offeringId: course.id,
+          },
+        }),
     })
   }
 
@@ -727,22 +739,7 @@ function CourseOfferingSubjectCard({
                 c={'red.4'}
                 size={'md'}
                 radius={'xl'}
-                onClick={(e) =>
-                  modals.openConfirmModal({
-                    title: 'Delete Course Section',
-                    centered: true,
-                    children: (
-                      <Text size="sm">
-                        Are you sure you want to remove this course section?
-                        This action cannot be undone.
-                      </Text>
-                    ),
-                    labels: { confirm: 'Remove', cancel: 'Cancel' },
-                    confirmProps: { color: 'red' },
-                    onConfirm: () =>
-                      handleRemoveCourseSection(e, course, section),
-                  })
-                }
+                onClick={(e) => handleRemoveCourseSection(e, course, section)}
               >
                 <IconTrash size={18} />
               </ActionIcon>
