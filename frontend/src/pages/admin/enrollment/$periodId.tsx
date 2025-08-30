@@ -330,25 +330,45 @@ function EnrollmentPeriodIdPage() {
           <Accordion variant="filled">
             <Suspense>
               <EnrollmentPeriodAdminQueryProvider>
-                {({ courseOfferings }) =>
-                  courseOfferings.map((course, index) => (
-                    <Fragment key={course.id}>
-                      <Accordion.Item value={course.id.toString()}>
-                        <Accordion.Control py={rem(5)}>
-                          <CourseOfferingAccordionControl
-                            course={course}
-                            periodId={periodId}
-                          />
-                        </Accordion.Control>
+                {({ courseOfferings }) => (
+                  <>
+                    {courseOfferings.length === 0 && !addCourseIsPending && (
+                      <Stack
+                        gap={0}
+                        align="center"
+                        justify="center"
+                        py="xl"
+                        c="dark.3"
+                      >
+                        <IconBook size={36} stroke={1.5} />
+                        <Text mt="sm" fw={500}>
+                          No course offerings yet
+                        </Text>
+                        <Text fz="sm" c="dark.2" ta="center" maw={360}>
+                          Create one to start adding sections, assigning
+                          mentors, and enrolling students.
+                        </Text>
+                      </Stack>
+                    )}
+                    {courseOfferings.map((course, index) => (
+                      <Fragment key={course.id}>
+                        <Accordion.Item value={course.id.toString()}>
+                          <Accordion.Control py={rem(5)}>
+                            <CourseOfferingAccordionControl
+                              course={course}
+                              periodId={periodId}
+                            />
+                          </Accordion.Control>
 
-                        <Accordion.Panel>
-                          <CourseOfferingAccordionPanel course={course} />
-                        </Accordion.Panel>
-                      </Accordion.Item>
-                      <Divider hidden={index == courseOfferings.length - 1} />
-                    </Fragment>
-                  ))
-                }
+                          <Accordion.Panel>
+                            <CourseOfferingAccordionPanel course={course} />
+                          </Accordion.Panel>
+                        </Accordion.Item>
+                        <Divider hidden={index == courseOfferings.length - 1} />
+                      </Fragment>
+                    ))}
+                  </>
+                )}
               </EnrollmentPeriodAdminQueryProvider>
             </Suspense>
           </Accordion>
