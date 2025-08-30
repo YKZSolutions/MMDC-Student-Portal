@@ -162,7 +162,6 @@ function EnrollmentPeriodIdPage() {
 
   const {
     mutateAsync: addCourseOffering,
-    variables: addCourseVariables,
     isPending: addCourseIsPending,
   } = useAppMutation(
     enrollmentControllerCreateCourseOfferingMutation,
@@ -212,8 +211,6 @@ function EnrollmentPeriodIdPage() {
       },
     })
   }
-
-  console.log(addCourseVariables)
 
   return (
     <Container size={'md'} pb={'lg'}>
@@ -853,6 +850,5 @@ function CourseOfferingSectionEditForm({
     </Stack>
   )
 }
-//
 
 export default EnrollmentPeriodIdPage
