@@ -48,65 +48,6 @@ import { Suspense, useState } from 'react'
 
 const route = getRouteApi('/(protected)/enrollment/')
 
-interface EnrollmentPeriod {
-  id: string
-  school_year: string
-  term: number
-  start_date: Date
-  end_date: Date
-  status: 'ongoing' | 'done'
-  created_at: Date
-  updated_at: Date
-  deleted_at: Date | null
-}
-
-const mockEnrollmentPeriods: EnrollmentPeriod[] = [
-  {
-    id: 'enroll_period_12345',
-    school_year: '2023 - 2024',
-    term: 1,
-    start_date: new Date('2024-01-15'),
-    end_date: new Date('2024-05-15'),
-    status: 'done',
-    created_at: new Date('2023-12-01T10:00:00Z'),
-    updated_at: new Date('2024-05-16T12:00:00Z'),
-    deleted_at: null,
-  },
-  {
-    id: 'enroll_period_67890',
-    school_year: '2023 - 2024',
-    term: 2,
-    start_date: new Date('2024-06-01'),
-    end_date: new Date('2024-09-30'),
-    status: 'ongoing',
-    created_at: new Date('2024-05-20T09:00:00Z'),
-    updated_at: new Date('2024-05-20T09:00:00Z'),
-    deleted_at: null,
-  },
-  {
-    id: 'enroll_period_abcde',
-    school_year: '2022 - 2023',
-    term: 1,
-    start_date: new Date('2023-01-15'),
-    end_date: new Date('2023-05-15'),
-    status: 'done',
-    created_at: new Date('2022-12-01T10:00:00Z'),
-    updated_at: new Date('2023-05-16T12:00:00Z'),
-    deleted_at: null,
-  },
-  {
-    id: 'enroll_period_fghij',
-    school_year: '2022 - 2023',
-    term: 2,
-    start_date: new Date('2023-06-01'),
-    end_date: new Date('2023-09-30'),
-    status: 'done',
-    created_at: new Date('2023-05-20T09:00:00Z'),
-    updated_at: new Date('2023-10-01T11:00:00Z'),
-    deleted_at: null,
-  },
-]
-
 interface IEnrollmentAdminQuery {
   search: string
   page: number
