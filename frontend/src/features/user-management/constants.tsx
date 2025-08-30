@@ -1,10 +1,10 @@
-import type { Role } from '@/integrations/api/client'
+import type { Role } from '@/integrations/api/client';
 import {
   IconChalkboardTeacher,
   IconSchool,
   IconShield,
   IconUsers,
-} from '@tabler/icons-react'
+} from '@tabler/icons-react';
 
 export const roleStyles: Record<
   Role,

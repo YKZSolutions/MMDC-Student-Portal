@@ -4,9 +4,9 @@ export interface CourseBasicDetails {
 }
 
 export interface Course {
-  courseDetails: CourseBasicDetails
-  courseProgress: number
-  section: Section
+  courseDetails: CourseBasicDetails,
+  courseProgress: number,
+  section: Section,
   activities: Activity[]
 }
 
@@ -45,3 +45,6 @@ export interface AcademicProgram {
   major: string
   majorCode: string
 }
+
+
+export type ContentType = 'module' | 'subsection' | 'item'

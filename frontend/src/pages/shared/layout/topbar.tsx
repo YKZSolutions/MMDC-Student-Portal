@@ -5,8 +5,7 @@ import {
   IconHomeFilled,
   IconMessageChatbot,
 } from '@tabler/icons-react'
-import { Link, useLocation, useParams } from '@tanstack/react-router'
-import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
+import { Link, useLocation } from '@tanstack/react-router'
 
 type TopBarProps = {
   setChatbotOpen: (open: boolean) => void
@@ -15,13 +14,6 @@ type TopBarProps = {
 
 function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
   const location = useLocation()
-  const params = useParams({ strict: false }) as Record<string, string>
-  const { courseCode } = params
-
-  // TODO: Replace with actual course data from the backend
-  const course = courseCode
-    ? mockCourseBasicDetails.find((c) => c.courseCode === courseCode)
-    : null
 
   const paths = location.pathname.split('/').slice(1)
   const pathLinks = paths.map((_, i) => '/' + paths.slice(0, i + 1).join('/'))
@@ -40,26 +32,14 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
           const isLast = idx === paths.length - 1
           const path = pathLinks[idx]
 
-          let label = link.charAt(0).toUpperCase() + link.slice(1)
-
-          // Check if the link matches the courseCode and replace it with the courseName
-          if (link === courseCode && course) {
-            label = course.courseName
-          }
+          const label = link.charAt(0).toUpperCase() + link.slice(1)
 
           return <BreadcrumbItem isLast={isLast} path={path} label={label} />
         })}
       </Breadcrumbs>
 
       <Group>
-        <ActionIcon
-          variant="subtle"
-          radius="xl"
-          onClick={() => {
-            setChatbotOpen(true)
-            setChatbotFabHidden(false)
-          }}
-        >
+        <ActionIcon variant="subtle" radius="xl" onClick={() => {setChatbotOpen(true); setChatbotFabHidden(false)}}>
           <IconMessageChatbot size={22} />
         </ActionIcon>
         <ActionIcon variant="subtle" radius="xl">

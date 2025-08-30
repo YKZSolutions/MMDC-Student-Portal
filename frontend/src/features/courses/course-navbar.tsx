@@ -1,16 +1,11 @@
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import {
-  useLocation,
-  useMatchRoute,
-  useNavigate,
-  useParams,
-} from '@tanstack/react-router'
+import { useLocation, useMatchRoute, useNavigate, useParams } from '@tanstack/react-router'
 import { Button, Select, Stack } from '@mantine/core'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import CourseActionsModal from '@/features/courses/course-actions-modal.tsx'
-import { IconTool } from '@tabler/icons-react'
+import CourseActionsSelector from '@/features/courses/course-actions-selector.tsx'
+import { IconPlus } from '@tabler/icons-react'
 
 export interface CourseNavItem {
   link: string
@@ -38,20 +33,17 @@ const CourseNavButton = ({ item }: { item: CourseNavItem }) => {
 }
 
 const CourseNavBar = ({
-  navItems,
-  courses,
-}: {
+                        navItems,
+                        courses,
+                      }: {
   navItems: CourseNavItem[]
   courses: CourseBasicDetails[]
 }) => {
   const { authUser } = useAuth('protected')
   const { courseCode } = useParams({ from: '/(protected)/courses/$courseCode' })
-  const currentCourse = courses.find(
-    (course) => course.courseCode === courseCode,
-  )!
+  const currentCourse = courses.find((course) => course.courseCode === courseCode)!
   const getCourseCode = (courseName: string) => {
-    return courses.find((course) => course.courseName === courseName)!
-      .courseCode
+    return courses.find((course) => course.courseName === courseName)!.courseCode
   }
   const navigate = useNavigate()
   const location = useLocation()
@@ -68,14 +60,12 @@ const CourseNavBar = ({
       <RoleComponentManager
         currentRole={authUser.role}
         roleRender={{
-          admin: (
-            <ButtonWithModal
-              label={'Manage Content'}
-              icon={<IconTool size={18} />}
-              modalComponent={CourseActionsModal}
-              mb={'md'}
-            />
-          ),
+          admin: <ButtonWithModal
+            label={'Add New Content'}
+            icon={<IconPlus />}
+            modalComponent={CourseActionsSelector}
+            mb={'md'}
+          />,
         }}
       />
       <Select
@@ -83,8 +73,8 @@ const CourseNavBar = ({
         defaultValue={currentCourse.courseName}
         onChange={async (value) => {
           if (value) {
-            const newCourseCode = getCourseCode(value)
-            const newPath = location.pathname.replace(courseCode, newCourseCode)
+            const newCourseId = getCourseCode(value)
+            const newPath = location.pathname.replace(courseCode, newCourseId)
             await navigate({ to: newPath })
           }
         }}

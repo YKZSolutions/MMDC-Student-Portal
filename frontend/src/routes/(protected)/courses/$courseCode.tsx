@@ -1,31 +1,39 @@
-import { createFileRoute, Outlet, useParams } from '@tanstack/react-router'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import { Box, Group, useMantineTheme } from '@mantine/core'
-import { type CourseBasicDetails } from '@/features/courses/types.ts'
+import {createFileRoute, Outlet, useLocation, useMatchRoute, useNavigate, useParams,} from '@tanstack/react-router'
+import RoleComponentManager from '@/components/role-component-manager.tsx'
+import {useAuth} from '@/features/auth/auth.hook.ts'
+import {
+  Box,
+  Group,
+  useMantineTheme,
+} from '@mantine/core'
+import {
+  type CourseBasicDetails,
+} from '@/features/courses/types.ts'
 import CourseNavBar, {
   type CourseNavItem,
 } from '@/features/courses/course-navbar.tsx'
+
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
 
-export const mockCourseBasicDetails: CourseBasicDetails[] = [
+const mockCourses: CourseBasicDetails[] = [
   {
-    courseCode: 'MO-IT200',
-    courseName: 'Web Technology Applications',
+      courseCode: 'MO-IT200',
+      courseName: 'Web Technology Applications',
   },
   {
-    courseCode: 'MO-IT351',
-    courseName: 'Data Structures & Algorithms',
+      courseCode: 'MO-IT351',
+      courseName: 'Data Structures & Algorithms',
   },
   {
-    courseCode: 'MO-IT400',
-    courseName: 'Capstone 1',
+      courseCode: 'MO-IT400',
+      courseName: 'Capstone 1',
   },
   {
-    courseCode: 'MO-IT500',
-    courseName: 'Capstone 2',
+      courseCode: 'MO-IT500',
+      courseName: 'Capstone 2',
   },
 ]
 
@@ -33,7 +41,7 @@ function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
 
-  const courses: CourseBasicDetails[] = mockCourseBasicDetails
+  const courses: CourseBasicDetails[] = mockCourses
   const { courseCode } = useParams({ from: '/(protected)/courses/$courseCode' })
 
   const studentNavItems: CourseNavItem[] = [
@@ -91,28 +99,26 @@ function RouteComponent() {
       style={{
         overflow: 'hidden',
       }}
-      gap={0}
     >
       {/* Sub Nav */}
       <Box
         style={{
-          width: '180px',
-          minWidth: '180px',
+          width: '175px',
+          minWidth: '175px',
           borderRight: `1px solid ${theme.colors.gray[2]}`,
           overflow: 'hidden',
           flexShrink: 0,
         }}
       >
         <CourseNavBar
-          navItems={
-            authUser.role === 'student' ? studentNavItems : adminNavItems
-          }
+          navItems={authUser.role === 'student' ? studentNavItems : adminNavItems}
           courses={courses} //TODO: use all courses for admin
-        />
+        />,
       </Box>
 
       {/* Main Content */}
       <Box
+        p="sm"
         style={{
           flex: 1,
           minWidth: 0,

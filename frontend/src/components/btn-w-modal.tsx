@@ -1,25 +1,23 @@
-import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import { type BoxProps, Button, type ModalProps } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { type BoxProps, Button } from '@mantine/core'
 import React, { type ComponentPropsWithoutRef, type JSX } from 'react'
 
 type ButtonWithModalProps = {
-  label?: string | JSX.Element
+  label: string
   icon?: JSX.Element
-  modalComponent: React.ComponentType<ModalProps>
-  fullOnMobile?: boolean
-} & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'> &
-  BoxProps
+  modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
+} & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection'>
+  & BoxProps
 
-const ButtonWithModal = ({
-  label,
-  icon,
-  modalComponent: ModalComponent,
-  fullOnMobile = true,
-  ...buttonProps
-}: ButtonWithModalProps) => {
+
+const ButtonWithModal =
+  ({
+     label,
+     icon,
+     modalComponent: ModalComponent,
+     ...buttonProps
+   }: ButtonWithModalProps) => {
   const [opened, { open, close }] = useDisclosure(false)
-  const isMobile = useMediaQuery('(max-width: 768px)')
-  const shouldFull = isMobile && fullOnMobile
 
   return (
     <>
@@ -31,18 +29,10 @@ const ButtonWithModal = ({
       >
         {label}
       </Button>
-      <ModalComponent
-        opened={opened}
-        onClose={close}
-        fullScreen={shouldFull}
-        radius={shouldFull ? 0 : 'lg'}
-        transitionProps={{
-          transition: shouldFull ? 'fade' : 'fade-down',
-          duration: 200,
-        }}
-      />
+      <ModalComponent opened={opened} closeModal={close} />
     </>
   )
 }
 
 export default ButtonWithModal
+

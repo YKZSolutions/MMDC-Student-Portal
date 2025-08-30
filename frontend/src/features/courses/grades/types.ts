@@ -24,16 +24,16 @@ import type {
  */
 export interface Grade {
   id: string
-  released?: boolean
+  released?: boolean;
   assignmentId: string
-  submissionId?: string //Link to specific submission attempt
-  studentId?: string // if graded individually
-  groupId?: string // if graded as a group
-  groupMemberIds?: string[] // snapshot of members at grading
+  submissionId?: string;         //Link to specific submission attempt
+  studentId?: string             // if graded individually
+  groupId?: string               // if graded as a group
+  groupMemberIds?: string[]      // snapshot of members at grading
   score: number | null
   maxScore: number
   feedback?: string
-  gradedBy: string // teacher/mentor ID
+  gradedBy: string               // teacher/mentor ID
   gradedAt: string
   updatedAt?: string
 }
@@ -43,18 +43,17 @@ export interface Grade {
  * For the gradebook view, includes a currentGrade for easy display.
  */
 export interface StudentAssignmentGrade {
-  assignmentId: string
-  assignmentTitle: string
-  points: number
-  dueDate: string
-  submissions: Submission[] // All submission attempts
-  currentGrade?: {
-    // Simplified current grade for display
-    score: number
-    maxScore: number
-    feedback?: string
-    gradedAt?: string
-  }
+  assignmentId: string;
+  assignmentTitle: string;
+  points: number;
+  dueDate: string;
+  submissions: Submission[]; // All submission attempts
+  currentGrade?: {           // Simplified current grade for display
+    score: number;
+    maxScore: number;
+    feedback?: string;
+    gradedAt?: string;
+  };
 }
 
 /**
@@ -88,7 +87,7 @@ export interface CourseGradebookForMentor {
         score: number
         maxScore: number
         feedback?: string
-        gradedAt?: string
+        gradedAt?: string;
       }
     }[]
   }[]

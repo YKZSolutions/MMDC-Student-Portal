@@ -2,7 +2,7 @@
 export interface StudentGroup {
   id: string
   name: string
-  memberIds: string[] // current members (live state)
+  memberIds: string[]  // current members (live state)
 }
 
 // --- Historical audit of group membership ---
