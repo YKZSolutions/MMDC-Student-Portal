@@ -388,6 +388,7 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
                       to: '/enrollment/' + period.id,
                     })
                   }
+                  key={period.id}
                 >
                   <Table.Td>
                     <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
