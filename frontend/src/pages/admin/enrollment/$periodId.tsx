@@ -506,7 +506,21 @@ function CourseOfferingAccordionControl({
           size={'lg'}
           radius={'xl'}
           disabled={isDeletingDisabled}
-          onClick={(e) => handleRemoveCourseOffering(e, course)}
+          onClick={(e) =>
+            modals.openConfirmModal({
+              title: 'Delete Course Offering',
+              centered: true,
+              children: (
+                <Text size="sm">
+                  Are you sure you want to remove this course offering? This
+                  action cannot be undone.
+                </Text>
+              ),
+              labels: { confirm: 'Remove', cancel: 'Cancel' },
+              confirmProps: { color: 'red' },
+              onConfirm: () => handleRemoveCourseOffering(e, course),
+            })
+          }
         >
           <IconTrash size={18} />
         </ActionIcon>
@@ -708,7 +722,22 @@ function CourseOfferingSubjectCard({
                 c={'red.4'}
                 size={'md'}
                 radius={'xl'}
-                onClick={(e) => handleRemoveCourseSection(e, course, section)}
+                onClick={(e) =>
+                  modals.openConfirmModal({
+                    title: 'Delete Course Section',
+                    centered: true,
+                    children: (
+                      <Text size="sm">
+                        Are you sure you want to remove this course section?
+                        This action cannot be undone.
+                      </Text>
+                    ),
+                    labels: { confirm: 'Remove', cancel: 'Cancel' },
+                    confirmProps: { color: 'red' },
+                    onConfirm: () =>
+                      handleRemoveCourseSection(e, course, section),
+                  })
+                }
               >
                 <IconTrash size={18} />
               </ActionIcon>
