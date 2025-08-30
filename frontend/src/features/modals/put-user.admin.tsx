@@ -183,6 +183,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
             <Grid gutter="xs">
               <Grid.Col span={4.5}>
                 <TextInput
+                  data-cy="new-user-firstname-input"
                   label="First Name"
                   placeholder="Juan"
                   withAsterisk
@@ -193,6 +194,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               </Grid.Col>
               <Grid.Col span={4.5}>
                 <TextInput
+                  data-cy="new-user-lastname-input"
                   label="Last Name"
                   placeholder="Dela Cruz"
                   withAsterisk
@@ -203,6 +205,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               </Grid.Col>
               <Grid.Col span={3}>
                 <TextInput
+                  data-cy="new-user-middlename-input"
                   label="Middle Name"
                   placeholder="Dante"
                   disabled={isPending}
@@ -215,6 +218,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
             <Grid gutter="xs">
               <Grid.Col span={6}>
                 <Select
+                  data-cy="new-user-gender-select"
                   label="Gender"
                   placeholder="Select gender"
                   className="flex-1"
@@ -232,6 +236,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               </Grid.Col>
               <Grid.Col span={6}>
                 <DatePickerInput
+                  data-cy="new-user-dob-input"
                   label="Date of Birth"
                   placeholder="Pick a date..."
                   className="flex-1"
@@ -254,6 +259,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
             <Group gap="xs" align="start">
               <TextInput
                 className="flex-1"
+                data-cy="new-user-email-input"
                 label="Email"
                 placeholder="name@email.com"
                 withAsterisk
@@ -263,6 +269,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               />
               <TextInput
                 className="flex-1"
+                data-cy="new-user-password-input"
                 label="Password"
                 placeholder="Input password..."
                 disabled={isPending}
@@ -283,7 +290,7 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               >
                 Finish
               </Button>
-              <Button onClick={nextStep} disabled={isPending}>
+              <Button onClick={nextStep} disabled={isPending} data-cy="next-step-button">
                 Next step
               </Button>
             </Group>
@@ -374,12 +381,13 @@ function StudentForm(props: NextFormProps) {
 
   return (
     <Stack>
-      <Text className="font-semibold">Student Details</Text>
+      <Text data-cy="student-details-title" className="font-semibold">Student Details</Text>
       <TextInput
         type="number"
         className="flex-1"
+        data-cy="new-user-studentnumber-input"
         label="Student Number"
-        placeholder="202XXXXX"
+        placeholder="202XXXXXXX"
         withAsterisk
         key={form.key('studentNumber')}
         {...form.getInputProps('studentNumber')}
@@ -392,6 +400,7 @@ function StudentForm(props: NextFormProps) {
       <Select
         label="Student Type"
         placeholder="Select type"
+        data-cy="new-user-studenttype-select"
         className="flex-1"
         withAsterisk
         withScrollArea={false}
@@ -408,6 +417,7 @@ function StudentForm(props: NextFormProps) {
         {...form.getInputProps('studentType')}
       />
       <DatePickerInput
+        data-cy="new-user-admissiondate-input"
         className="flex-1"
         label="Admission Date"
         placeholder="Pick a date"
@@ -416,7 +426,8 @@ function StudentForm(props: NextFormProps) {
         {...form.getInputProps('admissionDate')}
         value={form.getInputProps('admissionDate').value}
         onChange={(val) =>
-          form.getInputProps('admissionDate').onChange(`${val}T00:00:00Z`)
+          form.getInputProps('admissionDate').onChange(val ? `${val}T00:00:00Z` : null)
+          //form.getInputProps('admissionDate').onChange(`${val}T00:00:00Z`)
         }
       />
 
@@ -431,6 +442,7 @@ function StudentForm(props: NextFormProps) {
 
         <Group>
           <Button
+            data-cy="finish-button"
             onClick={() => handleFinish(form.getValues() as StudentFormOutput)}
             loading={isPending}
           >
@@ -497,6 +509,7 @@ function StaffForm(props: NextFormProps) {
     <Stack>
       <Text className="font-semibold">Staff Details</Text>
       <TextInput
+        data-cy="new-user-employeenumber-input"
         type="number"
         className="flex-1"
         label="Employee Number"
@@ -512,6 +525,7 @@ function StaffForm(props: NextFormProps) {
         }
       />
       <TextInput
+        data-cy="new-user-department-input"
         className="flex-1"
         label="Department"
         placeholder="Department"
@@ -521,6 +535,7 @@ function StaffForm(props: NextFormProps) {
         {...form.getInputProps('department')}
       />
       <TextInput
+        data-cy="new-user-position-input"
         className="flex-1"
         label="Position"
         placeholder="Position"
@@ -541,6 +556,7 @@ function StaffForm(props: NextFormProps) {
 
         <Group>
           <Button
+            data-cy="finish-button"
             onClick={() => handleFinish(form.getValues() as StaffFormOutput)}
             loading={isPending}
           >
