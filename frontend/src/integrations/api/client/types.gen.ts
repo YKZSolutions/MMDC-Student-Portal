@@ -663,13 +663,39 @@ export type PaginatedEnrollmentPeriodsDto = {
     enrollments: Array<EnrollmentPeriodDto>;
 };
 
+export type UserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    disabledAt: string | null;
+    deletedAt: string | null;
+};
+
+export type DetailedCourseSectionDto = {
+    id: string;
+    name: string;
+    maxSlot: number;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    user: UserDto | null;
+    mentorId: string | null;
+};
+
 export type DetailedCourseOfferingDto = {
     id: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
     course: CourseDto;
-    courseSections: Array<CourseSectionDto>;
+    courseSections: Array<DetailedCourseSectionDto>;
 };
 
 export type PaginatedCourseOfferingsDto = {

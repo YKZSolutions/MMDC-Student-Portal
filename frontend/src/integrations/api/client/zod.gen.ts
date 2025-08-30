@@ -875,6 +875,50 @@ export const zPaginatedEnrollmentPeriodsDto = z.object({
     enrollments: z.array(zEnrollmentPeriodDto)
 });
 
+export const zUserDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    disabledAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zDetailedCourseSectionDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSlot: z.int(),
+    startSched: z.string(),
+    endSched: z.string(),
+    days: z.array(zDays),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    user: z.union([
+        zUserDto,
+        z.null()
+    ]),
+    mentorId: z.union([
+        z.uuid(),
+        z.null()
+    ])
+});
+
 export const zDetailedCourseOfferingDto = z.object({
     id: z.string(),
     createdAt: z.iso.datetime(),
@@ -884,7 +928,7 @@ export const zDetailedCourseOfferingDto = z.object({
         z.null()
     ]),
     course: zCourseDto,
-    courseSections: z.array(zCourseSectionDto)
+    courseSections: z.array(zDetailedCourseSectionDto)
 });
 
 export const zPaginatedCourseOfferingsDto = z.object({
