@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class StudentIdentifierDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsUUID('4')
-  studentId: string;
+  studentId?: string;
 }
