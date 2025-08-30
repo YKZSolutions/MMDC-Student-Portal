@@ -224,7 +224,6 @@ const ModuleListPanel = ({
   modules: externalModules,
   isPreview = false,
 }: ModulePanelProps) => {
-  const theme = useMantineTheme()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const modules = externalModules || moduleData
 
@@ -258,63 +257,6 @@ const ModuleListPanel = ({
     }).length
   }
 
-  const moduleItems = modules.map((module) => (
-    <Accordion.Item value={module.id} key={module.title} bg={'background'}>
-      <CustomAccordionControl
-        title={module.title}
-        completedItemsCount={getCompletedItemsCount(
-          module.sections.flatMap((sub) => sub.items),
-        )}
-        totalItemsCount={module.sections.flatMap((sub) => sub.items).length}
-        isPreview={isPreview}
-      />
-      <Accordion.Panel>
-        <Accordion
-          multiple
-          value={expandedItems}
-          onChange={setExpandedItems}
-          chevronPosition="left"
-          variant="separated"
-          radius="md"
-        >
-          {module.sections.map((subsection) => (
-            <Accordion.Item
-              value={subsection.id}
-              key={subsection.title}
-              bg={'white'}
-            >
-              <CustomAccordionControl
-                title={subsection.title}
-                completedItemsCount={getCompletedItemsCount(subsection.items)}
-                totalItemsCount={subsection.items.length}
-                isPreview={isPreview}
-              />
-
-              {subsection.items.map((item) => (
-                <Accordion.Panel
-                  styles={{
-                    content: {
-                      padding: '8px',
-                    },
-                  }}
-                >
-                  <ModuleItemCard
-                    key={item.id}
-                    item={item}
-                    onItemClick={() => {
-                      /* TODO: Handle item click */
-                    }}
-                    isPreview={isPreview}
-                  />
-                </Accordion.Panel>
-              ))}
-            </Accordion.Item>
-          ))}
-        </Accordion>
-      </Accordion.Panel>
-    </Accordion.Item>
-  ))
-
   return (
     <Accordion
       multiple
@@ -324,7 +266,64 @@ const ModuleListPanel = ({
       variant="separated"
       radius="md"
     >
-      {moduleItems}
+      {modules.map((module) => (
+        <Accordion.Item value={module.id} key={module.title} bg={'background'}>
+          <CustomAccordionControl
+            title={module.title}
+            completedItemsCount={getCompletedItemsCount(
+              module.sections.flatMap((sub) => sub.items),
+            )}
+            totalItemsCount={module.sections.flatMap((sub) => sub.items).length}
+            isPreview={isPreview}
+          />
+          <Accordion.Panel>
+            <Accordion
+              multiple
+              value={expandedItems}
+              onChange={setExpandedItems}
+              chevronPosition="left"
+              variant="separated"
+              radius="md"
+            >
+              {module.sections.map((subsection) => (
+                <Accordion.Item
+                  value={subsection.id}
+                  key={subsection.title}
+                  bg={'white'}
+                >
+                  <CustomAccordionControl
+                    title={subsection.title}
+                    completedItemsCount={getCompletedItemsCount(
+                      subsection.items,
+                    )}
+                    totalItemsCount={subsection.items.length}
+                    isPreview={isPreview}
+                  />
+
+                  {subsection.items.map((item) => (
+                    <Accordion.Panel
+                      styles={{
+                        content: {
+                          padding: '8px',
+                        },
+                      }}
+                    >
+                      <ModuleItemCard
+                        key={item.id}
+                        item={item}
+                        onItemClick={() => {
+                          /* TODO: Handle item click */
+                        }}
+                        isPreview={isPreview}
+                      />
+                    </Accordion.Panel>
+                  ))}
+                </Accordion.Item>
+              ))}
+            </Accordion>
+          </Accordion.Panel>
+        </Accordion.Item>
+      ))}
     </Accordion>
   )
 }
