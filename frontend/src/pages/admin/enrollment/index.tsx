@@ -143,7 +143,7 @@ function EnrollmentAdminPage() {
   }
 
   return (
-    <Container fluid m={0} pb={'xl'}>
+    <Container size={'md'} pb={'xl'}>
       <Stack gap={'lg'}>
         {/* Page Hero */}
         <Box>
