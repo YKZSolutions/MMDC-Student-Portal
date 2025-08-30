@@ -1,4 +1,5 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
+import AsyncMentorCombobox from '@/features/enrollment/async-mentor-combobox'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import {
   EditSectionFormSchema,
@@ -6,9 +7,9 @@ import {
 } from '@/features/validation/edit-course-offering-subject'
 import type {
   CourseDto,
-  CourseSectionDto,
   DetailedCourseOfferingDto,
-  EnrollmentPeriodDto
+  DetailedCourseSectionDto,
+  EnrollmentPeriodDto,
 } from '@/integrations/api/client'
 import {
   enrollmentControllerCreateCourseOfferingMutation,
@@ -578,6 +579,8 @@ function CourseOfferingAccordionPanel({
               createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
               updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
               deletedAt: null,
+              user: null,
+              mentorId: null,
             }}
             course={course}
           />
@@ -598,7 +601,7 @@ function CourseOfferingSubjectCard({
   section,
   course,
 }: {
-  section: CourseSectionDto
+  section: DetailedCourseSectionDto
   course: DetailedCourseOfferingDto
 }) {
   const [opened, { toggle }] = useDisclosure(false)
@@ -635,7 +638,7 @@ function CourseOfferingSubjectCard({
   const handleRemoveCourseSection = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     course: DetailedCourseOfferingDto,
-    section: CourseSectionDto,
+    section: DetailedCourseSectionDto,
   ) => {
     e.stopPropagation()
 
@@ -723,14 +726,14 @@ function CourseOfferingSectionEditForm({
   onCancel,
   onSaved,
 }: {
-  section: CourseSectionDto
+  section: DetailedCourseSectionDto
   offeringId: string
   onCancel: () => void
   onSaved: () => void
 }) {
   const form = useForm<EditSectionFormValues>({
     mode: 'uncontrolled',
-    initialValues: { ...section, mentorId: '' },
+    initialValues: { ...section },
     validate: zod4Resolver(EditSectionFormSchema),
   })
 
@@ -775,10 +778,7 @@ function CourseOfferingSectionEditForm({
 
     await updateSection({
       path: { offeringId, sectionId: section.id },
-      body: {
-        ...form.getValues(),
-        mentorId: form.getValues().mentorId || undefined,
-      },
+      body: form.getValues(),
     })
 
     onSaved()
@@ -839,12 +839,7 @@ function CourseOfferingSectionEditForm({
           placeholder="e.g. 30"
           {...form.getInputProps('maxSlot')}
         />
-        <TextInput
-          radius="md"
-          label="Assigned mentor (optional)"
-          placeholder="Enter mentor ID"
-          {...form.getInputProps('mentorId')}
-        />
+        <AsyncMentorCombobox form={form} defaultSelectedUser={section.user} />
       </Group>
 
       <Group gap="sm" justify="flex-end" pt="lg">

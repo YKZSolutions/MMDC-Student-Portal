@@ -22,8 +22,8 @@ export const EditSectionFormSchema = z
       })
       .min(1, 'Must be at least 1'),
     mentorId: z.preprocess(
-      (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
-      z.uuid().optional(),
+      (val) => (typeof val === 'string' && val.trim() === '' ? null : val),
+      z.uuid().optional().nullable(),
     ),
   })
   .superRefine((values, ctx) => {

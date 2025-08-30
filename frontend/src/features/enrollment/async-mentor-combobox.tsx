@@ -1,29 +1,31 @@
 import SupabaseAvatar from '@/components/supabase-avatar'
 import type {
-    PaginationMetaDto,
-    UserWithRelations,
+  DetailedCourseSectionDto,
+  PaginationMetaDto,
+  UserWithRelations,
 } from '@/integrations/api/client'
 import { usersControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
-    ActionIcon,
-    Box,
-    Combobox,
-    Group,
-    InputBase,
-    Loader,
-    rem,
-    Text,
-    TextInput,
-    useCombobox,
+  ActionIcon,
+  Box,
+  Combobox,
+  Flex,
+  Group,
+  InputBase,
+  Loader,
+  rem,
+  Text,
+  TextInput,
+  useCombobox,
 } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'
 import { useDebouncedValue } from '@mantine/hooks'
-import { IconX } from '@tabler/icons-react'
+import { IconUserOff, IconX } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Suspense, useState, type ReactNode } from 'react'
+import { Fragment, Suspense, useState, type ReactNode } from 'react'
 import type { IUsersQuery } from '../user-management/types'
-import type { CreateBillFormValues } from '../validation/create-billing'
+import type { EditSectionFormValues } from '../validation/edit-course-offering-subject'
 
 function AsyncMentorComboboxQueryProvider({
   children,
@@ -44,7 +46,7 @@ function AsyncMentorComboboxQueryProvider({
 
   const { data, isFetching } = useSuspenseQuery({
     ...usersControllerFindAllOptions({
-      query: { search, page, ...(role && { role }) },
+      query: { search, page, role: 'mentor' },
     }),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -62,8 +64,10 @@ function AsyncMentorComboboxQueryProvider({
 
 function AsyncMentorCombobox({
   form,
+  defaultSelectedUser,
 }: {
-  form: UseFormReturnType<CreateBillFormValues>
+  form: UseFormReturnType<EditSectionFormValues>
+  defaultSelectedUser: DetailedCourseSectionDto['user']
 }) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -76,9 +80,8 @@ function AsyncMentorCombobox({
   }
 
   const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
-  const [selectedUser, setSelectedUser] = useState<UserWithRelations>(
-    {} as UserWithRelations,
-  )
+  const [selectedUser, setSelectedUser] =
+    useState<DetailedCourseSectionDto['user']>(defaultSelectedUser)
 
   // Debounced Query Value
   const [debouncedQuery] = useDebouncedValue(query, 250)
@@ -102,15 +105,7 @@ function AsyncMentorCombobox({
     setSelectedUser(parsedUserData)
 
     // Set in form
-    form.setFieldValue('userId', parsedUserData.id)
-    form.setFieldValue(
-      'bill.payerName',
-      `${parsedUserData.firstName} ${parsedUserData.lastName}`,
-    )
-    form.setFieldValue(
-      'bill.payerEmail',
-      parsedUserData.userAccount?.email || 'N/A',
-    )
+    form.setFieldValue('mentorId', parsedUserData.id)
 
     combobox.closeDropdown()
   }
@@ -121,29 +116,26 @@ function AsyncMentorCombobox({
     e.stopPropagation() // prevent combobox opening when clearing
 
     // Unset in local state
-    setSelectedUser({} as UserWithRelations)
+    setSelectedUser(null)
 
-    // Unset in form
-    form.resetField('userId')
-    form.resetField('bill.payerName')
-    form.resetField('bill.payerEmail')
+    // Set the value if unselected
+    form.setFieldValue('mentorId', null)
   }
 
   return (
     <Combobox
       onOptionSubmit={(optionValue) => handleOptionSubmit(optionValue)}
-      withinPortal={false}
       store={combobox}
     >
       <Combobox.Target>
-        {selectedUser.id ? (
+        {selectedUser?.id ? (
           <InputBase
-            label="User"
+            radius={'md'}
+            label="Mentor"
             component="button"
             type="button"
             pointer
             withAsterisk
-            key={form.key('userId')}
             {...form.getInputProps('userId')}
             rightSection={
               <ActionIcon
@@ -163,10 +155,10 @@ function AsyncMentorCombobox({
           </InputBase>
         ) : (
           <TextInput
-            label="User"
-            placeholder="Search a user"
+            radius={'md'}
+            label="Mentor"
+            placeholder="Search a mentor"
             withAsterisk
-            key={form.key('userId')}
             {...form.getInputProps('userId')}
             onChange={(event) => handleSearch(event)}
             onClick={() => combobox.openDropdown()}
@@ -192,13 +184,37 @@ function AsyncMentorCombobox({
             }
           >
             <AsyncMentorComboboxQueryProvider props={debouncedQuery}>
-              {(props) =>
-                props.users.map((user) => (
-                  <Combobox.Option value={JSON.stringify(user)} key={user.id}>
-                    <UserComboboxCard user={user} />
-                  </Combobox.Option>
-                ))
-              }
+              {(props) => (
+                <>
+                  {props.users.length === 0 && (
+                    <Flex
+                      align="center"
+                      justify="center"
+                      direction="column"
+                      py="md"
+                      c="dark.2"
+                    >
+                      <IconUserOff size={28} stroke={1.5} />
+                      <Text mt={6} size="sm">
+                        No users found
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Try adjusting your search
+                      </Text>
+                    </Flex>
+                  )}
+                  {props.users.map((user) => (
+                    <Fragment key={user.id}>
+                      <Combobox.Option
+                        value={JSON.stringify(user)}
+                        key={user.id}
+                      >
+                        <UserComboboxCard user={user} />
+                      </Combobox.Option>
+                    </Fragment>
+                  ))}
+                </>
+              )}
             </AsyncMentorComboboxQueryProvider>
           </Suspense>
         </Combobox.Options>
@@ -207,21 +223,25 @@ function AsyncMentorCombobox({
   )
 }
 
-function UserComboboxCard({ user }: { user: UserWithRelations }) {
+function UserComboboxCard({
+  user,
+}: {
+  user: DetailedCourseSectionDto['user']
+}) {
+  if (!user) return null
+
   return (
-    <Group gap={'sm'} align={'center'} py={rem(5)}>
+    <Group gap={'sm'} align={'center'} py={0}>
       <SupabaseAvatar
+        size={rem(22)}
         bucket={SupabaseBuckets.USER_AVATARS}
         path={user.id}
         imageType="jpg"
         name={`${user.firstName} ${user.lastName}`}
       />
       <Box>
-        <Text fw={600}>
+        <Text size="sm" fw={500} c={'dark.5'}>
           {user.firstName} {user.lastName}
-        </Text>
-        <Text fz={'sm'} fw={500} c={'dark.2'}>
-          {user.userAccount?.email}
         </Text>
       </Box>
     </Group>
