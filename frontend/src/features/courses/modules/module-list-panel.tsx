@@ -352,7 +352,6 @@ const ModuleItemCard = ({
       style={{
         cursor: 'pointer',
         borderLeft: `3px solid ${item.type === 'reading' ? theme.colors.blue[5] : theme.colors.green[5]}`,
-        boxShadow: `0px 0px 8px ${theme.colors.gray[4]} inset`,
       }}
       onClick={onItemClick}
       bg={'background'}
