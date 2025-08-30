@@ -11,11 +11,12 @@ import { IconClock } from '@tabler/icons-react'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SubmitButton from '@/components/submit-button.tsx'
 import type { StudentAssignment } from '@/features/courses/assignments/types.ts'
-import { useSubmissionDetails } from '@/features/courses/course-editor/useSubmissionDetails.ts'
+import { useSubmissionDetails } from '@/features/courses/useSubmissionDetails.ts'
 
 const AssignmentCard = ({ assignment }: { assignment: StudentAssignment }) => {
-  const theme = useMantineTheme();
-  const { isPending, isDraft, isLate, isMissed, mappedStatus } = useSubmissionDetails(assignment)
+  const theme = useMantineTheme()
+  const { isPending, isDraft, isLate, isMissed, mappedStatus } =
+    useSubmissionDetails(assignment)
 
   return (
     <Card withBorder radius="md" p="lg" shadow="xs">
@@ -26,11 +27,7 @@ const AssignmentCard = ({ assignment }: { assignment: StudentAssignment }) => {
             <Title order={4} fw={600}>
               {assignment.title}
             </Title>
-            <Badge
-              color={mappedStatus}
-              variant="outline"
-              size="md"
-            >
+            <Badge color={mappedStatus} variant="outline" size="md">
               {mappedStatus}
             </Badge>
           </Group>

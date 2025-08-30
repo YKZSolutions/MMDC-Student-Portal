@@ -17,7 +17,12 @@ export type AssignmentMode = 'individual' | 'group'
  */
 export type AssignmentStatus = 'open' | 'closed'
 
-export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
+export type AssignmentType =
+  | 'assignment'
+  | 'draft'
+  | 'milestone'
+  | 'quiz'
+  | 'other'
 
 /**
  * Represents the base structure of an assignment entity.
@@ -34,17 +39,23 @@ export type AssignmentType = 'assignment' | 'draft' | 'milestone' | 'other'
  * - `points`: An optional field representing the maximum points available for the assignment.
  * - `status`: Represents the current state of the assignment, as defined by an {@link AssignmentStatus} type.
  * - `rubricId`: An optional string representing the ID of the rubric associated with the assignment.
+ * - `allowResubmission`: A boolean indicating whether resubmissions are allowed for the assignment.
+ * - `maxAttempts`: An optional integer representing the maximum number of attempts allowed for the assignment.
+ * - `allowLateSubmission`: A boolean indicating whether late submissions are allowed for the assignment.
  */
 export interface Assignment {
-    id: string
-    title: string
-    type: AssignmentType
-    description: string
-    dueDate: string // ISO string
-    mode: AssignmentMode
-    points?: number // max points
-    status: AssignmentStatus
-    rubricId?: string;
+  id: string
+  title: string
+  type: AssignmentType
+  description: string
+  dueDate: string // ISO string
+  mode: AssignmentMode
+  points?: number // max points
+  status: AssignmentStatus
+  rubricId?: string
+  allowResubmission?: boolean
+  maxAttempts?: number
+  allowLateSubmission?: boolean
 }
 
 /**
@@ -58,7 +69,12 @@ export interface Assignment {
  * - `ready-for-grading`: The submission is ready for grading.
  * - `graded`: The submission has been graded and is available for viewing.
  */
-export type SubmissionStatus = 'pending' | 'draft' | 'submitted' | 'ready-for-grading' | 'graded'
+export type SubmissionStatus =
+  | 'pending'
+  | 'draft'
+  | 'submitted'
+  | 'ready-for-grading'
+  | 'graded'
 
 /**
  * Represents the base structure for a student's or group's submission.
@@ -70,20 +86,18 @@ export type SubmissionStatus = 'pending' | 'draft' | 'submitted' | 'ready-for-gr
  * - `submissionLink`: An optional string representing the link to the student's submission.
  * - `submissionTimestamp`: An optional timestamp representing the time when the student submitted the assignment.
  * - `attemptNumber`: An optional integer representing the number of attempts made by the student.
- * - `resubmissionAllowed`: A boolean indicating whether resubmissions are allowed for the assignment.
  * - `isLate`: A boolean indicating whether the student is late for the assignment.
  * - `lateDays`: An optional integer representing the number of late days remaining for the assignment.
  * - `grade`: An optional {@link Grade} object representing the grade assigned to the student for the assignment.
  */
 export interface Submission {
-    submissionStatus: SubmissionStatus
-    submissionLink?: string
-    submissionTimestamp?: string
-    attemptNumber?: number;
-    resubmissionAllowed?: boolean;
-    isLate?: boolean;
-    lateDays?: number;
-    grade?: Grade
+  submissionStatus: SubmissionStatus
+  submissionLink?: string
+  submissionTimestamp?: string
+  attemptNumber?: number
+  isLate?: boolean
+  lateDays?: number
+  grade?: Grade
 }
 
 /**
@@ -116,7 +130,6 @@ export interface GroupSubmission extends Submission {
   assignmentId: string
   groupId: string
   memberIds: string[] // snapshot of members when submitted
-
 }
 
 /**
@@ -132,9 +145,9 @@ export interface GroupSubmission extends Submission {
  *
  */
 export interface StudentAssignment extends Assignment, Submission {
-    submissionId?: string;
-    groupId?: string;
-    groupName?: string;
+  submissionId?: string
+  groupId?: string
+  groupName?: string
 }
 
 /**

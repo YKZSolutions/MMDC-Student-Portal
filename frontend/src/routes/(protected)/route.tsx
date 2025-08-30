@@ -46,9 +46,9 @@ function RouteComponent() {
         <Sidebar />
         <Box className="flex-1 h-full p-4 pl-0">
           <Stack
-            className="bg-white w-full h-full flex-1 rounded-lg shadow p-5 pr-1"
+            className="bg-white w-full h-full flex-1 rounded-lg shadow p-5 pr-1 pb-0"
             justify="start"
-            style={{ position: 'relative', overflow: 'hidden', }}
+            style={{ position: 'relative', overflow: 'hidden' }}
           >
             <Topbar
               setChatbotOpen={setChatbotOpen}
@@ -60,7 +60,7 @@ function RouteComponent() {
                 minHeight: 0,
                 minWidth: 0,
                 overflowY: 'auto',
-                  scrollbarGutter: 'stable',
+                scrollbarGutter: 'stable',
               }}
             >
               {/*Main Content*/}
