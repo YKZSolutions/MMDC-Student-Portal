@@ -725,7 +725,10 @@ function CourseOfferingSubjectCard({
               {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
               {section.endSched}
             </Text>
-            <Text c={section.mentorId ? 'dark.4' : 'dimmed'} size="sm">
+            <Text
+              c={'gray.6'}
+              size="sm"
+            >
               {section.mentorId
                 ? `${section.user?.firstName} ${section.user?.lastName}`
                 : 'No Mentor Assigned'}
