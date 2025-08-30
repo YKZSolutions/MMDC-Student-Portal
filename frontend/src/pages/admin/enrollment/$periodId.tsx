@@ -54,6 +54,7 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
   Transition,
   UnstyledButton,
 } from '@mantine/core'
@@ -160,43 +161,41 @@ function EnrollmentPeriodIdPage() {
   const [query, setQuery] =
     useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
 
-  const {
-    mutateAsync: addCourseOffering,
-    isPending: addCourseIsPending,
-  } = useAppMutation(
-    enrollmentControllerCreateCourseOfferingMutation,
-    {
-      loading: {
-        title: 'Adding course offering',
-        message: 'Please wait while the course offering is being added.',
+  const { mutateAsync: addCourseOffering, isPending: addCourseIsPending } =
+    useAppMutation(
+      enrollmentControllerCreateCourseOfferingMutation,
+      {
+        loading: {
+          title: 'Adding course offering',
+          message: 'Please wait while the course offering is being added.',
+        },
+        success: {
+          title: 'Course Offering Added',
+          message: 'The course offering has been added.',
+        },
+        error: {
+          title: 'Failed',
+          message: 'Something went wrong while adding the course offering.',
+        },
       },
-      success: {
-        title: 'Course Offering Added',
-        message: 'The course offering has been added.',
-      },
-      error: {
-        title: 'Failed',
-        message: 'Something went wrong while adding the course offering.',
-      },
-    },
-    {
-      onSuccess: async () => {
-        const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsQueryKey()
+      {
+        onSuccess: async () => {
+          const allOfferingsKey =
+            enrollmentControllerFindAllCourseOfferingsQueryKey()
 
-        const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
-          path: { id: periodId },
-        })
+          const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
+            path: { id: periodId },
+          })
 
-        // cancel outgoing refetches
-        await queryClient.cancelQueries({ queryKey: allOfferingsKey })
-        await queryClient.cancelQueries({ queryKey: enrollmentKey })
+          // cancel outgoing refetches
+          await queryClient.cancelQueries({ queryKey: allOfferingsKey })
+          await queryClient.cancelQueries({ queryKey: enrollmentKey })
 
-        await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
-        await queryClient.invalidateQueries({ queryKey: enrollmentKey })
+          await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
+          await queryClient.invalidateQueries({ queryKey: enrollmentKey })
+        },
       },
-    },
-  )
+    )
 
   const handleSelectCourseOffering = async (course: CourseDto) => {
     await addCourseOffering({
@@ -419,6 +418,8 @@ function CourseOfferingAccordionControl({
   course: DetailedCourseOfferingDto
   periodId: string
 }) {
+  const isDeletingDisabled = course.courseSections.length > 0
+
   const { mutateAsync: removeCourseOffering } = useAppMutation(
     enrollmentControllerRemoveCourseOfferingMutation,
     {
@@ -458,7 +459,13 @@ function CourseOfferingAccordionControl({
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     course: DetailedCourseOfferingDto,
   ) => {
+    // Stop event propagation
     e.stopPropagation()
+
+    // Disable button if there are course sections
+    if (isDeletingDisabled) return
+
+    // Call the mutation
     await removeCourseOffering({
       path: {
         offeringId: course.id,
@@ -482,16 +489,28 @@ function CourseOfferingAccordionControl({
         </Stack>
       </Stack>
 
-      <ActionIcon
-        component="div"
-        variant="subtle"
-        c={'red.4'}
-        size={'lg'}
-        radius={'xl'}
-        onClick={(e) => handleRemoveCourseOffering(e, course)}
+      <Tooltip
+        hidden={!isDeletingDisabled}
+        withArrow
+        position="left"
+        label={
+          <Text size="sm">
+            Cannot remove course offering — active sections exist
+          </Text>
+        }
       >
-        <IconTrash size={18} />
-      </ActionIcon>
+        <ActionIcon
+          component="div"
+          variant="subtle"
+          c={isDeletingDisabled ? 'gray' : 'red'}
+          size={'lg'}
+          radius={'xl'}
+          disabled={isDeletingDisabled}
+          onClick={(e) => handleRemoveCourseOffering(e, course)}
+        >
+          <IconTrash size={18} />
+        </ActionIcon>
+      </Tooltip>
     </Group>
   )
 }
