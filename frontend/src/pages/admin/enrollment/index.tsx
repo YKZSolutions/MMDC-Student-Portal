@@ -224,7 +224,7 @@ function EnrollmentAdminPage() {
               w={rem(250)}
               value={query.search}
               // TODO: This feature is currently not implemented
-              // onChange={(e) => handleSearch(e)}
+              onChange={(e) => {}}
             />
             <Button
               variant="default"
