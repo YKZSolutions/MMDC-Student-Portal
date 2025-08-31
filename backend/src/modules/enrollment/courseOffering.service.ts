@@ -107,8 +107,8 @@ export class CourseOfferingService {
     if (isStudent && (status === 'enrolled' || status === 'not enrolled')) {
       whereClause.courseEnrollment =
         status === 'enrolled'
-          ? { some: { studentId } } // offerings the student is enrolled in
-          : { none: { studentId } }; // offerings the student is NOT enrolled in
+          ? { some: { studentId, status: { not: 'dropped' } } } // offerings the student is enrolled in
+          : { none: { studentId, status: { not: 'dropped' } } }; // offerings the student is NOT enrolled in
     }
 
     const includeClause = {
@@ -123,7 +123,7 @@ export class CourseOfferingService {
       // TODO: Implement an FE interface for this
       courseEnrollment: isStudent
         ? {
-            where: { studentId },
+            where: { studentId, status: { not: 'dropped' } },
           }
         : undefined,
     } satisfies Prisma.CourseOfferingInclude;
