@@ -80,6 +80,7 @@ export default function CurriculumDashboard() {
         >
           {mockData.map((curriculum) => (
             <CurriculumCard
+              key={curriculum.id}
               id={curriculum.id}
               code={curriculum.code}
               program={curriculum.program}

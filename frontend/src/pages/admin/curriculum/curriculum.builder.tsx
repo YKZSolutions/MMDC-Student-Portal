@@ -43,7 +43,6 @@ import {
 } from '@/features/curriculum/hooks/curriculum.builder.hook'
 
 export default function CurriculumBuilder() {
-  const router = useRouter()
   const navigate = Route.useNavigate()
 
   return (
@@ -54,7 +53,11 @@ export default function CurriculumBuilder() {
             variant="subtle"
             radius="lg"
             mt={4}
-            onClick={() => router.history.back()}
+            onClick={() =>
+              navigate({
+                to: '/curriculum',
+              })
+            }
           >
             <IconArrowLeft />
           </ActionIcon>

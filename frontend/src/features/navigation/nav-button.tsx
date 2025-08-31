@@ -36,6 +36,7 @@ export default function NavButton({ item, fuzzy }: NavButtonProps) {
           <Stack className="flex-1" gap={4}>
             {item.subItems?.map((subitem) => (
               <BaseNavButton
+                key={subitem.link}
                 item={subitem}
                 fuzzy={fuzzy}
                 open={open}

@@ -20,6 +20,7 @@ import {
   IconPlus,
   IconSearch,
 } from '@tabler/icons-react'
+import { Link } from '@tanstack/react-router'
 
 export default function CurriculumCourses() {
   return (
@@ -51,6 +52,8 @@ export default function CurriculumCourses() {
             Filters
           </Button>
           <Button
+            component={Link}
+            to="/curriculum/courses/create"
             variant="filled"
             radius={'md'}
             leftSection={<IconPlus size={20} />}
