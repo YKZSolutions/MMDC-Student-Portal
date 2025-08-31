@@ -3,14 +3,15 @@ import {
   ActionIcon,
   Autocomplete,
   Badge,
-  Box,
   Button,
   Card,
   Container,
+  Drawer,
   Group,
   Stack,
   Text,
   Textarea,
+  TextInput,
   Title,
 } from '@mantine/core'
 import {
@@ -21,19 +22,29 @@ import {
   IconGripVertical,
   IconMinus,
   IconPlus,
+  IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
 import { useRouter } from '@tanstack/react-router'
-import { memo, useState, type Dispatch } from 'react'
+import { memo, useEffect, type Dispatch } from 'react'
 import Droppable from '@/integrations/dnd-kit/droppable'
-import { useImmer, useImmerReducer } from 'use-immer'
+import { useImmer, type Updater } from 'use-immer'
 import Sortable from '@/integrations/dnd-kit/sortable'
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
 import { move } from '@dnd-kit/helpers'
-import { AnimatePresence, motion } from 'motion/react'
+import Draggable from '@/integrations/dnd-kit/draggable'
+import { Route } from '@/routes/(protected)/curriculum/$curriculumId_.edit'
+import {
+  mockCourses,
+  useCurriculumBuilder,
+  type CurriculumCourse,
+  type StructureAction,
+  type YearStructure,
+} from '@/features/curriculum/hooks/curriculum.builder.hook'
 
 export default function CurriculumBuilder() {
   const router = useRouter()
+  const navigate = Route.useNavigate()
 
   return (
     <Container size={'sm'} w={'100%'} pb={'xl'}>
@@ -100,9 +111,24 @@ export default function CurriculumBuilder() {
         />
 
         <Stack>
-          <Title order={4} fw={700}>
-            Curriculum Plan
-          </Title>
+          <Group justify="space-between">
+            <Title order={4} fw={700}>
+              Curriculum Plan
+            </Title>
+
+            <Button
+              onClick={() =>
+                navigate({
+                  search: (prev) => ({
+                    openCourseList:
+                      prev.openCourseList !== true ? true : undefined,
+                  }),
+                })
+              }
+            >
+              Course List
+            </Button>
+          </Group>
           <YearLevels />
         </Stack>
       </Stack>
@@ -110,218 +136,84 @@ export default function CurriculumBuilder() {
   )
 }
 
-interface Curriculum {
-  year: number
-  semesters: Semester[]
-}
-
-interface Semester {
-  semester: number
-  courses: Course[]
-}
-
-interface Course {
-  id: string
-  code: string
-  name: string
-  prereq?: {
-    name: string
-    code: string
-  }
-  coreq?: {
-    name: string
-    code: string
-  }
-  type: 'Core' | 'Elective' | 'General' | 'Major' | 'Specialization'
-  department: 'GE' | 'IT' | 'BA'
-  units: number
-}
-
-interface CurriculumCourse {
-  id: string
-  code: string
-  name: string
-  prereq?: {
-    name: string
-    code: string
-  }
-  coreq?: {
-    name: string
-    code: string
-  }
-  type: 'Core' | 'Elective' | 'General' | 'Major' | 'Specialization'
-  department: 'GE' | 'IT' | 'BA'
-  units: number
-  year: number
-  semester: number
-}
-
-const mockCourses: CurriculumCourse[] = [
-  {
-    id: 'c2',
-    code: 'MO-GE102',
-    name: 'Philippine Popular Culture',
-    type: 'General',
-    department: 'GE',
-    units: 3,
-    year: 1,
-    semester: 1,
-  },
-  {
-    id: 'c3',
-    code: 'MO-IT200D2',
-    name: 'Capstone 2',
-    type: 'Core',
-    department: 'IT',
-    units: 3,
-    year: 1,
-    semester: 2,
-  },
-  {
-    id: 'c4',
-    code: 'MO-IT151',
-    name: 'Platform Technologies',
-    type: 'Major',
-    department: 'IT',
-    units: 3,
-    year: 1,
-    semester: 2,
-  },
-  {
-    id: 'c5',
-    code: 'MO-IT121',
-    name: 'Mobile Develpment',
-    type: 'Major',
-    department: 'IT',
-    units: 3,
-    year: 1,
-    semester: 3,
-  },
-  {
-    id: 'c6',
-    code: 'GE-MATH2',
-    name: 'Discrete Mathematics',
-    type: 'General',
-    department: 'GE',
-    units: 3,
-    year: 2,
-    semester: 1,
-  },
-]
-
-interface YearStructure {
-  year: number
-  semesters: number[]
-}
-
-const baseStructure: YearStructure[] = [
-  {
-    year: 1,
-    semesters: [1, 2, 3],
-  },
-  {
-    year: 2,
-    semesters: [1, 2, 3],
-  },
-  {
-    year: 3,
-    semesters: [1, 2, 3],
-  },
-  {
-    year: 4,
-    semesters: [1, 2, 3],
-  },
-]
-
-const mockSortable: Record<string, string[]> = {
-  '1-1': ['MO-GE102'],
-  '1-2': ['MO-IT200D2', 'MO-IT151'],
-  '1-3': ['MO-IT121'],
-  '2-1': ['GE-MATH2'],
-  '2-2': [],
-  '2-3': [],
-  '3-1': [],
-  '3-2': [],
-  '3-3': [],
-  '4-1': [],
-  '4-2': [],
-  '4-3': [],
-}
-
-type StructureAction = { type: 'ADD_YEAR' }
-
-const structureReducer = (draft: YearStructure[], action: StructureAction) => {
-  switch (action.type) {
-    case 'ADD_YEAR': {
-      draft.push({
-        year: draft.length + 1,
-        semesters: [1, 2, 3],
-      })
-      break
-    }
-    default: {
-      break
-    }
-  }
-}
-
 function YearLevels() {
-  const [data, setData] = useImmer(mockCourses)
-  // const [structure, dispatchStructure] = useImmerReducer(
-  //   structureReducer,
-  //   baseStructure,
-  // )
-  const [sortables, setSortables] = useImmer(mockSortable)
+  const { structure, courses, currentCourses, setCurrentCourses, dispatch } =
+    useCurriculumBuilder()
 
-  const courses: Record<string, CurriculumCourse[]> = Object.fromEntries(
-    Object.entries(sortables).map(([key, codes]) => [
-      key,
-      codes
-        .map((code) => data.find((course) => course.code === code))
-        .filter((course): course is CurriculumCourse => Boolean(course)),
-    ]),
-  )
-
-  const structure: YearStructure[] = Object.keys(sortables).reduce<
-    YearStructure[]
-  >((acc, key) => {
-    const [yearStr, semStr] = key.split('-')
-    const year = Number(yearStr)
-    const sem = Number(semStr)
-
-    const existing = acc.find((y) => y.year === year)
-    if (existing) {
-      if (!existing.semesters.includes(sem)) {
-        existing.semesters.push(sem)
-      }
-    } else {
-      acc.push({ year, semesters: [sem] })
-    }
-
-    return acc
-  }, [])
+  // useEffect(() => {
+  //   console.log(currentCourses)
+  // }, [currentCourses])
+  // useEffect(() => {
+  //   console.log(courses)
+  // }, [courses])
 
   return (
     <Stack gap="lg">
       <DragDropProvider
         onDragOver={(event) => {
-          setSortables((items) => move(items, event))
+          const { source, target } = event.operation
+          if (!source || !target) return
+
+          if (source?.data !== undefined && source.data.external === true) {
+            const { course } = source.data
+            if (!course) return
+
+            dispatch({
+              type: 'ADD_COURSE_DRAG',
+              payload: { key: target.id.toString(), course: course.code },
+            })
+            setCurrentCourses((draft) => {
+              draft.push(course)
+            })
+          } else {
+            dispatch({ type: 'SET', payload: (items) => move(items, event) })
+          }
+        }}
+        onDragEnd={(event) => {
+          const { source, target } = event.operation
+          if (!source || !target) return
+
+          let id = ''
+          if ('sortable' in target) {
+            const sortable = target.sortable as { group: string }
+            id = sortable.group
+          } else {
+            id = target.id.toString()
+          }
+          const [year, sem] = id.split('-').map(Number)
+
+          setCurrentCourses((draft) => {
+            const draggedCourse = draft.find(
+              (course) => course.code === source.id,
+            )
+            if (draggedCourse) {
+              draggedCourse.year = year
+              draggedCourse.semester = sem
+            }
+          })
         }}
       >
+        <CourseList currentCourses={currentCourses} />
         {structure.map((year) => (
           <YearCard
             key={year.year}
             courses={courses}
-            // dispatchStructure={dispatchStructure}
+            dispatch={dispatch}
+            setCurrentCourses={setCurrentCourses}
             {...year}
           />
         ))}
         <DragOverlay>
           {(source) => {
-            const active = data.find((course) => course.code === source?.id)
-
-            if (!active) return
-            return <CourseCard {...active} isOverlay />
+            const { external, course } = source.data
+            return (
+              <Group gap={4}>
+                <CourseCard {...course} isOverlay isBase={external === true} />
+                {external !== true && (
+                  <ActionIcon variant="subtle" radius="xl"></ActionIcon>
+                )}
+              </Group>
+            )
           }}
         </DragOverlay>
       </DragDropProvider>
@@ -331,7 +223,7 @@ function YearLevels() {
         leftSection={<IconPlus />}
         c="dimmed"
         bd="1px solid dimmed"
-        // onClick={() => dispatchStructure({ type: 'ADD_YEAR' })}
+        onClick={() => dispatch({ type: 'ADD_YEAR' })}
       >
         Add Year
       </Button>
@@ -339,13 +231,70 @@ function YearLevels() {
   )
 }
 
+function CourseList({
+  currentCourses,
+}: {
+  currentCourses: CurriculumCourse[]
+}) {
+  const { openCourseList } = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const [data, setData] = useImmer(mockCourses)
+
+  const availableCourses = data.filter(
+    (course) =>
+      !currentCourses.some((currCourse) => currCourse.code === course.code),
+  )
+
+  return (
+    <>
+      <Drawer
+        opened={!!openCourseList}
+        onClose={() =>
+          navigate({
+            search: {
+              openCourseList: undefined,
+            },
+          })
+        }
+        title="Course List"
+        withOverlay={false}
+        lockScroll={false}
+        size="sm"
+      >
+        <Stack>
+          <TextInput leftSection={<IconSearch />} placeholder="Search course" />
+          <Stack gap="xs">
+            {availableCourses.map((course) => (
+              <Draggable
+                key={course.id}
+                id={course.code}
+                data={{
+                  external: true,
+                  course: course,
+                }}
+              >
+                {({ handleRef }) => (
+                  <CourseCard handleRef={handleRef} isBase {...course} />
+                )}
+              </Draggable>
+            ))}
+          </Stack>
+        </Stack>
+      </Drawer>
+    </>
+  )
+}
+
 const YearCard = memo(function YearCard({
   year,
   semesters,
   courses,
+  dispatch,
+  setCurrentCourses,
 }: YearStructure & {
   courses: Record<string, CurriculumCourse[]>
-  // dispatchStructure: Dispatch<StructureAction>
+  dispatch: Dispatch<StructureAction>
+  setCurrentCourses: Updater<CurriculumCourse[]>
 }) {
   return (
     <Card
@@ -369,12 +318,19 @@ const YearCard = memo(function YearCard({
             size="xs"
             leftSection={<IconPlus size={16} />}
             className="opacity-0 group-hover/year:opacity-100"
+            onClick={() => dispatch({ type: 'ADD_SEM', payload: { year } })}
           >
             Add Semester
           </Button>
           <ActionIcon
             variant="subtle"
             className="opacity-0 group-hover/year:opacity-100"
+            onClick={() => {
+              dispatch({ type: 'DEL_YEAR', payload: { year } })
+              setCurrentCourses((draft) =>
+                draft.filter((course) => course.year !== year),
+              )
+            }}
           >
             <IconTrash size={20} />
           </ActionIcon>
@@ -388,6 +344,8 @@ const YearCard = memo(function YearCard({
               year={year}
               semester={sem}
               courses={courses[`${year}-${sem}`]}
+              dispatch={dispatch}
+              setCurrentCourses={setCurrentCourses}
             />
           </Droppable>
         ))}
@@ -400,6 +358,8 @@ const SemesterCard = memo(function SemesterCard(props: {
   year: number
   semester: number
   courses: CurriculumCourse[]
+  dispatch: Dispatch<StructureAction>
+  setCurrentCourses: Updater<CurriculumCourse[]>
 }) {
   return (
     <Card
@@ -427,6 +387,19 @@ const SemesterCard = memo(function SemesterCard(props: {
           <ActionIcon
             variant="subtle"
             className="opacity-0 group-hover/sem:opacity-100"
+            onClick={() => {
+              props.dispatch({
+                type: 'DEL_SEM',
+                payload: { year: props.year, sem: props.semester },
+              })
+              props.setCurrentCourses((draft) =>
+                draft.filter(
+                  (course) =>
+                    course.year !== props.year &&
+                    course.semester !== props.semester,
+                ),
+              )
+            }}
           >
             <IconTrash size={20} />
           </ActionIcon>
@@ -440,13 +413,39 @@ const SemesterCard = memo(function SemesterCard(props: {
             id={course.code}
             index={idx}
             column={`${props.year}-${props.semester}`}
+            data={{ course }}
           >
             {({ handleRef, isDragging }) => (
-              <CourseCard
-                handleRef={handleRef}
-                isDragging={isDragging}
-                {...course}
-              />
+              <Group
+                gap={4}
+                opacity={isDragging ? 0.3 : 1}
+                className="group/delete"
+              >
+                <CourseCard handleRef={handleRef} {...course} />
+                <ActionIcon
+                  variant="subtle"
+                  radius="xl"
+                  className="w-0 group-hover/delete:w-auto"
+                  onClick={() => {
+                    props.dispatch({
+                      type: 'DEL_COURSE',
+                      payload: {
+                        year: props.year,
+                        sem: props.semester,
+                        course: course.code,
+                      },
+                    })
+
+                    props.setCurrentCourses((draft) =>
+                      draft.filter(
+                        (currCourse) => currCourse.code !== course.code,
+                      ),
+                    )
+                  }}
+                >
+                  <IconMinus size={20} />
+                </ActionIcon>
+              </Group>
             )}
           </Sortable>
         ))}
@@ -456,52 +455,43 @@ const SemesterCard = memo(function SemesterCard(props: {
 })
 
 const CourseCard = memo(function CourseCard(
-  props: Course & {
+  props: CurriculumCourse & {
     handleRef?: (element: Element | null) => void
-    isDragging?: boolean
-    isOverlay?: boolean
+    isBase?: boolean
   },
 ) {
   return (
-    <Group gap={4} opacity={props.isDragging ? 0.3 : 1}>
-      <Card flex={1} radius="md" withBorder p="md" className="overflow-visible">
-        <Group justify="space-between" h="100%" align="center">
-          <Stack gap={2}>
-            <Text fw={500}>{props.name}</Text>
-            <Text size="sm" c="dimmed">
-              {props.code}
-            </Text>
-          </Stack>
+    <Card flex={1} radius="md" withBorder p="md" className="overflow-visible">
+      <Group justify="space-between" h="100%" align="center" wrap="nowrap">
+        <Stack gap={2}>
+          <Text fw={500} className="truncate">
+            {props.name}
+          </Text>
+          <Text size="sm" c="dimmed">
+            {props.code}
+          </Text>
+        </Stack>
 
-          <Group h="100%" align="center">
-            <Group h="100%" gap="xs">
-              <Badge color="blue" size="sm" variant="light">
-                {props.type}
-              </Badge>
-              <Badge color="gray" size="sm" variant="outline">
-                {props.units} units
-              </Badge>
-            </Group>
-
-            <ActionIcon
-              ref={props.handleRef}
-              variant="transparent"
-              radius="lg"
-              c="dimmed"
-            >
-              <IconGripVertical />
-            </ActionIcon>
+        <Group h="100%" align="center" wrap="nowrap">
+          <Group h="100%" gap="xs" className={props.isBase ? 'flex-col' : ''}>
+            <Badge color="blue" size="sm" variant="light">
+              {props.type}
+            </Badge>
+            <Badge color="gray" size="sm" variant="outline">
+              {props.units} units
+            </Badge>
           </Group>
-        </Group>
-      </Card>
 
-      <ActionIcon
-        variant="subtle"
-        radius="xl"
-        className={props.isOverlay ? 'invisible' : ''}
-      >
-        <IconMinus size={20} />
-      </ActionIcon>
-    </Group>
+          <ActionIcon
+            ref={props.handleRef}
+            variant="transparent"
+            radius="lg"
+            c="dimmed"
+          >
+            <IconGripVertical />
+          </ActionIcon>
+        </Group>
+      </Group>
+    </Card>
   )
 })
