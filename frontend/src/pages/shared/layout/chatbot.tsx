@@ -56,38 +56,20 @@ const Chatbot = ({
   // Set initial position and handle window resize
   useEffect(() => {
     const updatePosition = () => {
-      if (nodeRef.current) {
-        // Get the bounding rectangle of the node
-        const rect = nodeRef.current.getBoundingClientRect()
+      // Use last known dimensions or a fallback
+      const width = nodeRef.current?.offsetWidth ?? 250
+      const height = nodeRef.current?.offsetHeight ?? 60
 
-        // Calculate the maximum x and y coordinates for the node
-        // to ensure it stays within the viewport
-        const maxX = window.innerWidth - rect.width
-        const maxY = window.innerHeight - rect.height
+      const maxX = window.innerWidth - width
+      const maxY = window.innerHeight - height
 
-        // Update the position state with the new values
-        // ensuring they are within the viewport boundaries
-        setPosition((prev) => ({
-          // Use the previous x and y values, but clamp them
-          // between 0 and maxX/maxY to prevent the node from
-          // going off-screen
-          x: Math.min(Math.max(0, prev.x), maxX),
-          y: Math.min(Math.max(0, prev.y), maxY),
-        }))
-        console.log('position updated: ', position.x, position.y, ' ')
-      } else {
-        // Fallback initial position
-        setPosition({
-          x: DEFAULT_X_POSITION,
-          y: DEFAULT_Y_POSITION,
-        })
-      }
+      setPosition((prev) => ({
+        x: Math.min(Math.max(0, prev.x), maxX),
+        y: Math.min(Math.max(0, prev.y), maxY),
+      }))
     }
 
-    // Set initial position
     updatePosition()
-
-    // Add resize listener
     window.addEventListener('resize', updatePosition)
     return () => window.removeEventListener('resize', updatePosition)
   }, [])
@@ -140,96 +122,97 @@ const Chatbot = ({
   }
 
   return (
-    !isChatbotFabHidden && (
-      <>
-        {isDragging && (
-          <DropZoneIndicator
-            dropZoneX={DROPZONE_X}
-            dropZoneY={DROPZONE_Y}
-            dropZoneRadius={DROP_ZONE_RADIUS}
-          />
-        )}
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            pointerEvents: 'none',
-            zIndex: 998,
+    <div
+      style={{
+        visibility: isChatbotFabHidden ? 'hidden' : 'visible',
+        pointerEvents: isChatbotFabHidden ? 'none' : 'auto',
+      }}
+    >
+      {isDragging && (
+        <DropZoneIndicator
+          dropZoneX={DROPZONE_X}
+          dropZoneY={DROPZONE_Y}
+          dropZoneRadius={DROP_ZONE_RADIUS}
+        />
+      )}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 998,
+        }}
+      >
+        <Draggable
+          nodeRef={nodeRef}
+          position={position}
+          bounds="parent"
+          onDrag={() => {
+            setIsDragging(true)
+            setChatbotOpen(false)
           }}
+          onStart={undefined} //Disables click listener
+          onStop={handleDragStop}
+          handle=".chatbot-drag-handle"
         >
-          <Draggable
-            nodeRef={nodeRef}
-            position={position}
-            bounds="parent"
-            onDrag={() => {
-              setIsDragging(true)
-              setChatbotOpen(false)
+          <div
+            ref={nodeRef}
+            style={{
+              position: 'fixed',
+              cursor: isDragging ? 'grabbing' : 'grab',
+              pointerEvents: 'auto',
+              userSelect: 'none',
             }}
-            onStart={undefined} //Disables click listener
-            onStop={handleDragStop}
-            handle=".chatbot-drag-handle"
           >
-            <div
-              ref={nodeRef}
-              style={{
-                position: 'fixed',
-                cursor: isDragging ? 'grabbing' : 'grab',
-                pointerEvents: 'auto',
-                userSelect: 'none',
-              }}
+            <Popover
+              opened={isChatbotOpen}
+              onClose={() => setChatbotOpen(false)}
+              position={position.y < window.innerHeight / 2 ? 'bottom' : 'top'}
+              width={350}
+              withArrow
+              shadow="lg"
+              radius="md"
             >
-              <Popover
-                opened={isChatbotOpen}
-                onClose={() => setChatbotOpen(false)}
-                position={
-                  position.y < window.innerHeight / 2 ? 'bottom' : 'top'
-                }
-                width={350}
-                withArrow
-                shadow="lg"
-                radius="md"
-              >
-                <Popover.Target>
-                  <Button
-                    className="chatbot-drag-handle"
-                    onClick={() => setChatbotOpen(!isChatbotOpen)}
-                    variant="filled"
-                    color={'secondary'}
-                    size="lg"
-                    radius="xl"
-                    leftSection={<IconMessageChatbot size={24} />}
-                    style={{
-                      boxShadow: theme.shadows.sm,
-                      transform: isDragging ? 'scale(1.05)' : 'none',
-                      transition: 'transform 0.2s ease',
-                    }}
-                  >
-                    <Text unselectable={'on'} size={'lg'} fw={500}>
-                      Chat with us
-                    </Text>
-                  </Button>
-                </Popover.Target>
-                <Popover.Dropdown p={0} h={'65vh'}>
-                  <Stack h={'100%'}>
-                    <ChatHeader onClose={() => setChatbotOpen(false)} />{' '}
-                    <ChatMessages
-                      messages={messages}
-                      isSending={isPending}
-                      isError={isError}
-                    />
-                    <ChatInput
-                      onSendInput={addMessage}
-                      isSending={isPending}
-                      isSuccess={isSuccess}
-                    />
-                  </Stack>
-                </Popover.Dropdown>
-              </Popover>
-            </div>
-          </Draggable>
-        </div>
-      </>
-    )
+              <Popover.Target>
+                <Button
+                  className="chatbot-drag-handle"
+                  onClick={() => setChatbotOpen(!isChatbotOpen)}
+                  variant="filled"
+                  color={'secondary'}
+                  size="lg"
+                  radius="xl"
+                  leftSection={<IconMessageChatbot size={24} />}
+                  style={{
+                    boxShadow: theme.shadows.sm,
+                    transform: isDragging ? 'scale(1.05)' : 'none',
+                    transition: 'transform 0.2s ease',
+                  }}
+                >
+                  <Text unselectable={'on'} size={'lg'} fw={500}>
+                    Chat with us
+                  </Text>
+                </Button>
+              </Popover.Target>
+              <Popover.Dropdown p={0} h={'65vh'}>
+                <Stack h={'100%'}>
+                  <ChatHeader onClose={() => setChatbotOpen(false)} />{' '}
+                  <ChatMessages
+                    messages={messages}
+                    isSending={isPending}
+                    isError={isError}
+                  />
+                  <ChatInput
+                    onSendInput={addMessage}
+                    isSending={isPending}
+                    isSuccess={isSuccess}
+                  />
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
+          </div>
+        </Draggable>
+      </div>
+    </div>
   )
 }
 
