@@ -1,10 +1,10 @@
 import React, { type ComponentPropsWithoutRef, type JSX, useState } from 'react'
-import { useDisclosure } from '@mantine/hooks'
+import { useDisclosure, useMediaQuery } from '@mantine/hooks'
 import {
   type BoxProps,
-  Button,
   Card,
   Group,
+  type ModalProps,
   Stack,
   Text,
   Title,
@@ -14,13 +14,23 @@ type ActionCardProps = {
   title: string
   description: string
   icon: JSX.Element
-  modalComponent: React.ComponentType<{ opened: boolean, closeModal: () => void }>
-} & ComponentPropsWithoutRef<typeof Card>
-  & BoxProps
+  modalComponent: React.ComponentType<ModalProps>
+  fullOnMobile?: boolean
+} & ComponentPropsWithoutRef<typeof Card> &
+  BoxProps
 
-const CardWithModal = ({title, description, icon, modalComponent: ModalComponent, ...cardProps}: ActionCardProps) => {
+const CardWithModal = ({
+  title,
+  description,
+  icon,
+  modalComponent: ModalComponent,
+  fullOnMobile = true,
+  ...cardProps
+}: ActionCardProps) => {
   const [hovered, setHovered] = useState(false)
-  const [actionModalOpened, { open, close }] = useDisclosure(false)
+  const [opened, { open, close }] = useDisclosure(false)
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const shouldFull = isMobile && fullOnMobile
 
   return (
     <>
@@ -45,7 +55,16 @@ const CardWithModal = ({title, description, icon, modalComponent: ModalComponent
           <Text size={'sm'}>{description}</Text>
         </Stack>
       </Card>
-      <ModalComponent opened={actionModalOpened} closeModal={close} />
+      <ModalComponent
+        opened={opened}
+        onClose={close}
+        fullScreen={shouldFull}
+        radius={shouldFull ? 0 : 'lg'}
+        transitionProps={{
+          transition: shouldFull ? 'fade' : 'fade-down',
+          duration: 200,
+        }}
+      />
     </>
   )
 }
