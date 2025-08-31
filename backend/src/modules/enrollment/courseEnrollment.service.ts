@@ -9,7 +9,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
@@ -90,6 +90,8 @@ export class CourseEnrollmentService {
         where: {
           studentId: studentId,
           courseOfferingId: offeringId,
+          deletedAt: null,
+          status: { not: 'dropped' },
         },
       });
 
