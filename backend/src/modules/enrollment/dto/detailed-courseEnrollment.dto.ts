@@ -1,5 +1,13 @@
 import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
-import { IsUUID } from 'class-validator';
+import { PickType } from '@nestjs/swagger';
+import { IsOptional, IsUUID } from 'class-validator';
+import { DetailedCourseSectionDto } from './detailed-courseOffering.dto';
+import { DetailedCourseOfferingDto } from './paginated-courseOffering.dto';
+
+export class DetailedCourseOfferingSubsetDto extends PickType(
+  DetailedCourseOfferingDto,
+  ['course'],
+) {}
 
 export class DetailedCourseEnrollmentDto extends CourseEnrollmentDto {
   @IsUUID()
@@ -10,4 +18,10 @@ export class DetailedCourseEnrollmentDto extends CourseEnrollmentDto {
 
   @IsUUID()
   courseSectionId: string;
+
+  @IsOptional()
+  courseSection?: DetailedCourseSectionDto;
+
+  @IsOptional()
+  courseOffering?: DetailedCourseOfferingSubsetDto;
 }
