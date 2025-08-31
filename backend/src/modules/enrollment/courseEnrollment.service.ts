@@ -1,3 +1,7 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import { Role } from '@/common/enums/roles.enum';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
@@ -5,14 +9,10 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
-import { AuthUser } from '@supabase/supabase-js';
-import { Role } from '@/common/enums/roles.enum';
-import { Log } from '@/common/decorators/log.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class CourseEnrollmentService {
@@ -34,21 +34,21 @@ export class CourseEnrollmentService {
    */
   @Log({
     logArgsMessage: ({ courseSectionId, dto, user }) =>
-      `Creating enrollment for section [${courseSectionId}] | user: ${user.id} | studentId: ${dto?.studentId ?? 'self'}`,
+      `Creating enrollment for section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'}`,
     logSuccessMessage: (enrollment) =>
       `Enrollment [${enrollment.id}] successfully created`,
     logErrorMessage: (err, { courseSectionId, dto, user }) =>
-      `Error creating enrollment in section [${courseSectionId}] | user: ${user.id} | studentId: ${dto?.studentId ?? 'self'} | Error: ${err.message}`,
+      `Error creating enrollment in section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'} | Error: ${err.message}`,
   })
   async createCourseEnrollment(
     @LogParam('courseSectionId') courseSectionId: string,
     @LogParam('dto') dto: StudentIdentifierDto,
-    @LogParam('user') user: AuthUser,
+    @LogParam('user') user: CurrentAuthUser,
   ): Promise<CourseEnrollmentDto> {
     let studentId: string;
 
-    if (user.role === Role.STUDENT) {
-      studentId = user.id;
+    if (user.user_metadata.role === Role.STUDENT) {
+      studentId = user.user_metadata.user_id;
     } else {
       if (!dto.studentId) {
         throw new BadRequestException('studentId cannot be empty.');
@@ -56,7 +56,7 @@ export class CourseEnrollmentService {
       studentId = dto.studentId;
     }
 
-    if (user.role === Role.ADMIN && !studentId) {
+    if (user.user_metadata.role === Role.ADMIN && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
     // Retrieve course section, offering, and enrollment period
@@ -139,20 +139,23 @@ export class CourseEnrollmentService {
    */
   @Log({
     logArgsMessage: ({ sectionId, dto, user }) =>
-      `Dropping enrollment for section [${sectionId}] | user: ${user.id} | studentId: ${dto?.studentId ?? 'self'}`,
+      `Dropping enrollment for section [${sectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'}`,
     logSuccessMessage: (_, { sectionId, user }) =>
-      `Successfully dropped enrollment in section [${sectionId}] by user [${user.id}]`,
+      `Successfully dropped enrollment in section [${sectionId}] by user [${user.user_metadata.user_id}]`,
     logErrorMessage: (err, { sectionId, user }) =>
-      `Error dropping enrollment in section [${sectionId}] by user [${user.id}] | Error: ${err.message}`,
+      `Error dropping enrollment in section [${sectionId}] by user [${user.user_metadata.user_id}] | Error: ${err.message}`,
   })
   async dropCourseEnrollment(
     @LogParam('sectionId') sectionId: string,
     @LogParam('dto') dto: StudentIdentifierDto,
-    @LogParam('user') user: AuthUser,
+    @LogParam('user') user: CurrentAuthUser,
   ) {
-    const studentId = user.role === Role.STUDENT ? user.id : dto.studentId;
+    const studentId =
+      user.user_metadata.role === Role.STUDENT
+        ? user.user_metadata.user_id
+        : dto.studentId;
 
-    if (user.role === Role.ADMIN && !studentId) {
+    if (user.user_metadata.role === Role.ADMIN && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
 
@@ -190,10 +193,13 @@ export class CourseEnrollmentService {
    *
    * @throws BadRequestException - If no enlisted enrollments are found
    */
-  async finalizeEnrollment(dto: StudentIdentifierDto, user: AuthUser) {
-    const studentId = user.role === Role.STUDENT ? user.id : dto.studentId;
+  async finalizeEnrollment(dto: StudentIdentifierDto, user: CurrentAuthUser) {
+    const studentId =
+      user.user_metadata.role === Role.STUDENT
+        ? user.user_metadata.user_id
+        : dto.studentId;
 
-    if (user.role === Role.ADMIN && !studentId) {
+    if (user.user_metadata.role === Role.ADMIN && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
 

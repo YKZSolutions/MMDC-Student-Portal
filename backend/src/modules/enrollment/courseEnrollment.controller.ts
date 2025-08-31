@@ -1,5 +1,8 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { CourseEnrollmentService } from './courseEnrollment.service';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -10,12 +13,9 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@supabase/supabase-js';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { CourseEnrollmentService } from './courseEnrollment.service';
+import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
 
 @Controller('enrollment/student')
 export class CourseEnrollmentController {
@@ -39,7 +39,7 @@ export class CourseEnrollmentController {
   createCourseEnrollment(
     @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
     @Body() dto: StudentIdentifierDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     return this.courseEnrollmentService.createCourseEnrollment(
       sectionId,
@@ -72,7 +72,7 @@ export class CourseEnrollmentController {
   dropCourseEnrollment(
     @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
     @Body() dto: StudentIdentifierDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     return this.courseEnrollmentService.dropCourseEnrollment(
       sectionId,
@@ -105,7 +105,7 @@ export class CourseEnrollmentController {
   @Post('/finalize')
   finalizeCourseEnrollment(
     @Body() dto: StudentIdentifierDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     return this.courseEnrollmentService.finalizeEnrollment(dto, user);
   }
