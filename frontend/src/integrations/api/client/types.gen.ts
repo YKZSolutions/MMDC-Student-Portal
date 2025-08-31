@@ -735,6 +735,7 @@ export type DetailedCourseOfferingDto = {
     course: CourseDto;
     courseSections: Array<DetailedCourseSectionDto>;
     courseEnrollment: Array<DetailedCourseEnrollmentDto>;
+    periodId: string;
 };
 
 export type PaginatedCourseOfferingsDto = {

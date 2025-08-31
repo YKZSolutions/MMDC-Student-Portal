@@ -990,7 +990,8 @@ export const zDetailedCourseOfferingDto = z.object({
     ]),
     course: zCourseDto,
     courseSections: z.array(zDetailedCourseSectionDto),
-    courseEnrollment: z.array(zDetailedCourseEnrollmentDto)
+    courseEnrollment: z.array(zDetailedCourseEnrollmentDto),
+    periodId: z.string()
 });
 
 export const zPaginatedCourseOfferingsDto = z.object({
