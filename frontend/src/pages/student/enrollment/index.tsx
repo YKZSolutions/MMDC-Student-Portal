@@ -16,6 +16,7 @@ import {
   courseEnrollmentControllerDropCourseEnrollmentMutation,
   courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
   courseEnrollmentControllerGetCourseEnrollmentsOptions,
+  courseEnrollmentControllerGetCourseEnrollmentsQueryKey,
   courseOfferingControllerFindCourseOfferingsByPeriodOptions,
   enrollmentControllerFindActiveEnrollmentOptions,
   enrollmentControllerFindActiveEnrollmentQueryKey,
@@ -497,10 +498,6 @@ function CourseSelectionPanel() {
 }
 
 function FinalizationPanel() {
-  const searchParam: {
-    tab: (typeof tabsData)[number]['value']
-  } = route.useSearch()
-
   const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
 
   const { mutateAsync: finalizeMutate } = useAppMutation(
@@ -518,6 +515,16 @@ function FinalizationPanel() {
         title: 'Error finalizing enrollment',
         message:
           'There was an error finalizing your enrollment. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const enrolledCoursesKey =
+          courseEnrollmentControllerGetCourseEnrollmentsQueryKey()
+
+        await queryClient.cancelQueries({ queryKey: enrolledCoursesKey })
+
+        await queryClient.invalidateQueries({ queryKey: enrolledCoursesKey })
       },
     },
   )
