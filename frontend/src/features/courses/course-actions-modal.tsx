@@ -5,23 +5,20 @@ import {
   Grid,
   GridCol,
   Modal,
+  type ModalProps,
   Stack,
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import CourseCreationProcessModal from '@/features/courses/course-editor/course-creation-process-modal.tsx'
+import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 import CardWithModal from '@/components/card-w-modal.tsx'
-import type { CustomModalProp } from '@/components/types.ts'
 
-const CourseActionsSelector = ({
-                           opened,
-                           closeModal,
-                         }: CustomModalProp) => {
+const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
   return (
     <Modal
       opened={opened}
-      onClose={closeModal}
-      title={<Title order={3}>Create new content</Title>}
+      onClose={onClose}
+      title={<Title order={3}>Manage Content</Title>}
       centered
       size="lg"
       radius={'md'}
@@ -29,6 +26,7 @@ const CourseActionsSelector = ({
         backgroundOpacity: 0.35,
         blur: 1,
       }}
+      {...props}
     >
       <Stack gap={'sm'}>
         <Divider></Divider>
@@ -40,7 +38,7 @@ const CourseActionsSelector = ({
               title={'Course'}
               description={'Create a new course that students can enroll in.'}
               icon={<IconBook />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -50,7 +48,7 @@ const CourseActionsSelector = ({
                 'Create a new module that contains assignments and other content.'
               }
               icon={<IconBook />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -60,7 +58,7 @@ const CourseActionsSelector = ({
                 'Create a new educational content that can be used in modules.'
               }
               icon={<IconBook />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -70,7 +68,7 @@ const CourseActionsSelector = ({
                 'Create a new assignment or task that students can complete.'
               }
               icon={<IconBook />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -80,7 +78,7 @@ const CourseActionsSelector = ({
                 'Create a new student group that can be used to grade multiple students at once.'
               }
               icon={<IconBook />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -88,7 +86,7 @@ const CourseActionsSelector = ({
               title={'Progress Report'}
               description={'Create a new progress report that admins can view.'}
               icon={<IconBook />}
-              modalComponent={CourseCreationProcessModal}
+              modalComponent={ModuleCreationProcessModal}
             />
           </GridCol>
         </Grid>
@@ -98,7 +96,7 @@ const CourseActionsSelector = ({
             variant={'default'}
             radius={'md'}
             size={'sm'}
-            onClick={closeModal}
+            onClick={onClose}
           >
             Cancel
           </Button>
@@ -108,4 +106,4 @@ const CourseActionsSelector = ({
   )
 }
 
-export default CourseActionsSelector
+export default CourseActionsModal
