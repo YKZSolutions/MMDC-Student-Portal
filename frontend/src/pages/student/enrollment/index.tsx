@@ -1,13 +1,14 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
-import type {
-  CourseOfferingControllerFindCourseOfferingsByPeriodData,
-  DetailedCourseOfferingDto,
-  DetailedCourseSectionDto,
-  EnrollmentPeriodDto,
+import {
+  type CourseOfferingControllerFindCourseOfferingsByPeriodData,
+  type DetailedCourseOfferingDto,
+  type DetailedCourseSectionDto,
+  type EnrollmentPeriodDto,
 } from '@/integrations/api/client'
 import {
   courseEnrollmentControllerCreateCourseEnrollmentMutation,
+  courseEnrollmentControllerDropCourseEnrollmentMutation,
   courseOfferingControllerFindCourseOfferingsByPeriodOptions,
   enrollmentControllerFindActiveEnrollmentOptions,
   enrollmentControllerFindActiveEnrollmentQueryKey,
@@ -636,14 +637,74 @@ function CourseOfferingSubjectCard({
     },
     {
       onSuccess: async () => {
-        const allOfferingsKey =
+        const activeEnrollmentKey =
           enrollmentControllerFindActiveEnrollmentQueryKey()
 
-        await queryClient.cancelQueries({ queryKey: allOfferingsKey })
+        await queryClient.cancelQueries({ queryKey: activeEnrollmentKey })
 
-        await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
+        await queryClient.invalidateQueries({ queryKey: activeEnrollmentKey })
+
+        await queryClient.cancelQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0]?._id ===
+              'courseOfferingControllerFindCourseOfferingsByPeriod',
+        })
+
+        await queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0]?._id ===
+              'courseOfferingControllerFindCourseOfferingsByPeriod',
+        })
       },
     },
+  )
+
+  const { mutateAsync: dropMutate } = useAppMutation(
+    courseEnrollmentControllerDropCourseEnrollmentMutation,
+    {
+      loading: {
+        title: 'Dropping course enrollment',
+        message: 'Please wait...',
+      },
+      success: {
+        title: 'Successfully dropped course enrollment',
+        message: 'You have been dropped from the course.',
+      },
+      error: {
+        title: 'Failed to drop course enrollment',
+        message: 'Please try again later.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const activeEnrollmentKey =
+          enrollmentControllerFindActiveEnrollmentQueryKey()
+
+        await queryClient.cancelQueries({ queryKey: activeEnrollmentKey })
+
+        await queryClient.invalidateQueries({ queryKey: activeEnrollmentKey })
+
+        await queryClient.cancelQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0]?._id ===
+              'courseOfferingControllerFindCourseOfferingsByPeriod',
+        })
+
+        await queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0]?._id ===
+              'courseOfferingControllerFindCourseOfferingsByPeriod',
+        })
+      },
+    },
+  )
+
+  const isEnrolled = course.courseEnrollment.find(
+    (enrolled) => enrolled.courseSectionId == section.id,
   )
 
   return (
@@ -670,20 +731,37 @@ function CourseOfferingSubjectCard({
             </Text>
           </Stack>
           <Stack gap={'xs'} align="flex-end">
-            <Button
-              size="xs"
-              radius={'lg'}
-              onClick={() =>
-                enrollMutate({
-                  path: {
-                    sectionId: section.id,
-                  },
-                  body: {},
-                })
-              }
-            >
-              Enroll
-            </Button>
+            {isEnrolled ? (
+              <Button
+                size="xs"
+                radius={'lg'}
+                onClick={() =>
+                  dropMutate({
+                    path: {
+                      sectionId: section.id,
+                    },
+                    body: {},
+                  })
+                }
+              >
+                Drop
+              </Button>
+            ) : (
+              <Button
+                size="xs"
+                radius={'lg'}
+                onClick={() =>
+                  enrollMutate({
+                    path: {
+                      sectionId: section.id,
+                    },
+                    body: {},
+                  })
+                }
+              >
+                Enroll
+              </Button>
+            )}
             <Badge c="gray.6" variant="light" radius="sm">
               {section.maxSlot} / {section.maxSlot} slots
             </Badge>
