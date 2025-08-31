@@ -1,5 +1,8 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
+import {
+  SuspendedAdminEnrollmentCourseOfferingCards,
+  SuspendedStudentEnrollmentFinalizationSectionCards,
+} from '@/features/enrollment/suspense'
 import {
   type CourseOfferingControllerFindCourseOfferingsByPeriodData,
   type DetailedCourseEnrollmentDto,
@@ -60,7 +63,7 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/')
@@ -199,14 +202,48 @@ function EnrollmentStudentFinalizationQueryProvider({
     enrolledCourses: DetailedCourseEnrollmentDto[]
   }) => ReactNode
 }) {
-  const { data: enrolledCourses } = useSuspenseQuery(
-    courseEnrollmentControllerGetCourseEnrollmentsOptions(),
-  )
+  const searchParam: {
+    tab: (typeof tabsData)[number]['value']
+  } = route.useSearch()
+
+  const { data: enrolledCourses, refetch } = useSuspenseQuery({
+    ...courseEnrollmentControllerGetCourseEnrollmentsOptions(),
+  })
+
+  /**
+   * Refetch enrolled courses when the tab changes to finalization
+   *
+   * I'M VERY SORRY FOR THIS IMPLEMENTATION. THERE'S NO OTHER WAY TO ACHIEVE THIS
+   */
+  useEffect(() => {
+    if (searchParam.tab == 'finalization') {
+      refetch()
+    }
+  }, [searchParam.tab])
 
   return children({ enrolledCourses })
 }
 
 function EnrollmentStudentPage() {
+  const navigate = useNavigate()
+  const searchParam: {
+    tab: (typeof tabsData)[number]['value']
+  } = route.useSearch()
+
+  const handleChangeTab = (
+    value: (typeof tabsData)[number]['value'] | null,
+  ) => {
+    if (!value) return
+
+    navigate({
+      to: '/enrollment',
+      search: (prev) => ({
+        ...prev,
+        tab: value !== 'course-selection' ? value : undefined,
+      }),
+    })
+  }
+
   return (
     <Container size={'md'} w={'100%'} pb={'xl'}>
       <Stack gap={'xl'}>
@@ -246,7 +283,12 @@ function EnrollmentStudentPage() {
         {/* Don't modify page layout here. Instead,
         modify each component provided in tabsData */}
 
-        <Tabs defaultValue={tabsData[0].value} inverted radius={'md'}>
+        <Tabs
+          defaultValue={searchParam.tab || tabsData[0].value}
+          onChange={(e) => handleChangeTab(e)}
+          inverted
+          radius={'md'}
+        >
           <Stack>
             <Tabs.List grow>
               {tabsData.map((tab) => (
@@ -442,6 +484,10 @@ function CourseSelectionPanel() {
 }
 
 function FinalizationPanel() {
+  const searchParam: {
+    tab: (typeof tabsData)[number]['value']
+  } = route.useSearch()
+
   const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
 
   const { mutateAsync: finalizeMutate } = useAppMutation(
@@ -490,45 +536,51 @@ function FinalizationPanel() {
           </Text>
         </Stack>
 
-        <EnrollmentStudentFinalizationQueryProvider>
-          {({ enrolledCourses }) => (
-            <Stack gap="xs">
-              {enrolledCourses.length === 0 && (
-                <Center py="md">
-                  <Stack gap={4} align="center">
-                    <IconBook
-                      size={28}
-                      stroke={1.5}
-                      color="var(--mantine-color-dimmed)"
-                    />
-                    <Text fw={600} size="sm">
-                      No enrolled courses found
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Once you enroll, your courses will appear here.
-                    </Text>
-                  </Stack>
-                </Center>
-              )}
-              {enrolledCourses.map((enrolledCourse) => (
-                <EnrolledCourseCard
-                  courseName={enrolledCourse.courseOffering?.course.name!}
-                  courseCode={enrolledCourse.courseOffering?.course.courseCode!}
-                  sectionName={enrolledCourse.courseSection?.name!}
-                  sectionSchedule={{
-                    day: formatDaysAbbrev(enrolledCourse.courseSection?.days),
-                    time: `${enrolledCourse.courseSection?.startSched!} - ${enrolledCourse.courseSection?.endSched!}`,
-                  }}
-                  mentor={
-                    enrolledCourse.courseSection?.user
-                      ? `${enrolledCourse.courseSection?.user?.firstName} ${enrolledCourse.courseSection?.user?.lastName}`
-                      : 'No Mentor Assigned'
-                  }
-                />
-              ))}
-            </Stack>
-          )}
-        </EnrollmentStudentFinalizationQueryProvider>
+        <Suspense
+          fallback={<SuspendedStudentEnrollmentFinalizationSectionCards />}
+        >
+          <EnrollmentStudentFinalizationQueryProvider>
+            {({ enrolledCourses }) => (
+              <Stack gap="xs" pos={'relative'}>
+                {enrolledCourses.length === 0 && (
+                  <Center py="md">
+                    <Stack gap={4} align="center">
+                      <IconBook
+                        size={28}
+                        stroke={1.5}
+                        color="var(--mantine-color-dimmed)"
+                      />
+                      <Text fw={600} size="sm">
+                        No enrolled courses found
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Once you enroll, your courses will appear here.
+                      </Text>
+                    </Stack>
+                  </Center>
+                )}
+                {enrolledCourses.map((enrolledCourse) => (
+                  <EnrolledCourseCard
+                    courseName={enrolledCourse.courseOffering?.course.name!}
+                    courseCode={
+                      enrolledCourse.courseOffering?.course.courseCode!
+                    }
+                    sectionName={enrolledCourse.courseSection?.name!}
+                    sectionSchedule={{
+                      day: formatDaysAbbrev(enrolledCourse.courseSection?.days),
+                      time: `${enrolledCourse.courseSection?.startSched!} - ${enrolledCourse.courseSection?.endSched!}`,
+                    }}
+                    mentor={
+                      enrolledCourse.courseSection?.user
+                        ? `${enrolledCourse.courseSection?.user?.firstName} ${enrolledCourse.courseSection?.user?.lastName}`
+                        : 'No Mentor Assigned'
+                    }
+                  />
+                ))}
+              </Stack>
+            )}
+          </EnrollmentStudentFinalizationQueryProvider>
+        </Suspense>
 
         <Stack pt={'xs'} gap={'xs'}>
           <Text fw={600} size="sm" c="dimmed">
@@ -548,21 +600,29 @@ function FinalizationPanel() {
           </Group>
         </Stack>
 
-        <EnrollmentStudentFinalizationQueryProvider>
-          {({ enrolledCourses }) => (
-            <Button
-              disabled={
-                !selectedPaymentScheme ||
-                enrolledCourses.length === 0 ||
-                enrolledCourses.some((course) => course.status == 'finalized')
-              }
-              ml={'auto'}
-              onClick={handleFinalizeEnrollment}
-            >
+        <Suspense
+          fallback={
+            <Button ml={'auto'} disabled>
               Finalize
             </Button>
-          )}
-        </EnrollmentStudentFinalizationQueryProvider>
+          }
+        >
+          <EnrollmentStudentFinalizationQueryProvider>
+            {({ enrolledCourses }) => (
+              <Button
+                disabled={
+                  !selectedPaymentScheme ||
+                  enrolledCourses.length === 0 ||
+                  enrolledCourses.some((course) => course.status == 'finalized')
+                }
+                ml={'auto'}
+                onClick={handleFinalizeEnrollment}
+              >
+                Finalize
+              </Button>
+            )}
+          </EnrollmentStudentFinalizationQueryProvider>
+        </Suspense>
       </Stack>
     </Box>
   )
