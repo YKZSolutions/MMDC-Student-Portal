@@ -2378,6 +2378,8 @@ export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
     query?: {
         search?: string;
         page?: number;
+        periodId?: string;
+        status?: 'not enrolled' | 'enrolled';
     };
     url: '/enrollments/{enrollmentId}/offerings';
 };
