@@ -1,8 +1,8 @@
-import { zEnrollmentControllerUpdateCourseSectionResponse } from '@/integrations/api/client/zod.gen'
+import { zCourseSectionControllerUpdateCourseSectionResponse } from '@/integrations/api/client/zod.gen'
 import z from 'zod'
 
 const zodCourseOfferingSubjectEdit =
-  zEnrollmentControllerUpdateCourseSectionResponse.shape
+  zCourseSectionControllerUpdateCourseSectionResponse.shape
 
 export const EditSectionFormSchema = z
   .object({
