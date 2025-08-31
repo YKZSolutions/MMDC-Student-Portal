@@ -1,4 +1,5 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
+import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
 import {
   SuspendedAdminEnrollmentCourseOfferingCards,
   SuspendedStudentEnrollmentFinalizationSectionCards,
@@ -291,19 +292,31 @@ function EnrollmentStudentPage() {
         >
           <Stack>
             <Tabs.List grow>
-              {tabsData.map((tab) => (
-                <Tabs.Tab
-                  style={{
-                    borderTopWidth: rem(5),
-                  }}
-                  key={tab.value}
-                  value={tab.value}
-                >
-                  <Text fw={500} fz={'sm'} c={'dark.5'}>
-                    {tab.label}
-                  </Text>
-                </Tabs.Tab>
-              ))}
+              <Suspense fallback={<Skeleton height={30} radius="md" />}>
+                <EnrollmentStudentFinalizationQueryProvider>
+                  {({ enrolledCourses }) => (
+                    <>
+                      {tabsData.map((tab) => (
+                        <Tabs.Tab
+                          disabled={
+                            tab.value === 'course-selection' &&
+                            isEnrollmentFinalized(enrolledCourses)
+                          }
+                          style={{
+                            borderTopWidth: rem(5),
+                          }}
+                          key={tab.value}
+                          value={tab.value}
+                        >
+                          <Text fw={500} fz={'sm'} c={'dark.5'}>
+                            {tab.label}
+                          </Text>
+                        </Tabs.Tab>
+                      ))}
+                    </>
+                  )}
+                </EnrollmentStudentFinalizationQueryProvider>
+              </Suspense>
             </Tabs.List>
             {tabsData.map((tab) => (
               <Tabs.Panel key={tab.value + '-panel'} value={tab.value}>
@@ -613,7 +626,7 @@ function FinalizationPanel() {
                 disabled={
                   !selectedPaymentScheme ||
                   enrolledCourses.length === 0 ||
-                  enrolledCourses.some((course) => course.status == 'finalized')
+                  isEnrollmentFinalized(enrolledCourses)
                 }
                 ml={'auto'}
                 onClick={handleFinalizeEnrollment}
