@@ -187,6 +187,20 @@ function EnrollmentStudentQueryProvider({
   })
 }
 
+function EnrollmentStudentFinalizationQueryProvider({
+  children,
+}: {
+  children: (props: {
+    enrolledCourses: DetailedCourseEnrollmentDto[]
+  }) => ReactNode
+}) {
+  const { data: enrolledCourses } = useSuspenseQuery(
+    courseEnrollmentControllerGetCourseEnrollmentsOptions(),
+  )
+
+  return children({ enrolledCourses })
+}
+
 function EnrollmentStudentPage() {
   return (
     <Container size={'md'} w={'100%'} pb={'xl'}>
