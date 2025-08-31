@@ -917,6 +917,67 @@ export const zCourseOffering = z.object({
     ])
 });
 
+export const zUserDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    disabledAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zDetailedCourseSectionDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSlot: z.int(),
+    startSched: z.string(),
+    endSched: z.string(),
+    days: z.array(zDays),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    user: z.union([
+        zUserDto,
+        z.null()
+    ]),
+    mentorId: z.union([
+        z.uuid(),
+        z.null()
+    ])
+});
+
+export const zDetailedCourseOfferingDto = z.object({
+    id: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zCourseDto,
+    courseSections: z.array(zDetailedCourseSectionDto)
+});
+
+export const zPaginatedCourseOfferingsDto = z.object({
+    meta: zPaginationMetaDto,
+    courseOfferings: z.array(zDetailedCourseOfferingDto)
+});
+
 export const zCourseOfferingDto = z.object({
     id: z.string(),
     createdAt: z.iso.datetime(),
@@ -925,11 +986,6 @@ export const zCourseOfferingDto = z.object({
         z.iso.datetime(),
         z.null()
     ])
-});
-
-export const zPaginatedCourseOfferingsDto = z.object({
-    meta: zPaginationMetaDto,
-    courseOfferings: z.array(zCourseOfferingDto)
 });
 
 export const zCourseSectionDto = z.object({
@@ -1523,7 +1579,9 @@ export const zEnrollmentControllerRemoveEnrollmentData = z.object({
     path: z.object({
         enrollmentId: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
 });
 
 export const zEnrollmentControllerRemoveEnrollmentResponse = z.object({
