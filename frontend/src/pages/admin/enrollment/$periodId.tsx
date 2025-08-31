@@ -6,22 +6,22 @@ import {
   EditSectionFormSchema,
   type EditSectionFormValues,
 } from '@/features/validation/edit-course-offering-subject'
-import type {
-  CourseDto,
-  DetailedCourseOfferingDto,
-  DetailedCourseSectionDto,
-  EnrollmentPeriodDto,
+import {
+  type CourseDto,
+  type DetailedCourseOfferingDto,
+  type DetailedCourseSectionDto,
+  type EnrollmentPeriodDto,
 } from '@/integrations/api/client'
 import {
-  enrollmentControllerCreateCourseOfferingMutation,
-  enrollmentControllerCreateCourseSectionMutation,
-  enrollmentControllerFindAllCourseOfferingsOptions,
-  enrollmentControllerFindAllCourseOfferingsQueryKey,
+  courseOfferingControllerCreateCourseOfferingMutation,
+  courseOfferingControllerFindCourseOfferingsByPeriodOptions,
+  courseOfferingControllerFindCourseOfferingsByPeriodQueryKey,
+  courseOfferingControllerRemoveCourseOfferingMutation,
+  courseSectionControllerCreateCourseSectionMutation,
+  courseSectionControllerRemoveCourseSectionMutation,
+  courseSectionControllerUpdateCourseSectionMutation,
   enrollmentControllerFindOneEnrollmentOptions,
   enrollmentControllerFindOneEnrollmentQueryKey,
-  enrollmentControllerRemoveCourseOfferingMutation,
-  enrollmentControllerRemoveCourseSectionMutation,
-  enrollmentControllerUpdateCourseSectionMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -109,17 +109,19 @@ function EnrollmentPeriodAdminQueryProvider({
   const { data: enrollmentPeriodData } = useSuspenseQuery(
     enrollmentControllerFindOneEnrollmentOptions({
       path: {
-        id: periodId,
+        enrollmentId: periodId,
       },
     }),
   )
 
   const { data: courseData } = useSuspenseQuery(
-    enrollmentControllerFindAllCourseOfferingsOptions({
+    courseOfferingControllerFindCourseOfferingsByPeriodOptions({
       query: {
         page: page,
         search: search || undefined,
-        periodId,
+      },
+      path: {
+        enrollmentId: periodId,
       },
     }),
   )
@@ -164,7 +166,7 @@ function EnrollmentPeriodIdPage() {
 
   const { mutateAsync: addCourseOffering, isPending: addCourseIsPending } =
     useAppMutation(
-      enrollmentControllerCreateCourseOfferingMutation,
+      courseOfferingControllerCreateCourseOfferingMutation,
       {
         loading: {
           title: 'Adding course offering',
@@ -182,10 +184,12 @@ function EnrollmentPeriodIdPage() {
       {
         onSuccess: async () => {
           const allOfferingsKey =
-            enrollmentControllerFindAllCourseOfferingsQueryKey()
+            courseOfferingControllerFindCourseOfferingsByPeriodQueryKey({
+              path: { enrollmentId: periodId },
+            })
 
           const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
-            path: { id: periodId },
+            path: { enrollmentId: periodId },
           })
 
           // cancel outgoing refetches
@@ -207,7 +211,7 @@ function EnrollmentPeriodIdPage() {
         courseId: course.id,
       },
       path: {
-        periodId: periodId,
+        enrollmentId: periodId,
       },
     })
   }
@@ -430,7 +434,7 @@ function CourseOfferingAccordionControl({
     mutateAsync: removeCourseOffering,
     isPending: removeCourseOfferingIsPending,
   } = useAppMutation(
-    enrollmentControllerRemoveCourseOfferingMutation,
+    courseOfferingControllerRemoveCourseOfferingMutation,
     {
       loading: {
         title: 'Removing course offering',
@@ -448,10 +452,12 @@ function CourseOfferingAccordionControl({
     {
       onSuccess: async () => {
         const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsQueryKey()
+          courseOfferingControllerFindCourseOfferingsByPeriodQueryKey({
+            path: { enrollmentId: periodId },
+          })
 
         const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
-          path: { id: periodId },
+          path: { enrollmentId: periodId },
         })
 
         // cancel outgoing refetches
@@ -490,7 +496,7 @@ function CourseOfferingAccordionControl({
         await removeCourseOffering({
           path: {
             offeringId: course.id,
-            periodId: periodId,
+            enrollmentId: periodId,
           },
         }),
     })
@@ -547,12 +553,13 @@ function CourseOfferingAccordionPanel({
 }: {
   course: DetailedCourseOfferingDto
 }) {
+  const { periodId } = route.useParams()
   const {
     mutateAsync: addCourseSection,
     variables: addCourseSectionVariables,
     isPending: isAddCourseSectionPending,
   } = useAppMutation(
-    enrollmentControllerCreateCourseSectionMutation,
+    courseSectionControllerCreateCourseSectionMutation,
     {
       loading: {
         title: 'Adding course section',
@@ -570,7 +577,9 @@ function CourseOfferingAccordionPanel({
     {
       onSuccess: async () => {
         const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsQueryKey()
+          courseOfferingControllerFindCourseOfferingsByPeriodQueryKey({
+            path: { enrollmentId: periodId },
+          })
 
         // cancel outgoing refetches
         await queryClient.cancelQueries({ queryKey: allOfferingsKey })
@@ -591,6 +600,7 @@ function CourseOfferingAccordionPanel({
       },
       path: {
         offeringId: course.id,
+        enrollmentId: periodId,
       },
     })
   }
@@ -647,10 +657,12 @@ function CourseOfferingSubjectCard({
   section: DetailedCourseSectionDto
   course: DetailedCourseOfferingDto
 }) {
+  const { periodId } = route.useParams()
+
   const [opened, { toggle }] = useDisclosure(false)
 
   const { mutateAsync: removeCourseSection, isPending } = useAppMutation(
-    enrollmentControllerRemoveCourseSectionMutation,
+    courseSectionControllerRemoveCourseSectionMutation,
     {
       loading: {
         title: 'Removing course section',
@@ -668,7 +680,9 @@ function CourseOfferingSubjectCard({
     {
       onSuccess: async () => {
         const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsQueryKey()
+          courseOfferingControllerFindCourseOfferingsByPeriodQueryKey({
+            path: { enrollmentId: periodId },
+          })
 
         // cancel outgoing refetches
         await queryClient.cancelQueries({ queryKey: allOfferingsKey })
@@ -701,6 +715,7 @@ function CourseOfferingSubjectCard({
           path: {
             sectionId: section.id,
             offeringId: course.id,
+            enrollmentId: periodId,
           },
         }),
     })
@@ -792,6 +807,8 @@ function CourseOfferingSectionEditForm({
   onCancel: () => void
   onSaved: () => void
 }) {
+  const { periodId } = route.useParams()
+
   const form = useForm<EditSectionFormValues>({
     mode: 'uncontrolled',
     initialValues: { ...section },
@@ -799,7 +816,7 @@ function CourseOfferingSectionEditForm({
   })
 
   const { mutateAsync: updateSection, isPending: updating } = useAppMutation(
-    enrollmentControllerUpdateCourseSectionMutation,
+    courseSectionControllerUpdateCourseSectionMutation,
     {
       loading: {
         title: 'Updating section ' + section.name,
@@ -817,7 +834,9 @@ function CourseOfferingSectionEditForm({
     {
       onSuccess: async () => {
         const allOfferingsKey =
-          enrollmentControllerFindAllCourseOfferingsQueryKey()
+          courseOfferingControllerFindCourseOfferingsByPeriodQueryKey({
+            path: { enrollmentId: periodId },
+          })
         await queryClient.cancelQueries({ queryKey: allOfferingsKey })
         await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
       },
@@ -838,7 +857,7 @@ function CourseOfferingSectionEditForm({
     if (form.validate().hasErrors) return
 
     await updateSection({
-      path: { offeringId, sectionId: section.id },
+      path: { offeringId, sectionId: section.id, enrollmentId: periodId },
       body: form.getValues(),
     })
 

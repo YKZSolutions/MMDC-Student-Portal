@@ -274,7 +274,7 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
             onConfirm: async () => {
               await remove({
                 path: {
-                  id: id,
+                  enrollmentId: id,
                 },
                 query: {
                   directDelete: true,

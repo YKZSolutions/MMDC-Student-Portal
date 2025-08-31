@@ -61,7 +61,7 @@ function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
           enrollmentControllerFindAllEnrollmentsQueryKey()
         const singleEnrollmentKey =
           enrollmentControllerFindOneEnrollmentQueryKey({
-            path: { id: period.id },
+            path: { enrollmentId: period.id },
           })
 
         // Invalidate both queries
@@ -89,7 +89,7 @@ function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
   const handleStatusChange = async (newStatus: EnrollmentStatus) => {
     await updateStatus({
       path: {
-        id: period.id,
+        enrollmentId: period.id,
       },
       body: {
         status: newStatus,
