@@ -4,8 +4,8 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
+import { CourseOffering } from '@/generated/nestjs-dto/courseOffering.entity';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
@@ -15,8 +15,8 @@ import {
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
+import { FilterCourseOfferingDto } from './dto/filter-courseOffering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
-import { CourseOffering } from '@/generated/nestjs-dto/courseOffering.entity';
 
 @Injectable()
 export class CourseOfferingService {
@@ -81,14 +81,22 @@ export class CourseOfferingService {
       `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
   })
   async findAllCourseOfferings(
-    @LogParam('filters') filters: BaseFilterDto,
+    @LogParam('filters') filters: FilterCourseOfferingDto,
     periodId: string,
   ): Promise<PaginatedCourseOfferingsDto> {
     const page = filters.page || 1;
 
     const [courseOfferings, meta] = await this.prisma.client.courseOffering
       .paginate({
-        where: { periodId },
+        where: filters.periodId ? { periodId: filters.periodId } : undefined,
+        include: {
+          course: true,
+          courseSections: {
+            include: {
+              user: true,
+            },
+          },
+        },
       })
       .withPages({ limit: 10, page, includePageCount: true });
 
