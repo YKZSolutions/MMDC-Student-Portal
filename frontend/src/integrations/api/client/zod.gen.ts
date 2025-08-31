@@ -961,6 +961,10 @@ export const zDetailedCourseSectionDto = z.object({
     ])
 });
 
+export const zDetailedCourseOfferingSubsetDto = z.object({
+    course: zCourseDto
+});
+
 export const zDetailedCourseEnrollmentDto = z.object({
     id: z.string(),
     status: zCourseEnrollmentStatus,
@@ -977,7 +981,9 @@ export const zDetailedCourseEnrollmentDto = z.object({
     ]),
     studentId: z.uuid(),
     courseOfferingId: z.uuid(),
-    courseSectionId: z.uuid()
+    courseSectionId: z.uuid(),
+    courseSection: z.optional(zDetailedCourseSectionDto),
+    courseOffering: z.optional(zDetailedCourseOfferingSubsetDto)
 });
 
 export const zDetailedCourseOfferingDto = z.object({
@@ -1766,6 +1772,14 @@ export const zCourseSectionControllerUpdateCourseSectionData = z.object({
 });
 
 export const zCourseSectionControllerUpdateCourseSectionResponse = zCourseSectionDto;
+
+export const zCourseEnrollmentControllerGetCourseEnrollmentsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zCourseEnrollmentControllerGetCourseEnrollmentsResponse = z.array(zDetailedCourseEnrollmentDto);
 
 export const zCourseEnrollmentControllerDropCourseEnrollmentData = z.object({
     body: zStudentIdentifierDto,
