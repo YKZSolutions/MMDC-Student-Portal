@@ -135,7 +135,6 @@ function AsyncMentorCombobox({
             component="button"
             type="button"
             pointer
-            withAsterisk
             {...form.getInputProps('userId')}
             rightSection={
               <ActionIcon
@@ -158,7 +157,6 @@ function AsyncMentorCombobox({
             radius={'md'}
             label="Mentor"
             placeholder="Search a mentor"
-            withAsterisk
             {...form.getInputProps('userId')}
             onChange={(event) => handleSearch(event)}
             onClick={() => combobox.openDropdown()}
