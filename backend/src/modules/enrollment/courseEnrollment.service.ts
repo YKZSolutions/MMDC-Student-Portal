@@ -1,3 +1,4 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import { Role } from '@/common/enums/roles.enum';
@@ -12,6 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { DetailedCourseEnrollmentDto } from './dto/detailed-courseEnrollment.dto';
 import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
 
 @Injectable()
@@ -20,6 +22,56 @@ export class CourseEnrollmentService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
+
+  /**
+   * Retrieves all active (enlisted) course enrollments for the current student
+   * within the active enrollment period.
+   *
+   * This returns detailed enrollment records including the associated
+   * course offering and course section (with mentor/user data).
+   *
+   * @param user - Current authenticated user (injected via @CurrentUser)
+   * @returns A list of {@link DetailedCourseEnrollmentDto} for the student
+   */
+  @Log({
+    logArgsMessage: ({ user }) =>
+      `Fetching course enrollments for student [${user.user_metadata.user_id}]`,
+    logSuccessMessage: (result, { user }) =>
+      `Fetched ${result.length} course enrollment(s) for student [${user.user_metadata.user_id}]`,
+    logErrorMessage: (err, { user }) =>
+      `Error fetching course enrollments for student [${user.user_metadata.user_id}] | Error: ${err.message}`,
+  })
+  async getCourseEnrollments(
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<DetailedCourseEnrollmentDto[]> {
+    const studentId = user.user_metadata.user_id;
+
+    const enrollments = await this.prisma.client.courseEnrollment.findMany({
+      where: {
+        status: 'enlisted',
+        studentId: studentId,
+        courseOffering: {
+          enrollmentPeriod: {
+            status: 'active',
+          },
+        },
+      },
+      include: {
+        courseSection: {
+          include: {
+            user: true,
+          },
+        },
+        courseOffering: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    return enrollments;
+  }
 
   /**
    * Enrolls a student in a given course section.

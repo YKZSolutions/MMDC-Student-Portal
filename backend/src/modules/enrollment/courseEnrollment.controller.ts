@@ -24,6 +24,26 @@ export class CourseEnrollmentController {
   ) {}
 
   /**
+   * Retrieve all active (enlisted) course enrollments for the authenticated user.
+   *
+   * @remarks
+   * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
+   * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
+   * - Each returned record includes related course offering, course section and mentor/user data.
+   *
+   * @returns An array of DetailedCourseEnrollmentDto containing the student's active enrollments.
+   *
+   * @throws BadRequestException - If the request is malformed.
+   * @throws NotFoundException - If requested enrollment records or active period cannot be found.
+   */
+  @ApiException(() => [BadRequestException, NotFoundException])
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @Post('/sections')
+  getCourseEnrollments(@CurrentUser() user: CurrentAuthUser) {
+    return this.courseEnrollmentService.getCourseEnrollments(user);
+  }
+
+  /**
    * Enroll a student in a course section.
    *
    * @remarks
