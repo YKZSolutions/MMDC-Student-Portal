@@ -118,6 +118,14 @@ export class CourseOfferingService {
           user: true,
         },
       },
+
+      // Disable fetching for the admin side first
+      // TODO: Implement an FE interface for this
+      courseEnrollment: isStudent
+        ? {
+            where: { studentId },
+          }
+        : undefined,
     } satisfies Prisma.CourseOfferingInclude;
 
     const [courseOfferings, meta] = await this.prisma.client.courseOffering
