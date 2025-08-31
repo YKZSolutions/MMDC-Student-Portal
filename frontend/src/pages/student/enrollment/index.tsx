@@ -421,7 +421,12 @@ function CourseSelectionPanel() {
             className="grow max-w-2xs"
             bd={'1px solid gray.2'}
             radius={'md'}
-            data={['All', 'Enrolled', 'Not Enrolled']}
+            data-cy="enrollment-tabs" // Add to the container
+            data={[ 
+              { label: 'All', value: 'all' },
+              { label: 'Enrolled', value: 'enrolled' },
+              { label: 'Not Enrolled', value: 'not-enrolled' },
+            ]}
             color="primary"
           />
 
