@@ -53,10 +53,29 @@ const Chatbot = ({
     isSuccess,
   } = useMutation(chatbotControllerPromptMutation())
 
-  // Set initial position and handle window resize
+  // Compute "open" snap position (bottom-right)
+  const getOpenPosition = () => {
+    const fabWidth = nodeRef.current?.offsetWidth ?? 80
+    const fabHeight = nodeRef.current?.offsetHeight ?? 60
+
+    return {
+      x: window.innerWidth - fabWidth - 20, // right padding
+      y: window.innerHeight - fabHeight - 20, // bottom padding
+    }
+  }
+
+  // Snap FAB when opening chatbot
+  useEffect(() => {
+    if (isChatbotOpen) {
+      setPosition(getOpenPosition())
+    }
+  }, [isChatbotOpen])
+
+  // Keep clamping position only while visible
   useEffect(() => {
     const updatePosition = () => {
-      // Use last known dimensions or a fallback
+      if (isChatbotFabHidden) return // skip when hidden
+
       const width = nodeRef.current?.offsetWidth ?? 250
       const height = nodeRef.current?.offsetHeight ?? 60
 
@@ -69,10 +88,9 @@ const Chatbot = ({
       }))
     }
 
-    updatePosition()
     window.addEventListener('resize', updatePosition)
     return () => window.removeEventListener('resize', updatePosition)
-  }, [])
+  }, [isChatbotFabHidden])
 
   const addMessage = async (userInput: string) => {
     // Add the user's message to the state
