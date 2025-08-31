@@ -15,13 +15,12 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query
+  Query,
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
 import { EnrollmentService } from './enrollment.service';
-
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -148,7 +147,12 @@ export class EnrollmentController {
   @Roles(Role.ADMIN)
   @Delete(':enrollmentId')
   removeEnrollment(
-    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string, @Query() query?: DeleteQueryDto) {
-    return this.enrollmentService.removeEnrollment(enrollmentId, query?.directDelete);
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Query() query?: DeleteQueryDto,
+  ) {
+    return this.enrollmentService.removeEnrollment(
+      enrollmentId,
+      query?.directDelete,
+    );
   }
 }
