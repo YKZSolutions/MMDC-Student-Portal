@@ -54,6 +54,7 @@ export function ButtonGroup<T extends string>({
   const controls = options.map((item, index) => (
     <UnstyledButton
       key={item.value}
+      data-cy={`role-selector-${item.value}`}
       variant="default"
       className="flex-1 flex justify-center items-center gap-2 py-1.5 line-clamp-1 rounded-md text-neutral-700 transition-colors hover:text-black hover:bg-neutral-200 data-[active]:text-white"
       ref={setControlRef(index)}

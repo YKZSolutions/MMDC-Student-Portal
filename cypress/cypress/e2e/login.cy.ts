@@ -44,8 +44,10 @@ describe('Authentication Flow', () => {
     // Assert: Check that we are redirected to a protected page
     cy.url().should('include', '/dashboard');
 
-    // Assert: The most reliable check is for the "LMS" link, which students see.
-    cy.get('[data-cy="lms-link"]').should('be.visible'); // Assuming the link has data-cy="lms-link"
+    // Assert: The most reliable check is for the "Enrollment" link, which students see.
+    cy.get('[data-cy="enrollment-link"]').click();
+
+    cy.get('[data-cy="enrollment-tabs"]').contains('Enrolled').should('be.visible');
 
     // Assert: Also verify that the admin "Users" link does NOT exist.
     cy.get('[data-cy="users-link"]').should('not.exist');
