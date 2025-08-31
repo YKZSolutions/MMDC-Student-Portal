@@ -96,8 +96,8 @@ function RouteComponent() {
       {/* Sub Nav */}
       <Box
         style={{
-          width: '180px',
-          minWidth: '180px',
+          width: '184px',
+          minWidth: '184px',
           borderRight: `1px solid ${theme.colors.gray[2]}`,
           overflow: 'hidden',
           flexShrink: 0,
