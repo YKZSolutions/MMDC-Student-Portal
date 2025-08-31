@@ -492,6 +492,23 @@ function FinalizationPanel() {
         <EnrollmentStudentFinalizationQueryProvider>
           {({ enrolledCourses }) => (
             <Stack gap="xs">
+              {enrolledCourses.length === 0 && (
+                <Center py="md">
+                  <Stack gap={4} align="center">
+                    <IconBook
+                      size={28}
+                      stroke={1.5}
+                      color="var(--mantine-color-dimmed)"
+                    />
+                    <Text fw={600} size="sm">
+                      No enrolled courses found
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Once you enroll, your courses will appear here.
+                    </Text>
+                  </Stack>
+                </Center>
+              )}
               {enrolledCourses.map((enrolledCourse) => (
                 <EnrolledCourseCard
                   courseName={enrolledCourse.courseOffering?.course.name!}
