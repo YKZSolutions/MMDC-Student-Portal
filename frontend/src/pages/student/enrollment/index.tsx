@@ -2,6 +2,7 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
 import {
   type CourseOfferingControllerFindCourseOfferingsByPeriodData,
+  type DetailedCourseEnrollmentDto,
   type DetailedCourseOfferingDto,
   type DetailedCourseSectionDto,
   type EnrollmentPeriodDto,
@@ -9,6 +10,8 @@ import {
 import {
   courseEnrollmentControllerCreateCourseEnrollmentMutation,
   courseEnrollmentControllerDropCourseEnrollmentMutation,
+  courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
+  courseEnrollmentControllerGetCourseEnrollmentsOptions,
   courseOfferingControllerFindCourseOfferingsByPeriodOptions,
   enrollmentControllerFindActiveEnrollmentOptions,
   enrollmentControllerFindActiveEnrollmentQueryKey,
@@ -47,6 +50,7 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import {
   IconBook,
   IconFilter2,
@@ -439,6 +443,42 @@ function CourseSelectionPanel() {
 function FinalizationPanel() {
   const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
 
+  const { mutateAsync: finalizeMutate } = useAppMutation(
+    courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
+    {
+      loading: {
+        title: 'Finalizing enrollment',
+        message: 'Please wait while we finalize your enrollment.',
+      },
+      success: {
+        title: 'Enrollment finalized',
+        message: 'Your enrollment has been successfully finalized.',
+      },
+      error: {
+        title: 'Error finalizing enrollment',
+        message:
+          'There was an error finalizing your enrollment. Please try again.',
+      },
+    },
+  )
+
+  const handleFinalizeEnrollment = async () => {
+    modals.openConfirmModal({
+      title: 'Confirm Finalization',
+      centered: true,
+      children: (
+        <Text size="sm">
+          Are you sure you want to finalize your enrollment? This action cannot
+          be undone.
+        </Text>
+      ),
+      labels: { confirm: 'Finalize', cancel: 'Cancel' },
+      onConfirm: async () =>
+        // Call the mutation
+        await finalizeMutate({}),
+    })
+  }
+
   return (
     <Box p="lg">
       <Stack gap={'md'}>
@@ -449,26 +489,28 @@ function FinalizationPanel() {
           </Text>
         </Stack>
 
-        <Stack gap="xs">
-          <EnrolledCourseCard
-            courseName="Capstone 1"
-            courseCode="MO-IT200"
-            sectionName="A2101"
-            sectionSchedule={{
-              day: 'MWF',
-              time: '8:00 - 9:00 AM',
-            }}
-          />
-          <EnrolledCourseCard
-            courseName="Web Technology Applications"
-            courseCode="MO-IT200"
-            sectionName="A2101"
-            sectionSchedule={{
-              day: 'MWF',
-              time: '8:00 - 9:00 AM',
-            }}
-          />
-        </Stack>
+        <EnrollmentStudentFinalizationQueryProvider>
+          {({ enrolledCourses }) => (
+            <Stack gap="xs">
+              {enrolledCourses.map((enrolledCourse) => (
+                <EnrolledCourseCard
+                  courseName={enrolledCourse.courseOffering?.course.name!}
+                  courseCode={enrolledCourse.courseOffering?.course.courseCode!}
+                  sectionName={enrolledCourse.courseSection?.name!}
+                  sectionSchedule={{
+                    day: formatDaysAbbrev(enrolledCourse.courseSection?.days),
+                    time: `${enrolledCourse.courseSection?.startSched!} - ${enrolledCourse.courseSection?.endSched!}`,
+                  }}
+                  mentor={
+                    enrolledCourse.courseSection?.user
+                      ? `${enrolledCourse.courseSection?.user?.firstName} ${enrolledCourse.courseSection?.user?.lastName}`
+                      : 'No Mentor Assigned'
+                  }
+                />
+              ))}
+            </Stack>
+          )}
+        </EnrollmentStudentFinalizationQueryProvider>
 
         <Stack pt={'xs'} gap={'xs'}>
           <Text fw={600} size="sm" c="dimmed">
@@ -488,7 +530,11 @@ function FinalizationPanel() {
           </Group>
         </Stack>
 
-        <Button disabled={!selectedPaymentScheme} ml={'auto'}>
+        <Button
+          disabled={!selectedPaymentScheme}
+          ml={'auto'}
+          onClick={handleFinalizeEnrollment}
+        >
           Finalize
         </Button>
       </Stack>
@@ -501,6 +547,7 @@ function EnrolledCourseCard({
   courseCode,
   sectionName,
   sectionSchedule,
+  mentor,
 }: {
   courseName: string
   courseCode: string
@@ -509,6 +556,7 @@ function EnrolledCourseCard({
     day: string
     time: string
   }
+  mentor: string
 }) {
   return (
     <Card withBorder radius="md" p="md" className="flex-1">
@@ -519,6 +567,9 @@ function EnrolledCourseCard({
           </Text>
           <Text fw={500} fz={'xs'} c={'dark.3'}>
             {courseCode}
+          </Text>
+          <Text c={'gray.6'} size="sm">
+            {mentor}
           </Text>
         </Stack>
         <Stack gap={4} miw={'fit-content'}>
