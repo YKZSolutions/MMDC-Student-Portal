@@ -21,7 +21,6 @@ import { Role } from '@/common/enums/roles.enum';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ApiOkResponse } from '@nestjs/swagger';
 
-@Roles(Role.ADMIN)
 @Controller('enrollments')
 export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
@@ -34,6 +33,7 @@ export class EnrollmentController {
    * Requires `ADMIN` role.
    */
   @ApiException(() => [BadRequestException])
+  @Roles(Role.ADMIN)
   @Post()
   createEnrollment(@Body() dto: CreateEnrollmentPeriodDto) {
     return this.enrollmentService.createEnrollment(dto);
@@ -47,9 +47,23 @@ export class EnrollmentController {
    * Requires `ADMIN` role.
    */
   @ApiException(() => [BadRequestException])
+  @Roles(Role.ADMIN)
   @Get()
   findAllEnrollments(@Query() filters: BaseFilterDto) {
     return this.enrollmentService.findAllEnrollments(filters);
+  }
+
+  /**
+   * Retrieves the currently active enrollment period
+   *
+   * @remarks
+   * Requires `ADMIN` or `STUDENT` roles.
+   */
+  @Roles(Role.ADMIN, Role.STUDENT)
+  @ApiException(() => [NotFoundException])
+  @Get('active')
+  findActiveEnrollment() {
+    return this.enrollmentService.findActiveEnrollment();
   }
 
   /**
@@ -63,6 +77,7 @@ export class EnrollmentController {
    */
   @ApiException(() => [NotFoundException, BadRequestException])
   @Get(':enrollmentId')
+  @Roles(Role.ADMIN)
   findOneEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
   ) {
@@ -79,6 +94,7 @@ export class EnrollmentController {
    * @throws BadRequestException If the enrollment is closed
    */
   @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
   @Patch(':enrollmentId')
   updateEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
@@ -99,6 +115,7 @@ export class EnrollmentController {
    * @throws NotFoundException If the enrollment does not exist
    */
   @ApiException(() => [NotFoundException])
+  @Roles(Role.ADMIN)
   @Patch(':enrollmentId/status')
   updateEnrollmentStatus(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
@@ -126,6 +143,7 @@ export class EnrollmentController {
     },
   })
   @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
   @Delete(':enrollmentId')
   removeEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,

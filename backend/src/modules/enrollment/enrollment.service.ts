@@ -78,6 +78,26 @@ export class EnrollmentService {
   }
 
   /**
+   * Retrieves the currently active enrollment period.
+   *
+   * @returns The active {@link EnrollmentPeriodDto}
+   *
+   * @throws NotFoundException - If no active enrollment period is found
+   */
+  @Log({
+    logSuccessMessage: (_, result) => `Fetchde active enrollment ${result}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('No active enrollment found.'),
+  })
+  async findActiveEnrollment(): Promise<EnrollmentPeriodDto> {
+    return await this.prisma.client.enrollmentPeriod.findFirstOrThrow({
+      where: { status: 'active' },
+    });
+  }
+
+  /**
    * Retrieves a single enrollment period by ID.
    *
    * @param id - The enrollment period ID
