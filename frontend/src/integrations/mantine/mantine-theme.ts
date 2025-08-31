@@ -2,7 +2,7 @@ import {
   colorsTuple,
   createTheme,
   type DefaultMantineColor,
-  type MantineColorsTuple
+  type MantineColorsTuple,
 } from '@mantine/core'
 
 const customColors = {
@@ -42,6 +42,7 @@ export const theme = createTheme({
   primaryColor: 'primary',
   colors: {
     ...customColors,
-    ...statusColors
+    ...statusColors,
   },
+  fontFamily: 'Inter, sans-serif',
 })
