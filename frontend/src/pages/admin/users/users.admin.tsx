@@ -304,6 +304,7 @@ function UsersPage() {
               </Popover.Dropdown>
             </Popover>
             <Button
+              data-cy="add-user-button"
               variant="filled"
               radius={'md'}
               leftSection={<IconPlus size={20} />}
@@ -351,6 +352,7 @@ function UsersPage() {
 function UsersTable({ props }: { props: IUsersQuery }) {
   return (
     <Table
+      data-cy="users-table"
       highlightOnHover
       highlightOnHoverColor="gray.0"
       style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
@@ -460,7 +462,9 @@ function UsersTableRow({ users }: { users: UserWithRelations[] }) {
         <Text size="sm">Are you sure you wan't to delete this user?</Text>
       ),
       labels: { confirm: 'Delete', cancel: 'Cancel' },
-      confirmProps: { color: 'red' },
+      confirmProps: { color: 'red',
+        'data-cy': 'confirm-delete-button'
+      },
       onConfirm: async () => {
         const notifId = notifications.show({
           loading: true,
@@ -539,7 +543,7 @@ function UsersTableRow({ users }: { users: UserWithRelations[] }) {
       <Table.Td>
         <Menu position="bottom-end" shadow="xl" width={rem(200)} withArrow>
           <Menu.Target>
-            <ActionIcon variant="subtle" color="gray" radius={'xl'}>
+            <ActionIcon variant="subtle" color="gray" radius={'xl'} data-cy="user-actions-button">
               <IconDotsVertical size={20} stroke={1.5} />
             </ActionIcon>
           </Menu.Target>
@@ -566,6 +570,7 @@ function UsersTableRow({ users }: { users: UserWithRelations[] }) {
               color="red"
               leftSection={<IconTrash size={14} />}
               onClick={() => handleDelete(user.id)}
+              data-cy="delete-user-menu-item"
             >
               Delete
             </Menu.Item>
