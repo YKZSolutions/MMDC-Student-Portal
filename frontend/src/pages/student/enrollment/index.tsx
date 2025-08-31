@@ -30,6 +30,7 @@ import {
   Box,
   Button,
   Card,
+  Center,
   Checkbox,
   Container,
   Divider,
@@ -547,13 +548,21 @@ function FinalizationPanel() {
           </Group>
         </Stack>
 
-        <Button
-          disabled={!selectedPaymentScheme}
-          ml={'auto'}
-          onClick={handleFinalizeEnrollment}
-        >
-          Finalize
-        </Button>
+        <EnrollmentStudentFinalizationQueryProvider>
+          {({ enrolledCourses }) => (
+            <Button
+              disabled={
+                !selectedPaymentScheme ||
+                enrolledCourses.length === 0 ||
+                enrolledCourses.some((course) => course.status == 'finalized')
+              }
+              ml={'auto'}
+              onClick={handleFinalizeEnrollment}
+            >
+              Finalize
+            </Button>
+          )}
+        </EnrollmentStudentFinalizationQueryProvider>
       </Stack>
     </Box>
   )
