@@ -32,6 +32,7 @@ import {
   Divider,
   Flex,
   Group,
+  LoadingOverlay,
   Pagination,
   Paper,
   Popover,
@@ -369,11 +370,10 @@ function CourseSelectionPanel() {
                     >
                       <IconBook size={36} stroke={1.5} />
                       <Text mt="sm" fw={500}>
-                        No course offerings yet
+                        Nothing here
                       </Text>
                       <Text fz="sm" c="dark.2" ta="center" maw={360}>
-                        Create one to start adding sections, assigning mentors,
-                        and enrolling students.
+                        Adjust your filters if necessary.
                       </Text>
                     </Stack>
                   )}
@@ -619,49 +619,50 @@ function CourseOfferingSubjectCard({
   section: DetailedCourseSectionDto
   course: DetailedCourseOfferingDto
 }) {
-  const { mutateAsync: enrollMutate } = useAppMutation(
-    courseEnrollmentControllerCreateCourseEnrollmentMutation,
-    {
-      loading: {
-        title: 'Enrolling in ' + course.course.name,
-        message: 'Please wait...',
+  const { mutateAsync: enrollMutate, isPending: enrollIsPending } =
+    useAppMutation(
+      courseEnrollmentControllerCreateCourseEnrollmentMutation,
+      {
+        loading: {
+          title: 'Enrolling in ' + course.course.name,
+          message: 'Please wait...',
+        },
+        success: {
+          title: 'Successfully enrolled in ' + course.course.name,
+          message: 'You have been enrolled in the course.',
+        },
+        error: {
+          title: 'Failed to enroll in ' + course.course.name,
+          message: 'Please try again later.',
+        },
       },
-      success: {
-        title: 'Successfully enrolled in ' + course.course.name,
-        message: 'You have been enrolled in the course.',
+      {
+        onSuccess: async () => {
+          const activeEnrollmentKey =
+            enrollmentControllerFindActiveEnrollmentQueryKey()
+
+          await queryClient.cancelQueries({ queryKey: activeEnrollmentKey })
+
+          await queryClient.invalidateQueries({ queryKey: activeEnrollmentKey })
+
+          await queryClient.cancelQueries({
+            predicate: (query) =>
+              Array.isArray(query.queryKey) &&
+              query.queryKey[0]?._id ===
+                'courseOfferingControllerFindCourseOfferingsByPeriod',
+          })
+
+          await queryClient.invalidateQueries({
+            predicate: (query) =>
+              Array.isArray(query.queryKey) &&
+              query.queryKey[0]?._id ===
+                'courseOfferingControllerFindCourseOfferingsByPeriod',
+          })
+        },
       },
-      error: {
-        title: 'Failed to enroll in ' + course.course.name,
-        message: 'Please try again later.',
-      },
-    },
-    {
-      onSuccess: async () => {
-        const activeEnrollmentKey =
-          enrollmentControllerFindActiveEnrollmentQueryKey()
+    )
 
-        await queryClient.cancelQueries({ queryKey: activeEnrollmentKey })
-
-        await queryClient.invalidateQueries({ queryKey: activeEnrollmentKey })
-
-        await queryClient.cancelQueries({
-          predicate: (query) =>
-            Array.isArray(query.queryKey) &&
-            query.queryKey[0]?._id ===
-              'courseOfferingControllerFindCourseOfferingsByPeriod',
-        })
-
-        await queryClient.invalidateQueries({
-          predicate: (query) =>
-            Array.isArray(query.queryKey) &&
-            query.queryKey[0]?._id ===
-              'courseOfferingControllerFindCourseOfferingsByPeriod',
-        })
-      },
-    },
-  )
-
-  const { mutateAsync: dropMutate } = useAppMutation(
+  const { mutateAsync: dropMutate, isPending: dropIsPending } = useAppMutation(
     courseEnrollmentControllerDropCourseEnrollmentMutation,
     {
       loading: {
@@ -694,10 +695,14 @@ function CourseOfferingSubjectCard({
         })
 
         await queryClient.invalidateQueries({
-          predicate: (query) =>
-            Array.isArray(query.queryKey) &&
-            query.queryKey[0]?._id ===
-              'courseOfferingControllerFindCourseOfferingsByPeriod',
+          predicate: (query) => {
+            console.log(query)
+            return (
+              Array.isArray(query.queryKey) &&
+              query.queryKey[0]?._id ===
+                'courseOfferingControllerFindCourseOfferingsByPeriod'
+            )
+          },
         })
       },
     },
@@ -709,6 +714,11 @@ function CourseOfferingSubjectCard({
 
   return (
     <Card key={section.id} withBorder radius="md" py="sm" pos={'relative'}>
+      <LoadingOverlay
+        visible={dropIsPending || enrollIsPending}
+        zIndex={10} // This is to avoid unnecessary flashing of the blur
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       <Box>
         <Group justify="space-between" align="center">
           <Stack gap={2}>
@@ -748,6 +758,7 @@ function CourseOfferingSubjectCard({
               </Button>
             ) : (
               <Button
+                disabled={course.courseEnrollment.length > 0}
                 size="xs"
                 radius={'lg'}
                 onClick={() =>
