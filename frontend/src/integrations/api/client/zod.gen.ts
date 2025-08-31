@@ -961,7 +961,7 @@ export const zDetailedCourseSectionDto = z.object({
     ])
 });
 
-export const zCourseEnrollmentDto = z.object({
+export const zDetailedCourseEnrollmentDto = z.object({
     id: z.string(),
     status: zCourseEnrollmentStatus,
     startedAt: z.iso.datetime(),
@@ -974,7 +974,10 @@ export const zCourseEnrollmentDto = z.object({
     deletedAt: z.union([
         z.iso.datetime(),
         z.null()
-    ])
+    ]),
+    studentId: z.uuid(),
+    courseOfferingId: z.uuid(),
+    courseSectionId: z.uuid()
 });
 
 export const zDetailedCourseOfferingDto = z.object({
@@ -987,7 +990,7 @@ export const zDetailedCourseOfferingDto = z.object({
     ]),
     course: zCourseDto,
     courseSections: z.array(zDetailedCourseSectionDto),
-    courseEnrollment: z.array(zCourseEnrollmentDto)
+    courseEnrollment: z.array(zDetailedCourseEnrollmentDto)
 });
 
 export const zPaginatedCourseOfferingsDto = z.object({
@@ -1038,6 +1041,22 @@ export const zUpdateCourseSectionDto = z.object({});
 
 export const zStudentIdentifierDto = z.object({
     studentId: z.optional(z.uuid())
+});
+
+export const zCourseEnrollmentDto = z.object({
+    id: z.string(),
+    status: zCourseEnrollmentStatus,
+    startedAt: z.iso.datetime(),
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
 });
 
 export const zTestControllerTestStudentData = z.object({

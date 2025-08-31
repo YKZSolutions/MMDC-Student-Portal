@@ -714,7 +714,7 @@ export type DetailedCourseSectionDto = {
     mentorId: string | null;
 };
 
-export type CourseEnrollmentDto = {
+export type DetailedCourseEnrollmentDto = {
     id: string;
     status: CourseEnrollmentStatus;
     startedAt: string;
@@ -722,6 +722,9 @@ export type CourseEnrollmentDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    studentId: string;
+    courseOfferingId: string;
+    courseSectionId: string;
 };
 
 export type DetailedCourseOfferingDto = {
@@ -731,7 +734,7 @@ export type DetailedCourseOfferingDto = {
     deletedAt: string | null;
     course: CourseDto;
     courseSections: Array<DetailedCourseSectionDto>;
-    courseEnrollment: Array<CourseEnrollmentDto>;
+    courseEnrollment: Array<DetailedCourseEnrollmentDto>;
 };
 
 export type PaginatedCourseOfferingsDto = {
@@ -784,6 +787,16 @@ export type UpdateCourseSectionDto = {
 
 export type StudentIdentifierDto = {
     studentId?: string;
+};
+
+export type CourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type TestControllerTestStudentData = {
