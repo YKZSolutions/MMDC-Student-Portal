@@ -13,14 +13,12 @@ import { AuthUser } from '@supabase/supabase-js';
 import { Role } from '@/common/enums/roles.enum';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { BillingService } from '../billing/billing.service';
 
 @Injectable()
 export class CourseEnrollmentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
-    private readonly billingService: BillingService,
   ) {}
 
   /**
