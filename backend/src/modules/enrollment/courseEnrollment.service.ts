@@ -47,7 +47,7 @@ export class CourseEnrollmentService {
 
     const enrollments = await this.prisma.client.courseEnrollment.findMany({
       where: {
-        status: 'enlisted',
+        status: { in: ['enlisted', 'finalized'] },
         studentId: studentId,
         courseOffering: {
           enrollmentPeriod: {
