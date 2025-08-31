@@ -1,4 +1,3 @@
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import { Role } from '@/common/enums/roles.enum';
@@ -42,7 +41,7 @@ export class CourseEnrollmentService {
       `Error fetching course enrollments for student [${user.user_metadata.user_id}] | Error: ${err.message}`,
   })
   async getCourseEnrollments(
-    @CurrentUser() user: CurrentAuthUser,
+    @LogParam('user') user: CurrentAuthUser,
   ): Promise<DetailedCourseEnrollmentDto[]> {
     const studentId = user.user_metadata.user_id;
 
@@ -247,11 +246,11 @@ export class CourseEnrollmentService {
    *
    * @throws BadRequestException - If no enlisted enrollments are found
    */
-  async finalizeEnrollment(dto: StudentIdentifierDto, user: CurrentAuthUser) {
+  async finalizeEnrollment(user: CurrentAuthUser, dto?: StudentIdentifierDto) {
     const studentId =
       user.user_metadata.role === Role.STUDENT
         ? user.user_metadata.user_id
-        : dto.studentId;
+        : dto?.studentId;
 
     if (user.user_metadata.role === Role.ADMIN && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
@@ -259,7 +258,14 @@ export class CourseEnrollmentService {
 
     return this.prisma.client.$transaction(async (tx) => {
       const enslisted = await tx.courseEnrollment.findMany({
-        where: { studentId, status: 'enlisted', deletedAt: null },
+        where: {
+          studentId,
+          status: 'enlisted',
+          deletedAt: null,
+          courseOffering: {
+            enrollmentPeriod: { status: 'active' },
+          },
+        },
       });
 
       if (!enslisted.length) {

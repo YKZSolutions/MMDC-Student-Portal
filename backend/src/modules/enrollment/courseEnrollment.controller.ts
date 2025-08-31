@@ -13,7 +13,7 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
 import { CourseEnrollmentService } from './courseEnrollment.service';
 import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
 
@@ -121,12 +121,13 @@ export class CourseEnrollmentController {
     },
   })
   @ApiException(() => [BadRequestException])
+  @ApiBody({ required: false, type: StudentIdentifierDto })
   @Roles(Role.STUDENT, Role.ADMIN)
   @Post('/finalize')
   finalizeCourseEnrollment(
-    @Body() dto: StudentIdentifierDto,
     @CurrentUser() user: CurrentAuthUser,
+    @Body() dto?: StudentIdentifierDto,
   ) {
-    return this.courseEnrollmentService.finalizeEnrollment(dto, user);
+    return this.courseEnrollmentService.finalizeEnrollment(user, dto);
   }
 }
