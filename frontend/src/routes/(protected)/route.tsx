@@ -32,7 +32,7 @@ export const Route = createFileRoute('/(protected)')({
 
 function RouteComponent() {
   const [isChatbotOpen, setChatbotOpen] = useState(false)
-  const [isChatbotFabHidden, setChatbotFabHidden] = useState(false)
+  const [isChatbotFabHidden, setChatbotFabHidden] = useState(true)
 
   return (
     <>
