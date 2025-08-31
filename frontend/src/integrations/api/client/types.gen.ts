@@ -2782,7 +2782,7 @@ export type CourseEnrollmentControllerCreateCourseEnrollmentResponses = {
 export type CourseEnrollmentControllerCreateCourseEnrollmentResponse = CourseEnrollmentControllerCreateCourseEnrollmentResponses[keyof CourseEnrollmentControllerCreateCourseEnrollmentResponses];
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentData = {
-    body: StudentIdentifierDto;
+    body?: StudentIdentifierDto;
     path?: never;
     query?: never;
     url: '/enrollment/student/finalize';

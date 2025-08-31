@@ -1804,7 +1804,7 @@ export const zCourseEnrollmentControllerCreateCourseEnrollmentData = z.object({
 export const zCourseEnrollmentControllerCreateCourseEnrollmentResponse = zCourseEnrollmentDto;
 
 export const zCourseEnrollmentControllerFinalizeCourseEnrollmentData = z.object({
-    body: zStudentIdentifierDto,
+    body: z.optional(zStudentIdentifierDto),
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });

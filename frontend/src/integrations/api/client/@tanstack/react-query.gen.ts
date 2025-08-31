@@ -1974,6 +1974,12 @@ export const courseSectionControllerUpdateCourseSectionMutation = (options?: Par
 
 export const courseEnrollmentControllerGetCourseEnrollmentsQueryKey = (options?: Options<CourseEnrollmentControllerGetCourseEnrollmentsData>) => createQueryKey('courseEnrollmentControllerGetCourseEnrollments', options);
 
+/**
+ * Retrieve all active (enlisted) course enrollments for the authenticated user.
+ * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
+ * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
+ * - Each returned record includes related course offering, course section and mentor/user data.
+ */
 export const courseEnrollmentControllerGetCourseEnrollmentsOptions = (options?: Options<CourseEnrollmentControllerGetCourseEnrollmentsData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
@@ -1989,6 +1995,12 @@ export const courseEnrollmentControllerGetCourseEnrollmentsOptions = (options?: 
     });
 };
 
+/**
+ * Retrieve all active (enlisted) course enrollments for the authenticated user.
+ * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
+ * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
+ * - Each returned record includes related course offering, course section and mentor/user data.
+ */
 export const courseEnrollmentControllerGetCourseEnrollmentsMutation = (options?: Partial<Options<CourseEnrollmentControllerGetCourseEnrollmentsData>>): UseMutationOptions<CourseEnrollmentControllerGetCourseEnrollmentsResponse, CourseEnrollmentControllerGetCourseEnrollmentsError, Options<CourseEnrollmentControllerGetCourseEnrollmentsData>> => {
     const mutationOptions: UseMutationOptions<CourseEnrollmentControllerGetCourseEnrollmentsResponse, CourseEnrollmentControllerGetCourseEnrollmentsError, Options<CourseEnrollmentControllerGetCourseEnrollmentsData>> = {
         mutationFn: async (localOptions) => {
@@ -2063,7 +2075,7 @@ export const courseEnrollmentControllerCreateCourseEnrollmentMutation = (options
     return mutationOptions;
 };
 
-export const courseEnrollmentControllerFinalizeCourseEnrollmentQueryKey = (options: Options<CourseEnrollmentControllerFinalizeCourseEnrollmentData>) => createQueryKey('courseEnrollmentControllerFinalizeCourseEnrollment', options);
+export const courseEnrollmentControllerFinalizeCourseEnrollmentQueryKey = (options?: Options<CourseEnrollmentControllerFinalizeCourseEnrollmentData>) => createQueryKey('courseEnrollmentControllerFinalizeCourseEnrollment', options);
 
 /**
  * Finalize all course enrollments for a student.
@@ -2071,7 +2083,7 @@ export const courseEnrollmentControllerFinalizeCourseEnrollmentQueryKey = (optio
  * - `STUDENT` can finalize only their own enrollments.
  * - `ADMIN` can finalize for any student by providing `studentId` in the request body.
  */
-export const courseEnrollmentControllerFinalizeCourseEnrollmentOptions = (options: Options<CourseEnrollmentControllerFinalizeCourseEnrollmentData>) => {
+export const courseEnrollmentControllerFinalizeCourseEnrollmentOptions = (options?: Options<CourseEnrollmentControllerFinalizeCourseEnrollmentData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
             const { data } = await courseEnrollmentControllerFinalizeCourseEnrollment({
