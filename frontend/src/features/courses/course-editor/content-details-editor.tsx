@@ -14,6 +14,7 @@ import {
 import {
   IconCategory,
   IconChevronsRight,
+  IconEdit,
   IconHeading,
   IconHourglassEmpty,
   IconReplace,
@@ -29,6 +30,8 @@ import type {
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useForm } from '@mantine/form'
+import { ButtonWithModal } from '@/components/with-modal.tsx'
+import { EditorWithPreviewModal } from '@/components/editor-w-preview.tsx'
 
 type ContentDetailsEditorProps = {
   opened: boolean
@@ -144,6 +147,21 @@ const ContentDetailsEditor = ({
                   <Button leftSection={<IconUpload size={16} />}>
                     Upload File
                   </Button>
+                  <ButtonWithModal
+                    label={'Use Editor'}
+                    icon={<IconEdit size={16} />}
+                    modalComponent={EditorWithPreviewModal}
+                    modalProps={{
+                      content: form.values.content,
+                      onChange: (newContent) =>
+                        console.log(
+                          'Updated:',
+                          newContent,
+                        ) /*form.handlers.setFieldValue*/,
+                      field: 'content',
+                    }}
+                    bg={'primary'}
+                  />
                   <Text size="sm" c="dimmed">
                     or enter content directly
                   </Text>
@@ -195,7 +213,7 @@ const ContentDetailsEditor = ({
               </>
             )}
 
-            {/* Add fields for other content types */}
+            {/* TODO: Add fields for other content types */}
           </>
         )
 
@@ -204,40 +222,33 @@ const ContentDetailsEditor = ({
     }
   }
   return (
-    <Stack pos="relative" {...stackProps}>
-      <ActionIcon
-        onClick={onClose}
-        variant="transparent"
-        size="lg"
-        color="gray"
-        style={{
-          position: 'absolute',
-          top: theme.spacing.xs,
-          left: theme.spacing.xs,
-          zIndex: 10,
-        }}
-      >
-        <IconChevronsRight size={32} />
-      </ActionIcon>
+    <Stack {...stackProps}>
+      <Group justify="space-between">
+        <ActionIcon onClick={onClose} variant="transparent" color="gray">
+          <IconChevronsRight size={32} />
+        </ActionIcon>
+      </Group>
 
-      <Text size="xl" fw={700} mt="xl">
-        {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
-      </Text>
+      <Stack p="md">
+        <Text size="xl" fw={700}>
+          {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
+        </Text>
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          {getFormFields()}
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack gap="md">
+            {getFormFields()}
 
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {mode === 'create' ? 'Create' : 'Save Changes'}
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+            <Group justify="flex-end" mt="md">
+              <Button variant="default" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" bg={'secondary'}>
+                {mode === 'create' ? 'Create' : 'Save Changes'}
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Stack>
     </Stack>
   )
 }

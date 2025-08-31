@@ -6,7 +6,7 @@ import {
 } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import ButtonWithModal from '@/components/btn-w-modal.tsx'
+import { ButtonWithModal } from '@/components/with-modal.tsx'
 import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
 import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'

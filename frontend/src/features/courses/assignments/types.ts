@@ -56,6 +56,7 @@ export interface Assignment {
   allowResubmission?: boolean
   maxAttempts?: number
   allowLateSubmission?: boolean
+  content?: string
 }
 
 /**

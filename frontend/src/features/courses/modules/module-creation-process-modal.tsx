@@ -211,11 +211,10 @@ const ModuleCreationProcessModal = ({
             style={{
               flex: 1,
               overflow: 'auto',
+              scrollbarGutter: 'stable',
             }}
           >
-            <Stack flex={'1 0 auto'} style={{ overflow: 'auto' }}>
-              {steps[activeStep].content}
-            </Stack>
+            <Stack flex={'1 0 auto'}>{steps[activeStep].content}</Stack>
           </Stack>
         </Modal.Body>
       </Modal.Content>
@@ -305,5 +304,7 @@ const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
     </Container>
   )
 }
+
+ModuleCreationProcessModal.displayName = 'ModuleCreationProcessModal'
 
 export default ModuleCreationProcessModal

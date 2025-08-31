@@ -8,7 +8,7 @@ import {
 import { Button, Select, Stack } from '@mantine/core'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import ButtonWithModal from '@/components/btn-w-modal.tsx'
+import { ButtonWithModal } from '@/components/with-modal.tsx'
 import CourseActionsModal from '@/features/courses/course-actions-modal.tsx'
 import { IconTool } from '@tabler/icons-react'
 

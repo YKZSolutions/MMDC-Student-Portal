@@ -38,7 +38,7 @@ import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import ButtonWithModal from '@/components/btn-w-modal.tsx'
+import { ButtonWithModal } from '@/components/with-modal.tsx'
 import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 
 // TODO: Consider adding program and/or department and major to the course data

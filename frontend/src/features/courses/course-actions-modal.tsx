@@ -11,7 +11,7 @@ import {
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
 import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
-import CardWithModal from '@/components/card-w-modal.tsx'
+import { CardWithModal } from '@/components/with-modal.tsx'
 
 const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
   return (

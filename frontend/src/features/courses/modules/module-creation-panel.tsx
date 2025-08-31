@@ -111,7 +111,6 @@ const ModuleCreationPanel = ({ courseCode }: ModuleCreationPanelProps) => {
           onSave={handleSave}
           gap="lg"
           h="100%"
-          p="lg"
           m={'xs'}
           style={{
             overflowY: 'auto',
