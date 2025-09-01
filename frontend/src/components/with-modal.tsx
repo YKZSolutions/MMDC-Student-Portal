@@ -1,21 +1,13 @@
-import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { useLocalStorage, useMediaQuery } from '@mantine/hooks'
 import {
   type BoxProps,
   Button,
   Card,
-  Group,
   type ModalProps,
-  Stack,
-  Text,
-  Title,
   useMantineTheme,
 } from '@mantine/core'
-import React, {
-  type ComponentPropsWithoutRef,
-  type JSX,
-  useEffect,
-  useState,
-} from 'react'
+import React, { type ComponentPropsWithoutRef, type JSX } from 'react'
+import BtnCard from '@/components/btn-card.tsx'
 
 interface WithModalProps<T = any> {
   modalComponent: React.ComponentType<T & ModalProps>
@@ -31,28 +23,23 @@ const WithModal = <T,>({
   children,
 }: WithModalProps<T>) => {
   const theme = useMantineTheme()
-  const [opened, { open, close }] = useDisclosure(false)
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`)
   const shouldFull = isMobile && fullOnMobile
 
   // Create a unique key based on the modal component name
-  const modalKey = `modalOpen-${ModalComponent.displayName || ModalComponent.name}`
+  const modalKey = `modalOpen-${ModalComponent.displayName}`
 
-  useEffect(() => {
-    const savedState = sessionStorage.getItem(modalKey)
-    if (savedState === 'true') {
-      open()
-    }
-  }, [open, modalKey])
+  const [opened, setOpened] = useLocalStorage<boolean>({
+    key: modalKey,
+    defaultValue: false,
+  })
 
   const handleClose = () => {
-    sessionStorage.setItem(modalKey, 'false')
-    close()
+    setOpened(false)
   }
 
   const handleOpen = () => {
-    sessionStorage.setItem(modalKey, 'true')
-    open()
+    setOpened(true)
   }
 
   return (
@@ -84,37 +71,12 @@ type CardWithModalProps<T = any> = {
   BoxProps
 
 const CardWithModal = <T,>(props: CardWithModalProps<T>) => {
-  const [hovered, setHovered] = useState(false)
-
   return (
     <WithModal
       modalComponent={props.modalComponent}
       fullOnMobile={props.fullOnMobile}
     >
-      {({ onClick }) => (
-        <Card
-          withBorder
-          radius="md"
-          p="xs"
-          shadow={hovered ? 'sm' : 'xs'}
-          style={{ cursor: 'pointer' }}
-          mih={100}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          onClick={onClick}
-          {...props}
-        >
-          <Stack gap={'xs'}>
-            <Group gap={'xs'}>
-              {props.icon}
-              <Title order={4} fw={500}>
-                {props.title}
-              </Title>
-            </Group>
-            <Text size={'sm'}>{props.description}</Text>
-          </Stack>
-        </Card>
-      )}
+      {({ onClick }) => <BtnCard {...props} onClick={onClick} />}
     </WithModal>
   )
 }
