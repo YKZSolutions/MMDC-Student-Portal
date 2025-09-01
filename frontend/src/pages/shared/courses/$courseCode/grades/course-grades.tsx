@@ -4,14 +4,13 @@ import type {
   StudentAssignmentGrade,
 } from '@/features/courses/grades/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { useState } from 'react'
-import { Button, Group, rem } from '@mantine/core'
+import React, { useState } from 'react'
+import { Button, Group, rem, Stack, Title } from '@mantine/core'
 import SearchComponent from '@/components/search-component.tsx'
 import {
   MentorGradesTable,
   StudentGradesTable,
 } from '@/features/courses/grades/course-grades-table.tsx'
-import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
 
 export const mockStudentGradebook: CourseGradebookForStudent = {
   courseId: 'course_001',
@@ -307,9 +306,10 @@ const CourseGrades = () => {
   >([])
 
   return (
-    <CourseMainLayout
-      title={'Grades'}
-      headerRightSection={
+    <Stack gap={'md'} p={'md'}>
+      {/*Header*/}
+      <Group justify="space-between" align="center">
+        <Title>Grades</Title>
         <Group align="start">
           {role === 'student' ? (
             <SearchComponent<StudentAssignmentGrade>
@@ -333,14 +333,14 @@ const CourseGrades = () => {
             </Button>
           </Group>
         </Group>
-      }
-    >
+      </Group>
+
       {role === 'student' ? (
         <StudentGradesTable assignments={studentFiltered} />
       ) : (
         <MentorGradesTable assignments={mentorFiltered} />
       )}
-    </CourseMainLayout>
+    </Stack>
   )
 }
 

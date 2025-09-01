@@ -16,11 +16,13 @@ interface EditorState {
   mode: 'create' | 'edit'
 }
 
-type ModuleCreationPanelProps = {
+type CurriculumManagementPanelProps = {
   courseCode?: string
 }
 
-const ModuleCreationPanel = ({ courseCode }: ModuleCreationPanelProps) => {
+const CurriculumManagementPanel = ({
+  courseCode,
+}: CurriculumManagementPanelProps) => {
   const theme = useMantineTheme()
 
   const [editorState, setEditorState] = useState<EditorState>({
@@ -72,7 +74,7 @@ const ModuleCreationPanel = ({ courseCode }: ModuleCreationPanelProps) => {
   return (
     <PanelGroup direction="horizontal" style={{ height: '100%' }}>
       <Panel minSize={30}>
-        <Container p="xl">
+        <Container>
           <Group justify="space-between" align="center" mb="md">
             <Title order={4}>Course Structure</Title>
             <Button
@@ -122,4 +124,4 @@ const ModuleCreationPanel = ({ courseCode }: ModuleCreationPanelProps) => {
   )
 }
 
-export default ModuleCreationPanel
+export default CurriculumManagementPanel

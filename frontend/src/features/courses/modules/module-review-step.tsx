@@ -52,7 +52,7 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
   )
 
   return (
-    <Container h="100%" p="xl" mb={'xl'}>
+    <Container h="100%" mb={'xl'}>
       <Title order={3} mb="lg">
         Review Course Structure
       </Title>
