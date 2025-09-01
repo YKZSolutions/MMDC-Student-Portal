@@ -1,5 +1,6 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import SupabaseAvatar from '@/components/supabase-avatar'
+import { SuspendedProfile } from '@/features/profile/suspense'
 import type {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
@@ -8,17 +9,15 @@ import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
   Button,
-  Card,
   Container,
   Flex,
   Grid,
   Group,
   Paper,
   rem,
-  Skeleton,
   Stack,
   Text,
-  Title,
+  Title
 } from '@mantine/core'
 import {
   IconBriefcase,
@@ -45,28 +44,6 @@ function ProfileQueryProvider({
   const { data } = useSuspenseQuery(usersControllerGetMeOptions())
 
   return children(data)
-}
-
-function SuspendedProfile() {
-  return (
-    <Container size="lg" py="xl">
-      <Card
-        shadow="sm"
-        radius="xl"
-        p="xl"
-        withBorder
-        style={{ maxWidth: 800, margin: '0 auto' }}
-      >
-        <Stack gap="md">
-          <Skeleton height={28} width="40%" />
-          <Skeleton height={18} width="60%" />
-          <Skeleton height={120} width={120} radius="xl" />
-          <Skeleton height={18} width="80%" />
-          <Skeleton height={18} width="90%" />
-        </Stack>
-      </Card>
-    </Container>
-  )
 }
 
 function ProfilePage() {
