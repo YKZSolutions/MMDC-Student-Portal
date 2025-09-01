@@ -1,61 +1,42 @@
 import {
+  Box,
   Button,
-  Container,
   Divider,
   Group,
   Modal,
   type ModalProps,
   Paper,
+  ScrollArea,
   Stack,
-  Tabs,
   Title,
+  useMantineTheme,
 } from '@mantine/core'
-import { IconEdit, IconEye } from '@tabler/icons-react'
 import { useState } from 'react'
 import {
   BasicTextStyleButton,
   BlockNoteViewEditor,
   BlockTypeSelect,
   ColorStyleButton,
-  FileCaptionButton,
-  FileReplaceButton,
+  CreateLinkButton,
   FormattingToolbar,
-  FormattingToolbarController,
   NestBlockButton,
   TextAlignButton,
   UnnestBlockButton,
+  useComponentsContext,
   useCreateBlockNote,
-  useEditorChange,
 } from '@blocknote/react'
-import type { Block } from '@blocknote/core'
 import { BlockNoteView } from '@blocknote/mantine'
+import { mockInitialContent } from '@/features/courses/mocks.ts'
+import { IconEdit, IconEye } from '@tabler/icons-react'
+import { theme } from '@/integrations/mantine/mantine-theme.ts'
 
 interface EditorWithPreviewProps {
   content: string
   onChange: (content: string) => void
 }
 
-const mockInitialContent: Block[] = [
-  {
-    id: 'block-1',
-    type: 'paragraph',
-    props: {
-      textColor: 'default',
-      backgroundColor: 'default',
-      textAlignment: 'left',
-    },
-    content: [
-      {
-        type: 'text',
-        text: 'Hello! This is the initial content.',
-        styles: {},
-      },
-    ],
-    children: [],
-  },
-]
-
 const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
+  const theme = useMantineTheme()
   const mockInitialContentString = JSON.stringify(mockInitialContent)
 
   const editor = useCreateBlockNote({
@@ -64,94 +45,64 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
 
   const [previewContent, setPreviewContent] = useState<string>('')
 
-  useEditorChange((editor) => {
-    ;(async () => {
-      // 1. Get JSON blocks
-      const savedBlocks = editor.document
-
-      // 2. Convert to HTML for preview
-      const html = await editor.blocksToFullHTML(savedBlocks)
-
-      // 3. Save Convert to JSON for saving
-      const jsonObject = JSON.stringify(savedBlocks)
-
-      setPreviewContent(html)
-      // Save to database
-      onChange?.(jsonObject)
-    })()
-  }, editor)
+  // useEditorChange((editor) => {
+  //   ;(async () => {
+  //     // 1. Get JSON blocks
+  //     const savedBlocks = editor.document
+  //
+  //     // 2. Convert to HTML for preview
+  //     const html = await editor.blocksToFullHTML(savedBlocks)
+  //
+  //     // 3. Save Convert to JSON for saving
+  //     const jsonObject = JSON.stringify(savedBlocks)
+  //
+  //     setPreviewContent(html)
+  //     // Save to database
+  //     onChange?.(jsonObject)
+  //   })()
+  // }, editor)
 
   return (
-    <Tabs defaultValue="edit" h={'100%'}>
-      <Tabs.List>
-        <Tabs.Tab value="edit" leftSection={<IconEdit size={14} />}>
-          Edit
-        </Tabs.Tab>
-        <Tabs.Tab value="preview" leftSection={<IconEye size={14} />}>
-          Preview
-        </Tabs.Tab>
-      </Tabs.List>
-
-      <Tabs.Panel value="edit">
-        <Container size={'xl'} p={'xl'}>
-          <BlockNoteView editor={editor} theme={'light'} renderEditor={false}>
-            <Stack gap={'md'}>
-              <FormattingToolbarController
-                formattingToolbar={() => (
-                  <FormattingToolbar>
-                    <BlockTypeSelect key={'blockTypeSelect'} />
-                    <FileCaptionButton key={'fileCaptionButton'} />
-                    <FileReplaceButton key={'replaceFileButton'} />
-                    <BasicTextStyleButton
-                      basicTextStyle={'bold'}
-                      key={'boldStyleButton'}
-                    />
-                    <BasicTextStyleButton
-                      basicTextStyle={'italic'}
-                      key={'italicStyleButton'}
-                    />
-                    <BasicTextStyleButton
-                      basicTextStyle={'underline'}
-                      key={'underlineStyleButton'}
-                    />
-                    <BasicTextStyleButton
-                      basicTextStyle={'strike'}
-                      key={'strikeStyleButton'}
-                    />
-                    {/* Extra button to toggle code styles */}
-                    <BasicTextStyleButton
-                      key={'codeStyleButton'}
-                      basicTextStyle={'code'}
-                    />
-                    <TextAlignButton
-                      textAlignment={'left'}
-                      key={'textAlignLeftButton'}
-                    />
-                    <TextAlignButton
-                      textAlignment={'center'}
-                      key={'textAlignCenterButton'}
-                    />
-                    <TextAlignButton
-                      textAlignment={'right'}
-                      key={'textAlignRightButton'}
-                    />
-                    <ColorStyleButton key={'colorStyleButton'} />
-                    <NestBlockButton key={'nestBlockButton'} />
-                    <UnnestBlockButton key={'unnestBlockButton'} />
-                  </FormattingToolbar>
-                )}
-              />
-              <Paper
-                withBorder
-                p="4px"
-                display={'flex'}
-                flex={1}
-                className="rt-header"
-              >
-                <FormattingToolbar>
-                  <BlockTypeSelect key={'blockTypeSelect'} />
-                  <FileCaptionButton key={'fileCaptionButton'} />
-                  <FileReplaceButton key={'replaceFileButton'} />
+    <Box
+      style={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+      pb={'xl'}
+    >
+      <BlockNoteView
+        editor={editor}
+        theme={'light'}
+        renderEditor={false}
+        formattingToolbar={false}
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <Stack align={'center'} style={{ height: '100%', width: '100%' }}>
+          <Paper
+            radius={0}
+            p="0.25rem"
+            display={'flex'}
+            className="rt-header"
+            withBorder
+            style={{
+              flexShrink: 0,
+              width: '100%',
+              borderTop: 'none',
+            }}
+          >
+            <FormattingToolbar>
+              <Group gap={12} align="center">
+                <BlockTypeSelect key={'blockTypeSelect'} />
+                <Divider orientation="vertical" />
+                <Group gap={2}>
+                  <ColorStyleButton key={'colorStyleButton'} />
                   <BasicTextStyleButton
                     basicTextStyle={'bold'}
                     key={'boldStyleButton'}
@@ -168,11 +119,14 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
                     basicTextStyle={'strike'}
                     key={'strikeStyleButton'}
                   />
-                  {/* Extra button to toggle code styles */}
                   <BasicTextStyleButton
                     key={'codeStyleButton'}
                     basicTextStyle={'code'}
                   />
+                  <CreateLinkButton key={'createLinkButton'} />
+                </Group>
+                <Divider orientation="vertical" />
+                <Group gap={2}>
                   <TextAlignButton
                     textAlignment={'left'}
                     key={'textAlignLeftButton'}
@@ -185,26 +139,75 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
                     textAlignment={'right'}
                     key={'textAlignRightButton'}
                   />
-                  <ColorStyleButton key={'colorStyleButton'} />
+                  <TextAlignButton
+                    textAlignment={'justify'}
+                    key={'textAlignJustifyButton'}
+                  />
+                </Group>
+                <Divider orientation="vertical" />
+                <Group gap={2}>
                   <NestBlockButton key={'nestBlockButton'} />
                   <UnnestBlockButton key={'unnestBlockButton'} />
-                </FormattingToolbar>
-              </Paper>
-              <BlockNoteViewEditor />
-            </Stack>
-          </BlockNoteView>
-        </Container>
-      </Tabs.Panel>
+                </Group>
+                <Divider orientation="vertical" />
+                <ModeToggleButton
+                  key={'modeToggleButton'}
+                  onChange={() => {}}
+                />
+              </Group>
+            </FormattingToolbar>
+          </Paper>
 
-      <Tabs.Panel
-        value="preview"
-        style={{ flex: 1, minHeight: 0, overflow: 'auto' }}
-      >
-        <Paper shadow="xs" p="md" style={{ height: '100%', overflow: 'auto' }}>
-          <div className="prose max-w-none">{previewContent}</div>
-        </Paper>
-      </Tabs.Panel>
-    </Tabs>
+          <ScrollArea
+            w={'100%'}
+            type="scroll"
+            style={{
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
+            <Box
+              style={{
+                minHeight: '90%',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                style={{
+                  width: '80%',
+                  maxWidth: '1080px',
+                  minWidth: '300px',
+                }}
+              >
+                <BlockNoteViewEditor />
+              </Box>
+            </Box>
+          </ScrollArea>
+        </Stack>
+      </BlockNoteView>
+    </Box>
+  )
+}
+
+export function ModeToggleButton({
+  onChange,
+}: {
+  onChange: (mode: 'edit' | 'preview') => void
+}) {
+  const [mode, setMode] = useState<'edit' | 'preview'>('edit')
+  const Components = useComponentsContext()!
+
+  return (
+    <Components.FormattingToolbar.Button
+      mainTooltip={
+        mode === 'edit' ? 'Switch to Preview Mode' : 'Switch to Edit Mode'
+      }
+      onClick={() => setMode(mode === 'edit' ? 'preview' : 'edit')}
+      icon={mode === 'preview' ? <IconEdit size={16} /> : <IconEye size={16} />}
+      label={mode === 'preview' ? 'Edit Mode' : 'Preview Mode'}
+    ></Components.FormattingToolbar.Button>
   )
 }
 
