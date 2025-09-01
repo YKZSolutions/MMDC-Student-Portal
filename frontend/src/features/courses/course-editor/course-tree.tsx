@@ -12,27 +12,31 @@ import {
   alpha,
   Group,
   Menu,
+  Popover,
   Stack,
   Text,
   useMantineTheme,
 } from '@mantine/core'
 import {
+  IconChevronRight,
   IconDotsVertical,
   IconEdit,
   IconFile,
-  IconFolder,
-  IconFolderFilled,
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react'
 import { useTreeConnectors } from '@/features/courses/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
-import { getChildTypeFromParentType } from '@/utils/helpers.ts'
 import {
+  convertContentNodesToTreeNodes,
+  getChildTypeFromParentType,
+} from '@/utils/helpers.ts'
+import {
+  type ContentNode,
   type ContentNodeType,
   type CourseNodeModel,
-  mockModuleTreeData,
 } from '@/features/courses/modules/types.ts'
+import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
 
 const reorderArray = (
   array: CourseNodeModel[],
@@ -96,21 +100,23 @@ interface CourseTreeProps {
     nodeType: ContentNodeType,
     nodeData: any,
   ) => void
-  courseCode: string
+  courseData: ContentNode[]
 }
 
 function CourseTree({
   onAddButtonClick,
   onEditButtonClick,
-  courseCode,
+  courseData,
 }: CourseTreeProps) {
   const theme = useMantineTheme()
-  const treeWithAddButtons = injectData(mockModuleTreeData) //TODO: replace with actual data
-  const [treeData, setTreeData] =
-    useState<CourseNodeModel[]>(treeWithAddButtons)
+
+  const [treeData, setTreeData] = useState<CourseNodeModel[]>(
+    injectData(convertContentNodesToTreeNodes(courseData)),
+  )
   const { isLastChild, getAncestors } = useTreeConnectors(treeData)
 
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [openedDetailsId, setOpenedDetailsId] = useState<string | null>(null)
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
     const { dragSourceId, dropTargetId, destinationIndex } = e
@@ -245,6 +251,8 @@ function CourseTree({
                   onAddButtonClick={onAddButtonClick}
                   onEditButtonClick={handleEdit}
                   onDeleteButtonClick={handleDelete}
+                  openedDetailsId={openedDetailsId}
+                  setOpenedDetailsId={setOpenedDetailsId}
                 />
               </div>
             )
@@ -265,6 +273,8 @@ type NodeProps = {
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
   onEditButtonClick: (node: CourseNodeModel) => void
   onDeleteButtonClick: (nodeId: string | number) => void
+  openedDetailsId: string | null
+  setOpenedDetailsId: (id: string | null) => void
 }
 
 const NodeRow = ({
@@ -277,8 +287,15 @@ const NodeRow = ({
   onAddButtonClick,
   onEditButtonClick,
   onDeleteButtonClick,
+  openedDetailsId,
+  setOpenedDetailsId,
 }: NodeProps) => {
   const theme = useMantineTheme()
+
+  const handleSave = (data: any) => {
+    console.log('Saving data:', data)
+    // TODO: update state or make an API call
+  }
 
   if (node.data?.type === 'add-button') {
     return (
@@ -291,6 +308,7 @@ const NodeRow = ({
           color: theme.colors.blue[6],
           fontStyle: 'italic',
         }}
+        wrap={'nowrap'}
         onClick={() =>
           onAddButtonClick(
             node.parent as string,
@@ -299,7 +317,7 @@ const NodeRow = ({
         }
       >
         <IconPlus size={16} />
-        <Text size="sm" fw={500}>
+        <Text size="sm" fw={500} truncate>
           Add{' '}
           {capitalizeFirstLetter(
             getChildTypeFromParentType(node.data?.parentType),
@@ -310,73 +328,103 @@ const NodeRow = ({
   }
 
   return (
-    <Group
-      justify="space-between"
-      px={'sm'}
-      py="0.25rem"
-      onClick={onToggle}
-      style={{
-        backgroundColor: isDropTarget
-          ? theme.colors.blue[0]
-          : hoveredId === node.id
-            ? `${alpha(theme.colors.gray[0], 0.8)}`
-            : 'transparent',
-        borderBottom: isDropTarget
-          ? `3px solid ${theme.colors.blue[5]}`
-          : '3px solid transparent',
-        borderRadius: 4,
-        transition: 'all 0.2s ease',
-        cursor: node.droppable ? 'pointer' : 'default',
-      }}
-      onMouseEnter={() => setHoveredId(node.id as string)}
-      onMouseLeave={() => setHoveredId(null)}
+    <Popover
+      position="left-start"
+      width="target"
+      withArrow
+      shadow="md"
+      offset={{ mainAxis: 12, crossAxis: 12 }}
+      opened={openedDetailsId === node.id}
+      onClose={() => setOpenedDetailsId(null)}
     >
-      <Group gap={'xs'}>
-        {node.droppable ? (
-          isOpen ? (
-            <IconFolder size={20} />
-          ) : (
-            <IconFolderFilled size={20} />
-          )
-        ) : (
-          <IconFile size={20} />
-        )}
-
-        <Text
-          fw={node.data?.type === 'module' ? 600 : 400}
-          size={'md'}
-          lh={'xs'}
+      <Popover.Target>
+        <Group
+          justify="space-between"
+          px={'sm'}
+          py="0.25rem"
+          style={{
+            backgroundColor: isDropTarget
+              ? theme.colors.blue[0]
+              : hoveredId === node.id
+                ? `${alpha(theme.colors.gray[0], 0.8)}`
+                : 'transparent',
+            borderBottom: isDropTarget
+              ? `3px solid ${theme.colors.blue[5]}`
+              : '3px solid transparent',
+            borderRadius: 4,
+            transition: 'all 0.2s ease',
+            cursor: node.droppable ? 'pointer' : 'default',
+          }}
+          wrap={'nowrap'}
+          onMouseEnter={() => setHoveredId(node.id as string)}
+          onMouseLeave={() => setHoveredId(null)}
+          onClick={() => setOpenedDetailsId(node.id as string)}
         >
-          {node.text}
-        </Text>
-        <Text size="xs" c="dimmed">
-          {node.data?.type}
-        </Text>
-      </Group>
+          <Group gap={'xs'} wrap={'nowrap'} miw={200} style={{ flex: 1 }}>
+            {node.droppable ? (
+              <ActionIcon onClick={onToggle} variant={'subtle'}>
+                <IconChevronRight
+                  size={20}
+                  style={{
+                    transition: 'transform 0.2s ease',
+                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </ActionIcon>
+            ) : (
+              <IconFile size={20} />
+            )}
 
-      <Menu withinPortal shadow="md" width={150}>
-        <Menu.Target>
-          <ActionIcon variant="subtle" radius="xl">
-            <IconDotsVertical size={16} />
-          </ActionIcon>
-        </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Item
-            leftSection={<IconEdit size={14} />}
-            onClick={() => onEditButtonClick(node)}
-          >
-            Edit
-          </Menu.Item>
-          <Menu.Item
-            color="red"
-            leftSection={<IconTrash size={14} />}
-            onClick={() => onDeleteButtonClick(node.id)}
-          >
-            Delete
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
-    </Group>
+            <Text
+              fw={node.data?.type === 'module' ? 600 : 400}
+              size={'sm'}
+              lh={'xs'}
+              truncate
+            >
+              {node.text}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {node.data?.type}
+            </Text>
+          </Group>
+
+          <Menu withinPortal shadow="md" width={150}>
+            <Menu.Target>
+              <ActionIcon variant="subtle" radius="xl">
+                <IconDotsVertical size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<IconEdit size={14} />}
+                onClick={() => onEditButtonClick(node)}
+              >
+                Edit
+              </Menu.Item>
+              <Menu.Item
+                color="red"
+                leftSection={<IconTrash size={14} />}
+                onClick={() => onDeleteButtonClick(node.id)}
+              >
+                Delete
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <ContentDetailsEditor
+          opened={true}
+          type={node.data?.type as ContentNodeType}
+          data={node.data?.contentData || null}
+          mode={'edit'}
+          onClose={() => {
+            setOpenedDetailsId(null)
+          }}
+          onSave={handleSave}
+        />
+      </Popover.Dropdown>
+    </Popover>
   )
 }
 
