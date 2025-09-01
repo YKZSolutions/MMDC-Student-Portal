@@ -61,7 +61,7 @@ function RouteComponent() {
                 <Burger
                   opened={sidebarOpened}
                   onClick={() => setSidebarOpened((o) => !o)}
-                  size="md"
+                  size="sm"
                   aria-label="Toggle sidebar"
                 />
               )}
