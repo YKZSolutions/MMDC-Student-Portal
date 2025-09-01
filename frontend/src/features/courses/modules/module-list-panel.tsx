@@ -14,7 +14,7 @@ import {
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { getSubmissionStatus } from '@/utils/helpers.ts'
-import { mockAssignmentsData } from '@/pages/shared/courses/$courseId/assignments/course-assignments.tsx'
+import { mockAssignmentsData } from '@/pages/shared/courses/$courseCode/assignments/course-assignments.tsx'
 import type {
   CourseModule,
   ModuleItem,

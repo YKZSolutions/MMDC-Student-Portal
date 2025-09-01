@@ -1,6 +1,6 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import { Avatar, Button, Image, Menu, Stack, Text } from '@mantine/core'
+import { Button, Image, Menu, Stack, Text } from '@mantine/core'
 import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react'
 import NavButton from '@/features/navigation/nav-button'
 import type { User } from '@supabase/supabase-js'
@@ -13,6 +13,10 @@ import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack
 
 function Sidebar() {
   const { authUser } = useAuth('protected')
+
+  if (!authUser) {
+    return null //TODO: or a loader / skeleton
+  }
 
   return (
     <Stack className="sticky top-0 left-0 w-52 h-screen">

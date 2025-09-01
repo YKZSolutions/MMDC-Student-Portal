@@ -8,14 +8,21 @@ import {
   type ModalProps,
   Stack,
   Title,
+  useModalsStack,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
 import { CardWithModal } from '@/components/with-modal.tsx'
+import BtnCard from '@/components/btn-card.tsx'
+import CourseSelector from '@/features/courses/edit/course-selector.tsx'
+import React, { useState } from 'react'
 
 const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
+  const [isCourseSelectorOpen, setIsCourseSelectorOpen] = useState(false)
+  const stack = useModalsStack(['first', 'second'])
+
   return (
     <Modal
+      {...stack.register('first')}
       opened={opened}
       onClose={onClose}
       title={<Title order={3}>Manage Content</Title>}
@@ -38,18 +45,26 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
               title={'Course'}
               description={'Create a new course that students can enroll in.'}
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal}
             />
           </GridCol>
           <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Module'}
               description={
                 'Create a new module that contains assignments and other content.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              onClick={() => {
+                setIsCourseSelectorOpen(true)
+              }}
             />
+            {isCourseSelectorOpen && (
+              <CourseSelector
+                {...stack.register('second')}
+                onClose={() => setIsCourseSelectorOpen(false)}
+              />
+            )}
           </GridCol>
           <GridCol span={6}>
             <CardWithModal
@@ -58,7 +73,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
                 'Create a new educational content that can be used in modules.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -68,7 +83,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
                 'Create a new assignment or task that students can complete.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -78,7 +93,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
                 'Create a new student group that can be used to grade multiple students at once.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal}
             />
           </GridCol>
           <GridCol span={6}>
@@ -86,7 +101,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
               title={'Progress Report'}
               description={'Create a new progress report that admins can view.'}
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal}
             />
           </GridCol>
         </Grid>
@@ -105,5 +120,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
     </Modal>
   )
 }
+
+CourseActionsModal.displayName = 'CourseActionsModal'
 
 export default CourseActionsModal

@@ -38,8 +38,7 @@ import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { ButtonWithModal } from '@/components/with-modal.tsx'
-import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
+import CourseSelector from '@/features/courses/edit/course-selector.tsx'
 
 // TODO: Consider adding program and/or department and major to the course data
 // TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
@@ -174,6 +173,7 @@ const CourseDashboard = ({
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [isCourseSelectorOpen, setIsCourseSelectorOpen] = useState(false)
 
   const formatTerm = (academicTerm: EnrolledAcademicTerm | undefined) => {
     return academicTerm
@@ -200,11 +200,20 @@ const CourseDashboard = ({
             All Courses
           </Title>
           {authUser.role !== 'student' && (
-            <ButtonWithModal
-              label={'Manage Course'}
-              icon={<IconTool />}
-              modalComponent={ModuleCreationProcessModal}
-            ></ButtonWithModal>
+            <>
+              <Button
+                bg={'secondary'}
+                leftSection={<IconTool size={16} />}
+                onClick={() => setIsCourseSelectorOpen(true)}
+              >
+                Manage Course
+              </Button>
+              {isCourseSelectorOpen && (
+                <CourseSelector
+                  onClose={() => setIsCourseSelectorOpen(false)}
+                />
+              )}
+            </>
           )}
         </Group>
 
