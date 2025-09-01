@@ -1,4 +1,12 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
+import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
@@ -7,17 +15,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
-import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
-import { Log } from '@/common/decorators/log.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
+import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
+import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -149,9 +149,20 @@ export class EnrollmentService {
     @LogParam('id') id: string,
     updateEnrollmentStatusDto: UpdateEnrollmentStatusDto,
   ): Promise<EnrollmentPeriodDto> {
-    return await this.prisma.client.enrollmentPeriod.update({
-      where: { id },
-      data: { ...updateEnrollmentStatusDto },
+    return this.prisma.client.$transaction(async (tx) => {
+      if (updateEnrollmentStatusDto.status === 'active') {
+        // Close all others first
+        await tx.enrollmentPeriod.updateMany({
+          where: { status: 'active', NOT: { id } },
+          data: { status: 'closed' },
+        });
+      }
+
+      // Then update the requested one
+      return tx.enrollmentPeriod.update({
+        where: { id },
+        data: { ...updateEnrollmentStatusDto },
+      });
     });
   }
 

@@ -1,25 +1,26 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  BadRequestException,
-  NotFoundException,
-  ParseUUIDPipe,
-} from '@nestjs/common';
-import { EnrollmentService } from './enrollment.service';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
 import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { ApiOkResponse } from '@nestjs/swagger';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { EnrollmentService } from './enrollment.service';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -147,7 +148,11 @@ export class EnrollmentController {
   @Delete(':enrollmentId')
   removeEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Query() query?: DeleteQueryDto,
   ) {
-    return this.enrollmentService.removeEnrollment(enrollmentId);
+    return this.enrollmentService.removeEnrollment(
+      enrollmentId,
+      query?.directDelete,
+    );
   }
 }

@@ -1,20 +1,53 @@
-import { formatPaginationMessage } from '@/utils/formatters'
+import { SuspendedPagination } from '@/components/suspense-pagination'
+import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
+import {
+  SuspendedAdminEnrollmentCourseOfferingCards,
+  SuspendedStudentEnrollmentFinalizationSectionCards,
+} from '@/features/enrollment/suspense'
+import {
+  type CourseOfferingControllerFindCourseOfferingsByPeriodData,
+  type DetailedCourseEnrollmentDto,
+  type DetailedCourseOfferingDto,
+  type DetailedCourseSectionDto,
+  type EnrollmentPeriodDto,
+} from '@/integrations/api/client'
+import {
+  courseEnrollmentControllerCreateCourseEnrollmentMutation,
+  courseEnrollmentControllerDropCourseEnrollmentMutation,
+  courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
+  courseEnrollmentControllerGetCourseEnrollmentsOptions,
+  courseEnrollmentControllerGetCourseEnrollmentsQueryKey,
+  courseOfferingControllerFindCourseOfferingsByPeriodOptions,
+  enrollmentControllerFindActiveEnrollmentOptions,
+  enrollmentControllerFindActiveEnrollmentQueryKey,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import {
+  formatDaysAbbrev,
+  formatPaginationMessage,
+  formatToSchoolYear,
+  formatToTimeOfDay,
+} from '@/utils/formatters'
 import {
   Accordion,
   Badge,
   Box,
   Button,
   Card,
+  Center,
   Checkbox,
   Container,
   Divider,
   Flex,
   Group,
+  LoadingOverlay,
   Pagination,
   Paper,
   Popover,
   rem,
   SegmentedControl,
+  Skeleton,
   Stack,
   Tabs,
   Text,
@@ -23,12 +56,21 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core'
-import { IconFilter2, IconSearch, type ReactNode } from '@tabler/icons-react'
+import { modals } from '@mantine/modals'
+import {
+  IconBook,
+  IconFilter2,
+  IconSearch,
+  type ReactNode,
+} from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/')
+
+const { queryClient } = getContext()
 
 const tabsData = [
   {
@@ -40,6 +82,21 @@ const tabsData = [
     value: 'finalization',
     label: 'Finalization',
     Component: FinalizationPanel,
+  },
+]
+
+const segmentedControlData = [
+  {
+    label: 'All',
+    value: 'all' satisfies IEnrollmentStudentQuery['status'],
+  },
+  {
+    label: 'Enrolled',
+    value: 'enrolled' satisfies IEnrollmentStudentQuery['status'],
+  },
+  {
+    label: 'Not Enrolled',
+    value: 'not enrolled' satisfies IEnrollmentStudentQuery['status'],
   },
 ]
 
@@ -73,235 +130,14 @@ const paymentSchemeData = [
   },
 ] as IPaymentScheme[]
 
-const mockCourseData = [
-  {
-    id: 1,
-    name: 'Capstone 1',
-    code: 'MO-IT200',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A1234',
-        schedule: {
-          days: 'MWF',
-          time: '8:00 - 9:00 AM',
-        },
-        takenSlots: 0,
-        maxSlots: 30,
-      },
-      {
-        sectionName: 'H5678',
-        schedule: {
-          days: 'MWF',
-          time: '2:00 - 3:00 PM',
-        },
-        takenSlots: 0,
-        maxSlots: 30,
-      },
-      {
-        sectionName: 'S9101',
-        schedule: {
-          days: 'MWF',
-          time: '8:00 - 9:00 PM',
-        },
-        takenSlots: 0,
-        maxSlots: 30,
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Data Structures & Algorithms',
-    code: 'MO-IT351',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A1122',
-        schedule: {
-          days: 'TTh',
-          time: '10:00 - 11:30 AM',
-        },
-        takenSlots: 15,
-        maxSlots: 30,
-      },
-      {
-        sectionName: 'H3344',
-        schedule: {
-          days: 'MWF',
-          time: '1:00 - 2:00 PM',
-        },
-        takenSlots: 10,
-        maxSlots: 30,
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Web Technology Applications',
-    code: 'MO-BS400',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A5566',
-        schedule: {
-          days: 'MWF',
-          time: '9:00 - 11:00 AM',
-        },
-        takenSlots: 25,
-        maxSlots: 25,
-      },
-      {
-        sectionName: 'H7788',
-        schedule: {
-          days: 'MWF',
-          time: '1:00 - 3:00 PM',
-        },
-        takenSlots: 20,
-        maxSlots: 25,
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Object-Oriented Programming',
-    code: 'MO-IT210',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A4321',
-        schedule: {
-          days: 'MW',
-          time: '10:00 - 11:30 AM',
-        },
-        takenSlots: 12,
-        maxSlots: 35,
-      },
-    ],
-  },
-  {
-    id: 5,
-    name: 'Database Systems',
-    code: 'MO-BS301',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'S8765',
-        schedule: {
-          days: 'TTh',
-          time: '1:30 - 3:00 PM',
-        },
-        takenSlots: 8,
-        maxSlots: 20,
-      },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Human-Computer Interaction',
-    code: 'MO-IT405',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'H9876',
-        schedule: {
-          days: 'F',
-          time: '9:00 - 12:00 PM',
-        },
-        takenSlots: 5,
-        maxSlots: 25,
-      },
-    ],
-  },
-  {
-    id: 7,
-    name: 'Introduction to Psychology',
-    code: 'MO-BS101',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A1111',
-        schedule: {
-          days: 'MWF',
-          time: '9:00 - 10:00 AM',
-        },
-        takenSlots: 18,
-        maxSlots: 40,
-      },
-    ],
-  },
-  {
-    id: 8,
-    name: 'Calculus I',
-    code: 'MO-BS150',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A2222',
-        schedule: {
-          days: 'TTh',
-          time: '8:00 - 9:30 AM',
-        },
-        takenSlots: 20,
-        maxSlots: 25,
-      },
-    ],
-  },
-  {
-    id: 9,
-    name: 'Computer Networks',
-    code: 'MO-IT320',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'H3333',
-        schedule: {
-          days: 'MW',
-          time: '3:00 - 4:30 PM',
-        },
-        takenSlots: 7,
-        maxSlots: 30,
-      },
-    ],
-  },
-  {
-    id: 10,
-    name: 'System Analysis and Design',
-    code: 'MO-IT410',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'S4444',
-        schedule: {
-          days: 'T',
-          time: '1:00 - 4:00 PM',
-        },
-        takenSlots: 10,
-        maxSlots: 15,
-      },
-    ],
-  },
-  {
-    id: 11,
-    name: 'Professional Ethics',
-    code: 'MO-BS220',
-    credits: 3,
-    sections: [
-      {
-        sectionName: 'A5555',
-        schedule: {
-          days: 'W',
-          time: '10:00 - 12:00 PM',
-        },
-        takenSlots: 11,
-        maxSlots: 20,
-      },
-    ],
-  },
-]
-
 interface IEnrollmentStudentQuery {
   search: string
   page: number
+  status:
+    | NonNullable<
+        CourseOfferingControllerFindCourseOfferingsByPeriodData['query']
+      >['status']
+    | 'all'
 }
 
 function EnrollmentStudentQueryProvider({
@@ -309,39 +145,107 @@ function EnrollmentStudentQueryProvider({
   props = {
     search: '',
     page: 1,
+    status: undefined,
   },
 }: {
   children: (props: {
-    courseData: typeof mockCourseData
+    enrollmentPeriodData: EnrollmentPeriodDto
+    courseOfferings: DetailedCourseOfferingDto[]
     message: string
     totalPages: number
   }) => ReactNode
   props?: IEnrollmentStudentQuery
 }) {
-  const { search, page } = props
+  const { search, page, status } = props
 
-  // const { data } = useSuspenseQuery(
-  //   usersControllerFindAllOptions({
-  //     query: { search, page, ...(role && { role }) },
-  //   }),
-  // )
+  const { data: enrollmentPeriodData } = useSuspenseQuery(
+    enrollmentControllerFindActiveEnrollmentOptions(),
+  )
 
-  const courseData = mockCourseData
+  const { data: courseData } = useSuspenseQuery(
+    courseOfferingControllerFindCourseOfferingsByPeriodOptions({
+      query: {
+        page: page,
+        search: search || undefined,
+        status: status == 'all' ? undefined : status,
+      },
+      path: {
+        enrollmentId: enrollmentPeriodData.id,
+      },
+    }),
+  )
+
+  const courseOfferings = courseData.courseOfferings
 
   const limit = 10
-  const total = mockCourseData.length
+  const total = courseOfferings.length
   const totalPages = 1
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const message = formatPaginationMessage({
+    page,
+    total,
+    limit,
+  })
+
+  console.log(courseOfferings)
 
   return children({
-    courseData,
+    enrollmentPeriodData,
+    courseOfferings,
     message,
     totalPages,
   })
 }
 
+function EnrollmentStudentFinalizationQueryProvider({
+  children,
+}: {
+  children: (props: {
+    enrolledCourses: DetailedCourseEnrollmentDto[]
+  }) => ReactNode
+}) {
+  const searchParam: {
+    tab: (typeof tabsData)[number]['value']
+  } = route.useSearch()
+
+  const { data: enrolledCourses, refetch } = useSuspenseQuery({
+    ...courseEnrollmentControllerGetCourseEnrollmentsOptions(),
+  })
+
+  /**
+   * Refetch enrolled courses when the tab changes to finalization
+   *
+   * I'M VERY SORRY FOR THIS IMPLEMENTATION. THERE'S NO OTHER WAY TO ACHIEVE THIS
+   */
+  useEffect(() => {
+    if (searchParam.tab == 'finalization') {
+      refetch()
+    }
+  }, [searchParam.tab])
+
+  return children({ enrolledCourses })
+}
+
 function EnrollmentStudentPage() {
+  const navigate = useNavigate()
+  const searchParam: {
+    tab: (typeof tabsData)[number]['value']
+  } = route.useSearch()
+
+  const handleChangeTab = (
+    value: (typeof tabsData)[number]['value'] | null,
+  ) => {
+    if (!value) return
+
+    navigate({
+      to: '/enrollment',
+      search: (prev) => ({
+        ...prev,
+        tab: value !== 'course-selection' ? value : undefined,
+      }),
+    })
+  }
+
   return (
     <Container size={'md'} w={'100%'} pb={'xl'}>
       <Stack gap={'xl'}>
@@ -355,37 +259,65 @@ function EnrollmentStudentPage() {
               Manage your enrollment for this semester.
             </Text>
           </Box>
-          <Group>
-            <Title c={'dark.7'} order={2} fw={700}>
-              2023 - 2024
-            </Title>
-            <Divider orientation="vertical" />
-            <Title c={'dark.7'} order={2} fw={700}>
-              Term 2
-            </Title>
-          </Group>
+          <Suspense
+            fallback={<Skeleton height={40} width={rem(250)} radius="md" />}
+          >
+            <EnrollmentStudentQueryProvider>
+              {({ enrollmentPeriodData }) => (
+                <Group>
+                  <Title c={'dark.7'} order={2} fw={700}>
+                    {formatToSchoolYear(
+                      enrollmentPeriodData.startYear,
+                      enrollmentPeriodData.endYear,
+                    )}
+                  </Title>
+                  <Divider orientation="vertical" />
+                  <Title c={'dark.7'} order={2} fw={700}>
+                    Term {enrollmentPeriodData.term}
+                  </Title>
+                </Group>
+              )}
+            </EnrollmentStudentQueryProvider>
+          </Suspense>
         </Group>
 
         {/* Main Tabs */}
         {/* Don't modify page layout here. Instead,
         modify each component provided in tabsData */}
 
-        <Tabs defaultValue={tabsData[0].value} inverted radius={'md'}>
+        <Tabs
+          defaultValue={searchParam.tab || tabsData[0].value}
+          onChange={(e) => handleChangeTab(e)}
+          inverted
+          radius={'md'}
+        >
           <Stack>
             <Tabs.List grow>
-              {tabsData.map((tab) => (
-                <Tabs.Tab
-                  style={{
-                    borderTopWidth: rem(5),
-                  }}
-                  key={tab.value}
-                  value={tab.value}
-                >
-                  <Text fw={500} fz={'sm'} c={'dark.5'}>
-                    {tab.label}
-                  </Text>
-                </Tabs.Tab>
-              ))}
+              <Suspense fallback={<Skeleton height={30} radius="md" />}>
+                <EnrollmentStudentFinalizationQueryProvider>
+                  {({ enrolledCourses }) => (
+                    <>
+                      {tabsData.map((tab) => (
+                        <Tabs.Tab
+                          disabled={
+                            tab.value === 'course-selection' &&
+                            isEnrollmentFinalized(enrolledCourses)
+                          }
+                          style={{
+                            borderTopWidth: rem(5),
+                          }}
+                          key={tab.value}
+                          value={tab.value}
+                        >
+                          <Text fw={500} fz={'sm'} c={'dark.5'}>
+                            {tab.label}
+                          </Text>
+                        </Tabs.Tab>
+                      ))}
+                    </>
+                  )}
+                </EnrollmentStudentFinalizationQueryProvider>
+              </Suspense>
             </Tabs.List>
             {tabsData.map((tab) => (
               <Tabs.Panel key={tab.value + '-panel'} value={tab.value}>
@@ -402,16 +334,32 @@ function EnrollmentStudentPage() {
 function CourseSelectionPanel() {
   const searchParam: {
     search: string
+    status: IEnrollmentStudentQuery['status']
   } = route.useSearch()
   const navigate = useNavigate()
 
   const queryDefaultValues = {
     search: searchParam.search || '',
     page: 1,
-  }
+    status: searchParam.status || 'all',
+  } satisfies IEnrollmentStudentQuery
 
   const [query, setQuery] =
     useState<IEnrollmentStudentQuery>(queryDefaultValues)
+
+  const handleSegmentedControlChange = (
+    value: IEnrollmentStudentQuery['status'],
+  ) => {
+    setQuery((prev) => ({ ...prev, status: value }))
+
+    navigate({
+      to: '/enrollment',
+      search: (prev) => ({
+        ...prev,
+        status: value !== 'all' ? value : undefined,
+      }),
+    })
+  }
 
   return (
     <Stack>
@@ -422,12 +370,14 @@ function CourseSelectionPanel() {
             bd={'1px solid gray.2'}
             radius={'md'}
             data-cy="enrollment-tabs" // Add to the container
-            data={[ 
-              { label: 'All', value: 'all' },
-              { label: 'Enrolled', value: 'enrolled' },
-              { label: 'Not Enrolled', value: 'not-enrolled' },
-            ]}
+            data={segmentedControlData}
             color="primary"
+            defaultValue={query.status}
+            onChange={(e) =>
+              handleSegmentedControlChange(
+                e as IEnrollmentStudentQuery['status'],
+              )
+            }
           />
 
           <Flex align={'center'} gap={5}>
@@ -481,90 +431,120 @@ function CourseSelectionPanel() {
         <Divider />
 
         <Accordion variant="filled">
-          {mockCourseData.map((course, index) => (
-            <Fragment key={course.id}>
-              <Accordion.Item value={course.id.toString()}>
-                <Accordion.Control py={rem(5)}>
-                  <Stack gap={rem(0)}>
-                    <Text fw={500} fz={'md'}>
-                      {course.name}
-                    </Text>
-                    <Stack gap={rem(5)}>
-                      <Text fw={500} fz={'xs'} c={'dark.3'}>
-                        {course.code}
+          <Suspense fallback={<SuspendedAdminEnrollmentCourseOfferingCards />}>
+            <EnrollmentStudentQueryProvider props={query}>
+              {({ enrollmentPeriodData, courseOfferings }) => (
+                <>
+                  {courseOfferings.length === 0 && (
+                    <Stack
+                      gap={0}
+                      align="center"
+                      justify="center"
+                      py="xl"
+                      c="dark.3"
+                    >
+                      <IconBook size={36} stroke={1.5} />
+                      <Text mt="sm" fw={500}>
+                        Nothing here
                       </Text>
-                      <Badge c="gray.6" variant="light" radius="sm" size="sm">
-                        {course.sections.length} section(s)
-                      </Badge>
+                      <Text fz="sm" c="dark.2" ta="center" maw={360}>
+                        Adjust your filters if necessary.
+                      </Text>
                     </Stack>
-                  </Stack>
-                </Accordion.Control>
+                  )}
+                  {courseOfferings.map((course, index) => (
+                    <Fragment key={course.id}>
+                      <Accordion.Item
+                        value={course.id.toString()}
+                        pos={'relative'}
+                      >
+                        <Accordion.Control py={rem(5)}>
+                          <CourseOfferingAccordionControl
+                            course={course}
+                            periodId={enrollmentPeriodData.id}
+                          />
+                        </Accordion.Control>
 
-                <Accordion.Panel>
-                  <Stack>
-                    <Divider />
-                    <Stack gap={'xs'}>
-                      {course.sections.map((section) => (
-                        <Card
-                          key={section.sectionName}
-                          withBorder
-                          radius="md"
-                          py="sm"
-                        >
-                          <Group justify="space-between" align="center">
-                            <Stack gap={2}>
-                              <Group gap="xs">
-                                <Text fw={600} size="md">
-                                  {section.sectionName}
-                                </Text>
-                                <Text c="dimmed" size="xs">
-                                  Morning
-                                </Text>
-                              </Group>
-                              <Text c="dimmed" size="sm">
-                                {section.schedule.days} |{' '}
-                                {section.schedule.time}
-                              </Text>
-                            </Stack>
-                            <Stack gap={'xs'} align="flex-end">
-                              <Button size="xs" radius={'lg'}>
-                                Enroll
-                              </Button>
-                              <Badge c="gray.6" variant="light" radius="sm">
-                                {section.takenSlots} / {section.maxSlots} slots
-                              </Badge>
-                            </Stack>
-                          </Group>
-                        </Card>
-                      ))}
-                    </Stack>
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
-              <Divider hidden={index == mockCourseData.length - 1} />
-            </Fragment>
-          ))}
+                        <Accordion.Panel>
+                          <CourseOfferingAccordionPanel course={course} />
+                        </Accordion.Panel>
+                      </Accordion.Item>
+                      <Divider hidden={index == courseOfferings.length - 1} />
+                    </Fragment>
+                  ))}
+                </>
+              )}
+            </EnrollmentStudentQueryProvider>
+          </Suspense>
         </Accordion>
       </Paper>
 
-      <EnrollmentStudentQueryProvider>
-        {(props) => (
-          <Group justify="flex-end">
-            <Text size="sm">{props.message}</Text>
-            <Pagination
-              total={props.totalPages}
-              value={query.page}
-              withPages={false}
-            />
-          </Group>
-        )}
-      </EnrollmentStudentQueryProvider>
+      <Suspense fallback={<SuspendedPagination />}>
+        <EnrollmentStudentQueryProvider>
+          {(props) => (
+            <Group justify="flex-end">
+              <Text size="sm">{props.message}</Text>
+              <Pagination
+                total={props.totalPages}
+                value={query.page}
+                withPages={false}
+              />
+            </Group>
+          )}
+        </EnrollmentStudentQueryProvider>
+      </Suspense>
     </Stack>
   )
 }
 
 function FinalizationPanel() {
   const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
+
+  const { mutateAsync: finalizeMutate } = useAppMutation(
+    courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
+    {
+      loading: {
+        title: 'Finalizing enrollment',
+        message: 'Please wait while we finalize your enrollment.',
+      },
+      success: {
+        title: 'Enrollment finalized',
+        message: 'Your enrollment has been successfully finalized.',
+      },
+      error: {
+        title: 'Error finalizing enrollment',
+        message:
+          'There was an error finalizing your enrollment. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const enrolledCoursesKey =
+          courseEnrollmentControllerGetCourseEnrollmentsQueryKey()
+
+        await queryClient.cancelQueries({ queryKey: enrolledCoursesKey })
+
+        await queryClient.invalidateQueries({ queryKey: enrolledCoursesKey })
+      },
+    },
+  )
+
+  const handleFinalizeEnrollment = async () => {
+    modals.openConfirmModal({
+      title: 'Confirm Finalization',
+      centered: true,
+      children: (
+        <Text size="sm">
+          Are you sure you want to finalize your enrollment? This action cannot
+          be undone.
+        </Text>
+      ),
+      labels: { confirm: 'Finalize', cancel: 'Cancel' },
+      onConfirm: async () =>
+        // Call the mutation
+        await finalizeMutate({}),
+    })
+  }
 
   return (
     <Box p="lg">
@@ -576,26 +556,51 @@ function FinalizationPanel() {
           </Text>
         </Stack>
 
-        <Stack gap="xs">
-          <EnrolledCourseCard
-            courseName="Capstone 1"
-            courseCode="MO-IT200"
-            sectionName="A2101"
-            sectionSchedule={{
-              day: 'MWF',
-              time: '8:00 - 9:00 AM',
-            }}
-          />
-          <EnrolledCourseCard
-            courseName="Web Technology Applications"
-            courseCode="MO-IT200"
-            sectionName="A2101"
-            sectionSchedule={{
-              day: 'MWF',
-              time: '8:00 - 9:00 AM',
-            }}
-          />
-        </Stack>
+        <Suspense
+          fallback={<SuspendedStudentEnrollmentFinalizationSectionCards />}
+        >
+          <EnrollmentStudentFinalizationQueryProvider>
+            {({ enrolledCourses }) => (
+              <Stack gap="xs" pos={'relative'}>
+                {enrolledCourses.length === 0 && (
+                  <Center py="md">
+                    <Stack gap={4} align="center">
+                      <IconBook
+                        size={28}
+                        stroke={1.5}
+                        color="var(--mantine-color-dimmed)"
+                      />
+                      <Text fw={600} size="sm">
+                        No enrolled courses found
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Once you enroll, your courses will appear here.
+                      </Text>
+                    </Stack>
+                  </Center>
+                )}
+                {enrolledCourses.map((enrolledCourse) => (
+                  <EnrolledCourseCard
+                    courseName={enrolledCourse.courseOffering?.course.name!}
+                    courseCode={
+                      enrolledCourse.courseOffering?.course.courseCode!
+                    }
+                    sectionName={enrolledCourse.courseSection?.name!}
+                    sectionSchedule={{
+                      day: formatDaysAbbrev(enrolledCourse.courseSection?.days),
+                      time: `${enrolledCourse.courseSection?.startSched!} - ${enrolledCourse.courseSection?.endSched!}`,
+                    }}
+                    mentor={
+                      enrolledCourse.courseSection?.user
+                        ? `${enrolledCourse.courseSection?.user?.firstName} ${enrolledCourse.courseSection?.user?.lastName}`
+                        : 'No Mentor Assigned'
+                    }
+                  />
+                ))}
+              </Stack>
+            )}
+          </EnrollmentStudentFinalizationQueryProvider>
+        </Suspense>
 
         <Stack pt={'xs'} gap={'xs'}>
           <Text fw={600} size="sm" c="dimmed">
@@ -615,9 +620,29 @@ function FinalizationPanel() {
           </Group>
         </Stack>
 
-        <Button disabled={!selectedPaymentScheme} ml={'auto'}>
-          Finalize
-        </Button>
+        <Suspense
+          fallback={
+            <Button ml={'auto'} disabled>
+              Finalize
+            </Button>
+          }
+        >
+          <EnrollmentStudentFinalizationQueryProvider>
+            {({ enrolledCourses }) => (
+              <Button
+                disabled={
+                  !selectedPaymentScheme ||
+                  enrolledCourses.length === 0 ||
+                  isEnrollmentFinalized(enrolledCourses)
+                }
+                ml={'auto'}
+                onClick={handleFinalizeEnrollment}
+              >
+                Finalize
+              </Button>
+            )}
+          </EnrollmentStudentFinalizationQueryProvider>
+        </Suspense>
       </Stack>
     </Box>
   )
@@ -628,6 +653,7 @@ function EnrolledCourseCard({
   courseCode,
   sectionName,
   sectionSchedule,
+  mentor,
 }: {
   courseName: string
   courseCode: string
@@ -636,6 +662,7 @@ function EnrolledCourseCard({
     day: string
     time: string
   }
+  mentor: string
 }) {
   return (
     <Card withBorder radius="md" p="md" className="flex-1">
@@ -646,6 +673,9 @@ function EnrolledCourseCard({
           </Text>
           <Text fw={500} fz={'xs'} c={'dark.3'}>
             {courseCode}
+          </Text>
+          <Text c={'gray.6'} size="sm">
+            {mentor}
           </Text>
         </Stack>
         <Stack gap={4} miw={'fit-content'}>
@@ -703,6 +733,224 @@ function PaymentPlanCard({
         </Stack>
       </Paper>
     </UnstyledButton>
+  )
+}
+
+function CourseOfferingAccordionControl({
+  course,
+  periodId,
+}: {
+  course: DetailedCourseOfferingDto
+  periodId: string
+}) {
+  return (
+    <Group justify="space-between">
+      <Stack gap={rem(0)}>
+        <Text fw={500} fz={'md'}>
+          {course.course.name}
+        </Text>
+        <Stack gap={rem(5)}>
+          <Text fw={500} fz={'xs'} c={'dark.3'}>
+            {course.course.courseCode}
+          </Text>
+          <Badge c="gray.6" variant="light" radius="sm" size="sm">
+            {course.courseSections.length} section(s)
+          </Badge>
+        </Stack>
+      </Stack>
+    </Group>
+  )
+}
+
+function CourseOfferingAccordionPanel({
+  course,
+}: {
+  course: DetailedCourseOfferingDto
+}) {
+  return (
+    <Stack>
+      <Divider />
+      <Stack gap={'xs'}>
+        {course.courseSections.map((section) => (
+          <CourseOfferingSubjectCard
+            key={section.id}
+            section={section}
+            course={course}
+          />
+        ))}
+      </Stack>
+    </Stack>
+  )
+}
+
+function CourseOfferingSubjectCard({
+  section,
+  course,
+}: {
+  section: DetailedCourseSectionDto
+  course: DetailedCourseOfferingDto
+}) {
+  const { mutateAsync: enrollMutate, isPending: enrollIsPending } =
+    useAppMutation(
+      courseEnrollmentControllerCreateCourseEnrollmentMutation,
+      {
+        loading: {
+          title: 'Enrolling in ' + course.course.name,
+          message: 'Please wait...',
+        },
+        success: {
+          title: 'Successfully enrolled in ' + course.course.name,
+          message: 'You have been enrolled in the course.',
+        },
+        error: {
+          title: 'Failed to enroll in ' + course.course.name,
+          message: 'Please try again later.',
+        },
+      },
+      {
+        onSuccess: async () => {
+          const activeEnrollmentKey =
+            enrollmentControllerFindActiveEnrollmentQueryKey()
+
+          await queryClient.cancelQueries({ queryKey: activeEnrollmentKey })
+
+          await queryClient.invalidateQueries({ queryKey: activeEnrollmentKey })
+
+          await queryClient.cancelQueries({
+            predicate: (query) =>
+              Array.isArray(query.queryKey) &&
+              query.queryKey[0]?._id ===
+                'courseOfferingControllerFindCourseOfferingsByPeriod',
+          })
+
+          await queryClient.invalidateQueries({
+            predicate: (query) =>
+              Array.isArray(query.queryKey) &&
+              query.queryKey[0]?._id ===
+                'courseOfferingControllerFindCourseOfferingsByPeriod',
+          })
+        },
+      },
+    )
+
+  const { mutateAsync: dropMutate, isPending: dropIsPending } = useAppMutation(
+    courseEnrollmentControllerDropCourseEnrollmentMutation,
+    {
+      loading: {
+        title: 'Dropping course enrollment',
+        message: 'Please wait...',
+      },
+      success: {
+        title: 'Successfully dropped course enrollment',
+        message: 'You have been dropped from the course.',
+      },
+      error: {
+        title: 'Failed to drop course enrollment',
+        message: 'Please try again later.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const activeEnrollmentKey =
+          enrollmentControllerFindActiveEnrollmentQueryKey()
+
+        await queryClient.cancelQueries({ queryKey: activeEnrollmentKey })
+
+        await queryClient.invalidateQueries({ queryKey: activeEnrollmentKey })
+
+        await queryClient.cancelQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0]?._id ===
+              'courseOfferingControllerFindCourseOfferingsByPeriod',
+        })
+
+        await queryClient.invalidateQueries({
+          predicate: (query) => {
+            console.log(query)
+            return (
+              Array.isArray(query.queryKey) &&
+              query.queryKey[0]?._id ===
+                'courseOfferingControllerFindCourseOfferingsByPeriod'
+            )
+          },
+        })
+      },
+    },
+  )
+
+  const isEnrolled = course.courseEnrollment.find(
+    (enrolled) => enrolled.courseSectionId == section.id,
+  )
+
+  return (
+    <Card key={section.id} withBorder radius="md" py="sm" pos={'relative'}>
+      <LoadingOverlay
+        visible={dropIsPending || enrollIsPending}
+        zIndex={10} // This is to avoid unnecessary flashing of the blur
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
+      <Box>
+        <Group justify="space-between" align="center">
+          <Stack gap={2}>
+            <Group gap="xs">
+              <Text fw={600} size="md">
+                {section.name}
+              </Text>
+              <Text c="dimmed" size="xs">
+                {formatToTimeOfDay(section.startSched, section.endSched)}
+              </Text>
+            </Group>
+            <Text c="dimmed" size="sm">
+              {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
+              {section.endSched}
+            </Text>
+            <Text c={'gray.6'} size="sm">
+              {section.mentorId
+                ? `${section.user?.firstName} ${section.user?.lastName}`
+                : 'No Mentor Assigned'}
+            </Text>
+          </Stack>
+          <Stack gap={'xs'} align="flex-end">
+            {isEnrolled ? (
+              <Button
+                size="xs"
+                radius={'lg'}
+                onClick={() =>
+                  dropMutate({
+                    path: {
+                      sectionId: section.id,
+                    },
+                    body: {},
+                  })
+                }
+              >
+                Drop
+              </Button>
+            ) : (
+              <Button
+                disabled={course.courseEnrollment.length > 0}
+                size="xs"
+                radius={'lg'}
+                onClick={() =>
+                  enrollMutate({
+                    path: {
+                      sectionId: section.id,
+                    },
+                    body: {},
+                  })
+                }
+              >
+                Enroll
+              </Button>
+            )}
+            <Badge c="gray.6" variant="light" radius="sm">
+              {section.maxSlot} / {section.maxSlot} slots
+            </Badge>
+          </Stack>
+        </Group>
+      </Box>
+    </Card>
   )
 }
 

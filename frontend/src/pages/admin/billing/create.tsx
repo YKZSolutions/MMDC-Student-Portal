@@ -1,5 +1,6 @@
 import AsyncEmployeeCombobox from '@/features/billing/async-employee-combobox'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
+import { billCategories, billTypes, paymentSchemes } from '@/features/billing/constants'
 import {
   CreateBillFormSchema,
   type CreateBillFormValues,
@@ -8,10 +9,8 @@ import {
   billingControllerCreateMutation,
   billingControllerFindAllQueryKey,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { zBillingControllerCreateData } from '@/integrations/api/client/zod.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { formatToLabel } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
@@ -34,40 +33,6 @@ import { useForm } from '@mantine/form'
 import { IconPlus, IconTrash } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
-
-const paymentSchemes =
-  zBillingControllerCreateData.shape.body.shape.bill.shape.paymentScheme.options.map(
-    (scheme) => ({
-      value: scheme,
-      label: formatToLabel(scheme),
-    }),
-  )
-
-const billTypes =
-  zBillingControllerCreateData.shape.body.shape.bill.shape.billType.options.map(
-    (type) => ({
-      value: type,
-      label: formatToLabel(type),
-    }),
-  )
-
-const billCategories = [
-  'Tuition Fee',
-  'Miscellaneous Fee',
-  'Laboratory Fee',
-  'Library Fee',
-  'Athletic Fee',
-  'Medical/Dental Fee',
-  'Technology Fee',
-  'Graduation Fee',
-  'Thesis/Capstone Fee',
-  'Internship/Practicum Fee',
-  'Uniform Fee',
-  'ID Card Fee',
-  'Publication Fee',
-  'Field Trip/Activity Fee',
-  'Penalty Fee',
-]
 
 function CreateBillingPage() {
   const navigate = useNavigate()
