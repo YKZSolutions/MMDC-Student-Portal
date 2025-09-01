@@ -56,7 +56,7 @@ function RouteComponent() {
             justify="start"
             style={{ position: 'relative', overflow: 'hidden' }}
           >
-            <Group justify="space-between" align="center" w={'100%'}>
+            <Group justify="space-between" align="center" wrap='nowrap'>
               {!isDesktop && (
                 <Burger
                   opened={sidebarOpened}
