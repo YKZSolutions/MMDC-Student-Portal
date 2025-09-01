@@ -4,8 +4,9 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
+import { CourseOffering } from '@/generated/nestjs-dto/courseOffering.entity';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
@@ -13,10 +14,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
+import {
+  CourseOfferingStatus,
+  FilterCourseOfferingDto,
+} from './dto/filter-courseOffering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
-import { CourseOffering } from '@/generated/nestjs-dto/courseOffering.entity';
 
 @Injectable()
 export class CourseOfferingService {
@@ -81,14 +86,52 @@ export class CourseOfferingService {
       `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
   })
   async findAllCourseOfferings(
-    @LogParam('filters') filters: BaseFilterDto,
-    periodId: string,
+    @LogParam('filters') filters: FilterCourseOfferingDto,
+    enrollmentId: string,
+    user: CurrentAuthUser,
   ): Promise<PaginatedCourseOfferingsDto> {
     const page = filters.page || 1;
+    const status = (filters.status || undefined) satisfies
+      | CourseOfferingStatus
+      | undefined;
+
+    const isStudent = user.user_metadata.role === 'student';
+    const studentId = user.user_metadata.user_id;
+
+    const whereClause: Prisma.CourseOfferingWhereInput = {};
+
+    if (enrollmentId) {
+      whereClause.periodId = enrollmentId;
+    }
+
+    if (isStudent && (status === 'enrolled' || status === 'not enrolled')) {
+      whereClause.courseEnrollment =
+        status === 'enrolled'
+          ? { some: { studentId, status: { not: 'dropped' } } } // offerings the student is enrolled in
+          : { none: { studentId, status: { not: 'dropped' } } }; // offerings the student is NOT enrolled in
+    }
+
+    const includeClause = {
+      course: true,
+      courseSections: {
+        include: {
+          user: true,
+        },
+      },
+
+      // Disable fetching for the admin side first
+      // TODO: Implement an FE interface for this
+      courseEnrollment: isStudent
+        ? {
+            where: { studentId, status: { not: 'dropped' } },
+          }
+        : undefined,
+    } satisfies Prisma.CourseOfferingInclude;
 
     const [courseOfferings, meta] = await this.prisma.client.courseOffering
       .paginate({
-        where: { periodId },
+        where: Object.keys(whereClause).length ? whereClause : undefined,
+        include: includeClause,
       })
       .withPages({ limit: 10, page, includePageCount: true });
 

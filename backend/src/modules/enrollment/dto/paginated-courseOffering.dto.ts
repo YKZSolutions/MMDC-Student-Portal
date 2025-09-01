@@ -1,12 +1,22 @@
 import { PaginatedDto } from '@/common/dto/paginated.dto';
+import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { DetailedCourseEnrollmentDto } from './detailed-courseEnrollment.dto';
+import { DetailedCourseSectionDto } from './detailed-courseOffering.dto';
 
 export class PaginatedCourseOfferingsDto extends PaginatedDto {
   @ApiProperty({
-    type: () => CourseOfferingDto,
+    type: () => DetailedCourseOfferingDto,
     isArray: true,
     description: 'List of course offerings for the current page',
   })
-  courseOfferings: CourseOfferingDto[];
+  courseOfferings: DetailedCourseOfferingDto[];
+}
+
+export class DetailedCourseOfferingDto extends CourseOfferingDto {
+  course: CourseDto;
+  courseSections: DetailedCourseSectionDto[];
+  courseEnrollment: DetailedCourseEnrollmentDto[];
+  periodId: string;
 }

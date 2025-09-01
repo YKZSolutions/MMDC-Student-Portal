@@ -917,6 +917,94 @@ export const zCourseOffering = z.object({
     ])
 });
 
+export const zUserDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    disabledAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zDetailedCourseSectionDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSlot: z.int(),
+    startSched: z.string(),
+    endSched: z.string(),
+    days: z.array(zDays),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    user: z.union([
+        zUserDto,
+        z.null()
+    ]),
+    mentorId: z.union([
+        z.uuid(),
+        z.null()
+    ])
+});
+
+export const zDetailedCourseOfferingSubsetDto = z.object({
+    course: zCourseDto
+});
+
+export const zDetailedCourseEnrollmentDto = z.object({
+    id: z.string(),
+    status: zCourseEnrollmentStatus,
+    startedAt: z.iso.datetime(),
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    studentId: z.uuid(),
+    courseOfferingId: z.uuid(),
+    courseSectionId: z.uuid(),
+    courseSection: z.optional(zDetailedCourseSectionDto),
+    courseOffering: z.optional(zDetailedCourseOfferingSubsetDto)
+});
+
+export const zDetailedCourseOfferingDto = z.object({
+    id: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zCourseDto,
+    courseSections: z.array(zDetailedCourseSectionDto),
+    courseEnrollment: z.array(zDetailedCourseEnrollmentDto),
+    periodId: z.string()
+});
+
+export const zPaginatedCourseOfferingsDto = z.object({
+    meta: zPaginationMetaDto,
+    courseOfferings: z.array(zDetailedCourseOfferingDto)
+});
+
 export const zCourseOfferingDto = z.object({
     id: z.string(),
     createdAt: z.iso.datetime(),
@@ -925,11 +1013,6 @@ export const zCourseOfferingDto = z.object({
         z.iso.datetime(),
         z.null()
     ])
-});
-
-export const zPaginatedCourseOfferingsDto = z.object({
-    meta: zPaginationMetaDto,
-    courseOfferings: z.array(zCourseOfferingDto)
 });
 
 export const zCourseSectionDto = z.object({
@@ -1523,7 +1606,9 @@ export const zEnrollmentControllerRemoveEnrollmentData = z.object({
     path: z.object({
         enrollmentId: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
 });
 
 export const zEnrollmentControllerRemoveEnrollmentResponse = z.object({
@@ -1567,7 +1652,12 @@ export const zCourseOfferingControllerFindCourseOfferingsByPeriodData = z.object
     }),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        periodId: z.optional(z.uuid()),
+        status: z.optional(z.enum([
+            'not enrolled',
+            'enrolled'
+        ]))
     }))
 });
 
@@ -1683,6 +1773,14 @@ export const zCourseSectionControllerUpdateCourseSectionData = z.object({
 
 export const zCourseSectionControllerUpdateCourseSectionResponse = zCourseSectionDto;
 
+export const zCourseEnrollmentControllerGetCourseEnrollmentsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zCourseEnrollmentControllerGetCourseEnrollmentsResponse = z.array(zDetailedCourseEnrollmentDto);
+
 export const zCourseEnrollmentControllerDropCourseEnrollmentData = z.object({
     body: zStudentIdentifierDto,
     path: z.object({
@@ -1706,7 +1804,7 @@ export const zCourseEnrollmentControllerCreateCourseEnrollmentData = z.object({
 export const zCourseEnrollmentControllerCreateCourseEnrollmentResponse = zCourseEnrollmentDto;
 
 export const zCourseEnrollmentControllerFinalizeCourseEnrollmentData = z.object({
-    body: zStudentIdentifierDto,
+    body: z.optional(zStudentIdentifierDto),
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });

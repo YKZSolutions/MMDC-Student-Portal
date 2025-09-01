@@ -688,11 +688,60 @@ export type CourseOffering = {
     deletedAt: string | null;
 };
 
-export type CourseOfferingDto = {
+export type UserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    disabledAt: string | null;
+    deletedAt: string | null;
+};
+
+export type DetailedCourseSectionDto = {
+    id: string;
+    name: string;
+    maxSlot: number;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    user: UserDto | null;
+    mentorId: string | null;
+};
+
+export type DetailedCourseOfferingSubsetDto = {
+    course: CourseDto;
+};
+
+export type DetailedCourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    studentId: string;
+    courseOfferingId: string;
+    courseSectionId: string;
+    courseSection?: DetailedCourseSectionDto;
+    courseOffering?: DetailedCourseOfferingSubsetDto;
+};
+
+export type DetailedCourseOfferingDto = {
     id: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    course: CourseDto;
+    courseSections: Array<DetailedCourseSectionDto>;
+    courseEnrollment: Array<DetailedCourseEnrollmentDto>;
+    periodId: string;
 };
 
 export type PaginatedCourseOfferingsDto = {
@@ -700,7 +749,14 @@ export type PaginatedCourseOfferingsDto = {
     /**
      * List of course offerings for the current page
      */
-    courseOfferings: Array<CourseOfferingDto>;
+    courseOfferings: Array<DetailedCourseOfferingDto>;
+};
+
+export type CourseOfferingDto = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type CourseSectionDto = {
@@ -2218,7 +2274,12 @@ export type EnrollmentControllerRemoveEnrollmentData = {
     path: {
         enrollmentId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
     url: '/enrollments/{enrollmentId}';
 };
 
@@ -2338,6 +2399,8 @@ export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
     query?: {
         search?: string;
         page?: number;
+        periodId?: string;
+        status?: 'not enrolled' | 'enrolled';
     };
     url: '/enrollments/{enrollmentId}/offerings';
 };
@@ -2628,6 +2691,34 @@ export type CourseSectionControllerUpdateCourseSectionResponses = {
 
 export type CourseSectionControllerUpdateCourseSectionResponse = CourseSectionControllerUpdateCourseSectionResponses[keyof CourseSectionControllerUpdateCourseSectionResponses];
 
+export type CourseEnrollmentControllerGetCourseEnrollmentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/enrollment/student/sections';
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsError = CourseEnrollmentControllerGetCourseEnrollmentsErrors[keyof CourseEnrollmentControllerGetCourseEnrollmentsErrors];
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
+    201: Array<DetailedCourseEnrollmentDto>;
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];
+
 export type CourseEnrollmentControllerDropCourseEnrollmentData = {
     body: StudentIdentifierDto;
     path: {
@@ -2691,7 +2782,7 @@ export type CourseEnrollmentControllerCreateCourseEnrollmentResponses = {
 export type CourseEnrollmentControllerCreateCourseEnrollmentResponse = CourseEnrollmentControllerCreateCourseEnrollmentResponses[keyof CourseEnrollmentControllerCreateCourseEnrollmentResponses];
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentData = {
-    body: StudentIdentifierDto;
+    body?: StudentIdentifierDto;
     path?: never;
     query?: never;
     url: '/enrollment/student/finalize';

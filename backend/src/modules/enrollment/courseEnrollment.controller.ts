@@ -1,5 +1,8 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { CourseEnrollmentService } from './courseEnrollment.service';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -10,18 +13,35 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
-import { Roles } from '@/common/decorators/roles.decorator';
+import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
+import { CourseEnrollmentService } from './courseEnrollment.service';
 import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@supabase/supabase-js';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { ApiOkResponse } from '@nestjs/swagger';
 
 @Controller('enrollment/student')
 export class CourseEnrollmentController {
   constructor(
     private readonly courseEnrollmentService: CourseEnrollmentService,
   ) {}
+
+  /**
+   * Retrieve all active (enlisted) course enrollments for the authenticated user.
+   *
+   * @remarks
+   * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
+   * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
+   * - Each returned record includes related course offering, course section and mentor/user data.
+   *
+   * @returns An array of DetailedCourseEnrollmentDto containing the student's active enrollments.
+   *
+   * @throws BadRequestException - If the request is malformed.
+   * @throws NotFoundException - If requested enrollment records or active period cannot be found.
+   */
+  @ApiException(() => [BadRequestException, NotFoundException])
+  @Roles(Role.STUDENT, Role.ADMIN)
+  @Post('/sections')
+  getCourseEnrollments(@CurrentUser() user: CurrentAuthUser) {
+    return this.courseEnrollmentService.getCourseEnrollments(user);
+  }
 
   /**
    * Enroll a student in a course section.
@@ -39,7 +59,7 @@ export class CourseEnrollmentController {
   createCourseEnrollment(
     @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
     @Body() dto: StudentIdentifierDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     return this.courseEnrollmentService.createCourseEnrollment(
       sectionId,
@@ -72,7 +92,7 @@ export class CourseEnrollmentController {
   dropCourseEnrollment(
     @Param('sectionId', new ParseUUIDPipe()) sectionId: string,
     @Body() dto: StudentIdentifierDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     return this.courseEnrollmentService.dropCourseEnrollment(
       sectionId,
@@ -101,12 +121,13 @@ export class CourseEnrollmentController {
     },
   })
   @ApiException(() => [BadRequestException])
+  @ApiBody({ required: false, type: StudentIdentifierDto })
   @Roles(Role.STUDENT, Role.ADMIN)
   @Post('/finalize')
   finalizeCourseEnrollment(
-    @Body() dto: StudentIdentifierDto,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
+    @Body() dto?: StudentIdentifierDto,
   ) {
-    return this.courseEnrollmentService.finalizeEnrollment(dto, user);
+    return this.courseEnrollmentService.finalizeEnrollment(user, dto);
   }
 }

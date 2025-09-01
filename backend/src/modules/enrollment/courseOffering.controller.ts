@@ -1,3 +1,8 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Role } from '@/common/enums/roles.enum';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -10,13 +15,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CourseOfferingService } from './courseOffering.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { CourseOfferingService } from './courseOffering.service';
 import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
-import { Role } from '@/common/enums/roles.enum';
+import { FilterCourseOfferingDto } from './dto/filter-courseOffering.dto';
 
 @Controller('enrollments')
 export class CourseOfferingController {
@@ -52,11 +54,13 @@ export class CourseOfferingController {
   @Get(':enrollmentId/offerings')
   findCourseOfferingsByPeriod(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
-    @Query() filters: BaseFilterDto,
+    @Query() filters: FilterCourseOfferingDto,
+    @CurrentUser() user: CurrentAuthUser
   ) {
     return this.courseOfferingService.findAllCourseOfferings(
       filters,
       enrollmentId,
+      user
     );
   }
 
