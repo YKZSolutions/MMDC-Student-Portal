@@ -13,7 +13,6 @@ import {
 } from '@mantine/core'
 import {
   IconCategory,
-  IconChevronsRight,
   IconEdit,
   IconHeading,
   IconHourglassEmpty,
@@ -21,6 +20,7 @@ import {
   IconScoreboard,
   IconUpload,
   IconWriting,
+  IconX,
 } from '@tabler/icons-react'
 import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
 import type {
@@ -224,21 +224,20 @@ const ContentDetailsEditor = ({
   return (
     <Stack {...stackProps}>
       <Group justify="space-between">
+        <Text size="xl" fw={700}>
+          {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
+        </Text>
         <ActionIcon onClick={onClose} variant="transparent" color="gray">
-          <IconChevronsRight size={32} />
+          <IconX size={32} />
         </ActionIcon>
       </Group>
 
       <Stack p="md">
-        <Text size="xl" fw={700}>
-          {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
-        </Text>
-
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
             {getFormFields()}
 
-            <Group justify="flex-end" mt="md">
+            <Group justify="flex-end" mt="md" wrap={'nowrap'}>
               <Button variant="default" onClick={onClose}>
                 Cancel
               </Button>
