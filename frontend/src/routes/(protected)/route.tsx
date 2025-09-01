@@ -47,10 +47,14 @@ function RouteComponent() {
         style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
       >
         {isDesktop ? <Sidebar /> : sidebarOpened && <Sidebar />}
-        <Box className={'flex-1 h-full ' + (isDesktop ? 'p-4 pl-0' : '')}>
+        <Box
+          miw={sidebarOpened ? undefined : 0}
+          maw={'100%'}
+          className={'flex-1 h-full ' + (isDesktop ? 'p-4 pl-0' : '')}
+        >
           <Stack
             className={
-              'bg-white w-full h-full flex-1  shadow p-5 pr-1 pb-0 ' +
+              'bg-white w-full h-full flex-1 shadow p-5 pr-1 pb-0 ' +
               (isDesktop ? 'rounded-lg' : '')
             }
             justify="start"
