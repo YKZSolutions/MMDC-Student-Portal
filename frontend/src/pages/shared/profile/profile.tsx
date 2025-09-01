@@ -1,181 +1,360 @@
 import RoleComponentManager from '@/components/role-component-manager'
+import SupabaseAvatar from '@/components/supabase-avatar'
 import type {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from '@/integrations/api/client'
+import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
-  Avatar,
-  Box,
   Button,
+  Card,
   Container,
   Flex,
+  Grid,
+  Group,
+  Paper,
+  rem,
+  Skeleton,
   Stack,
   Text,
   Title,
 } from '@mantine/core'
-import { IconCamera } from '@tabler/icons-react'
-import dayjs from 'dayjs'
-import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  IconBriefcase,
+  IconBuilding,
+  IconCalendar,
+  IconId,
+  IconMail,
+  IconPencil,
+  IconSchool,
+  IconTrash,
+  IconUser,
+} from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import dayjs from 'dayjs'
+import { Suspense } from 'react'
 
-function ProfilePage() {
+function ProfileQueryProvider({
+  children,
+}: {
+  children: (
+    data: UserStudentDetailsDto | UserStaffDetailsDto,
+  ) => React.ReactNode
+}) {
   const { data } = useSuspenseQuery(usersControllerGetMeOptions())
 
-  const fullName =
-    `${data.firstName} ${data.middleName ?? ''} ${data.lastName}`.trim()
-  const avatarInitials = `${data.firstName?.[0] ?? ''}${data.lastName?.[0] ?? ''}`
+  return children(data)
+}
 
+function SuspendedProfile() {
   return (
-    <Container fluid m={0}>
-      <Box pb="lg">
-        <Flex justify="space-between" align="center">
-          <Flex align="center" gap="md">
-            <Avatar size={80} radius="xl" color="blue">
-              {avatarInitials}
-            </Avatar>
-            <Box>
-              <Title order={2} fw={700} c="dark.7" data-cy="profile-fullname-header">
-                {fullName}
-              </Title>
-              <Text c="dark.3" fw={500}>
-                Profile information and account details
-              </Text>
-            </Box>
-          </Flex>
-        </Flex>
-      </Box>
-
-      <Stack gap="xl">
-        <Button
-          variant="light"
-          leftSection={<IconCamera size={16} />}
-          size="xs"
-          maw={200}
-        >
-          Change Avatar
-        </Button>
-
-        <ProfileSection title="Basic Information">
-          <Field label="Full Name" value={fullName} />
-          <Field label="Email" value={data.email ?? '—'} dataCy="profile-email-value" />
-          <Field
-            label="Date Joined"
-            value={
-              data.userDetails?.dateJoined
-                ? dayjs(data.userDetails.dateJoined).format('MMM D, YYYY')
-                : '—'
-            }
-          />
-          <Field label="Gender" value={data.userDetails?.gender ?? '—'} />
-          <Field
-            label="Date of Birth"
-            value={
-              data.userDetails?.dob
-                ? dayjs(data.userDetails.dob).format('MMM D, YYYY')
-                : '—'
-            }
-          />
-        </ProfileSection>
-
-        <RoleComponentManager
-          currentRole={data.role}
-          roleRender={{
-            student:
-              data.role === 'student'
-                ? studentDetails(data as UserStudentDetailsDto)
-                : null,
-            admin:
-              data.role === 'admin'
-                ? staffDetails(data as UserStaffDetailsDto)
-                : null,
-            mentor:
-              data.role === 'mentor'
-                ? staffDetails(data as UserStaffDetailsDto)
-                : null,
-          }}
-        />
-
-        <ProfileSection title="Other Details">
-          <div> </div>
-        </ProfileSection>
-      </Stack>
+    <Container size="lg" py="xl">
+      <Card
+        shadow="sm"
+        radius="xl"
+        p="xl"
+        withBorder
+        style={{ maxWidth: 800, margin: '0 auto' }}
+      >
+        <Stack gap="md">
+          <Skeleton height={28} width="40%" />
+          <Skeleton height={18} width="60%" />
+          <Skeleton height={120} width={120} radius="xl" />
+          <Skeleton height={18} width="80%" />
+          <Skeleton height={18} width="90%" />
+        </Stack>
+      </Card>
     </Container>
   )
 }
 
-function studentDetails(data: UserStudentDetailsDto) {
+function ProfilePage() {
   return (
-    <ProfileSection title="Student Details">
-      <Field
-        label="Student Number"
-        value={data.studentDetails?.studentNumber ?? '—'}
-      />
-      <Field
-        label="Student Type"
-        value={data.studentDetails?.studentType ?? '—'}
-      />
-      <Field
-        label="Admission Date"
-        value={
-          data.studentDetails?.admissionDate
-            ? dayjs(data.studentDetails.admissionDate).format('MMM D, YYYY')
-            : '—'
-        }
-      />
-    </ProfileSection>
+    <Suspense fallback={<SuspendedProfile />}>
+      <ProfileQueryProvider>
+        {(data) => {
+          const fullName =
+            `${data.firstName} ${data.middleName ?? ''} ${data.lastName}`.trim()
+
+          return (
+            <Container size="md" py="xl">
+              <Stack gap="xl">
+                {/* Header Section */}
+                <Group gap="lg" align="start">
+                  <SupabaseAvatar
+                    size={rem(90)}
+                    bucket={SupabaseBuckets.USER_AVATARS}
+                    path={data.id}
+                    imageType="jpg"
+                    name={fullName}
+                  />
+
+                  <Stack gap={0} my={'auto'}>
+                    <Title order={3} fw={600}>
+                      {fullName}
+                    </Title>
+                    <Text size="lg" fw={500} c="gray.6" tt="capitalize">
+                      {data.role ?? 'User'}
+                    </Text>
+                    <Text size="sm" c="gray.5">
+                      Member since{' '}
+                      {data.userDetails?.dateJoined
+                        ? dayjs(data.userDetails.dateJoined).format('MMMM YYYY')
+                        : '—'}
+                    </Text>
+                  </Stack>
+
+                  <Flex gap="md" ml="auto">
+                    <Button
+                      leftSection={<IconPencil size={16} />}
+                      variant="light"
+                      color="gray"
+                      radius="md"
+                    >
+                      Edit Profile
+                    </Button>
+                    <Button
+                      leftSection={<IconTrash size={16} />}
+                      variant="light"
+                      color="red"
+                      radius="md"
+                    >
+                      Deactivate
+                    </Button>
+                  </Flex>
+                </Group>
+
+                <Stack>
+                  {/* Personal Information */}
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Paper
+                        radius="md"
+                        p="xl"
+                        withBorder
+                        h="100%"
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'stretch',
+                          minHeight: '100%',
+                        }}
+                      >
+                        <Stack gap="lg" style={{ flex: 1 }}>
+                          <Title order={3} size="h4" fw={600} c="gray.8">
+                            Personal Information
+                          </Title>
+
+                          <Grid>
+                            <Grid.Col span={{ base: 12, sm: 6 }}>
+                              <InfoItem
+                                label="Full Name"
+                                value={fullName}
+                                icon={<IconUser color="gray" size={16} />}
+                              />
+                            </Grid.Col>
+                            <Grid.Col span={{ base: 12, sm: 6 }}>
+                              <InfoItem
+                                label="Email"
+                                value={data.email ?? '—'}
+                                dataCy="profile-email-value"
+                                icon={<IconMail color="gray" size={16} />}
+                              />
+                            </Grid.Col>
+                            <Grid.Col span={{ base: 12, sm: 6 }}>
+                              <InfoItem
+                                label="Role"
+                                value={data.role ?? '—'}
+                                icon={<IconBriefcase color="gray" size={16} />}
+                              />
+                            </Grid.Col>
+                          </Grid>
+                        </Stack>
+                      </Paper>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Paper
+                        radius="md"
+                        p="xl"
+                        withBorder
+                        h="100%"
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'stretch',
+                          minHeight: '100%',
+                        }}
+                      >
+                        <Stack gap="lg" style={{ flex: 1 }}>
+                          <Title order={3} size="h4" fw={600} c="gray.8">
+                            Account Information
+                          </Title>
+
+                          <Grid>
+                            <Grid.Col span={{ base: 12, sm: 6 }}>
+                              <InfoItem
+                                label="Date Joined"
+                                value={
+                                  data.userDetails?.dateJoined
+                                    ? dayjs(data.userDetails.dateJoined).format(
+                                        'MMM D, YYYY',
+                                      )
+                                    : '—'
+                                }
+                                icon={<IconCalendar color="gray" size={16} />}
+                              />
+                            </Grid.Col>
+                            <Grid.Col span={{ base: 12, sm: 6 }}>
+                              <InfoItem
+                                label="Last Updated"
+                                value={
+                                  data.userDetails?.updatedAt
+                                    ? dayjs(data.userDetails.updatedAt).format(
+                                        'MMM D, YYYY',
+                                      )
+                                    : '—'
+                                }
+                                icon={<IconCalendar color="gray" size={16} />}
+                              />
+                            </Grid.Col>
+                          </Grid>
+                        </Stack>
+                      </Paper>
+                    </Grid.Col>
+                  </Grid>
+
+                  {/* Role-Specific Information */}
+                  <RoleComponentManager
+                    currentRole={data.role}
+                    roleRender={{
+                      student:
+                        data.role === 'student' ? (
+                          <StudentDetails
+                            data={data as UserStudentDetailsDto}
+                          />
+                        ) : null,
+                      admin:
+                        data.role === 'admin' ? (
+                          <StaffDetails data={data as UserStaffDetailsDto} />
+                        ) : null,
+                      mentor:
+                        data.role === 'mentor' ? (
+                          <StaffDetails data={data as UserStaffDetailsDto} />
+                        ) : null,
+                    }}
+                  />
+                </Stack>
+              </Stack>
+            </Container>
+          )
+        }}
+      </ProfileQueryProvider>
+    </Suspense>
   )
 }
 
-function staffDetails(data: UserStaffDetailsDto) {
+function StudentDetails({ data }: { data: UserStudentDetailsDto }) {
   return (
-    <ProfileSection title="Staff Details">
-      <Field
-        label="Employee Number"
-        value={data.staffDetails?.employeeNumber ?? '—'}
-      />
-      <Field label="Department" value={data.staffDetails?.department ?? '—'} />
-      <Field label="Position" value={data.staffDetails?.position ?? '—'} />
-    </ProfileSection>
-  )
-}
+    <Paper radius="md" p="xl" withBorder>
+      <Stack gap="lg">
+        <Title order={3} size="h4" fw={600} c="gray.8">
+          Student Details
+        </Title>
 
-function ProfileSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <Box>
-      <Title order={3} size="h4" mb="sm" c="dark.6">
-        {title}
-      </Title>
-      <Stack gap="xs" p="md" bg="gray.0" style={{ borderRadius: 8 }}>
-        {children}
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Student Number"
+              value={data.studentDetails?.studentNumber ?? '—'}
+              icon={<IconId color="gray" size={16} />}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Student Type"
+              value={data.studentDetails?.studentType ?? '—'}
+              icon={<IconSchool color="gray" size={16} />}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Admission Date"
+              value={
+                data.studentDetails?.admissionDate
+                  ? dayjs(data.studentDetails.admissionDate).format(
+                      'MMM D, YYYY',
+                    )
+                  : '—'
+              }
+              icon={<IconCalendar color="gray" size={16} />}
+            />
+          </Grid.Col>
+        </Grid>
       </Stack>
-    </Box>
+    </Paper>
   )
 }
 
-function Field({ 
-  label, 
-  value, 
-  dataCy 
-}: { 
-  label: string; 
-  value: string | number;
-  dataCy?: string;
+function StaffDetails({ data }: { data: UserStaffDetailsDto }) {
+  return (
+    <Paper radius="md" p="xl" withBorder>
+      <Stack gap="lg">
+        <Title order={3} size="h4" fw={600} c="gray.8">
+          Staff Details
+        </Title>
+
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Employee Number"
+              value={data.staffDetails?.employeeNumber ?? '—'}
+              icon={<IconId color="gray" size={16} />}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Department"
+              value={data.staffDetails?.department ?? '—'}
+              icon={<IconBuilding color="gray" size={16} />}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Position"
+              value={data.staffDetails?.position ?? '—'}
+              icon={<IconBriefcase color="gray" size={16} />}
+            />
+          </Grid.Col>
+        </Grid>
+      </Stack>
+    </Paper>
+  )
+}
+
+function InfoItem({
+  label,
+  value,
+  dataCy,
+  icon,
+}: {
+  label: string
+  value: string | number
+  dataCy?: string
+  icon?: React.ReactNode
 }) {
   return (
-    <Flex justify="space-between" align="center">
-      <Text c="dark.5" fw={500}>
-        {label}
-      </Text>
-      <Text fw={600} c="dark.7" data-cy={dataCy}>
+    <Stack gap={rem(5)}>
+      <Group gap={rem(5)} align="center">
+        {icon}
+        <Text size="xs" fw={500} tt="uppercase" c="gray.6">
+          {label}
+        </Text>
+      </Group>
+      <Text size="sm" fw={500} c="gray.9" data-cy={dataCy}>
         {value}
       </Text>
-    </Flex>
+    </Stack>
   )
 }
 
