@@ -3,6 +3,7 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type {
+  ContentNode,
   CourseModule,
   CourseNodeModel,
   ModuleItem,
@@ -111,53 +112,55 @@ export function convertTreeToCourseModules(
   return modules.sort((a, b) => a.position - b.position)
 }
 
-// Helper function to convert hierarchical CourseModule structure to flat tree structure
-export function convertCourseModulesToTree(
-  modules: CourseModule[],
-): CourseNodeModel[] {
-  const treeData: CourseNodeModel[] = []
+export const convertContentNodesToTreeNodes = (
+  nodes: ContentNode[],
+): CourseNodeModel[] => {
+  const treeNodes: CourseNodeModel[] = []
 
-  for (const module of modules) {
-    // Add module node
-    treeData.push({
-      id: module.id,
-      parent: '0',
-      text: module.title,
-      droppable: true,
-      data: {
-        type: 'module',
-        contentData: module,
-      },
-    })
-
-    for (const section of module.sections) {
-      // Add section node
-      treeData.push({
-        id: section.id,
-        parent: module.id,
-        text: section.title,
+  for (const node of nodes) {
+    if ('courseId' in node) {
+      // Module
+      const moduleNode: CourseNodeModel = {
+        id: node.id,
+        parent: '0',
+        text: node.title,
         droppable: true,
         data: {
-          type: 'section',
-          contentData: section,
+          type: 'module',
+          contentData: node,
         },
-      })
+      }
+      treeNodes.push(moduleNode)
 
-      for (const item of section.items) {
-        // Add item node
-        treeData.push({
-          id: item.id,
-          parent: section.id,
-          text: item.title,
-          droppable: false,
+      for (const section of node.sections) {
+        const sectionNode: CourseNodeModel = {
+          id: section.id,
+          parent: node.id,
+          text: section.title,
+          droppable: true,
           data: {
-            type: 'item',
-            contentData: item,
+            type: 'section',
+            contentData: section,
           },
-        })
+        }
+        treeNodes.push(sectionNode)
+
+        for (const item of section.items) {
+          const itemNode: CourseNodeModel = {
+            id: item.id,
+            parent: section.id,
+            text: item.title,
+            droppable: false,
+            data: {
+              type: 'item',
+              contentData: item,
+            },
+          }
+          treeNodes.push(itemNode)
+        }
       }
     }
   }
 
-  return treeData
+  return treeNodes
 }

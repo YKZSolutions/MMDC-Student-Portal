@@ -46,14 +46,6 @@ export type ContentType =
 export type ContentNode = CourseModule | ModuleSection | ModuleItem
 export type ContentNodeType = 'module' | 'section' | 'item'
 
-export interface CourseContentOverview {
-  courseId: string
-  title: string
-  sectionCount: number
-  itemCount: number
-  completedItems: number
-}
-
 export interface CourseNodeData {
   parentType?: ContentNodeType
   type: ContentNodeType | 'add-button'
@@ -64,7 +56,7 @@ export type CourseNodeModel = NodeModel<CourseNodeData>
 
 // Flat structure for tree nodes - each node only contains its own data
 // The hierarchy is maintained through parent/child relationships
-export const mockModuleTreeData: CourseNodeModel[] = [
+export const mockCourseTreeData: CourseNodeModel[] = [
   // Module node
   {
     id: 'mod_1',
@@ -178,5 +170,65 @@ export const mockModuleTreeData: CourseNodeModel[] = [
         sections: [],
       },
     },
+  },
+]
+
+export const mockContentNodes: ContentNode[] = [
+  {
+    id: 'mod_1',
+    courseId: 'course_1',
+    title: 'Introduction to Biology',
+    position: 1,
+    sections: [
+      {
+        id: 'sec_1',
+        title: 'Readings',
+        position: 1,
+        items: [
+          {
+            id: 'item_1',
+            type: 'reading',
+            title: 'Chapter 1: Cell Structure',
+            position: 1,
+            content: {
+              id: 'read_1',
+              title: 'Chapter 1: Cell Structure',
+              fileUrl: '/uploads/cell-structure.pdf',
+              isCompleted: false,
+            },
+          },
+        ],
+      },
+      {
+        id: 'sec_2',
+        title: 'Assignments',
+        position: 2,
+        items: [
+          {
+            id: 'item_2',
+            type: 'assignment',
+            title: 'Cell Biology Quiz',
+            position: 1,
+            assignment: {
+              id: '1',
+              title: 'Cell Biology Quiz',
+              description: 'Test your knowledge of cell biology',
+              type: 'quiz',
+              dueDate: '2023-10-15T23:59:59Z',
+              mode: 'individual',
+              points: 100,
+              status: 'open',
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'mod_2',
+    courseId: 'course_1',
+    title: 'Genetics',
+    position: 2,
+    sections: [],
   },
 ]
