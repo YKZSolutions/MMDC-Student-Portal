@@ -21,7 +21,7 @@ import CurriculumManagementPanel from '@/features/courses/modules/curriculum-man
 import ModuleReviewStep from '@/features/courses/modules/module-review-step.tsx'
 import {
   type CourseNodeModel,
-  mockModuleTreeData,
+  mockCourseTreeData,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import { convertTreeToCourseModules } from '@/utils/helpers.ts'
@@ -44,7 +44,7 @@ const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
 
   const [activeStep, setActiveStep] = useState(0)
   const [courseStructure, setCourseStructure] =
-    useState<CourseNodeModel[]>(mockModuleTreeData) // TODO: populate this with actual data
+    useState<CourseNodeModel[]>(mockCourseTreeData) // TODO: populate this with actual data
 
   const nextStep = () => {
     setActiveStep((current) => (current < 2 ? current + 1 : current))
@@ -55,7 +55,7 @@ const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
 
   useEffect(() => {
     if (courseInfo) {
-      setCourseStructure(mockModuleTreeData)
+      setCourseStructure(mockCourseTreeData)
     }
   }, [courseInfo])
 
