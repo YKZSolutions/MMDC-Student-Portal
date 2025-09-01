@@ -317,7 +317,7 @@ const NodeRow = ({
         }
       >
         <IconPlus size={16} />
-        <Text size="sm" fw={500} truncate>
+        <Text size="sm" fw={500} style={{ textWrap: 'nowrap' }}>
           Add{' '}
           {capitalizeFirstLetter(
             getChildTypeFromParentType(node.data?.parentType),
@@ -329,8 +329,7 @@ const NodeRow = ({
 
   return (
     <Popover
-      position="left-start"
-      width="target"
+      position="right-start"
       withArrow
       shadow="md"
       offset={{ mainAxis: 12, crossAxis: 12 }}
@@ -340,8 +339,8 @@ const NodeRow = ({
       <Popover.Target>
         <Group
           justify="space-between"
-          px={'sm'}
           py="0.25rem"
+          align={'center'}
           style={{
             backgroundColor: isDropTarget
               ? theme.colors.blue[0]
@@ -379,7 +378,7 @@ const NodeRow = ({
               fw={node.data?.type === 'module' ? 600 : 400}
               size={'sm'}
               lh={'xs'}
-              truncate
+              style={{ textWrap: 'nowrap' }}
             >
               {node.text}
             </Text>
