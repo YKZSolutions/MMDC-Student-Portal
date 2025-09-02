@@ -33,12 +33,12 @@ import type {
 import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
-import { useCurrentMeeting } from '@/features/courses/useCurrentMeeting.ts'
+import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import CourseSelector from '@/features/courses/edit/course-selector.tsx'
+import CourseSelectorModal from '@/features/courses/edit/course-selector-modal.tsx'
 
 // TODO: Consider adding program and/or department and major to the course data
 // TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
@@ -209,7 +209,7 @@ const CourseDashboard = ({
                 Manage Course
               </Button>
               {isCourseSelectorOpen && (
-                <CourseSelector
+                <CourseSelectorModal
                   onClose={() => setIsCourseSelectorOpen(false)}
                 />
               )}

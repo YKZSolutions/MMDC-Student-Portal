@@ -22,7 +22,7 @@ import {
   IconFile,
   IconPlus,
 } from '@tabler/icons-react'
-import { useTreeConnectors } from '@/features/courses/useTreeConnectors.ts'
+import { useTreeConnectors } from '@/features/courses/hooks/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
 import {
   convertContentNodesToTreeNodes,
@@ -33,7 +33,7 @@ import {
   type ContentNodeType,
   type CourseNodeModel,
 } from '@/features/courses/modules/types.ts'
-import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
+import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 
 const reorderArray = (
   array: CourseNodeModel[],

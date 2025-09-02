@@ -5,7 +5,7 @@ import type {
   ContentNodeType,
 } from '@/features/courses/modules/types.ts'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
-import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
+import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { useState } from 'react'
 
 interface EditorState {

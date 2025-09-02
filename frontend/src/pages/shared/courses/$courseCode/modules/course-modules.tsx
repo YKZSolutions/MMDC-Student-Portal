@@ -7,7 +7,7 @@ import {
 import React, { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
-import CourseSelector from '@/features/courses/edit/course-selector.tsx'
+import CourseSelectorModal from '@/features/courses/edit/course-selector-modal.tsx'
 
 const CourseModules = () => {
   const { authUser } = useAuth('protected')
@@ -49,7 +49,7 @@ const CourseModules = () => {
                 Add New Content
               </Button>
               {isCourseSelectorOpen && (
-                <CourseSelector
+                <CourseSelectorModal
                   onClose={() => setIsCourseSelectorOpen(false)}
                 />
               )}

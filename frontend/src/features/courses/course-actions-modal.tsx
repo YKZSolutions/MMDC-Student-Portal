@@ -13,7 +13,7 @@ import {
 import { IconBook } from '@tabler/icons-react'
 import { CardWithModal } from '@/components/with-modal.tsx'
 import BtnCard from '@/components/btn-card.tsx'
-import CourseSelector from '@/features/courses/edit/course-selector.tsx'
+import CourseSelectorModal from '@/features/courses/edit/course-selector-modal.tsx'
 import React, { useState } from 'react'
 
 const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
@@ -60,7 +60,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
               }}
             />
             {isCourseSelectorOpen && (
-              <CourseSelector
+              <CourseSelectorModal
                 {...stack.register('second')}
                 onClose={() => setIsCourseSelectorOpen(false)}
               />
