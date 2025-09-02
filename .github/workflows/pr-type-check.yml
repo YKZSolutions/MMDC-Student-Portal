@@ -63,16 +63,9 @@ jobs:
       #   working-directory: ./backend
       #   run: pnpm prisma-gen-sql
 
-      - name: Start Backend Server
-        working-directory: ./backend
-        run: pnpm start &
-
-      - name: Wait for Backend API to be Ready
-        run: npx wait-on http://localhost:3001/api/json
-
       - name: Generate API Specs
-        working-directory: ./scripts
-        run: pnpm fetch-spec
+        working-directory: ./
+        run: pnpm backend:api
 
       - name: Run TypeScript Type Check
         working-directory: ./backend
