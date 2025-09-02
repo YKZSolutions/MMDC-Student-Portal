@@ -1,27 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CourseDto {
+export class CurriculumCourseDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'string',
+    type: 'integer',
+    format: 'int32',
   })
-  courseCode: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  name: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  description: string;
+  order: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
-  units: number;
+  year: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  semester: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
