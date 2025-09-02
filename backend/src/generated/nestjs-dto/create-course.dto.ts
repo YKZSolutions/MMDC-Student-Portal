@@ -21,18 +21,6 @@ export class CreateCourseDto {
   @IsString()
   description: string;
   @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  year: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  semester: string;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
