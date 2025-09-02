@@ -45,35 +45,6 @@ import dayjs from 'dayjs'
 import Decimal from 'decimal.js'
 import { Suspense } from 'react'
 
-const paymentHistory = [
-  {
-    id: 'pay_1A2B3C4D',
-    title: 'Payment Settled',
-    description:
-      'Payment of $8,887.50 for invoice #8229 has been successfully processed.',
-    amount: 8887.5,
-    status: 'settled',
-    timestamp: '2023-10-03T14:30:00Z',
-  },
-  {
-    id: 'pay_5E6F7G8H',
-    title: 'Invoice Paid',
-    description:
-      'Invoice #11012 for the amount of $20,580.75 was paid in full.',
-    amount: 20580.75,
-    status: 'settled',
-    timestamp: '2023-08-29T09:15:00Z',
-  },
-  {
-    id: 'pay_9I0J1K2L',
-    title: 'Payment Scheduled',
-    description: 'A payment of $5,000.00 is scheduled for invoice #12345.',
-    amount: 5000.0,
-    status: 'pending',
-    timestamp: '2024-01-20T11:00:00Z',
-  },
-]
-
 const route = getRouteApi('/(protected)/billing/$billingId')
 
 function BillingIdQueryProvider({
@@ -131,8 +102,6 @@ function BillingIdPage() {
   const navigate = useNavigate()
 
   const [opened, { open, close }] = useDisclosure(false)
-
-  const { authUser } = useAuth('protected')
 
   return (
     <Container size={'md'} pb={'lg'} w={'100%'}>

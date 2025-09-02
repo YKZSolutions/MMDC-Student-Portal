@@ -34,7 +34,7 @@ function ProfilePage() {
               {avatarInitials}
             </Avatar>
             <Box>
-              <Title order={2} fw={700} c="dark.7">
+              <Title order={2} fw={700} c="dark.7" data-cy="profile-fullname-header">
                 {fullName}
               </Title>
               <Text c="dark.3" fw={500}>
@@ -57,7 +57,7 @@ function ProfilePage() {
 
         <ProfileSection title="Basic Information">
           <Field label="Full Name" value={fullName} />
-          <Field label="Email" value={data.email ?? '—'} />
+          <Field label="Email" value={data.email ?? '—'} dataCy="profile-email-value" />
           <Field
             label="Date Joined"
             value={
@@ -158,13 +158,21 @@ function ProfileSection({
   )
 }
 
-function Field({ label, value }: { label: string; value: string | number }) {
+function Field({ 
+  label, 
+  value, 
+  dataCy 
+}: { 
+  label: string; 
+  value: string | number;
+  dataCy?: string;
+}) {
   return (
     <Flex justify="space-between" align="center">
       <Text c="dark.5" fw={500}>
         {label}
       </Text>
-      <Text fw={600} c="dark.7">
+      <Text fw={600} c="dark.7" data-cy={dataCy}>
         {value}
       </Text>
     </Flex>

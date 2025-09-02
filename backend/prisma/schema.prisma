@@ -178,6 +178,9 @@ model Major {
   /// @DtoApiHidden
   courses Course[]
 
+  /// @DtoApiHidden
+  curriculums Curriculum[]
+
   name        String @unique
   description String
 
@@ -201,11 +204,11 @@ model Course {
   coreqs   Course[] @relation("CourseCoreq")
   coreqFor Course[] @relation("CourseCoreq")
 
+  curriculumCourses CurriculumCourse[]
+
   courseCode  String @unique
   name        String
   description String
-  year        String
-  semester    String
   units       Int
 
   /// @DtoApiHidden
@@ -217,6 +220,53 @@ model Course {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+}
+
+model Curriculum {
+  id String @id @default(uuid()) @db.Uuid
+
+  majorId String @db.Uuid
+  /// @DtoApiHidden
+  major Major @relation(fields: [majorId], references: [id])
+
+  /// @DtoApiHidden
+  courses CurriculumCourse[]
+
+  icon String?
+  name String?
+  description String?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model CurriculumCourse {
+  id String @id @default(uuid()) @db.Uuid
+
+  curriculumId String @db.Uuid
+  /// @DtoApiHidden
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+
+  courseId String @db.Uuid
+  /// @DtoApiHidden
+  course Course @relation(fields: [courseId], references: [id])
+
+  order Int
+  year        Int
+  semester    Int
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+  @@unique([curriculumId, courseId])
 }
 
 enum EnrollmentStatus {
@@ -289,9 +339,9 @@ model CourseSection {
 
   name String @unique
 
-  mentorId String @db.Uuid // Each section belong to one mentor
+  mentorId String? @db.Uuid // make mentor optional
   /// @DtoApiHidden
-  user     User   @relation(fields: [mentorId], references: [id])
+  user     User?   @relation(fields: [mentorId], references: [id], onDelete: SetNull)
 
   courseOfferingId String         @db.Uuid // Each section belong to one offering
   /// @DtoApiHidden

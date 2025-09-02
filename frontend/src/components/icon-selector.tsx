@@ -1,72 +1,68 @@
-import { useState } from 'react'
-import { Select, type SelectProps } from '@mantine/core'
 import {
   IconBook,
-  IconCalendar,
-  IconSchool,
-  IconBriefcase,
-  IconStar,
+  IconCircle,
+  IconCircleCheck,
+  IconEdit,
+  IconFlag,
+  IconPencil,
+  type IconProps,
+  IconWriting,
 } from '@tabler/icons-react'
+import { type BoxProps, useMantineTheme } from '@mantine/core'
 
-const iconMap = {
-  book: IconBook,
-  calendar: IconCalendar,
-  school: IconSchool,
-  briefcase: IconBriefcase,
-  star: IconStar,
+type ModuleItemIconProps = Omit<IconProps, 'size'> & {
+  type: string
+  size?: number
+} & BoxProps
+
+type CompletedStatusIconProps = Omit<IconProps, 'size' | 'color'> & {
+  status: string | undefined
+  size?: number
+} & BoxProps
+
+const ModuleItemIcon = ({ type, size = 36, ...props }: ModuleItemIconProps) => {
+  const theme = useMantineTheme()
+  if (type === 'readings')
+    return <IconBook size={size} color={`${theme.colors.dark[3]}`} {...props} />
+  if (type === 'assignment')
+    return (
+      <IconPencil size={size} color={`${theme.colors.dark[3]}`} {...props} />
+    )
+  if (type === 'draft')
+    return <IconEdit size={size} color={`${theme.colors.dark[3]}`} {...props} />
+  if (type === 'milestone')
+    return <IconFlag size={size} color={`${theme.colors.dark[3]}`} {...props} />
+  if (type === 'other')
+    return (
+      <IconWriting size={size} color={`${theme.colors.dark[3]}`} {...props} />
+    )
+
+  return <IconBook size={size} />
 }
 
-export interface IconSelectorProps
-  extends Omit<SelectProps, 'data' | 'value' | 'onChange'> {
-  value?: keyof typeof iconMap
-  onChange?: (val: keyof typeof iconMap | null) => void
-}
-
-export function IconSelector({
-  value,
-  onChange,
-  label = 'Icon',
-  placeholder = 'Pick an icon',
+const CompletedStatusIcon = ({
+  status,
+  size = 32,
   ...props
-}: IconSelectorProps) {
-  const [internalValue, setInternalValue] = useState<
-    keyof typeof iconMap | null
-  >(value ?? null)
-
-  const handleChange = (val: string | null) => {
-    const casted = val as keyof typeof iconMap | null
-    setInternalValue(casted)
-    onChange?.(casted)
+}: CompletedStatusIconProps) => {
+  const theme = useMantineTheme()
+  if (
+    status === 'ready-for-grading' ||
+    status === 'graded' ||
+    status === 'read'
+  ) {
+    return (
+      <IconCircleCheck
+        size={size}
+        color={`${theme.colors.blue[4]}`}
+        fill={theme.colors.blue[0]}
+        {...props}
+      />
+    )
   }
 
-  return (
-    <Select
-      label={label}
-      placeholder={placeholder}
-      value={internalValue}
-      onChange={handleChange}
-      data={Object.keys(iconMap).map((key) => ({
-        value: key,
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-      }))}
-      renderOption={({ option }) => {
-        const Icon = iconMap[option.value as keyof typeof iconMap]
-        return (
-          <div className="flex items-center gap-2">
-            <Icon size={18} />
-            <span>{option.label}</span>
-          </div>
-        )
-      }}
-      rightSection={
-        internalValue
-          ? (() => {
-              const Icon = iconMap[internalValue]
-              return <Icon size={18} />
-            })()
-          : null
-      }
-      {...props} // <-- spread so you can pass className, styles, radius, etc.
-    />
-  )
+  return <IconCircle size={size} color="gray" {...props} />
 }
+
+export { ModuleItemIcon, CompletedStatusIcon }
+export type { ModuleItemIconProps, CompletedStatusIconProps }

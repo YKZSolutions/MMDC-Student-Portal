@@ -1,11 +1,12 @@
 import { notifications } from '@mantine/notifications'
 import { IconCheck, IconX } from '@tabler/icons-react'
 import {
-    useMutation,
-    type UseMutationOptions,
-    type UseMutationResult,
+  useMutation,
+  type UseMutationOptions,
+  type UseMutationResult,
 } from '@tanstack/react-query'
 import { useRef } from 'react'
+import { getContext } from './root-provider'
 
 type NotificationMessages = {
   loading: { title: string; message: string }
@@ -23,7 +24,7 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
     'mutationFn'
   >,
 ): UseMutationResult<TData, TError, TVariables, TContext> {
-  const notifId = useRef<string>("");
+  const notifId = useRef<string>('')
 
   return useMutation<TData, TError, TVariables, TContext>({
     mutationFn: mutationFactory().mutationFn as (
@@ -72,6 +73,25 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
 
       if (options?.onError) {
         return options.onError(error, variables, context)
+      }
+    },
+    onSettled: (data, error, variables, context) => {
+      // treat context as unknown-safe when checking for custom keys
+      const ctxAny = context as unknown as { keys?: Record<string, unknown> } | undefined
+
+      const { queryClient } = getContext()
+      if (ctxAny?.keys) {
+        for (const val of Object.values(ctxAny.keys)) {
+          if (val == null) continue
+
+          // if the value is already a queryKey array, use it; otherwise wrap single value
+          const keyArr = Array.isArray(val) ? (val as readonly unknown[]) : ([val] as readonly unknown[])
+          queryClient.invalidateQueries({ queryKey: keyArr })
+        }
+      }
+
+      if (options?.onSettled) {
+        return options.onSettled(data, error, variables, context)
       }
     },
   })

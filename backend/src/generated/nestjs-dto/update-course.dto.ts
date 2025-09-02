@@ -24,20 +24,6 @@ export class UpdateCourseDto {
   @IsString()
   description?: string;
   @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  year?: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  semester?: string;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,

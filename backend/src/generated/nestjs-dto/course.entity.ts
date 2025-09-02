@@ -1,6 +1,10 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Major, type Major as MajorAsType } from './major.entity';
 import {
+  CurriculumCourse,
+  type CurriculumCourse as CurriculumCourseAsType,
+} from './curriculumCourse.entity';
+import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
@@ -37,6 +41,12 @@ export class Course {
   })
   coreqFor?: Course[];
   @ApiProperty({
+    type: () => CurriculumCourse,
+    isArray: true,
+    required: false,
+  })
+  curriculumCourses?: CurriculumCourseAsType[];
+  @ApiProperty({
     type: 'string',
   })
   courseCode: string;
@@ -48,14 +58,6 @@ export class Course {
     type: 'string',
   })
   description: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  year: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  semester: string;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

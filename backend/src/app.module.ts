@@ -19,6 +19,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { MajorModule } from './modules/major/major.module';
 import { InstallmentModule } from './modules/installment/installment.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { CurriculumModule } from './modules/curriculum/curriculum.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
     MajorModule,
     InstallmentModule,
     EnrollmentModule,
+    CurriculumModule,
   ],
   controllers: [],
   providers: [

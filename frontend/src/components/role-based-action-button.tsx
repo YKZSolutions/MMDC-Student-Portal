@@ -7,14 +7,17 @@ import type { Role } from '@/integrations/api/client'
 type RoleBasedActionButtonProps = {
   render: {
     [K in Role]?: {
-      icon: React.ReactNode;
-      text: string;
-      onClick: () => void;
-      disabled?: boolean;
+      icon: React.ReactNode
+      text: string
+      onClick: () => void
+      disabled?: boolean
     }
   }
-} & Omit<ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'leftSection' | 'disabled'>
-  & BoxProps
+} & Omit<
+  ComponentPropsWithoutRef<typeof Button>,
+  'onClick' | 'leftSection' | 'disabled'
+> &
+  BoxProps
 
 const RoleBasedActionButton = ({
   render,
