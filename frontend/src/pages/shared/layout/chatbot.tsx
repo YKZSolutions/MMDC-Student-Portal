@@ -135,7 +135,7 @@ const Chatbot = ({
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 998,
+        zIndex: 2000,
       }}
     >
       {isDragging && (
@@ -601,7 +601,7 @@ const DropZoneIndicator = ({
     h={dropZoneRadius}
     className="rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
     style={{
-      zIndex: 999,
+      zIndex: 2000,
       cursor: 'grabbing',
       opacity: 0.7,
     }}

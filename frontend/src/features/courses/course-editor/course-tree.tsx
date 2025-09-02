@@ -335,6 +335,7 @@ const NodeRow = ({
       shadow="md"
       offset={{ mainAxis: 12, crossAxis: 12 }}
       opened={openedDetailsId === node.id}
+      zIndex={1000}
     >
       <Popover.Target>
         <Group
