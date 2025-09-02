@@ -20,3 +20,12 @@ code {
     box-shadow: none;
     border: none;
 }
+
+a {
+  color: #8000ff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

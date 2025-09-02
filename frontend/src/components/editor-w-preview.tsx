@@ -6,6 +6,7 @@ import {
   Modal,
   type ModalProps,
   Paper,
+  Popover,
   ScrollArea,
   Stack,
   Title,
@@ -16,20 +17,29 @@ import {
   BlockNoteViewEditor,
   BlockTypeSelect,
   ColorStyleButton,
-  CreateLinkButton,
   FileCaptionButton,
+  FileDeleteButton,
+  FileDownloadButton,
+  FileRenameButton,
   FileReplaceButton,
   FormattingToolbar,
   NestBlockButton,
   TextAlignButton,
   UnnestBlockButton,
+  useBlockNoteEditor,
   useComponentsContext,
   useCreateBlockNote,
   useEditorChange,
 } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { mockInitialContent } from '@/features/courses/mocks.ts'
-import { IconEdit, IconEye } from '@tabler/icons-react'
+import {
+  IconArrowBack,
+  IconArrowForwardUp,
+  IconEdit,
+  IconEye,
+  IconLink,
+} from '@tabler/icons-react'
 
 interface EditorWithPreviewProps {
   content: string
@@ -107,9 +117,19 @@ const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
           >
             <FormattingToolbar>
               <Group gap={12} align="center">
-                <BlockTypeSelect key={'blockTypeSelect'} />
+                <Group gap={0}>
+                  <RedoButton key={'redoButton'} />
+                  <UndoButton key={'undoButton'} />
+                </Group>
                 <Divider orientation="vertical" />
                 <Group gap={2}>
+                  <BlockTypeSelect key={'blockTypeSelect'} />
+                  <FileDeleteButton key={'deleteFileButton'} />
+                  <FileDownloadButton key={'downloadFileButton'} />
+                </Group>
+                <Divider orientation="vertical" />
+                <Group gap={2}>
+                  <FileRenameButton key={'renameFileButton'} />
                   <FileCaptionButton key={'fileCaptionButton'} />
                   <FileReplaceButton key={'replaceFileButton'} />
                   <ColorStyleButton key={'colorStyleButton'} />
@@ -133,7 +153,7 @@ const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
                     key={'codeStyleButton'}
                     basicTextStyle={'code'}
                   />
-                  <CreateLinkButton key={'createLinkButton'} />
+                  <CustomCreateLinkButton key={'createLinkButton'} />
                 </Group>
                 <Divider orientation="vertical" />
                 <Group gap={2}>
@@ -191,8 +211,13 @@ const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
                   maxWidth: '1080px',
                   minWidth: '300px',
                 }}
+                mt={'xl'}
               >
-                <BlockNoteViewEditor />
+                {isPreviewMode ? (
+                  <Preview content={previewContent} />
+                ) : (
+                  <BlockNoteViewEditor />
+                )}
               </Box>
             </Box>
           </ScrollArea>
@@ -202,15 +227,101 @@ const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
   )
 }
 
+export function CustomCreateLinkButton() {
+  const editor = useBlockNoteEditor()
+  const Components = useComponentsContext()!
+  const [opened, setOpened] = useState(false)
+  const [url, setUrl] = useState('')
+
+  const handleSubmit = () => {
+    if (!url) return
+    editor.createLink(url)
+    setOpened(false)
+    setUrl('')
+  }
+
+  return (
+    <Components.Generic.Popover.Root opened={opened}>
+      <Components.Generic.Popover.Trigger>
+        <Components.FormattingToolbar.Button
+          mainTooltip="Create link"
+          onClick={() => setOpened((o) => !o)}
+          icon={<IconLink size={16} />}
+          label={'Link'}
+        ></Components.FormattingToolbar.Button>
+      </Components.Generic.Popover.Trigger>
+      <Components.Generic.Popover.Content
+        variant={'panel-popover'}
+        className={'bn-form-popover'}
+      >
+        <Components.Generic.Form.TextInput
+          name="url"
+          variant={'default'}
+          icon={<IconLink size={16} />}
+          placeholder="Enter URL"
+          value={url}
+          autoFocus={true}
+          onChange={(e) => setUrl(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSubmit()
+            if (e.key === 'Escape') setOpened(false)
+          }}
+        />
+      </Components.Generic.Popover.Content>
+    </Components.Generic.Popover.Root>
+  )
+}
+
+const Preview = ({ content }: { content: string }) => {
+  return (
+    <Box
+      style={{
+        width: '100%',
+        maxWidth: '1080px',
+        minWidth: '300px',
+      }}
+      dangerouslySetInnerHTML={{ __html: content }}
+    ></Box>
+  )
+}
+
+const UndoButton = () => {
+  const editor = useBlockNoteEditor()
+  const Components = useComponentsContext()!
+
+  return (
+    <Components.FormattingToolbar.Button
+      mainTooltip="Undo last action"
+      onClick={() => editor.undo()}
+      icon={<IconArrowBack size={16} />}
+      label={'Undo'}
+    ></Components.FormattingToolbar.Button>
+  )
+}
+
+const RedoButton = () => {
+  const editor = useBlockNoteEditor()
+  const Components = useComponentsContext()!
+
+  return (
+    <Components.FormattingToolbar.Button
+      mainTooltip="Redo last action"
+      onClick={() => editor.redo()}
+      icon={<IconArrowForwardUp size={16} transform="rotate(180deg)" />}
+      label={'Redo'}
+    />
+  )
+}
+
 type ModeToggleButtonProps = {
   isPreviewMode: boolean
   onToggle: () => void
 }
 
-export function ModeToggleButton({
+const ModeToggleButton = ({
   isPreviewMode,
   onToggle,
-}: ModeToggleButtonProps) {
+}: ModeToggleButtonProps) => {
   const Components = useComponentsContext()!
 
   return (

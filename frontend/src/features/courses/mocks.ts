@@ -38,4 +38,27 @@ export const mockInitialContent: Block[] = [
     ],
     children: [],
   },
+  {
+    id: 'link-1',
+    type: 'paragraph',
+    props: {
+      textColor: 'default',
+      backgroundColor: 'default',
+      textAlignment: 'left',
+    },
+    content: [
+      {
+        type: 'link',
+        href: 'https://www.blocknotejs.org/',
+        content: [
+          {
+            type: 'text',
+            text: 'Home Page',
+            styles: {},
+          },
+        ],
+      },
+    ],
+    children: [],
+  },
 ]
