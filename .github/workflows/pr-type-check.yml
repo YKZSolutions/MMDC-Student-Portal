@@ -10,46 +10,6 @@ on:
       - "develop"
 
 jobs:
-  type-check-frontend:
-    name: Frontend Type Checking
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository Code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm Package Manager
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Restore pnpm Cache and Node Modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.pnpm-store
-            frontend/node_modules
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-frontend-
-
-      - name: Generate API Specs
-        working-directory: ./
-        run: pnpm dev:prepare
-
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Run TypeScript Type Check
-        working-directory: ./frontend
-        run: pnpm tsc --noEmit
-
   type-check-backend:
     name: Backend Type Checking
     timeout-minutes: 5
@@ -85,10 +45,73 @@ jobs:
         working-directory: ./backend
         run: pnpm install --no-frozen-lockfile
 
+      - name: Generate Prisma Types
+        working-directory: ./backend
+        run: pnpm prisma-gen
+
+      - name: Generate Prisma SQL Types
+        working-directory: ./backend
+        run: pnpm prisma-gen-sql
+
       - name: Generate API Specs
         working-directory: ./
-        run: pnpm dev:prepare
+        run: pnpm backend:api
 
       - name: Run TypeScript Type Check
         working-directory: ./backend
         run: pnpm tsc --noEmit
+
+      - name: Upload API Specs
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-specs
+          path: frontend/src/integrations/api/api-spec.json
+          retention-days: 1
+
+  type-check-frontend:
+    name: Frontend Type Checking
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm Package Manager
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      
+      - name: Download API Specs
+        uses: actions/download-artifact@v4
+        with:
+          name: api-specs
+          path: frontend/src/integrations/api
+
+      - name: Restore pnpm Cache and Node Modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: pnpm install --no-frozen-lockfile
+      
+      - name: Generate API Client
+        working-directory: ./
+        run: pnpm frontend:api
+
+      - name: Run TypeScript Type Check
+        working-directory: ./frontend
+        run: pnpm tsc --noEmit
+
+  
