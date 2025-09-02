@@ -49,16 +49,19 @@ import { CurriculumModule } from './modules/curriculum/curriculum.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useExisting: AuthGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: UserStatusGuard,
+      useExisting: UserStatusGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: RoleGuard,
+      useExisting: RoleGuard,
     },
+    AuthGuard,
+    UserStatusGuard,
+    RoleGuard,
   ],
 })
 export class AppModule implements NestModule {

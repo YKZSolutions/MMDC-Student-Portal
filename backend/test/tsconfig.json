@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "ES2022",
+    "module": "commonjs",
+    "types": ["jest", "node"],
+    "baseUrl": "../src",
+    "paths": {
+      "@/*": ["*"]
+    },
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["../src/commin/types", "../node_modules/@types"]
+  },
+  "include": [".", "../test", "../src"]
+}
