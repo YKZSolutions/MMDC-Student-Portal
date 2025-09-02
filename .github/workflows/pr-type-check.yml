@@ -1,15 +1,48 @@
 name: PR Type Checking (Frontend & Backend)
 
 on:
-  push:
-    branches:
-      - "conf/*"
   pull_request:
     branches:
       - "main"
       - "develop"
 
 jobs:
+  type-check-frontend:
+    name: Frontend Type Checking
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm Package Manager
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Restore pnpm Cache and Node Modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run TypeScript Type Check
+        working-directory: ./frontend
+        run: pnpm tsc --noEmit
+
   type-check-backend:
     name: Backend Type Checking
     timeout-minutes: 5
@@ -17,17 +50,6 @@ jobs:
     env:
       DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
       DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
-      SUPABASE_CLOUD_URL: ${{ secrets.SUPABASE_CLOUD_URL }}
-      SUPABASE_LOCAL_URL: ${{ secrets.SUPABASE_LOCAL_URL }}
-      SUPABASE_CLOUD_ADMIN_KEY: ${{ secrets.SUPABASE_CLOUD_ADMIN_KEY }}
-      SUPABASE_LOCAL_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_LOCAL_SERVICE_ROLE_KEY }}
-      DATABASE_LOCAL_URL: ${{ secrets.DATABASE_LOCAL_URL }}
-      DIRECT_LOCAL_URL: ${{ secrets.DIRECT_LOCAL_URL }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      PAYMONGO_SECRET_KEY: ${{ secrets.PAYMONGO_SECRET_KEY }}
-      N8N_VECTOR_SEARCH_URL: ${{ secrets.N8N_VECTOR_SEARCH_URL }}
-      N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
-      
 
     steps:
       - name: Checkout Repository Code
@@ -64,66 +86,6 @@ jobs:
         working-directory: ./backend
         run: pnpm prisma-gen-sql
 
-      - name: Generate API Specs
-        working-directory: ./
-        run: pnpm run backend:api
-
       - name: Run TypeScript Type Check
         working-directory: ./backend
         run: pnpm tsc --noEmit
-
-      - name: Upload API Specs
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-specs
-          path: frontend/src/integrations/api/api-spec.json
-          retention-days: 1
-
-  type-check-frontend:
-    name: Frontend Type Checking
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    needs: type-check-backend
-
-    steps:
-      - name: Checkout Repository Code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm Package Manager
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      
-      - name: Download API Specs
-        uses: actions/download-artifact@v4
-        with:
-          name: api-specs
-          path: frontend/src/integrations/api
-
-      - name: Restore pnpm Cache and Node Modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.pnpm-store
-            frontend/node_modules
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-frontend-
-
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: pnpm install --no-frozen-lockfile
-      
-      - name: Generate API Client
-        working-directory: ./
-        run: pnpm frontend:api
-
-      - name: Run TypeScript Type Check
-        working-directory: ./frontend
-        run: pnpm tsc --noEmit
-
-  
