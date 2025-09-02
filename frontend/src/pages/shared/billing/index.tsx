@@ -28,6 +28,7 @@ import {
   NumberFormatter,
   Pagination,
   rem,
+  ScrollArea,
   SegmentedControl,
   Stack,
   Table,
@@ -47,7 +48,6 @@ import {
   IconPlus,
   IconSearch,
   IconTrash,
-  IconUpload,
   type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -189,9 +189,9 @@ function BillingPage() {
   }, 200)
 
   return (
-    <Container fluid m={0}>
-      <Flex align={'start'}>
-        <Box pb={'lg'}>
+    <Container size={'md'} pb={'xl'}>
+      <Group align={'start'} pb={'lg'}>
+        <Box>
           <Title c={'dark.7'} variant="hero" order={2} fw={700}>
             Billing
           </Title>
@@ -199,58 +199,40 @@ function BillingPage() {
             Manage invoices and billing information here.
           </Text>
         </Box>
-        <Group gap={'sm'} align={'center'} ml={'auto'}>
-          <Button
-            variant="outline"
-            radius={'md'}
-            leftSection={<IconUpload size={20} />}
-            c={'gray.7'}
-            color="gray.4"
-            lts={rem(0.25)}
-          >
-            Export
-          </Button>
-
-          <RoleComponentManager
-            currentRole={authUser.role}
-            roleRender={{
-              admin: (
-                <Button
-                  variant="filled"
-                  radius={'md'}
-                  leftSection={<IconPlus size={20} />}
-                  lts={rem(0.25)}
-                  onClick={() =>
-                    navigate({
-                      to: '/billing/create',
-                    })
-                  }
-                >
-                  New Invoice
-                </Button>
-              ),
-            }}
-          />
-        </Group>
-      </Flex>
+      </Group>
 
       <Stack>
-        {/* <Card padding="lg" radius="md" withBorder> */}
-        <Group justify="space-between" align="center">
-          <SegmentedControl
-            bd={'1px solid gray.2'}
-            data={[...segmentedControlOptions]}
-            defaultValue={searchParam.tab || 'all'}
-            color="primary"
-            onChange={(value) => handleTabChange(value as IBillingQuery['tab'])}
-          />
-          <Group gap="sm">
-            {/* Changed spacing to gap */}
+        <Flex
+          wrap="wrap"
+          gap={{ base: 'sm', xs: 'sm' }}
+          justify={'end'}
+          align="center"
+        >
+          <ScrollArea w={{ base: '100%', xs: 'auto' }}>
+            <SegmentedControl
+              w={{ base: '100%', xs: 'auto' }}
+              bd={'1px solid gray.2'}
+              data={[...segmentedControlOptions]}
+              defaultValue={searchParam.tab || 'all'}
+              color="primary"
+              onChange={(value) =>
+                handleTabChange(value as IBillingQuery['tab'])
+              }
+            />
+          </ScrollArea>
+          <Flex
+            gap={'sm'}
+            direction={{ base: 'column', xs: 'row' }}
+            w={{ base: '100%', xs: 'auto' }}
+            ml={'auto'}
+            wrap={'wrap'}
+            justify={'end'}
+          >
             <TextInput
               placeholder="Search name/email"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
-              w={rem(250)}
+              w={{ base: '100%', xs: rem(250) }}
               onChange={handleSearch}
             />
             <Button
@@ -261,8 +243,28 @@ function BillingPage() {
             >
               Filters
             </Button>
-          </Group>
-        </Group>
+            <RoleComponentManager
+              currentRole={authUser.role}
+              roleRender={{
+                admin: (
+                  <Button
+                    variant="filled"
+                    radius={'md'}
+                    leftSection={<IconPlus size={20} />}
+                    lts={rem(0.25)}
+                    onClick={() =>
+                      navigate({
+                        to: '/billing/create',
+                      })
+                    }
+                  >
+                    New Invoice
+                  </Button>
+                ),
+              }}
+            />
+          </Flex>
+        </Flex>
 
         <BillingTable query={debouncedQuery} />
 
@@ -304,71 +306,73 @@ function BillingTable({ query }: { query: IBillingQuery }) {
   }, [authUser.role])
 
   return (
-    <Table
-      verticalSpacing={'md'}
-      highlightOnHover
-      highlightOnHoverColor="gray.0"
-      style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-      styles={{
-        th: {
-          fontWeight: 500,
-        },
-      }}
-    >
-      <Table.Thead>
-        <RoleComponentManager
-          currentRole={authUser.role}
-          roleRender={{
-            admin: <AdminBillingTableHeader />,
-            student: <StudentBillingTableHeader />,
-          }}
-        />
-      </Table.Thead>
-      <Table.Tbody
-        style={{
-          cursor: 'pointer',
+    <Table.ScrollContainer minWidth={rem(700)} type="native">
+      <Table
+        verticalSpacing={'md'}
+        highlightOnHover
+        highlightOnHoverColor="gray.0"
+        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+        styles={{
+          th: {
+            fontWeight: 500,
+          },
         }}
       >
-        <Suspense fallback={<SuspendedBillingTableRows />}>
-          <BillingQueryProvider props={query}>
-            {(props) =>
-              props.currentInvoices.length == 0 ? (
-                <Table.Tr>
-                  <Table.Td colSpan={columnCount}>
-                    <Flex
-                      align="center"
-                      justify="center"
-                      direction="column"
-                      py="xl"
-                      c="dark.3"
-                    >
-                      <IconInbox size={36} stroke={1.5} />
-                      <Text mt="sm" fw={500}>
-                        No bills found
-                      </Text>
-                      <Text fz="sm" c="dark.2">
-                        Try other search terms or filters.
-                      </Text>
-                    </Flex>
-                  </Table.Td>
-                </Table.Tr>
-              ) : (
-                props.currentInvoices.map((invoice) => (
-                  <RoleComponentManager
-                    key={invoice.id}
-                    currentRole={authUser.role}
-                    roleRender={{
-                      admin: <AdminBillingTableBody invoice={invoice} />,
-                      student: <StudentBillingTableBody invoice={invoice} />,
-                    }}
-                  />
-                ))
-              )
-            }
-          </BillingQueryProvider>
-        </Suspense>
-      </Table.Tbody>
-    </Table>
+        <Table.Thead>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              admin: <AdminBillingTableHeader />,
+              student: <StudentBillingTableHeader />,
+            }}
+          />
+        </Table.Thead>
+        <Table.Tbody
+          style={{
+            cursor: 'pointer',
+          }}
+        >
+          <Suspense fallback={<SuspendedBillingTableRows />}>
+            <BillingQueryProvider props={query}>
+              {(props) =>
+                props.currentInvoices.length == 0 ? (
+                  <Table.Tr>
+                    <Table.Td colSpan={columnCount}>
+                      <Flex
+                        align="center"
+                        justify="center"
+                        direction="column"
+                        py="xl"
+                        c="dark.3"
+                      >
+                        <IconInbox size={36} stroke={1.5} />
+                        <Text mt="sm" fw={500}>
+                          No bills found
+                        </Text>
+                        <Text fz="sm" c="dark.2">
+                          Try other search terms or filters.
+                        </Text>
+                      </Flex>
+                    </Table.Td>
+                  </Table.Tr>
+                ) : (
+                  props.currentInvoices.map((invoice) => (
+                    <RoleComponentManager
+                      key={invoice.id}
+                      currentRole={authUser.role}
+                      roleRender={{
+                        admin: <AdminBillingTableBody invoice={invoice} />,
+                        student: <StudentBillingTableBody invoice={invoice} />,
+                      }}
+                    />
+                  ))
+                )
+              }
+            </BillingQueryProvider>
+          </Suspense>
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   )
 }
 
