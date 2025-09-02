@@ -335,7 +335,14 @@ const NodeRow = ({
       shadow="md"
       offset={{ mainAxis: 12, crossAxis: 12 }}
       opened={openedDetailsId === node.id}
-      zIndex={1000}
+      zIndex={20}
+      closeOnClickOutside={true} // TODO: disable this when changes are made
+      clickOutsideEvents={['pointerdown', 'ondragenter']}
+      onChange={(opened) => {
+        if (!opened) {
+          setOpenedDetailsId(null)
+        }
+      }}
     >
       <Popover.Target>
         <Group
@@ -360,7 +367,7 @@ const NodeRow = ({
           onMouseLeave={() => setHoveredId(null)}
           onClick={() => onSelectNode(node)}
         >
-          <Group gap={'xs'} wrap={'nowrap'} miw={200} style={{ flex: 1 }}>
+          <Group gap={'xs'} wrap={'nowrap'} style={{ flex: 1 }}>
             {node.droppable ? (
               <ActionIcon onClick={onToggle} variant={'subtle'}>
                 <IconChevronRight
@@ -379,7 +386,7 @@ const NodeRow = ({
               fw={node.data?.type === 'module' ? 600 : 400}
               size={'sm'}
               lh={'xs'}
-              style={{ textWrap: 'nowrap' }}
+              truncate
             >
               {node.text}
             </Text>
