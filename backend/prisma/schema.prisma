@@ -51,6 +51,10 @@ model User {
   courseEnrollment CourseEnrollment[]
   /// @DtoApiHidden
   courseSections  CourseSection[]
+  /// @DtoApiHidden
+  submissions UserSubmission[]
+  /// @DtoApiHidden
+  moduleProgress UserModuleProgress[]
 
   firstName  String
   middleName String?
@@ -213,6 +217,9 @@ model Course {
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings
+
+  /// @DtoApiHidden
+  weeks Week[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -497,6 +504,95 @@ model BillPayment {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+}
+
+model Week {
+  id  String @id @default(uuid()) @db.Uuid
+  order Int
+
+  courseId String
+  /// DtoApiHidden
+  course Course @relation(fields: [courseId], references: [id])
+
+  modules Module[]
+}
+
+model Module {
+  id  String @id @default(uuid()) @db.Uuid
+  title String
+  order Int
+
+  weekId String
+  /// @DtoApiHidden
+  week Week @relation(fields: [weekId], references: [id])
+
+  items ModuleItem[]
+
+  UserModuleProgress UserModuleProgress[]
+}
+
+enum ModuleItemType {
+  OVERVIEW
+  DISCUSSION
+  OUTPUT
+  REFLECTION
+}
+
+model ModuleItem {
+  id  String @id @default(uuid()) @db.Uuid
+  type     ModuleItemType
+  content  String?  @db.Text
+  link     String?
+  imageUrl String?
+
+  deadline DateTime?
+
+  moduleId String   @db.Uuid
+  /// @DtoApiHidden
+  module   Module @relation(fields: [moduleId], references: [id])
+
+  submissions UserSubmission[]
+}
+
+model UserModuleProgress {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  moduleId  String   @db.Uuid
+  completed Boolean  @default(false)
+  completedAt DateTime?
+  /// @DtoApiHidden
+  user   User           @relation(fields: [userId], references: [id])
+  /// @DtoApiHidden
+  module Module @relation(fields: [moduleId], references: [id])
+
+  @@unique([userId, moduleId])
+}
+
+enum SubmissionStatus {
+  NOT_SUBMITTED   
+  SUBMITTED
+  LATE
+  GRADED
+}
+
+model UserSubmission {
+  id  String @id @default(uuid()) @db.Uuid
+  userId String
+  itemId String
+
+  /// @DtoApiHidden
+  user User @relation(fields: [userId], references: [id])
+  /// @DtoApiHidden
+  item ModuleItem @relation(fields: [itemId], references: [id])
+
+  content String?
+  fileUrl String?
+  linkUrl String?
+
+  submittedAt DateTime
+  status    SubmissionStatus @default(NOT_SUBMITTED)
+
+  grade Decimal?
 }
 
 model Notification {
