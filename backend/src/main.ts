@@ -1,8 +1,8 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
-import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exceptions.filters';
 
 async function bootstrap() {
@@ -39,6 +39,6 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(process.env.PORT ?? 3001, "0.0.0.0");
 }
 bootstrap();
