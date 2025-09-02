@@ -66,7 +66,7 @@ jobs:
 
       - name: Generate API Specs
         working-directory: ./
-        run: pnpm backend:api
+        run: pnpm run backend:api
 
       - name: Run TypeScript Type Check
         working-directory: ./backend
