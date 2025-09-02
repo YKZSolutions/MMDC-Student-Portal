@@ -63,6 +63,15 @@ jobs:
         working-directory: ./backend
         run: pnpm prisma-gen-sql
 
+      - name: Run Backend API (in background)
+        working-directory: ./
+        run: pnpm backend
+
+      - name: Check Backend API Endpoint (pre-run)
+        run: |
+          echo "Checking if backend API endpoint is reachable before running backend:api..."
+          curl --fail --max-time 5 http://localhost:3001/api/json || echo "Endpoint not reachable yet (expected if backend not started)"
+
       - name: Generate API Specs
         working-directory: ./
         run: pnpm backend:api
