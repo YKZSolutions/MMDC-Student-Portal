@@ -5,6 +5,7 @@ import {
   Container,
   Group,
   Modal,
+  type ModalProps,
   Select,
   Stack,
   Text,
@@ -13,7 +14,7 @@ import {
 } from '@mantine/core'
 import { IconBook, IconPlus } from '@tabler/icons-react'
 import React from 'react'
-import { useDisclosure } from '@mantine/hooks'
+import { Link } from '@tanstack/react-router'
 
 interface CourseSelectorProps {
   courses: CourseBasicDetails[]
@@ -31,7 +32,7 @@ const CourseSelector = ({
   showAddButton = true,
 }: CourseSelectorProps) => {
   return (
-    <Group align="center" mb="md" wrap={'nowrap'}>
+    <Group align="center" wrap={'nowrap'}>
       <Select
         data={courses.map((course) => course.courseName)}
         value={selectedCourse?.courseName}
@@ -60,8 +61,11 @@ const CourseSelector = ({
 }
 
 type CourseSelectorModalProps = {
-  onProceed: (courseCode: string) => void
-} & CourseSelectorProps
+  onProceed?: (courseCode: string) => void
+  url?: string
+  params?: any
+} & CourseSelectorProps &
+  ModalProps
 
 const CourseSelectorModal = ({
   courses,
@@ -69,9 +73,11 @@ const CourseSelectorModal = ({
   onCourseChange,
   onAddContent,
   showAddButton = false,
-  onProceed,
+  onClose,
+  opened,
+  url,
+  params,
 }: CourseSelectorModalProps) => {
-  const [opened, { open, close }] = useDisclosure(true)
   return (
     <Modal
       title={'Select Course'}
@@ -79,7 +85,7 @@ const CourseSelectorModal = ({
       radius={'md'}
       centered
       opened={opened}
-      onClose={close}
+      onClose={onClose}
     >
       <Container h="100%" p="lg">
         <Stack ta="center" h="100%" gap="lg" align={'center'} mb={'md'}>
@@ -107,11 +113,7 @@ const CourseSelectorModal = ({
                 fw: 600,
               }}
             />
-            <Button
-              onClick={() =>
-                onProceed((selectedCourse as CourseBasicDetails).courseCode)
-              }
-            >
+            <Button component={Link} to={url} params={params}>
               Proceed
             </Button>
           </Stack>

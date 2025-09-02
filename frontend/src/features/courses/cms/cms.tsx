@@ -59,6 +59,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
 
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {
     setCourseDetails(course)
+    setIsTreeVisible(true)
   }
 
   return (
@@ -138,7 +139,7 @@ export const TreeToggleButton = ({
   onToggle,
 }: TreeToggleButtonProps) => {
   return (
-    <ActionIcon onClick={onToggle} bg={isVisible ? 'dark.3' : 'transparent'}>
+    <ActionIcon onClick={onToggle} bg={isVisible ? 'blue.3' : 'gray.3'}>
       <IconListTree size={18} color={isVisible ? 'white' : 'gray'} />
     </ActionIcon>
   )
@@ -170,10 +171,14 @@ const CMSHeader = ({
       justify="space-between"
       align="center"
       w={'100%'}
-      pb={'sm'}
       style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
+      p={'sm'}
     >
-      <Group gap={'md'} display={isTreeVisible ? 'none' : 'flex'}>
+      <Group
+        gap={'md'}
+        display={isTreeVisible ? 'none' : 'flex'}
+        align={'center'}
+      >
         <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
         <CourseSelector
           courses={courses}
@@ -326,19 +331,24 @@ export const SidePanel = ({
   onEdit,
 }: SidePanelProps) => {
   return (
-    <Box mt={'xs'}>
+    <Box mt={'md'}>
       <Container>
-        <Group align="center" mb="md" gap={'xs'}>
-          <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
-          <Text fw={500}>Course Structure</Text>
-        </Group>
+        <Stack gap={'xs'} mb={'xs'}>
+          <Group align="center" gap={'xs'}>
+            <TreeToggleButton
+              isVisible={isTreeVisible}
+              onToggle={onToggleTree}
+            />
+            <Text fw={500}>Course Structure</Text>
+          </Group>
 
-        <CourseSelector
-          courses={courses}
-          selectedCourse={courseDetails}
-          onCourseChange={onCourseChange}
-          onAddContent={() => onAddContent()}
-        />
+          <CourseSelector
+            courses={courses}
+            selectedCourse={courseDetails}
+            onCourseChange={onCourseChange}
+            onAddContent={() => onAddContent()}
+          />
+        </Stack>
 
         <CourseTree
           onAddButtonClick={onAddContent}

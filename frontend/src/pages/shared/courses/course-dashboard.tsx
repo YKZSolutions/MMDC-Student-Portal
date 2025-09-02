@@ -28,9 +28,9 @@ import type {
   AcademicProgram,
   ClassMeeting,
   Course,
+  CourseBasicDetails,
   EnrolledAcademicTerm,
 } from '@/features/courses/types.ts'
-import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
 import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
@@ -38,7 +38,8 @@ import { handleMeetingClick } from '@/utils/handlers.ts'
 import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import CourseSelectorModal from '@/features/courses/edit/course-selector-modal.tsx'
+import { CourseSelectorModal } from '@/features/courses/cms/course-selector.tsx'
+import { Link } from '@tanstack/react-router'
 
 // TODO: Consider adding program and/or department and major to the course data
 // TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
@@ -208,11 +209,16 @@ const CourseDashboard = ({
               >
                 Manage Course
               </Button>
-              {isCourseSelectorOpen && (
-                <CourseSelectorModal
-                  onClose={() => setIsCourseSelectorOpen(false)}
-                />
-              )}
+              <CourseSelectorModal
+                opened={isCourseSelectorOpen}
+                onClose={() => setIsCourseSelectorOpen(false)}
+                courses={[]}
+                onCourseChange={function (
+                  course: CourseBasicDetails | undefined,
+                ): void {
+                  throw new Error('Function not implemented.')
+                }}
+              />
             </>
           )}
         </Group>
@@ -316,27 +322,20 @@ const CourseItem = ({
   course: Course
   variant: 'grid' | 'list'
 }) => {
-  const navigate = useNavigate()
-
-  const handleClick = async () => {
-    await navigate({
-      to: `/courses/${course.courseDetails.courseCode}`,
-    })
-  }
-
+  const url = `/courses/${course.courseDetails.courseCode}`
   return variant === 'grid' ? (
     <CourseCard
       courseDetails={course.courseDetails}
       courseProgress={course.courseProgress}
       section={course.section}
-      onClick={handleClick}
+      url={url}
     />
   ) : (
     <CourseListRow
       courseDetails={course.courseDetails}
       courseProgress={course.courseProgress}
       section={course.section}
-      onClick={handleClick}
+      url={url}
     />
   )
 }
@@ -344,14 +343,14 @@ const CourseItem = ({
 const handleManageCourseClick = () => {}
 
 interface CourseDetailProps extends Omit<Course, 'activities'> {
-  onClick: () => void
+  url: string
 }
 
 const CourseCard = ({
   courseDetails,
   courseProgress,
   section,
-  onClick,
+  url,
 }: CourseDetailProps) => {
   const theme = useMantineTheme()
 
@@ -363,12 +362,13 @@ const CourseCard = ({
 
   return (
     <Card
+      component={Link}
+      to={url}
       withBorder
       radius="md"
       p="xs"
       shadow={hovered ? 'sm' : 'xs'}
       style={{ cursor: 'pointer' }}
-      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -454,7 +454,7 @@ const CourseListRow = ({
   courseDetails,
   courseProgress,
   section,
-  onClick,
+  url,
 }: CourseDetailProps) => {
   const theme = useMantineTheme()
 
@@ -466,13 +466,14 @@ const CourseListRow = ({
 
   return (
     <Card
+      component={Link}
+      to={url}
       withBorder
       radius="md"
       p="0"
       shadow={hovered ? 'sm' : 'xs'}
       w={'100%'}
       style={{ cursor: 'pointer' }}
-      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >

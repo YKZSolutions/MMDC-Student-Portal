@@ -8,21 +8,26 @@ import {
   type ModalProps,
   Stack,
   Title,
-  useModalsStack,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
 import { CardWithModal } from '@/components/with-modal.tsx'
 import BtnCard from '@/components/btn-card.tsx'
-import CourseSelectorModal from '@/features/courses/edit/course-selector-modal.tsx'
-import React, { useState } from 'react'
 
-const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
-  const [isCourseSelectorOpen, setIsCourseSelectorOpen] = useState(false)
-  const stack = useModalsStack(['first', 'second'])
+type CourseActionsModalProps = {
+  courseCode: string
+  opened: boolean
+  onClose: () => void
+} & ModalProps
 
+const CourseActionsModal = ({
+  courseCode,
+  opened,
+  onClose,
+  ...props
+}: CourseActionsModalProps) => {
+  function handleNavigate() {}
   return (
     <Modal
-      {...stack.register('first')}
       opened={opened}
       onClose={onClose}
       title={<Title order={3}>Manage Content</Title>}
@@ -55,16 +60,9 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
                 'Create a new module that contains assignments and other content.'
               }
               icon={<IconBook />}
-              onClick={() => {
-                setIsCourseSelectorOpen(true)
-              }}
+              url="/courses/$courseCode/modules"
+              params={courseCode}
             />
-            {isCourseSelectorOpen && (
-              <CourseSelectorModal
-                {...stack.register('second')}
-                onClose={() => setIsCourseSelectorOpen(false)}
-              />
-            )}
           </GridCol>
           <GridCol span={6}>
             <CardWithModal
