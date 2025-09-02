@@ -4,7 +4,6 @@ import type {
   ContentNode,
   ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import CourseTree from '@/features/courses/course-editor/course-tree.tsx'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import ContentDetailsEditor from '@/features/courses/course-editor/content-details-editor.tsx'
 import { useState } from 'react'
@@ -86,12 +85,6 @@ const CurriculumManagementPanel = ({
               Add Module
             </Button>
           </Group>
-
-          <CourseTree
-            onAddButtonClick={handleAdd}
-            onEditButtonClick={handleEdit}
-            courseCode={courseCode!}
-          />
         </Container>
       </Panel>
       <PanelResizeHandle disabled={!rightPaneOpen} onDragging={setIsDragging} />

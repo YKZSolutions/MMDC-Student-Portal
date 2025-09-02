@@ -6,6 +6,7 @@ import {
   Container,
   Divider,
   Group,
+  Menu,
   Select,
   Stack,
   Text,
@@ -13,7 +14,15 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
-import { IconGripVertical, IconListTree, IconPlus } from '@tabler/icons-react'
+import {
+  IconCalendar,
+  IconChevronDown,
+  IconGripVertical,
+  IconListTree,
+  IconPlus,
+  IconRubberStamp,
+  IconTrash,
+} from '@tabler/icons-react'
 import CourseTree from '@/features/courses/course-editor/course-tree.tsx'
 import { EditorWithPreview } from '@/components/editor-w-preview.tsx'
 import { useEffect, useState } from 'react'
@@ -111,12 +120,12 @@ const CMS = ({ courseCode }: CMSProps) => {
   const handleSave = (data: ContentNode) => {
     console.log('Saving data:', data)
     // TODO: update state or make an API call
-    // For now, we'll just close the editor
-    setEditorState((prev) => ({ ...prev, data: null }))
     setCourseData((prev) =>
       prev.map((item) => (item.id === data.id ? data : item)),
     )
   }
+
+  const handleUpdateContent = (content: string) => {}
 
   return (
     <Box h={'100%'} w={'100%'}>
@@ -142,9 +151,77 @@ const CMS = ({ courseCode }: CMSProps) => {
             searchable={true}
           />
           <Title order={3} c={'gray.7'}>
-            {courseDetails?.courseName} [{courseDetails?.courseCode}]{' '}
+            {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
+            {courseDetails?.courseName}{' '}
             {editorState.data && ` | ${editorState.data.title} `}
           </Title>
+          <Group wrap="nowrap" gap={0}>
+            <Button
+              radius={0}
+              style={{
+                borderStartStartRadius: '4px',
+                borderEndStartRadius: '4px',
+              }}
+            >
+              Save
+            </Button>
+            <Divider orientation="vertical" />
+            <Menu
+              transitionProps={{ transition: 'pop' }}
+              position="bottom-end"
+              withinPortal
+            >
+              <Menu.Target>
+                <ActionIcon
+                  variant="filled"
+                  color={theme.primaryColor}
+                  size={36}
+                  radius={0}
+                  style={{
+                    borderStartEndRadius: '4px',
+                    borderEndEndRadius: '4px',
+                  }}
+                >
+                  <IconChevronDown size={16} stroke={1.5} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={
+                    <IconRubberStamp
+                      size={16}
+                      stroke={1.5}
+                      color={theme.colors.blue[5]}
+                    />
+                  }
+                >
+                  Publish
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={
+                    <IconCalendar
+                      size={16}
+                      stroke={1.5}
+                      color={theme.colors.blue[5]}
+                    />
+                  }
+                >
+                  Schedule publishing
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={
+                    <IconTrash
+                      size={16}
+                      stroke={1.5}
+                      color={theme.colors.red[5]}
+                    />
+                  }
+                >
+                  Delete
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
         </Group>
         <PanelGroup direction="horizontal" style={{ height: '100%' }}>
           <Stack gap={'xs'} p={'xs'} style={{ height: '100%' }}>
@@ -211,13 +288,12 @@ const CMS = ({ courseCode }: CMSProps) => {
           </PanelResizeHandle>
           <Panel defaultSize={70} minSize={50}>
             <Box
-              mt={'xs'}
               h="100%"
               style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
             >
               <EditorWithPreview
                 content={JSON.stringify(mockInitialContent)}
-                onChange={(newContent) => console.log('Updated:', newContent)}
+                onUpdate={(newContent) => console.log('Updated:', newContent)}
               />
             </Box>
           </Panel>

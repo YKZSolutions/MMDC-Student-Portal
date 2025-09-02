@@ -6,12 +6,11 @@ import {
   MultiBackend,
   Tree,
 } from '@minoru/react-dnd-treeview'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ActionIcon,
   alpha,
   Group,
-  Menu,
   Popover,
   Stack,
   Text,
@@ -20,10 +19,8 @@ import {
 import {
   IconChevronRight,
   IconDotsVertical,
-  IconEdit,
   IconFile,
   IconPlus,
-  IconTrash,
 } from '@tabler/icons-react'
 import { useTreeConnectors } from '@/features/courses/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
@@ -116,6 +113,7 @@ function CourseTree({
   const { isLastChild, getAncestors } = useTreeConnectors(treeData)
 
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [selectedNode, setSelectedNode] = useState<CourseNodeModel | null>(null)
   const [openedDetailsId, setOpenedDetailsId] = useState<string | null>(null)
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
@@ -162,15 +160,21 @@ function CourseTree({
     }
   }
 
-  const handleEdit = (node: CourseNodeModel) => {
-    if (node.data?.type !== 'add-button' && node.data?.contentData) {
+  useEffect(() => {
+    if (!selectedNode) return
+
+    console.log('Edit button clicked for node:', selectedNode)
+    if (
+      selectedNode.data?.type !== 'add-button' &&
+      selectedNode.data?.contentData
+    ) {
       onEditButtonClick(
-        node.id as string,
-        node.data.type as ContentNodeType,
-        node.data.contentData,
+        selectedNode.id as string,
+        selectedNode.data.type as ContentNodeType,
+        selectedNode.data.contentData,
       )
     }
-  }
+  }, [selectedNode])
 
   const handleDelete = (nodeId: string | number) => {
     setTreeData((prev) => prev.filter((node) => node.id !== nodeId))
@@ -249,10 +253,9 @@ function CourseTree({
                   hoveredId={hoveredId}
                   setHoveredId={setHoveredId}
                   onAddButtonClick={onAddButtonClick}
-                  onEditButtonClick={handleEdit}
-                  onDeleteButtonClick={handleDelete}
                   openedDetailsId={openedDetailsId}
                   setOpenedDetailsId={setOpenedDetailsId}
+                  onSelectNode={(node) => setSelectedNode(node)}
                 />
               </div>
             )
@@ -271,10 +274,9 @@ type NodeProps = {
   hoveredId: string | null
   setHoveredId: (id: string | null) => void
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
-  onEditButtonClick: (node: CourseNodeModel) => void
-  onDeleteButtonClick: (nodeId: string | number) => void
   openedDetailsId: string | null
   setOpenedDetailsId: (id: string | null) => void
+  onSelectNode: (node: CourseNodeModel) => void
 }
 
 const NodeRow = ({
@@ -285,10 +287,9 @@ const NodeRow = ({
   hoveredId,
   setHoveredId,
   onAddButtonClick,
-  onEditButtonClick,
-  onDeleteButtonClick,
   openedDetailsId,
   setOpenedDetailsId,
+  onSelectNode,
 }: NodeProps) => {
   const theme = useMantineTheme()
 
@@ -334,7 +335,6 @@ const NodeRow = ({
       shadow="md"
       offset={{ mainAxis: 12, crossAxis: 12 }}
       opened={openedDetailsId === node.id}
-      onClose={() => setOpenedDetailsId(null)}
     >
       <Popover.Target>
         <Group
@@ -357,7 +357,7 @@ const NodeRow = ({
           wrap={'nowrap'}
           onMouseEnter={() => setHoveredId(node.id as string)}
           onMouseLeave={() => setHoveredId(null)}
-          onClick={() => setOpenedDetailsId(node.id as string)}
+          onClick={() => onSelectNode(node)}
         >
           <Group gap={'xs'} wrap={'nowrap'} miw={200} style={{ flex: 1 }}>
             {node.droppable ? (
@@ -387,28 +387,13 @@ const NodeRow = ({
             </Text>
           </Group>
 
-          <Menu withinPortal shadow="md" width={150}>
-            <Menu.Target>
-              <ActionIcon variant="subtle" radius="xl">
-                <IconDotsVertical size={16} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<IconEdit size={14} />}
-                onClick={() => onEditButtonClick(node)}
-              >
-                Edit
-              </Menu.Item>
-              <Menu.Item
-                color="red"
-                leftSection={<IconTrash size={14} />}
-                onClick={() => onDeleteButtonClick(node.id)}
-              >
-                Delete
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <ActionIcon
+            variant="subtle"
+            radius="xl"
+            onClick={() => setOpenedDetailsId(node.id as string)}
+          >
+            <IconDotsVertical size={16} />
+          </ActionIcon>
         </Group>
       </Popover.Target>
       <Popover.Dropdown>

@@ -9,58 +9,64 @@ import {
   ScrollArea,
   Stack,
   Title,
-  useMantineTheme,
 } from '@mantine/core'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   BasicTextStyleButton,
   BlockNoteViewEditor,
   BlockTypeSelect,
   ColorStyleButton,
   CreateLinkButton,
+  FileCaptionButton,
+  FileReplaceButton,
   FormattingToolbar,
   NestBlockButton,
   TextAlignButton,
   UnnestBlockButton,
   useComponentsContext,
   useCreateBlockNote,
+  useEditorChange,
 } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { mockInitialContent } from '@/features/courses/mocks.ts'
 import { IconEdit, IconEye } from '@tabler/icons-react'
-import { theme } from '@/integrations/mantine/mantine-theme.ts'
 
 interface EditorWithPreviewProps {
   content: string
-  onChange: (content: string) => void
+  onUpdate?: (content: string) => void
 }
 
-const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
-  const theme = useMantineTheme()
+const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
   const mockInitialContentString = JSON.stringify(mockInitialContent)
 
   const editor = useCreateBlockNote({
     initialContent: JSON.parse(mockInitialContentString),
   })
 
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [previewContent, setPreviewContent] = useState<string>('')
 
-  // useEditorChange((editor) => {
-  //   ;(async () => {
-  //     // 1. Get JSON blocks
-  //     const savedBlocks = editor.document
-  //
-  //     // 2. Convert to HTML for preview
-  //     const html = await editor.blocksToFullHTML(savedBlocks)
-  //
-  //     // 3. Save Convert to JSON for saving
-  //     const jsonObject = JSON.stringify(savedBlocks)
-  //
-  //     setPreviewContent(html)
-  //     // Save to database
-  //     onChange?.(jsonObject)
-  //   })()
-  // }, editor)
+  useEffect(() => {
+    if (!isPreviewMode) return
+    // Convert to HTML for preview
+
+    const updatePreview = async () => {
+      const html = await editor.blocksToFullHTML(editor.document)
+      setPreviewContent(html)
+    }
+
+    updatePreview()
+  }, [isPreviewMode])
+
+  useEditorChange((editor) => {
+    const updateContent = async () => {
+      // Save to JSON for saving
+      const jsonObject = JSON.stringify(editor.document)
+
+      // Save to database
+      onUpdate?.(jsonObject)
+    }
+  }, editor)
 
   return (
     <Box
@@ -95,6 +101,8 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
               flexShrink: 0,
               width: '100%',
               borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
             }}
           >
             <FormattingToolbar>
@@ -102,6 +110,8 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
                 <BlockTypeSelect key={'blockTypeSelect'} />
                 <Divider orientation="vertical" />
                 <Group gap={2}>
+                  <FileCaptionButton key={'fileCaptionButton'} />
+                  <FileReplaceButton key={'replaceFileButton'} />
                   <ColorStyleButton key={'colorStyleButton'} />
                   <BasicTextStyleButton
                     basicTextStyle={'bold'}
@@ -152,7 +162,8 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
                 <Divider orientation="vertical" />
                 <ModeToggleButton
                   key={'modeToggleButton'}
-                  onChange={() => {}}
+                  onToggle={() => setIsPreviewMode(!isPreviewMode)}
+                  isPreviewMode={isPreviewMode}
                 />
               </Group>
             </FormattingToolbar>
@@ -191,22 +202,25 @@ const EditorWithPreview = ({ content, onChange }: EditorWithPreviewProps) => {
   )
 }
 
+type ModeToggleButtonProps = {
+  isPreviewMode: boolean
+  onToggle: () => void
+}
+
 export function ModeToggleButton({
-  onChange,
-}: {
-  onChange: (mode: 'edit' | 'preview') => void
-}) {
-  const [mode, setMode] = useState<'edit' | 'preview'>('edit')
+  isPreviewMode,
+  onToggle,
+}: ModeToggleButtonProps) {
   const Components = useComponentsContext()!
 
   return (
     <Components.FormattingToolbar.Button
       mainTooltip={
-        mode === 'edit' ? 'Switch to Preview Mode' : 'Switch to Edit Mode'
+        !isPreviewMode ? 'Switch to Preview Mode' : 'Switch to Edit Mode'
       }
-      onClick={() => setMode(mode === 'edit' ? 'preview' : 'edit')}
-      icon={mode === 'preview' ? <IconEdit size={16} /> : <IconEye size={16} />}
-      label={mode === 'preview' ? 'Edit Mode' : 'Preview Mode'}
+      onClick={() => onToggle()}
+      icon={isPreviewMode ? <IconEdit size={16} /> : <IconEye size={16} />}
+      label={isPreviewMode ? 'Edit Mode' : 'Preview Mode'}
     ></Components.FormattingToolbar.Button>
   )
 }
@@ -249,7 +263,7 @@ const EditorWithPreviewModal = ({
             }}
           >
             <Stack flex={'1 0 auto'}>
-              <EditorWithPreview content={editorContent} onChange={onChange} />
+              <EditorWithPreview content={editorContent} />
               <Divider></Divider>
               <Group justify="space-between">
                 <Button

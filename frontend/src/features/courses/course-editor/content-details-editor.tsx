@@ -18,9 +18,9 @@ import {
   IconHourglassEmpty,
   IconReplace,
   IconScoreboard,
+  IconTrash,
   IconUpload,
   IconWriting,
-  IconX,
 } from '@tabler/icons-react'
 import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
 import type {
@@ -75,6 +75,8 @@ const ContentDetailsEditor = ({
     const processedData = processFormData(type, values)
     onSave(processedData)
   }
+
+  const handleDelete = () => {}
 
   // Get form fields based on content type
   const getFormFields = () => {
@@ -153,7 +155,7 @@ const ContentDetailsEditor = ({
                     modalComponent={EditorWithPreviewModal}
                     modalProps={{
                       content: form.values.content,
-                      onChange: (newContent) =>
+                      onUpdate: (newContent) =>
                         console.log(
                           'Updated:',
                           newContent,
@@ -227,8 +229,8 @@ const ContentDetailsEditor = ({
         <Text size="xl" fw={700}>
           {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
         </Text>
-        <ActionIcon onClick={onClose} variant="transparent" color="gray">
-          <IconX size={32} />
+        <ActionIcon onClick={handleDelete} variant="transparent" color="gray">
+          <IconTrash size={22} color={theme.colors.red[6]} />
         </ActionIcon>
       </Group>
 
@@ -241,7 +243,7 @@ const ContentDetailsEditor = ({
               <Button variant="default" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" bg={'secondary'}>
+              <Button type="submit">
                 {mode === 'create' ? 'Create' : 'Save Changes'}
               </Button>
             </Group>
