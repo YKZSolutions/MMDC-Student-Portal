@@ -1,12 +1,11 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Program, type Program as ProgramAsType } from './program.entity';
-import { Course, type Course as CourseAsType } from './course.entity';
 import {
   Curriculum,
   type Curriculum as CurriculumAsType,
 } from './curriculum.entity';
+import { Course, type Course as CourseAsType } from './course.entity';
 
-export class Major {
+export class CurriculumCourse {
   @ApiProperty({
     type: 'string',
   })
@@ -14,21 +13,30 @@ export class Major {
   @ApiProperty({
     type: 'string',
   })
-  programId: string;
+  curriculumId: string;
   @ApiHideProperty()
-  program?: ProgramAsType;
-  @ApiHideProperty()
-  courses?: CourseAsType[];
-  @ApiHideProperty()
-  curriculums?: CurriculumAsType[];
+  curriculum?: CurriculumAsType;
   @ApiProperty({
     type: 'string',
   })
-  name: string;
+  courseId: string;
+  @ApiHideProperty()
+  course?: CourseAsType;
   @ApiProperty({
-    type: 'string',
+    type: 'integer',
+    format: 'int32',
   })
-  description: string;
+  order: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  year: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  semester: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
