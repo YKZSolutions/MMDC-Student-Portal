@@ -1,6 +1,9 @@
 name: PR Type Checking (Frontend & Backend)
 
 on:
+  push:
+    branches:
+      - "conf/*"
   pull_request:
     branches:
       - "main"
@@ -34,6 +37,10 @@ jobs:
           key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-frontend-
+
+      - name: Generate API Specs
+        working-directory: ./
+        run: pnpm dev:prepare
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
@@ -78,13 +85,9 @@ jobs:
         working-directory: ./backend
         run: pnpm install --no-frozen-lockfile
 
-      - name: Generate Prisma Types
-        working-directory: ./backend
-        run: pnpm prisma-gen
-
-      - name: Generate Prisma SQL Types
-        working-directory: ./backend
-        run: pnpm prisma-gen-sql
+      - name: Generate API Specs
+        working-directory: ./
+        run: pnpm dev:prepare
 
       - name: Run TypeScript Type Check
         working-directory: ./backend
