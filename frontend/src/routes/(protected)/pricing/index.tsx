@@ -1,3 +1,6 @@
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
+import PricingPage from '@/pages/admin/pricing'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(protected)/pricing/')({
@@ -5,5 +8,14 @@ export const Route = createFileRoute('/(protected)/pricing/')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/(protected)/pricing/"!</div>
+  const { authUser } = useAuth('protected')
+
+  return (
+    <RoleComponentManager
+      currentRole={authUser.role}
+      roleRender={{
+        admin: <PricingPage />,
+      }}
+    />
+  )
 }
