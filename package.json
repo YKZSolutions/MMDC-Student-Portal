@@ -11,7 +11,7 @@
     "frontend": "cross-env SUPABASE_ENV=cloud pnpm --filter frontend dev",
     "frontend:local": "cross-env SUPABASE_ENV=local pnpm --filter frontend dev",
     "frontend:api": "pnpm --filter frontend openapi-ts",
-    "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start",
+    "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
     "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
     "backend:prisma-gen": "pnpm --filter backend prisma-gen",
     "backend:prisma-gen-sql": "pnpm --filter backend prisma-gen-sql",
