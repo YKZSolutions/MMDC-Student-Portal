@@ -49,7 +49,7 @@ export const moduleData: CourseModule[] = [
             type: 'reading',
             title: 'Chapter 1: Cell Structure',
             position: 1,
-            content: {
+            resource: {
               id: 'read_1',
               title: 'Chapter 1: Cell Structure',
               fileUrl: '/uploads/cell-structure.pdf',
@@ -61,7 +61,7 @@ export const moduleData: CourseModule[] = [
             type: 'reading',
             title: 'Chapter 2: DNA Replication',
             position: 2,
-            content: {
+            resource: {
               id: 'read_2',
               title: 'Chapter 2: DNA Replication',
               fileUrl: '/uploads/dna-replication.pdf',
@@ -138,7 +138,7 @@ export const moduleData: CourseModule[] = [
             type: 'reading',
             title: 'Chapter 5: Ecosystems',
             position: 1,
-            content: {
+            resource: {
               id: 'read_3',
               title: 'Chapter 5: Ecosystems',
               fileUrl: '/uploads/ecosystems.pdf',
@@ -150,7 +150,7 @@ export const moduleData: CourseModule[] = [
             type: 'reading',
             title: 'Chapter 6: Conservation',
             position: 2,
-            content: {
+            resource: {
               id: 'read_4',
               title: 'Chapter 6: Conservation',
               fileUrl: '/uploads/conservation.pdf',
@@ -242,8 +242,8 @@ const ModuleListPanel = ({
 
   const getCompletedItemsCount = (items: ModuleItem[]) => {
     return items.filter((item) => {
-      if (item.type === 'reading' && item.content) {
-        return item.content.isCompleted
+      if (item.type === 'reading' && item.resource) {
+        return item.resource.isCompleted
       }
       if (item.type === 'assignment' && item.assignment) {
         const submissionStatus = getSubmissionStatus(item.assignment)
@@ -361,7 +361,7 @@ const ModuleItemCard = ({
             <CompletedStatusIcon
               status={
                 item.type === 'reading'
-                  ? item.content?.isCompleted
+                  ? item.resource?.isCompleted
                     ? 'read'
                     : 'unread'
                   : getSubmissionStatus(item.assignment)

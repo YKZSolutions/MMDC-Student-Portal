@@ -8,15 +8,17 @@ export interface EditorState {
   type: ContentNodeType
   data: ContentNode | null
   parentId: string | null
-  mode: 'create' | 'edit' | 'preview'
+  view: EditorView
 }
+
+export type EditorView = 'detail' | 'content' | 'preview'
 
 export const useEditorState = () => {
   const [editorState, setEditorState] = useState<EditorState>({
     type: 'module',
     data: null,
     parentId: null,
-    mode: 'create',
+    view: 'detail',
   })
 
   const handleAdd = (parentId: string = 'root', newType?: ContentNodeType) => {
@@ -24,40 +26,41 @@ export const useEditorState = () => {
       type: newType || 'module',
       data: null,
       parentId,
-      mode: 'create',
+      view: 'detail',
     })
   }
 
-  const handleEdit = (
-    nodeId: string,
+  const handleUpdate = (
     nodeType: ContentNodeType,
     nodeData: ContentNode,
+    view: EditorView,
   ) => {
     setEditorState({
       type: nodeType,
       data: nodeData,
       parentId: null,
-      mode: 'edit',
+      view,
     })
   }
 
-  const handlePreview = (
-    nodeId: string,
-    nodeType: ContentNodeType,
-    nodeData: ContentNode,
-  ) => {
+  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {
     setEditorState({
       type: nodeType,
       data: nodeData,
       parentId: null,
-      mode: 'preview',
+      view: 'preview',
     })
+  }
+
+  const setView = (view: EditorView) => {
+    setEditorState((prev) => ({ ...prev, view }))
   }
 
   return {
     editorState,
     handleAdd,
-    handleEdit,
+    handleUpdate,
     handlePreview,
+    setView,
   }
 }

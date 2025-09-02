@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   ActionIcon,
   Box,
@@ -38,33 +38,82 @@ import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import CourseTree from '@/features/courses/cms/course-tree.tsx'
 import { EditorWithPreview } from '@/components/editor-w-preview.tsx'
 import { CourseSelector } from '@/features/courses/cms/course-selector.tsx'
+import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 
 type CMSProps = {
   courseCode?: string
 }
+
+type EditorView = 'detail' | 'content' | 'preview'
 
 export const CMS = ({ courseCode }: CMSProps) => {
   const theme = useMantineTheme()
   const [isTreeVisible, setIsTreeVisible] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
 
-  const { courseDetails, setCourseDetails, courseData, updateCourseData } =
-    useCourseData(courseCode)
-  const { editorState, handleAdd, handleEdit, handlePreview } = useEditorState()
+  const {
+    courseDetails,
+    setCourseDetails,
+    courseData,
+    updateCourseData,
+    updateCourseContent,
+  } = useCourseData(courseCode)
 
-  const handleSave = (data: ContentNode) => {
-    console.log('Saving data:', data)
-    updateCourseData(data)
-  }
+  const { editorState, handleAdd, handleUpdate, handlePreview, setView } =
+    useEditorState()
 
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {
     setCourseDetails(course)
     setIsTreeVisible(true)
   }
 
+  const View = () => {
+    switch (editorState.view) {
+      case 'detail': {
+        return (
+          <ContentDetailsEditor
+            opened={true}
+            type={editorState.type as ContentNodeType}
+            data={editorState.data}
+            onSave={(nodeData) => {
+              updateCourseData(nodeData)
+              handleUpdate(editorState.type, nodeData, editorState.view)
+            }}
+            p={'xl'}
+            style={{
+              overflowY: 'auto',
+              scrollbarGutter: 'stable',
+            }}
+          />
+        )
+      }
+      case 'content':
+        return (
+          <EditorWithPreview
+            content={JSON.stringify(mockInitialContent)}
+            onUpdate={(newContent) => {
+              updateCourseContent(newContent, editorState.data?.id)
+              handleUpdate(
+                editorState.type,
+                courseData.find((n) => n.id === editorState.data?.id)!,
+                editorState.view,
+              )
+            }}
+          />
+        )
+      case 'preview':
+        return (
+          <EditorWithPreview
+            content={JSON.stringify(mockInitialContent)}
+            onUpdate={(newContent) => console.log('Updated:', newContent)}
+          />
+        )
+    }
+  }
+
   return (
-    <Box h={'100%'} w={'100%'}>
-      <PanelGroup direction="horizontal" style={{ height: '100%' }}>
+    <Box h={'100%'} w={'100%'} style={{ overflow: 'hidden' }}>
+      <PanelGroup direction="horizontal">
         <Panel hidden={!isTreeVisible} minSize={15} defaultSize={20}>
           <SidePanel
             courseDetails={courseDetails}
@@ -74,7 +123,9 @@ export const CMS = ({ courseCode }: CMSProps) => {
             onCourseChange={handleCourseChange}
             onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
             onAddContent={handleAdd}
-            onEdit={handleEdit}
+            onNodeChange={(nodeData) => {
+              handleUpdate(editorState.type, nodeData, editorState.view)
+            }}
           />
         </Panel>
 
@@ -113,12 +164,13 @@ export const CMS = ({ courseCode }: CMSProps) => {
 
             <Box
               h="100%"
-              style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+              }}
             >
-              <EditorWithPreview
-                content={JSON.stringify(mockInitialContent)}
-                onUpdate={(newContent) => console.log('Updated:', newContent)}
-              />
+              <View />
             </Box>
           </Stack>
         </Panel>
@@ -172,7 +224,7 @@ const CMSHeader = ({
       align="center"
       w={'100%'}
       style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
-      p={'sm'}
+      p={'xs'}
     >
       <Group
         gap={'md'}
@@ -189,7 +241,7 @@ const CMSHeader = ({
         />
       </Group>
 
-      <Title order={3} c={'gray.7'}>
+      <Title order={2} c={'gray.7'}>
         {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
         {courseDetails?.courseName}{' '}
         {editorState.data && ` | ${editorState.data.title} `}
@@ -285,9 +337,10 @@ export const StatusBar = ({ editorState }: StatusBarProps) => {
         padding: theme.spacing.xs,
         backgroundColor: theme.white,
       }}
+      mih={32}
     >
       <Text size="sm" c="dimmed">
-        {editorState.mode === 'edit' ? 'Editing' : 'Creating'}{' '}
+        {editorState.view === 'preview' ? 'Viewing' : 'Editing'}{' '}
         {editorState.type}
       </Text>
       <Group gap="xs">
@@ -311,13 +364,9 @@ interface SidePanelProps {
   courseData: ContentNode[]
   isTreeVisible: boolean
   onCourseChange: (course: CourseBasicDetails | undefined) => void
+  onNodeChange: (nodeData: ContentNode) => void
   onToggleTree: () => void
   onAddContent: (parentId?: string, newType?: ContentNodeType) => void
-  onEdit: (
-    nodeId: string,
-    nodeType: ContentNodeType,
-    nodeData: ContentNode,
-  ) => void
 }
 
 export const SidePanel = ({
@@ -326,9 +375,9 @@ export const SidePanel = ({
   courseData,
   isTreeVisible,
   onCourseChange,
+  onNodeChange,
   onToggleTree,
   onAddContent,
-  onEdit,
 }: SidePanelProps) => {
   return (
     <Box mt={'md'}>
@@ -352,8 +401,8 @@ export const SidePanel = ({
 
         <CourseTree
           onAddButtonClick={onAddContent}
-          onEditButtonClick={onEdit}
           courseData={courseData}
+          onNodeChange={onNodeChange}
         />
       </Container>
     </Box>

@@ -32,7 +32,7 @@ export interface ModuleItem {
   type: ContentType
   title: string
   position: number
-  content?: ReadingMaterial
+  resource?: ReadingMaterial
   assignment?: Assignment | StudentAssignment
 }
 
@@ -103,7 +103,7 @@ export const mockCourseTreeData: CourseNodeModel[] = [
         type: 'reading',
         title: 'Chapter 1: Cell Structure',
         position: 1,
-        content: {
+        resource: {
           id: 'read_1',
           title: 'Chapter 1: Cell Structure',
           fileUrl: '/uploads/cell-structure.pdf',
@@ -190,7 +190,7 @@ export const mockContentNodes: ContentNode[] = [
             type: 'reading',
             title: 'Chapter 1: Cell Structure',
             position: 1,
-            content: {
+            resource: {
               id: 'read_1',
               title: 'Chapter 1: Cell Structure',
               fileUrl: '/uploads/cell-structure.pdf',

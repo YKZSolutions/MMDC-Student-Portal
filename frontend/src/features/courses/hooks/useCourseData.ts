@@ -22,7 +22,15 @@ export const useCourseData = (courseCode?: string) => {
 
   const updateCourseData = (data: ContentNode) => {
     setCourseData((prev) =>
-      prev.map((item) => (item.id === data.id ? data : item)),
+      prev.map((item) => (item.id === data.id ? { ...item, ...data } : item)),
+    )
+  }
+
+  const updateCourseContent = (data: string, itemId?: string) => {
+    setCourseData((prev) =>
+      prev.map((item) =>
+        item.id === itemId ? { ...item, content: data } : item,
+      ),
     )
   }
 
@@ -31,5 +39,6 @@ export const useCourseData = (courseCode?: string) => {
     setCourseDetails,
     courseData,
     updateCourseData,
+    updateCourseContent,
   }
 }

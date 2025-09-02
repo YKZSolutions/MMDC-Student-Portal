@@ -13,13 +13,11 @@ import {
 } from '@mantine/core'
 import {
   IconCategory,
-  IconEdit,
   IconHeading,
   IconHourglassEmpty,
   IconReplace,
   IconScoreboard,
   IconTrash,
-  IconUpload,
   IconWriting,
 } from '@tabler/icons-react'
 import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
@@ -30,15 +28,11 @@ import type {
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useForm } from '@mantine/form'
-import { ButtonWithModal } from '@/components/with-modal.tsx'
-import { EditorWithPreviewModal } from '@/components/editor-w-preview.tsx'
 
 type ContentDetailsEditorProps = {
   opened: boolean
   type: ContentNodeType
   data: CourseModule | ModuleSection | ModuleItem | null
-  mode: 'create' | 'edit'
-  onClose: () => void
   onSave: (data: any) => void
 } & ComponentPropsWithoutRef<typeof Stack> &
   BoxProps
@@ -49,12 +43,11 @@ const ContentDetailsEditor = ({
   opened,
   type,
   data,
-  mode,
-  onClose,
   onSave,
   ...stackProps
 }: ContentDetailsEditorProps) => {
   const theme = useMantineTheme()
+  const mode = data ? 'edit' : 'create'
 
   // Form setup based on content type
   const form = useForm({
@@ -75,6 +68,8 @@ const ContentDetailsEditor = ({
     const processedData = processFormData(type, values)
     onSave(processedData)
   }
+
+  const handleCancel = () => {}
 
   const handleDelete = () => {}
 
@@ -137,39 +132,6 @@ const ContentDetailsEditor = ({
               placeholder="Enter item title"
               {...form.getInputProps('title')}
             />
-
-            {form.values.type === 'reading' && (
-              <>
-                <Textarea
-                  label="Content"
-                  placeholder="Enter reading content"
-                  {...form.getInputProps('content')}
-                />
-                <Group>
-                  <Button leftSection={<IconUpload size={16} />}>
-                    Upload File
-                  </Button>
-                  <ButtonWithModal
-                    label={'Use Editor'}
-                    icon={<IconEdit size={16} />}
-                    modalComponent={EditorWithPreviewModal}
-                    modalProps={{
-                      content: form.values.content,
-                      onUpdate: (newContent) =>
-                        console.log(
-                          'Updated:',
-                          newContent,
-                        ) /*form.handlers.setFieldValue*/,
-                      field: 'content',
-                    }}
-                    bg={'primary'}
-                  />
-                  <Text size="sm" c="dimmed">
-                    or enter content directly
-                  </Text>
-                </Group>
-              </>
-            )}
 
             {form.values.type === 'assignment' && (
               <>
@@ -240,7 +202,7 @@ const ContentDetailsEditor = ({
             {getFormFields()}
 
             <Group justify="flex-end" mt="md" wrap={'nowrap'}>
-              <Button variant="default" onClick={onClose}>
+              <Button variant="default" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button type="submit">
@@ -261,6 +223,7 @@ function getInitialValues(type: ContentNodeType, data: any) {
     switch (type) {
       case 'module':
         return {
+          id: data.id ?? null,
           title: data.title || '',
           description: data.description || '',
           position: data.position || 0,
@@ -268,6 +231,7 @@ function getInitialValues(type: ContentNodeType, data: any) {
 
       case 'section':
         return {
+          id: data.id ?? null,
           title: data.title || '',
           description: data.description || '',
           position: data.position || 0,
@@ -275,6 +239,7 @@ function getInitialValues(type: ContentNodeType, data: any) {
 
       case 'item':
         return {
+          id: data.id ?? null,
           type: data.type || 'reading',
           title: data.title || '',
           description: data.description || '',
@@ -332,16 +297,13 @@ function getInitialValues(type: ContentNodeType, data: any) {
 
 // Helper function to process form data before saving
 function processFormData(type: ContentNodeType, values: any) {
+  const isEditing = Boolean(values.id)
+
   switch (type) {
     case 'module':
-      return {
-        title: values.title,
-        description: values.description,
-        position: values.position,
-      }
-
     case 'section':
       return {
+        ...(isEditing ? { id: values.id } : {}),
         title: values.title,
         description: values.description,
         position: values.position,
@@ -349,6 +311,7 @@ function processFormData(type: ContentNodeType, values: any) {
 
     case 'item':
       const baseItem = {
+        ...(isEditing ? { id: values.id } : {}),
         title: values.title,
         type: values.type,
         position: values.position || 0,

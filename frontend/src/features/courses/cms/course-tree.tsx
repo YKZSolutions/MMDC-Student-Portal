@@ -9,9 +9,9 @@ import {
 import React, { useEffect, useState } from 'react'
 import {
   ActionIcon,
-  alpha,
+  Button,
   Group,
-  Popover,
+  Menu,
   Stack,
   Text,
   useMantineTheme,
@@ -21,6 +21,7 @@ import {
   IconDotsVertical,
   IconFile,
   IconPlus,
+  IconTrash,
 } from '@tabler/icons-react'
 import { useTreeConnectors } from '@/features/courses/hooks/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
@@ -33,7 +34,7 @@ import {
   type ContentNodeType,
   type CourseNodeModel,
 } from '@/features/courses/modules/types.ts'
-import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
+import { modals } from '@mantine/modals'
 
 const reorderArray = (
   array: CourseNodeModel[],
@@ -91,19 +92,15 @@ function injectData(nodes: CourseNodeModel[]): CourseNodeModel[] {
 }
 
 interface CourseTreeProps {
-  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
-  onEditButtonClick: (
-    nodeId: string,
-    nodeType: ContentNodeType,
-    nodeData: any,
-  ) => void
   courseData: ContentNode[]
+  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
+  onNodeChange: (nodeData: ContentNode) => void
 }
 
 function CourseTree({
-  onAddButtonClick,
-  onEditButtonClick,
   courseData,
+  onAddButtonClick,
+  onNodeChange,
 }: CourseTreeProps) {
   const theme = useMantineTheme()
 
@@ -112,9 +109,13 @@ function CourseTree({
   )
   const { isLastChild, getAncestors } = useTreeConnectors(treeData)
 
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<CourseNodeModel | null>(null)
   const [openedDetailsId, setOpenedDetailsId] = useState<string | null>(null)
+
+  // Sync treeData when courseData changes
+  useEffect(() => {
+    setTreeData(injectData(convertContentNodesToTreeNodes(courseData)))
+  }, [courseData])
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
     const { dragSourceId, dropTargetId, destinationIndex } = e
@@ -163,16 +164,11 @@ function CourseTree({
   useEffect(() => {
     if (!selectedNode) return
 
-    console.log('Edit button clicked for node:', selectedNode)
     if (
       selectedNode.data?.type !== 'add-button' &&
       selectedNode.data?.contentData
     ) {
-      onEditButtonClick(
-        selectedNode.id as string,
-        selectedNode.data.type as ContentNodeType,
-        selectedNode.data.contentData,
-      )
+      onNodeChange(selectedNode.data.contentData)
     }
   }, [selectedNode])
 
@@ -195,69 +191,15 @@ function CourseTree({
           dropTargetOffset={5}
           initialOpen={true}
           render={(node, { depth, isOpen, isDropTarget, onToggle }) => {
-            const ancestors = getAncestors(node)
-            const indentModifier = 24
-            const lineIndent = 20
-
             return (
-              <div
-                style={{
-                  position: 'relative',
-                  paddingLeft: depth * indentModifier,
-                }}
-              >
-                {/* 1. Draw all vertical lines in a single loop */}
-                {Array.from({ length: depth }).map((_, i) => {
-                  const isLastVerticalSegment = i === depth - 1
-
-                  // Skip drawing the vertical line if it's the last child
-                  if (isLastChild(ancestors[i + 1])) return null
-
-                  return (
-                    <div
-                      key={i}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        bottom:
-                          isLastVerticalSegment && isLastChild(node)
-                            ? '50%'
-                            : 0, // Draw the last vertical line to the middle if it's the last child
-                        left: i * indentModifier + lineIndent,
-                        width: 1.5,
-                        backgroundColor: theme.colors.gray[4],
-                      }}
-                    />
-                  )
-                })}
-
-                {/* 2. Draw the horizontal part of the elbow */}
-                {depth > 0 && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: (depth - 1) * indentModifier + lineIndent,
-                      width: 12,
-                      height: 1.5,
-                      backgroundColor: theme.colors.gray[4],
-                    }}
-                  />
-                )}
-
-                <NodeRow
-                  node={node}
-                  isOpen={isOpen}
-                  isDropTarget={isDropTarget}
-                  onToggle={onToggle}
-                  hoveredId={hoveredId}
-                  setHoveredId={setHoveredId}
-                  onAddButtonClick={onAddButtonClick}
-                  openedDetailsId={openedDetailsId}
-                  setOpenedDetailsId={setOpenedDetailsId}
-                  onSelectNode={(node) => setSelectedNode(node)}
-                />
-              </div>
+              <NodeRow
+                node={node}
+                isOpen={isOpen}
+                isDropTarget={isDropTarget}
+                onToggle={onToggle}
+                onAddButtonClick={onAddButtonClick}
+                onSelectNode={(node) => setSelectedNode(node)}
+              />
             )
           }}
         />
@@ -271,11 +213,7 @@ type NodeProps = {
   isOpen: boolean
   isDropTarget: boolean
   onToggle: () => void
-  hoveredId: string | null
-  setHoveredId: (id: string | null) => void
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
-  openedDetailsId: string | null
-  setOpenedDetailsId: (id: string | null) => void
   onSelectNode: (node: CourseNodeModel) => void
 }
 
@@ -284,23 +222,17 @@ const NodeRow = ({
   isOpen,
   isDropTarget,
   onToggle,
-  hoveredId,
-  setHoveredId,
   onAddButtonClick,
-  openedDetailsId,
-  setOpenedDetailsId,
   onSelectNode,
 }: NodeProps) => {
   const theme = useMantineTheme()
 
-  const handleSave = (data: any) => {
-    console.log('Saving data:', data)
-    // TODO: update state or make an API call
-  }
+  const handleDelete = (nodeId: string | number) => {}
 
   if (node.data?.type === 'add-button') {
     return (
-      <Group
+      <Button
+        variant={'transparent'}
         px="sm"
         py="0.25rem"
         style={{
@@ -309,114 +241,86 @@ const NodeRow = ({
           color: theme.colors.blue[6],
           fontStyle: 'italic',
         }}
-        wrap={'nowrap'}
         onClick={() =>
           onAddButtonClick(
             node.parent as string,
             getChildTypeFromParentType(node.data?.parentType),
           )
         }
+        leftSection={<IconPlus size={16} />}
       >
-        <IconPlus size={16} />
         <Text size="sm" fw={500} style={{ textWrap: 'nowrap' }}>
           Add{' '}
           {capitalizeFirstLetter(
             getChildTypeFromParentType(node.data?.parentType),
           )}
         </Text>
-      </Group>
+      </Button>
     )
   }
 
   return (
-    <Popover
-      position="right-start"
-      withArrow
-      shadow="md"
-      offset={{ mainAxis: 12, crossAxis: 12 }}
-      opened={openedDetailsId === node.id}
-      zIndex={20}
-      closeOnClickOutside={true} // TODO: disable this when changes are made
-      clickOutsideEvents={['pointerdown', 'ondragenter']}
-      onChange={(opened) => {
-        if (!opened) {
-          setOpenedDetailsId(null)
-        }
+    <Group
+      justify="space-between"
+      py="0.25rem"
+      align={'center'}
+      style={{
+        backgroundColor: isDropTarget ? theme.colors.blue[0] : 'transparent',
+        borderBottom: isDropTarget
+          ? `3px solid ${theme.colors.blue[5]}`
+          : '3px solid transparent',
+        borderRadius: 4,
+        transition: 'all 0.2s ease',
+        cursor: node.droppable ? 'pointer' : 'default',
       }}
+      wrap={'nowrap'}
+      onClick={() => onSelectNode(node)}
     >
-      <Popover.Target>
-        <Group
-          justify="space-between"
-          py="0.25rem"
-          align={'center'}
-          style={{
-            backgroundColor: isDropTarget
-              ? theme.colors.blue[0]
-              : hoveredId === node.id
-                ? `${alpha(theme.colors.gray[0], 0.8)}`
-                : 'transparent',
-            borderBottom: isDropTarget
-              ? `3px solid ${theme.colors.blue[5]}`
-              : '3px solid transparent',
-            borderRadius: 4,
-            transition: 'all 0.2s ease',
-            cursor: node.droppable ? 'pointer' : 'default',
-          }}
-          wrap={'nowrap'}
-          onMouseEnter={() => setHoveredId(node.id as string)}
-          onMouseLeave={() => setHoveredId(null)}
-          onClick={() => onSelectNode(node)}
+      <Group gap={'xs'} wrap={'nowrap'} style={{ flex: 1 }}>
+        {node.droppable ? (
+          <ActionIcon onClick={onToggle} variant={'subtle'}>
+            <IconChevronRight
+              size={20}
+              style={{
+                transition: 'transform 0.2s ease',
+                transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              }}
+            />
+          </ActionIcon>
+        ) : (
+          <IconFile size={20} />
+        )}
+
+        <Text
+          fw={node.data?.type === 'module' ? 600 : 400}
+          size={'sm'}
+          lh={'xs'}
+          truncate
         >
-          <Group gap={'xs'} wrap={'nowrap'} style={{ flex: 1 }}>
-            {node.droppable ? (
-              <ActionIcon onClick={onToggle} variant={'subtle'}>
-                <IconChevronRight
-                  size={20}
-                  style={{
-                    transition: 'transform 0.2s ease',
-                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-                  }}
-                />
-              </ActionIcon>
-            ) : (
-              <IconFile size={20} />
-            )}
+          {node.text}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {node.data?.type}
+        </Text>
+      </Group>
 
-            <Text
-              fw={node.data?.type === 'module' ? 600 : 400}
-              size={'sm'}
-              lh={'xs'}
-              truncate
-            >
-              {node.text}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {node.data?.type}
-            </Text>
-          </Group>
-
-          <ActionIcon
-            variant="subtle"
-            radius="xl"
-            onClick={() => setOpenedDetailsId(node.id as string)}
-          >
+      <Menu withinPortal shadow="md" width={150}>
+        <Menu.Target>
+          <ActionIcon variant="subtle" radius="xl">
             <IconDotsVertical size={16} />
           </ActionIcon>
-        </Group>
-      </Popover.Target>
-      <Popover.Dropdown>
-        <ContentDetailsEditor
-          opened={true}
-          type={node.data?.type as ContentNodeType}
-          data={node.data?.contentData || null}
-          mode={'edit'}
-          onClose={() => {
-            setOpenedDetailsId(null)
-          }}
-          onSave={handleSave}
-        />
-      </Popover.Dropdown>
-    </Popover>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            color="red"
+            leftSection={<IconTrash size={14} />}
+            onClick={() => handleDelete(node.id)}
+          >
+            Delete
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
   )
 }
 
