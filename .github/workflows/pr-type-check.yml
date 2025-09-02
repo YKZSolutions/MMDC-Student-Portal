@@ -55,13 +55,13 @@ jobs:
         working-directory: ./backend
         run: pnpm install --no-frozen-lockfile
 
-      # - name: Generate Prisma Types
-      #   working-directory: ./backend
-      #   run: pnpm prisma-gen
+      - name: Generate Prisma Types
+        working-directory: ./backend
+        run: pnpm prisma-gen
 
-      # - name: Generate Prisma SQL Types
-      #   working-directory: ./backend
-      #   run: pnpm prisma-gen-sql
+      - name: Generate Prisma SQL Types
+        working-directory: ./backend
+        run: pnpm prisma-gen-sql
 
       - name: Generate API Specs
         working-directory: ./
