@@ -217,9 +217,8 @@ model Course {
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings
-
   /// @DtoApiHidden
-  weeks Week[]
+  modules Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -506,15 +505,11 @@ model BillPayment {
   deletedAt DateTime?
 }
 
-model Week {
-  id  String @id @default(uuid()) @db.Uuid
-  order Int
-
-  courseId String
-  /// DtoApiHidden
-  course Course @relation(fields: [courseId], references: [id])
-
-  modules Module[]
+enum ModuleType {
+  OVERVIEW
+  DISCUSSION
+  OUTPUT
+  REFLECTION
 }
 
 model Module {
@@ -522,37 +517,22 @@ model Module {
   title String
   order Int
 
-  weekId String
-  /// @DtoApiHidden
-  week Week @relation(fields: [weekId], references: [id])
+  courseId String
+  course Course @relation(fields: [courseId], references: [id])
 
-  items ModuleItem[]
-
-  UserModuleProgress UserModuleProgress[]
-}
-
-enum ModuleItemType {
-  OVERVIEW
-  DISCUSSION
-  OUTPUT
-  REFLECTION
-}
-
-model ModuleItem {
-  id  String @id @default(uuid()) @db.Uuid
-  type     ModuleItemType
+  type     ModuleType
   content  String?  @db.Text
   link     String?
   imageUrl String?
 
   deadline DateTime?
 
-  moduleId String   @db.Uuid
   /// @DtoApiHidden
-  module   Module @relation(fields: [moduleId], references: [id])
-
+  UserModuleProgress UserModuleProgress[]
+  /// @DtoApiHidden
   submissions UserSubmission[]
 }
+
 
 model UserModuleProgress {
   id        String   @id @default(uuid()) @db.Uuid
@@ -577,14 +557,15 @@ enum SubmissionStatus {
 
 model UserSubmission {
   id  String @id @default(uuid()) @db.Uuid
+
   userId String
-  itemId String
+  moduleId String
 
   /// @DtoApiHidden
   user User @relation(fields: [userId], references: [id])
   /// @DtoApiHidden
-  item ModuleItem @relation(fields: [itemId], references: [id])
-
+  module Module  @relation(fields: [moduleId], references: [id])
+  
   content String?
   fileUrl String?
   linkUrl String?
