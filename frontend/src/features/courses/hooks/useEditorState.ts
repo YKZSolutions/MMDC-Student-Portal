@@ -15,7 +15,7 @@ export type EditorView = 'detail' | 'content' | 'preview'
 
 export const useEditorState = () => {
   const [editorState, setEditorState] = useState<EditorState>({
-    type: 'module',
+    type: 'section',
     data: null,
     parentId: null,
     view: 'detail',
@@ -23,7 +23,7 @@ export const useEditorState = () => {
 
   const handleAdd = (parentId: string = 'root', newType?: ContentNodeType) => {
     setEditorState({
-      type: newType || 'module',
+      type: newType || 'section',
       data: null,
       parentId,
       view: 'detail',

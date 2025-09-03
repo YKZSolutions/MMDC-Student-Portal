@@ -36,7 +36,7 @@ import type {
   ContentNodeType,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import CourseTree from '@/features/courses/cms/course-tree.tsx'
+import ContentTree from '@/features/courses/cms/content-tree.tsx'
 import { EditorWithPreview } from '@/components/editor-w-preview.tsx'
 import { CourseSelector } from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
@@ -53,9 +53,10 @@ export const CMS = ({ courseCode }: CMSProps) => {
   const {
     courseDetails,
     setCourseDetails,
-    courseData,
+    module,
     updateCourseData,
     updateCourseContent,
+    getNode,
   } = useCourseData(courseCode)
 
   const { editorState, handleAdd, handleUpdate, handlePreview, setView } =
@@ -89,21 +90,33 @@ export const CMS = ({ courseCode }: CMSProps) => {
       case 'content':
         return (
           <EditorWithPreview
-            content={JSON.stringify(mockInitialContent)}
+            content={
+              editorState.data && 'content' in editorState.data
+                ? editorState.data?.content ||
+                  JSON.stringify(mockInitialContent)
+                : null
+            }
             onUpdate={(newContent) => {
               updateCourseContent(newContent, editorState.data?.id)
-              handleUpdate(
-                editorState.type,
-                courseData.find((n) => n.id === editorState.data?.id)!,
-                editorState.view,
-              )
+              if (editorState.data) {
+                const updatedNode = {
+                  ...editorState.data,
+                  content: newContent,
+                }
+                handleUpdate(editorState.type, updatedNode, editorState.view)
+              }
             }}
           />
         )
       case 'preview':
         return (
           <EditorWithPreview
-            content={JSON.stringify(mockInitialContent)}
+            content={
+              editorState.data && 'content' in editorState.data
+                ? editorState.data?.content ||
+                  JSON.stringify(mockInitialContent)
+                : null
+            }
             onUpdate={(newContent) => console.log('Updated:', newContent)}
           />
         )
@@ -117,7 +130,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
           <SidePanel
             courseDetails={courseDetails}
             courses={mockCourseBasicDetails}
-            courseData={courseData}
+            module={module}
             isTreeVisible={isTreeVisible}
             onCourseChange={handleCourseChange}
             onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
@@ -371,7 +384,7 @@ export const StatusBar = ({}: StatusBarProps) => {
 interface SidePanelProps {
   courseDetails?: CourseBasicDetails
   courses: CourseBasicDetails[]
-  courseData: ContentNode[]
+  module: Module
   isTreeVisible: boolean
   onCourseChange: (course: CourseBasicDetails | undefined) => void
   onNodeChange: (nodeData: ContentNode) => void
@@ -382,7 +395,7 @@ interface SidePanelProps {
 export const SidePanel = ({
   courseDetails,
   courses,
-  courseData,
+  module,
   isTreeVisible,
   onCourseChange,
   onNodeChange,
@@ -409,9 +422,9 @@ export const SidePanel = ({
           />
         </Stack>
 
-        <CourseTree
+        <ContentTree
           onAddButtonClick={onAddContent}
-          courseData={courseData}
+          module={module}
           onNodeChange={onNodeChange}
         />
       </Container>

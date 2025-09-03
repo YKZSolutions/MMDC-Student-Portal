@@ -34,7 +34,7 @@ export interface ModuleItem {
   order: number
   prerequisites?: string[]
   content?: string
-  progress?: ContentProgress[]
+  progress?: ContentProgress
   assignment?: AssignmentBase | StudentAssignment
 }
 

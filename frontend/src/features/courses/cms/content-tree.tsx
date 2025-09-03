@@ -18,7 +18,6 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import {
-  IconBook,
   IconChevronRight,
   IconDotsVertical,
   IconFile,
@@ -28,14 +27,12 @@ import {
 } from '@tabler/icons-react'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
 import {
-  convertContentNodesToTreeNodes,
-  getChildTypeFromParentType,
-} from '@/utils/helpers.ts'
-import {
   type ContentNode,
   type ContentNodeType,
   type CourseNodeModel,
+  type Module,
 } from '@/features/courses/modules/types.ts'
+import { convertModuleToTreeData } from '@/utils/helpers.ts'
 
 const reorderArray = (
   array: CourseNodeModel[],
@@ -84,8 +81,6 @@ function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
 // Get appropriate icon for node type
 const getNodeIcon = (type: ContentNodeType | 'add-button', size = 16) => {
   switch (type) {
-    case 'module':
-      return <IconBook size={size} />
     case 'section':
       return <IconList size={size} />
     case 'item':
@@ -95,17 +90,17 @@ const getNodeIcon = (type: ContentNodeType | 'add-button', size = 16) => {
   }
 }
 
-interface CourseTreeProps {
-  courseData: ContentNode[]
+interface ContentTreeProps {
+  module: Module
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
   onNodeChange: (nodeData: ContentNode) => void
 }
 
-function CourseTree({
-  courseData,
+const ContentTree = ({
+  module,
   onAddButtonClick,
   onNodeChange,
-}: CourseTreeProps) {
+}: ContentTreeProps) => {
   const [treeData, setTreeData] = useState<CourseNodeModel[]>([])
   const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(
     null,
@@ -113,9 +108,9 @@ function CourseTree({
 
   // Sync treeData when courseData changes
   useEffect(() => {
-    const nodes = convertContentNodesToTreeNodes(courseData)
+    const nodes = convertModuleToTreeData(module)
     setTreeData(injectAddButtons(nodes))
-  }, [courseData])
+  }, [module])
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
     const { dragSourceId, dropTargetId, destinationIndex } = e
@@ -244,7 +239,7 @@ const NodeRow = ({
           onClick={() =>
             onAddButtonClick(
               node.parent as string,
-              getChildTypeFromParentType(node.data?.parentType),
+              node.data?.parentType === 'section' ? 'item' : 'section',
             )
           }
           style={{
@@ -257,7 +252,7 @@ const NodeRow = ({
           <Text size="sm" fw={500}>
             Add{' '}
             {capitalizeFirstLetter(
-              getChildTypeFromParentType(node.data?.parentType),
+              node.data?.parentType === 'section' ? 'item' : 'section',
             )}
           </Text>
         </Button>
@@ -326,7 +321,7 @@ const NodeRow = ({
 
       {/* Node text */}
       <Text
-        fw={node.data?.type === 'module' ? 600 : 400}
+        fw={400}
         size="sm"
         lh="sm"
         truncate
@@ -377,4 +372,4 @@ const NodeRow = ({
   )
 }
 
-export default CourseTree
+export default ContentTree

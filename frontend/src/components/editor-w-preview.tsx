@@ -32,7 +32,6 @@ import {
   useEditorChange,
 } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
-import { mockInitialContent } from '@/features/courses/mocks.ts'
 import {
   IconArrowBack,
   IconArrowForwardUp,
@@ -40,15 +39,14 @@ import {
   IconEye,
   IconLink,
 } from '@tabler/icons-react'
+import { mockInitialContentString } from '@/features/courses/mocks.ts'
 
 interface EditorWithPreviewProps {
-  content: string
+  content: string | null
   onUpdate?: (content: string) => void
 }
 
 const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
-  const mockInitialContentString = JSON.stringify(mockInitialContent)
-
   const editor = useCreateBlockNote({
     initialContent: JSON.parse(mockInitialContentString),
   })
