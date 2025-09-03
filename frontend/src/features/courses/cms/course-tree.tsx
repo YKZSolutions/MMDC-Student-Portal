@@ -9,6 +9,7 @@ import {
 import React, { useEffect, useState } from 'react'
 import {
   ActionIcon,
+  Box,
   Button,
   Group,
   Menu,
@@ -17,13 +18,14 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import {
+  IconBook,
   IconChevronRight,
   IconDotsVertical,
   IconFile,
+  IconList,
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react'
-import { useTreeConnectors } from '@/features/courses/hooks/useTreeConnectors.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters.ts'
 import {
   convertContentNodesToTreeNodes,
@@ -34,7 +36,6 @@ import {
   type ContentNodeType,
   type CourseNodeModel,
 } from '@/features/courses/modules/types.ts'
-import { modals } from '@mantine/modals'
 
 const reorderArray = (
   array: CourseNodeModel[],
@@ -47,48 +48,51 @@ const reorderArray = (
   return newArray
 }
 
-function injectData(nodes: CourseNodeModel[]): CourseNodeModel[] {
+function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
   const augmented: CourseNodeModel[] = [...nodes]
 
-  // group nodes by parent
+  // Group nodes by parent
   const byParent: Record<string, CourseNodeModel[]> = {}
   for (const node of nodes) {
     if (!byParent[node.parent]) byParent[node.parent] = []
     byParent[node.parent].push(node)
   }
 
-  // for each parent group, insert "+ Add" after the last child
+  // Add "Add" buttons after the last child of each parent
   for (const parentId in byParent) {
     const siblings = byParent[parentId]
     if (siblings.length > 0) {
+      const parent = nodes.find((n) => n.id === parentId)
+      const parentType = parent?.data?.type
+
       augmented.push({
         id: `${parentId}-add`,
         parent: parentId,
         text: 'Add',
         droppable: false,
-        data: { type: 'add-button' },
+        data: {
+          type: 'add-button',
+          parentType: parentType as ContentNodeType,
+        },
       })
     }
   }
 
-  // assign parentType for all nodes
-  for (const node of augmented) {
-    if (node.parent === '0') continue
-
-    const parent = augmented.find((n) => n.id === node.parent)
-    if (parent) {
-      const parentType =
-        parent.data?.type === 'add-button' ? undefined : parent.data?.type
-
-      node.data = {
-        ...node.data,
-        type: node.data?.type ?? 'add-button',
-        parentType,
-      }
-    }
-  }
-
   return augmented
+}
+
+// Get appropriate icon for node type
+const getNodeIcon = (type: ContentNodeType | 'add-button', size = 16) => {
+  switch (type) {
+    case 'module':
+      return <IconBook size={size} />
+    case 'section':
+      return <IconList size={size} />
+    case 'item':
+      return <IconFile size={size} />
+    default:
+      return <IconFile size={size} />
+  }
 }
 
 interface CourseTreeProps {
@@ -102,78 +106,67 @@ function CourseTree({
   onAddButtonClick,
   onNodeChange,
 }: CourseTreeProps) {
-  const theme = useMantineTheme()
-
-  const [treeData, setTreeData] = useState<CourseNodeModel[]>(
-    injectData(convertContentNodesToTreeNodes(courseData)),
+  const [treeData, setTreeData] = useState<CourseNodeModel[]>([])
+  const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(
+    null,
   )
-  const { isLastChild, getAncestors } = useTreeConnectors(treeData)
-
-  const [selectedNode, setSelectedNode] = useState<CourseNodeModel | null>(null)
-  const [openedDetailsId, setOpenedDetailsId] = useState<string | null>(null)
 
   // Sync treeData when courseData changes
   useEffect(() => {
-    setTreeData(injectData(convertContentNodesToTreeNodes(courseData)))
+    const nodes = convertContentNodesToTreeNodes(courseData)
+    setTreeData(injectAddButtons(nodes))
   }, [courseData])
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
     const { dragSourceId, dropTargetId, destinationIndex } = e
     if (!dragSourceId || !dropTargetId) return
 
-    const start = treeData.find((v) => v.id === dragSourceId)
-    const end = treeData.find((v) => v.id === dropTargetId)
+    const dragNode = treeData.find((v) => v.id === dragSourceId)
+    const dropNode = treeData.find((v) => v.id === dropTargetId)
 
+    if (!dragNode || typeof destinationIndex !== 'number') return
+
+    // Prevent invalid drops
     if (
-      start?.parent === dropTargetId &&
-      typeof destinationIndex === 'number'
-    ) {
-      setTreeData((treeData) =>
-        reorderArray(treeData, treeData.indexOf(start), destinationIndex),
-      )
+      getDescendants(treeData, dragSourceId).find(
+        (el) => el.id === dropTargetId,
+      ) ||
+      dropTargetId === dragSourceId ||
+      (dropNode && !dropNode.droppable)
+    )
       return
-    }
 
-    if (
-      start?.parent !== dropTargetId &&
-      typeof destinationIndex === 'number'
-    ) {
-      if (
-        getDescendants(treeData, dragSourceId).find(
-          (el) => el.id === dropTargetId,
-        ) ||
-        dropTargetId === dragSourceId ||
-        (end && !end?.droppable)
+    // Update tree data
+    setTreeData((prevTree) => {
+      const newTree = reorderArray(
+        prevTree,
+        prevTree.indexOf(dragNode),
+        destinationIndex,
       )
-        return
+      const movedElement = newTree.find((el) => el.id === dragSourceId)
+      if (movedElement) {
+        movedElement.parent = dropTargetId
+      }
+      return newTree
+    })
+  }
 
-      setTreeData((treeData) => {
-        const output = reorderArray(
-          treeData,
-          treeData.indexOf(start!),
-          destinationIndex,
-        )
-        const movedElement = output.find((el) => el.id === dragSourceId)
-        if (movedElement) movedElement.parent = dropTargetId
+  // Handle node selection and trigger onChange
+  const handleNodeSelect = (node: CourseNodeModel) => {
+    if (node.data?.type === 'add-button') return
 
-        return output
-      })
+    setSelectedNodeId(node.id)
+
+    if (node.data?.contentData) {
+      onNodeChange(node.data.contentData)
     }
   }
 
-  useEffect(() => {
-    if (!selectedNode) return
-
-    if (
-      selectedNode.data?.type !== 'add-button' &&
-      selectedNode.data?.contentData
-    ) {
-      onNodeChange(selectedNode.data.contentData)
-    }
-  }, [selectedNode])
-
   const handleDelete = (nodeId: string | number) => {
     setTreeData((prev) => prev.filter((node) => node.id !== nodeId))
+    if (selectedNodeId === nodeId) {
+      setSelectedNodeId(null)
+    }
   }
 
   return (
@@ -194,11 +187,14 @@ function CourseTree({
             return (
               <NodeRow
                 node={node}
+                depth={depth}
                 isOpen={isOpen}
                 isDropTarget={isDropTarget}
+                isSelected={selectedNodeId === node.id}
                 onToggle={onToggle}
                 onAddButtonClick={onAddButtonClick}
-                onSelectNode={(node) => setSelectedNode(node)}
+                onSelectNode={handleNodeSelect}
+                onDelete={handleDelete}
               />
             )
           }}
@@ -208,113 +204,170 @@ function CourseTree({
   )
 }
 
-type NodeProps = {
+interface NodeRowProps {
   node: CourseNodeModel
+  depth: number
   isOpen: boolean
   isDropTarget: boolean
+  isSelected: boolean
   onToggle: () => void
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
   onSelectNode: (node: CourseNodeModel) => void
+  onDelete: (nodeId: string | number) => void
 }
 
 const NodeRow = ({
   node,
+  depth,
   isOpen,
   isDropTarget,
+  isSelected,
   onToggle,
   onAddButtonClick,
   onSelectNode,
-}: NodeProps) => {
+  onDelete,
+}: NodeRowProps) => {
   const theme = useMantineTheme()
+
+  // Calculate proper indentation (20px per level)
+  const indentSize = depth * 20
 
   const handleDelete = (nodeId: string | number) => {}
 
   if (node.data?.type === 'add-button') {
     return (
-      <Button
-        variant={'transparent'}
-        px="sm"
-        py="0.25rem"
-        style={{
-          cursor: 'pointer',
-          borderRadius: 4,
-          color: theme.colors.blue[6],
-          fontStyle: 'italic',
-        }}
-        onClick={() =>
-          onAddButtonClick(
-            node.parent as string,
-            getChildTypeFromParentType(node.data?.parentType),
-          )
-        }
-        leftSection={<IconPlus size={16} />}
-      >
-        <Text size="sm" fw={500} style={{ textWrap: 'nowrap' }}>
-          Add{' '}
-          {capitalizeFirstLetter(
-            getChildTypeFromParentType(node.data?.parentType),
-          )}
-        </Text>
-      </Button>
+      <Box pl={indentSize + 24} py={2}>
+        <Button
+          variant="transparent"
+          size="xs"
+          leftSection={<IconPlus size={14} />}
+          onClick={() =>
+            onAddButtonClick(
+              node.parent as string,
+              getChildTypeFromParentType(node.data?.parentType),
+            )
+          }
+          style={{
+            color: theme.colors.blue[6],
+            fontStyle: 'italic',
+            height: 'auto',
+            padding: '4px 8px',
+          }}
+        >
+          <Text size="sm" fw={500}>
+            Add{' '}
+            {capitalizeFirstLetter(
+              getChildTypeFromParentType(node.data?.parentType),
+            )}
+          </Text>
+        </Button>
+      </Box>
     )
   }
 
   return (
     <Group
-      justify="space-between"
-      py="0.25rem"
-      align={'center'}
+      gap={0}
+      wrap="nowrap"
       style={{
-        backgroundColor: isDropTarget ? theme.colors.blue[0] : 'transparent',
-        borderBottom: isDropTarget
-          ? `3px solid ${theme.colors.blue[5]}`
-          : '3px solid transparent',
+        paddingLeft: indentSize,
+        paddingRight: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        backgroundColor: isSelected
+          ? theme.colors.blue[0]
+          : isDropTarget
+            ? theme.colors.gray[1]
+            : 'transparent',
         borderRadius: 4,
-        transition: 'all 0.2s ease',
-        cursor: node.droppable ? 'pointer' : 'default',
+        border: isDropTarget
+          ? `2px solid ${theme.colors.blue[4]}`
+          : '2px solid transparent',
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        margin: '1px 0',
       }}
-      wrap={'nowrap'}
       onClick={() => onSelectNode(node)}
     >
-      <Group gap={'xs'} wrap={'nowrap'} style={{ flex: 1 }}>
+      {/* Toggle button or spacer */}
+      <Box
+        w={24}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         {node.droppable ? (
-          <ActionIcon onClick={onToggle} variant={'subtle'}>
+          <ActionIcon
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle()
+            }}
+            variant="subtle"
+            size="sm"
+            style={{ minWidth: 20, minHeight: 20 }}
+          >
             <IconChevronRight
-              size={20}
+              size={14}
               style={{
                 transition: 'transform 0.2s ease',
                 transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
               }}
             />
           </ActionIcon>
-        ) : (
-          <IconFile size={20} />
-        )}
+        ) : null}
+      </Box>
 
-        <Text
-          fw={node.data?.type === 'module' ? 600 : 400}
-          size={'sm'}
-          lh={'xs'}
-          truncate
-        >
-          {node.text}
-        </Text>
-        <Text size="xs" c="dimmed">
-          {node.data?.type}
-        </Text>
-      </Group>
+      {/* Node icon */}
+      <Box mr="xs" style={{ display: 'flex', alignItems: 'center' }}>
+        {getNodeIcon(node.data?.type || 'item', 16)}
+      </Box>
 
+      {/* Node text */}
+      <Text
+        fw={node.data?.type === 'module' ? 600 : 400}
+        size="sm"
+        lh="sm"
+        truncate
+        style={{
+          flex: 1,
+          color: isSelected ? theme.colors.blue[7] : 'inherit',
+        }}
+      >
+        {node.text}
+      </Text>
+
+      {/* Node type badge */}
+      <Text
+        size="xs"
+        c="dimmed"
+        mr="xs"
+        style={{ textTransform: 'capitalize' }}
+      >
+        {node.data?.type}
+      </Text>
+
+      {/* Actions menu */}
       <Menu withinPortal shadow="md" width={150}>
         <Menu.Target>
-          <ActionIcon variant="subtle" radius="xl">
-            <IconDotsVertical size={16} />
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              opacity: isSelected ? 1 : 0.7,
+              transition: 'opacity 0.15s ease',
+            }}
+          >
+            <IconDotsVertical size={14} />
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item
             color="red"
             leftSection={<IconTrash size={14} />}
-            onClick={() => handleDelete(node.id)}
+            onClick={() => onDelete(node.id)}
           >
             Delete
           </Menu.Item>

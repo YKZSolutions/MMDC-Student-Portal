@@ -7,6 +7,7 @@ import {
   Divider,
   Group,
   Menu,
+  SegmentedControl,
   Stack,
   Text,
   Title,
@@ -26,7 +27,7 @@ import {
   mockInitialContent,
 } from '@/features/courses/mocks.ts'
 import {
-  type EditorState,
+  type EditorView,
   useEditorState,
 } from '@/features/courses/hooks/useEditorState.ts'
 import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
@@ -43,8 +44,6 @@ import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.
 type CMSProps = {
   courseCode?: string
 }
-
-type EditorView = 'detail' | 'content' | 'preview'
 
 export const CMS = ({ courseCode }: CMSProps) => {
   const theme = useMantineTheme()
@@ -155,11 +154,13 @@ export const CMS = ({ courseCode }: CMSProps) => {
             <CMSHeader
               courseDetails={courseDetails}
               courses={mockCourseBasicDetails}
-              editorState={editorState}
+              contentTitle={editorState.data?.title}
               isTreeVisible={isTreeVisible}
               onCourseChange={handleCourseChange}
               onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
               onAddContent={() => handleAdd()}
+              view={editorState.view}
+              onViewChange={(view) => setView(view as EditorView)}
             />
 
             <Box
@@ -176,7 +177,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
         </Panel>
       </PanelGroup>
 
-      <StatusBar editorState={editorState} />
+      <StatusBar />
     </Box>
   )
 }
@@ -200,21 +201,25 @@ export const TreeToggleButton = ({
 interface CMSHeaderProps {
   courseDetails?: CourseBasicDetails
   courses: CourseBasicDetails[]
-  editorState: EditorState
   isTreeVisible: boolean
   onCourseChange: (course: CourseBasicDetails | undefined) => void
   onToggleTree: () => void
   onAddContent: () => void
+  contentTitle?: string
+  view: string
+  onViewChange: (view: string) => void
 }
 
 const CMSHeader = ({
   courseDetails,
   courses,
-  editorState,
   isTreeVisible,
   onCourseChange,
   onToggleTree,
   onAddContent,
+  contentTitle,
+  view,
+  onViewChange,
 }: CMSHeaderProps) => {
   const theme = useMantineTheme()
 
@@ -226,25 +231,36 @@ const CMSHeader = ({
       style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
       p={'xs'}
     >
-      <Group
-        gap={'md'}
-        display={isTreeVisible ? 'none' : 'flex'}
-        align={'center'}
-      >
-        <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
-        <CourseSelector
-          courses={courses}
-          selectedCourse={courseDetails}
-          onCourseChange={onCourseChange}
-          onAddContent={onAddContent}
-          showAddButton={false}
+      <Group>
+        <Group
+          gap={'md'}
+          display={isTreeVisible ? 'none' : 'flex'}
+          align={'center'}
+        >
+          <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
+          <CourseSelector
+            courses={courses}
+            selectedCourse={courseDetails}
+            onCourseChange={onCourseChange}
+            onAddContent={onAddContent}
+            showAddButton={false}
+          />
+        </Group>
+
+        <SegmentedControl
+          value={view}
+          onChange={onViewChange}
+          data={[
+            { label: 'Details', value: 'detail' },
+            { label: 'Content', value: 'content', disabled: true },
+            { label: 'Preview', value: 'preview', disabled: true },
+          ]}
         />
       </Group>
 
       <Title order={2} c={'gray.7'}>
         {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
-        {courseDetails?.courseName}{' '}
-        {editorState.data && ` | ${editorState.data.title} `}
+        {courseDetails?.courseName} {contentTitle && ` | ${contentTitle} `}
       </Title>
 
       <ActionMenu />
@@ -322,11 +338,9 @@ export const ActionMenu = () => {
   )
 }
 
-interface StatusBarProps {
-  editorState: EditorState
-}
+interface StatusBarProps {}
 
-export const StatusBar = ({ editorState }: StatusBarProps) => {
+export const StatusBar = ({}: StatusBarProps) => {
   const theme = useMantineTheme()
 
   return (
@@ -339,10 +353,6 @@ export const StatusBar = ({ editorState }: StatusBarProps) => {
       }}
       mih={32}
     >
-      <Text size="sm" c="dimmed">
-        {editorState.view === 'preview' ? 'Viewing' : 'Editing'}{' '}
-        {editorState.type}
-      </Text>
       <Group gap="xs">
         <Text size="sm" c="dimmed">
           Last saved: 2 minutes ago
