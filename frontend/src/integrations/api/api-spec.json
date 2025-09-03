@@ -7864,6 +7864,20 @@
           "Curriculum"
         ]
       }
+    },
+    "/swaggy": {
+      "get": {
+        "operationId": "SwaggerController_downloadAllSpecs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Swagger"
+        ]
+      }
     }
   },
   "info": {
