@@ -1,8 +1,6 @@
-import { PGlite } from '@electric-sql/pglite';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role, StudentType } from '@prisma/client';
 import { pagination } from 'prisma-extension-pagination';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import { execSync } from 'child_process';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
@@ -23,44 +21,31 @@ import { Client } from 'pg';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { GlobalHttpExceptionFilter } from '@/common/filters/http-exceptions.filters';
 
+/**
+ * TestAppService
+ *
+ * A utility service for setting up and tearing down an isolated
+ * PostgreSQL + Prisma + NestJS application environment for integration tests.
+ *
+ * Responsibilities:
+ * - Spin up a PostgreSQL container using Testcontainers
+ * - Run Prisma migrations against the test DB
+ * - Seed mock user data (admin, mentor, student, etc.)
+ * - Create a NestJS app instance with overridden providers
+ * - Provide helpers to reset and close the test environment
+ */
 export class TestAppService {
   private prisma: ExtendedPrismaClient;
   private pgContainer: StartedPostgreSqlContainer;
   private pgClient: Client;
-  // private db: PGlite;
-  // private server: PGLiteSocketServer;
   private app: INestApplication;
 
   /**
-   * @deprecated
+   * Starts a PostgreSQL test container, applies Prisma migrations,
+   * initializes Prisma client with pagination extension, and seeds user data.
+   *
+   * @returns An object containing the initialized Prisma client
    */
-  async initializeLocalDB() {
-    // const db = await PGlite.create();
-    // // const adapter = new PrismaPGlite(pglite);
-    // this.db = db;
-
-    // const server = new PGLiteSocketServer({ db });
-    // await server.start();
-
-    // this.server = server;
-    const prisma: ExtendedPrismaClient = new PrismaClient().$extends(
-      pagination(),
-    );
-
-    // execSync('npx prisma db push', {
-    //   stdio: 'inherit',
-    //   env: {
-    //     ...process.env,
-    //     DATABASE_CLOUD_URL: url,
-    //     DIRECT_CLOUD_URL: url,
-    //   },
-    // });
-
-    this.prisma = prisma;
-
-    return { prisma };
-  }
-
   async start() {
     const IMAGE = 'postgres:14-alpine';
     this.pgContainer = await new PostgreSqlContainer(IMAGE).start();
@@ -96,9 +81,102 @@ export class TestAppService {
 
     console.log('connected to test db...');
 
+    this.setupUserData();
+
     return { prisma: this.prisma };
   }
 
+  /**
+   * Seeds mock user data (admin, mentor, student, etc.) into the database.
+   * Also updates the `mockUsers` object with the created DB IDs for linking.
+   */
+  async setupUserData() {
+    for (const [key, value] of Object.entries(mockUsers)) {
+      if (!value) continue;
+
+      await this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            firstName: key.charAt(0).toUpperCase() + key.slice(1),
+            lastName: 'User',
+            role: Role[key],
+          },
+        });
+
+        mockUsers[key].user_metadata.user_id = user.id;
+
+        await tx.userAccount.create({
+          data: {
+            userId: user.id,
+            authUid: value.id,
+            email: `${key}@user.com`,
+          },
+        });
+
+        await tx.userDetails.create({
+          data: {
+            userId: user.id,
+            dateJoined: new Date().toISOString(),
+            dob: new Date().toISOString(),
+            gender: 'male',
+          },
+        });
+
+        if (key === 'student') {
+          await tx.studentDetails.create({
+            data: {
+              userId: user.id,
+              studentNumber: 1,
+              studentType: StudentType.regular,
+              admissionDate: new Date().toISOString(),
+              otherDetails: {},
+            },
+          });
+        } else {
+          await tx.staffDetails.create({
+            data: {
+              userId: user.id,
+              employeeNumber: key === 'admin' ? 1 : 2,
+              department: 'System Administration',
+              position: 'Specialist',
+              otherDetails: {},
+            },
+          });
+        }
+      });
+    }
+  }
+
+  /**
+   * Resets the database by truncating all public schema tables.
+   * This ensures tests can start with a clean slate.
+   *
+   * @param prisma - The Prisma client connected to the test DB
+   */
+  async resetDatabase(prisma: ExtendedPrismaClient) {
+    await prisma.$executeRawUnsafe(`
+    DO $$ DECLARE
+        tables text;
+    BEGIN
+        SELECT string_agg(format('TRUNCATE TABLE %I.%I RESTART IDENTITY CASCADE', schemaname, tablename), '; ')
+        INTO tables
+        FROM pg_tables
+        WHERE schemaname = 'public';
+
+        EXECUTE tables;
+    END $$;
+  `);
+  }
+
+  /**
+   * Creates a NestJS test application with overridden dependencies:
+   * - Injects Prisma client
+   * - Mocks AuthGuard to attach the provided mockUser
+   * - Mocks AuthService methods for user operations
+   *
+   * @param mockUser - The user to authenticate requests with (default: admin)
+   * @returns An object containing the initialized NestJS app
+   */
   async createTestApp(mockUser: MockUser = mockUsers.admin) {
     const prismaClient: CustomPrismaService<ExtendedPrismaClient> = {
       client: this.prisma,
@@ -126,6 +204,11 @@ export class TestAppService {
           id: '3e426584-59c3-4168-9119-3c61959ae759',
           email: 'mock@example.com',
         }),
+        login: jest.fn().mockResolvedValue('mock-access-token'),
+        invite: jest.fn().mockResolvedValue({
+          id: '3e426584-59c3-4168-9119-3c61959ae759',
+          email: 'invited@example.com',
+        }),
         updateMetadata: jest.fn().mockResolvedValue({
           id: '3e426584-59c3-4168-9119-3c61959ae759',
         }),
@@ -150,12 +233,14 @@ export class TestAppService {
     return { app };
   }
 
+  /**
+   * Closes the Prisma client, PostgreSQL client, container, and NestJS app.
+   * Should be called in `afterAll()` to clean up test resources.
+   */
   async close() {
     await this.prisma.$disconnect();
     await this.pgClient.end();
     await this.pgContainer.stop();
-    // await this.server.stop();
-    // await this.db.close();
     this.app.close();
   }
 }

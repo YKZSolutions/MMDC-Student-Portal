@@ -2,6 +2,22 @@ import { UserMetadata } from '../../src/common/interfaces/auth.user-metadata';
 
 type MockUserType = 'admin' | 'mentor' | 'student' | 'unauth';
 
+/**
+ * Represents a mock user object for testing authentication flows.
+ *
+ * @property {string} id - UUID of the mock user. Used to identify the user in tests.
+ * @property {UserMetadata} user_metadata - Metadata describing the user's role, status, and user_id.
+ *
+ * @example
+ * {
+ *   id: "6803b564-2b6f-4f02-9dbe-0546663c17fe",
+ *   user_metadata: {
+ *     role: "student",
+ *     status: "active",
+ *     user_id: "f510d882-a1ec-4c0a-a010-cfff02b1e5be"
+ *   }
+ * }
+ */
 export type MockUser = {
   id: string;
   user_metadata: UserMetadata;
@@ -9,6 +25,22 @@ export type MockUser = {
 
 type MockUsers = Record<MockUserType, MockUser>;
 
+/**
+ * Mapping of mock user types to their corresponding user objects.
+ *
+ * This is primarily used in integration tests to simulate authentication
+ * scenarios for different user roles without relying on a real auth provider.
+ *
+ * Keys:
+ * - "admin"   → Active admin user
+ * - "mentor"  → Active mentor user
+ * - "student" → Active student user
+ * - "unauth"  → Represents an unauthenticated user (null)
+ *
+ * @example
+ * mockUsers.admin?.user_metadata.role // "admin"
+ * mockUsers.unauth // null
+ */
 export const mockUsers: MockUsers = {
   admin: {
     id: '0ad18824-442c-4175-a01c-b6edafabc3af',

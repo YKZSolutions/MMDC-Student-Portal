@@ -1,28 +1,13 @@
 import request from 'supertest';
 import { mockUsers } from './utils/mock-users';
-import { Role } from '@prisma/client';
 import { TestAppService } from './utils/test-app.service';
 
 describe('UsersController (Integration)', () => {
   const testService = new TestAppService();
-  let prisma;
-
   let createdUserId: string;
 
-  const originalError = console.error;
-  console.error = (...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('The system cannot find the path specified')
-    ) {
-      return;
-    }
-    originalError(...args);
-  };
-
   beforeAll(async () => {
-    const { prisma: p } = await testService.start();
-    prisma = p;
+    await testService.start();
   }, 800000);
 
   afterAll(async () => {
@@ -46,17 +31,6 @@ describe('UsersController (Integration)', () => {
         gender: 'male',
       },
     };
-
-    it('should create a sample user', async () => {
-      const sample = await prisma.user.create({
-        data: {
-          role: validUserPayload.role as Role,
-          ...validUserPayload.user,
-        },
-      });
-
-      expect(sample.firstName).toBe(validUserPayload.user.firstName);
-    });
 
     it('should create a new user when authenticated as admin', async () => {
       const { app } = await testService.createTestApp();

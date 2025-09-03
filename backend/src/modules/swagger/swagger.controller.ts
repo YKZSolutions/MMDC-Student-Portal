@@ -4,7 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { Public } from '@/common/decorators/auth.decorator';
 import { StatusBypass } from '@/common/decorators/user-status.decorator';
-import * as archiver from 'archiver';
+import archiver from 'archiver';
 
 // Recursively collect referenced schemas
 function collectSchemas(schema: any, components: any, collected: Set<string>) {

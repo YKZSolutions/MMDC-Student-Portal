@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --silent --config ./test/jest-e2e.json",
     "prisma-gen": "prisma generate",
-    "prisma-gen-sql": "prisma generate --sql"
+    "prisma-gen-sql": "prisma generate --sql",
+    "api-gen": "ts-node --transpile-only -r tsconfig-paths/register dist/swagger.gen.js"
   },
   "dependencies": {
     "@electric-sql/pglite-socket": "^0.0.12",
