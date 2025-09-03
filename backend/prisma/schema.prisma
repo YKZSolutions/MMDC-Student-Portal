@@ -342,7 +342,7 @@ enum Days {
 model CourseSection {
   id String @id @default(uuid()) @db.Uuid
 
-  name String @unique
+  name String
 
   mentorId String? @db.Uuid // make mentor optional
   /// @DtoApiHidden
