@@ -18,6 +18,8 @@ export interface CourseModule {
   title: string
   position: number
   sections: ModuleSection[]
+  isCompleted: boolean
+  prerequisites?: string[]
 }
 
 export interface ModuleSection {
@@ -25,6 +27,8 @@ export interface ModuleSection {
   title: string
   position: number
   items: ModuleItem[]
+  isCompleted: boolean
+  prerequisites?: string[]
 }
 
 export interface ModuleItem {
@@ -34,6 +38,8 @@ export interface ModuleItem {
   position: number
   resource?: ReadingMaterial
   assignment?: Assignment | StudentAssignment
+  isCompleted: boolean
+  prerequisites?: string[]
 }
 
 export type ContentType =
@@ -144,7 +150,6 @@ export const mockCourseTreeData: CourseNodeModel[] = [
         assignment: {
           id: '1',
           title: 'Cell Biology Quiz',
-          description: 'Test your knowledge of cell biology',
           type: 'quiz',
           dueDate: '2023-10-15T23:59:59Z',
           mode: 'individual',
@@ -212,7 +217,6 @@ export const mockContentNodes: ContentNode[] = [
             assignment: {
               id: '1',
               title: 'Cell Biology Quiz',
-              description: 'Test your knowledge of cell biology',
               type: 'quiz',
               dueDate: '2023-10-15T23:59:59Z',
               mode: 'individual',

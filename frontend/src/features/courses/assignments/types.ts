@@ -33,7 +33,6 @@ export type AssignmentType =
  * Properties:
  * - `id`: A unique identifier for the assignment.
  * - `title`: The title or name of the assignment.
- * - `description`: A brief description of the assignment's purpose or details.
  * - `dueDate`: A required ISO 8601-compliant string representing the assignment's due date and time.
  * - `mode`: Indicates the submission or grading mode, defined by an {@link AssignmentMode} type.
  * - `points`: An optional field representing the maximum points available for the assignment.
@@ -47,7 +46,6 @@ export interface Assignment {
   id: string
   title: string
   type: AssignmentType
-  description: string
   dueDate: string // ISO string
   mode: AssignmentMode
   points?: number // max points

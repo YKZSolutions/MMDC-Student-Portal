@@ -15,7 +15,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '1',
     title: 'Pending',
-    description: 'Submit project report',
     type: 'assignment',
     dueDate: getFutureDate(2),
     mode: 'individual',
@@ -25,7 +24,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '2',
     title: 'Draft',
-    description: 'Submit assignment',
     type: 'draft',
     dueDate: getFutureDate(2),
     mode: 'individual',
@@ -35,7 +33,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '3',
     title: 'Submitted',
-    description: 'Submit project report',
     type: 'other',
     dueDate: getFutureDate(2),
     mode: 'individual',
@@ -46,7 +43,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '4',
     title: 'Ready for Grading',
-    description: 'Submit assignment',
     type: 'milestone',
     dueDate: getFutureDate(2),
     mode: 'individual',
@@ -57,7 +53,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '5',
     title: 'Graded Individual Project',
-    description: 'Submit project report',
     type: 'milestone',
     dueDate: getFutureDate(2),
     mode: 'individual',
@@ -78,7 +73,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '6',
     title: 'Graded Group Project',
-    description: 'Submit project report',
     type: 'milestone',
     dueDate: getFutureDate(2),
     mode: 'individual',
@@ -100,7 +94,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '7',
     title: 'Late',
-    description: 'Submit assignment',
     type: 'assignment',
     dueDate: getPastDate(1),
     mode: 'individual',
@@ -110,7 +103,6 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     id: '8',
     title: 'Missed',
-    description: 'Submit assignment',
     type: 'assignment',
     dueDate: getPastDate(1),
     mode: 'individual',

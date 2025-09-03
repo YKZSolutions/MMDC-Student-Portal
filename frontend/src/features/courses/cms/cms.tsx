@@ -252,8 +252,8 @@ const CMSHeader = ({
           onChange={onViewChange}
           data={[
             { label: 'Details', value: 'detail' },
-            { label: 'Content', value: 'content', disabled: true },
-            { label: 'Preview', value: 'preview', disabled: true },
+            { label: 'Content', value: 'content' },
+            { label: 'Preview', value: 'preview' },
           ]}
         />
       </Group>
