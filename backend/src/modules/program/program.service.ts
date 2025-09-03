@@ -4,9 +4,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
-  Logger,
   NotFoundException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 
 import { CustomPrismaService } from 'nestjs-prisma';
