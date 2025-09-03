@@ -3027,6 +3027,17 @@ export type CurriculumControllerUpdateResponses = {
 
 export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
 
+export type SwaggerControllerDownloadAllSpecsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/swaggy';
+};
+
+export type SwaggerControllerDownloadAllSpecsResponses = {
+    200: unknown;
+};
+
 export type ClientOptions = {
     baseUrl: string;
 };
