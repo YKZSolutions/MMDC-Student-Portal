@@ -3,12 +3,23 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type {
-  ContentNodeType,
   CourseNodeModel,
   Module,
-  ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
+
+export function getTypeFromLevel(level?: number) {
+  switch (level) {
+    case 1:
+      return 'section'
+    case 2:
+      return 'subsection'
+    case 3:
+      return 'item'
+    default:
+      return 'section'
+  }
+}
 
 export function isPastDueDate(date: string) {
   const today = new Date()
@@ -46,7 +57,8 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
 
   const processSection = (
     section: ModuleSection,
-    parentId: string | number = 0,
+    parentId: string = 'root',
+    level: number = 1,
   ) => {
     const sectionNode: CourseNodeModel = {
       id: section.id,
@@ -54,8 +66,8 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
       text: section.title,
       droppable: true,
       data: {
-        type: 'section',
-        parentType: parentId === 0 ? undefined : 'section',
+        level,
+        type: getTypeFromLevel(level),
         contentData: section,
       },
     }
@@ -69,8 +81,8 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
         text: item.title,
         droppable: false,
         data: {
+          level: 3,
           type: 'item',
-          parentType: 'section',
           contentData: item,
         },
       }
@@ -80,7 +92,7 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
     // Process subsections recursively
     if (section.subsections) {
       section.subsections.forEach((subsection) => {
-        processSection(subsection, section.id)
+        processSection(subsection, section.id, 2)
       })
     }
   }
@@ -91,17 +103,4 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
   })
 
   return treeData
-}
-
-// Type guards for content node identification
-export function isModuleItem(node: any): node is ModuleItem {
-  return node && (node as ModuleItem).type !== undefined
-}
-
-export function isModuleSection(node: any): node is ModuleSection {
-  return node && (node as ModuleSection).items !== undefined
-}
-
-export function getContentNodeType(node: any): ContentNodeType {
-  return isModuleItem(node) ? 'item' : 'section'
 }

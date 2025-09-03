@@ -23,7 +23,7 @@ export interface ModuleSection {
   title: string
   order: number
   items: ModuleItem[]
-  subsections?: ModuleSection[]
+  subsections: ModuleSection[]
   prerequisites?: string[]
 }
 
@@ -46,10 +46,10 @@ export type ContentType =
   | 'file'
 
 export type ContentNode = ModuleSection | ModuleItem
-export type ContentNodeType = 'section' | 'item' | 'add-button'
+export type ContentNodeType = 'section' | 'subsection' | 'item' | 'add-button'
 
 export interface CourseNodeData {
-  parentType?: ContentNodeType
+  level: number
   type: ContentNodeType
   contentData?: ContentNode
 }

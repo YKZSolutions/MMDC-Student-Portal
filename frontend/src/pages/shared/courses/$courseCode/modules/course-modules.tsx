@@ -6,7 +6,7 @@ import {
 } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
+import ModulePanel from '@/features/courses/modules/module-panel.tsx'
 
 const CourseModules = () => {
   const { authUser } = useAuth('protected')
@@ -51,7 +51,7 @@ const CourseModules = () => {
           )}
         </Group>
       </Group>
-      <ModuleListPanel allExpanded={allExpanded} />
+      <ModulePanel allExpanded={allExpanded} />
     </Stack>
   )
 }

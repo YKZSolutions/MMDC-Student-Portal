@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
-import CourseBuilder from '@/pages/admin/courses/$courseCode/edit/course-builder.tsx'
+import { CMS } from '@/features/courses/cms/cms.tsx'
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode/edit')({
   component: RouteComponent,
@@ -14,12 +14,11 @@ function RouteComponent() {
     return null //TODO: or a loader / skeleton
   }
 
-  const { courseCode } = Route.useParams()
   return (
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        admin: <CourseBuilder courseCode={courseCode} />,
+        admin: <CMS />,
       }}
     />
   )

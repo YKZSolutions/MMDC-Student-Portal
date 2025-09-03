@@ -21,7 +21,7 @@ export const useEditorState = () => {
     view: 'detail',
   })
 
-  const handleAdd = (parentId: string = 'root', newType?: ContentNodeType) => {
+  const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
     setEditorState({
       type: newType || 'section',
       data: null,

@@ -1,10 +1,6 @@
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import type { Block } from '@blocknote/core'
-import {
-  convertModuleToTreeData,
-  getFutureDate,
-  getPastDate,
-} from '@/utils/helpers.ts'
+import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
 import type {
   AssignmentBase,
   StudentAssignment,
@@ -228,6 +224,7 @@ export const mockModule: Module = {
           assignment: mockAssignmentBase[0],
         },
       ],
+      subsections: [],
     },
 
     // Section 2: Core Concepts with a subsection
@@ -265,6 +262,7 @@ export const mockModule: Module = {
               content: 'Discuss questions about basic concepts here',
             },
           ],
+          subsections: [],
         },
       ],
     },
@@ -312,6 +310,15 @@ export const mockModule: Module = {
           assignment: mockAssignmentBase[4],
         },
       ],
+      subsections: [
+        {
+          id: 'subsection-4-1',
+          title: 'Advanced Topics',
+          order: 1,
+          items: [],
+          subsections: [],
+        },
+      ],
     },
   ],
 }
@@ -352,7 +359,3 @@ export const mockStudentModule: Module = {
     })),
   })),
 }
-
-// Generate the tree data from the modules
-export const mockModuleTreeData = convertModuleToTreeData(mockModule)
-export const mockStudentTreeData = convertModuleToTreeData(mockStudentModule)

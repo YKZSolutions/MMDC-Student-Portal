@@ -11,40 +11,38 @@ import {
   Title,
 } from '@mantine/core'
 import { IconEye, IconInfoCircle, IconListCheck } from '@tabler/icons-react'
-import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
+import ModulePanel from '@/features/courses/modules/module-panel.tsx'
 import {
   type Module,
   type ModuleItem,
   type ModuleSection,
 } from '@/features/courses/modules/types.ts'
-import type { CourseBasicDetails } from '@/features/courses/types.ts'
 
 interface ReviewStepProps {
-  courseModules: Module[]
-  courseInfo: CourseBasicDetails
+  module: Module
 }
 
-const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
-  // Count total number of modules
-  // By iterating over courseModules array and summing the length of sections
-  // for each module
-  const totalModules = courseModules.length
-
+const ModuleReviewStep = ({ module }: ReviewStepProps) => {
   // Count total number of sections
-  // By iterating over courseModules array and summing the length of items
+  // By iterating over courseModules array and summing the length of sections
   // for each section
-  const totalSections = courseModules.reduce(
-    (acc, module) => acc + module.sections.length,
+  const totalSections = module.sections.length
+
+  // Count total number of subsections
+  // By iterating over courseModules array and summing the length of items
+  // for each subsection
+  const totalSubsections = module.sections.reduce(
+    (acc, section) => acc + section.subsections.length,
     0,
   )
 
   // Count total number of items
   // By iterating over courseModules array and iterating over sections for each
   // module. For each section, sum the length of items.
-  const totalItems = courseModules.reduce(
-    (acc, module) =>
+  const totalItems = module.sections.reduce(
+    (acc, section) =>
       acc +
-      module.sections.reduce(
+      section.subsections.reduce(
         (secAcc, section) => secAcc + section.items.length,
         0,
       ),
@@ -67,22 +65,22 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
         <Group justify="space-between" mb="md">
           <Title order={4}>Course Summary</Title>
           <Badge variant="light" color="blue" size="lg">
-            {courseInfo.courseName}
+            {module.courseName}
           </Badge>
         </Group>
 
         <Group grow>
           <Stack align="center" gap={'xs'}>
             <Text size="xl" fw={700}>
-              {totalModules}
-            </Text>
-            <Text c="dimmed">Modules</Text>
-          </Stack>
-          <Stack align="center" gap={'xs'}>
-            <Text size="xl" fw={700}>
               {totalSections}
             </Text>
             <Text c="dimmed">Sections</Text>
+          </Stack>
+          <Stack align="center" gap={'xs'}>
+            <Text size="xl" fw={700}>
+              {totalSubsections}
+            </Text>
+            <Text c="dimmed">Sub-Sections</Text>
           </Stack>
           <Stack align="center" gap={'xs'}>
             <Text size="xl" fw={700}>
@@ -97,7 +95,7 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
       <Tabs defaultValue="preview">
         <Tabs.List grow>
           <Tabs.Tab value="preview" leftSection={<IconEye size={14} />}>
-            Preview
+            Preview Student Module
           </Tabs.Tab>
           <Tabs.Tab value="summary" leftSection={<IconListCheck size={14} />}>
             Summary
@@ -105,32 +103,28 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
         </Tabs.List>
 
         <Tabs.Panel value="preview" pt="md">
-          <ModuleListPanel
-            allExpanded={true}
-            isPreview={true}
-            modules={courseModules}
-          />
+          <ModulePanel allExpanded={true} isPreview={true} module={module} />
         </Tabs.Panel>
 
         <Tabs.Panel value="summary" pt="md">
           <Card withBorder>
             <Stack gap="md">
-              {courseModules.map((module: Module, moduleIndex: number) => (
-                <Box key={module.id}>
+              {module.sections.map((section: ModuleSection, index: number) => (
+                <Box key={section.id}>
                   <Text fw={600} size="lg">
-                    {moduleIndex + 1}. {module.title}
+                    {index + 1}. {section.title}
                   </Text>
 
-                  {module.sections.map(
-                    (section: ModuleSection, sectionIndex: number) => (
-                      <Box key={section.id} ml="md" mt="sm">
+                  {section.subsections.map(
+                    (subsection: ModuleSection, sectionIndex: number) => (
+                      <Box key={subsection.id} ml="md" mt="sm">
                         <Text fw={500}>
                           {String.fromCharCode(65 + sectionIndex)}.{' '}
-                          {section.title}
+                          {subsection.title}
                         </Text>
 
                         <Stack gap="xs" mt="xs">
-                          {section.items.map(
+                          {subsection.items.map(
                             (item: ModuleItem, itemIndex: number) => (
                               <Group key={item.id} gap="xs">
                                 <Text size="sm">
