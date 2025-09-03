@@ -28,7 +28,8 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
-    if (!token) throw new UnauthorizedException('Access token is missing');
+    if (!token)
+      throw new UnauthorizedException('Auth: Access token is missing');
 
     const payload = await this.supabase.auth.getUser(token);
 

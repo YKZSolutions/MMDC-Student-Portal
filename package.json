@@ -16,6 +16,7 @@
     "backend:prisma-gen": "pnpm --filter backend prisma-gen",
     "backend:prisma-gen-sql": "pnpm --filter backend prisma-gen-sql",
     "backend:api": "concurrently -k -s first -n backend,fetch \"pnpm --filter backend api-gen\" \"wait-on http://localhost:3001/api/json && pnpm --filter scripts fetch-spec\"",
+    "backend:test": "pnpm --filter backend test:e2e",
     "supabase": "pnpm --filter supabase supabase:start",
     "supabase:stop": "pnpm --filter supabase supabase:stop",
     "cypress": "pnpm --filter cypress cy:open"
