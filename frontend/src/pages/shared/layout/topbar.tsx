@@ -37,6 +37,7 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
       <Breadcrumbs
         c="dimmed"
         separator={<IconChevronRight size={14} color="gray" />}
+        className="flex-nowrap hidden xs:flex"
       >
         <ActionIcon radius="xl" size="sm">
           <IconHomeFilled size={14} />
@@ -57,7 +58,7 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
         })}
       </Breadcrumbs>
 
-      <Group justify="end">
+      <Group justify="end" className="ml-auto xs:ml-0">
         <ActionIcon
           variant="subtle"
           radius="xl"
