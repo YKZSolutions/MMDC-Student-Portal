@@ -1,6 +1,7 @@
 // ...existing code...
 import type { CourseDto } from '@/integrations/api/client'
 import { coursesControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatOrdinal } from '@/utils/formatters'
 import {
   ActionIcon,
   Avatar,
@@ -222,7 +223,7 @@ export default function EnrollmentCourseCreateModal({
                                   </Text>
                                 </Group>
                               </Box>
-                              {/* <Group gap={rem(5)} wrap="wrap">
+                              <Group gap={rem(5)} wrap="wrap">
                                 <Badge
                                   size="sm"
                                   variant="default"
@@ -240,7 +241,7 @@ export default function EnrollmentCourseCreateModal({
                                   {formatOrdinal(Number(course.semester))}{' '}
                                   semester
                                 </Badge>
-                              </Group> */}
+                              </Group>
                             </Stack>
                           </Group>
 
