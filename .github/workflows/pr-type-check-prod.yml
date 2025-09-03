@@ -1,9 +1,6 @@
 name: PR Type Checking (Prod - Frontend & Backend)
 
 on:
-  push:
-    branches:
-      - "conf/*"
   pull_request:
     branches:
       - "main"
