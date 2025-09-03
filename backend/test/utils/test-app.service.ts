@@ -21,6 +21,7 @@ import {
 } from '@testcontainers/postgresql';
 import { Client } from 'pg';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { GlobalHttpExceptionFilter } from '@/common/filters/http-exceptions.filters';
 
 export class TestAppService {
   private prisma: ExtendedPrismaClient;
@@ -134,6 +135,7 @@ export class TestAppService {
 
     const app = moduleRef.createNestApplication();
 
+    app.useGlobalFilters(new GlobalHttpExceptionFilter());
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
