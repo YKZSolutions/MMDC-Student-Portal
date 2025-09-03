@@ -44,6 +44,8 @@ import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.
 
 type CMSProps = {
   courseCode?: string
+  view?: EditorView
+  itemId?: string
 }
 
 export const CMS = ({ courseCode }: CMSProps) => {

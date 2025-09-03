@@ -7,16 +7,16 @@ import {
 import React, { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import { Link, useParams } from '@tanstack/react-router'
 
 const CourseModules = () => {
   const { authUser } = useAuth('protected')
+  const { courseCode } = useParams({ strict: false })
   const [allExpanded, setAllExpanded] = useState(false)
 
   const toggleExpandAll = () => {
     setAllExpanded((prev) => !prev)
   }
-
-  const [isCourseSelectorOpen, setIsCourseSelectorOpen] = useState(false)
 
   return (
     <Stack gap={'md'} p={'md'}>
@@ -42,8 +42,9 @@ const CourseModules = () => {
             <>
               <Button
                 leftSection={<IconPlus />}
-                onClick={() => setIsCourseSelectorOpen(true)}
                 bg={'secondary'}
+                component={Link}
+                to={`../edit`}
               >
                 Add New Content
               </Button>

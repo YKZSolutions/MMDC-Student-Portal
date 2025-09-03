@@ -28,17 +28,20 @@ import {
 } from '@tabler/icons-react'
 import type { Role } from '@/integrations/api/client'
 import { mockModule } from '@/features/courses/mocks.ts'
+import { Link } from '@tanstack/react-router'
 
 interface ModulePanelProps {
   allExpanded: boolean
   module?: Module
   isPreview?: boolean
+  courseCode?: string
 }
 
 const ModulePanel = ({
   allExpanded,
   module = mockModule,
   isPreview = false,
+  courseCode,
 }: ModulePanelProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
@@ -136,6 +139,7 @@ const ModulePanel = ({
                           /* TODO: Handle item click */
                         }}
                         isPreview={isPreview}
+                        courseCode={courseCode}
                       />
                     </Accordion.Panel>
                   ))}
@@ -153,12 +157,14 @@ interface ModuleItemCardProps {
   item: ModuleItem
   onItemClick: () => void
   isPreview?: boolean
+  courseCode?: string
 }
 
 const ModuleItemCard = ({
   item,
   onItemClick,
   isPreview = false,
+  courseCode,
 }: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
   const role: Role = isPreview ? 'student' : authUser.role
@@ -220,7 +226,12 @@ const ModuleItemCard = ({
             ),
             admin: (
               <Group gap="xs">
-                <ActionIcon variant="subtle" radius="lg">
+                <ActionIcon
+                  component={Link}
+                  variant="subtle"
+                  radius="lg"
+                  to={`../edit`}
+                >
                   <IconEdit size={16} />
                 </ActionIcon>
                 <ActionIcon variant="subtle" color="red" radius="lg">
@@ -278,7 +289,12 @@ function CustomAccordionControl({
       </Group>
       {role === 'admin' && (
         <Group>
-          <ActionIcon variant="subtle" radius="lg">
+          <ActionIcon
+            component={Link}
+            to={`../edit`}
+            variant="subtle"
+            radius="lg"
+          >
             <IconEdit size={'70%'} />
           </ActionIcon>
           <Menu shadow="md" width={200}>

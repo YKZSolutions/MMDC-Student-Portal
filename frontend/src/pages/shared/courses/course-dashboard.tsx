@@ -20,7 +20,6 @@ import {
   IconDeviceDesktop,
   IconLayoutGridFilled,
   IconList,
-  IconTool,
   IconVideo,
 } from '@tabler/icons-react'
 import React, { useState } from 'react'
@@ -28,17 +27,13 @@ import type {
   AcademicProgram,
   ClassMeeting,
   Course,
-  CourseBasicDetails,
   EnrolledAcademicTerm,
 } from '@/features/courses/types.ts'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
 import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
-import { handleMeetingClick } from '@/utils/handlers.ts'
-import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { CourseSelectorModal } from '@/features/courses/cms/course-selector.tsx'
 import { Link } from '@tanstack/react-router'
 
 // TODO: Consider adding program and/or department and major to the course data
@@ -200,33 +195,12 @@ const CourseDashboard = ({
           <Title c={'dark.7'} variant="hero" order={2} fw={700}>
             All Courses
           </Title>
-          {authUser.role !== 'student' && (
-            <>
-              <Button
-                bg={'secondary'}
-                leftSection={<IconTool size={16} />}
-                onClick={() => setIsCourseSelectorOpen(true)}
-              >
-                Manage Course
-              </Button>
-              <CourseSelectorModal
-                opened={isCourseSelectorOpen}
-                onClose={() => setIsCourseSelectorOpen(false)}
-                courses={[]}
-                onCourseChange={function (
-                  course: CourseBasicDetails | undefined,
-                ): void {
-                  throw new Error('Function not implemented.')
-                }}
-              />
-            </>
-          )}
         </Group>
 
         <Divider />
 
         <Grid>
-          <Grid.Col span={9}>
+          <Grid.Col span={authUser.role === 'student' ? 9 : 12}>
             <Stack gap={'md'} mr={'md'}>
               {/*Filters*/}
               <Group justify="space-between" align="start">
@@ -306,9 +280,11 @@ const CourseDashboard = ({
             </Stack>
           </Grid.Col>
           {/*Upcoming Tasks*/}
-          <Grid.Col span={3}>
-            <CourseTasksSummary courses={filteredCourses} />
-          </Grid.Col>
+          {authUser.role === 'student' && (
+            <Grid.Col span={3}>
+              <CourseTasksSummary courses={filteredCourses} />
+            </Grid.Col>
+          )}
         </Grid>
       </Stack>
     </Container>
@@ -339,8 +315,6 @@ const CourseItem = ({
     />
   )
 }
-
-const handleManageCourseClick = () => {}
 
 interface CourseDetailProps extends Omit<Course, 'activities'> {
   url: string
@@ -420,7 +394,10 @@ const CourseCard = ({
               {sectionSchedule.day} {sectionSchedule.time}
             </Text>
           </Stack>
-          <CourseCardActionButton currentMeeting={currentMeeting} />
+          <CourseCardActionButton
+            currentMeeting={currentMeeting}
+            courseCode={courseCode}
+          />
           <Group justify="space-between">
             <Group gap="0.25rem">
               <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
@@ -503,7 +480,10 @@ const CourseListRow = ({
           </Text>
         </Stack>
         <Stack w={'30%'} p={'xs'} justify={'space-between'}>
-          <CourseCardActionButton currentMeeting={currentMeeting} />
+          <CourseCardActionButton
+            currentMeeting={currentMeeting}
+            courseCode={courseCode}
+          />
           <Group gap="xs">
             <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
               Completed:
@@ -519,27 +499,37 @@ const CourseListRow = ({
   )
 }
 
+type CourseCardActionButtonProps = {
+  currentMeeting?: ClassMeeting
+  courseCode: string
+}
 const CourseCardActionButton = ({
   currentMeeting,
-}: {
-  currentMeeting?: ClassMeeting
-}) => {
+  courseCode,
+}: CourseCardActionButtonProps) => {
+  const { authUser } = useAuth('protected')
   return (
-    <RoleBasedActionButton
-      render={{
-        student: {
-          icon: <IconVideo size={16} />,
-          text: 'Join Meeting',
-          onClick: () => handleMeetingClick(currentMeeting?.meetingLink),
-          disabled: !currentMeeting,
-        },
-        admin: {
-          icon: <IconDeviceDesktop size={16} />,
-          text: 'Manage Content',
-          onClick: () => handleManageCourseClick(),
-        },
-      }}
-    />
+    <Button
+      component={Link}
+      leftSection={
+        authUser.role === 'student' ? (
+          <IconVideo size={16} />
+        ) : (
+          <IconDeviceDesktop size={16} />
+        )
+      }
+      size="xs"
+      radius="xl"
+      variant="filled"
+      disabled={authUser.role === 'student' ? !currentMeeting : false}
+      to={
+        authUser.role === 'student'
+          ? currentMeeting?.meetingLink
+          : `/courses/${courseCode}/edit`
+      }
+    >
+      {authUser.role === 'student' ? 'Join Meeting' : 'Manage Content'}
+    </Button>
   )
 }
 
