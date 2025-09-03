@@ -47,7 +47,7 @@ export const mockUsers: MockUsers = {
     user_metadata: {
       role: 'admin',
       status: 'active',
-      user_id: ' d4e026e5-8455-470f-a846-a89455b2fa38 ',
+      user_id: 'd4e026e5-8455-470f-a846-a89455b2fa38',
     },
   },
   mentor: {

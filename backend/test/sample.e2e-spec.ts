@@ -66,9 +66,6 @@ describe('UsersController (Integration)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .send(validUserPayload)
-        .expect((res) => {
-          console.log('Response:', res.status, res.body);
-        })
         .expect(403);
     });
 

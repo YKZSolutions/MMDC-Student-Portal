@@ -281,6 +281,6 @@ export class TestAppService {
     await this.prisma.$disconnect();
     await this.pgClient.end();
     await this.pgContainer.stop();
-    this.app.close();
+    await this.app.close();
   }
 }
