@@ -10,41 +10,18 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import React, { useEffect, useState } from 'react'
-import {
-  IconChecklist,
-  IconCircleCheck,
-  IconNotebook,
-  IconX,
-} from '@tabler/icons-react'
-import CurriculumManagementPanel from '@/features/courses/modules/curriculum-management-panel.tsx'
+import React, { useState } from 'react'
+import { IconChecklist, IconCircleCheck, IconX } from '@tabler/icons-react'
 import ModuleReviewStep from '@/features/courses/modules/module-review-step.tsx'
-import {
-  type CourseNodeModel,
-  mockCourseTreeData,
-} from '@/features/courses/modules/types.ts'
-import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import { convertTreeToCourseModules } from '@/utils/helpers.ts'
+import { type Module } from '@/features/courses/modules/types.ts'
 import { useMediaQuery } from '@mantine/hooks'
 import { getRouteApi } from '@tanstack/react-router'
-import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
 
-const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
+const CoursePublisher = ({ module }: { module: Module }) => {
   const theme = useMantineTheme()
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`)
 
-  // TODO: Populate this with actual course data
-  const [courseInfo, setCourseInfo] = useState<CourseBasicDetails | undefined>(
-    courseCode
-      ? mockCourseBasicDetails.find(
-          (course) => course.courseCode === courseCode,
-        )
-      : undefined,
-  )
-
   const [activeStep, setActiveStep] = useState(0)
-  const [courseStructure, setCourseStructure] =
-    useState<CourseNodeModel[]>(mockCourseTreeData) // TODO: populate this with actual data
 
   const nextStep = () => {
     setActiveStep((current) => (current < 2 ? current + 1 : current))
@@ -53,40 +30,11 @@ const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
     setActiveStep((current) => (current > 0 ? current - 1 : current))
   }
 
-  useEffect(() => {
-    if (courseInfo) {
-      setCourseStructure(mockCourseTreeData)
-    }
-  }, [courseInfo])
-
-  // Determine if the "Next" button should be enabled
-  const isNextEnabled = () => {
-    switch (activeStep) {
-      case 0:
-        return !!courseInfo // Next is enabled only if a course is selected
-      // TODO: Add more cases for other steps if they have specific validation needs
-      case 1: // Example for Module Management step
-      case 2: // Example for Review step
-      default:
-        return true
-    }
-  }
-
   const steps = [
-    {
-      label: 'Curriculum',
-      icon: <IconNotebook size={18} />,
-      content: <CurriculumManagementPanel courseCode={courseCode} />,
-    },
     {
       label: 'Review',
       icon: <IconChecklist size={18} />,
-      content: (
-        <ModuleReviewStep
-          courseModules={convertTreeToCourseModules(courseStructure)}
-          courseInfo={courseInfo as CourseBasicDetails}
-        />
-      ),
+      content: <ModuleReviewStep module={module} />,
     },
     {
       label: 'Confirmation',
@@ -96,7 +44,7 @@ const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
           onFinish={async () => {
             const route = getRouteApi(`/(protected)/courses/`)
             const navigate = route.useNavigate()
-            await navigate({ to: `${courseCode}` })
+            await navigate({ to: `${module.courseCode}` })
           }}
         />
       ),
@@ -160,7 +108,7 @@ const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
         </Button>
 
         <Title order={3} ta={'center'}>
-          Course Builder | {courseInfo?.courseName} [{courseInfo?.courseCode}]
+          Course Publisher | {module?.courseName} [{module?.courseCode}]
         </Title>
 
         <Group>
@@ -171,7 +119,7 @@ const CourseBuilder = ({ courseCode }: { courseCode: string }) => {
           >
             Back
           </Button>
-          <Button onClick={nextStep} w={75} disabled={!isNextEnabled()}>
+          <Button onClick={nextStep} w={75}>
             {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
           </Button>
         </Group>
@@ -224,4 +172,4 @@ const ConfirmationStep = ({ onFinish }: ConfirmationStepProps) => {
   )
 }
 
-export default CourseBuilder
+export default CoursePublisher
