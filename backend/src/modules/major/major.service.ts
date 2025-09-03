@@ -5,22 +5,22 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { PaginatedMajorsDto } from './dto/paginated-major.dto';
 import { MajorDto } from '@/generated/nestjs-dto/major.dto';
-import { isUUID } from 'class-validator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CreateProgramMajorDto } from './dto/create-major.dto';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class MajorService {
-  private readonly logger = new Logger(MajorService.name);
-
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
@@ -36,30 +36,31 @@ export class MajorService {
    * @throws {ConflictException} - If the major name already exists.
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({
+    logArgsMessage: ({ dto }) =>
+      `Create major name=${dto.major.name} programId=${dto.programId}`,
+    logSuccessMessage: (result, { dto }) =>
+      `Created major name=${dto.major.name} id=${result.id}`,
+    logErrorMessage: (err, { dto }) =>
+      `Failed to create major name=${dto.major.name} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
+      new ConflictException(`Major name already exists: ${dto.major.name}`),
+  })
   async create(
     createProgramMajorDto: CreateProgramMajorDto,
   ): Promise<MajorDto> {
-    try {
-      const major = await this.prisma.client.major.create({
-        data: {
-          name: createProgramMajorDto.major.name,
-          description: createProgramMajorDto.major.description,
-          program: {
-            connect: { id: createProgramMajorDto.programId },
-          },
+    const major = await this.prisma.client.major.create({
+      data: {
+        name: createProgramMajorDto.major.name,
+        description: createProgramMajorDto.major.description,
+        program: {
+          connect: { id: createProgramMajorDto.programId },
         },
-      });
-      return major;
-    } catch (error) {
-      this.logger.error(`Error creating major`);
-
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2002')
-          throw new ConflictException('Major name already exits');
-      }
-
-      throw error;
-    }
+      },
+    });
+    return major;
   }
 
   /**
@@ -73,50 +74,47 @@ export class MajorService {
    * @throws {NotFoundException} If no prgrams are found.
    * @throws {Error} Any other unexpected erros.
    */
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Find all majors filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) => `Found ${result.majors.length} majors`,
+    logErrorMessage: (err, { filters }) =>
+      `Failed to find majors filters=${JSON.stringify(filters)} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('No majors found'),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new BadRequestException(
+        'Fetching majors failed due to transaction deadlock',
+      ),
+  })
   async findAll(filters: BaseFilterDto): Promise<PaginatedMajorsDto> {
-    try {
-      const where: Prisma.MajorWhereInput = {};
-      const page = filters.page || 1;
+    const where: Prisma.MajorWhereInput = {};
+    const page = filters.page || 1;
 
-      if (filters.search?.trim()) {
-        const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+    if (filters.search?.trim()) {
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
-        where.AND = searchTerms.map((term) => ({
-          OR: [
-            {
-              name: { contains: term, mode: Prisma.QueryMode.insensitive },
+      where.AND = searchTerms.map((term) => ({
+        OR: [
+          {
+            name: { contains: term, mode: Prisma.QueryMode.insensitive },
+          },
+          {
+            description: {
+              contains: term,
+              mode: Prisma.QueryMode.insensitive,
             },
-            {
-              description: {
-                contains: term,
-                mode: Prisma.QueryMode.insensitive,
-              },
-            },
-          ],
-        }));
-      }
-
-      const [majors, meta] = await this.prisma.client.major
-        .paginate({ where })
-        .withPages({ limit: 10, page, includePageCount: true });
-      return { majors, meta };
-    } catch (error) {
-      this.logger.error(
-        `Failed to fetch majors with filters: ${JSON.stringify(filters)}`,
-      );
-
-      if (error instanceof Prisma.PrismaClientValidationError) {
-        throw new BadRequestException(error.message);
-      }
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException('Major not found');
-        }
-      }
-
-      throw error;
+          },
+        ],
+      }));
     }
+
+    const [majors, meta] = await this.prisma.client.major
+      .paginate({ where })
+      .withPages({ limit: 10, page, includePageCount: true });
+    return { majors, meta };
   }
 
   /**
@@ -126,29 +124,29 @@ export class MajorService {
    * @param {string} id - The UUID of the major.
    * @returns {Promise<ProgramDto>} The major record.
    *
-   * @throws {BadRequestException} If the provided ID is not a valid UUID.
    * @throws {NotFoundException} If no program is found with the given ID.
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({
+    logArgsMessage: ({ id }) => `Find major by ID=${id}`,
+    logSuccessMessage: (result) => `Found major id=${result.id}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to find major id=${id} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Major with ID ${id} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new BadRequestException(
+        'Fetching major failed due to transaction deadlock',
+      ),
+  })
   async findOne(id: string): Promise<MajorDto> {
-    try {
-      if (!isUUID(id)) {
-        throw new BadRequestException(`Invalid major id format: ${id}`);
-      }
+    const major = await this.prisma.client.major.findUniqueOrThrow({
+      where: { id },
+    });
 
-      const major = await this.prisma.client.major.findUniqueOrThrow({
-        where: { id },
-      });
-
-      return major;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException(`Major with id '${id}' not found.`);
-        }
-      }
-      throw error;
-    }
+    return major;
   }
 
   /**
@@ -163,25 +161,29 @@ export class MajorService {
    * @throws {ConflictException} If the major name already exists.
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({
+    logArgsMessage: ({ id, dto }) => `Update major id=${id} name=${dto.name}`,
+    logSuccessMessage: (result, { id }) => `Updated major id=${id}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to update major id=${id} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Major with ID ${id} not found`),
+    [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
+      new ConflictException(`Major name already exists: ${dto.name}`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new BadRequestException(
+        'Updating major failed due to transaction deadlock',
+      ),
+  })
   async update(id: string, updateMajorDto: UpdateMajorDto): Promise<MajorDto> {
-    try {
-      const major = await this.prisma.client.major.update({
-        where: { id },
-        data: { ...updateMajorDto },
-      });
+    const major = await this.prisma.client.major.update({
+      where: { id },
+      data: { ...updateMajorDto },
+    });
 
-      return major;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException(`Major with id '${id}' not found.`);
-        }
-        if (error.code === 'P2002') {
-          throw new ConflictException('Major name already exists.');
-        }
-      }
-      throw error;
-    }
+    return major;
   }
 
   /**
@@ -198,38 +200,42 @@ export class MajorService {
    * @throws {NotFoundException} If no major is found with the given ID (`P2025`).
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({
+    logArgsMessage: ({ id, directDelete }) =>
+      `Remove major id=${id}, directDelete=${directDelete}`,
+    logSuccessMessage: (result, { id }) =>
+      `Removed major id=${id}, message="${result.message}"`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to remove major id=${id} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Major with ID ${id} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new BadRequestException(
+        'Deleting major failed due to transaction deadlock',
+      ),
+  })
   async remove(
     id: string,
     directDelete?: boolean,
   ): Promise<{ message: string }> {
-    try {
-      const major = await this.prisma.client.major.findFirstOrThrow({
+    const major = await this.prisma.client.major.findFirstOrThrow({
+      where: { id },
+    });
+
+    if (!directDelete && !(await major).deletedAt) {
+      await this.prisma.client.major.update({
         where: { id },
+        data: { deletedAt: new Date() },
       });
 
-      if (!directDelete && !(await major).deletedAt) {
-        await this.prisma.client.major.update({
-          where: { id },
-          data: { deletedAt: new Date() },
-        });
-
-        return { message: 'Major marked for deletion' };
-      }
-
-      await this.prisma.client.major.delete({ where: { id } });
-      return {
-        message: 'Major permamently deleted',
-      };
-    } catch (error) {
-      this.logger.error(
-        `Failed to delete major with ID "${id}" (directDelete=${directDelete ?? false})`,
-      );
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        if (error.code === 'P2025')
-          throw new NotFoundException('Major not found');
-
-      throw error;
+      return { message: 'Major marked for deletion' };
     }
+
+    await this.prisma.client.major.delete({ where: { id } });
+    return {
+      message: 'Major permamently deleted',
+    };
   }
 }
