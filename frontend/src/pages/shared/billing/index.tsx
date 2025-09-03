@@ -28,7 +28,6 @@ import {
   NumberFormatter,
   Pagination,
   rem,
-  ScrollArea,
   SegmentedControl,
   Stack,
   Table,
@@ -208,18 +207,16 @@ function BillingPage() {
           justify={'end'}
           align="center"
         >
-          <ScrollArea w={{ base: '100%', xs: 'auto' }}>
-            <SegmentedControl
-              w={{ base: '100%', xs: 'auto' }}
-              bd={'1px solid gray.2'}
-              data={[...segmentedControlOptions]}
-              defaultValue={searchParam.tab || 'all'}
-              color="primary"
-              onChange={(value) =>
-                handleTabChange(value as IBillingQuery['tab'])
-              }
-            />
-          </ScrollArea>
+          <SegmentedControl
+            style={{
+              overflowX: 'auto',
+            }}
+            bd={'1px solid gray.2'}
+            data={[...segmentedControlOptions]}
+            defaultValue={searchParam.tab || 'all'}
+            color="primary"
+            onChange={(value) => handleTabChange(value as IBillingQuery['tab'])}
+          />
           <Flex
             gap={'sm'}
             direction={{ base: 'column', xs: 'row' }}
