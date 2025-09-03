@@ -1,5 +1,5 @@
 import type {
-  Assignment,
+  AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type { NodeModel } from '@minoru/react-dnd-treeview'
@@ -16,7 +16,7 @@ export interface ModuleContent {
   content?: string
   fileUrl?: string
   progress?: ContentProgress[]
-  assignment?: Assignment | StudentAssignment
+  assignment?: AssignmentBase | StudentAssignment
 }
 
 export interface Module {
@@ -49,10 +49,6 @@ export type ContentType =
   | 'discussion'
   | 'url'
   | 'file'
-  | 'draft'
-  | 'milestone'
-  | 'quiz'
-  | 'other'
 
 export type ContentNode = Module | ModuleSection | ModuleItem
 export type ContentNodeType = 'module' | 'section' | 'item'
@@ -111,6 +107,7 @@ export const mockCourseTreeData: CourseNodeModel[] = [
       type: 'item',
       contentData: {
         id: 'item_1',
+        type: 'reading',
         title: 'Chapter 1: Cell Structure',
         order: 1,
         content: {

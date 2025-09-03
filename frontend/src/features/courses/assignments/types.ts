@@ -17,6 +17,13 @@ export type AssignmentMode = 'individual' | 'group'
  */
 export type AssignmentStatus = 'open' | 'closed'
 
+export type AssignmentType =
+  | 'assignment'
+  | 'draft'
+  | 'milestone'
+  | 'quiz'
+  | 'other'
+
 /**
  * Represents the base structure of an assignment entity.
  *
@@ -26,6 +33,7 @@ export type AssignmentStatus = 'open' | 'closed'
  * Properties:
  * - `id`: A unique identifier for the assignment.
  * - `title`: The title or name of the assignment.
+ * - `type`: A string representing the type of the assignment, defined by an {@link AssignmentType} type.
  * - `dueDate`: A required ISO 8601-compliant string representing the assignment's due date and time.
  * - `mode`: Indicates the submission or grading mode, defined by an {@link AssignmentMode} type.
  * - `points`: An optional field representing the maximum points available for the assignment.
@@ -34,9 +42,10 @@ export type AssignmentStatus = 'open' | 'closed'
  * - `allowResubmission`: A boolean indicating whether resubmissions are allowed for the assignment.
  * - `maxAttempts`: An optional integer representing the maximum number of attempts allowed for the assignment.
  */
-export interface Assignment {
+export interface AssignmentBase {
   id: string
   title: string
+  type: AssignmentType
   dueDate: string // ISO string
   mode: AssignmentMode
   points?: number // max points
@@ -124,7 +133,7 @@ export interface GroupSubmission extends Submission {
 /**
  * Represents a student's assignment that includes information about the assignment,
  * its submission details, and optional grade information. This interface extends common
- * properties from {@link Assignment} and {@link Submission} to consolidate assignment-specific
+ * properties from {@link AssignmentBase} and {@link Submission} to consolidate assignment-specific
  * and submission-related data.
  *
  * Properties:
@@ -133,7 +142,7 @@ export interface GroupSubmission extends Submission {
  * - `groupName`: An optional string representing the name of the group associated with the assignment.
  *
  */
-export interface StudentAssignment extends Assignment, Submission {
+export interface StudentAssignment extends AssignmentBase, Submission {
   submissionId?: string
   groupId?: string
   groupName?: string
@@ -177,12 +186,12 @@ export interface GroupSubmissionSummary {
 
 /**
  * Represents a report of an assignment's submissions, including both individual and group submissions.
- * Extends the base properties provided by the {@link Assignment} interface.
+ * Extends the base properties provided by the {@link AssignmentBase} interface.
  *
  * Properties:
  * - `submissions`: An array of submission summaries, which can be either individual
  *   {@link AssignmentSubmissionSummary} or group {@link GroupSubmissionSummary} submissions.
  */
-export interface AssignmentSubmissionReport extends Assignment {
+export interface AssignmentSubmissionReport extends AssignmentBase {
   submissions: (AssignmentSubmissionSummary | GroupSubmissionSummary)[]
 }

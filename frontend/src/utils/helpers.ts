@@ -1,5 +1,5 @@
 import type {
-  Assignment,
+  AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type {
@@ -43,7 +43,7 @@ export function getPastDate(daysToSubtract: number) {
 }
 
 export function getSubmissionStatus(
-  assignment: Assignment | StudentAssignment | undefined,
+  assignment: AssignmentBase | StudentAssignment | undefined,
 ) {
   if (!assignment) return undefined
 
