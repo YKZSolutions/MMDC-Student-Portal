@@ -19,14 +19,14 @@ jobs:
       DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
       SUPABASE_CLOUD_URL: ${{ secrets.SUPABASE_CLOUD_URL }}
       SUPABASE_CLOUD_ADMIN_KEY: ${{ secrets.SUPABASE_CLOUD_ADMIN_KEY }}
-      # SUPABASE_LOCAL_URL: ${{ secrets.SUPABASE_LOCAL_URL }}
-      # SUPABASE_LOCAL_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_LOCAL_SERVICE_ROLE_KEY }}
-      # DATABASE_LOCAL_URL: ${{ secrets.DATABASE_LOCAL_URL }}
-      # DIRECT_LOCAL_URL: ${{ secrets.DIRECT_LOCAL_URL }}
-      # GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      # PAYMONGO_SECRET_KEY: ${{ secrets.PAYMONGO_SECRET_KEY }}
-      # N8N_VECTOR_SEARCH_URL: ${{ secrets.N8N_VECTOR_SEARCH_URL }}
-      # N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+      SUPABASE_LOCAL_URL: ${{ secrets.SUPABASE_LOCAL_URL }}
+      SUPABASE_LOCAL_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_LOCAL_SERVICE_ROLE_KEY }}
+      DATABASE_LOCAL_URL: ${{ secrets.DATABASE_LOCAL_URL }}
+      DIRECT_LOCAL_URL: ${{ secrets.DIRECT_LOCAL_URL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      PAYMONGO_SECRET_KEY: ${{ secrets.PAYMONGO_SECRET_KEY }}
+      N8N_VECTOR_SEARCH_URL: ${{ secrets.N8N_VECTOR_SEARCH_URL }}
+      N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
 
     steps:
       - name: Checkout Repository Code
