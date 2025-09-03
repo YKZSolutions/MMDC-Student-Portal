@@ -11,7 +11,7 @@
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["../src/commin/types", "../node_modules/@types"]
+    "typeRoots": ["../src/common/types", "../node_modules/@types"]
   },
   "include": [".", "../test", "../src"]
 }
