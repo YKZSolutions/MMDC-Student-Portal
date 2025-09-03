@@ -252,8 +252,6 @@ export type CreateCourseDto = {
     courseCode: string;
     name: string;
     description: string;
-    year: string;
-    semester: string;
     units: number;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
@@ -271,8 +269,6 @@ export type CourseDto = {
     courseCode: string;
     name: string;
     description: string;
-    year: string;
-    semester: string;
     units: number;
     createdAt: string;
     updatedAt: string;
@@ -295,8 +291,6 @@ export type UpdateCourseDto = {
     courseCode?: string;
     name?: string;
     description?: string;
-    year?: string;
-    semester?: string;
     units?: number;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
@@ -621,12 +615,40 @@ export type EnrollmentPeriodDto = {
     deletedAt: string | null;
 };
 
+export type PaginatedEnrollmentPeriodsDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of enrollment periods for the current page
+     */
+    enrollments: Array<EnrollmentPeriodDto>;
+};
+
+export type UpdateEnrollmentDto = {
+    startYear?: number;
+    endYear?: number;
+    term?: number;
+    startDate?: string;
+    endDate?: string;
+};
+
+export type UpdateEnrollmentStatusDto = {
+    status: EnrollmentStatus;
+};
+
 export type CreateCourseOfferingDto = {
     courseId: string;
 };
 
-export type CourseOfferingDto = {
+export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
+
+export type CourseEnrollment = {
     id: string;
+    courseOfferingId: string;
+    courseSectionId: string;
+    studentId: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -634,13 +656,101 @@ export type CourseOfferingDto = {
 
 export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
-export type CreateCourseSectionFullDto = {
+export type CourseSection = {
+    id: string;
     name: string;
+    mentorId: string | null;
+    courseOfferingId: string;
+    courseEnrollments?: Array<CourseEnrollment>;
     maxSlot: number;
-    days: Array<Days>;
     startSched: string;
     endSched: string;
-    mentorId?: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CourseOffering = {
+    id: string;
+    courseId: string;
+    periodId: string;
+    courseEnrollment?: Array<CourseEnrollment>;
+    courseSections?: Array<CourseSection>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    disabledAt: string | null;
+    deletedAt: string | null;
+};
+
+export type DetailedCourseSectionDto = {
+    id: string;
+    name: string;
+    maxSlot: number;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    user: UserDto | null;
+    mentorId: string | null;
+};
+
+export type DetailedCourseOfferingSubsetDto = {
+    course: CourseDto;
+};
+
+export type DetailedCourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    studentId: string;
+    courseOfferingId: string;
+    courseSectionId: string;
+    courseSection?: DetailedCourseSectionDto;
+    courseOffering?: DetailedCourseOfferingSubsetDto;
+};
+
+export type DetailedCourseOfferingDto = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+    courseSections: Array<DetailedCourseSectionDto>;
+    courseEnrollment: Array<DetailedCourseEnrollmentDto>;
+    periodId: string;
+};
+
+export type PaginatedCourseOfferingsDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of course offerings for the current page
+     */
+    courseOfferings: Array<DetailedCourseOfferingDto>;
+};
+
+export type CourseOfferingDto = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type CourseSectionDto = {
@@ -655,22 +765,6 @@ export type CourseSectionDto = {
     deletedAt: string | null;
 };
 
-export type PaginatedEnrollmentPeriodsDto = {
-    meta: PaginationMetaDto;
-    /**
-     * List of enrollment periods for the current page
-     */
-    enrollments: Array<EnrollmentPeriodDto>;
-};
-
-export type PaginatedCourseOfferingsDto = {
-    meta: PaginationMetaDto;
-    /**
-     * List of course offerings for the current page
-     */
-    courseOfferings: Array<CourseOfferingDto>;
-};
-
 export type PaginatedCourseSectionsDto = {
     meta: PaginationMetaDto;
     /**
@@ -679,20 +773,107 @@ export type PaginatedCourseSectionsDto = {
     courseSections: Array<CourseSectionDto>;
 };
 
-export type UpdateEnrollmentStatusDto = {
-    status: EnrollmentStatus;
-};
-
-export type UpdateEnrollmentDto = {
-    startYear?: number;
-    endYear?: number;
-    term?: number;
-    startDate?: string;
-    endDate?: string;
+export type CreateCourseSectionFullDto = {
+    name: string;
+    maxSlot: number;
+    days: Array<Days>;
+    startSched: string;
+    endSched: string;
+    mentorId?: string;
 };
 
 export type UpdateCourseSectionDto = {
     [key: string]: unknown;
+};
+
+export type StudentIdentifierDto = {
+    studentId?: string;
+};
+
+export type CourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CreateCurriculumDto = {
+    icon?: string | null;
+    name?: string | null;
+    description?: string | null;
+};
+
+export type CreateCurriculumCourseItemDto = {
+    courseId: string;
+    order: number;
+    year: number;
+    semester: number;
+};
+
+export type CreateCurriculumWithCoursesDto = {
+    majorId: string;
+    curriculum: CreateCurriculumDto;
+    courses: Array<CreateCurriculumCourseItemDto>;
+};
+
+export type CurriculumDto = {
+    id: string;
+    icon: string | null;
+    name: string | null;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CurriculumItemDto = {
+    id: string;
+    icon: string | null;
+    name: string | null;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    program: ProgramDto;
+    major: MajorDto;
+};
+
+export type CurriculumCourseItemDto = {
+    id: string;
+    order: number;
+    year: number;
+    semester: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+};
+
+export type CurriculumWithCoursesDto = {
+    curriculum: CurriculumItemDto;
+    courses: Array<CurriculumCourseItemDto>;
+};
+
+export type UpdateCurriculumDto = {
+    icon?: string | null;
+    name?: string | null;
+    description?: string | null;
+};
+
+export type UpdateCurriculumCourseItemDto = {
+    courseId: string;
+    order: number;
+    year: number;
+    semester: number;
+};
+
+export type UpdateCurriculumWithCourseDto = {
+    majorId?: string;
+    curriculum: UpdateCurriculumDto;
+    courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
 export type TestControllerTestStudentData = {
@@ -2093,7 +2274,7 @@ export type EnrollmentControllerFindAllEnrollmentsData = {
         search?: string;
         page?: number;
     };
-    url: '/enrollment';
+    url: '/enrollments';
 };
 
 export type EnrollmentControllerFindAllEnrollmentsErrors = {
@@ -2116,7 +2297,7 @@ export type EnrollmentControllerCreateEnrollmentData = {
     body: CreateEnrollmentPeriodDto;
     path?: never;
     query?: never;
-    url: '/enrollment';
+    url: '/enrollments';
 };
 
 export type EnrollmentControllerCreateEnrollmentErrors = {
@@ -2135,21 +2316,14 @@ export type EnrollmentControllerCreateEnrollmentResponses = {
 
 export type EnrollmentControllerCreateEnrollmentResponse = EnrollmentControllerCreateEnrollmentResponses[keyof EnrollmentControllerCreateEnrollmentResponses];
 
-export type EnrollmentControllerCreateCourseOfferingData = {
-    body: CreateCourseOfferingDto;
-    path: {
-        periodId: string;
-    };
+export type EnrollmentControllerFindActiveEnrollmentData = {
+    body?: never;
+    path?: never;
     query?: never;
-    url: '/enrollment/{periodId}/offerings';
+    url: '/enrollments/active';
 };
 
-export type EnrollmentControllerCreateCourseOfferingErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
+export type EnrollmentControllerFindActiveEnrollmentErrors = {
     404: {
         statusCode: number;
         message: string;
@@ -2157,103 +2331,26 @@ export type EnrollmentControllerCreateCourseOfferingErrors = {
     };
 };
 
-export type EnrollmentControllerCreateCourseOfferingError = EnrollmentControllerCreateCourseOfferingErrors[keyof EnrollmentControllerCreateCourseOfferingErrors];
+export type EnrollmentControllerFindActiveEnrollmentError = EnrollmentControllerFindActiveEnrollmentErrors[keyof EnrollmentControllerFindActiveEnrollmentErrors];
 
-export type EnrollmentControllerCreateCourseOfferingResponses = {
-    201: CourseOfferingDto;
+export type EnrollmentControllerFindActiveEnrollmentResponses = {
+    200: EnrollmentPeriodDto;
 };
 
-export type EnrollmentControllerCreateCourseOfferingResponse = EnrollmentControllerCreateCourseOfferingResponses[keyof EnrollmentControllerCreateCourseOfferingResponses];
-
-export type EnrollmentControllerCreateCourseSectionData = {
-    body: CreateCourseSectionFullDto;
-    path: {
-        offeringId: string;
-    };
-    query?: never;
-    url: '/enrollment/offerings/{offeringId}/sections';
-};
-
-export type EnrollmentControllerCreateCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerCreateCourseSectionError = EnrollmentControllerCreateCourseSectionErrors[keyof EnrollmentControllerCreateCourseSectionErrors];
-
-export type EnrollmentControllerCreateCourseSectionResponses = {
-    201: CourseSectionDto;
-};
-
-export type EnrollmentControllerCreateCourseSectionResponse = EnrollmentControllerCreateCourseSectionResponses[keyof EnrollmentControllerCreateCourseSectionResponses];
-
-export type EnrollmentControllerFindAllCourseOfferingsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-    };
-    url: '/enrollment/offerings';
-};
-
-export type EnrollmentControllerFindAllCourseOfferingsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindAllCourseOfferingsError = EnrollmentControllerFindAllCourseOfferingsErrors[keyof EnrollmentControllerFindAllCourseOfferingsErrors];
-
-export type EnrollmentControllerFindAllCourseOfferingsResponses = {
-    200: PaginatedCourseOfferingsDto;
-};
-
-export type EnrollmentControllerFindAllCourseOfferingsResponse = EnrollmentControllerFindAllCourseOfferingsResponses[keyof EnrollmentControllerFindAllCourseOfferingsResponses];
-
-export type EnrollmentControllerFindAllCourseSectionsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-    };
-    url: '/enrollment/sections';
-};
-
-export type EnrollmentControllerFindAllCourseSectionsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindAllCourseSectionsError = EnrollmentControllerFindAllCourseSectionsErrors[keyof EnrollmentControllerFindAllCourseSectionsErrors];
-
-export type EnrollmentControllerFindAllCourseSectionsResponses = {
-    200: PaginatedCourseSectionsDto;
-};
-
-export type EnrollmentControllerFindAllCourseSectionsResponse = EnrollmentControllerFindAllCourseSectionsResponses[keyof EnrollmentControllerFindAllCourseSectionsResponses];
+export type EnrollmentControllerFindActiveEnrollmentResponse = EnrollmentControllerFindActiveEnrollmentResponses[keyof EnrollmentControllerFindActiveEnrollmentResponses];
 
 export type EnrollmentControllerRemoveEnrollmentData = {
     body?: never;
     path: {
-        id: string;
+        enrollmentId: string;
     };
-    query?: never;
-    url: '/enrollment/{id}';
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/enrollments/{enrollmentId}';
 };
 
 export type EnrollmentControllerRemoveEnrollmentErrors = {
@@ -2282,10 +2379,10 @@ export type EnrollmentControllerRemoveEnrollmentResponse = EnrollmentControllerR
 export type EnrollmentControllerFindOneEnrollmentData = {
     body?: never;
     path: {
-        id: string;
+        enrollmentId: string;
     };
     query?: never;
-    url: '/enrollment/{id}';
+    url: '/enrollments/{enrollmentId}';
 };
 
 export type EnrollmentControllerFindOneEnrollmentErrors = {
@@ -2312,10 +2409,10 @@ export type EnrollmentControllerFindOneEnrollmentResponse = EnrollmentController
 export type EnrollmentControllerUpdateEnrollmentData = {
     body: UpdateEnrollmentDto;
     path: {
-        id: string;
+        enrollmentId: string;
     };
     query?: never;
-    url: '/enrollment/{id}';
+    url: '/enrollments/{enrollmentId}';
 };
 
 export type EnrollmentControllerUpdateEnrollmentErrors = {
@@ -2339,138 +2436,13 @@ export type EnrollmentControllerUpdateEnrollmentResponses = {
 
 export type EnrollmentControllerUpdateEnrollmentResponse = EnrollmentControllerUpdateEnrollmentResponses[keyof EnrollmentControllerUpdateEnrollmentResponses];
 
-export type EnrollmentControllerFindOneCourseOfferingData = {
-    body?: never;
-    path: {
-        offeringId: string;
-    };
-    query?: never;
-    url: '/enrollment/offerings/{offeringId}';
-};
-
-export type EnrollmentControllerFindOneCourseOfferingErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindOneCourseOfferingError = EnrollmentControllerFindOneCourseOfferingErrors[keyof EnrollmentControllerFindOneCourseOfferingErrors];
-
-export type EnrollmentControllerFindOneCourseOfferingResponses = {
-    200: CourseOfferingDto;
-};
-
-export type EnrollmentControllerFindOneCourseOfferingResponse = EnrollmentControllerFindOneCourseOfferingResponses[keyof EnrollmentControllerFindOneCourseOfferingResponses];
-
-export type EnrollmentControllerRemoveCourseSectionData = {
-    body?: never;
-    path: {
-        offeringId: string;
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollment/offerings/{offeringId}/sections/{sectionId}';
-};
-
-export type EnrollmentControllerRemoveCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerRemoveCourseSectionError = EnrollmentControllerRemoveCourseSectionErrors[keyof EnrollmentControllerRemoveCourseSectionErrors];
-
-export type EnrollmentControllerRemoveCourseSectionResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type EnrollmentControllerRemoveCourseSectionResponse = EnrollmentControllerRemoveCourseSectionResponses[keyof EnrollmentControllerRemoveCourseSectionResponses];
-
-export type EnrollmentControllerFindOneCourseSectionData = {
-    body?: never;
-    path: {
-        offeringId: string;
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollment/offerings/{offeringId}/sections/{sectionId}';
-};
-
-export type EnrollmentControllerFindOneCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindOneCourseSectionError = EnrollmentControllerFindOneCourseSectionErrors[keyof EnrollmentControllerFindOneCourseSectionErrors];
-
-export type EnrollmentControllerFindOneCourseSectionResponses = {
-    200: CourseSectionDto;
-};
-
-export type EnrollmentControllerFindOneCourseSectionResponse = EnrollmentControllerFindOneCourseSectionResponses[keyof EnrollmentControllerFindOneCourseSectionResponses];
-
-export type EnrollmentControllerUpdateCourseSectionData = {
-    body: UpdateCourseSectionDto;
-    path: {
-        offeringId: string;
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollment/offerings/{offeringId}/sections/{sectionId}';
-};
-
-export type EnrollmentControllerUpdateCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerUpdateCourseSectionError = EnrollmentControllerUpdateCourseSectionErrors[keyof EnrollmentControllerUpdateCourseSectionErrors];
-
-export type EnrollmentControllerUpdateCourseSectionResponses = {
-    200: CourseSectionDto;
-};
-
-export type EnrollmentControllerUpdateCourseSectionResponse = EnrollmentControllerUpdateCourseSectionResponses[keyof EnrollmentControllerUpdateCourseSectionResponses];
-
 export type EnrollmentControllerUpdateEnrollmentStatusData = {
     body: UpdateEnrollmentStatusDto;
     path: {
-        id: string;
+        enrollmentId: string;
     };
     query?: never;
-    url: '/enrollment/{id}/status';
+    url: '/enrollments/{enrollmentId}/status';
 };
 
 export type EnrollmentControllerUpdateEnrollmentStatusErrors = {
@@ -2489,17 +2461,36 @@ export type EnrollmentControllerUpdateEnrollmentStatusResponses = {
 
 export type EnrollmentControllerUpdateEnrollmentStatusResponse = EnrollmentControllerUpdateEnrollmentStatusResponses[keyof EnrollmentControllerUpdateEnrollmentStatusResponses];
 
-export type EnrollmentControllerRemoveCourseOfferingData = {
+export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
     body?: never;
     path: {
-        periodId: string;
-        offeringId: string;
+        enrollmentId: string;
     };
-    query?: never;
-    url: '/enrollment/{periodId}/offerings/{offeringId}';
+    query?: {
+        search?: string;
+        page?: number;
+        periodId?: string;
+        status?: 'not enrolled' | 'enrolled';
+    };
+    url: '/enrollments/{enrollmentId}/offerings';
 };
 
-export type EnrollmentControllerRemoveCourseOfferingErrors = {
+export type CourseOfferingControllerFindCourseOfferingsByPeriodResponses = {
+    200: PaginatedCourseOfferingsDto;
+};
+
+export type CourseOfferingControllerFindCourseOfferingsByPeriodResponse = CourseOfferingControllerFindCourseOfferingsByPeriodResponses[keyof CourseOfferingControllerFindCourseOfferingsByPeriodResponses];
+
+export type CourseOfferingControllerCreateCourseOfferingData = {
+    body: CreateCourseOfferingDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings';
+};
+
+export type CourseOfferingControllerCreateCourseOfferingErrors = {
     400: {
         statusCode: number;
         message: string;
@@ -2512,15 +2503,529 @@ export type EnrollmentControllerRemoveCourseOfferingErrors = {
     };
 };
 
-export type EnrollmentControllerRemoveCourseOfferingError = EnrollmentControllerRemoveCourseOfferingErrors[keyof EnrollmentControllerRemoveCourseOfferingErrors];
+export type CourseOfferingControllerCreateCourseOfferingError = CourseOfferingControllerCreateCourseOfferingErrors[keyof CourseOfferingControllerCreateCourseOfferingErrors];
 
-export type EnrollmentControllerRemoveCourseOfferingResponses = {
+export type CourseOfferingControllerCreateCourseOfferingResponses = {
+    201: CourseOffering;
+};
+
+export type CourseOfferingControllerCreateCourseOfferingResponse = CourseOfferingControllerCreateCourseOfferingResponses[keyof CourseOfferingControllerCreateCourseOfferingResponses];
+
+export type CourseOfferingControllerRemoveCourseOfferingData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}';
+};
+
+export type CourseOfferingControllerRemoveCourseOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerRemoveCourseOfferingError = CourseOfferingControllerRemoveCourseOfferingErrors[keyof CourseOfferingControllerRemoveCourseOfferingErrors];
+
+export type CourseOfferingControllerRemoveCourseOfferingResponses = {
     200: {
         message?: string;
     };
 };
 
-export type EnrollmentControllerRemoveCourseOfferingResponse = EnrollmentControllerRemoveCourseOfferingResponses[keyof EnrollmentControllerRemoveCourseOfferingResponses];
+export type CourseOfferingControllerRemoveCourseOfferingResponse = CourseOfferingControllerRemoveCourseOfferingResponses[keyof CourseOfferingControllerRemoveCourseOfferingResponses];
+
+export type CourseOfferingControllerFindOneCourseOfferingData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}';
+};
+
+export type CourseOfferingControllerFindOneCourseOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerFindOneCourseOfferingError = CourseOfferingControllerFindOneCourseOfferingErrors[keyof CourseOfferingControllerFindOneCourseOfferingErrors];
+
+export type CourseOfferingControllerFindOneCourseOfferingResponses = {
+    200: CourseOfferingDto;
+};
+
+export type CourseOfferingControllerFindOneCourseOfferingResponse = CourseOfferingControllerFindOneCourseOfferingResponses[keyof CourseOfferingControllerFindOneCourseOfferingResponses];
+
+export type CourseSectionControllerFindAllCourseSectionsData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/enrollments/{enrollmentId}/sections';
+};
+
+export type CourseSectionControllerFindAllCourseSectionsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindAllCourseSectionsError = CourseSectionControllerFindAllCourseSectionsErrors[keyof CourseSectionControllerFindAllCourseSectionsErrors];
+
+export type CourseSectionControllerFindAllCourseSectionsResponses = {
+    200: PaginatedCourseSectionsDto;
+};
+
+export type CourseSectionControllerFindAllCourseSectionsResponse = CourseSectionControllerFindAllCourseSectionsResponses[keyof CourseSectionControllerFindAllCourseSectionsResponses];
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
+};
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingError = CourseSectionControllerFindAllCourseSectionsForOfferingErrors[keyof CourseSectionControllerFindAllCourseSectionsForOfferingErrors];
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingResponses = {
+    200: PaginatedCourseSectionsDto;
+};
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingResponse = CourseSectionControllerFindAllCourseSectionsForOfferingResponses[keyof CourseSectionControllerFindAllCourseSectionsForOfferingResponses];
+
+export type CourseSectionControllerCreateCourseSectionData = {
+    body: CreateCourseSectionFullDto;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
+};
+
+export type CourseSectionControllerCreateCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerCreateCourseSectionError = CourseSectionControllerCreateCourseSectionErrors[keyof CourseSectionControllerCreateCourseSectionErrors];
+
+export type CourseSectionControllerCreateCourseSectionResponses = {
+    201: CourseSectionDto;
+};
+
+export type CourseSectionControllerCreateCourseSectionResponse = CourseSectionControllerCreateCourseSectionResponses[keyof CourseSectionControllerCreateCourseSectionResponses];
+
+export type CourseSectionControllerRemoveCourseSectionData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
+};
+
+export type CourseSectionControllerRemoveCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerRemoveCourseSectionError = CourseSectionControllerRemoveCourseSectionErrors[keyof CourseSectionControllerRemoveCourseSectionErrors];
+
+export type CourseSectionControllerRemoveCourseSectionResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type CourseSectionControllerRemoveCourseSectionResponse = CourseSectionControllerRemoveCourseSectionResponses[keyof CourseSectionControllerRemoveCourseSectionResponses];
+
+export type CourseSectionControllerFindOneCourseSectionData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
+};
+
+export type CourseSectionControllerFindOneCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindOneCourseSectionError = CourseSectionControllerFindOneCourseSectionErrors[keyof CourseSectionControllerFindOneCourseSectionErrors];
+
+export type CourseSectionControllerFindOneCourseSectionResponses = {
+    200: CourseSectionDto;
+};
+
+export type CourseSectionControllerFindOneCourseSectionResponse = CourseSectionControllerFindOneCourseSectionResponses[keyof CourseSectionControllerFindOneCourseSectionResponses];
+
+export type CourseSectionControllerUpdateCourseSectionData = {
+    body: UpdateCourseSectionDto;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
+};
+
+export type CourseSectionControllerUpdateCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerUpdateCourseSectionError = CourseSectionControllerUpdateCourseSectionErrors[keyof CourseSectionControllerUpdateCourseSectionErrors];
+
+export type CourseSectionControllerUpdateCourseSectionResponses = {
+    200: CourseSectionDto;
+};
+
+export type CourseSectionControllerUpdateCourseSectionResponse = CourseSectionControllerUpdateCourseSectionResponses[keyof CourseSectionControllerUpdateCourseSectionResponses];
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/enrollment/student/sections';
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsError = CourseEnrollmentControllerGetCourseEnrollmentsErrors[keyof CourseEnrollmentControllerGetCourseEnrollmentsErrors];
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
+    201: Array<DetailedCourseEnrollmentDto>;
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];
+
+export type CourseEnrollmentControllerDropCourseEnrollmentData = {
+    body: StudentIdentifierDto;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollment/student/sections/{sectionId}';
+};
+
+export type CourseEnrollmentControllerDropCourseEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerDropCourseEnrollmentError = CourseEnrollmentControllerDropCourseEnrollmentErrors[keyof CourseEnrollmentControllerDropCourseEnrollmentErrors];
+
+export type CourseEnrollmentControllerDropCourseEnrollmentResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type CourseEnrollmentControllerDropCourseEnrollmentResponse = CourseEnrollmentControllerDropCourseEnrollmentResponses[keyof CourseEnrollmentControllerDropCourseEnrollmentResponses];
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentData = {
+    body: StudentIdentifierDto;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollment/student/sections/{sectionId}';
+};
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentError = CourseEnrollmentControllerCreateCourseEnrollmentErrors[keyof CourseEnrollmentControllerCreateCourseEnrollmentErrors];
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentResponses = {
+    201: CourseEnrollmentDto;
+};
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentResponse = CourseEnrollmentControllerCreateCourseEnrollmentResponses[keyof CourseEnrollmentControllerCreateCourseEnrollmentResponses];
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentData = {
+    body?: StudentIdentifierDto;
+    path?: never;
+    query?: never;
+    url: '/enrollment/student/finalize';
+};
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentError = CourseEnrollmentControllerFinalizeCourseEnrollmentErrors[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentErrors];
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
+    200: {
+        message?: string;
+        studentId?: string;
+    };
+    201: unknown;
+};
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
+
+export type CurriculumControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/curriculum';
+};
+
+export type CurriculumControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerFindAllError = CurriculumControllerFindAllErrors[keyof CurriculumControllerFindAllErrors];
+
+export type CurriculumControllerFindAllResponses = {
+    200: Array<CurriculumItemDto>;
+};
+
+export type CurriculumControllerFindAllResponse = CurriculumControllerFindAllResponses[keyof CurriculumControllerFindAllResponses];
+
+export type CurriculumControllerCreateData = {
+    body: CreateCurriculumWithCoursesDto;
+    path?: never;
+    query?: never;
+    url: '/curriculum';
+};
+
+export type CurriculumControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerCreateError = CurriculumControllerCreateErrors[keyof CurriculumControllerCreateErrors];
+
+export type CurriculumControllerCreateResponses = {
+    201: CurriculumDto;
+};
+
+export type CurriculumControllerCreateResponse = CurriculumControllerCreateResponses[keyof CurriculumControllerCreateResponses];
+
+export type CurriculumControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerRemoveError = CurriculumControllerRemoveErrors[keyof CurriculumControllerRemoveErrors];
+
+export type CurriculumControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type CurriculumControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerFindOneError = CurriculumControllerFindOneErrors[keyof CurriculumControllerFindOneErrors];
+
+export type CurriculumControllerFindOneResponses = {
+    200: CurriculumWithCoursesDto;
+};
+
+export type CurriculumControllerFindOneResponse = CurriculumControllerFindOneResponses[keyof CurriculumControllerFindOneResponses];
+
+export type CurriculumControllerUpdateData = {
+    body: UpdateCurriculumWithCourseDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerUpdateError = CurriculumControllerUpdateErrors[keyof CurriculumControllerUpdateErrors];
+
+export type CurriculumControllerUpdateResponses = {
+    200: CurriculumDto;
+};
+
+export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;

@@ -1,6 +1,10 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Program, type Program as ProgramAsType } from './program.entity';
 import { Course, type Course as CourseAsType } from './course.entity';
+import {
+  Curriculum,
+  type Curriculum as CurriculumAsType,
+} from './curriculum.entity';
 
 export class Major {
   @ApiProperty({
@@ -15,6 +19,8 @@ export class Major {
   program?: ProgramAsType;
   @ApiHideProperty()
   courses?: CourseAsType[];
+  @ApiHideProperty()
+  curriculums?: CurriculumAsType[];
   @ApiProperty({
     type: 'string',
   })

@@ -121,10 +121,7 @@ export class MajorController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(
-    @Param('id') id: string,
-    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
-  ) {
+  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
     return this.majorService.remove(id, query?.directDelete);
   }
 }

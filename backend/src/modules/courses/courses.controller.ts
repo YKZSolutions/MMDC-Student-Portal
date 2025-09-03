@@ -118,10 +118,7 @@ export class CoursesController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @Query(new ValidationPipe({ transform: true })) query?: DeleteQueryDto,
-  ) {
+  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
     return this.coursesService.remove(id, query?.directDelete);
   }
 }

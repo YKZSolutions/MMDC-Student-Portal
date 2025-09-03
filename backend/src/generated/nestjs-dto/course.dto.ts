@@ -18,14 +18,6 @@ export class CourseDto {
   })
   description: string;
   @ApiProperty({
-    type: 'string',
-  })
-  year: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  semester: string;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })

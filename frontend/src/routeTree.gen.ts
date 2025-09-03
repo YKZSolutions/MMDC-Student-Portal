@@ -17,12 +17,14 @@ import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-pas
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as protectedUsersIndexRouteImport } from './routes/(protected)/users/index'
 import { Route as protectedProfileIndexRouteImport } from './routes/(protected)/profile/index'
+import { Route as protectedPricingIndexRouteImport } from './routes/(protected)/pricing/index'
 import { Route as protectedNotificationsIndexRouteImport } from './routes/(protected)/notifications/index'
 import { Route as protectedEnrollmentIndexRouteImport } from './routes/(protected)/enrollment/index'
 import { Route as protectedDashboardIndexRouteImport } from './routes/(protected)/dashboard/index'
 import { Route as protectedCoursesIndexRouteImport } from './routes/(protected)/courses/index'
 import { Route as protectedCmsIndexRouteImport } from './routes/(protected)/cms/index'
 import { Route as protectedBillingIndexRouteImport } from './routes/(protected)/billing/index'
+import { Route as protectedEnrollmentCreateRouteImport } from './routes/(protected)/enrollment/create'
 import { Route as protectedEnrollmentPeriodIdRouteImport } from './routes/(protected)/enrollment/$periodId'
 import { Route as protectedCoursesCourseCodeRouteImport } from './routes/(protected)/courses/$courseCode'
 import { Route as protectedBillingRedirectRouteImport } from './routes/(protected)/billing/redirect'
@@ -74,6 +76,11 @@ const protectedProfileIndexRoute = protectedProfileIndexRouteImport.update({
   path: '/profile/',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const protectedPricingIndexRoute = protectedPricingIndexRouteImport.update({
+  id: '/pricing/',
+  path: '/pricing/',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
 const protectedNotificationsIndexRoute =
   protectedNotificationsIndexRouteImport.update({
     id: '/notifications/',
@@ -106,6 +113,12 @@ const protectedBillingIndexRoute = protectedBillingIndexRouteImport.update({
   path: '/billing/',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const protectedEnrollmentCreateRoute =
+  protectedEnrollmentCreateRouteImport.update({
+    id: '/enrollment/create',
+    path: '/enrollment/create',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
 const protectedEnrollmentPeriodIdRoute =
   protectedEnrollmentPeriodIdRouteImport.update({
     id: '/enrollment/$periodId',
@@ -183,12 +196,14 @@ export interface FileRoutesByFullPath {
   '/billing/redirect': typeof protectedBillingRedirectRoute
   '/courses/$courseCode': typeof protectedCoursesCourseCodeRouteWithChildren
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
+  '/enrollment/create': typeof protectedEnrollmentCreateRoute
   '/billing': typeof protectedBillingIndexRoute
   '/cms': typeof protectedCmsIndexRoute
   '/courses': typeof protectedCoursesIndexRoute
   '/dashboard': typeof protectedDashboardIndexRoute
   '/enrollment': typeof protectedEnrollmentIndexRoute
   '/notifications': typeof protectedNotificationsIndexRoute
+  '/pricing': typeof protectedPricingIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
@@ -209,12 +224,14 @@ export interface FileRoutesByTo {
   '/billing/redirect': typeof protectedBillingRedirectRoute
   '/courses/$courseCode': typeof protectedCoursesCourseCodeRouteWithChildren
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
+  '/enrollment/create': typeof protectedEnrollmentCreateRoute
   '/billing': typeof protectedBillingIndexRoute
   '/cms': typeof protectedCmsIndexRoute
   '/courses': typeof protectedCoursesIndexRoute
   '/dashboard': typeof protectedDashboardIndexRoute
   '/enrollment': typeof protectedEnrollmentIndexRoute
   '/notifications': typeof protectedNotificationsIndexRoute
+  '/pricing': typeof protectedPricingIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
@@ -237,12 +254,14 @@ export interface FileRoutesById {
   '/(protected)/billing/redirect': typeof protectedBillingRedirectRoute
   '/(protected)/courses/$courseCode': typeof protectedCoursesCourseCodeRouteWithChildren
   '/(protected)/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
+  '/(protected)/enrollment/create': typeof protectedEnrollmentCreateRoute
   '/(protected)/billing/': typeof protectedBillingIndexRoute
   '/(protected)/cms/': typeof protectedCmsIndexRoute
   '/(protected)/courses/': typeof protectedCoursesIndexRoute
   '/(protected)/dashboard/': typeof protectedDashboardIndexRoute
   '/(protected)/enrollment/': typeof protectedEnrollmentIndexRoute
   '/(protected)/notifications/': typeof protectedNotificationsIndexRoute
+  '/(protected)/pricing/': typeof protectedPricingIndexRoute
   '/(protected)/profile/': typeof protectedProfileIndexRoute
   '/(protected)/users/': typeof protectedUsersIndexRoute
   '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
@@ -265,12 +284,14 @@ export interface FileRouteTypes {
     | '/billing/redirect'
     | '/courses/$courseCode'
     | '/enrollment/$periodId'
+    | '/enrollment/create'
     | '/billing'
     | '/cms'
     | '/courses'
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
+    | '/pricing'
     | '/profile'
     | '/users'
     | '/billing/$billingId/edit'
@@ -291,12 +312,14 @@ export interface FileRouteTypes {
     | '/billing/redirect'
     | '/courses/$courseCode'
     | '/enrollment/$periodId'
+    | '/enrollment/create'
     | '/billing'
     | '/cms'
     | '/courses'
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
+    | '/pricing'
     | '/profile'
     | '/users'
     | '/billing/$billingId/edit'
@@ -318,12 +341,14 @@ export interface FileRouteTypes {
     | '/(protected)/billing/redirect'
     | '/(protected)/courses/$courseCode'
     | '/(protected)/enrollment/$periodId'
+    | '/(protected)/enrollment/create'
     | '/(protected)/billing/'
     | '/(protected)/cms/'
     | '/(protected)/courses/'
     | '/(protected)/dashboard/'
     | '/(protected)/enrollment/'
     | '/(protected)/notifications/'
+    | '/(protected)/pricing/'
     | '/(protected)/profile/'
     | '/(protected)/users/'
     | '/(protected)/billing/$billingId_/edit'
@@ -401,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedProfileIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/pricing/': {
+      id: '/(protected)/pricing/'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof protectedPricingIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/notifications/': {
       id: '/(protected)/notifications/'
       path: '/notifications'
@@ -441,6 +473,13 @@ declare module '@tanstack/react-router' {
       path: '/billing'
       fullPath: '/billing'
       preLoaderRoute: typeof protectedBillingIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/enrollment/create': {
+      id: '/(protected)/enrollment/create'
+      path: '/enrollment/create'
+      fullPath: '/enrollment/create'
+      preLoaderRoute: typeof protectedEnrollmentCreateRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/enrollment/$periodId': {
@@ -555,12 +594,14 @@ interface protectedRouteRouteChildren {
   protectedBillingRedirectRoute: typeof protectedBillingRedirectRoute
   protectedCoursesCourseCodeRoute: typeof protectedCoursesCourseCodeRouteWithChildren
   protectedEnrollmentPeriodIdRoute: typeof protectedEnrollmentPeriodIdRoute
+  protectedEnrollmentCreateRoute: typeof protectedEnrollmentCreateRoute
   protectedBillingIndexRoute: typeof protectedBillingIndexRoute
   protectedCmsIndexRoute: typeof protectedCmsIndexRoute
   protectedCoursesIndexRoute: typeof protectedCoursesIndexRoute
   protectedDashboardIndexRoute: typeof protectedDashboardIndexRoute
   protectedEnrollmentIndexRoute: typeof protectedEnrollmentIndexRoute
   protectedNotificationsIndexRoute: typeof protectedNotificationsIndexRoute
+  protectedPricingIndexRoute: typeof protectedPricingIndexRoute
   protectedProfileIndexRoute: typeof protectedProfileIndexRoute
   protectedUsersIndexRoute: typeof protectedUsersIndexRoute
   protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
@@ -572,12 +613,14 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedBillingRedirectRoute: protectedBillingRedirectRoute,
   protectedCoursesCourseCodeRoute: protectedCoursesCourseCodeRouteWithChildren,
   protectedEnrollmentPeriodIdRoute: protectedEnrollmentPeriodIdRoute,
+  protectedEnrollmentCreateRoute: protectedEnrollmentCreateRoute,
   protectedBillingIndexRoute: protectedBillingIndexRoute,
   protectedCmsIndexRoute: protectedCmsIndexRoute,
   protectedCoursesIndexRoute: protectedCoursesIndexRoute,
   protectedDashboardIndexRoute: protectedDashboardIndexRoute,
   protectedEnrollmentIndexRoute: protectedEnrollmentIndexRoute,
   protectedNotificationsIndexRoute: protectedNotificationsIndexRoute,
+  protectedPricingIndexRoute: protectedPricingIndexRoute,
   protectedProfileIndexRoute: protectedProfileIndexRoute,
   protectedUsersIndexRoute: protectedUsersIndexRoute,
   protectedBillingBillingIdEditRoute: protectedBillingBillingIdEditRoute,

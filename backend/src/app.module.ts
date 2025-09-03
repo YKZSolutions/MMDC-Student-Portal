@@ -19,6 +19,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { MajorModule } from './modules/major/major.module';
 import { InstallmentModule } from './modules/installment/installment.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { CurriculumModule } from './modules/curriculum/curriculum.module';
+import { SwaggerModule } from './modules/swagger/swagger.module';
 
 @Module({
   imports: [
@@ -42,21 +44,26 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
     MajorModule,
     InstallmentModule,
     EnrollmentModule,
+    CurriculumModule,
+    SwaggerModule,
   ],
   controllers: [],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useExisting: AuthGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: UserStatusGuard,
+      useExisting: UserStatusGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: RoleGuard,
+      useExisting: RoleGuard,
     },
+    AuthGuard,
+    UserStatusGuard,
+    RoleGuard,
   ],
 })
 export class AppModule implements NestModule {

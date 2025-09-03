@@ -1,9 +1,8 @@
-name: PR Type Checking (Frontend & Backend)
+name: PR Type Checking (Develop - Frontend & Backend)
 
 on:
   pull_request:
     branches:
-      - "main"
       - "develop"
 
 jobs:
