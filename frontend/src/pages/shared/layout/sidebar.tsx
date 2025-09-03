@@ -122,7 +122,7 @@ function AccountButton(props: AccountButtonProps) {
   }
 
   return (
-    <Menu width="target">
+    <Menu width={175}>
       <Menu.Target>
         <Tooltip
           label="My account"
