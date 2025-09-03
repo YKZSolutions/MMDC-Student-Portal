@@ -32,7 +32,7 @@ import {
   type CourseNodeModel,
   type Module,
 } from '@/features/courses/modules/types.ts'
-import { convertModuleToTreeData } from '@/utils/helpers.ts'
+import { convertModuleToTreeData, getTypeFromLevel } from '@/utils/helpers.ts'
 
 const reorderArray = (
   array: CourseNodeModel[],
@@ -48,32 +48,28 @@ const reorderArray = (
 function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
   const augmented: CourseNodeModel[] = [...nodes]
 
-  // Group nodes by parent
-  const byParent: Record<string, CourseNodeModel[]> = {}
-  for (const node of nodes) {
-    if (!byParent[node.parent]) byParent[node.parent] = []
-    byParent[node.parent].push(node)
+  function inject(nodeParent: string, level: number) {
+    augmented.push({
+      id: `${nodeParent}-add`,
+      parent: nodeParent,
+      text: 'Add',
+      droppable: false,
+      data: {
+        level: level,
+        type: 'add-button',
+      },
+    })
   }
 
-  // Add "Add" buttons after the last child of each parent
-  for (const parentId in byParent) {
-    const siblings = byParent[parentId]
-    if (siblings.length > 0) {
-      const parent = nodes.find((n) => n.id === parentId)
-      const parentType = parent?.data?.type
-
-      augmented.push({
-        id: `${parentId}-add`,
-        parent: parentId,
-        text: 'Add',
-        droppable: false,
-        data: {
-          type: 'add-button',
-          parentType: parentType as ContentNodeType,
-        },
-      })
+  // Add "Add" buttons after the last child of each section
+  for (const node of nodes) {
+    if (node.data && node.data.level !== 3) {
+      const level = node.data.level + 1
+      inject(node.id as string, level)
     }
   }
+
+  inject('root', 1)
 
   return augmented
 }
@@ -106,10 +102,13 @@ const ContentTree = ({
     null,
   )
 
+  console.log('Module:', module)
+
   // Sync treeData when courseData changes
   useEffect(() => {
     const nodes = convertModuleToTreeData(module)
     setTreeData(injectAddButtons(nodes))
+    console.log('Tree Data:', treeData)
   }, [module])
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
@@ -170,7 +169,7 @@ const ContentTree = ({
         <Tree
           tree={treeData}
           sort={false}
-          rootId={'0'}
+          rootId={'root'}
           insertDroppableFirst={false}
           enableAnimateExpand
           onDrop={handleDrop}
@@ -179,6 +178,7 @@ const ContentTree = ({
           dropTargetOffset={5}
           initialOpen={true}
           render={(node, { depth, isOpen, isDropTarget, onToggle }) => {
+            console.log('Rendering node:', node)
             return (
               <NodeRow
                 node={node}
@@ -239,7 +239,7 @@ const NodeRow = ({
           onClick={() =>
             onAddButtonClick(
               node.parent as string,
-              node.data?.parentType === 'section' ? 'item' : 'section',
+              getTypeFromLevel(node.data?.level),
             )
           }
           style={{
@@ -250,10 +250,7 @@ const NodeRow = ({
           }}
         >
           <Text size="sm" fw={500}>
-            Add{' '}
-            {capitalizeFirstLetter(
-              node.data?.parentType === 'section' ? 'item' : 'section',
-            )}
+            Add {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
           </Text>
         </Button>
       </Box>

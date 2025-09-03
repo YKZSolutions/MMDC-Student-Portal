@@ -34,6 +34,7 @@ import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
 import type {
   ContentNode,
   ContentNodeType,
+  Module,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ContentTree from '@/features/courses/cms/content-tree.tsx'
@@ -80,6 +81,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
               handleUpdate(editorState.type, nodeData, editorState.view)
             }}
             p={'xl'}
+            mx={'xl'}
             style={{
               overflowY: 'auto',
               scrollbarGutter: 'stable',
@@ -271,7 +273,7 @@ const CMSHeader = ({
         />
       </Group>
 
-      <Title order={2} c={'gray.7'}>
+      <Title order={3} c={'gray.7'} maw={'50%'} lineClamp={1}>
         {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
         {courseDetails?.courseName} {contentTitle && ` | ${contentTitle} `}
       </Title>
@@ -403,8 +405,8 @@ export const SidePanel = ({
   onAddContent,
 }: SidePanelProps) => {
   return (
-    <Box mt={'md'}>
-      <Container>
+    <Box py={'md'} h={'100%'}>
+      <Container flex={'1 0 auto'} h={'100%'} style={{ overflow: 'auto' }}>
         <Stack gap={'xs'} mb={'xs'}>
           <Group align="center" gap={'xs'}>
             <TreeToggleButton

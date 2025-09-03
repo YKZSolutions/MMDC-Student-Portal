@@ -7,7 +7,6 @@ import {
   Stack,
   Switch,
   Text,
-  Textarea,
   TextInput,
   useMantineTheme,
 } from '@mantine/core'
@@ -22,17 +21,15 @@ import {
 } from '@tabler/icons-react'
 import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
 import type {
+  ContentNode,
   ContentNodeType,
-  Module,
-  ModuleItem,
-  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useForm } from '@mantine/form'
 
 type ContentDetailsEditorProps = {
   opened: boolean
   type: ContentNodeType
-  data: Module | ModuleSection | ModuleItem | null
+  data: ContentNode | null
   onSave: (data: any) => void
 } & ComponentPropsWithoutRef<typeof Stack> &
   BoxProps
@@ -76,22 +73,6 @@ const ContentDetailsEditor = ({
   // Get form fields based on content type
   const getFormFields = () => {
     switch (type) {
-      case 'module':
-        return (
-          <>
-            <TextInput
-              label="Module Title"
-              placeholder="Enter module title"
-              {...form.getInputProps('title')}
-            />
-            <Textarea
-              label="Description"
-              placeholder="Enter module description"
-              {...form.getInputProps('description')}
-            />
-          </>
-        )
-
       case 'section':
         return (
           <>
@@ -100,10 +81,10 @@ const ContentDetailsEditor = ({
               placeholder="Enter section title"
               {...form.getInputProps('title')}
             />
-            <Textarea
-              label="Description"
-              placeholder="Enter section description"
-              {...form.getInputProps('description')}
+            <Select
+              label="Parent Section"
+              placeholder="Enter section title"
+              {...form.getInputProps('title')}
             />
           </>
         )
@@ -196,7 +177,7 @@ const ContentDetailsEditor = ({
         </ActionIcon>
       </Group>
 
-      <Stack p="md">
+      <Stack p="xl">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
             {getFormFields()}
@@ -221,20 +202,11 @@ function getInitialValues(type: ContentNodeType, data: any) {
   if (data) {
     // Editing existing item - populate form with existing data
     switch (type) {
-      case 'module':
-        return {
-          id: data.id ?? null,
-          title: data.title || '',
-          description: data.description || '',
-          position: data.position || 0,
-        }
-
       case 'section':
         return {
           id: data.id ?? null,
           title: data.title || '',
-          description: data.description || '',
-          position: data.position || 0,
+          order: data.order || 0,
         }
 
       case 'item':
@@ -242,7 +214,7 @@ function getInitialValues(type: ContentNodeType, data: any) {
           id: data.id ?? null,
           type: data.type || 'reading',
           title: data.title || '',
-          description: data.description || '',
+          order: data.order || 0,
           content: data.content?.content || '',
           fileUrl: data.content?.fileUrl || '',
           assignmentType: data.assignment?.type || 'assignment',
@@ -265,17 +237,14 @@ function getInitialValues(type: ContentNodeType, data: any) {
   } else {
     // Creating new item - use default values
     switch (type) {
-      case 'module':
-        return { title: '', description: '', position: 0 }
-
       case 'section':
-        return { title: '', description: '', position: 0 }
+        return { title: '', description: '', order: 0 }
 
       case 'item':
         return {
           type: 'reading',
           title: '',
-          description: '',
+          order: 0,
           content: '',
           fileUrl: '',
           assignmentType: 'assignment',
@@ -300,13 +269,11 @@ function processFormData(type: ContentNodeType, values: any) {
   const isEditing = Boolean(values.id)
 
   switch (type) {
-    case 'module':
     case 'section':
       return {
         ...(isEditing ? { id: values.id } : {}),
         title: values.title,
-        description: values.description,
-        position: values.position,
+        order: values.order,
       }
 
     case 'item':
@@ -314,7 +281,7 @@ function processFormData(type: ContentNodeType, values: any) {
         ...(isEditing ? { id: values.id } : {}),
         title: values.title,
         type: values.type,
-        position: values.position || 0,
+        order: values.order,
       }
 
       if (values.type === 'reading') {
