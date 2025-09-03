@@ -17,6 +17,7 @@ import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-pas
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as protectedUsersIndexRouteImport } from './routes/(protected)/users/index'
 import { Route as protectedProfileIndexRouteImport } from './routes/(protected)/profile/index'
+import { Route as protectedPricingIndexRouteImport } from './routes/(protected)/pricing/index'
 import { Route as protectedNotificationsIndexRouteImport } from './routes/(protected)/notifications/index'
 import { Route as protectedEnrollmentIndexRouteImport } from './routes/(protected)/enrollment/index'
 import { Route as protectedDashboardIndexRouteImport } from './routes/(protected)/dashboard/index'
@@ -71,6 +72,11 @@ const protectedUsersIndexRoute = protectedUsersIndexRouteImport.update({
 const protectedProfileIndexRoute = protectedProfileIndexRouteImport.update({
   id: '/profile/',
   path: '/profile/',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
+const protectedPricingIndexRoute = protectedPricingIndexRouteImport.update({
+  id: '/pricing/',
+  path: '/pricing/',
   getParentRoute: () => protectedRouteRoute,
 } as any)
 const protectedNotificationsIndexRoute =
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof protectedDashboardIndexRoute
   '/enrollment': typeof protectedEnrollmentIndexRoute
   '/notifications': typeof protectedNotificationsIndexRoute
+  '/pricing': typeof protectedPricingIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof protectedDashboardIndexRoute
   '/enrollment': typeof protectedEnrollmentIndexRoute
   '/notifications': typeof protectedNotificationsIndexRoute
+  '/pricing': typeof protectedPricingIndexRoute
   '/profile': typeof protectedProfileIndexRoute
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/(protected)/dashboard/': typeof protectedDashboardIndexRoute
   '/(protected)/enrollment/': typeof protectedEnrollmentIndexRoute
   '/(protected)/notifications/': typeof protectedNotificationsIndexRoute
+  '/(protected)/pricing/': typeof protectedPricingIndexRoute
   '/(protected)/profile/': typeof protectedProfileIndexRoute
   '/(protected)/users/': typeof protectedUsersIndexRoute
   '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
+    | '/pricing'
     | '/profile'
     | '/users'
     | '/billing/$billingId/edit'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/enrollment'
     | '/notifications'
+    | '/pricing'
     | '/profile'
     | '/users'
     | '/billing/$billingId/edit'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/(protected)/dashboard/'
     | '/(protected)/enrollment/'
     | '/(protected)/notifications/'
+    | '/(protected)/pricing/'
     | '/(protected)/profile/'
     | '/(protected)/users/'
     | '/(protected)/billing/$billingId_/edit'
@@ -385,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof protectedProfileIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/pricing/': {
+      id: '/(protected)/pricing/'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof protectedPricingIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/notifications/': {
@@ -537,6 +556,7 @@ interface protectedRouteRouteChildren {
   protectedDashboardIndexRoute: typeof protectedDashboardIndexRoute
   protectedEnrollmentIndexRoute: typeof protectedEnrollmentIndexRoute
   protectedNotificationsIndexRoute: typeof protectedNotificationsIndexRoute
+  protectedPricingIndexRoute: typeof protectedPricingIndexRoute
   protectedProfileIndexRoute: typeof protectedProfileIndexRoute
   protectedUsersIndexRoute: typeof protectedUsersIndexRoute
   protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
@@ -554,6 +574,7 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedDashboardIndexRoute: protectedDashboardIndexRoute,
   protectedEnrollmentIndexRoute: protectedEnrollmentIndexRoute,
   protectedNotificationsIndexRoute: protectedNotificationsIndexRoute,
+  protectedPricingIndexRoute: protectedPricingIndexRoute,
   protectedProfileIndexRoute: protectedProfileIndexRoute,
   protectedUsersIndexRoute: protectedUsersIndexRoute,
   protectedBillingBillingIdEditRoute: protectedBillingBillingIdEditRoute,
