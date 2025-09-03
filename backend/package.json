@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --silent --config ./test/jest-e2e.json",
+    "api-gen": "nest build && node dist/swagger.gen.js",
     "prisma-gen": "prisma generate",
     "prisma-gen-sql": "prisma generate --sql"
   },
