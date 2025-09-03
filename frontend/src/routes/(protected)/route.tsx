@@ -54,8 +54,8 @@ function RouteComponent() {
         >
           <Stack
             className={
-              'bg-white w-full h-full flex-1 shadow p-5 pr-1 pb-0 ' +
-              (isDesktop ? 'rounded-lg' : '')
+              'bg-white w-full h-full flex-1 shadow ' +
+              (isDesktop ? 'rounded-lg p-5 pr-1 pb-0' : 'p-5')
             }
             justify="start"
             style={{ position: 'relative', overflow: 'hidden' }}
