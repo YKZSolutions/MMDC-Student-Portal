@@ -30,6 +30,7 @@ import { Route as protectedCoursesCourseCodeRouteImport } from './routes/(protec
 import { Route as protectedBillingRedirectRouteImport } from './routes/(protected)/billing/redirect'
 import { Route as protectedBillingCreateRouteImport } from './routes/(protected)/billing/create'
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
+import { Route as protectedCoursesCourseCodePublishRouteImport } from './routes/(protected)/courses/$courseCode_.publish'
 import { Route as protectedCoursesCourseCodeEditRouteImport } from './routes/(protected)/courses/$courseCode_.edit'
 import { Route as protectedBillingBillingIdEditRouteImport } from './routes/(protected)/billing/$billingId_.edit'
 import { Route as protectedCoursesCourseCodeOverviewIndexRouteImport } from './routes/(protected)/courses/$courseCode/overview/index'
@@ -148,6 +149,12 @@ const protectedBillingBillingIdRoute =
     path: '/billing/$billingId',
     getParentRoute: () => protectedRouteRoute,
   } as any)
+const protectedCoursesCourseCodePublishRoute =
+  protectedCoursesCourseCodePublishRouteImport.update({
+    id: '/courses/$courseCode_/publish',
+    path: '/courses/$courseCode/publish',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
 const protectedCoursesCourseCodeEditRoute =
   protectedCoursesCourseCodeEditRouteImport.update({
     id: '/courses/$courseCode_/edit',
@@ -208,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/courses/$courseCode/edit': typeof protectedCoursesCourseCodeEditRoute
+  '/courses/$courseCode/publish': typeof protectedCoursesCourseCodePublishRoute
   '/courses/$courseCode/assignments': typeof protectedCoursesCourseCodeAssignmentsIndexRoute
   '/courses/$courseCode/grades': typeof protectedCoursesCourseCodeGradesIndexRoute
   '/courses/$courseCode/modules': typeof protectedCoursesCourseCodeModulesIndexRoute
@@ -236,6 +244,7 @@ export interface FileRoutesByTo {
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/courses/$courseCode/edit': typeof protectedCoursesCourseCodeEditRoute
+  '/courses/$courseCode/publish': typeof protectedCoursesCourseCodePublishRoute
   '/courses/$courseCode/assignments': typeof protectedCoursesCourseCodeAssignmentsIndexRoute
   '/courses/$courseCode/grades': typeof protectedCoursesCourseCodeGradesIndexRoute
   '/courses/$courseCode/modules': typeof protectedCoursesCourseCodeModulesIndexRoute
@@ -266,6 +275,7 @@ export interface FileRoutesById {
   '/(protected)/users/': typeof protectedUsersIndexRoute
   '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
   '/(protected)/courses/$courseCode_/edit': typeof protectedCoursesCourseCodeEditRoute
+  '/(protected)/courses/$courseCode_/publish': typeof protectedCoursesCourseCodePublishRoute
   '/(protected)/courses/$courseCode/assignments/': typeof protectedCoursesCourseCodeAssignmentsIndexRoute
   '/(protected)/courses/$courseCode/grades/': typeof protectedCoursesCourseCodeGradesIndexRoute
   '/(protected)/courses/$courseCode/modules/': typeof protectedCoursesCourseCodeModulesIndexRoute
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/billing/$billingId/edit'
     | '/courses/$courseCode/edit'
+    | '/courses/$courseCode/publish'
     | '/courses/$courseCode/assignments'
     | '/courses/$courseCode/grades'
     | '/courses/$courseCode/modules'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/billing/$billingId/edit'
     | '/courses/$courseCode/edit'
+    | '/courses/$courseCode/publish'
     | '/courses/$courseCode/assignments'
     | '/courses/$courseCode/grades'
     | '/courses/$courseCode/modules'
@@ -353,6 +365,7 @@ export interface FileRouteTypes {
     | '/(protected)/users/'
     | '/(protected)/billing/$billingId_/edit'
     | '/(protected)/courses/$courseCode_/edit'
+    | '/(protected)/courses/$courseCode_/publish'
     | '/(protected)/courses/$courseCode/assignments/'
     | '/(protected)/courses/$courseCode/grades/'
     | '/(protected)/courses/$courseCode/modules/'
@@ -517,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedBillingBillingIdRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/courses/$courseCode_/publish': {
+      id: '/(protected)/courses/$courseCode_/publish'
+      path: '/courses/$courseCode/publish'
+      fullPath: '/courses/$courseCode/publish'
+      preLoaderRoute: typeof protectedCoursesCourseCodePublishRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/courses/$courseCode_/edit': {
       id: '/(protected)/courses/$courseCode_/edit'
       path: '/courses/$courseCode/edit'
@@ -604,6 +624,7 @@ interface protectedRouteRouteChildren {
   protectedUsersIndexRoute: typeof protectedUsersIndexRoute
   protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
   protectedCoursesCourseCodeEditRoute: typeof protectedCoursesCourseCodeEditRoute
+  protectedCoursesCourseCodePublishRoute: typeof protectedCoursesCourseCodePublishRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
@@ -624,6 +645,8 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedUsersIndexRoute: protectedUsersIndexRoute,
   protectedBillingBillingIdEditRoute: protectedBillingBillingIdEditRoute,
   protectedCoursesCourseCodeEditRoute: protectedCoursesCourseCodeEditRoute,
+  protectedCoursesCourseCodePublishRoute:
+    protectedCoursesCourseCodePublishRoute,
 }
 
 const protectedRouteRouteWithChildren = protectedRouteRoute._addFileChildren(

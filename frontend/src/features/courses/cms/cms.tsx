@@ -41,6 +41,7 @@ import ContentTree from '@/features/courses/cms/content-tree.tsx'
 import { EditorWithPreview } from '@/components/editor-w-preview.tsx'
 import { CourseSelector } from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
+import { Link } from '@tanstack/react-router'
 
 type CMSProps = {
   courseCode?: string
@@ -328,6 +329,8 @@ export const ActionMenu = () => {
                 color={theme.colors.blue[5]}
               />
             }
+            component={Link}
+            to={`../publish`}
           >
             Publish
           </Menu.Item>

@@ -10,16 +10,22 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { IconChecklist, IconCircleCheck, IconX } from '@tabler/icons-react'
 import ModuleReviewStep from '@/features/courses/modules/module-review-step.tsx'
 import { type Module } from '@/features/courses/modules/types.ts'
 import { useMediaQuery } from '@mantine/hooks'
 import { getRouteApi } from '@tanstack/react-router'
+import { mockModule } from '@/features/courses/mocks.ts'
 
-const CoursePublisher = ({ module }: { module: Module }) => {
+const CoursePublisher = ({ courseCode }: { courseCode: string }) => {
   const theme = useMantineTheme()
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`)
+  const [module, setModule] = useState<Module | null>(mockModule)
+
+  useEffect(() => {
+    setModule(mockModule) //TODO: fetch module from backend
+  }, [courseCode])
 
   const [activeStep, setActiveStep] = useState(0)
 
@@ -29,6 +35,10 @@ const CoursePublisher = ({ module }: { module: Module }) => {
   const prevStep = () => {
     setActiveStep((current) => (current > 0 ? current - 1 : current))
   }
+
+  if (!module) {
+    return <div>Loading...</div>
+  } //TODO: handle error
 
   const steps = [
     {
@@ -44,7 +54,7 @@ const CoursePublisher = ({ module }: { module: Module }) => {
           onFinish={async () => {
             const route = getRouteApi(`/(protected)/courses/`)
             const navigate = route.useNavigate()
-            await navigate({ to: `${module.courseCode}` })
+            await navigate({ to: `${courseCode}` })
           }}
         />
       ),
