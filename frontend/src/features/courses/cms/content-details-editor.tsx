@@ -23,7 +23,7 @@ import {
 import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
 import type {
   ContentNodeType,
-  CourseModule,
+  Module,
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
@@ -32,7 +32,7 @@ import { useForm } from '@mantine/form'
 type ContentDetailsEditorProps = {
   opened: boolean
   type: ContentNodeType
-  data: CourseModule | ModuleSection | ModuleItem | null
+  data: Module | ModuleSection | ModuleItem | null
   onSave: (data: any) => void
 } & ComponentPropsWithoutRef<typeof Stack> &
   BoxProps

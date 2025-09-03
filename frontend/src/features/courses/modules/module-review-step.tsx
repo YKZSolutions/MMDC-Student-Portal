@@ -13,14 +13,14 @@ import {
 import { IconEye, IconInfoCircle, IconListCheck } from '@tabler/icons-react'
 import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
 import {
-  type CourseModule,
+  type Module,
   type ModuleItem,
   type ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 
 interface ReviewStepProps {
-  courseModules: CourseModule[]
+  courseModules: Module[]
   courseInfo: CourseBasicDetails
 }
 
@@ -115,41 +115,39 @@ const ModuleReviewStep = ({ courseModules, courseInfo }: ReviewStepProps) => {
         <Tabs.Panel value="summary" pt="md">
           <Card withBorder>
             <Stack gap="md">
-              {courseModules.map(
-                (module: CourseModule, moduleIndex: number) => (
-                  <Box key={module.id}>
-                    <Text fw={600} size="lg">
-                      {moduleIndex + 1}. {module.title}
-                    </Text>
+              {courseModules.map((module: Module, moduleIndex: number) => (
+                <Box key={module.id}>
+                  <Text fw={600} size="lg">
+                    {moduleIndex + 1}. {module.title}
+                  </Text>
 
-                    {module.sections.map(
-                      (section: ModuleSection, sectionIndex: number) => (
-                        <Box key={section.id} ml="md" mt="sm">
-                          <Text fw={500}>
-                            {String.fromCharCode(65 + sectionIndex)}.{' '}
-                            {section.title}
-                          </Text>
+                  {module.sections.map(
+                    (section: ModuleSection, sectionIndex: number) => (
+                      <Box key={section.id} ml="md" mt="sm">
+                        <Text fw={500}>
+                          {String.fromCharCode(65 + sectionIndex)}.{' '}
+                          {section.title}
+                        </Text>
 
-                          <Stack gap="xs" mt="xs">
-                            {section.items.map(
-                              (item: ModuleItem, itemIndex: number) => (
-                                <Group key={item.id} gap="xs">
-                                  <Text size="sm">
-                                    {itemIndex + 1}. {item.title}
-                                  </Text>
-                                  <Text size="xs" c="dimmed" tt="uppercase">
-                                    ({item.type})
-                                  </Text>
-                                </Group>
-                              ),
-                            )}
-                          </Stack>
-                        </Box>
-                      ),
-                    )}
-                  </Box>
-                ),
-              )}
+                        <Stack gap="xs" mt="xs">
+                          {section.items.map(
+                            (item: ModuleItem, itemIndex: number) => (
+                              <Group key={item.id} gap="xs">
+                                <Text size="sm">
+                                  {itemIndex + 1}. {item.title}
+                                </Text>
+                                <Text size="xs" c="dimmed" tt="uppercase">
+                                  ({item.type})
+                                </Text>
+                              </Group>
+                            ),
+                          )}
+                        </Stack>
+                      </Box>
+                    ),
+                  )}
+                </Box>
+              ))}
             </Stack>
           </Card>
         </Tabs.Panel>

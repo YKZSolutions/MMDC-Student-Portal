@@ -4,8 +4,8 @@ import type {
 } from '@/features/courses/assignments/types.ts'
 import type {
   ContentNode,
-  CourseModule,
   CourseNodeModel,
+  Module,
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
@@ -57,8 +57,8 @@ export function getSubmissionStatus(
 // Helper function to convert flat tree structure to hierarchical CourseModule structure
 export function convertTreeToCourseModules(
   treeData: CourseNodeModel[],
-): CourseModule[] {
-  const modules: CourseModule[] = []
+): Module[] {
+  const modules: Module[] = []
 
   // First, find all module nodes
   const moduleNodes = treeData.filter((node) => node.data?.type === 'module')
@@ -67,8 +67,8 @@ export function convertTreeToCourseModules(
     if (!moduleNode.data?.contentData) continue
 
     // Create module with basic data
-    const moduleData = moduleNode.data.contentData as CourseModule
-    const module: CourseModule = {
+    const moduleData = moduleNode.data.contentData as Module
+    const module: Module = {
       ...moduleData,
       sections: [],
     }
@@ -109,7 +109,7 @@ export function convertTreeToCourseModules(
   }
 
   // Sort modules by position
-  return modules.sort((a, b) => a.position - b.position)
+  return modules.sort((a, b) => a.order - b.order)
 }
 
 export const convertContentNodesToTreeNodes = (
