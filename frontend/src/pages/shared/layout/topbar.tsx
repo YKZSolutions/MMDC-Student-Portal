@@ -1,3 +1,4 @@
+import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 import { ActionIcon, Breadcrumbs, Group, Text } from '@mantine/core'
 import {
   IconBell,
@@ -6,7 +7,6 @@ import {
   IconMessageChatbot,
 } from '@tabler/icons-react'
 import { Link, useLocation, useParams } from '@tanstack/react-router'
-import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 
 type TopBarProps = {
   setChatbotOpen: (open: boolean) => void
@@ -27,7 +27,7 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
   const pathLinks = paths.map((_, i) => '/' + paths.slice(0, i + 1).join('/'))
 
   return (
-    <Group className="px-4 py-2" justify="space-between" align="center">
+    <Group className="px-4 py-2" w={"100%"} justify="space-between" align="center">
       <Breadcrumbs
         c="dimmed"
         separator={<IconChevronRight size={14} color="gray" />}

@@ -1,11 +1,12 @@
 import { type Role } from '@/integrations/api/client'
 import { client } from '@/integrations/api/client/client.gen'
 import { supabase } from '@/integrations/supabase/supabase-client'
+import Chatbot from '@/pages/shared/layout/chatbot'
 import Sidebar from '@/pages/shared/layout/sidebar'
 import Topbar from '@/pages/shared/layout/topbar'
-import { Box, Group, Stack } from '@mantine/core'
+import { Box, Burger, Group, Stack } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import Chatbot from '@/pages/shared/layout/chatbot'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/(protected)')({
@@ -33,6 +34,8 @@ export const Route = createFileRoute('/(protected)')({
 function RouteComponent() {
   const [isChatbotOpen, setChatbotOpen] = useState(false)
   const [isChatbotFabHidden, setChatbotFabHidden] = useState(true)
+  const [sidebarOpened, setSidebarOpened] = useState(false)
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   return (
     <>
@@ -43,17 +46,34 @@ function RouteComponent() {
         wrap="nowrap"
         style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
       >
-        <Sidebar />
-        <Box className="flex-1 h-full p-4 pl-0">
+        {isDesktop ? <Sidebar /> : sidebarOpened && <Sidebar />}
+        <Box
+          miw={sidebarOpened ? undefined : 0}
+          maw={'100%'}
+          className={'flex-1 h-full ' + (isDesktop ? 'p-4 pl-0' : '')}
+        >
           <Stack
-            className="bg-white w-full h-full flex-1 rounded-lg shadow p-5 pr-1 pb-0"
+            className={
+              'bg-white w-full h-full flex-1 shadow ' +
+              (isDesktop ? 'rounded-lg p-5 pr-1 pb-0' : 'p-5')
+            }
             justify="start"
             style={{ position: 'relative', overflow: 'hidden' }}
           >
-            <Topbar
-              setChatbotOpen={setChatbotOpen}
-              setChatbotFabHidden={setChatbotFabHidden}
-            />
+            <Group justify="space-between" align="center" wrap='nowrap'>
+              {!isDesktop && (
+                <Burger
+                  opened={sidebarOpened}
+                  onClick={() => setSidebarOpened((o) => !o)}
+                  size="sm"
+                  aria-label="Toggle sidebar"
+                />
+              )}
+              <Topbar
+                setChatbotOpen={setChatbotOpen}
+                setChatbotFabHidden={setChatbotFabHidden}
+              />
+            </Group>
             <Box
               style={{
                 flex: 1,
