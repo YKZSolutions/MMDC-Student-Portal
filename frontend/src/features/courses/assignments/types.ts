@@ -17,13 +17,6 @@ export type AssignmentMode = 'individual' | 'group'
  */
 export type AssignmentStatus = 'open' | 'closed'
 
-export type AssignmentType =
-  | 'assignment'
-  | 'draft'
-  | 'milestone'
-  | 'quiz'
-  | 'other'
-
 /**
  * Represents the base structure of an assignment entity.
  *
@@ -40,12 +33,10 @@ export type AssignmentType =
  * - `rubricId`: An optional string representing the ID of the rubric associated with the assignment.
  * - `allowResubmission`: A boolean indicating whether resubmissions are allowed for the assignment.
  * - `maxAttempts`: An optional integer representing the maximum number of attempts allowed for the assignment.
- * - `allowLateSubmission`: A boolean indicating whether late submissions are allowed for the assignment.
  */
 export interface Assignment {
   id: string
   title: string
-  type: AssignmentType
   dueDate: string // ISO string
   mode: AssignmentMode
   points?: number // max points
@@ -54,7 +45,6 @@ export interface Assignment {
   allowResubmission?: boolean
   maxAttempts?: number
   allowLateSubmission?: boolean
-  content?: string
 }
 
 /**

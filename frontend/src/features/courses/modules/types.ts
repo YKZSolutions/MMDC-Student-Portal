@@ -4,30 +4,33 @@ import type {
 } from '@/features/courses/assignments/types.ts'
 import type { NodeModel } from '@minoru/react-dnd-treeview'
 
-export interface ReadingMaterial {
+export interface ContentProgress {
+  contentId: string
+  isCompleted: boolean
+  completedAt?: string
+}
+
+export interface ModuleContent {
   id: string
   title: string
   content?: string
   fileUrl?: string
-  isCompleted: boolean
+  progress?: ContentProgress[]
+  assignment?: Assignment | StudentAssignment
 }
 
-export interface CourseModule {
+export interface Module {
   id: string
-  courseId: string
-  title: string
-  position: number
+  courseCode: string
   sections: ModuleSection[]
-  isCompleted: boolean
-  prerequisites?: string[]
 }
 
 export interface ModuleSection {
   id: string
   title: string
-  position: number
+  order: number
   items: ModuleItem[]
-  isCompleted: boolean
+  subsections?: ModuleSection[]
   prerequisites?: string[]
 }
 
@@ -35,27 +38,29 @@ export interface ModuleItem {
   id: string
   type: ContentType
   title: string
-  position: number
-  resource?: ReadingMaterial
-  assignment?: Assignment | StudentAssignment
-  isCompleted: boolean
+  order: number
+  content?: ModuleContent
   prerequisites?: string[]
 }
 
 export type ContentType =
-  | 'reading'
+  | 'lesson'
   | 'assignment'
   | 'discussion'
   | 'url'
   | 'file'
+  | 'draft'
+  | 'milestone'
+  | 'quiz'
+  | 'other'
 
-export type ContentNode = CourseModule | ModuleSection | ModuleItem
+export type ContentNode = Module | ModuleSection | ModuleItem
 export type ContentNodeType = 'module' | 'section' | 'item'
 
 export interface CourseNodeData {
   parentType?: ContentNodeType
   type: ContentNodeType | 'add-button'
-  contentData?: CourseModule | ModuleSection | ModuleItem
+  contentData?: Module | ModuleSection | ModuleItem
 }
 
 export type CourseNodeModel = NodeModel<CourseNodeData>
@@ -73,9 +78,9 @@ export const mockCourseTreeData: CourseNodeModel[] = [
       type: 'module',
       contentData: {
         id: 'mod_1',
-        courseId: 'course_1',
+        courseCode: 'course_1',
         title: 'Introduction to Biology',
-        position: 1,
+        order: 1,
         sections: [], // Sections will be represented as separate nodes
       },
     },
@@ -91,7 +96,7 @@ export const mockCourseTreeData: CourseNodeModel[] = [
       contentData: {
         id: 'sec_1',
         title: 'Readings',
-        position: 1,
+        order: 1,
         items: [], // Items will be represented as separate nodes
       },
     },
@@ -106,10 +111,9 @@ export const mockCourseTreeData: CourseNodeModel[] = [
       type: 'item',
       contentData: {
         id: 'item_1',
-        type: 'reading',
         title: 'Chapter 1: Cell Structure',
-        position: 1,
-        resource: {
+        order: 1,
+        content: {
           id: 'read_1',
           title: 'Chapter 1: Cell Structure',
           fileUrl: '/uploads/cell-structure.pdf',
@@ -129,7 +133,7 @@ export const mockCourseTreeData: CourseNodeModel[] = [
       contentData: {
         id: 'sec_2',
         title: 'Assignments',
-        position: 2,
+        order: 2,
         items: [],
       },
     },
@@ -146,7 +150,7 @@ export const mockCourseTreeData: CourseNodeModel[] = [
         id: 'item_2',
         type: 'assignment',
         title: 'Cell Biology Quiz',
-        position: 1,
+        order: 1,
         assignment: {
           id: '1',
           title: 'Cell Biology Quiz',
@@ -169,9 +173,9 @@ export const mockCourseTreeData: CourseNodeModel[] = [
       type: 'module',
       contentData: {
         id: 'mod_2',
-        courseId: 'course_1',
+        courseCode: 'course_1',
         title: 'Genetics',
-        position: 2,
+        order: 2,
         sections: [],
       },
     },
@@ -181,21 +185,21 @@ export const mockCourseTreeData: CourseNodeModel[] = [
 export const mockContentNodes: ContentNode[] = [
   {
     id: 'mod_1',
-    courseId: 'course_1',
+    courseCode: 'course_1',
     title: 'Introduction to Biology',
-    position: 1,
+    order: 1,
     sections: [
       {
         id: 'sec_1',
         title: 'Readings',
-        position: 1,
+        order: 1,
         items: [
           {
             id: 'item_1',
             type: 'reading',
             title: 'Chapter 1: Cell Structure',
-            position: 1,
-            resource: {
+            order: 1,
+            content: {
               id: 'read_1',
               title: 'Chapter 1: Cell Structure',
               fileUrl: '/uploads/cell-structure.pdf',
@@ -207,13 +211,13 @@ export const mockContentNodes: ContentNode[] = [
       {
         id: 'sec_2',
         title: 'Assignments',
-        position: 2,
+        order: 2,
         items: [
           {
             id: 'item_2',
             type: 'assignment',
             title: 'Cell Biology Quiz',
-            position: 1,
+            order: 1,
             assignment: {
               id: '1',
               title: 'Cell Biology Quiz',
@@ -230,9 +234,9 @@ export const mockContentNodes: ContentNode[] = [
   },
   {
     id: 'mod_2',
-    courseId: 'course_1',
+    courseCode: 'course_1',
     title: 'Genetics',
-    position: 2,
+    order: 2,
     sections: [],
   },
 ]
