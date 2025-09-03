@@ -28,23 +28,6 @@ describe('UsersController (Integration)', () => {
     },
   };
 
-  const validUserPayload2 = {
-    role: 'student',
-    user: {
-      firstName: 'Wog',
-      lastName: 'Log',
-    },
-    credentials: {
-      email: 'woglog@example.com',
-      password: 'SecurePass123!',
-    },
-    userDetails: {
-      dateJoined: new Date().toISOString(),
-      dob: '2000-01-15T00:00:00.000Z',
-      gender: 'male',
-    },
-  };
-
   const validStudentPayload = {
     specificDetails: {
       studentNumber: 12345,
@@ -441,7 +424,7 @@ describe('UsersController (Integration)', () => {
       app = adminApp;
       const createUserResponse = await request(app.getHttpServer())
         .post('/users')
-        .send(validUserPayload2)
+        .send(validUserPayload)
         .expect(201);
       const tempUserId = createUserResponse.body.id;
 

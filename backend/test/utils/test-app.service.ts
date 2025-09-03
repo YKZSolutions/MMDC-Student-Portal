@@ -20,6 +20,8 @@ import {
 import { Client } from 'pg';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { GlobalHttpExceptionFilter } from '@/common/filters/http-exceptions.filters';
+import { UserMetadata } from '@/common/interfaces/auth.user-metadata';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * TestAppService
@@ -200,19 +202,57 @@ export class TestAppService {
       })
       .overrideProvider(AuthService)
       .useValue({
-        create: jest.fn().mockResolvedValue({
-          id: '3e426584-59c3-4168-9119-3c61959ae759',
-          email: 'mock@example.com',
+        create: jest
+          .fn()
+          .mockImplementation(
+            (role: Role, email: string, password?: string) => {
+              return Promise.resolve({
+                id: uuidv4(),
+                email,
+                user_metadata: {
+                  role,
+                  status: 'active',
+                },
+              });
+            },
+          ),
+
+        login: jest
+          .fn()
+          .mockImplementation((email: string, password: string) => {
+            if (password !== 'correct-password') {
+              throw new UnauthorizedException('Wrong login credentials');
+            }
+            return Promise.resolve('mock-access-token');
+          }),
+
+        invite: jest.fn().mockImplementation((email: string, role: Role) => {
+          return Promise.resolve({
+            id: uuidv4(),
+            email,
+            user_metadata: {
+              role,
+              status: 'active',
+            },
+          });
         }),
-        login: jest.fn().mockResolvedValue('mock-access-token'),
-        invite: jest.fn().mockResolvedValue({
-          id: '3e426584-59c3-4168-9119-3c61959ae759',
-          email: 'invited@example.com',
+
+        updateMetadata: jest
+          .fn()
+          .mockImplementation(
+            (uid: string, metadata: Partial<UserMetadata>) => {
+              return Promise.resolve({
+                id: uid,
+                user_metadata: {
+                  ...metadata,
+                },
+              });
+            },
+          ),
+
+        delete: jest.fn().mockImplementation((uid: string) => {
+          return Promise.resolve(undefined);
         }),
-        updateMetadata: jest.fn().mockResolvedValue({
-          id: '3e426584-59c3-4168-9119-3c61959ae759',
-        }),
-        delete: jest.fn().mockResolvedValue(undefined),
       })
       .compile();
 
