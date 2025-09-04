@@ -1,4 +1,4 @@
-import { Stack, Tabs } from '@mantine/core'
+import { Group, Stack, Tabs, Title } from '@mantine/core'
 import { IconBook, IconCheck, IconHistory, IconSend } from '@tabler/icons-react'
 import SearchComponent from '@/components/search-component.tsx'
 import React, { useState } from 'react'
@@ -9,116 +9,7 @@ import type {
   AssignmentSubmissionReport,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
-import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
-import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
-
-export const mockAssignmentsData: StudentAssignment[] = [
-  {
-    id: '1',
-    title: 'Pending',
-    description: 'Submit project report',
-    type: 'assignment',
-    dueDate: getFutureDate(2),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'pending',
-  },
-  {
-    id: '2',
-    title: 'Draft',
-    description: 'Submit assignment',
-    type: 'draft',
-    dueDate: getFutureDate(2),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'draft',
-  },
-  {
-    id: '3',
-    title: 'Submitted',
-    description: 'Submit project report',
-    type: 'other',
-    dueDate: getFutureDate(2),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'submitted',
-    submissionTimestamp: getPastDate(1),
-  },
-  {
-    id: '4',
-    title: 'Ready for Grading',
-    description: 'Submit assignment',
-    type: 'milestone',
-    dueDate: getFutureDate(2),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'ready-for-grading',
-    submissionTimestamp: getPastDate(1),
-  },
-  {
-    id: '5',
-    title: 'Graded Individual Project',
-    description: 'Submit project report',
-    type: 'milestone',
-    dueDate: getFutureDate(2),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'graded',
-    submissionTimestamp: getPastDate(1),
-    grade: {
-      id: '1',
-      assignmentId: '5',
-      studentId: 'stud1',
-      score: 90,
-      maxScore: 100,
-      feedback: 'Great job!',
-      gradedBy: 'teacher1',
-      gradedAt: getPastDate(1),
-    },
-  },
-  {
-    id: '6',
-    title: 'Graded Group Project',
-    description: 'Submit project report',
-    type: 'milestone',
-    dueDate: getFutureDate(2),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'graded',
-    submissionTimestamp: getPastDate(1),
-    grade: {
-      id: '1',
-      assignmentId: '6',
-      groupId: 'grp1',
-      groupMemberIds: ['stud1', 'stud2', 'stud3'],
-      score: 90,
-      maxScore: 100,
-      feedback: 'Great job!',
-      gradedBy: 'teacher1',
-      gradedAt: getPastDate(1),
-    },
-  },
-  {
-    id: '7',
-    title: 'Late',
-    description: 'Submit assignment',
-    type: 'assignment',
-    dueDate: getPastDate(1),
-    mode: 'individual',
-    status: 'open',
-    submissionStatus: 'pending',
-  },
-  {
-    id: '8',
-    title: 'Missed',
-    description: 'Submit assignment',
-    type: 'assignment',
-    dueDate: getPastDate(1),
-    mode: 'individual',
-    status: 'closed',
-    submissionStatus: 'pending',
-  },
-]
+import { mockAssignmentsData } from '@/features/courses/mocks.ts'
 
 type RoleBasedAssignmentConfig = {
   [K in Role]: {
@@ -203,7 +94,11 @@ const CourseAssignments = () => {
   }
 
   return (
-    <CourseMainLayout title={'Assignments'}>
+    <Stack gap={'md'} p={'md'}>
+      {/*Header*/}
+      <Group justify="space-between" align="center">
+        <Title>Assignments</Title>
+      </Group>
       <Stack>
         <Tabs value={activeTab} onChange={handleTabChange}>
           <Tabs.List>
@@ -236,7 +131,7 @@ const CourseAssignments = () => {
           </Stack>
         </Tabs>
       </Stack>
-    </CourseMainLayout>
+    </Stack>
   )
 }
 

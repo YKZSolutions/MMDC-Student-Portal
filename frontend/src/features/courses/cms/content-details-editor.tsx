@@ -7,35 +7,37 @@ import {
   Stack,
   Switch,
   Text,
-  Textarea,
   TextInput,
   useMantineTheme,
 } from '@mantine/core'
 import {
   IconCategory,
-  IconChevronsRight,
   IconHeading,
   IconHourglassEmpty,
   IconReplace,
   IconScoreboard,
-  IconUpload,
+  IconTrash,
   IconWriting,
 } from '@tabler/icons-react'
-import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
+import React, {
+  type ComponentPropsWithoutRef,
+  useEffect,
+  useState,
+} from 'react'
 import type {
+  ContentNode,
   ContentNodeType,
-  CourseModule,
-  ModuleItem,
+  Module,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useForm } from '@mantine/form'
+import { getAllModuleSections } from '@/utils/helpers.ts'
+import { mockModule } from '@/features/courses/mocks.ts'
 
 type ContentDetailsEditorProps = {
   opened: boolean
   type: ContentNodeType
-  data: CourseModule | ModuleSection | ModuleItem | null
-  mode: 'create' | 'edit'
-  onClose: () => void
+  data: ContentNode | null
   onSave: (data: any) => void
 } & ComponentPropsWithoutRef<typeof Stack> &
   BoxProps
@@ -46,12 +48,13 @@ const ContentDetailsEditor = ({
   opened,
   type,
   data,
-  mode,
-  onClose,
   onSave,
   ...stackProps
 }: ContentDetailsEditorProps) => {
   const theme = useMantineTheme()
+  const mode = data ? 'edit' : 'create'
+  const [module, setModule] = useState<Module>(mockModule)
+  const [sections, setSections] = useState<ModuleSection[]>([]) // TODO: Replace with actual module
 
   // Form setup based on content type
   const form = useForm({
@@ -64,7 +67,11 @@ const ContentDetailsEditor = ({
   // Update form when type or data changes
   useEffect(() => {
     form.setValues(getInitialValues(type, data))
-  }, [type, data, opened])
+  }, [type, data, opened, module, sections])
+
+  useEffect(() => {
+    setSections(getAllModuleSections(module))
+  }, [module])
 
   // Handle form submission
   const handleSubmit = (values: any) => {
@@ -73,25 +80,13 @@ const ContentDetailsEditor = ({
     onSave(processedData)
   }
 
+  const handleDelete = () => {
+    // TODO: Add delete logic
+  }
+
   // Get form fields based on content type
   const getFormFields = () => {
     switch (type) {
-      case 'module':
-        return (
-          <>
-            <TextInput
-              label="Module Title"
-              placeholder="Enter module title"
-              {...form.getInputProps('title')}
-            />
-            <Textarea
-              label="Description"
-              placeholder="Enter module description"
-              {...form.getInputProps('description')}
-            />
-          </>
-        )
-
       case 'section':
         return (
           <>
@@ -100,10 +95,14 @@ const ContentDetailsEditor = ({
               placeholder="Enter section title"
               {...form.getInputProps('title')}
             />
-            <Textarea
-              label="Description"
-              placeholder="Enter section description"
-              {...form.getInputProps('description')}
+            <Select
+              label="Parent Section"
+              placeholder="Enter section title"
+              data={sections.map((section) => ({
+                value: section.id,
+                label: section.title,
+              }))}
+              {...form.getInputProps('parentId')}
             />
           </>
         )
@@ -132,24 +131,6 @@ const ContentDetailsEditor = ({
               placeholder="Enter item title"
               {...form.getInputProps('title')}
             />
-
-            {form.values.type === 'reading' && (
-              <>
-                <Textarea
-                  label="Content"
-                  placeholder="Enter reading content"
-                  {...form.getInputProps('content')}
-                />
-                <Group>
-                  <Button leftSection={<IconUpload size={16} />}>
-                    Upload File
-                  </Button>
-                  <Text size="sm" c="dimmed">
-                    or enter content directly
-                  </Text>
-                </Group>
-              </>
-            )}
 
             {form.values.type === 'assignment' && (
               <>
@@ -195,7 +176,7 @@ const ContentDetailsEditor = ({
               </>
             )}
 
-            {/* Add fields for other content types */}
+            {/* TODO: Add fields for other content types */}
           </>
         )
 
@@ -204,40 +185,34 @@ const ContentDetailsEditor = ({
     }
   }
   return (
-    <Stack pos="relative" {...stackProps}>
-      <ActionIcon
-        onClick={onClose}
-        variant="transparent"
-        size="lg"
-        color="gray"
-        style={{
-          position: 'absolute',
-          top: theme.spacing.xs,
-          left: theme.spacing.xs,
-          zIndex: 10,
-        }}
-      >
-        <IconChevronsRight size={32} />
-      </ActionIcon>
+    <Stack {...stackProps}>
+      <Group justify="space-between">
+        <Text size="xl" fw={700}>
+          {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
+        </Text>
+        {mode === 'edit' && (
+          <ActionIcon onClick={handleDelete} variant="transparent" color="gray">
+            <IconTrash size={22} color={theme.colors.red[6]} />
+          </ActionIcon>
+        )}
+      </Group>
 
-      <Text size="xl" fw={700} mt="xl">
-        {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
-      </Text>
+      <Stack p="xl">
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack gap="md">
+            {getFormFields()}
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          {getFormFields()}
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {mode === 'create' ? 'Create' : 'Save Changes'}
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+            <Group justify="flex-end" mt="md" wrap={'nowrap'}>
+              <Button variant="default" onClick={form.reset}>
+                Reset
+              </Button>
+              <Button type="submit">
+                {mode === 'create' ? 'Create' : 'Save Changes'}
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Stack>
     </Stack>
   )
 }
@@ -247,25 +222,19 @@ function getInitialValues(type: ContentNodeType, data: any) {
   if (data) {
     // Editing existing item - populate form with existing data
     switch (type) {
-      case 'module':
-        return {
-          title: data.title || '',
-          description: data.description || '',
-          position: data.position || 0,
-        }
-
       case 'section':
         return {
+          id: data.id ?? null,
           title: data.title || '',
-          description: data.description || '',
-          position: data.position || 0,
+          order: data.order || 0,
         }
 
       case 'item':
         return {
+          id: data.id ?? null,
           type: data.type || 'reading',
           title: data.title || '',
-          description: data.description || '',
+          order: data.order || 0,
           content: data.content?.content || '',
           fileUrl: data.content?.fileUrl || '',
           assignmentType: data.assignment?.type || 'assignment',
@@ -288,17 +257,14 @@ function getInitialValues(type: ContentNodeType, data: any) {
   } else {
     // Creating new item - use default values
     switch (type) {
-      case 'module':
-        return { title: '', description: '', position: 0 }
-
       case 'section':
-        return { title: '', description: '', position: 0 }
+        return { title: '', description: '', order: 0 }
 
       case 'item':
         return {
           type: 'reading',
           title: '',
-          description: '',
+          order: 0,
           content: '',
           fileUrl: '',
           assignmentType: 'assignment',
@@ -320,26 +286,22 @@ function getInitialValues(type: ContentNodeType, data: any) {
 
 // Helper function to process form data before saving
 function processFormData(type: ContentNodeType, values: any) {
-  switch (type) {
-    case 'module':
-      return {
-        title: values.title,
-        description: values.description,
-        position: values.position,
-      }
+  const isEditing = Boolean(values.id)
 
+  switch (type) {
     case 'section':
       return {
+        ...(isEditing ? { id: values.id } : {}),
         title: values.title,
-        description: values.description,
-        position: values.position,
+        order: values.order,
       }
 
     case 'item':
       const baseItem = {
+        ...(isEditing ? { id: values.id } : {}),
         title: values.title,
         type: values.type,
-        position: values.position || 0,
+        order: values.order,
       }
 
       if (values.type === 'reading') {

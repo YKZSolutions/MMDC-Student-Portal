@@ -1,18 +1,17 @@
-import { Button, Group } from '@mantine/core'
+import { Button, Group, Stack, Title } from '@mantine/core'
 import {
   IconPlus,
   IconViewportShort,
   IconViewportTall,
 } from '@tabler/icons-react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
-import CourseMainLayout from '@/features/courses/course-main-layout.tsx'
-import ModuleListPanel from '@/features/courses/modules/module-list-panel.tsx'
+import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import { Link, useParams } from '@tanstack/react-router'
 
 const CourseModules = () => {
   const { authUser } = useAuth('protected')
+  const { courseCode } = useParams({ strict: false })
   const [allExpanded, setAllExpanded] = useState(false)
 
   const toggleExpandAll = () => {
@@ -20,9 +19,10 @@ const CourseModules = () => {
   }
 
   return (
-    <CourseMainLayout
-      title={'Modules'}
-      headerRightSection={
+    <Stack gap={'md'} p={'md'}>
+      {/*Header*/}
+      <Group justify="space-between" align="center">
+        <Title>Modules</Title>
         <Group align="center">
           <Button
             onClick={toggleExpandAll}
@@ -39,17 +39,21 @@ const CourseModules = () => {
             {allExpanded ? 'Collapse All' : 'Expand All'}
           </Button>
           {authUser.role === 'admin' && (
-            <ButtonWithModal
-              label={'Add New Content'}
-              icon={<IconPlus />}
-              modalComponent={ModuleCreationProcessModal}
-            />
+            <>
+              <Button
+                leftSection={<IconPlus />}
+                bg={'secondary'}
+                component={Link}
+                to={`./create`}
+              >
+                Add New Content
+              </Button>
+            </>
           )}
         </Group>
-      }
-    >
-      <ModuleListPanel allExpanded={allExpanded} />
-    </CourseMainLayout>
+      </Group>
+      <ModulePanel allExpanded={allExpanded} />
+    </Stack>
   )
 }
 

@@ -12,8 +12,8 @@ import {
   TextInput,
   useMantineTheme,
 } from '@mantine/core'
-import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 import { YearPickerInput } from '@mantine/dates'
+import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
 
 const CourseCreationModal = ({
   opened,

@@ -1,14 +1,9 @@
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import {
-  useLocation,
-  useMatchRoute,
-  useNavigate,
-  useParams,
-} from '@tanstack/react-router'
+import { useLocation, useMatchRoute, useNavigate } from '@tanstack/react-router'
 import { Button, Select, Stack } from '@mantine/core'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import ButtonWithModal from '@/components/btn-w-modal.tsx'
+import { ButtonWithModal } from '@/components/with-modal.tsx'
 import CourseActionsModal from '@/features/courses/course-actions-modal.tsx'
 import { IconTool } from '@tabler/icons-react'
 
@@ -40,12 +35,13 @@ const CourseNavButton = ({ item }: { item: CourseNavItem }) => {
 const CourseNavBar = ({
   navItems,
   courses,
+  courseCode,
 }: {
   navItems: CourseNavItem[]
   courses: CourseBasicDetails[]
+  courseCode: string
 }) => {
   const { authUser } = useAuth('protected')
-  const { courseCode } = useParams({ from: '/(protected)/courses/$courseCode' })
   const currentCourse = courses.find(
     (course) => course.courseCode === courseCode,
   )!

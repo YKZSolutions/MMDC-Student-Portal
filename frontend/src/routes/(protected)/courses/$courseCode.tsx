@@ -1,40 +1,22 @@
-import { createFileRoute, Outlet, useParams } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { Box, Group, useMantineTheme } from '@mantine/core'
 import { type CourseBasicDetails } from '@/features/courses/types.ts'
 import CourseNavBar, {
   type CourseNavItem,
 } from '@/features/courses/course-navbar.tsx'
+import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
-
-export const mockCourseBasicDetails: CourseBasicDetails[] = [
-  {
-    courseCode: 'MO-IT200',
-    courseName: 'Web Technology Applications',
-  },
-  {
-    courseCode: 'MO-IT351',
-    courseName: 'Data Structures & Algorithms',
-  },
-  {
-    courseCode: 'MO-IT400',
-    courseName: 'Capstone 1',
-  },
-  {
-    courseCode: 'MO-IT500',
-    courseName: 'Capstone 2',
-  },
-]
 
 function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
 
   const courses: CourseBasicDetails[] = mockCourseBasicDetails
-  const { courseCode } = useParams({ from: '/(protected)/courses/$courseCode' })
+  const { courseCode } = Route.useParams()
 
   const studentNavItems: CourseNavItem[] = [
     {
@@ -93,11 +75,11 @@ function RouteComponent() {
       }}
       gap={0}
     >
-      {/* Sub Nav */}
+      {/* Course Nav */}
       <Box
         style={{
-          width: '180px',
-          minWidth: '180px',
+          width: '184px',
+          minWidth: '184px',
           borderRight: `1px solid ${theme.colors.gray[2]}`,
           overflow: 'hidden',
           flexShrink: 0,
@@ -108,6 +90,7 @@ function RouteComponent() {
             authUser.role === 'student' ? studentNavItems : adminNavItems
           }
           courses={courses} //TODO: use all courses for admin
+          courseCode={courseCode}
         />
       </Box>
 

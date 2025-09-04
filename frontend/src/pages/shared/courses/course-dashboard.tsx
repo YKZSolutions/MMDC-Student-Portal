@@ -20,7 +20,6 @@ import {
   IconDeviceDesktop,
   IconLayoutGridFilled,
   IconList,
-  IconTool,
   IconVideo,
 } from '@tabler/icons-react'
 import React, { useState } from 'react'
@@ -30,16 +29,12 @@ import type {
   Course,
   EnrolledAcademicTerm,
 } from '@/features/courses/types.ts'
-import { useNavigate } from '@tanstack/react-router'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import SearchComponent from '@/components/search-component.tsx'
-import { useCurrentMeeting } from '@/features/courses/useCurrentMeeting.ts'
-import { handleMeetingClick } from '@/utils/handlers.ts'
-import RoleBasedActionButton from '@/components/role-based-action-button.tsx'
+import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import ButtonWithModal from '@/components/btn-w-modal.tsx'
-import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
+import { Link } from '@tanstack/react-router'
 
 // TODO: Consider adding program and/or department and major to the course data
 // TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
@@ -174,6 +169,7 @@ const CourseDashboard = ({
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [isCourseSelectorOpen, setIsCourseSelectorOpen] = useState(false)
 
   const formatTerm = (academicTerm: EnrolledAcademicTerm | undefined) => {
     return academicTerm
@@ -199,19 +195,12 @@ const CourseDashboard = ({
           <Title c={'dark.7'} variant="hero" order={2} fw={700}>
             All Courses
           </Title>
-          {authUser.role !== 'student' && (
-            <ButtonWithModal
-              label={'Manage Course'}
-              icon={<IconTool />}
-              modalComponent={ModuleCreationProcessModal}
-            ></ButtonWithModal>
-          )}
         </Group>
 
         <Divider />
 
         <Grid>
-          <Grid.Col span={9}>
+          <Grid.Col span={authUser.role === 'student' ? 9 : 12}>
             <Stack gap={'md'} mr={'md'}>
               {/*Filters*/}
               <Group justify="space-between" align="start">
@@ -291,9 +280,11 @@ const CourseDashboard = ({
             </Stack>
           </Grid.Col>
           {/*Upcoming Tasks*/}
-          <Grid.Col span={3}>
-            <CourseTasksSummary courses={filteredCourses} />
-          </Grid.Col>
+          {authUser.role === 'student' && (
+            <Grid.Col span={3}>
+              <CourseTasksSummary courses={filteredCourses} />
+            </Grid.Col>
+          )}
         </Grid>
       </Stack>
     </Container>
@@ -307,42 +298,33 @@ const CourseItem = ({
   course: Course
   variant: 'grid' | 'list'
 }) => {
-  const navigate = useNavigate()
-
-  const handleClick = async () => {
-    await navigate({
-      to: `/courses/${course.courseDetails.courseCode}`,
-    })
-  }
-
+  const url = `/courses/${course.courseDetails.courseCode}`
   return variant === 'grid' ? (
     <CourseCard
       courseDetails={course.courseDetails}
       courseProgress={course.courseProgress}
       section={course.section}
-      onClick={handleClick}
+      url={url}
     />
   ) : (
     <CourseListRow
       courseDetails={course.courseDetails}
       courseProgress={course.courseProgress}
       section={course.section}
-      onClick={handleClick}
+      url={url}
     />
   )
 }
 
-const handleManageCourseClick = () => {}
-
 interface CourseDetailProps extends Omit<Course, 'activities'> {
-  onClick: () => void
+  url: string
 }
 
 const CourseCard = ({
   courseDetails,
   courseProgress,
   section,
-  onClick,
+  url,
 }: CourseDetailProps) => {
   const theme = useMantineTheme()
 
@@ -354,12 +336,13 @@ const CourseCard = ({
 
   return (
     <Card
+      component={Link}
+      to={url}
       withBorder
       radius="md"
       p="xs"
       shadow={hovered ? 'sm' : 'xs'}
       style={{ cursor: 'pointer' }}
-      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -369,7 +352,7 @@ const CourseCard = ({
           src="https://images.unsplash.com/photo-1511275539165-cc46b1ee89bf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Norway"
           radius="md"
-          w="100%"
+          miw="100%"
           h="5.375rem"
         />
         <Text
@@ -411,7 +394,10 @@ const CourseCard = ({
               {sectionSchedule.day} {sectionSchedule.time}
             </Text>
           </Stack>
-          <CourseCardActionButton currentMeeting={currentMeeting} />
+          <CourseCardActionButton
+            currentMeeting={currentMeeting}
+            courseCode={courseCode}
+          />
           <Group justify="space-between">
             <Group gap="0.25rem">
               <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
@@ -445,7 +431,7 @@ const CourseListRow = ({
   courseDetails,
   courseProgress,
   section,
-  onClick,
+  url,
 }: CourseDetailProps) => {
   const theme = useMantineTheme()
 
@@ -457,13 +443,14 @@ const CourseListRow = ({
 
   return (
     <Card
+      component={Link}
+      to={url}
       withBorder
       radius="md"
       p="0"
       shadow={hovered ? 'sm' : 'xs'}
       w={'100%'}
       style={{ cursor: 'pointer' }}
-      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -493,7 +480,10 @@ const CourseListRow = ({
           </Text>
         </Stack>
         <Stack w={'30%'} p={'xs'} justify={'space-between'}>
-          <CourseCardActionButton currentMeeting={currentMeeting} />
+          <CourseCardActionButton
+            currentMeeting={currentMeeting}
+            courseCode={courseCode}
+          />
           <Group gap="xs">
             <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
               Completed:
@@ -509,27 +499,37 @@ const CourseListRow = ({
   )
 }
 
+type CourseCardActionButtonProps = {
+  currentMeeting?: ClassMeeting
+  courseCode: string
+}
 const CourseCardActionButton = ({
   currentMeeting,
-}: {
-  currentMeeting?: ClassMeeting
-}) => {
+  courseCode,
+}: CourseCardActionButtonProps) => {
+  const { authUser } = useAuth('protected')
   return (
-    <RoleBasedActionButton
-      render={{
-        student: {
-          icon: <IconVideo size={16} />,
-          text: 'Join Meeting',
-          onClick: () => handleMeetingClick(currentMeeting?.meetingLink),
-          disabled: !currentMeeting,
-        },
-        admin: {
-          icon: <IconDeviceDesktop size={16} />,
-          text: 'Manage Content',
-          onClick: () => handleManageCourseClick(),
-        },
-      }}
-    />
+    <Button
+      component={Link}
+      leftSection={
+        authUser.role === 'student' ? (
+          <IconVideo size={16} />
+        ) : (
+          <IconDeviceDesktop size={16} />
+        )
+      }
+      size="xs"
+      radius="xl"
+      variant="filled"
+      disabled={authUser.role === 'student' ? !currentMeeting : false}
+      to={
+        authUser.role === 'student'
+          ? currentMeeting?.meetingLink
+          : `/courses/${courseCode}/edit`
+      }
+    >
+      {authUser.role === 'student' ? 'Join Meeting' : 'Manage Content'}
+    </Button>
   )
 }
 
