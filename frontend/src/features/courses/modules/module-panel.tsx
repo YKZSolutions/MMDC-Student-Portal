@@ -35,21 +35,18 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import type { Role } from '@/integrations/api/client'
-import { mockModule } from '@/features/courses/mocks.ts'
 import { Link } from '@tanstack/react-router'
 
 interface ModulePanelProps {
   allExpanded: boolean
-  module?: Module
+  module: Module
   isPreview?: boolean
-  courseCode?: string
 }
 
 const ModulePanel = ({
   allExpanded,
-  module = mockModule,
+  module,
   isPreview = false,
-  courseCode,
 }: ModulePanelProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
