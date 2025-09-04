@@ -1,5 +1,5 @@
 import type { FileRoutesByTo } from '@/routeTree.gen'
-import { Button } from '@mantine/core'
+import { ActionIcon, Button, Tooltip } from '@mantine/core'
 import { type Icon, type IconProps } from '@tabler/icons-react'
 import { Link, useMatchRoute } from '@tanstack/react-router'
 
@@ -16,14 +16,29 @@ export interface NavItem {
 export interface NavButtonProps {
   item: NavItem
   fuzzy?: boolean
+  collapsed?: boolean
 }
 
-function NavButton({ item, fuzzy }: NavButtonProps) {
+function NavButton({ item, fuzzy, collapsed = false }: NavButtonProps) {
   const matchRoute = useMatchRoute()
 
   const isActive = matchRoute({ to: item.link, fuzzy: fuzzy })
 
-  return (
+  const button = collapsed ? (
+    <ActionIcon
+      component={Link}
+      to={item.link}
+      variant={isActive ? 'light' : 'subtle'}
+      color={isActive ? undefined : 'gray'}
+      data-cy={`${item.label.toLowerCase()}-link`}
+    >
+      {isActive ? (
+        <item.Icon size={24} />
+      ) : (
+        <item.IconInactive color="gray" size={24} />
+      )}
+    </ActionIcon>
+  ) : (
     <Button
       component={Link}
       leftSection={
@@ -42,6 +57,17 @@ function NavButton({ item, fuzzy }: NavButtonProps) {
     >
       {item.label}
     </Button>
+  )
+
+  return (
+    <Tooltip
+      label={item.label}
+      position="right"
+      withArrow
+      disabled={!collapsed}
+    >
+      {button}
+    </Tooltip>
   )
 }
 

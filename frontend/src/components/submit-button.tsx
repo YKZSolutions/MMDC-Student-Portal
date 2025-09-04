@@ -34,7 +34,7 @@ const SubmitButton = ({
     if (isLate) return 'Submit Late'
     if (isPending) return 'Submit'
 
-    if (isDraft) return 'View Draft'
+    if (isDraft) return 'Finalize Draft'
     if (submissionStatus === 'graded') return 'View Grade'
 
     return 'View Submission'

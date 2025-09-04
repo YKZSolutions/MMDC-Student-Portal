@@ -611,7 +611,7 @@ export const paymentsControllerUpdate = <ThrowOnError extends boolean = false>(o
  */
 export const programControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<ProgramControllerFindAllData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<ProgramControllerFindAllResponses, ProgramControllerFindAllErrors, ThrowOnError>({
-        url: '/program',
+        url: '/programs',
         ...options
     });
 };
@@ -623,7 +623,7 @@ export const programControllerFindAll = <ThrowOnError extends boolean = false>(o
  */
 export const programControllerCreate = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerCreateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<ProgramControllerCreateResponses, ProgramControllerCreateErrors, ThrowOnError>({
-        url: '/program',
+        url: '/programs',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -639,7 +639,7 @@ export const programControllerCreate = <ThrowOnError extends boolean = false>(op
  */
 export const programControllerRemove = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerRemoveData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).delete<ProgramControllerRemoveResponses, ProgramControllerRemoveErrors, ThrowOnError>({
-        url: '/program/{id}',
+        url: '/programs/{id}',
         ...options
     });
 };
@@ -650,7 +650,7 @@ export const programControllerRemove = <ThrowOnError extends boolean = false>(op
  */
 export const programControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerFindOneData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<ProgramControllerFindOneResponses, ProgramControllerFindOneErrors, ThrowOnError>({
-        url: '/program/{id}',
+        url: '/programs/{id}',
         ...options
     });
 };
@@ -662,7 +662,7 @@ export const programControllerFindOne = <ThrowOnError extends boolean = false>(o
  */
 export const programControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerUpdateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).patch<ProgramControllerUpdateResponses, ProgramControllerUpdateErrors, ThrowOnError>({
-        url: '/program/{id}',
+        url: '/programs/{id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -695,7 +695,7 @@ export const chatbotControllerPrompt = <ThrowOnError extends boolean = false>(op
  */
 export const majorControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<MajorControllerFindAllData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<MajorControllerFindAllResponses, MajorControllerFindAllErrors, ThrowOnError>({
-        url: '/major',
+        url: '/majors',
         ...options
     });
 };
@@ -707,7 +707,7 @@ export const majorControllerFindAll = <ThrowOnError extends boolean = false>(opt
  */
 export const majorControllerCreate = <ThrowOnError extends boolean = false>(options: Options<MajorControllerCreateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<MajorControllerCreateResponses, MajorControllerCreateErrors, ThrowOnError>({
-        url: '/major',
+        url: '/majors',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -723,7 +723,7 @@ export const majorControllerCreate = <ThrowOnError extends boolean = false>(opti
  */
 export const majorControllerRemove = <ThrowOnError extends boolean = false>(options: Options<MajorControllerRemoveData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).delete<MajorControllerRemoveResponses, MajorControllerRemoveErrors, ThrowOnError>({
-        url: '/major/{id}',
+        url: '/majors/{id}',
         ...options
     });
 };
@@ -734,7 +734,7 @@ export const majorControllerRemove = <ThrowOnError extends boolean = false>(opti
  */
 export const majorControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<MajorControllerFindOneData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<MajorControllerFindOneResponses, MajorControllerFindOneErrors, ThrowOnError>({
-        url: '/major/{id}',
+        url: '/majors/{id}',
         ...options
     });
 };
@@ -746,7 +746,7 @@ export const majorControllerFindOne = <ThrowOnError extends boolean = false>(opt
  */
 export const majorControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<MajorControllerUpdateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).patch<MajorControllerUpdateResponses, MajorControllerUpdateErrors, ThrowOnError>({
-        url: '/major/{id}',
+        url: '/majors/{id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',

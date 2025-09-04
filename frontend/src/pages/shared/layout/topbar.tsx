@@ -1,4 +1,3 @@
-import { mockCourseBasicDetails } from '@/routes/(protected)/courses/$courseCode.tsx'
 import { ActionIcon, Breadcrumbs, Group, Text } from '@mantine/core'
 import {
   IconBell,
@@ -7,6 +6,7 @@ import {
   IconMessageChatbot,
 } from '@tabler/icons-react'
 import { Link, useLocation, useParams } from '@tanstack/react-router'
+import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
 
 type TopBarProps = {
   setChatbotOpen: (open: boolean) => void
