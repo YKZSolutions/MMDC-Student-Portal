@@ -91,6 +91,7 @@ const ModulePanel = ({
           bg={'background'}
         >
           <CustomAccordionControl
+            itemId={section.id}
             title={section.title}
             completedItemsCount={getCompletedItemsCount(
               section.subsections?.flatMap((sub) => sub.items) || [],
@@ -116,6 +117,7 @@ const ModulePanel = ({
                   bg={'white'}
                 >
                   <CustomAccordionControl
+                    itemId={subsection.id}
                     title={subsection.title}
                     completedItemsCount={getCompletedItemsCount(
                       subsection.items,
@@ -139,7 +141,6 @@ const ModulePanel = ({
                           /* TODO: Handle item click */
                         }}
                         isPreview={isPreview}
-                        courseCode={courseCode}
                       />
                     </Accordion.Panel>
                   ))}
@@ -157,14 +158,12 @@ interface ModuleItemCardProps {
   item: ModuleItem
   onItemClick: () => void
   isPreview?: boolean
-  courseCode?: string
 }
 
 const ModuleItemCard = ({
   item,
   onItemClick,
   isPreview = false,
-  courseCode,
 }: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
   const role: Role = isPreview ? 'student' : authUser.role
@@ -230,7 +229,7 @@ const ModuleItemCard = ({
                   component={Link}
                   variant="subtle"
                   radius="lg"
-                  to={`../edit`}
+                  to={`./${item.id}/edit`}
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
@@ -247,6 +246,7 @@ const ModuleItemCard = ({
 }
 
 type CustomAccordionControlProps = {
+  itemId: string
   title: string
   completedItemsCount?: number
   totalItemsCount?: number
@@ -255,6 +255,7 @@ type CustomAccordionControlProps = {
 } & GroupProps
 
 function CustomAccordionControl({
+  itemId,
   title,
   completedItemsCount,
   totalItemsCount,
@@ -291,7 +292,7 @@ function CustomAccordionControl({
         <Group>
           <ActionIcon
             component={Link}
-            to={`../edit`}
+            to={`./${itemId}/edit`}
             variant="subtle"
             radius="lg"
           >

@@ -13,7 +13,7 @@ function RouteComponent() {
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        admin: <CMS />,
+        admin: <CMS variant={'full'} />,
       }}
     />
   )

@@ -9,6 +9,7 @@ type BtnCardProps = {
   onClick?: () => void
   url?: string
   params?: any
+  state?: any
 }
 const BtnCard = ({ title, icon, description, ...props }: BtnCardProps) => {
   const [hovered, setHovered] = useState(false)
@@ -27,6 +28,7 @@ const BtnCard = ({ title, icon, description, ...props }: BtnCardProps) => {
       {...props}
       to={props.url}
       params={props.params}
+      state={props.state}
     >
       <Stack gap={'xs'}>
         <Group gap={'xs'}>

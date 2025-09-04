@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ActionIcon,
   Box,
@@ -39,17 +39,18 @@ import type {
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ContentTree from '@/features/courses/cms/content-tree.tsx'
 import { RichTextEditor } from '@/components/editor-w-preview.tsx'
-import { CourseSelector } from '@/features/courses/cms/course-selector.tsx'
+import CourseSelector from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { Link } from '@tanstack/react-router'
+import { getTypeFromLevel } from '@/utils/helpers.ts'
 
 type CMSProps = {
   courseCode?: string
-  view?: EditorView
   itemId?: string
+  variant?: 'editor' | 'full'
 }
 
-export const CMS = ({ courseCode }: CMSProps) => {
+export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
   const theme = useMantineTheme()
   const [isTreeVisible, setIsTreeVisible] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
@@ -62,6 +63,14 @@ export const CMS = ({ courseCode }: CMSProps) => {
     updateCourseContent,
     getNode,
   } = useCourseData(courseCode)
+
+  useEffect(() => {
+    if (itemId) {
+      const node = getNode(itemId)
+      if (node.node)
+        handleUpdate(getTypeFromLevel(node.level), node.node, 'detail')
+    }
+  }, [itemId])
 
   const { editorState, handleAdd, handleUpdate, handlePreview, setView } =
     useEditorState()
@@ -131,7 +140,11 @@ export const CMS = ({ courseCode }: CMSProps) => {
   return (
     <Box h={'100%'} w={'100%'} style={{ overflow: 'hidden' }}>
       <PanelGroup direction="horizontal">
-        <Panel hidden={!isTreeVisible} minSize={15} defaultSize={20}>
+        <Panel
+          hidden={!isTreeVisible || variant === 'editor'}
+          minSize={15}
+          defaultSize={20}
+        >
           <SidePanel
             courseDetails={courseDetails}
             courses={mockCourseBasicDetails}
@@ -162,7 +175,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          hidden={!isTreeVisible}
+          hidden={!isTreeVisible || variant === 'editor'}
         >
           <IconGripVertical size={16} />
         </PanelResizeHandle>
@@ -176,7 +189,6 @@ export const CMS = ({ courseCode }: CMSProps) => {
               isTreeVisible={isTreeVisible}
               onCourseChange={handleCourseChange}
               onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
-              onAddContent={() => handleAdd()}
               view={editorState.view}
               onViewChange={(view) => setView(view as EditorView)}
             />
@@ -222,7 +234,6 @@ interface CMSHeaderProps {
   isTreeVisible: boolean
   onCourseChange: (course: CourseBasicDetails | undefined) => void
   onToggleTree: () => void
-  onAddContent: () => void
   contentTitle?: string
   view: string
   onViewChange: (view: string) => void
@@ -234,7 +245,6 @@ const CMSHeader = ({
   isTreeVisible,
   onCourseChange,
   onToggleTree,
-  onAddContent,
   contentTitle,
   view,
   onViewChange,
@@ -260,8 +270,6 @@ const CMSHeader = ({
             courses={courses}
             selectedCourse={courseDetails}
             onCourseChange={onCourseChange}
-            onAddContent={onAddContent}
-            showAddButton={false}
           />
         </Group>
 
@@ -425,7 +433,6 @@ export const SidePanel = ({
             courses={courses}
             selectedCourse={courseDetails}
             onCourseChange={onCourseChange}
-            onAddContent={() => onAddContent()}
           />
         </Stack>
 

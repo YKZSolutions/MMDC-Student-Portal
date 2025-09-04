@@ -10,30 +10,35 @@ import { mockCourseBasicDetails, mockModule } from '@/features/courses/mocks.ts'
 const findNodeInModule = (
   module: Module,
   nodeId: string,
-): ContentNode | null => {
+): { node: ContentNode | null; level: number } => {
+  let level = 0
+
   // Search in top-level sections
   for (const section of module.sections) {
-    if (section.id === nodeId) return section
+    if (section.id === nodeId) return { node: section, level }
+
+    level++
 
     // Search in section items
     for (const item of section.items) {
-      if (item.id === nodeId) return item
+      if (item.id === nodeId) return { node: item, level }
     }
 
     // Search in subsections
     if (section.subsections) {
+      level++
       for (const subsection of section.subsections) {
-        if (subsection.id === nodeId) return subsection
+        if (subsection.id === nodeId) return { node: subsection, level }
 
         // Search in subsection items
         for (const item of subsection.items) {
-          if (item.id === nodeId) return item
+          if (item.id === nodeId) return { node: item, level }
         }
       }
     }
   }
 
-  return null
+  return { node: null, level: -1 }
 }
 
 // Helper function to update a node in the module structure
@@ -97,7 +102,9 @@ export const useCourseData = (courseCode?: string) => {
   }
 
   // Helper to get a specific node from the module
-  const getNode = (nodeId: string): ContentNode | null => {
+  const getNode = (
+    nodeId: string,
+  ): { node: ContentNode | null; level: number } => {
     return findNodeInModule(module, nodeId)
   }
 
