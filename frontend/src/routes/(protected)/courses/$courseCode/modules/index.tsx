@@ -23,6 +23,9 @@ function RouteComponent() {
   const { authUser } = useAuth('protected')
   const [allExpanded, setAllExpanded] = useState(false)
 
+  const { courseCode } = Route.useParams() //TODO: use this later for fetching the module
+  const module = mockModule //TODO: replace with suspenseQuery
+
   const toggleExpandAll = () => {
     setAllExpanded((prev) => !prev)
   }
@@ -61,7 +64,7 @@ function RouteComponent() {
           )}
         </Group>
       </Group>
-      <ModulePanel allExpanded={allExpanded} module={mockModule} />
+      <ModulePanel allExpanded={allExpanded} module={module} />
     </Stack>
   )
 }
