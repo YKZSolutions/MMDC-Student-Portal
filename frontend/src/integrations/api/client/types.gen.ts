@@ -252,8 +252,6 @@ export type CreateCourseDto = {
     courseCode: string;
     name: string;
     description: string;
-    year: string;
-    semester: string;
     units: number;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
@@ -271,8 +269,6 @@ export type CourseDto = {
     courseCode: string;
     name: string;
     description: string;
-    year: string;
-    semester: string;
     units: number;
     createdAt: string;
     updatedAt: string;
@@ -295,8 +291,6 @@ export type UpdateCourseDto = {
     courseCode?: string;
     name?: string;
     description?: string;
-    year?: string;
-    semester?: string;
     units?: number;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
@@ -804,6 +798,82 @@ export type CourseEnrollmentDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+};
+
+export type CreateCurriculumDto = {
+    icon?: string | null;
+    name?: string | null;
+    description?: string | null;
+};
+
+export type CreateCurriculumCourseItemDto = {
+    courseId: string;
+    order: number;
+    year: number;
+    semester: number;
+};
+
+export type CreateCurriculumWithCoursesDto = {
+    majorId: string;
+    curriculum: CreateCurriculumDto;
+    courses: Array<CreateCurriculumCourseItemDto>;
+};
+
+export type CurriculumDto = {
+    id: string;
+    icon: string | null;
+    name: string | null;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CurriculumItemDto = {
+    id: string;
+    icon: string | null;
+    name: string | null;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    program: ProgramDto;
+    major: MajorDto;
+};
+
+export type CurriculumCourseItemDto = {
+    id: string;
+    order: number;
+    year: number;
+    semester: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+};
+
+export type CurriculumWithCoursesDto = {
+    curriculum: CurriculumItemDto;
+    courses: Array<CurriculumCourseItemDto>;
+};
+
+export type UpdateCurriculumDto = {
+    icon?: string | null;
+    name?: string | null;
+    description?: string | null;
+};
+
+export type UpdateCurriculumCourseItemDto = {
+    courseId: string;
+    order: number;
+    year: number;
+    semester: number;
+};
+
+export type UpdateCurriculumWithCourseDto = {
+    majorId?: string;
+    curriculum: UpdateCurriculumDto;
+    courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
 export type TestControllerTestStudentData = {
@@ -2807,6 +2877,166 @@ export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
 };
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
+
+export type CurriculumControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/curriculum';
+};
+
+export type CurriculumControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerFindAllError = CurriculumControllerFindAllErrors[keyof CurriculumControllerFindAllErrors];
+
+export type CurriculumControllerFindAllResponses = {
+    200: Array<CurriculumItemDto>;
+};
+
+export type CurriculumControllerFindAllResponse = CurriculumControllerFindAllResponses[keyof CurriculumControllerFindAllResponses];
+
+export type CurriculumControllerCreateData = {
+    body: CreateCurriculumWithCoursesDto;
+    path?: never;
+    query?: never;
+    url: '/curriculum';
+};
+
+export type CurriculumControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerCreateError = CurriculumControllerCreateErrors[keyof CurriculumControllerCreateErrors];
+
+export type CurriculumControllerCreateResponses = {
+    201: CurriculumDto;
+};
+
+export type CurriculumControllerCreateResponse = CurriculumControllerCreateResponses[keyof CurriculumControllerCreateResponses];
+
+export type CurriculumControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerRemoveError = CurriculumControllerRemoveErrors[keyof CurriculumControllerRemoveErrors];
+
+export type CurriculumControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type CurriculumControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerFindOneError = CurriculumControllerFindOneErrors[keyof CurriculumControllerFindOneErrors];
+
+export type CurriculumControllerFindOneResponses = {
+    200: CurriculumWithCoursesDto;
+};
+
+export type CurriculumControllerFindOneResponse = CurriculumControllerFindOneResponses[keyof CurriculumControllerFindOneResponses];
+
+export type CurriculumControllerUpdateData = {
+    body: UpdateCurriculumWithCourseDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerUpdateError = CurriculumControllerUpdateErrors[keyof CurriculumControllerUpdateErrors];
+
+export type CurriculumControllerUpdateResponses = {
+    200: CurriculumDto;
+};
+
+export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
+
+export type SwaggerControllerDownloadAllSpecsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/swaggy';
+};
+
+export type SwaggerControllerDownloadAllSpecsResponses = {
+    200: unknown;
+};
 
 export type ClientOptions = {
     baseUrl: string;

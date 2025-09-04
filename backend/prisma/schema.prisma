@@ -4,9 +4,14 @@ datasource db {
   directUrl = env("DIRECT_CLOUD_URL")
 }
 
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("DATABASE_URL")
+// }
+
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["typedSql"]
+  previewFeatures = ["typedSql", "driverAdapters"]
 }
 
 generator json {
@@ -341,7 +346,7 @@ enum Days {
 model CourseSection {
   id String @id @default(uuid()) @db.Uuid
 
-  name String @unique
+  name String
 
   mentorId String? @db.Uuid // make mentor optional
   /// @DtoApiHidden

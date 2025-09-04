@@ -2,10 +2,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { writeFileSync } from 'fs';
 import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exceptions.filters';
 
-async function bootstrap() {
+async function generateSwagger() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
@@ -15,7 +16,9 @@ async function bootstrap() {
     .addTag('api')
     .addBearerAuth()
     .build();
+
   const documentFactory = () => SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('api', app, documentFactory, {
     jsonDocumentUrl: 'api/json',
   });
@@ -39,6 +42,12 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(process.env.PORT ?? 3001);
+  writeFileSync(
+    '../frontend/src/integrations/api/api-spec.json',
+    JSON.stringify(document, null, 2),
+  );
+
+  await app.close();
 }
-bootstrap();
+
+generateSwagger();
