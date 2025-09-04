@@ -2,8 +2,8 @@ import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { DetailedCourseEnrollmentDto } from './detailed-courseEnrollment.dto';
-import { DetailedCourseSectionDto } from './detailed-courseOffering.dto';
+import { DetailedCourseEnrollmentDto } from './detailed-course-enrollment.dto';
+import { DetailedCourseSectionDto } from './detailed-course-offering.dto';
 
 export class PaginatedCourseOfferingsDto extends PaginatedDto {
   @ApiProperty({

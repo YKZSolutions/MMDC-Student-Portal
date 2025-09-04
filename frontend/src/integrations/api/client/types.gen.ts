@@ -1907,7 +1907,7 @@ export type ProgramControllerFindAllData = {
         search?: string;
         page?: number;
     };
-    url: '/program';
+    url: '/programs';
 };
 
 export type ProgramControllerFindAllErrors = {
@@ -1938,7 +1938,7 @@ export type ProgramControllerCreateData = {
     body: CreateProgramDto;
     path?: never;
     query?: never;
-    url: '/program';
+    url: '/programs';
 };
 
 export type ProgramControllerCreateErrors = {
@@ -1973,7 +1973,7 @@ export type ProgramControllerRemoveData = {
          */
         directDelete?: boolean;
     };
-    url: '/program/{id}';
+    url: '/programs/{id}';
 };
 
 export type ProgramControllerRemoveErrors = {
@@ -2008,7 +2008,7 @@ export type ProgramControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/program/{id}';
+    url: '/programs/{id}';
 };
 
 export type ProgramControllerFindOneErrors = {
@@ -2046,7 +2046,7 @@ export type ProgramControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/program/{id}';
+    url: '/programs/{id}';
 };
 
 export type ProgramControllerUpdateErrors = {
@@ -2108,7 +2108,7 @@ export type MajorControllerFindAllData = {
         search?: string;
         page?: number;
     };
-    url: '/major';
+    url: '/majors';
 };
 
 export type MajorControllerFindAllErrors = {
@@ -2141,7 +2141,7 @@ export type MajorControllerCreateData = {
     body: CreateProgramMajorDto;
     path?: never;
     query?: never;
-    url: '/major';
+    url: '/majors';
 };
 
 export type MajorControllerCreateErrors = {
@@ -2176,7 +2176,7 @@ export type MajorControllerRemoveData = {
          */
         directDelete?: boolean;
     };
-    url: '/major/{id}';
+    url: '/majors/{id}';
 };
 
 export type MajorControllerRemoveErrors = {
@@ -2208,7 +2208,7 @@ export type MajorControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/major/{id}';
+    url: '/majors/{id}';
 };
 
 export type MajorControllerFindOneErrors = {
@@ -2238,7 +2238,7 @@ export type MajorControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/major/{id}';
+    url: '/majors/{id}';
 };
 
 export type MajorControllerUpdateErrors = {
@@ -3026,6 +3026,17 @@ export type CurriculumControllerUpdateResponses = {
 };
 
 export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
+
+export type SwaggerControllerDownloadAllSpecsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/swaggy';
+};
+
+export type SwaggerControllerDownloadAllSpecsResponses = {
+    200: unknown;
+};
 
 export type ClientOptions = {
     baseUrl: string;

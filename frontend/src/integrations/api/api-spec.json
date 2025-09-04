@@ -3756,7 +3756,7 @@
         ]
       }
     },
-    "/program": {
+    "/programs": {
       "post": {
         "description": "This operation creates a new academic program.\nRequires `ADMIN` role.",
         "operationId": "ProgramController_create",
@@ -3981,7 +3981,7 @@
         ]
       }
     },
-    "/program/{id}": {
+    "/programs/{id}": {
       "get": {
         "description": "Requires `ADMIN` role.",
         "operationId": "ProgramController_findOne",
@@ -4475,7 +4475,7 @@
         ]
       }
     },
-    "/major": {
+    "/majors": {
       "post": {
         "description": "This operation creates a new academic major.\nRequries `ADMIN` role.",
         "operationId": "MajorController_create",
@@ -4746,7 +4746,7 @@
         ]
       }
     },
-    "/major/{id}": {
+    "/majors/{id}": {
       "get": {
         "description": "Requires `ADMIN` role.",
         "operationId": "MajorController_findOne",
@@ -7862,6 +7862,20 @@
         "summary": "Deletes a curriculum (temporary or permanent)",
         "tags": [
           "Curriculum"
+        ]
+      }
+    },
+    "/swaggy": {
+      "get": {
+        "operationId": "SwaggerController_downloadAllSpecs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Swagger"
         ]
       }
     }

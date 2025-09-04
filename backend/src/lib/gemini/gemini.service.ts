@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { getToolsForRole } from '@/lib/gemini/function-declarations';
 import {
@@ -9,10 +9,11 @@ import {
 import { Turn } from '@/modules/chatbot/dto/prompt.dto';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from '@/config/env.schema';
+import { Log } from '@/common/decorators/log.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class GeminiService {
-  private readonly logger = new Logger(GeminiService.name);
   private readonly gemini: GoogleGenAI;
   private readonly model: string = 'gemini-2.5-flash';
 
@@ -25,17 +26,20 @@ export class GeminiService {
   /**
    * Ask Gemini a question and let it decide if it should call a function.
    */
+  @Log({
+    logArgsMessage: ({ question, currentUser, sessionHistory }) =>
+      `Ask Gemini with function calling question="${question}" sessionHistory=${sessionHistory} userId=${currentUser?.id} role=${currentUser?.role}`,
+    logSuccessMessage: (_, { currentUser }) =>
+      `Gemini responded successfully for userId=${currentUser?.id} role=${currentUser?.role}`,
+    logErrorMessage: (err, { question, currentUser }) =>
+      `Failed to ask Gemini question="${question}" userId=${currentUser?.id} | Error=${err.message}`,
+  })
   async askWithFunctionCalling(
-    question: string,
-    sessionHistory: Turn[],
+    @LogParam('question') question: string,
+    @LogParam('sessionHistory') sessionHistory: Turn[],
+    @LogParam('currentUser')
     currentUser: UserBaseContext | UserStudentContext | UserStaffContext,
   ) {
-    const method = 'askWithFunctionCalling';
-    this.logger.log(`[${method}] START: question=${question}`);
-    this.logger.debug(`Asking Gemini: ${question}`);
-    this.logger.debug('Current user', currentUser);
-    this.logger.debug('Session history', sessionHistory);
-
     const role = currentUser.role ?? 'user';
     const allowedTools = getToolsForRole(role);
 
@@ -65,10 +69,6 @@ export class GeminiService {
         config: { tools: allowedTools },
       });
 
-      this.logger.log(
-        `[${method}] SUCCESS: userId=${currentUser.id} role=${role}`,
-      );
-
       // Extract the response text
       const responseText = result.text;
 
@@ -80,7 +80,6 @@ export class GeminiService {
         call: functionCalls?.length ? functionCalls : null,
       };
     } catch (error) {
-      this.logger.error(`[${method}] Error calling Gemini API:`, error);
       throw new Error('Failed to get response from Gemini API');
     }
   }
@@ -88,7 +87,17 @@ export class GeminiService {
   /**
    * Generate final natural language answer with context.
    */
-  async generateFinalAnswer(question: string, context: any) {
+  @Log({
+    logArgsMessage: ({ question }) =>
+      `Generate final answer for question="${question}"`,
+    logSuccessMessage: () => `Generated final answer successfully`,
+    logErrorMessage: (err, { question }) =>
+      `Failed to generate final answer for question="${question}" | Error=${err.message}`,
+  })
+  async generateFinalAnswer(
+    @LogParam('question') question: string,
+    context: any,
+  ) {
     const prompt = `
       Question: ${question}
       Context: ${typeof context === 'string' ? context : JSON.stringify(context)}

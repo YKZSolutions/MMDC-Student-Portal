@@ -1977,3 +1977,9 @@ export const zCurriculumControllerUpdateData = z.object({
 });
 
 export const zCurriculumControllerUpdateResponse = zCurriculumDto;
+
+export const zSwaggerControllerDownloadAllSpecsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});

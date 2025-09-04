@@ -29,6 +29,14 @@ import {
   CourseSection,
   type CourseSection as CourseSectionAsType,
 } from './courseSection.entity';
+import {
+  Submission,
+  type Submission as SubmissionAsType,
+} from './submission.entity';
+import {
+  StudentProgress,
+  type StudentProgress as StudentProgressAsType,
+} from './studentProgress.entity';
 
 export class User {
   @ApiProperty({
@@ -51,6 +59,10 @@ export class User {
   courseEnrollment?: CourseEnrollmentAsType[];
   @ApiHideProperty()
   courseSections?: CourseSectionAsType[];
+  @ApiHideProperty()
+  submissions?: SubmissionAsType[];
+  @ApiHideProperty()
+  moduleProgress?: StudentProgressAsType[];
   @ApiProperty({
     type: 'string',
   })

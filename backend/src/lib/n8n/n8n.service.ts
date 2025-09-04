@@ -1,13 +1,11 @@
-import {
-  Injectable,
-  Logger,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from '@/config/env.schema';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom, timeout } from 'rxjs';
+import { Log } from '@/common/decorators/log.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 export type VectorSearchResponse = {
   output: string;
@@ -15,7 +13,6 @@ export type VectorSearchResponse = {
 
 @Injectable()
 export class N8nService {
-  private readonly logger = new Logger(N8nService.name);
   private readonly webhookUrl: string;
 
   constructor(
@@ -29,11 +26,16 @@ export class N8nService {
     }
   }
 
-  async searchVector(query: string): Promise<VectorSearchResponse> {
-    const method = 'searchVector';
-    this.logger.log(`[${method}] START`);
-    this.logger.debug(`Query: ${query}`);
-
+  @Log({
+    logArgsMessage: ({ query }) => `Vector search started for query="${query}"`,
+    logSuccessMessage: (result, { query }) =>
+      `Vector search successful for query="${query}", output="${result.output}"`,
+    logErrorMessage: (err, { query }) =>
+      `Vector search failed for query="${query}" | Error=${err.message}`,
+  })
+  async searchVector(
+    @LogParam('query') query: string,
+  ): Promise<VectorSearchResponse> {
     const res = this.httpService
       .post<VectorSearchResponse>(
         this.webhookUrl,

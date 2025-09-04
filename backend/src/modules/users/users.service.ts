@@ -1,6 +1,13 @@
 import { type ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { AuthService } from '@/modules/auth/auth.service';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
@@ -25,11 +32,15 @@ import {
 } from './dto/user-details.dto';
 import { UpdateStudentDetailsDto } from '@/generated/nestjs-dto/update-studentDetails.dto';
 import { UpdateStaffDetailsDto } from '@/generated/nestjs-dto/update-staffDetails.dto';
+import { Log } from '@/common/decorators/log.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
-
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
@@ -47,16 +58,19 @@ export class UsersService {
    * @returns The created Prisma user.
    * @throws BadRequestException if user creation in DB fails.
    */
+  @Log({
+    logArgsMessage: ({ credentials, role }) =>
+      `Create supabase account email=${credentials.email} role=${role}`,
+    logSuccessMessage: (result, { credentials }) =>
+      `Create supabase account email=${credentials.email} id=${result.id}`,
+    logErrorMessage: (err, { credentials }) =>
+      `Create supabase account email=${credentials.email} | Error: ${err.message}`,
+  })
   private async accountCreationHandler(
-    credentials: CreateUserFullDto['credentials'],
-    role: Role,
+    @LogParam('credentials') credentials: CreateUserFullDto['credentials'],
+    @LogParam('role') role: Role,
     callback: (user: User) => Promise<UserDto>,
   ) {
-    const method = 'accountCreationHandler';
-    this.logger.log(
-      `[${method}] START: email=${credentials.email}, role=${role}`,
-    );
-
     const account = await this.authService.create(
       role,
       credentials.email,
@@ -70,9 +84,6 @@ export class UsersService {
         user_id: user.id,
       });
 
-      this.logger.log(
-        `[${method}] SUCCESS: created user id=${user.id}, authUid=${account.id}`,
-      );
       return user;
     } catch (err) {
       if (account) await this.authService.delete(account.id);
@@ -88,23 +99,43 @@ export class UsersService {
    * @returns The created user object.
    * @throws InternalServerErrorException if user creation fails.
    */
+  @Log({
+    logArgsMessage: ({ role, dto }) =>
+      `Create user account email=${dto.credentials.email} role=${role}`,
+    logSuccessMessage: (result, { role, dto }) =>
+      `Create user account email=${dto.credentials.email} role=${role} | id=${result.id}`,
+    logErrorMessage: (err, { role, dto }) =>
+      `Create user account email=${dto.credentials.email} role=${role} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: (msg, { dto }) =>
+      new ConflictException(
+        `User creation failed: email=${dto.credentials.email} already exists`,
+      ),
+    [PrismaErrorCode.ForeignKeyConstraint]: () =>
+      new BadRequestException('Invalid reference when creating user'),
+    [PrismaErrorCode.RelationViolation]: () =>
+      new BadRequestException(
+        'Invalid relation setup (e.g., multiple details for one user)',
+      ),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'User creation failed due to transaction deadlock',
+      ),
+  })
   async create(
-    role: Role,
+    @LogParam('role') role: Role,
+    @LogParam('dto')
     createUserDto:
       | CreateUserFullDto
       | CreateUserStudentDto
       | CreateUserStaffDto,
   ) {
-    const method = 'create';
     const {
       user: userDto,
       credentials,
       userDetails: userDetailsDto,
     } = createUserDto;
-
-    this.logger.log(
-      `[${method}] START: role=${role}, email=${credentials.email}`,
-    );
 
     const user = await this.accountCreationHandler(
       credentials,
@@ -145,16 +176,40 @@ export class UsersService {
       },
     );
 
-    this.logger.log(`[${method}] SUCCESS: created user id=${user.id}`);
     return user;
   }
 
-  async inviteUser(inviteUserDto: InviteUserDto) {
-    const method = 'inviteUser';
-    this.logger.log(
-      `[${method}] START: email=${inviteUserDto.email}, role=${inviteUserDto.role}`,
-    );
+  /**
+   * Invites a user by creating a Supabase account and a corresponding database record.
+   *
+   * - If a user with the same auth UID already exists, it returns that user instead of creating a new one.
+   * - Updates metadata on Supabase with the newly created user ID.
+   *
+   * @param inviteUserDto - Payload containing email, role, and optional user details.
+   * @returns The invited user and associated metadata.
+   * @throws ConflictException if a user with the email already exists.
+   * @throws InternalServerErrorException if invitation fails unexpectedly.
+   */
 
+  @Log({
+    logArgsMessage: ({ dto }) =>
+      `Invite user email=${dto.email} role=${dto.role}`,
+    logSuccessMessage: (result, { dto }) =>
+      `Invite user email=${dto.email} role=${dto.role} | id=${result.user.id}`,
+    logErrorMessage: (err, { dto }) =>
+      `Invite user email=${dto.email} role=${dto.role} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: (msg, { dto }) =>
+      new ConflictException(
+        `Invitation failed: email=${dto.email} already exists`,
+      ),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'User invitation failed due to transaction deadlock',
+      ),
+  })
+  async inviteUser(@LogParam('dto') inviteUserDto: InviteUserDto) {
     const result = await this.prisma.client.$transaction(async (tx) => {
       const account = await this.authService.invite(
         inviteUserDto.email,
@@ -189,7 +244,6 @@ export class UsersService {
       return { user };
     });
 
-    this.logger.log(`[${method}] SUCCESS: invited user id=${result.user.id}`);
     return result;
   }
 
@@ -204,14 +258,31 @@ export class UsersService {
    * @throws NotFoundException if the user does not exist.
    * @throws InternalServerErrorException if update fails unexpectedly.
    */
+  @Log({
+    logArgsMessage: ({ userId, role }) =>
+      `Update user details userId=${userId}, role=${role}`,
+    logSuccessMessage: (result, { userId }) =>
+      `Updated user details userId=${userId}, id=${result.id}`,
+    logErrorMessage: (err, { userId }) =>
+      `Failed to update user details userId=${userId} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (msg, { userId }) =>
+      new NotFoundException(`User with ID ${userId} not found`),
+    [PrismaErrorCode.ForeignKeyConstraint]: () =>
+      new BadRequestException('Invalid reference during user update'),
+    [PrismaErrorCode.RelationViolation]: () =>
+      new BadRequestException('Invalid relation setup during user update'),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'User update failed due to transaction deadlock',
+      ),
+  })
   async updateUserDetails(
-    userId: string,
-    role: Role,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     updateUserDto: UpdateUserStudentDto | UpdateUserStaffDto,
   ): Promise<UserDto> {
-    const method = 'updateUserDetails';
-    this.logger.log(`[${method}] START: userId=${userId}, role=${role}`);
-
     const {
       user: userDto,
       userDetails: userDetailsDto,
@@ -251,9 +322,19 @@ export class UsersService {
       data: baseUserData,
     });
 
-    this.logger.log(`[${method}] SUCCESS: updated user id=${updatedUser.id}`);
     return updatedUser;
   }
+
+  /**
+   * Applies filtering conditions to a Prisma `UserWhereInput` based on the provided filters.
+   *
+   * - Filters by role if provided.
+   * - Only includes users that are not soft-deleted (`deletedAt = null`).
+   * - Supports full-text search across firstName, lastName, and userAccount email.
+   *
+   * @param filters - Filter conditions including role and search terms.
+   * @param where - Prisma `UserWhereInput` object that will be mutated.
+   */
 
   filterHandler(filters: FilterUserDto, where: Prisma.UserWhereInput) {
     if (filters.role) where.role = filters.role;
@@ -297,14 +378,21 @@ export class UsersService {
    * @returns Paginated list of users with metadata.
    * @throws BadRequestException or InternalServerErrorException based on the failure type.
    */
-  async findAll(filters: FilterUserDto): Promise<PaginatedUsersDto> {
-    const method = 'findAll';
-    this.logger.log(
-      `[${method}] START: role=${filters.role ?? 'any'}, search="${
-        filters.search ?? ''
-      }", page=${filters.page ?? 1}`,
-    );
-
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Find all users filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) => `Found ${result.users.length} users`,
+    logErrorMessage: (err) => `Failed to find users | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'User search failed due to transaction deadlock',
+      ),
+  })
+  async findAll(
+    @LogParam('filters') filters: FilterUserDto,
+  ): Promise<PaginatedUsersDto> {
     const page: FilterUserDto['page'] = Number(filters?.page) || 1;
     const where: Prisma.UserWhereInput = {};
 
@@ -324,24 +412,38 @@ export class UsersService {
         includePageCount: true,
       });
 
-    this.logger.log(`[${method}] SUCCESS: returned ${users.length} users`);
     return { users, meta };
   }
 
-  async countAll(filters: FilterUserDto): Promise<number> {
-    const method = 'countAll';
-    this.logger.log(
-      `[${method}] START: role=${filters.role ?? 'any'}, search="${
-        filters.search ?? ''
-      }", page=${filters.page ?? 1}`,
-    );
+  /**
+   * Counts all users that match the provided filters.
+   *
+   * - Uses the same filtering logic as `findAll`.
+   * - Supports search terms and role-based filtering.
+   *
+   * @param filters - Filter conditions including role and search terms.
+   * @returns The total number of users matching the filters.
+   * @throws InternalServerErrorException if counting fails unexpectedly.
+   */
 
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Count all users filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) => `User count=${result}`,
+    logErrorMessage: (err) => `Failed to count users | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Counting users failed due to transaction deadlock',
+      ),
+  })
+  async countAll(@LogParam('filters') filters: FilterUserDto): Promise<number> {
     const where: Prisma.UserWhereInput = {};
 
     this.filterHandler(filters, where);
 
     const count = await this.prisma.client.user.count({ where });
-    this.logger.log(`[${method}] SUCCESS: count=${count}`);
     return count;
   }
 
@@ -354,10 +456,22 @@ export class UsersService {
    * @throws NotFoundException if the user does not exist.
    * @throws InternalServerErrorException for all other errors.
    */
-  async findOne(id: string): Promise<UserWithRelations> {
-    const method = 'findOne';
-    this.logger.log(`[${method}] START: id=${id}`);
 
+  @Log({
+    logArgsMessage: ({ id }) => `Find user by ID=${id}`,
+    logSuccessMessage: (result) => `Found user id=${result.id}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to find user id=${id} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`User with ID ${id} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Finding user failed due to transaction deadlock',
+      ),
+  })
+  async findOne(@LogParam('id') id: string): Promise<UserWithRelations> {
     const user = await this.prisma.client.user.findUnique({
       where: {
         id,
@@ -372,7 +486,6 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
-    this.logger.log(`[${method}] SUCCESS: found user id=${id}`);
     return user;
   }
 
@@ -387,10 +500,24 @@ export class UsersService {
    * - If the user is currently disabled, this will set `disabledAt` to `null` to enable them.
    * - The user's status in the authentication provider will also be updated accordingly.
    */
-  async updateStatus(userId: string): Promise<{ message: string }> {
-    const method = 'updateStatus';
-    this.logger.log(`[${method}] START: userId=${userId}`);
-
+  @Log({
+    logArgsMessage: ({ userId }) => `Update status for userId=${userId}`,
+    logSuccessMessage: (result, { userId }) =>
+      `Updated status for userId=${userId}, message="${result.message}"`,
+    logErrorMessage: (err, { userId }) =>
+      `Failed to update status for userId=${userId} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (msg, { userId }) =>
+      new NotFoundException(`User or account with ID ${userId} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Updating user status failed due to transaction deadlock',
+      ),
+  })
+  async updateStatus(
+    @LogParam('userId') userId: string,
+  ): Promise<{ message: string }> {
     const user = await this.prisma.client.user.findUnique({
       where: { id: userId },
       select: {
@@ -420,9 +547,7 @@ export class UsersService {
     const message = isDisabled
       ? 'User enabled successfully.'
       : 'User disabled successfully.';
-    this.logger.log(
-      `[${method}] SUCCESS: userId=${userId}, message="${message}"`,
-    );
+
     return { message };
   }
 
@@ -444,13 +569,23 @@ export class UsersService {
    * @throws NotFoundException If no user account is found
    * @throws InternalServerErrorException If an unexpected error occurs
    */
+  @Log({
+    logArgsMessage: ({ authId }) => `Get profile for authId=${authId}`,
+    logSuccessMessage: (result) => `Retrieved profile for userId=${result.id}`,
+    logErrorMessage: (err, { authId }) =>
+      `Failed to get profile for authId=${authId} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('User not found'),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Fetching profile failed due to transaction deadlock',
+      ),
+  })
   async getMe(
-    authId: string,
+    @LogParam('authId') authId: string,
   ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
-    const method = 'getMe';
-
-    this.logger.log(`[${method}] START: authId=${authId ?? 'unknown'}`);
-
     const account = await this.prisma.client.userAccount.findUnique({
       where: { authUid: authId },
       include: {
@@ -490,8 +625,6 @@ export class UsersService {
       userDetails,
     };
 
-    this.logger.log(`[${method}] SUCCESS: userId=${id}, role=${role}`);
-
     if (role === 'student') {
       return {
         ...basicDetails,
@@ -519,15 +652,26 @@ export class UsersService {
    * @param directDelete - Whether to skip soft delete and directly remove the user.
    * @returns A message indicating the result.
    */
+  @Log({
+    logArgsMessage: ({ id, directDelete }) =>
+      `Remove user id=${id}, directDelete=${directDelete}`,
+    logSuccessMessage: (result, { id }) =>
+      `Removed user id=${id}, message="${result.message}"`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to remove user id=${id} | Error=${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (msg, { id }) =>
+      new NotFoundException(`User with ID ${id} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Deleting user failed due to transaction deadlock',
+      ),
+  })
   async remove(
-    id: string,
+    @LogParam('id') id: string,
     directDelete?: boolean,
   ): Promise<{ message: string }> {
-    const method = 'remove';
-    this.logger.log(
-      `[${method}] START: id=${id}, directDelete=${Boolean(directDelete)}`,
-    );
-
     const user = await this.prisma.client.user.findUniqueOrThrow({
       where: { id },
       include: {
@@ -548,10 +692,8 @@ export class UsersService {
           status: 'deleted',
         });
 
-      const message = 'User has been soft deleted';
-      this.logger.log(`[${method}] SUCCESS: id=${id}, message="${message}"`);
       return {
-        message,
+        message: 'User has been soft deleted',
       };
     }
 
@@ -562,10 +704,8 @@ export class UsersService {
       where: { id: id },
     });
 
-    const message = 'User has been permanently deleted';
-    this.logger.log(`[${method}] SUCCESS: id=${id}, message="${message}"`);
     return {
-      message,
+      message: 'User has been permanently deleted',
     };
   }
 }
