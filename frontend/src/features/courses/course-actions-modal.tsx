@@ -11,7 +11,6 @@ import {
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
 import { CardWithModal } from '@/components/with-modal.tsx'
-import BtnCard from '@/components/btn-card.tsx'
 
 type CourseActionsModalProps = {
   courseCode: string
@@ -45,25 +44,6 @@ const CourseActionsModal = ({
         <Grid my={'sm'}>
           {/*TODO: add more content types, these are just placeholders*/}
           {/*Modal for each content type are currently not implemented*/}
-          <GridCol span={6}>
-            <CardWithModal
-              title={'Course'}
-              description={'Create a new course that students can enroll in.'}
-              icon={<IconBook />}
-              modalComponent={Modal}
-            />
-          </GridCol>
-          <GridCol span={6}>
-            <BtnCard
-              title={'Module'}
-              description={
-                'Create a new module that contains assignments and other content.'
-              }
-              icon={<IconBook />}
-              url="/courses/$courseCode/modules"
-              params={courseCode}
-            />
-          </GridCol>
           <GridCol span={6}>
             <CardWithModal
               title={'Content'}
