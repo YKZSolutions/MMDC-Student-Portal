@@ -14,8 +14,8 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
-import { CourseEnrollmentService } from './courseEnrollment.service';
-import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
+import { CourseEnrollmentService } from './course-enrollment.service';
+import { StudentIdentifierDto } from './dto/student-identifier.dto';
 
 @Controller('enrollment/student')
 export class CourseEnrollmentController {

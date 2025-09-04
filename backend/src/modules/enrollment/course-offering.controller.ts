@@ -16,9 +16,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { CourseOfferingService } from './courseOffering.service';
-import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
-import { FilterCourseOfferingDto } from './dto/filter-courseOffering.dto';
+import { CourseOfferingService } from './course-offering.service';
+import { CreateCourseOfferingDto } from './dto/create-course-offering.dto';
+import { FilterCourseOfferingDto } from './dto/filter-course-offering.dto';
 
 @Controller('enrollments')
 export class CourseOfferingController {
@@ -55,12 +55,12 @@ export class CourseOfferingController {
   findCourseOfferingsByPeriod(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
     @Query() filters: FilterCourseOfferingDto,
-    @CurrentUser() user: CurrentAuthUser
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     return this.courseOfferingService.findAllCourseOfferings(
       filters,
       enrollmentId,
-      user
+      user,
     );
   }
 
