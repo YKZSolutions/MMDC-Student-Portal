@@ -38,7 +38,7 @@ import type {
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ContentTree from '@/features/courses/cms/content-tree.tsx'
-import { EditorWithPreview } from '@/components/editor-w-preview.tsx'
+import { RichTextEditor } from '@/components/editor-w-preview.tsx'
 import { CourseSelector } from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { Link } from '@tanstack/react-router'
@@ -94,7 +94,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
       }
       case 'content':
         return (
-          <EditorWithPreview
+          <RichTextEditor
             content={
               editorState.data && 'content' in editorState.data
                 ? editorState.data?.content ||
@@ -115,7 +115,7 @@ export const CMS = ({ courseCode }: CMSProps) => {
         )
       case 'preview':
         return (
-          <EditorWithPreview
+          <RichTextEditor
             content={
               editorState.data && 'content' in editorState.data
                 ? editorState.data?.content ||

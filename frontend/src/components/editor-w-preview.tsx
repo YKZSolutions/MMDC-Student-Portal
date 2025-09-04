@@ -11,7 +11,7 @@ import {
   Stack,
   Title,
 } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   BasicTextStyleButton,
   BlockNoteViewEditor,
@@ -41,12 +41,12 @@ import {
 } from '@tabler/icons-react'
 import { mockInitialContentString } from '@/features/courses/mocks.ts'
 
-interface EditorWithPreviewProps {
+interface RichTextEditorProps {
   content: string | null
   onUpdate?: (content: string) => void
 }
 
-const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
+const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
   const editor = useCreateBlockNote({
     initialContent: JSON.parse(mockInitialContentString),
   })
@@ -66,15 +66,15 @@ const EditorWithPreview = ({ content, onUpdate }: EditorWithPreviewProps) => {
     updatePreview()
   }, [isPreviewMode])
 
-  useEditorChange((editor) => {
-    const updateContent = async () => {
-      // Save to JSON for saving
-      const jsonObject = JSON.stringify(editor.document)
+  const updateContent = useCallback(async () => {
+    // Save to JSON for saving
+    const jsonObject = JSON.stringify(editor.document)
 
-      // Save to database
-      onUpdate?.(jsonObject)
-    }
-  }, editor)
+    // Save to database
+    onUpdate?.(jsonObject)
+  }, [editor, onUpdate])
+
+  useEditorChange(updateContent, editor)
 
   return (
     <Box
@@ -334,7 +334,7 @@ const ModeToggleButton = ({
   )
 }
 
-type EditorWithPreviewModalProps = ModalProps & EditorWithPreviewProps
+type EditorWithPreviewModalProps = ModalProps & RichTextEditorProps
 
 const EditorWithPreviewModal = ({
   content,
@@ -372,7 +372,7 @@ const EditorWithPreviewModal = ({
             }}
           >
             <Stack flex={'1 0 auto'}>
-              <EditorWithPreview content={editorContent} />
+              <RichTextEditor content={editorContent} />
               <Divider></Divider>
               <Group justify="space-between">
                 <Button
@@ -397,4 +397,4 @@ const EditorWithPreviewModal = ({
 
 EditorWithPreviewModal.displayName = 'EditorWithPreviewModal'
 
-export { EditorWithPreview, EditorWithPreviewModal }
+export { RichTextEditor, EditorWithPreviewModal }
