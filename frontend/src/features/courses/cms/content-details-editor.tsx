@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   type BoxProps,
   Button,
   Group,
@@ -15,8 +14,8 @@ import {
   IconHeading,
   IconHourglassEmpty,
   IconReplace,
+  IconRestore,
   IconScoreboard,
-  IconTrash,
   IconWriting,
 } from '@tabler/icons-react'
 import React, {
@@ -191,27 +190,18 @@ const ContentDetailsEditor = ({
           {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
         </Text>
         {mode === 'edit' && (
-          <ActionIcon onClick={handleDelete} variant="transparent" color="gray">
-            <IconTrash size={22} color={theme.colors.red[6]} />
-          </ActionIcon>
+          <Button
+            variant="default"
+            onClick={form.reset}
+            leftSection={<IconRestore size={18} />}
+          >
+            Reset
+          </Button>
         )}
       </Group>
 
       <Stack p="xl">
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="md">
-            {getFormFields()}
-
-            <Group justify="flex-end" mt="md" wrap={'nowrap'}>
-              <Button variant="default" onClick={form.reset}>
-                Reset
-              </Button>
-              <Button type="submit">
-                {mode === 'create' ? 'Create' : 'Save Changes'}
-              </Button>
-            </Group>
-          </Stack>
-        </form>
+        <form onSubmit={form.onSubmit(handleSubmit)}>{getFormFields()}</form>
       </Stack>
     </Stack>
   )

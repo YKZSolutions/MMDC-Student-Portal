@@ -9,12 +9,18 @@ import {
   Menu,
   Stack,
   Text,
+  ThemeIcon,
   Title,
+  Tooltip,
   useMantineTheme,
 } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getSubmissionStatus } from '@/utils/helpers.ts'
-import type { Module, ModuleItem } from '@/features/courses/modules/types.ts'
+import type {
+  Module,
+  ModuleItem,
+  ModuleSection,
+} from '@/features/courses/modules/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { CompletedStatusIcon } from '@/components/icon-selector.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
@@ -23,7 +29,9 @@ import SubmitButton from '@/components/submit-button.tsx'
 import {
   IconDotsVertical,
   IconEdit,
-  IconSettings,
+  IconPlus,
+  IconRubberStamp,
+  IconRubberStampOff,
   IconTrash,
 } from '@tabler/icons-react'
 import type { Role } from '@/integrations/api/client'
@@ -91,7 +99,7 @@ const ModulePanel = ({
           bg={'background'}
         >
           <CustomAccordionControl
-            itemId={section.id}
+            item={section}
             title={section.title}
             completedItemsCount={getCompletedItemsCount(
               section.subsections?.flatMap((sub) => sub.items) || [],
@@ -117,7 +125,7 @@ const ModulePanel = ({
                   bg={'white'}
                 >
                   <CustomAccordionControl
-                    itemId={subsection.id}
+                    item={subsection}
                     title={subsection.title}
                     completedItemsCount={getCompletedItemsCount(
                       subsection.items,
@@ -223,21 +231,7 @@ const ModuleItemCard = ({
                 )}
               </>
             ),
-            admin: (
-              <Group gap="xs">
-                <ActionIcon
-                  component={Link}
-                  variant="subtle"
-                  radius="lg"
-                  to={`./${item.id}/edit`}
-                >
-                  <IconEdit size={16} />
-                </ActionIcon>
-                <ActionIcon variant="subtle" color="red" radius="lg">
-                  <IconTrash size={16} />
-                </ActionIcon>
-              </Group>
-            ),
+            admin: <AdminActions item={item} />,
           }}
         />
       </Group>
@@ -246,7 +240,7 @@ const ModuleItemCard = ({
 }
 
 type CustomAccordionControlProps = {
-  itemId: string
+  item: ModuleSection
   title: string
   completedItemsCount?: number
   totalItemsCount?: number
@@ -255,7 +249,7 @@ type CustomAccordionControlProps = {
 } & GroupProps
 
 function CustomAccordionControl({
-  itemId,
+  item,
   title,
   completedItemsCount,
   totalItemsCount,
@@ -265,8 +259,6 @@ function CustomAccordionControl({
 }: CustomAccordionControlProps) {
   const { authUser } = useAuth('protected')
   const role: Role = isPreview ? 'student' : authUser.role
-
-  const handleDelete = () => {}
 
   return (
     <Group
@@ -288,35 +280,96 @@ function CustomAccordionControl({
           </Stack>
         </Group>
       </Group>
-      {role === 'admin' && (
-        <Group>
-          <ActionIcon
-            component={Link}
-            to={`./${itemId}/edit`}
-            variant="subtle"
-            radius="lg"
-          >
-            <IconEdit size={'70%'} />
-          </ActionIcon>
-          <Menu shadow="md" width={200}>
-            <Menu.Target>
-              <ActionIcon variant="default" radius="lg">
-                <IconDotsVertical size={'70%'} />
-              </ActionIcon>
-            </Menu.Target>
+      {role === 'admin' && <AdminActions item={item} />}
+    </Group>
+  )
+}
 
-            <Menu.Dropdown>
-              <Menu.Label>Actions</Menu.Label>
-              <Menu.Item leftSection={<IconSettings size={14} />}>
-                Settings
+type AdminActionsProps = {
+  item: ModuleItem | ModuleSection
+}
+
+const AdminActions = ({ item }: AdminActionsProps) => {
+  const theme = useMantineTheme()
+  const handleDelete = () => {} //TODO: implement this
+  return (
+    <Group>
+      <Tooltip label={item.published.isPublished ? 'Published' : 'Draft'}>
+        <Menu shadow="md" width={200}>
+          <Menu.Target>
+            <ActionIcon variant="default" radius="lg">
+              <ThemeIcon
+                color={item.published.isPublished ? 'green' : 'gray'}
+                size="md"
+                radius="xl"
+              >
+                {item.published.isPublished ? (
+                  <IconRubberStamp size={20} />
+                ) : (
+                  <IconRubberStampOff size={20} />
+                )}
+              </ThemeIcon>
+            </ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown>
+            {!item.published.isPublished && (
+              <Menu.Item
+                component={Link}
+                to={`./${item}/publish`}
+                onClick={() => {}}
+              >
+                Publish Now
               </Menu.Item>
-              <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
-                Delete Item
+            )}
+            {!item.published.isPublished && (
+              <Menu.Item
+                component={Link}
+                to={`./${item}/publish`}
+                onClick={() => {}}
+              >
+                Schedule Publish
               </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
-      )}
+            )}
+          </Menu.Dropdown>
+        </Menu>
+      </Tooltip>
+      <Tooltip label="Add new">
+        <ActionIcon
+          component={Link}
+          to={`./${item.id}/create`}
+          variant="subtle"
+          radius="lg"
+        >
+          <IconPlus size={20} />
+        </ActionIcon>
+      </Tooltip>
+      <Menu shadow="md" width={200}>
+        <Menu.Target>
+          <ActionIcon variant="default" radius="lg">
+            <IconDotsVertical size={20} />
+          </ActionIcon>
+        </Menu.Target>
+
+        <Menu.Dropdown>
+          <Menu.Label>Actions</Menu.Label>
+          <Menu.Item
+            component={Link}
+            to={`./${item}/edit`}
+            leftSection={
+              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[5]} />
+            }
+          >
+            Edit
+          </Menu.Item>
+          <Menu.Item //TODO: implement this
+            leftSection={
+              <IconTrash size={16} stroke={1.5} color={theme.colors.red[5]} />
+            }
+          >
+            Delete Item
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </Group>
   )
 }

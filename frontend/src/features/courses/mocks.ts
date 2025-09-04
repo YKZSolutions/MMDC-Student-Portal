@@ -202,32 +202,56 @@ export const mockModule: Module = {
   courseCode: 'MO-IT200',
   courseName: 'Web Technology Applications',
   courseSection: 'A',
+  published: {
+    isPublished: true,
+    publishedAt: new Date().toISOString(),
+  },
   sections: [
     // Section 1: Introduction to Course
     {
       id: 'section-1',
+      parentId: 'module-1',
       title: 'Introduction to Course',
       order: 1,
       items: [],
+      published: {
+        isPublished: true,
+        publishedAt: new Date().toISOString(),
+      },
       subsections: [
         {
           id: 'subsection-1-1',
+          parentId: 'section-1',
           title: 'Onboarding',
           order: 1,
+          published: {
+            isPublished: true,
+            publishedAt: new Date().toISOString(),
+          },
           items: [
             {
               id: 'lesson-1',
+              parentId: 'subsection-1-1',
               type: 'lesson',
               title: 'Welcome Lesson',
               order: 1,
               content: mockInitialContentString,
+              published: {
+                isPublished: true,
+                publishedAt: new Date().toISOString(),
+              },
             },
             {
               id: 'assignment-1',
+              parentId: 'subsection-1-1',
               type: 'assignment',
               title: 'Introduction Quiz',
               order: 2,
               assignment: mockAssignmentBase[0],
+              published: {
+                isPublished: true,
+                publishedAt: new Date().toISOString(),
+              },
             },
           ],
           subsections: [],
@@ -240,12 +264,22 @@ export const mockModule: Module = {
       id: 'section-2',
       title: 'Core Concepts',
       order: 2,
+      parentId: 'module-1',
       items: [],
+      published: {
+        isPublished: true,
+        publishedAt: new Date().toISOString(),
+      },
       subsections: [
         {
           id: 'subsection-2-1',
           title: 'Basic Principles',
           order: 1,
+          parentId: 'section-2',
+          published: {
+            isPublished: true,
+            publishedAt: new Date().toISOString(),
+          },
           items: [
             {
               id: 'lesson-2',
@@ -253,21 +287,36 @@ export const mockModule: Module = {
               title: 'Programming Basics',
               order: 1,
               content: mockInitialContentString,
+              parentId: 'subsection-2-1',
               prerequisites: ['lesson-1'],
+              published: {
+                isPublished: true,
+                publishedAt: new Date().toISOString(),
+              },
             },
             {
               id: 'assignment-2',
               type: 'assignment',
               title: 'First Code Assignment',
               order: 2,
+              parentId: 'subsection-2-1',
               assignment: mockAssignmentBase[1],
+              published: {
+                isPublished: true,
+                publishedAt: new Date().toISOString(),
+              },
             },
             {
               id: 'discussion-1',
               type: 'discussion',
               title: 'Q&A Forum',
               order: 3,
+              parentId: 'subsection-2-1',
               content: 'Discuss questions about basic concepts here',
+              published: {
+                isPublished: true,
+                publishedAt: new Date().toISOString(),
+              },
             },
           ],
           subsections: [],
@@ -280,48 +329,76 @@ export const mockModule: Module = {
       id: 'section-3',
       title: 'Advanced Topics',
       order: 3,
+      parentId: 'module-1',
       items: [],
+      published: {
+        isPublished: false,
+      },
       subsections: [
         {
           id: 'subsection-4-1',
           title: 'Final Project',
           order: 1,
+          parentId: 'section-3',
+          published: {
+            isPublished: false,
+          },
           items: [
             {
               id: 'assignment-3',
               type: 'assignment',
               title: 'Final Project Draft',
               order: 1,
+              parentId: 'subsection-4-1',
               assignment: mockAssignmentBase[2],
+              published: {
+                isPublished: false,
+              },
             },
             {
               id: 'assignment-4',
               type: 'assignment',
               title: 'Project Milestone',
               order: 2,
+              parentId: 'subsection-4-1',
               assignment: mockAssignmentBase[3],
+              published: {
+                isPublished: false,
+              },
             },
             {
               id: 'url-1',
               type: 'url',
               title: 'External Resources',
               order: 3,
+              parentId: 'subsection-4-1',
               content: 'https://example.com/resources',
+              published: {
+                isPublished: false,
+              },
             },
             {
               id: 'file-1',
               type: 'file',
               title: 'Course Materials',
               order: 4,
+              parentId: 'subsection-4-1',
               content: '/uploads/course-materials.pdf',
+              published: {
+                isPublished: false,
+              },
             },
             {
               id: 'assignment-5',
               type: 'assignment',
               title: 'Additional Exercise',
               order: 5,
+              parentId: 'subsection-4-1',
               content: mockInitialContentString,
               assignment: mockAssignmentBase[4],
+              published: {
+                isPublished: false,
+              },
             },
           ],
           subsections: [],
@@ -336,22 +413,9 @@ export const mockStudentModule: Module = {
   ...mockModule,
   sections: mockModule.sections.map((section) => ({
     ...section,
-    items: section.items.map((item) => {
-      if (item.type === 'assignment' && item.assignment) {
-        // Find the corresponding student assignment
-        const studentAssignment = mockAssignmentsData.find(
-          (a) => a.id === item.assignment!.id,
-        )
-        return {
-          ...item,
-          assignment: studentAssignment || item.assignment,
-        }
-      }
-      return item
-    }),
-    subsections: section.subsections?.map((subsection) => ({
-      ...subsection,
-      items: subsection.items.map((item) => {
+    items: section.items
+      .filter((item) => item.published.isPublished)
+      .map((item) => {
         if (item.type === 'assignment' && item.assignment) {
           // Find the corresponding student assignment
           const studentAssignment = mockAssignmentsData.find(
@@ -364,6 +428,23 @@ export const mockStudentModule: Module = {
         }
         return item
       }),
+    subsections: section.subsections?.map((subsection) => ({
+      ...subsection,
+      items: subsection.items
+        .filter((item) => item.published.isPublished)
+        .map((item) => {
+          if (item.type === 'assignment' && item.assignment) {
+            // Find the corresponding student assignment
+            const studentAssignment = mockAssignmentsData.find(
+              (a) => a.id === item.assignment!.id,
+            )
+            return {
+              ...item,
+              assignment: studentAssignment || item.assignment,
+            }
+          }
+          return item
+        }),
     })),
   })),
 }

@@ -10,25 +10,35 @@ export interface ContentProgress {
   completedAt?: string
 }
 
+export interface Published {
+  isPublished: boolean
+  publishedAt?: string
+  toPublishAt?: string
+}
+
 export interface Module {
   id: string
   courseCode: string
   courseName: string
   courseSection: string
   sections: ModuleSection[]
+  published: Published
 }
 
 export interface ModuleSection {
   id: string
+  parentId: string
   title: string
   order: number
   items: ModuleItem[]
   subsections: ModuleSection[]
   prerequisites?: string[]
+  published: Published
 }
 
 export interface ModuleItem {
   id: string
+  parentId: string
   type: ContentType
   title: string
   order: number
@@ -36,6 +46,7 @@ export interface ModuleItem {
   content?: string
   progress?: ContentProgress
   assignment?: AssignmentBase | StudentAssignment
+  published: Published
 }
 
 export type ContentType =

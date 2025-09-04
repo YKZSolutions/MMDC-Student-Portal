@@ -21,6 +21,7 @@ import {
   IconListTree,
   IconRubberStamp,
   IconTrash,
+  IconX,
 } from '@tabler/icons-react'
 import {
   mockCourseBasicDetails,
@@ -52,7 +53,7 @@ type CMSProps = {
 
 export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
   const theme = useMantineTheme()
-  const [isTreeVisible, setIsTreeVisible] = useState(true)
+  const [isTreeVisible, setIsTreeVisible] = useState(variant === 'full')
   const [isDragging, setIsDragging] = useState(false)
 
   const {
@@ -186,10 +187,11 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
               courseDetails={courseDetails}
               courses={mockCourseBasicDetails}
               contentTitle={editorState.data?.title}
-              isTreeVisible={isTreeVisible}
+              isTreeVisible={isTreeVisible && variant === 'full'}
               onCourseChange={handleCourseChange}
               onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
               view={editorState.view}
+              variant={variant}
               onViewChange={(view) => setView(view as EditorView)}
             />
 
@@ -236,6 +238,7 @@ interface CMSHeaderProps {
   onToggleTree: () => void
   contentTitle?: string
   view: string
+  variant: 'full' | 'editor'
   onViewChange: (view: string) => void
 }
 
@@ -247,10 +250,11 @@ const CMSHeader = ({
   onToggleTree,
   contentTitle,
   view,
+  variant,
   onViewChange,
 }: CMSHeaderProps) => {
   const theme = useMantineTheme()
-
+  console.log('variant', variant)
   return (
     <Group
       justify="space-between"
@@ -262,7 +266,7 @@ const CMSHeader = ({
       <Group>
         <Group
           gap={'md'}
-          display={isTreeVisible ? 'none' : 'flex'}
+          display={isTreeVisible || variant === 'editor' ? 'none' : 'flex'}
           align={'center'}
         >
           <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
@@ -272,6 +276,13 @@ const CMSHeader = ({
             onCourseChange={onCourseChange}
           />
         </Group>
+        <ActionIcon
+          variant={'transparent'}
+          hidden={variant !== 'editor'}
+          onClick={() => window.history.back()}
+        >
+          <IconX />
+        </ActionIcon>
 
         <SegmentedControl
           value={view}
@@ -284,7 +295,7 @@ const CMSHeader = ({
         />
       </Group>
 
-      <Title order={3} c={'gray.7'} maw={'50%'} lineClamp={1}>
+      <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
         {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
         {courseDetails?.courseName} {contentTitle && ` | ${contentTitle} `}
       </Title>
