@@ -11,6 +11,7 @@ import {
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
 import { CardWithModal } from '@/components/with-modal.tsx'
+import BtnCard from '@/components/btn-card.tsx'
 
 type CourseActionsModalProps = {
   courseCode: string
@@ -45,23 +46,23 @@ const CourseActionsModal = ({
           {/*TODO: add more content types, these are just placeholders*/}
           {/*Modal for each content type are currently not implemented*/}
           <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Content'}
               description={
                 'Create a new educational content that can be used in modules.'
               }
               icon={<IconBook />}
-              modalComponent={Modal}
+              url={`./edit`}
             />
           </GridCol>
           <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Assignment'}
               description={
                 'Create a new assignment or task that students can complete.'
               }
               icon={<IconBook />}
-              modalComponent={Modal}
+              url={`./edit`}
             />
           </GridCol>
           <GridCol span={6}>
@@ -71,7 +72,7 @@ const CourseActionsModal = ({
                 'Create a new student group that can be used to grade multiple students at once.'
               }
               icon={<IconBook />}
-              modalComponent={Modal}
+              modalComponent={Modal} //TODO: currently a placeholder
             />
           </GridCol>
           <GridCol span={6}>
@@ -79,7 +80,7 @@ const CourseActionsModal = ({
               title={'Progress Report'}
               description={'Create a new progress report that admins can view.'}
               icon={<IconBook />}
-              modalComponent={Modal}
+              modalComponent={Modal} //TODO: currently a placeholder
             />
           </GridCol>
         </Grid>
