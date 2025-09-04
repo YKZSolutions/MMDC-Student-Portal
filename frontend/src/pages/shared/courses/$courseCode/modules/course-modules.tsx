@@ -44,7 +44,7 @@ const CourseModules = () => {
                 leftSection={<IconPlus />}
                 bg={'secondary'}
                 component={Link}
-                to={`../edit`}
+                to={`./create`}
               >
                 Add New Content
               </Button>

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { Box, Group, useMantineTheme } from '@mantine/core'
 import { type CourseBasicDetails } from '@/features/courses/types.ts'
@@ -17,14 +17,6 @@ function RouteComponent() {
 
   const courses: CourseBasicDetails[] = mockCourseBasicDetails
   const { courseCode } = Route.useParams()
-
-  // Check if we're on the edit route
-  const isEditRoute = useLocation().pathname.includes('/edit')
-
-  // If we're on the edit route, just render the outlet without navbar
-  if (isEditRoute) {
-    return <Outlet />
-  }
 
   const studentNavItems: CourseNavItem[] = [
     {
