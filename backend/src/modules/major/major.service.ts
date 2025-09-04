@@ -1,7 +1,6 @@
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
-  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -71,7 +70,7 @@ export class MajorService {
    * @returns {Promise<PaginatedMajorsDto>} - Paginated list of programs with metadata.
    *
    * @throws {BadRequestException} If the query paramters are invalid.
-   * @throws {NotFoundException} If no prgrams are found.
+   * @throws {NotFoundException} If no majors are found.
    * @throws {Error} Any other unexpected erros.
    */
   @Log({
@@ -84,10 +83,6 @@ export class MajorService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('No majors found'),
-    [PrismaErrorCode.TransactionDeadlock]: () =>
-      new BadRequestException(
-        'Fetching majors failed due to transaction deadlock',
-      ),
   })
   async findAll(filters: BaseFilterDto): Promise<PaginatedMajorsDto> {
     const where: Prisma.MajorWhereInput = {};
@@ -124,7 +119,7 @@ export class MajorService {
    * @param {string} id - The UUID of the major.
    * @returns {Promise<ProgramDto>} The major record.
    *
-   * @throws {NotFoundException} If no program is found with the given ID.
+   * @throws {NotFoundException} If no major is found with the given ID.
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
@@ -136,10 +131,6 @@ export class MajorService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Major with ID ${id} not found`),
-    [PrismaErrorCode.TransactionDeadlock]: () =>
-      new BadRequestException(
-        'Fetching major failed due to transaction deadlock',
-      ),
   })
   async findOne(id: string): Promise<MajorDto> {
     const major = await this.prisma.client.major.findUniqueOrThrow({
@@ -172,10 +163,6 @@ export class MajorService {
       new NotFoundException(`Major with ID ${id} not found`),
     [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
       new ConflictException(`Major name already exists: ${dto.name}`),
-    [PrismaErrorCode.TransactionDeadlock]: () =>
-      new BadRequestException(
-        'Updating major failed due to transaction deadlock',
-      ),
   })
   async update(id: string, updateMajorDto: UpdateMajorDto): Promise<MajorDto> {
     const major = await this.prisma.client.major.update({
@@ -211,10 +198,6 @@ export class MajorService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Major with ID ${id} not found`),
-    [PrismaErrorCode.TransactionDeadlock]: () =>
-      new BadRequestException(
-        'Deleting major failed due to transaction deadlock',
-      ),
   })
   async remove(
     id: string,
@@ -235,7 +218,7 @@ export class MajorService {
 
     await this.prisma.client.major.delete({ where: { id } });
     return {
-      message: 'Major permamently deleted',
+      message: 'Major permanently deleted',
     };
   }
 }
