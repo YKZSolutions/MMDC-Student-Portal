@@ -39,23 +39,27 @@ enum UserStatus {
 }
 
 model User {
-  id              String           @id @default(uuid()) @db.Uuid
+  id               String             @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  userAccount     UserAccount?
+  userAccount      UserAccount?
   /// @DtoApiHidden
-  userDetails     UserDetails?
+  userDetails      UserDetails?
   /// @DtoApiHidden
-  studentDetails  StudentDetails?
+  studentDetails   StudentDetails?
   /// @DtoApiHidden
-  staffDetails    StaffDetails?
+  staffDetails     StaffDetails?
   /// @DtoApiHidden
-  bills           Bill[]
+  bills            Bill[]
   /// @DtoApiHidden
-  notifications   Notification[]
+  notifications    Notification[]
   /// @DtoApiHidden
   courseEnrollment CourseEnrollment[]
   /// @DtoApiHidden
-  courseSections  CourseSection[]
+  courseSections   CourseSection[]
+  /// @DtoApiHidden
+  submissions      Submission[]
+  /// @DtoApiHidden
+  moduleProgress   StudentProgress[]
 
   firstName  String
   middleName String?
@@ -232,13 +236,13 @@ model Curriculum {
 
   majorId String @db.Uuid
   /// @DtoApiHidden
-  major Major @relation(fields: [majorId], references: [id])
+  major   Major  @relation(fields: [majorId], references: [id])
 
   /// @DtoApiHidden
   courses CurriculumCourse[]
 
-  icon String?
-  name String?
+  icon        String?
+  name        String?
   description String?
 
   /// @DtoReadOnly
@@ -252,17 +256,17 @@ model Curriculum {
 model CurriculumCourse {
   id String @id @default(uuid()) @db.Uuid
 
-  curriculumId String @db.Uuid
+  curriculumId String     @db.Uuid
   /// @DtoApiHidden
-  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id])
 
   courseId String @db.Uuid
   /// @DtoApiHidden
-  course Course @relation(fields: [courseId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
 
-  order Int
-  year        Int
-  semester    Int
+  order    Int
+  year     Int
+  semester Int
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -386,13 +390,15 @@ model CourseEnrollment {
   /// @DtoApiHidden
   courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
 
-  courseSectionId String @db.Uuid // Each student enrollment belong to one section
+  courseSectionId String        @db.Uuid // Each student enrollment belong to one section
   /// @DtoApiHidden
-  courseSection CourseSection @relation(fields: [courseSectionId], references: [id])
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id])
 
-  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
+  studentId String   @db.Uuid // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
-  user      User   @relation(fields: [studentId], references: [id])
+  user      User     @relation(fields: [studentId], references: [id])
+  /// @DtoApiHidden
+  Module    Module[]
 
   status      CourseEnrollmentStatus
   startedAt   DateTime
@@ -495,6 +501,189 @@ model BillPayment {
   /// [PayMongoData]
   /// @DtoOverrideType(PrismaJson.PayMongoData)
   paymongoData     Json?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model Module {
+  id    String @id @default(uuid()) @db.Uuid
+  title String
+
+  courseEnrollmentId String           @db.Uuid
+  courseEnrollment   CourseEnrollment @relation(fields: [courseEnrollmentId], references: [id])
+
+  /// @DtoApiHidden
+  moduleSections ModuleSection[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model ModuleSection {
+  id String @id @default(uuid()) @db.Uuid
+
+  moduleId String @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  // self reference subsections
+  parentSectionId String?         @db.Uuid
+  parentSection   ModuleSection?  @relation("ModuleSubsection", fields: [parentSectionId], references: [id], onDelete: Cascade)
+  subsections     ModuleSection[] @relation("ModuleSubsection")
+
+  moduleContents ModuleContent[]
+}
+
+enum ContentType {
+  OVERVIEW
+  DISCUSSION
+  ASSIGNMENT
+  REFLECTION
+}
+
+model ModuleContent {
+  id       String @id @default(uuid()) @db.Uuid
+  order    Int
+  title    String
+  subtitle String
+
+  moduleSectionId String        @db.Uuid
+  moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
+
+  content     Json
+  contentType ContentType
+
+  /// @DtoApiHidden
+  assignmentBase  AssignmentBase?
+  /// @DtoApiHidden
+  submissions     Submission[]
+  /// @DtoApiHidden
+  studentProgress StudentProgress[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model AssignmentBase {
+  id String @id @default(uuid()) @db.Uuid
+
+  moduleContentId String        @unique @db.Uuid
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+
+  title               String
+  rubric              Json
+  type                AssignmentType
+  dueDate             DateTime
+  mode                AssignmentMode
+  points              Int?
+  status              AssignmentStatus
+  allowResubmission   Boolean?         @default(false)
+  maxAttempts         Int?
+  allowLateSubmission Boolean?         @default(false)
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum AssignmentMode {
+  INDIVIDUAL
+  GROUP
+}
+
+enum AssignmentStatus {
+  OPEN
+  CLOSED
+}
+
+enum AssignmentType {
+  ASSIGNMENT
+  DRAFT
+  MILESTONE
+  QUIZ
+  TERMINAL_ASSESSMENT
+}
+
+model StudentProgress {
+  id          String    @id @default(uuid()) @db.Uuid
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
+  userId String @db.Uuid
+  /// @DtoApiHidden
+  user   User   @relation(fields: [userId], references: [id])
+
+  moduleContentId String        @db.Uuid
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+
+  @@unique([userId, moduleContentId])
+}
+
+enum SubmissionStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  LATE
+  GRADED
+}
+
+model Submission {
+  id    String @id @default(uuid()) @db.Uuid
+  title String
+
+  moduleContentId String        @db.Uuid
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+
+  studentId String @db.Uuid
+  /// @DtoApiHidden
+  user      User   @relation(fields: [studentId], references: [id])
+
+  submission String? // Text submission
+
+  status SubmissionStatus @default(NOT_SUBMITTED)
+
+  score Int?
+
+  attemptNumber Int?
+  isLate        Boolean? @default(false)
+  lateDays      Int?
+
+  /// @DtoApiHidden
+  attachments SubmissionAttachment[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model SubmissionAttachment {
+  id String @id @default(uuid()) @db.Uuid
+
+  submissionId String     @db.Uuid
+  submission   Submission @relation(fields: [submissionId], references: [id])
+
+  name String
+
+  attachment String // Files, links, Images, etc.
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
