@@ -17,37 +17,20 @@ import {
   type ModuleItem,
   type ModuleSection,
 } from '@/features/courses/modules/types.ts'
+import {
+  getModuleItemsFromModule,
+  getModuleSubSectionsFromSections,
+} from '@/utils/helpers.ts'
 
 interface ReviewStepProps {
   module: Module
 }
 
 const ModuleReviewStep = ({ module }: ReviewStepProps) => {
-  // Count total number of sections
-  // By iterating over courseModules array and summing the length of sections
-  // for each section
-  const totalSections = module.sections.length
-
-  // Count total number of subsections
-  // By iterating over courseModules array and summing the length of items
-  // for each subsection
-  const totalSubsections = module.sections.reduce(
-    (acc, section) => acc + section.subsections.length,
-    0,
-  )
-
-  // Count total number of items
-  // By iterating over courseModules array and iterating over sections for each
-  // module. For each section, sum the length of items.
-  const totalItems = module.sections.reduce(
-    (acc, section) =>
-      acc +
-      section.subsections.reduce(
-        (secAcc, section) => secAcc + section.items.length,
-        0,
-      ),
-    0,
-  )
+  const sections = module.sections
+  const totalSections = sections.length
+  const totalSubsections = getModuleSubSectionsFromSections(sections).length
+  const totalItems = getModuleItemsFromModule(module).length
 
   return (
     <Container h="100%" mb={'xl'}>

@@ -19,12 +19,20 @@ import {
   IconTrash,
   IconWriting,
 } from '@tabler/icons-react'
-import React, { type ComponentPropsWithoutRef, useEffect } from 'react'
+import React, {
+  type ComponentPropsWithoutRef,
+  useEffect,
+  useState,
+} from 'react'
 import type {
   ContentNode,
   ContentNodeType,
+  Module,
+  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useForm } from '@mantine/form'
+import { getAllModuleSections } from '@/utils/helpers.ts'
+import { mockModule } from '@/features/courses/mocks.ts'
 
 type ContentDetailsEditorProps = {
   opened: boolean
@@ -45,6 +53,8 @@ const ContentDetailsEditor = ({
 }: ContentDetailsEditorProps) => {
   const theme = useMantineTheme()
   const mode = data ? 'edit' : 'create'
+  const [module, setModule] = useState<Module>(mockModule)
+  const [sections, setSections] = useState<ModuleSection[]>([]) // TODO: Replace with actual module
 
   // Form setup based on content type
   const form = useForm({
@@ -57,7 +67,11 @@ const ContentDetailsEditor = ({
   // Update form when type or data changes
   useEffect(() => {
     form.setValues(getInitialValues(type, data))
-  }, [type, data, opened])
+  }, [type, data, opened, module, sections])
+
+  useEffect(() => {
+    setSections(getAllModuleSections(module))
+  }, [module])
 
   // Handle form submission
   const handleSubmit = (values: any) => {
@@ -66,9 +80,9 @@ const ContentDetailsEditor = ({
     onSave(processedData)
   }
 
-  const handleCancel = () => {}
-
-  const handleDelete = () => {}
+  const handleDelete = () => {
+    // TODO: Add delete logic
+  }
 
   // Get form fields based on content type
   const getFormFields = () => {
@@ -84,7 +98,11 @@ const ContentDetailsEditor = ({
             <Select
               label="Parent Section"
               placeholder="Enter section title"
-              {...form.getInputProps('title')}
+              data={sections.map((section) => ({
+                value: section.id,
+                label: section.title,
+              }))}
+              {...form.getInputProps('parentId')}
             />
           </>
         )
@@ -172,9 +190,11 @@ const ContentDetailsEditor = ({
         <Text size="xl" fw={700}>
           {mode === 'create' ? `Create New ${type}` : `Edit ${type}`}
         </Text>
-        <ActionIcon onClick={handleDelete} variant="transparent" color="gray">
-          <IconTrash size={22} color={theme.colors.red[6]} />
-        </ActionIcon>
+        {mode === 'edit' && (
+          <ActionIcon onClick={handleDelete} variant="transparent" color="gray">
+            <IconTrash size={22} color={theme.colors.red[6]} />
+          </ActionIcon>
+        )}
       </Group>
 
       <Stack p="xl">
@@ -183,8 +203,8 @@ const ContentDetailsEditor = ({
             {getFormFields()}
 
             <Group justify="flex-end" mt="md" wrap={'nowrap'}>
-              <Button variant="default" onClick={handleCancel}>
-                Cancel
+              <Button variant="default" onClick={form.reset}>
+                Reset
               </Button>
               <Button type="submit">
                 {mode === 'create' ? 'Create' : 'Save Changes'}

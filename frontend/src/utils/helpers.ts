@@ -104,3 +104,26 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
 
   return treeData
 }
+
+export function getModuleSubSectionsFromModule(module: Module) {
+  return module.sections.flatMap((section) => section.subsections)
+}
+
+export function getModuleSubSectionsFromSections(sections: ModuleSection[]) {
+  return sections.flatMap((section) => section.subsections)
+}
+
+export function getAllModuleSections(module: Module) {
+  const sections = module.sections
+  const subsections = getModuleSubSectionsFromSections(sections)
+  return [...sections, ...subsections]
+}
+
+export function getModuleItemsFromModule(module: Module) {
+  const sections = getAllModuleSections(module)
+  return sections.flatMap((section) => section.items)
+}
+
+export function getModuleItemsFromSections(sections: ModuleSection[]) {
+  return sections.flatMap((section) => section.items)
+}
