@@ -12,8 +12,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { DetailedCourseEnrollmentDto } from './dto/detailed-courseEnrollment.dto';
-import { StudentIdentifierDto } from './dto/studentIdentifier.dto';
+import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
+import { StudentIdentifierDto } from './dto/student-identifier.dto';
 
 @Injectable()
 export class CourseEnrollmentService {

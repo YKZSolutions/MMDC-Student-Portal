@@ -16,12 +16,12 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateCourseOfferingDto } from './dto/create-courseOffering.dto';
+import { CreateCourseOfferingDto } from './dto/create-course-offering.dto';
 import {
   CourseOfferingStatus,
   FilterCourseOfferingDto,
-} from './dto/filter-courseOffering.dto';
-import { PaginatedCourseOfferingsDto } from './dto/paginated-courseOffering.dto';
+} from './dto/filter-course-offering.dto';
+import { PaginatedCourseOfferingsDto } from './dto/paginated-course-offering.dto';
 
 @Injectable()
 export class CourseOfferingService {

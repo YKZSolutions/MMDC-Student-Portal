@@ -11,6 +11,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
 
@@ -29,7 +30,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
  * @remarks
  * Handles program-related operations such as creation, update, retrieval, and deletion.
  */
-@Controller('program')
+@Controller('programs')
 export class ProgramController {
   constructor(private readonly programService: ProgramService) {}
 
@@ -83,7 +84,7 @@ export class ProgramController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.programService.findOne(id);
   }
 
@@ -102,7 +103,10 @@ export class ProgramController {
   })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
-  update(@Param('id') id: string, @Body() updateProgramDto: UpdateProgramDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateProgramDto: UpdateProgramDto,
+  ) {
     return this.programService.update(id, updateProgramDto);
   }
 
@@ -127,7 +131,10 @@ export class ProgramController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query?: DeleteQueryDto,
+  ) {
     return this.programService.remove(id, query?.directDelete);
   }
 }

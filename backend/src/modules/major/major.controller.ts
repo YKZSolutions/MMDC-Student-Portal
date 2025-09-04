@@ -12,6 +12,7 @@ import {
   InternalServerErrorException,
   BadRequestException,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { MajorService } from './major.service';
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
@@ -29,7 +30,7 @@ import { CreateProgramMajorDto } from './dto/create-major.dto';
  * @remarks
  * Handles academic major-related operations such as creation, update, retrieval, and deletion.
  */
-@Controller('major')
+@Controller('majors')
 export class MajorController {
   constructor(private readonly majorService: MajorService) {}
 
@@ -78,7 +79,7 @@ export class MajorController {
   @Roles(Role.ADMIN)
   @ApiOkResponse({ type: Major })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.majorService.findOne(id);
   }
 
@@ -97,7 +98,10 @@ export class MajorController {
     ConflictException,
     InternalServerErrorException,
   ])
-  update(@Param('id') id: string, @Body() updateMajorDto: UpdateMajorDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateMajorDto: UpdateMajorDto,
+  ) {
     return this.majorService.update(id, updateMajorDto);
   }
 
@@ -121,7 +125,10 @@ export class MajorController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query?: DeleteQueryDto,
+  ) {
     return this.majorService.remove(id, query?.directDelete);
   }
 }

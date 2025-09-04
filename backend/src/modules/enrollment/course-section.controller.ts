@@ -11,13 +11,13 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CourseSectionService } from './courseSection.service';
+import { CourseSectionService } from './course-section.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { CreateCourseSectionFullDto } from './dto/create-courseSection.dto';
-import { UpdateCourseSectionDto } from './dto/update-courseSection.dto';
+import { CreateCourseSectionFullDto } from './dto/create-course-section.dto';
+import { UpdateCourseSectionDto } from './dto/update-course-section.dto';
 import { Role } from '@/common/enums/roles.enum';
 
 @Controller('enrollments')

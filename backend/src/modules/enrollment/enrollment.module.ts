@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { EnrollmentController } from './enrollment.controller';
-import { CourseOfferingService } from './courseOffering.service';
-import { CourseSectionService } from './courseSection.service';
-import { CourseOfferingController } from './courseOffering.controller';
-import { CourseSectionController } from './courseSection.controller';
-import { CourseEnrollmentService } from './courseEnrollment.service';
-import { CourseEnrollmentController } from './courseEnrollment.controller';
+import { CourseOfferingService } from './course-offering.service';
+import { CourseSectionService } from './course-section.service';
+import { CourseOfferingController } from './course-offering.controller';
+import { CourseSectionController } from './course-section.controller';
+import { CourseEnrollmentService } from './course-enrollment.service';
+import { CourseEnrollmentController } from './course-enrollment.controller';
 
 @Module({
   controllers: [

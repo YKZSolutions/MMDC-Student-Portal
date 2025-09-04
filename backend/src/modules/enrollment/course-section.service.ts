@@ -14,9 +14,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateCourseSectionFullDto } from './dto/create-courseSection.dto';
-import { PaginatedCourseSectionsDto } from './dto/paginated-courseSections.dto';
-import { UpdateCourseSectionDto } from './dto/update-courseSection.dto';
+import { CreateCourseSectionFullDto } from './dto/create-course-section.dto';
+import { PaginatedCourseSectionsDto } from './dto/paginated-course-sections.dto';
+import { UpdateCourseSectionDto } from './dto/update-course-section.dto';
 
 @Injectable()
 export class CourseSectionService {
