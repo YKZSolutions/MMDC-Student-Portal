@@ -14,11 +14,7 @@ import {
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { getSubmissionStatus } from '@/utils/helpers.ts'
-import { mockAssignmentsData } from '@/pages/shared/courses/$courseId/assignments/course-assignments.tsx'
-import type {
-  CourseModule,
-  ModuleItem,
-} from '@/features/courses/modules/types.ts'
+import type { Module, ModuleItem } from '@/features/courses/modules/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { CompletedStatusIcon } from '@/components/icon-selector.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
@@ -31,210 +27,32 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import type { Role } from '@/integrations/api/client'
-
-export const moduleData: CourseModule[] = [
-  {
-    id: 'mod_1',
-    courseId: 'course_1',
-    title: 'Module 1: Introduction to Biology',
-    position: 1,
-    sections: [
-      {
-        id: 'sec_1',
-        title: 'Readings',
-        position: 1,
-        items: [
-          {
-            id: 'item_1',
-            type: 'reading',
-            title: 'Chapter 1: Cell Structure',
-            position: 1,
-            content: {
-              id: 'read_1',
-              title: 'Chapter 1: Cell Structure',
-              fileUrl: '/uploads/cell-structure.pdf',
-              isCompleted: true,
-            },
-          },
-          {
-            id: 'item_2',
-            type: 'reading',
-            title: 'Chapter 2: DNA Replication',
-            position: 2,
-            content: {
-              id: 'read_2',
-              title: 'Chapter 2: DNA Replication',
-              fileUrl: '/uploads/dna-replication.pdf',
-              isCompleted: false,
-            },
-          },
-        ],
-      },
-      {
-        id: 'sec_2',
-        title: 'Assignments',
-        position: 2,
-        items: [
-          {
-            id: 'item_3',
-            type: 'assignment',
-            title: 'Cell Biology Quiz',
-            position: 1,
-            assignment: mockAssignmentsData[0],
-          },
-          {
-            id: 'item_4',
-            type: 'assignment',
-            title: 'DNA Assignment',
-            position: 2,
-            assignment: mockAssignmentsData[1],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'mod_2',
-    courseId: 'course_1',
-    title: 'Module 2: Genetics',
-    position: 2,
-    sections: [
-      {
-        id: 'sec_3',
-        title: 'Assignments',
-        position: 1,
-        items: [
-          {
-            id: 'item_5',
-            type: 'assignment',
-            title: 'Genetics Problems',
-            position: 1,
-            assignment: mockAssignmentsData[2],
-          },
-          {
-            id: 'item_6',
-            type: 'assignment',
-            title: 'Heredity Quiz',
-            position: 2,
-            assignment: mockAssignmentsData[3],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'mod_3',
-    courseId: 'course_1',
-    title: 'Module 3: Ecology',
-    position: 3,
-    sections: [
-      {
-        id: 'sec_4',
-        title: 'Readings',
-        position: 1,
-        items: [
-          {
-            id: 'item_7',
-            type: 'reading',
-            title: 'Chapter 5: Ecosystems',
-            position: 1,
-            content: {
-              id: 'read_3',
-              title: 'Chapter 5: Ecosystems',
-              fileUrl: '/uploads/ecosystems.pdf',
-              isCompleted: true,
-            },
-          },
-          {
-            id: 'item_8',
-            type: 'reading',
-            title: 'Chapter 6: Conservation',
-            position: 2,
-            content: {
-              id: 'read_4',
-              title: 'Chapter 6: Conservation',
-              fileUrl: '/uploads/conservation.pdf',
-              isCompleted: false,
-            },
-          },
-        ],
-      },
-      {
-        id: 'sec_5',
-        title: 'Assignments',
-        position: 2,
-        items: [
-          {
-            id: 'item_9',
-            type: 'assignment',
-            title: 'Ecosystem Analysis',
-            position: 1,
-            assignment: mockAssignmentsData[4],
-          },
-          {
-            id: 'item_10',
-            type: 'assignment',
-            title: 'Conservation Project',
-            position: 2,
-            assignment: mockAssignmentsData[5],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'mod_4',
-    courseId: 'course_1',
-    title: 'Module 4: Evolution',
-    position: 4,
-    sections: [
-      {
-        id: 'sec_6',
-        title: 'Assignments',
-        position: 1,
-        items: [
-          {
-            id: 'item_11',
-            type: 'assignment',
-            title: 'Evolution Timeline',
-            position: 1,
-            assignment: mockAssignmentsData[6],
-          },
-          {
-            id: 'item_12',
-            type: 'assignment',
-            title: 'Natural Selection Report',
-            position: 2,
-            assignment: mockAssignmentsData[7],
-          },
-        ],
-      },
-    ],
-  },
-]
+import { mockModule } from '@/features/courses/mocks.ts'
+import { Link } from '@tanstack/react-router'
 
 interface ModulePanelProps {
   allExpanded: boolean
-  modules?: CourseModule[]
+  module?: Module
   isPreview?: boolean
+  courseCode?: string
 }
 
-const ModuleListPanel = ({
+const ModulePanel = ({
   allExpanded,
-  modules: externalModules,
+  module = mockModule,
   isPreview = false,
+  courseCode,
 }: ModulePanelProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
-  const modules = externalModules || moduleData
 
   // Update expanded state when allExpanded prop changes
   useEffect(() => {
     if (allExpanded) {
-      const allModuleIds = modules.map((module) => module.id)
-      const allSectionIds = modules.flatMap((module) =>
-        module.sections.map((section) => section.id),
+      const allSectionIds = module.sections.map((section) => section.id)
+      const allSubSectionIds = module.sections.flatMap((section) =>
+        section.subsections?.map((section) => section.id),
       )
-      setExpandedItems([...allModuleIds, ...allSectionIds])
+      setExpandedItems([...allSectionIds, ...(allSubSectionIds as string[])])
     } else {
       setExpandedItems([])
     }
@@ -242,8 +60,8 @@ const ModuleListPanel = ({
 
   const getCompletedItemsCount = (items: ModuleItem[]) => {
     return items.filter((item) => {
-      if (item.type === 'reading' && item.content) {
-        return item.content.isCompleted
+      if (item.type === 'lesson' && item.progress) {
+        return item.progress.isCompleted
       }
       if (item.type === 'assignment' && item.assignment) {
         const submissionStatus = getSubmissionStatus(item.assignment)
@@ -266,14 +84,21 @@ const ModuleListPanel = ({
       variant="separated"
       radius="md"
     >
-      {modules.map((module) => (
-        <Accordion.Item value={module.id} key={module.title} bg={'background'}>
+      {module.sections.map((section) => (
+        <Accordion.Item
+          value={section.id}
+          key={section.title}
+          bg={'background'}
+        >
           <CustomAccordionControl
-            title={module.title}
+            itemId={section.id}
+            title={section.title}
             completedItemsCount={getCompletedItemsCount(
-              module.sections.flatMap((sub) => sub.items),
+              section.subsections?.flatMap((sub) => sub.items) || [],
             )}
-            totalItemsCount={module.sections.flatMap((sub) => sub.items).length}
+            totalItemsCount={
+              section.subsections?.flatMap((sub) => sub.items).length
+            }
             isPreview={isPreview}
           />
           <Accordion.Panel>
@@ -285,13 +110,14 @@ const ModuleListPanel = ({
               variant="separated"
               radius="md"
             >
-              {module.sections.map((subsection) => (
+              {section.subsections?.map((subsection) => (
                 <Accordion.Item
                   value={subsection.id}
                   key={subsection.title}
                   bg={'white'}
                 >
                   <CustomAccordionControl
+                    itemId={subsection.id}
                     title={subsection.title}
                     completedItemsCount={getCompletedItemsCount(
                       subsection.items,
@@ -350,7 +176,7 @@ const ModuleItemCard = ({
       p="sm"
       style={{
         cursor: 'pointer',
-        borderLeft: `3px solid ${item.type === 'reading' ? theme.colors.blue[5] : theme.colors.green[5]}`,
+        borderLeft: `3px solid ${item.type === 'lesson' ? theme.colors.blue[5] : theme.colors.green[5]}`,
       }}
       onClick={onItemClick}
       bg={'background'}
@@ -360,8 +186,8 @@ const ModuleItemCard = ({
           {role === 'student' && (
             <CompletedStatusIcon
               status={
-                item.type === 'reading'
-                  ? item.content?.isCompleted
+                item.type === 'lesson'
+                  ? item.progress?.isCompleted
                     ? 'read'
                     : 'unread'
                   : getSubmissionStatus(item.assignment)
@@ -372,7 +198,7 @@ const ModuleItemCard = ({
           <Box>
             <Text fw={500}>{item.title}</Text>
             <Text size="sm" c="dimmed">
-              {item.type === 'reading'
+              {item.type === 'lesson'
                 ? 'Reading Material'
                 : `Due: ${formatTimestampToDateTimeText(item.assignment?.dueDate || '', 'by')}`}
             </Text>
@@ -399,7 +225,12 @@ const ModuleItemCard = ({
             ),
             admin: (
               <Group gap="xs">
-                <ActionIcon variant="subtle" radius="lg">
+                <ActionIcon
+                  component={Link}
+                  variant="subtle"
+                  radius="lg"
+                  to={`./${item.id}/edit`}
+                >
                   <IconEdit size={16} />
                 </ActionIcon>
                 <ActionIcon variant="subtle" color="red" radius="lg">
@@ -415,6 +246,7 @@ const ModuleItemCard = ({
 }
 
 type CustomAccordionControlProps = {
+  itemId: string
   title: string
   completedItemsCount?: number
   totalItemsCount?: number
@@ -423,6 +255,7 @@ type CustomAccordionControlProps = {
 } & GroupProps
 
 function CustomAccordionControl({
+  itemId,
   title,
   completedItemsCount,
   totalItemsCount,
@@ -457,7 +290,12 @@ function CustomAccordionControl({
       </Group>
       {role === 'admin' && (
         <Group>
-          <ActionIcon variant="subtle" radius="lg">
+          <ActionIcon
+            component={Link}
+            to={`./${itemId}/edit`}
+            variant="subtle"
+            radius="lg"
+          >
             <IconEdit size={'70%'} />
           </ActionIcon>
           <Menu shadow="md" width={200}>
@@ -483,4 +321,4 @@ function CustomAccordionControl({
   )
 }
 
-export default ModuleListPanel
+export default ModulePanel
