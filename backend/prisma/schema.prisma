@@ -537,6 +537,13 @@ model ModuleSection {
   moduleContents ModuleContent[]
 }
 
+enum ContentType {
+  OVERVIEW
+  DISCUSSION
+  ASSIGNMENT
+  REFLECTION
+}
+
 model ModuleContent {
   id       String @id @default(uuid()) @db.Uuid
   order    Int
@@ -546,7 +553,8 @@ model ModuleContent {
   moduleSectionId String        @db.Uuid
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  content Json
+  content     Json
+  contentType ContentType
 
   /// @DtoApiHidden
   assignmentBase  AssignmentBase?
@@ -570,13 +578,12 @@ model AssignmentBase {
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
 
   title               String
-  rubric              String
+  rubric              Json
   type                AssignmentType
   dueDate             DateTime
   mode                AssignmentMode
   points              Int?
   status              AssignmentStatus
-  rubricId            String?
   allowResubmission   Boolean?         @default(false)
   maxAttempts         Int?
   allowLateSubmission Boolean?         @default(false)
