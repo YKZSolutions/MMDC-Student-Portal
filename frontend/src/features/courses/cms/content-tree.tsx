@@ -227,8 +227,6 @@ const NodeRow = ({
   // Calculate proper indentation (20px per level)
   const indentSize = depth * 20
 
-  const handleDelete = (nodeId: string | number) => {}
-
   if (node.data?.type === 'add-button') {
     return (
       <Box pl={indentSize + 24} py={2}>
