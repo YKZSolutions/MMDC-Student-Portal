@@ -9,6 +9,7 @@ import {
   type CourseSection as CourseSectionAsType,
 } from './courseSection.entity';
 import { User, type User as UserAsType } from './user.entity';
+import { Module, type Module as ModuleAsType } from './module.entity';
 
 export class CourseEnrollment {
   @ApiProperty({
@@ -33,6 +34,8 @@ export class CourseEnrollment {
   studentId: string;
   @ApiHideProperty()
   user?: UserAsType;
+  @ApiHideProperty()
+  Module?: ModuleAsType[];
   @ApiProperty({
     enum: CourseEnrollmentStatus,
     enumName: 'CourseEnrollmentStatus',
