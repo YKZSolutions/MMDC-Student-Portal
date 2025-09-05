@@ -356,6 +356,16 @@ function CourseSelectionPanel() {
         status: value !== 'all' ? value : undefined,
       }),
     })
+
+    // Invalidate the course offerings query here so it only refetches
+    // on enrolled and not enrolled tab and it retriggers suspense
+    if (value == 'enrolled' || value == 'not enrolled')
+      queryClient.removeQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0]?._id ===
+            'courseOfferingControllerFindCourseOfferingsByPeriod',
+      })
   }
 
   return (
