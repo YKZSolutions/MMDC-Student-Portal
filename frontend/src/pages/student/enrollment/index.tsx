@@ -305,6 +305,8 @@ function EnrollmentStudentPage() {
                           key={tab.value}
                           value={tab.value}
                           onClick={() =>
+                            // This will refetch the enrolled courses when switching to finalization tab
+                            // Which is useful when the user has enrolled something in the course selection tab
                             tab.value == 'finalization' && refetch()
                           }
                         >
