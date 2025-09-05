@@ -7,7 +7,7 @@ body {
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-    overflow: hidden;
+  overflow: hidden;
 }
 
 code {
@@ -16,16 +16,16 @@ code {
 }
 
 .rt-header .bn-formatting-toolbar {
-    margin-inline: auto;
-    box-shadow: none;
-    border: none;
+  margin-inline: auto;
+  box-shadow: none;
+  border: none;
 }
 
-a {
+/* a {
   color: #8000ff;
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
-}
+} */

@@ -43,6 +43,7 @@ import CourseSelector from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { Link } from '@tanstack/react-router'
 import { getTypeFromLevel } from '@/utils/helpers.ts'
+import bnCss from '@blocknote/mantine/style.css?inline'
 
 type CMSProps = {
   courseCode?: string
@@ -139,6 +140,7 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
 
   return (
     <Box h={'100%'} w={'100%'} style={{ overflow: 'hidden' }}>
+      <style>{bnCss}</style>
       <PanelGroup direction="horizontal">
         <Panel
           hidden={!isTreeVisible || variant === 'editor'}

@@ -15,7 +15,6 @@ import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
 import { theme } from './integrations/mantine/mantine-theme.ts'
 import reportWebVitals from './reportWebVitals.ts'
-import '@blocknote/mantine/style.css'
 import './styles.css'
 
 // Listen to auth token refresh
