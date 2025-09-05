@@ -63,9 +63,13 @@ import {
   IconSearch,
   type ReactNode,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useSuspenseQuery,
+  type QueryObserverResult,
+  type RefetchOptions,
+} from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/')
@@ -202,6 +206,9 @@ function EnrollmentStudentFinalizationQueryProvider({
 }: {
   children: (props: {
     enrolledCourses: DetailedCourseEnrollmentDto[]
+    refetch: (
+      options?: RefetchOptions | undefined,
+    ) => Promise<QueryObserverResult<DetailedCourseEnrollmentDto[], Error>>
   }) => ReactNode
 }) {
   const searchParam: {
@@ -212,18 +219,7 @@ function EnrollmentStudentFinalizationQueryProvider({
     ...courseEnrollmentControllerGetCourseEnrollmentsOptions(),
   })
 
-  /**
-   * Refetch enrolled courses when the tab changes to finalization
-   *
-   * I'M VERY SORRY FOR THIS IMPLEMENTATION. THERE'S NO OTHER WAY TO ACHIEVE THIS
-   */
-  useEffect(() => {
-    if (searchParam.tab == 'finalization') {
-      refetch()
-    }
-  }, [searchParam.tab])
-
-  return children({ enrolledCourses })
+  return children({ enrolledCourses, refetch })
 }
 
 function EnrollmentStudentPage() {
@@ -295,7 +291,7 @@ function EnrollmentStudentPage() {
             <Tabs.List grow>
               <Suspense fallback={<Skeleton height={30} radius="md" />}>
                 <EnrollmentStudentFinalizationQueryProvider>
-                  {({ enrolledCourses }) => (
+                  {({ enrolledCourses, refetch }) => (
                     <>
                       {tabsData.map((tab) => (
                         <Tabs.Tab
@@ -308,6 +304,9 @@ function EnrollmentStudentPage() {
                           }}
                           key={tab.value}
                           value={tab.value}
+                          onClick={() =>
+                            tab.value == 'finalization' && refetch()
+                          }
                         >
                           <Text fw={500} fz={'sm'} c={'dark.5'}>
                             {tab.label}
