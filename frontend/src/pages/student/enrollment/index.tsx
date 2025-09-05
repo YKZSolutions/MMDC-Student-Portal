@@ -771,6 +771,23 @@ function CourseOfferingAccordionPanel({
     <Stack>
       <Divider />
       <Stack gap={'xs'}>
+        {course.courseSections.length === 0 && (
+          <Center py="md">
+            <Stack gap={rem(2)} align="center">
+              <IconBook
+                size={28}
+                stroke={1.5}
+                color="var(--mantine-color-dimmed)"
+              />
+              <Text fw={600} size="sm" c={'dark.3'}>
+                No sections available
+              </Text>
+              <Text size="xs" c="dimmed">
+                This course currently has no available sections.
+              </Text>
+            </Stack>
+          </Center>
+        )}
         {course.courseSections.map((section) => (
           <CourseOfferingSubjectCard
             key={section.id}
