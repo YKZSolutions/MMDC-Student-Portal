@@ -211,10 +211,6 @@ function EnrollmentStudentFinalizationQueryProvider({
     ) => Promise<QueryObserverResult<DetailedCourseEnrollmentDto[], Error>>
   }) => ReactNode
 }) {
-  const searchParam: {
-    tab: (typeof tabsData)[number]['value']
-  } = route.useSearch()
-
   const { data: enrolledCourses, refetch } = useSuspenseQuery({
     ...courseEnrollmentControllerGetCourseEnrollmentsOptions(),
   })
