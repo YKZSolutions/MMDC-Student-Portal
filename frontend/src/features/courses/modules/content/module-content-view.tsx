@@ -3,7 +3,6 @@ import type {
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
-import { useState } from 'react'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
@@ -40,17 +39,15 @@ interface ModuleContentViewProps {
   moduleItem: ModuleItem
   parentSection: ModuleSection
   module: Module
+  isPreview?: boolean
 }
 
 const ModuleContentView = ({
   moduleItem,
   parentSection,
   module,
+  isPreview = false,
 }: ModuleContentViewProps) => {
-  const [completionStatus, setCompletionStatus] = useState(
-    moduleItem.progress?.isCompleted || false,
-  )
-
   // Flattened list of all module items
   const allItems = getFlatItems(module.sections)
   const currentIndex = allItems.findIndex((i) => i.id === moduleItem.id)
@@ -80,14 +77,14 @@ const ModuleContentView = ({
             moduleItem={moduleItem}
             parentSection={parentSection}
             module={module}
-            onMarkComplete={() => setCompletionStatus((prev) => !prev)}
+            onMarkComplete={() => {}}
             onPublish={() => {}}
           />
 
           <ContentArea moduleItem={moduleItem} editor={editor} />
 
           {/* Continue Button */}
-          {nextItem && (
+          {nextItem && !isPreview && (
             <Link
               from={'/courses/$courseCode/modules'}
               to={`$itemId`}
@@ -106,15 +103,17 @@ const ModuleContentView = ({
         </Box>
 
         {/* Sidebar */}
-        <Sidebar
-          previousItem={previousItem}
-          nextItem={nextItem}
-          allItems={allItems}
-          moduleItem={moduleItem}
-          progressPercentage={progressPercentage}
-          completed={completed}
-          total={allItems.length}
-        />
+        <div hidden={isPreview}>
+          <Sidebar
+            previousItem={previousItem}
+            nextItem={nextItem}
+            allItems={allItems}
+            moduleItem={moduleItem}
+            progressPercentage={progressPercentage}
+            completed={completed}
+            total={allItems.length}
+          />
+        </div>
       </Flex>
     </Container>
   )

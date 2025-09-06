@@ -205,7 +205,7 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
   )
 }
 
-export function CustomCreateLinkButton() {
+function CustomCreateLinkButton() {
   const editor = useBlockNoteEditor()
   const Components = useComponentsContext()!
   const [opened, setOpened] = useState(false)

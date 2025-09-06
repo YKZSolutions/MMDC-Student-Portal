@@ -134,6 +134,7 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
               getNode(editorState.data?.parentId as string)
                 ?.node as ModuleSection
             }
+            isPreview={true}
           />
         )
     }
