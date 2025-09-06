@@ -34,6 +34,9 @@ jobs:
           calculatedSha=$(git rev-parse --short ${{ github.sha }})
           echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
 
+      - name: Set lowercase repo owner
+        run: echo "REPO_OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -46,4 +49,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
+          tags: ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
