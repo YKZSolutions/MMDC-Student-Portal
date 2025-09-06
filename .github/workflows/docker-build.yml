@@ -28,6 +28,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm Package Manager
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: pnpm install --no-frozen-lockfile
+
       - name: Set short git commit SHA
         id: vars
         run: |
