@@ -24,25 +24,14 @@ jobs:
   build-and-push:
     needs: commit-hash
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
       DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install pnpm Package Manager
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Install Backend Dependencies
-        working-directory: ./backend
-        run: pnpm install --no-frozen-lockfile
 
       - name: Set short git commit SHA
         id: vars
@@ -66,4 +55,7 @@ jobs:
           context: .
           file: ./backend/Dockerfile
           push: true
+          build-args: |
+            DATABASE_CLOUD_URL=${{ secrets.DATABASE_CLOUD_URL }}
+            DIRECT_CLOUD_URL=${{ secrets.DIRECT_CLOUD_URL }}
           tags: ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
