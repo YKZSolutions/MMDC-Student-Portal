@@ -19,7 +19,7 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
-import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
+import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { EnrollmentService } from './enrollment.service';
 
 @Controller('enrollments')

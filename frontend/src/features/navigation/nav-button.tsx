@@ -1,5 +1,13 @@
 import type { FileRoutesByTo } from '@/routeTree.gen'
-import { Button, Divider, Group, Stack, Text } from '@mantine/core'
+import {
+  ActionIcon,
+  Button,
+  Divider,
+  Group,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core'
 import { useToggle } from '@mantine/hooks'
 import {
   IconChevronRight,
@@ -22,9 +30,14 @@ export interface NavItem {
 export interface NavButtonProps {
   item: NavItem
   fuzzy?: boolean
+  collapsed?: boolean
 }
 
-export default function NavButton({ item, fuzzy }: NavButtonProps) {
+export default function NavButton({
+  item,
+  fuzzy,
+  collapsed = false,
+}: NavButtonProps) {
   const [open, toggle] = useToggle()
 
   return (
@@ -60,7 +73,21 @@ function BaseNavButton({ item, fuzzy, open, toggle }: BaseNavButtonProps) {
 
   const isActive = matchRoute({ to: item.link, fuzzy: fuzzy })
 
-  return (
+  const button = collapsed ? (
+    <ActionIcon
+      component={Link}
+      to={item.link}
+      variant={isActive ? 'light' : 'subtle'}
+      color={isActive ? undefined : 'gray'}
+      data-cy={`${item.label.toLowerCase()}-link`}
+    >
+      {isActive ? (
+        <item.Icon size={24} />
+      ) : (
+        <item.IconInactive color="gray" size={24} />
+      )}
+    </ActionIcon>
+  ) : (
     <Button
       component={Link}
       leftSection={

@@ -15,9 +15,11 @@ import {
   IconHome,
   IconHomeFilled,
   IconSchool,
+  IconPencil,
   IconUser,
   IconUserCog,
   IconUserFilled,
+  IconWriting,
 } from '@tabler/icons-react'
 
 export const studentLinks: NavItem[] = [
@@ -129,6 +131,13 @@ export const adminLinks: NavItem[] = [
     label: 'Profile',
     Icon: IconUserFilled,
     IconInactive: IconUser,
+    fuzzy: true,
+  },
+  {
+    link: '/cms',
+    label: 'CMS',
+    Icon: IconWriting,
+    IconInactive: IconPencil,
     fuzzy: true,
   },
 ]

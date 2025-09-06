@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import CourseAssignments from '@/pages/shared/courses/$courseId/assignments/course-assignments.tsx'
+import CourseAssignments from '@/pages/shared/courses/$courseCode/assignments/course-assignments.tsx'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseCode/assignments/',
