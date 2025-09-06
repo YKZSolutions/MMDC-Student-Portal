@@ -102,13 +102,10 @@ const ContentTree = ({
     null,
   )
 
-  console.log('Module:', module)
-
   // Sync treeData when courseData changes
   useEffect(() => {
     const nodes = convertModuleToTreeData(module)
     setTreeData(injectAddButtons(nodes))
-    console.log('Tree Data:', treeData)
   }, [module])
 
   const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {

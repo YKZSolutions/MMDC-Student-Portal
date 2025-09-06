@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { mockModule } from '@/features/courses/mocks.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { useState } from 'react'
@@ -21,6 +21,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { authUser } = useAuth('protected')
+  const navigate = useNavigate()
   const [allExpanded, setAllExpanded] = useState(false)
 
   const { courseCode } = Route.useParams() //TODO: use this later for fetching the module
@@ -51,11 +52,18 @@ function RouteComponent() {
             {allExpanded ? 'Collapse All' : 'Expand All'}
           </Button>
           {authUser.role === 'admin' && (
-            <Link from={'/courses/$courseCode/modules'} to={`./create`}>
-              <Button leftSection={<IconPlus />} bg={'secondary'}>
-                Add New Content
-              </Button>
-            </Link>
+            <Button
+              leftSection={<IconPlus />}
+              bg={'secondary'}
+              onClick={() =>
+                navigate({
+                  from: '/courses/$courseCode/modules',
+                  to: `./create`,
+                })
+              }
+            >
+              Add New Content
+            </Button>
           )}
         </Group>
       </Group>

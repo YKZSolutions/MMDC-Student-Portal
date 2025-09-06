@@ -36,7 +36,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import type { Role } from '@/integrations/api/client'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useDisclosure } from '@mantine/hooks'
 
 interface ModulePanelProps {
@@ -284,6 +284,7 @@ type AdminActionsProps = {
 
 const AdminActions = ({ item }: AdminActionsProps) => {
   const theme = useMantineTheme()
+  const navigate = useNavigate()
   const handleDelete = () => {} //TODO: implement this
   const [opened, { open, close }] = useDisclosure()
   return (
@@ -326,59 +327,63 @@ const AdminActions = ({ item }: AdminActionsProps) => {
         <Menu.Dropdown>
           <Menu.Label>Publish Actions</Menu.Label>
           {!item.published.isPublished && (
-            <Link
-              from={'/courses/$courseCode/modules'}
-              to={`$itemId/publish`}
-              params={{ itemId: item.id }}
-              search={{ scheduled: false, unpublish: false }}
+            <Menu.Item
+              onClick={() => {
+                navigate({
+                  from: '/courses/$courseCode/modules',
+                  to: `$itemId/publish`,
+                  params: { itemId: item.id },
+                  search: { scheduled: false, unpublish: false },
+                })
+              }} //TODO: handle publish
+              leftSection={
+                <IconRubberStamp
+                  size={16}
+                  stroke={1.5}
+                  color={theme.colors.blue[5]}
+                />
+              }
             >
-              <Menu.Item
-                onClick={() => {}} //TODO: handle publish
-                leftSection={
-                  <IconRubberStamp
-                    size={16}
-                    stroke={1.5}
-                    color={theme.colors.blue[5]}
-                  />
-                }
-              >
-                Publish Now
-              </Menu.Item>
-            </Link>
+              Publish Now
+            </Menu.Item>
           )}
           {!item.published.isPublished && (
-            <Link
-              from={'/courses/$courseCode/modules'}
-              to={`$itemId/publish`}
-              params={{ itemId: item.id }}
-              search={{ scheduled: true, unpublish: false }}
+            <Menu.Item
+              onClick={() => {
+                navigate({
+                  from: '/courses/$courseCode/modules',
+                  to: `$itemId/publish`,
+                  params: { itemId: item.id },
+                  search: { scheduled: true, unpublish: false },
+                })
+              }} //TODO: handle schedule publish
+              leftSection={
+                <IconCalendarTime
+                  size={16}
+                  stroke={1.5}
+                  color={theme.colors.blue[5]}
+                />
+              }
             >
-              <Menu.Item
-                onClick={() => {}} //TODO: handle schedule publish
-                leftSection={
-                  <IconCalendarTime
-                    size={16}
-                    stroke={1.5}
-                    color={theme.colors.blue[5]}
-                  />
-                }
-              >
-                Schedule Publish
-              </Menu.Item>
-            </Link>
+              Schedule Publish
+            </Menu.Item>
           )}
         </Menu.Dropdown>
       </Menu>
       <Tooltip label="Add new">
-        <Link
-          from={'/courses/$courseCode/modules'}
-          to={`$itemId/create`}
-          params={{ itemId: item.id }}
+        <ActionIcon
+          variant="subtle"
+          radius="lg"
+          onClick={() => {
+            navigate({
+              from: '/courses/$courseCode/modules',
+              to: `$itemId/create`,
+              params: { itemId: item.id },
+            })
+          }}
         >
-          <ActionIcon variant="subtle" radius="lg">
-            <IconPlus size={20} />
-          </ActionIcon>
-        </Link>
+          <IconPlus size={20} />
+        </ActionIcon>
       </Tooltip>
       <Menu shadow="md" width={200}>
         <Menu.Target>
@@ -389,20 +394,21 @@ const AdminActions = ({ item }: AdminActionsProps) => {
 
         <Menu.Dropdown>
           <Menu.Label>Actions</Menu.Label>
-          <Link
-            from={'/courses/$courseCode/modules'}
-            to={`$itemId/edit`}
-            params={{ itemId: item.id }}
+          <Menu.Item
+            variant={'subtle'}
+            leftSection={
+              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[5]} />
+            }
+            onClick={() => {
+              navigate({
+                from: '/courses/$courseCode/modules',
+                to: `$itemId/edit`,
+                params: { itemId: item.id },
+              })
+            }}
           >
-            <Menu.Item
-              variant={'subtle'}
-              leftSection={
-                <IconEdit size={16} stroke={1.5} color={theme.colors.blue[5]} />
-              }
-            >
-              Edit
-            </Menu.Item>
-          </Link>
+            Edit
+          </Menu.Item>
           <Menu.Item //TODO: implement this
             leftSection={
               <IconTrash size={16} stroke={1.5} color={theme.colors.red[5]} />
