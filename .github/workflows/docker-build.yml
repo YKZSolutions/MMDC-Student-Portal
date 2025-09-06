@@ -48,5 +48,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./backend/Dockerfile
           push: true
           tags: ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
