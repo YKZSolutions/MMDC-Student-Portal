@@ -60,6 +60,12 @@ model User {
   submissions      Submission[]
   /// @DtoApiHidden
   moduleProgress   StudentProgress[]
+  /// @DtoApiHidden
+  modules          Module[]
+  /// @DtoApiHidden
+  moduleSections   ModuleSection[]
+  /// @DtoApiHidden
+  moduleContents   ModuleContent[]
 
   firstName  String
   middleName String?
@@ -517,6 +523,13 @@ model Module {
   courseEnrollmentId String           @db.Uuid
   courseEnrollment   CourseEnrollment @relation(fields: [courseEnrollmentId], references: [id])
 
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  toPublishAt DateTime?
+
+  publishedBy String? @db.Uuid
+  user        User?   @relation(fields: [publishedBy], references: [id])
+
   /// @DtoApiHidden
   moduleSections ModuleSection[]
 
@@ -539,7 +552,15 @@ model ModuleSection {
   parentSection   ModuleSection?  @relation("ModuleSubsection", fields: [parentSectionId], references: [id], onDelete: Cascade)
   subsections     ModuleSection[] @relation("ModuleSubsection")
 
+  /// @DtoApiHidden
   moduleContents ModuleContent[]
+
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  toPublishAt DateTime?
+
+  publishedBy String? @db.Uuid
+  user        User?   @relation(fields: [publishedBy], references: [id])
 }
 
 enum ContentType {
@@ -560,6 +581,13 @@ model ModuleContent {
 
   content     Json
   contentType ContentType
+
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  toPublishAt DateTime?
+
+  publishedBy String? @db.Uuid
+  user        User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
   assignmentBase  AssignmentBase?
