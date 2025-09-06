@@ -127,3 +127,8 @@ export function getModuleItemsFromModule(module: Module) {
 export function getModuleItemsFromSections(sections: ModuleSection[]) {
   return sections.flatMap((section) => section.items)
 }
+
+export const createFilterOption = (value: string) => ({
+  label: value,
+  value: value.toLowerCase(),
+})

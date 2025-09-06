@@ -2,39 +2,49 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type {
   AcademicProgram,
+  AcademicTerm,
   ClassMeeting,
   Course,
-  EnrolledAcademicTerm,
 } from '@/features/courses/types'
-import { useState } from 'react'
+import { Component, useState } from 'react'
 import {
+  ActionIcon,
   Box,
   Button,
   Card,
   Container,
   Divider,
   Flex,
-  Grid,
   Group,
   Image,
   Progress,
   RingProgress,
-  Select,
   Stack,
   Text,
   Title,
+  Tooltip,
   useMantineTheme,
 } from '@mantine/core'
 import SearchComponent from '@/components/search-component.tsx'
 import {
+  IconCalendarTime,
   IconDeviceDesktop,
+  IconFilter,
   IconLayoutGridFilled,
   IconList,
+  IconUserCode,
   IconVideo,
 } from '@tabler/icons-react'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
+import {
+  type FilterInputType,
+  type FilterType,
+  MultiFilter,
+} from '@/components/multi-filter.tsx'
+import { useFilter } from '@/hooks/useFilter.ts'
+import { createFilterOption } from '@/utils/helpers.ts'
 
 export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
@@ -43,7 +53,7 @@ export const Route = createFileRoute('/(protected)/courses/')({
   },
 })
 
-const mockTerms: EnrolledAcademicTerm[] = [
+const mockTerms: AcademicTerm[] = [
   {
     termId: 'termId1',
     schoolYear: 'SY 2024-2025',
@@ -70,14 +80,33 @@ const mockTerms: EnrolledAcademicTerm[] = [
   },
 ]
 
+const mockAcademicPrograms: AcademicProgram[] = [
+  {
+    program: 'Bachelor of Science in Information Technology',
+    programCode: 'BSIT',
+    major: 'Software Development',
+    majorCode: 'SD',
+  },
+  {
+    program: 'Bachelor of Science in Computer Science',
+    programCode: 'BSCS',
+    major: 'Software Engineering',
+    majorCode: 'SE',
+  },
+  {
+    program: 'Bachelor of Science in Information Systems',
+    programCode: 'BSIS',
+    major: 'Information Systems',
+    majorCode: 'IS',
+  },
+]
+
 // TODO: Consider adding program and/or department and major to the course data
 // TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
 const MockCourseData: Course[] = [
   {
-    courseDetails: {
-      courseName: 'Web Technology Applications',
-      courseCode: 'MO-IT200',
-    },
+    courseName: 'Web Technology Applications',
+    courseCode: 'MO-IT200',
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -93,14 +122,13 @@ const MockCourseData: Course[] = [
         },
       ],
     },
-
     activities: [],
+    program: mockAcademicPrograms[0],
+    academicTerms: [mockTerms[0]],
   },
   {
-    courseDetails: {
-      courseName: 'Data Structures and Algorithms',
-      courseCode: 'MO-IT351',
-    },
+    courseName: 'Data Structures and Algorithms',
+    courseCode: 'MO-IT351',
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -117,13 +145,13 @@ const MockCourseData: Course[] = [
       ],
     },
     activities: [],
+    program: mockAcademicPrograms[1],
+    academicTerms: [mockTerms[1]],
   },
 
   {
-    courseDetails: {
-      courseName: 'Capstone 1',
-      courseCode: 'MO-IT400',
-    },
+    courseName: 'Capstone 1',
+    courseCode: 'MO-IT400',
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -140,12 +168,12 @@ const MockCourseData: Course[] = [
       ],
     },
     activities: [],
+    program: mockAcademicPrograms[2],
+    academicTerms: [mockTerms[2]],
   },
   {
-    courseDetails: {
-      courseName: 'Capstone 2',
-      courseCode: 'MO-IT500',
-    },
+    courseName: 'Capstone 2',
+    courseCode: 'MO-IT500',
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -171,179 +199,332 @@ const MockCourseData: Course[] = [
         dueTimestamp: '2025-08-20T23:59:59',
       },
     ],
+    program: mockAcademicPrograms[0],
+    academicTerms: [mockTerms[3]],
   },
 ]
 
-const mockAcademicPrograms: AcademicProgram[] = [
-  {
-    program: 'Bachelor of Science in Information Technology',
-    programCode: 'BSIT',
-    major: 'Software Development',
-    majorCode: 'SD',
+// Course-specific filter configuration
+export const courseFilterConfig = {
+  Program: (course: Course, value: string) => {
+    const programCode = course.program.programCode
+    return programCode.toLowerCase() === value.toLowerCase()
   },
-  {
-    program: 'Bachelor of Science in Computer Science',
-    programCode: 'BSCS',
-    major: 'Software Engineering',
-    majorCode: 'SE',
+
+  Term: (course: Course, value: string) => {
+    if (value === 'current' && course.academicTerms.length > 0) {
+      const currentTerm = course.academicTerms.find((term) => term.isCurrent)
+      if (currentTerm) return true
+    }
+
+    return course.academicTerms.some((term) => {
+      const termId = term.termId
+      return termId.toLowerCase() === value.toLowerCase()
+    })
   },
-  {
-    program: 'Bachelor of Science in Information Systems',
-    programCode: 'BSIS',
-    major: 'Information Systems',
-    majorCode: 'IS',
+
+  Schedule: (course: Course, value: string) => {
+    return course.section.sectionSchedule.day //TODO: Placeholder - implement the logic
+      .toLowerCase()
+      .includes(value.toLowerCase())
   },
-]
+}
 
 function RouteComponent() {
   const { authUser } = useAuth('protected') //TODO: use this later for fetching enrolled terms
   const academicTerms = Route.useLoaderData() //TODO: replace with suspense query
+  const academicPrograms = mockAcademicPrograms
 
-  const theme = useMantineTheme()
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [searchFilteredCourses, setSearchFilteredCourses] =
+    useState<Course[]>(MockCourseData)
 
-  const formatTerm = (academicTerm: EnrolledAcademicTerm | undefined) => {
+  //TODO: implement API call to get courses, get it by academic term Id
+  const coursesData = MockCourseData
+
+  const formatTerm = (academicTerm: AcademicTerm | undefined) => {
     return academicTerm
       ? `${academicTerm.schoolYear} - ${academicTerm.term}`
       : 'N/A'
   }
 
-  const currentTerm = formatTerm(academicTerms.find((term) => term.isCurrent))
+  const filters: FilterType[] = [
+    {
+      label: 'Term',
+      icon: <IconCalendarTime size={16} />,
+      type: 'select',
+      value: '',
+      options: [
+        { label: 'Current', value: 'current' },
+        ...academicTerms.map((term) => createFilterOption(formatTerm(term))),
+      ],
+    },
+    ...(authUser?.role !== 'student'
+      ? [
+          {
+            label: 'Program',
+            icon: <IconUserCode size={16} />,
+            type: 'select' as FilterInputType,
+            value: '',
+            options: [
+              ...academicPrograms.map((program) =>
+                createFilterOption(program.programCode),
+              ),
+            ],
+          },
+        ]
+      : []),
+  ]
 
-  //TODO: implement API call to get courses, get it by academic term Id
-  const coursesData = MockCourseData
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>(coursesData)
+  const defaultFilters: FilterType[] = [
+    {
+      ...filters[0],
+      value: 'current',
+    },
+  ]
 
-  const academicPrograms = mockAcademicPrograms
-  const [selectedAcademicProgram, setSelectedAcademicProgram] =
-    useState<AcademicProgram>(academicPrograms[0])
+  const [showFilters, setShowFilters] = useState(true)
+
+  const {
+    activeFilters,
+    filteredData,
+    activeFilterCount,
+    handleAddFilter,
+    handleRemoveFilter,
+    handleFilterChange,
+  } = useFilter(defaultFilters, searchFilteredCourses, courseFilterConfig)
 
   return (
     <Container fluid m={0}>
       <Stack gap={'lg'}>
-        {/* Page Hero */}
-        <Group justify="space-between" align="center">
-          <Title c={'dark.7'} variant="hero" order={2} fw={700}>
-            All Courses
-          </Title>
-        </Group>
-
-        <Divider />
-
-        <Grid>
-          <Grid.Col span={authUser.role === 'student' ? 9 : 12}>
-            <Stack gap={'md'} mr={'md'}>
-              {/*Filters*/}
-              <Group justify="space-between" align="start">
-                <SearchComponent //TODO: might need to replace this later if paging should be implemented
-                  data={coursesData}
-                  onFilter={setFilteredCourses}
-                  identifiers={[['courseDetails', 'courseName']]}
-                  placeholder={'Search courses'}
-                />
-                <Group gap={'md'} align="center" justify="flex-end">
-                  {authUser.role !== 'student' && (
-                    <Select
-                      data={academicPrograms.map(
-                        (program) => program.programCode,
-                      )}
-                      defaultValue={selectedAcademicProgram.programCode}
-                      allowDeselect={false}
-                      variant="default"
-                      radius={'md'}
-                      size={'sm'}
-                      w={'20%'}
-                    />
-                  )}
-                  <Select
-                    data={academicTerms.map(
-                      (term) =>
-                        `${term.isCurrent ? '(Current)' : ''} ${formatTerm(term)}`,
-                    )}
-                    defaultValue={`(Current) ${currentTerm}`}
-                    allowDeselect={false}
-                    variant="default"
-                    radius={'md'}
-                    size={'sm'}
-                  />
-                  <Button.Group>
-                    <Button
-                      variant="default"
-                      radius={'md'}
-                      bg={
-                        view === 'grid'
-                          ? theme.colors.gray[3]
-                          : theme.colors.gray[0]
-                      }
-                      size={'xs'}
-                      onClick={() => setView('grid')}
-                    >
-                      <IconLayoutGridFilled
-                        size="75%"
-                        color={view === 'grid' ? 'black' : theme.colors.dark[2]}
-                      />
-                    </Button>
-                    <Button
-                      variant="default"
-                      radius={'md'}
-                      bg={
-                        view === 'list'
-                          ? theme.colors.gray[3]
-                          : theme.colors.gray[0]
-                      }
-                      size={'xs'}
-                      onClick={() => setView('list')}
-                    >
-                      <IconList
-                        size="75%"
-                        color={view === 'list' ? 'black' : theme.colors.dark[2]}
-                      />
-                    </Button>
-                  </Button.Group>
-                </Group>
-              </Group>
-              {/*Courses*/}
-              <Flex gap={'md'} wrap={'wrap'}>
-                {filteredCourses.map((course, index) => (
-                  <CourseItem key={index} course={course} variant={view} />
-                ))}
-              </Flex>
-            </Stack>
-          </Grid.Col>
+        <Header
+          coursesData={coursesData}
+          onSearchFilter={setSearchFilteredCourses}
+          filters={filters}
+          activeFilters={activeFilters}
+          handleAddFilter={handleAddFilter}
+          handleRemoveFilter={handleRemoveFilter}
+          handleFilterChange={handleFilterChange}
+          showFilters={showFilters}
+          onToggleShowFilter={setShowFilters}
+          activeFilterCount={activeFilterCount}
+          view={view}
+          onViewChange={setView}
+        />
+        <Group wrap={'wrap-reverse'} align="start" gap={'md'} w={'100%'}>
+          {/*Courses*/}
+          <Group
+            wrap="wrap"
+            gap={'md'}
+            style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
+          >
+            {filteredData.map((course, index) => (
+              <CourseItem
+                url={`/courses/${course.courseCode}`}
+                key={index}
+                course={course}
+                variant={view}
+              />
+            ))}
+          </Group>
           {/*Upcoming Tasks*/}
           {authUser.role === 'student' && (
-            <Grid.Col span={3}>
-              <CourseTasksSummary courses={filteredCourses} />
-            </Grid.Col>
+            <div
+              className={'self-end'}
+              style={{ flexGrow: 1, flexBasis: '20%', minWidth: 250 }}
+            >
+              <CourseTasksSummary courses={filteredData} />
+            </div>
           )}
-        </Grid>
+        </Group>
       </Stack>
     </Container>
   )
 }
 
+type HeaderProps = {
+  coursesData: Course[]
+  onSearchFilter: (courses: Course[]) => void
+  filters: FilterType[]
+  activeFilters: FilterType[]
+  handleAddFilter: (filterType: FilterType) => void
+  handleRemoveFilter: (index: number) => void
+  handleFilterChange: (index: number, value: string) => void
+  showFilters: boolean
+  onToggleShowFilter: (show: boolean) => void
+  activeFilterCount: number
+  view: 'grid' | 'list'
+  onViewChange: (view: 'grid' | 'list') => void
+}
+
+const Header = ({
+  coursesData,
+  onSearchFilter,
+  filters,
+  activeFilters,
+  handleAddFilter,
+  handleRemoveFilter,
+  handleFilterChange,
+  showFilters,
+  onToggleShowFilter,
+  activeFilterCount,
+  view,
+  onViewChange,
+}: HeaderProps) => {
+  return (
+    <Stack gap={'xs'}>
+      <Group justify="space-between" align="center">
+        <Title c={'dark.7'} variant="hero" order={2} fw={700}>
+          Courses
+        </Title>
+        {/*Filters*/}
+        <Group justify="space-between" align="center">
+          <SearchComponent //TODO: might need to replace this later if paging should be implemented
+            data={coursesData}
+            onFilter={onSearchFilter}
+            identifiers={['courseName']}
+            placeholder={'Search courses'}
+          />
+          <Group>
+            <ViewSelectorButton
+              view={view}
+              onGridClick={() => onViewChange('grid')}
+              onListClick={() => onViewChange('list')}
+            />
+            <FilterButton
+              showFilters={showFilters}
+              filterCount={activeFilterCount}
+              onClick={() => onToggleShowFilter(!showFilters)}
+            />
+          </Group>
+        </Group>
+      </Group>
+      <Box hidden={!showFilters}>
+        <CourseDashboardFilters
+          filters={filters}
+          activeFilters={activeFilters}
+          onAddFilter={handleAddFilter}
+          onRemoveFilter={handleRemoveFilter}
+          onFilterChange={handleFilterChange}
+        />
+      </Box>
+      <Divider />
+    </Stack>
+  )
+}
+
+class FilterButton extends Component<{
+  showFilters: boolean
+  filterCount: number
+  onClick: () => void
+}> {
+  render() {
+    return (
+      <Tooltip label={this.props.showFilters ? 'Hide Filters' : 'Show Filters'}>
+        <ActionIcon
+          variant={'subtle'}
+          c={
+            this.props.filterCount !== 0 || this.props.showFilters
+              ? 'blue.6'
+              : 'gray.6'
+          }
+          onClick={this.props.onClick}
+        >
+          <IconFilter size={20} />
+        </ActionIcon>
+      </Tooltip>
+    )
+  }
+}
+
+class SelectorButton extends Component<{
+  active: boolean
+  icon: React.ReactNode
+  onClick: () => void
+}> {
+  render() {
+    return (
+      <Button
+        variant="default"
+        radius={'md'}
+        bg={this.props.active ? 'gray.3' : 'gray.0'}
+        size={'xs'}
+        onClick={this.props.onClick}
+      >
+        <div color={this.props.active ? 'black' : 'dark.2'}>
+          {this.props.icon}
+        </div>
+      </Button>
+    )
+  }
+}
+
+class ViewSelectorButton extends Component<{
+  view: 'grid' | 'list'
+  onGridClick: () => void
+  onListClick: () => void
+}> {
+  render() {
+    return (
+      <Button.Group>
+        <SelectorButton
+          active={this.props.view === 'grid'}
+          onClick={this.props.onGridClick}
+          icon={<IconLayoutGridFilled size={20} />}
+        />
+        <SelectorButton
+          active={this.props.view === 'list'}
+          onClick={this.props.onListClick}
+          icon={<IconList size={20} />}
+        />
+      </Button.Group>
+    )
+  }
+}
+
+type CourseDashboardFiltersProps = {
+  filters: FilterType[]
+  activeFilters: FilterType[]
+  onAddFilter: (filterType: FilterType) => void
+  onRemoveFilter: (index: number) => void
+  onFilterChange: (index: number, value: string) => void
+}
+
+const CourseDashboardFilters = ({
+  filters,
+  activeFilters,
+  onAddFilter,
+  onRemoveFilter,
+  onFilterChange,
+}: CourseDashboardFiltersProps) => {
+  return (
+    <Group gap={'md'} align="start">
+      <MultiFilter
+        filters={filters}
+        activeFilters={activeFilters.map((filter, index) => ({
+          ...filter,
+          onChange: (value) => onFilterChange(index, value),
+        }))}
+        onAddFilter={onAddFilter}
+        onRemoveFilter={onRemoveFilter}
+      />
+    </Group>
+  )
+}
+
 const CourseItem = ({
+  url,
   course,
   variant,
 }: {
+  url: string
   course: Course
   variant: 'grid' | 'list'
 }) => {
-  const url = `/courses/${course.courseDetails.courseCode}`
   return variant === 'grid' ? (
-    <CourseCard
-      courseDetails={course.courseDetails}
-      courseProgress={course.courseProgress}
-      section={course.section}
-      url={url}
-    />
+    <CourseCard url={url} {...course} />
   ) : (
-    <CourseListRow
-      courseDetails={course.courseDetails}
-      courseProgress={course.courseProgress}
-      section={course.section}
-      url={url}
-    />
+    <CourseListRow url={url} {...course} />
   )
 }
 
@@ -351,31 +532,19 @@ interface CourseDetailProps extends Omit<Course, 'activities'> {
   url: string
 }
 
-const CourseCard = ({
-  courseDetails,
-  courseProgress,
-  section,
-  url,
-}: CourseDetailProps) => {
+const CourseCard = ({ url, ...courseDetails }: CourseDetailProps) => {
   const theme = useMantineTheme()
 
-  const { sectionName, sectionSchedule, classMeetings } = section
-  const { courseName, courseCode } = courseDetails
-
+  const { sectionName, sectionSchedule, classMeetings } = courseDetails.section
+  const { courseName, courseCode, courseProgress } = courseDetails
   const { currentMeeting } = useCurrentMeeting(classMeetings)
-  const [hovered, setHovered] = useState(false)
 
   return (
     <Card
-      component={Link}
-      to={url}
       withBorder
       radius="md"
       p="xs"
-      shadow={hovered ? 'sm' : 'xs'}
-      style={{ cursor: 'pointer' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className={'drop-shadow-sm hover:drop-shadow-lg'}
     >
       {/*Image*/}
       <Flex pos="relative">
@@ -398,7 +567,6 @@ const CourseCard = ({
           bdrs="md"
           bg="black"
           opacity={0.75}
-          style={{ textDecoration: hovered ? 'underline' : 'none' }}
         >
           {courseCode} • {sectionName}
         </Text>
@@ -407,21 +575,19 @@ const CourseCard = ({
       <Group justify="space-between" wrap="nowrap" mt="xs">
         <Stack gap={'md'} w={'16rem'} px={'xs'}>
           <Stack mt={'xs'}>
-            <Title
-              order={3}
-              w={'100%'}
-              lineClamp={1}
-              c={theme.primaryColor}
-              style={{ textDecoration: hovered ? 'underline' : 'none' }}
-            >
-              {courseName}
-            </Title>
-            <Text
-              fw={400}
-              size={'sm'}
-              c={theme.colors.dark[3]}
-              style={{ textDecoration: hovered ? 'underline' : 'none' }}
-            >
+            <Tooltip label={courseName}>
+              <Link to={url} className="hover:underline">
+                <Title
+                  order={3}
+                  w={'100%'}
+                  lineClamp={1}
+                  c={theme.primaryColor}
+                >
+                  {courseName}
+                </Title>
+              </Link>
+            </Tooltip>
+            <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
               {sectionSchedule.day} {sectionSchedule.time}
             </Text>
           </Stack>
@@ -458,54 +624,31 @@ const CourseCard = ({
   )
 }
 
-const CourseListRow = ({
-  courseDetails,
-  courseProgress,
-  section,
-  url,
-}: CourseDetailProps) => {
-  const theme = useMantineTheme()
-
-  const { sectionName, sectionSchedule, classMeetings } = section
-  const { courseName, courseCode } = courseDetails
-
+const CourseListRow = ({ url, ...courseDetails }: CourseDetailProps) => {
+  const { sectionName, sectionSchedule, classMeetings } = courseDetails.section
+  const { courseName, courseCode, courseProgress } = courseDetails
   const { currentMeeting } = useCurrentMeeting(classMeetings)
-  const [hovered, setHovered] = useState(false)
 
   return (
     <Card
-      component={Link}
-      to={url}
       withBorder
       radius="md"
       p="0"
-      shadow={hovered ? 'sm' : 'xs'}
+      className={'drop-shadow-sm hover:drop-shadow-lg'}
       w={'100%'}
-      style={{ cursor: 'pointer' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <Group justify="space-between" wrap="nowrap">
-        <Box bg={theme.colors.primary[1]} h={'100%'} w={'20px'}></Box>
+        <Box bg={'primary'} h={'100%'} w={'20px'}></Box>
         <Stack w={'65%'} p={'xs'} justify={'space-between'}>
           <Group gap={'xs'}>
-            <Title
-              order={3}
-              lineClamp={1}
-              maw={'75%'}
-              c={theme.primaryColor}
-              style={{ textDecoration: hovered ? 'underline' : 'none' }}
-            >
-              {courseName}
-            </Title>
+            <Link to={url} className="hover:underline">
+              <Title order={3} lineClamp={1} c={'primary'}>
+                {courseName}
+              </Title>
+            </Link>
             <CourseDashboardQuickActions />
           </Group>
-          <Text
-            fw={400}
-            size={'sm'}
-            c={theme.colors.dark[3]}
-            style={{ textDecoration: hovered ? 'underline' : 'none' }}
-          >
+          <Text fw={400} size={'sm'} c={'dark.3'}>
             {courseCode} • {sectionName} | {sectionSchedule.day}{' '}
             {sectionSchedule.time}
           </Text>
@@ -516,11 +659,11 @@ const CourseListRow = ({
             courseCode={courseCode}
           />
           <Group gap="xs">
-            <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+            <Text fw={500} size={'xs'} c={'dark.3'}>
               Completed:
             </Text>
-            <Progress color={theme.colors.blue[5]} value={50} w={'50%'} />
-            <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+            <Progress color={'blue.5'} value={50} w={'50%'} />
+            <Text fw={500} size={'xs'} c={'dark.3'}>
               {courseProgress * 100}%
             </Text>
           </Group>

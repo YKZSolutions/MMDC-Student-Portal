@@ -21,11 +21,12 @@ code {
     border: none;
 }
 
-a {
+.bn-block a {
   color: #8000ff;
   text-decoration: none;
 }
 
-a:hover {
+.bn-block a:hover {
   text-decoration: underline;
 }
+
