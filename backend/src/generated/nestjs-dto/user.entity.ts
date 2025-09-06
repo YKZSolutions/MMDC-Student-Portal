@@ -37,6 +37,15 @@ import {
   StudentProgress,
   type StudentProgress as StudentProgressAsType,
 } from './studentProgress.entity';
+import { Module, type Module as ModuleAsType } from './module.entity';
+import {
+  ModuleSection,
+  type ModuleSection as ModuleSectionAsType,
+} from './moduleSection.entity';
+import {
+  ModuleContent,
+  type ModuleContent as ModuleContentAsType,
+} from './moduleContent.entity';
 
 export class User {
   @ApiProperty({
@@ -63,6 +72,12 @@ export class User {
   submissions?: SubmissionAsType[];
   @ApiHideProperty()
   moduleProgress?: StudentProgressAsType[];
+  @ApiHideProperty()
+  modules?: ModuleAsType[];
+  @ApiHideProperty()
+  moduleSections?: ModuleSectionAsType[];
+  @ApiHideProperty()
+  moduleContents?: ModuleContentAsType[];
   @ApiProperty({
     type: 'string',
   })

@@ -10,6 +10,22 @@ export class ModuleDto {
   })
   title: string;
   @ApiProperty({
+    type: 'boolean',
+  })
+  isPublished: boolean;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  publishedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  toPublishAt: Date | null;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
