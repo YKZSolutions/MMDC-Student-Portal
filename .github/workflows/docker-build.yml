@@ -46,4 +46,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/MMDC-Student-Portal:${{ needs.commit-hash.outputs.commit_hash }}
+          tags: ghcr.io/${{ github.repository_owner }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
