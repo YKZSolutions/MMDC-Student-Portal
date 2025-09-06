@@ -6,12 +6,18 @@ import CoursePublisher from '@/pages/admin/courses/$courseCode/edit/course-publi
 export const Route = createFileRoute(
   '/(protected)/courses/$courseCode_/publish',
 )({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      scheduled: search.scheduled === 'true',
+    }
+  },
   component: RouteComponent,
 })
 
 function RouteComponent() {
   const { authUser } = useAuth('protected')
   const { courseCode } = useParams({ strict: false })
+  const { scheduled } = Route.useSearch()
 
   if (!authUser || !courseCode) {
     //TODO: or a loader / skeleton
@@ -22,7 +28,9 @@ function RouteComponent() {
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        admin: <CoursePublisher courseCode={courseCode} />,
+        admin: (
+          <CoursePublisher courseCode={courseCode} scheduled={scheduled} />
+        ),
       }}
     />
   )

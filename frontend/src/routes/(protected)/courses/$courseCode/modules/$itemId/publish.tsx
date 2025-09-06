@@ -1,0 +1,18 @@
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute(
+  '/(protected)/courses/$courseCode/modules/$itemId/publish',
+)({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      scheduled: search.scheduled === 'true',
+    }
+  },
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  return (
+    <div>Hello "/(protected)/courses/$courseCode/modules/$itemId/publish"!</div>
+  )
+}

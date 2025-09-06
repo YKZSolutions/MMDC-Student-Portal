@@ -18,7 +18,12 @@ import { useMediaQuery } from '@mantine/hooks'
 import { getRouteApi } from '@tanstack/react-router'
 import { mockModule } from '@/features/courses/mocks.ts'
 
-const CoursePublisher = ({ courseCode }: { courseCode: string }) => {
+type CoursePublisherProps = {
+  courseCode: string
+  scheduled: boolean
+}
+
+const CoursePublisher = ({ courseCode, scheduled }: CoursePublisherProps) => {
   const theme = useMantineTheme()
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`)
   const [module, setModule] = useState<Module | null>(mockModule)

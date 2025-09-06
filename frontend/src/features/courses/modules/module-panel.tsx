@@ -27,6 +27,7 @@ import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import SubmitButton from '@/components/submit-button.tsx'
 import {
+  IconCalendarTime,
   IconDotsVertical,
   IconEdit,
   IconPlus,
@@ -36,6 +37,7 @@ import {
 } from '@tabler/icons-react'
 import type { Role } from '@/integrations/api/client'
 import { Link } from '@tanstack/react-router'
+import { useDisclosure } from '@mantine/hooks'
 
 interface ModulePanelProps {
   allExpanded: boolean
@@ -133,20 +135,14 @@ const ModulePanel = ({
 
                   {subsection.items.map((item) => (
                     <Accordion.Panel
+                      key={item.id}
                       styles={{
                         content: {
                           padding: '8px',
                         },
                       }}
                     >
-                      <ModuleItemCard
-                        key={item.id}
-                        item={item}
-                        onItemClick={() => {
-                          /* TODO: Handle item click */
-                        }}
-                        isPreview={isPreview}
-                      />
+                      <ModuleItemCard item={item} isPreview={isPreview} />
                     </Accordion.Panel>
                   ))}
                 </Accordion.Item>
@@ -161,78 +157,78 @@ const ModulePanel = ({
 
 interface ModuleItemCardProps {
   item: ModuleItem
-  onItemClick: () => void
   isPreview?: boolean
 }
 
-const ModuleItemCard = ({
-  item,
-  onItemClick,
-  isPreview = false,
-}: ModuleItemCardProps) => {
+const ModuleItemCard = ({ item, isPreview = false }: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
   const role: Role = isPreview ? 'student' : authUser.role
   const theme = useMantineTheme()
 
   return (
-    <Card
-      withBorder
-      radius="md"
-      p="sm"
-      style={{
-        cursor: 'pointer',
-        borderLeft: `3px solid ${item.type === 'lesson' ? theme.colors.blue[5] : theme.colors.green[5]}`,
-      }}
-      onClick={onItemClick}
-      bg={'background'}
+    <Link
+      from={'/courses/$courseCode/modules'}
+      to={`$itemId`}
+      params={{ itemId: item.id }}
     >
-      <Group justify="space-between" align="center">
-        <Group gap="sm">
-          {role === 'student' && (
-            <CompletedStatusIcon
-              status={
-                item.type === 'lesson'
-                  ? item.progress?.isCompleted
-                    ? 'read'
-                    : 'unread'
-                  : getSubmissionStatus(item.assignment)
-              }
-            />
-          )}
+      <Card
+        withBorder
+        radius="md"
+        p="sm"
+        style={{
+          cursor: 'pointer',
+          borderLeft: `3px solid ${item.type === 'lesson' ? theme.colors.blue[5] : theme.colors.green[5]}`,
+        }}
+        bg={'background'}
+      >
+        <Group justify="space-between" align="center">
+          <Group gap="sm">
+            {role === 'student' && (
+              <CompletedStatusIcon
+                status={
+                  item.type === 'lesson'
+                    ? item.progress?.isCompleted
+                      ? 'read'
+                      : 'unread'
+                    : getSubmissionStatus(item.assignment)
+                }
+              />
+            )}
 
-          <Box>
-            <Text fw={500}>{item.title}</Text>
-            <Text size="sm" c="dimmed">
-              {item.type === 'lesson'
-                ? 'Reading Material'
-                : `Due: ${formatTimestampToDateTimeText(item.assignment?.dueDate || '', 'by')}`}
-            </Text>
-          </Box>
+            <Box>
+              <Text fw={500}>{item.title}</Text>
+              <Text size="sm" c="dimmed">
+                {item.type === 'lesson'
+                  ? 'Reading Material'
+                  : `Due: ${formatTimestampToDateTimeText(item.assignment?.dueDate || '', 'by')}`}
+              </Text>
+            </Box>
+          </Group>
+
+          <RoleComponentManager
+            currentRole={role}
+            roleRender={{
+              student: (
+                <>
+                  {item.type === 'assignment' && (
+                    <SubmitButton
+                      submissionStatus={
+                        getSubmissionStatus(item.assignment) || 'pending'
+                      }
+                      onClick={() => {}}
+                      dueDate={item.assignment?.dueDate || ''}
+                      assignmentStatus={item.assignment?.status || 'open'}
+                      isPreview={isPreview}
+                    />
+                  )}
+                </>
+              ),
+              admin: <AdminActions item={item} />,
+            }}
+          />
         </Group>
-
-        <RoleComponentManager
-          currentRole={role}
-          roleRender={{
-            student: (
-              <>
-                {item.type === 'assignment' && (
-                  <SubmitButton
-                    submissionStatus={
-                      getSubmissionStatus(item.assignment) || 'pending'
-                    }
-                    onClick={() => {}}
-                    dueDate={item.assignment?.dueDate || ''}
-                    assignmentStatus={item.assignment?.status || 'open'}
-                    isPreview={isPreview}
-                  />
-                )}
-              </>
-            ),
-            admin: <AdminActions item={item} />,
-          }}
-        />
-      </Group>
-    </Card>
+      </Card>
+    </Link>
   )
 }
 
@@ -289,12 +285,30 @@ type AdminActionsProps = {
 const AdminActions = ({ item }: AdminActionsProps) => {
   const theme = useMantineTheme()
   const handleDelete = () => {} //TODO: implement this
+  const [opened, { open, close }] = useDisclosure()
   return (
     <Group>
-      <Tooltip label={item.published.isPublished ? 'Published' : 'Draft'}>
-        <Menu shadow="md" width={200}>
-          <Menu.Target>
-            <ActionIcon variant="default" radius="lg">
+      <Menu
+        shadow="md"
+        width={200}
+        opened={opened}
+        onOpen={open}
+        onClose={close}
+      >
+        <Menu.Target>
+          <Tooltip label={item.published.isPublished ? 'Unpublish' : 'Publish'}>
+            <ActionIcon
+              variant="default"
+              radius="lg"
+              onClick={(e) => {
+                if (item.published.isPublished) {
+                  e.stopPropagation()
+                  //TODO: handle unpublish
+                } else {
+                  open()
+                }
+              }}
+            >
               <ThemeIcon
                 color={item.published.isPublished ? 'green' : 'gray'}
                 size="md"
@@ -307,38 +321,62 @@ const AdminActions = ({ item }: AdminActionsProps) => {
                 )}
               </ThemeIcon>
             </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            {!item.published.isPublished && (
+          </Tooltip>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Label>Publish Actions</Menu.Label>
+          {!item.published.isPublished && (
+            <Link
+              from={'/courses/$courseCode/modules'}
+              to={`$itemId/publish`}
+              params={{ itemId: item.id }}
+            >
               <Menu.Item
-                component={Link}
-                to={`./${item}/publish`}
-                onClick={() => {}}
+                onClick={() => {}} //TODO: handle publish
+                leftSection={
+                  <IconRubberStamp
+                    size={16}
+                    stroke={1.5}
+                    color={theme.colors.blue[5]}
+                  />
+                }
               >
                 Publish Now
               </Menu.Item>
-            )}
-            {!item.published.isPublished && (
+            </Link>
+          )}
+          {!item.published.isPublished && (
+            <Link
+              from={'/courses/$courseCode/modules'}
+              to={`$itemId/publish`}
+              params={{ itemId: item.id }}
+            >
               <Menu.Item
-                component={Link}
-                to={`./${item}/publish`}
-                onClick={() => {}}
+                onClick={() => {}} //TODO: handle schedule publish
+                leftSection={
+                  <IconCalendarTime
+                    size={16}
+                    stroke={1.5}
+                    color={theme.colors.blue[5]}
+                  />
+                }
               >
                 Schedule Publish
               </Menu.Item>
-            )}
-          </Menu.Dropdown>
-        </Menu>
-      </Tooltip>
+            </Link>
+          )}
+        </Menu.Dropdown>
+      </Menu>
       <Tooltip label="Add new">
-        <ActionIcon
-          component={Link}
-          to={`./${item.id}/create`}
-          variant="subtle"
-          radius="lg"
+        <Link
+          from={'/courses/$courseCode/modules'}
+          to={`$itemId/create`}
+          params={{ itemId: item.id }}
         >
-          <IconPlus size={20} />
-        </ActionIcon>
+          <ActionIcon variant="subtle" radius="lg">
+            <IconPlus size={20} />
+          </ActionIcon>
+        </Link>
       </Tooltip>
       <Menu shadow="md" width={200}>
         <Menu.Target>
@@ -349,15 +387,20 @@ const AdminActions = ({ item }: AdminActionsProps) => {
 
         <Menu.Dropdown>
           <Menu.Label>Actions</Menu.Label>
-          <Menu.Item
-            component={Link}
-            to={`./${item}/edit`}
-            leftSection={
-              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[5]} />
-            }
+          <Link
+            from={'/courses/$courseCode/modules'}
+            to={`$itemId/edit`}
+            params={{ itemId: item.id }}
           >
-            Edit
-          </Menu.Item>
+            <Menu.Item
+              variant={'subtle'}
+              leftSection={
+                <IconEdit size={16} stroke={1.5} color={theme.colors.blue[5]} />
+              }
+            >
+              Edit
+            </Menu.Item>
+          </Link>
           <Menu.Item //TODO: implement this
             leftSection={
               <IconTrash size={16} stroke={1.5} color={theme.colors.red[5]} />

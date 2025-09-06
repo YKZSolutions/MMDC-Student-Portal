@@ -51,16 +51,11 @@ function RouteComponent() {
             {allExpanded ? 'Collapse All' : 'Expand All'}
           </Button>
           {authUser.role === 'admin' && (
-            <>
-              <Button
-                leftSection={<IconPlus />}
-                bg={'secondary'}
-                component={Link}
-                to={`./create`}
-              >
+            <Link from={'/courses/$courseCode/modules'} to={`./create`}>
+              <Button leftSection={<IconPlus />} bg={'secondary'}>
                 Add New Content
               </Button>
-            </>
+            </Link>
           )}
         </Group>
       </Group>

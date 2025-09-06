@@ -1,11 +1,10 @@
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { useLocation, useMatchRoute, useNavigate } from '@tanstack/react-router'
+import { Link, useMatchRoute, useNavigate } from '@tanstack/react-router'
 import { Button, Select, Stack } from '@mantine/core'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import { ButtonWithModal } from '@/components/with-modal.tsx'
-import CourseActionsModal from '@/features/courses/course-actions-modal.tsx'
 import { IconTool } from '@tabler/icons-react'
+import { useState } from 'react'
 
 export interface CourseNavItem {
   link: string
@@ -15,16 +14,15 @@ export interface CourseNavItem {
 
 const CourseNavButton = ({ item }: { item: CourseNavItem }) => {
   const matchRoute = useMatchRoute()
-  const navigate = useNavigate()
-
   const isActive = matchRoute({ to: item.link, fuzzy: item.fuzzy })
 
   return (
     <Button
+      component={Link}
       variant={isActive ? 'light' : 'subtle'}
       justify="start"
       color={isActive ? undefined : 'gray'}
-      onClick={() => navigate({ to: item.link })}
+      to={item.link}
       fullWidth
     >
       {item.label}
@@ -49,8 +47,8 @@ const CourseNavBar = ({
     return courses.find((course) => course.courseName === courseName)!
       .courseCode
   }
+  const [showActions, setShowActions] = useState(false)
   const navigate = useNavigate()
-  const location = useLocation()
 
   return (
     <Stack
@@ -65,12 +63,13 @@ const CourseNavBar = ({
         currentRole={authUser.role}
         roleRender={{
           admin: (
-            <ButtonWithModal
-              label={'Manage Content'}
-              icon={<IconTool size={18} />}
-              modalComponent={CourseActionsModal}
-              mb={'md'}
-            />
+            <Button
+              bg={'secondary'}
+              leftSection={<IconTool size={18} />}
+              onClick={() => setShowActions(true)}
+            >
+              Manage Content
+            </Button>
           ),
         }}
       />
