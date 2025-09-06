@@ -748,7 +748,15 @@ function EnrolledCourseCard({
               <Text fw={600} size="md" truncate>
                 {sectionName}
               </Text>
-              <Text c="dimmed" size="sm" truncate>
+              <Text
+                ta={{
+                  base: 'left',
+                  xs: 'right',
+                }}
+                c="dimmed"
+                size="sm"
+                truncate
+              >
                 {sectionSchedule.day} | {sectionSchedule.time}
               </Text>
             </Box>
