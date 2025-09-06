@@ -1,9 +1,13 @@
 import React, { type ReactNode, useState } from 'react'
 import { Button, Group, Menu, Stack, Text, TextInput } from '@mantine/core'
 import {
+  IconCalendar,
   IconChevronDown,
   IconCircleCheck,
+  IconHash,
   IconPlus,
+  IconTag,
+  IconUser,
   IconX,
 } from '@tabler/icons-react'
 
@@ -77,17 +81,13 @@ const FilterPill = ({
     switch (type) {
       case 'select':
         return (
-          <Stack p={'sm'} gap={'xs'}>
-            <Text size={'xs'} c={'gray'} mb={'2'}>
-              Select an option
-            </Text>
+          <>
+            <Menu.Label>Select an option</Menu.Label>
             {options?.map((option) => (
-              <Button
+              <Menu.Item
                 key={option.value}
-                component={Group}
-                variant={'subtle'}
                 bg={selectedValue === option.value ? 'blue.0' : ''}
-                color={selectedValue === option.value ? 'blue.6' : 'dark.4'}
+                color={selectedValue === option.value ? 'blue.6' : ''}
                 onClick={() => {
                   handleValueChange(option.value)
                   setIsOpen(false)
@@ -97,42 +97,37 @@ const FilterPill = ({
                     <IconCircleCheck size={14} />
                   )
                 }
-                justify={'space-between'}
-                align={'center'}
-                fw={400}
               >
                 {option.label}
-              </Button>
+              </Menu.Item>
             ))}
-          </Stack>
+          </>
         )
 
       case 'text':
         return (
-          <Stack p={'sm'} gap={'xs'}>
-            <Text size={'xs'} c={'gray'} mb={'2'}>
-              Enter text
-            </Text>
-            <TextInput
-              value={selectedValue}
-              onChange={(e) => handleValueChange(e.target.value)}
-              placeholder="Type here..."
-              autoFocus
-            />
-            <Stack align={'end'} mt={'2'}>
-              <Button onClick={() => setIsOpen(false)} size={'xs'}>
-                Done
-              </Button>
+          <>
+            <Menu.Label>Enter text</Menu.Label>
+            <Stack gap={'xs'} p={'sm'}>
+              <TextInput
+                value={selectedValue}
+                onChange={(e) => handleValueChange(e.target.value)}
+                placeholder="Type here..."
+                autoFocus
+              />
+              <Stack align={'end'} mt={'2'}>
+                <Button onClick={() => setIsOpen(false)} size={'xs'}>
+                  Done
+                </Button>
+              </Stack>
             </Stack>
-          </Stack>
+          </>
         )
 
       case 'date':
         return (
-          <Stack p={'sm'} gap={'xs'}>
-            <Text size={'xs'} c={'gray'} mb={'2'}>
-              Date condition
-            </Text>
+          <>
+            <Menu.Label>Date condition</Menu.Label>
             {[
               'Today',
               'Yesterday',
@@ -141,10 +136,8 @@ const FilterPill = ({
               'This month',
               'Last month',
             ].map((option) => (
-              <Button
+              <Menu.Item
                 key={option}
-                component={Group}
-                variant={'subtle'}
                 bg={selectedValue === option ? 'blue.0' : ''}
                 color={selectedValue === option ? 'blue.6' : ''}
                 onClick={() => {
@@ -154,14 +147,11 @@ const FilterPill = ({
                 rightSection={
                   selectedValue === option && <IconCircleCheck size={14} />
                 }
-                justify={'space-between'}
-                align={'center'}
-                fw={400}
               >
                 {option}
-              </Button>
+              </Menu.Item>
             ))}
-          </Stack>
+          </>
         )
 
       default:
@@ -174,12 +164,7 @@ const FilterPill = ({
   }
 
   return (
-    <Menu
-      shadow={'md'}
-      width={'fit-content'}
-      withinPortal
-      position={'bottom-start'}
-    >
+    <Menu shadow={'md'} width={'fit-content'} position={'bottom-start'}>
       <Menu.Target>
         <Button
           variant={'outline'}
@@ -250,54 +235,62 @@ type AddFilterButtonProps = {
 const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
-  // const filterTypes: FilterType[] = [
-  //   {
-  //     label: 'Status',
-  //     icon: <IconCircleCheck size={16} />,
-  //     type: 'select',
-  //     options: [
-  //       { label: 'Not started', value: 'not-started' },
-  //       { label: 'In progress', value: 'in-progress' },
-  //       { label: 'Done', value: 'done' },
-  //     ],
-  //   },
-  //   {
-  //     label: 'Assigned to',
-  //     icon: <IconUser size={16} />,
-  //     type: 'select',
-  //     options: [
-  //       { label: 'John Doe', value: 'john' },
-  //       { label: 'Jane Smith', value: 'jane' },
-  //       { label: 'Bob Johnson', value: 'bob' },
-  //     ],
-  //   },
-  //   {
-  //     label: 'Tags',
-  //     icon: <IconTag size={16} />,
-  //     type: 'select',
-  //     options: [
-  //       { label: 'Important', value: 'important' },
-  //       { label: 'Urgent', value: 'urgent' },
-  //       { label: 'Low priority', value: 'low' },
-  //     ],
-  //   },
-  //   {
-  //     label: 'Created',
-  //     icon: <IconCalendar size={16} />,
-  //     type: 'date',
-  //   },
-  //   {
-  //     label: 'Name',
-  //     icon: <IconHash size={16} />,
-  //     type: 'text',
-  //   },
-  // ]
+  const filterTypes: FilterType[] = [
+    {
+      label: 'Status',
+      icon: <IconCircleCheck size={16} />,
+      type: 'select',
+      value: '',
+      options: [
+        { label: 'Not started', value: 'not-started' },
+        { label: 'In progress', value: 'in-progress' },
+        { label: 'Done', value: 'done' },
+      ],
+    },
+    {
+      label: 'Assigned to',
+      icon: <IconUser size={16} />,
+      type: 'select',
+      value: '',
+      options: [
+        { label: 'John Doe', value: 'john' },
+        { label: 'Jane Smith', value: 'jane' },
+        { label: 'Bob Johnson', value: 'bob' },
+      ],
+    },
+    {
+      label: 'Tags',
+      icon: <IconTag size={16} />,
+      type: 'select',
+      value: '',
+      options: [
+        { label: 'Important', value: 'important' },
+        { label: 'Urgent', value: 'urgent' },
+        { label: 'Low priority', value: 'low' },
+      ],
+    },
+    {
+      label: 'Created',
+      icon: <IconCalendar size={16} />,
+      type: 'date',
+      value: '',
+      options: [],
+    },
+    {
+      label: 'Name',
+      icon: <IconHash size={16} />,
+      type: 'text',
+      value: '',
+      options: [],
+    },
+  ]
+
+  // filters.push(...filterTypes)
 
   return (
     <Menu
       shadow={'md'}
       width={'fit-content'}
-      withinPortal
       position={'bottom-start'}
       opened={isOpen}
       onClose={() => setIsOpen(false)}
@@ -316,29 +309,19 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
       </Menu.Target>
 
       <Menu.Dropdown>
-        <Stack p={'sm'} gap={'xs'}>
-          <Text size={'xs'} c={'gray'} mb={'2'}>
-            Add a filter
-          </Text>
-          {filters.map((filterType: FilterType) => (
-            <Button
-              key={filterType.label}
-              component={Group}
-              variant={'subtle'}
-              radius={'md'}
-              c={'gray.7'}
-              justify={'start'}
-              align={'center'}
-              onClick={() => {
-                setIsOpen(false)
-                onAddFilter(filterType)
-              }}
-              leftSection={filterType.icon}
-            >
-              {filterType.label}
-            </Button>
-          ))}
-        </Stack>
+        <Menu.Label>Add a Filter</Menu.Label>
+        {filters.map((filterType: FilterType) => (
+          <Menu.Item
+            key={filterType.label}
+            onClick={() => {
+              setIsOpen(false)
+              onAddFilter(filterType)
+            }}
+            leftSection={filterType.icon}
+          >
+            {filterType.label}
+          </Menu.Item>
+        ))}
       </Menu.Dropdown>
     </Menu>
   )

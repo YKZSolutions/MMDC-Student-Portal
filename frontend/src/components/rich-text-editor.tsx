@@ -1,15 +1,11 @@
 import {
   Box,
-  Button,
   Divider,
   Group,
-  Modal,
-  type ModalProps,
   Paper,
   Popover,
   ScrollArea,
   Stack,
-  Title,
 } from '@mantine/core'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -334,67 +330,4 @@ const ModeToggleButton = ({
   )
 }
 
-type EditorWithPreviewModalProps = ModalProps & RichTextEditorProps
-
-const EditorWithPreviewModal = ({
-  content,
-  onChange,
-  ...modalProps
-}: EditorWithPreviewModalProps) => {
-  const [editorContent, setEditorContent] = useState(content)
-  return (
-    <Modal.Root size={'xl'} {...modalProps}>
-      <Modal.Overlay />
-      <Modal.Content>
-        <Modal.Header>
-          <Stack flex={1}>
-            <Group>
-              <Modal.Title fz={'md'} fw={500}>
-                Edit Content
-              </Modal.Title>
-              <Modal.CloseButton />
-            </Group>
-            <Title ta={'center'}>Course Name</Title>
-          </Stack>
-        </Modal.Header>
-        <Modal.Body
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '70vh',
-            overflow: 'hidden',
-          }}
-        >
-          <Stack
-            style={{
-              flex: 1,
-              overflow: 'auto',
-            }}
-          >
-            <Stack flex={'1 0 auto'}>
-              <RichTextEditor content={editorContent} />
-              <Divider></Divider>
-              <Group justify="space-between">
-                <Button
-                  variant="default"
-                  onClick={modalProps.onClose}
-                  radius={'md'}
-                  size={'sm'}
-                >
-                  Cancel
-                </Button>
-                <Button radius={'md'} size={'sm'}>
-                  Save
-                </Button>
-              </Group>
-            </Stack>
-          </Stack>
-        </Modal.Body>
-      </Modal.Content>
-    </Modal.Root>
-  )
-}
-
-EditorWithPreviewModal.displayName = 'EditorWithPreviewModal'
-
-export { RichTextEditor, EditorWithPreviewModal }
+export default RichTextEditor
