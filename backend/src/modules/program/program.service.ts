@@ -3,9 +3,8 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  Logger,
+  InternalServerErrorException,
   NotFoundException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 
 import { CustomPrismaService } from 'nestjs-prisma';
@@ -13,16 +12,18 @@ import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { Prisma } from '@prisma/client';
-import { isUUID } from 'class-validator';
 import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
 import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class ProgramService {
-  private readonly logger = new Logger(ProgramService.name);
-
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
@@ -40,30 +41,31 @@ export class ProgramService {
    * @throws {Error} Any other unexpected errors.
    */
 
-  async create(createProgramDto: CreateProgramDto): Promise<ProgramDto> {
-    try {
-      const program = await this.prisma.client.program.create({
-        data: createProgramDto,
-      });
-      return program;
-    } catch (error) {
-      this.logger.error(
-        `Failed to create program with code ${createProgramDto.code} and name ${createProgramDto.name}.`,
-      );
-      // Handle service specific expcetions
-      if (
-        error instanceof PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException('Program code or name already exists.');
-      }
-
-      if (error instanceof Prisma.PrismaClientInitializationError) {
-        throw new ServiceUnavailableException('Database connection failed');
-      }
-      // Let http exception filter handle unknown expcetion
-      throw error;
-    }
+  @Log({
+    logArgsMessage: ({ dto }) =>
+      `Create program code=${dto.code} name=${dto.name}`,
+    logSuccessMessage: (result) =>
+      `Created program id=${result.id} code=${result.code} name=${result.name}`,
+    logErrorMessage: (err, { dto }) =>
+      `Create program code=${dto.code} name=${dto.name} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
+      new ConflictException(
+        `Program creation failed: code=${dto.code} or name=${dto.name} already exists`,
+      ),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Program creation failed due to transaction deadlock',
+      ),
+  })
+  async create(
+    @LogParam('dto') createProgramDto: CreateProgramDto,
+  ): Promise<ProgramDto> {
+    const program = await this.prisma.client.program.create({
+      data: createProgramDto,
+    });
+    return program;
   }
 
   /**
@@ -78,63 +80,59 @@ export class ProgramService {
    * @throws {ServiceUnavailableException} If database connection fails.
    * @throws {Error} Any other unexpected errors.
    */
-  async findAll(filters: BaseFilterDto): Promise<PaginatedProgramsDto> {
-    try {
-      const where: Prisma.ProgramWhereInput = {};
-      const page = Number(filters?.page) || 1;
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Find programs with filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) => `Found ${result.programs.length} programs`,
+    logErrorMessage: (err, { filters }) =>
+      `Failed to find programs filters=${JSON.stringify(filters)} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('No programs found'),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Finding programs failed due to transaction deadlock',
+      ),
+  })
+  async findAll(
+    @LogParam('filters') filters: BaseFilterDto,
+  ): Promise<PaginatedProgramsDto> {
+    const where: Prisma.ProgramWhereInput = {};
+    const page = Number(filters?.page) || 1;
 
-      where.deletedAt = null;
+    where.deletedAt = null;
 
-      if (filters.search?.trim()) {
-        // Clean up the search string
-        const searchTerms = filters.search
-          .trim() // remove leading/trailing spaces
-          .split(/\s+/) // split into words by whitespace (spaces, tabs, etc.)
-          .filter(Boolean); // remove any empty strings from the array
+    if (filters.search?.trim()) {
+      // Clean up the search string
+      const searchTerms = filters.search
+        .trim() // remove leading/trailing spaces
+        .split(/\s+/) // split into words by whitespace (spaces, tabs, etc.)
+        .filter(Boolean); // remove any empty strings from the array
 
-        where.AND = searchTerms.map((term) => ({
-          OR: [
-            {
-              name: { contains: term, mode: Prisma.QueryMode.insensitive },
-            },
-            {
-              code: { contains: term, mode: Prisma.QueryMode.insensitive },
-            },
-          ],
-        }));
-      }
-
-      const [programs, meta] = await this.prisma.client.program
-        .paginate({
-          where,
-        })
-        .withPages({
-          limit: 10,
-          page,
-          includePageCount: true,
-        });
-
-      return { programs, meta };
-    } catch (error) {
-      this.logger.error(
-        `Failed to fetch programs with filters: ${JSON.stringify(filters)}`,
-      );
-
-      if (error instanceof Prisma.PrismaClientValidationError) {
-        throw new BadRequestException(error.message);
-      }
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException('Program not found');
-        }
-      }
-
-      if (error instanceof Prisma.PrismaClientInitializationError) {
-        throw new ServiceUnavailableException('Database connection failed');
-      }
-      throw error;
+      where.AND = searchTerms.map((term) => ({
+        OR: [
+          {
+            name: { contains: term, mode: Prisma.QueryMode.insensitive },
+          },
+          {
+            code: { contains: term, mode: Prisma.QueryMode.insensitive },
+          },
+        ],
+      }));
     }
+
+    const [programs, meta] = await this.prisma.client.program
+      .paginate({
+        where,
+      })
+      .withPages({
+        limit: 10,
+        page,
+        includePageCount: true,
+      });
+
+    return { programs, meta };
   }
 
   /**
@@ -144,31 +142,30 @@ export class ProgramService {
    * @param {string} id - The UUID of the program.
    * @returns {Promise<ProgramDto>} The program record.
    *
-   * @throws {BadRequestException} If the provided ID is not a valid UUID.
    * @throws {NotFoundException} If no program is found with the given ID (`P2025`).
    * @throws {Error} Any other unexpected errors.
    */
-  async findOne(id: string): Promise<ProgramDto> {
-    try {
-      if (!isUUID(id)) {
-        throw new BadRequestException(`Invalid program ID format: ${id}`);
-      }
+  @Log({
+    logArgsMessage: ({ id }) => `Find program by id=${id}`,
+    logSuccessMessage: (result) =>
+      `Found program id=${result.id} code=${result.code}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to find program id=${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Finding program failed due to transaction deadlock',
+      ),
+  })
+  async findOne(@LogParam('id') id: string): Promise<ProgramDto> {
+    const program = await this.prisma.client.program.findUniqueOrThrow({
+      where: { id },
+    });
 
-      const program = await this.prisma.client.program.findUniqueOrThrow({
-        where: { id },
-      });
-
-      return program;
-    } catch (error) {
-      this.logger.error(`Failed to fetch program with id: ${id}`);
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException(`Program with id '${id}' not found.`);
-        }
-      }
-      throw error;
-    }
+    return program;
   }
 
   /**
@@ -183,33 +180,34 @@ export class ProgramService {
    * @throws {ConflictException} If the program code or name already exists (`P2002`).
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({
+    logArgsMessage: ({ id, dto }) =>
+      `Update program id=${id} payload=${JSON.stringify(dto)}`,
+    logSuccessMessage: (result) =>
+      `Updated program id=${result.id} code=${result.code}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to update program id=${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException('Program code or name already exists'),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Updating program failed due to transaction deadlock',
+      ),
+  })
   async update(
-    id: string,
-    updateProgramDto: UpdateProgramDto,
+    @LogParam('id') id: string,
+    @LogParam('dto') updateProgramDto: UpdateProgramDto,
   ): Promise<ProgramDto> {
-    try {
-      const program = await this.prisma.client.program.update({
-        where: { id },
-        data: { ...updateProgramDto },
-      });
+    const program = await this.prisma.client.program.update({
+      where: { id },
+      data: { ...updateProgramDto },
+    });
 
-      return program;
-    } catch (error) {
-      this.logger.error(
-        `Failed to update program with id ${id} using payload: ${JSON.stringify(updateProgramDto)}`,
-      );
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException(`Program with id '${id}' not found.`);
-        }
-        if (error.code === 'P2002') {
-          throw new ConflictException('Program code or name already exists.');
-        }
-      }
-
-      throw error;
-    }
+    return program;
   }
 
   /**
@@ -226,40 +224,44 @@ export class ProgramService {
    * @throws {NotFoundException} If no program is found with the given ID (`P2025`).
    * @throws {Error} Any other unexpected errors.
    */
+  @Log({
+    logArgsMessage: ({ id, directDelete }) =>
+      `Remove program id=${id} directDelete=${directDelete ?? false}`,
+    logSuccessMessage: (result, { id }) =>
+      `Removed program id=${id}, message="${result.message}"`,
+    logErrorMessage: (err, { id, directDelete }) =>
+      `Failed to remove program id=${id} directDelete=${directDelete ?? false} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.TransactionDeadlock]: () =>
+      new InternalServerErrorException(
+        'Deleting program failed due to transaction deadlock',
+      ),
+  })
   async remove(
-    id: string,
-    directDelete?: boolean,
+    @LogParam('id') id: string,
+    @LogParam('directDelete') directDelete?: boolean,
   ): Promise<{ message: string }> {
-    try {
-      const program = await this.prisma.client.program.findUniqueOrThrow({
+    const program = await this.prisma.client.program.findUniqueOrThrow({
+      where: { id },
+    });
+
+    if (!directDelete && !program.deletedAt) {
+      await this.prisma.client.program.update({
         where: { id },
+        data: { deletedAt: new Date() },
       });
-
-      if (!directDelete && !program.deletedAt) {
-        await this.prisma.client.program.update({
-          where: { id },
-          data: { deletedAt: new Date() },
-        });
-        return { message: 'Program marked for deletion.' };
-      }
-
-      await this.prisma.client.program.delete({
-        where: { id },
-      });
-
-      return {
-        message: 'Program deleted permanently',
-      };
-    } catch (error) {
-      this.logger.error(
-        `Failed to delete program with ID "${id}" (directDelete=${directDelete ?? false})`,
-      );
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        if (error.code === 'P2025')
-          throw new NotFoundException('Program not found');
-
-      throw error;
+      return { message: 'Program marked for deletion.' };
     }
+
+    await this.prisma.client.program.delete({
+      where: { id },
+    });
+
+    return {
+      message: 'Program deleted permanently',
+    };
   }
 }

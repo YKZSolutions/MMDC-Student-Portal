@@ -1,24 +1,23 @@
 import type {
-  Assignment,
+  AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type {
-  CourseModule,
   CourseNodeModel,
-  ModuleItem,
+  Module,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 
-export function getChildTypeFromParentType(parentType?: string) {
-  if (!parentType) return 'module'
-
-  switch (parentType) {
-    case 'module':
+export function getTypeFromLevel(level?: number) {
+  switch (level) {
+    case 1:
       return 'section'
-    case 'section':
+    case 2:
+      return 'subsection'
+    case 3:
       return 'item'
     default:
-      return 'module'
+      return 'section'
   }
 }
 
@@ -42,7 +41,7 @@ export function getPastDate(daysToSubtract: number) {
 }
 
 export function getSubmissionStatus(
-  assignment: Assignment | StudentAssignment | undefined,
+  assignment: AssignmentBase | StudentAssignment | undefined,
 ) {
   if (!assignment) return undefined
 
@@ -53,111 +52,78 @@ export function getSubmissionStatus(
   return undefined
 }
 
-// Helper function to convert flat tree structure to hierarchical CourseModule structure
-export function convertTreeToCourseModules(
-  treeData: CourseNodeModel[],
-): CourseModule[] {
-  const modules: CourseModule[] = []
-
-  // First, find all module nodes
-  const moduleNodes = treeData.filter((node) => node.data?.type === 'module')
-
-  for (const moduleNode of moduleNodes) {
-    if (!moduleNode.data?.contentData) continue
-
-    // Create module with basic data
-    const moduleData = moduleNode.data.contentData as CourseModule
-    const module: CourseModule = {
-      ...moduleData,
-      sections: [],
-    }
-
-    // Find all sections that are children of this module
-    const sectionNodes = treeData.filter(
-      (node) => node.parent === moduleNode.id && node.data?.type === 'section',
-    )
-
-    for (const sectionNode of sectionNodes) {
-      if (!sectionNode.data?.contentData) continue
-
-      // Create section with basic data
-      const sectionData = sectionNode.data.contentData as ModuleSection
-      const section: ModuleSection = {
-        ...sectionData,
-        items: [],
-      }
-
-      // Find all items that are children of this section
-      const itemNodes = treeData.filter(
-        (node) => node.parent === sectionNode.id && node.data?.type === 'item',
-      )
-
-      for (const itemNode of itemNodes) {
-        if (!itemNode.data?.contentData) continue
-
-        // Add item to section
-        section.items.push(itemNode.data.contentData as ModuleItem)
-      }
-
-      // Add section to module
-      module.sections.push(section)
-    }
-
-    // Add module to result
-    modules.push(module)
-  }
-
-  // Sort modules by position
-  return modules.sort((a, b) => a.position - b.position)
-}
-
-// Helper function to convert hierarchical CourseModule structure to flat tree structure
-export function convertCourseModulesToTree(
-  modules: CourseModule[],
-): CourseNodeModel[] {
+export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
-  for (const module of modules) {
-    // Add module node
-    treeData.push({
-      id: module.id,
-      parent: '0',
-      text: module.title,
+  const processSection = (
+    section: ModuleSection,
+    parentId: string = 'root',
+    level: number = 1,
+  ) => {
+    const sectionNode: CourseNodeModel = {
+      id: section.id,
+      parent: parentId,
+      text: section.title,
       droppable: true,
       data: {
-        type: 'module',
-        contentData: module,
+        level,
+        type: getTypeFromLevel(level),
+        contentData: section,
       },
+    }
+    treeData.push(sectionNode)
+
+    // Process items in this section
+    section.items.forEach((item) => {
+      const itemNode: CourseNodeModel = {
+        id: item.id,
+        parent: section.id,
+        text: item.title,
+        droppable: false,
+        data: {
+          level: 3,
+          type: 'item',
+          contentData: item,
+        },
+      }
+      treeData.push(itemNode)
     })
 
-    for (const section of module.sections) {
-      // Add section node
-      treeData.push({
-        id: section.id,
-        parent: module.id,
-        text: section.title,
-        droppable: true,
-        data: {
-          type: 'section',
-          contentData: section,
-        },
+    // Process subsections recursively
+    if (section.subsections) {
+      section.subsections.forEach((subsection) => {
+        processSection(subsection, section.id, 2)
       })
-
-      for (const item of section.items) {
-        // Add item node
-        treeData.push({
-          id: item.id,
-          parent: section.id,
-          text: item.title,
-          droppable: false,
-          data: {
-            type: 'item',
-            contentData: item,
-          },
-        })
-      }
     }
   }
 
+  // Process all top-level sections
+  module.sections.forEach((section) => {
+    processSection(section)
+  })
+
   return treeData
+}
+
+export function getModuleSubSectionsFromModule(module: Module) {
+  return module.sections.flatMap((section) => section.subsections)
+}
+
+export function getModuleSubSectionsFromSections(sections: ModuleSection[]) {
+  return sections.flatMap((section) => section.subsections)
+}
+
+export function getAllModuleSections(module: Module) {
+  const sections = module.sections
+  const subsections = getModuleSubSectionsFromSections(sections)
+  return [...sections, ...subsections]
+}
+
+export function getModuleItemsFromModule(module: Module) {
+  const sections = getAllModuleSections(module)
+  return sections.flatMap((section) => section.items)
+}
+
+export function getModuleItemsFromSections(sections: ModuleSection[]) {
+  return sections.flatMap((section) => section.items)
 }

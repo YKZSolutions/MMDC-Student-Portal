@@ -15,9 +15,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollmentPeriod.dto';
+import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollment-period.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
-import { UpdateEnrollmentStatusDto } from './dto/update-enrollmentStatus.dto';
+import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 
 @Injectable()
 export class EnrollmentService {

@@ -3,17 +3,16 @@ import { SupabaseService } from '@/lib/supabase/supabase.service';
 import {
   BadRequestException,
   Injectable,
-  Logger,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from '@/config/env.schema';
+import { Log } from '@/common/decorators/log.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
   private readonly siteUrl: string;
 
   constructor(
@@ -33,10 +32,19 @@ export class AuthService {
    * @returns The created Supabase user object.
    * @throws BadRequestException if the Supabase account creation fails.
    */
-  async create(role: Role, email: string, password?: string) {
-    const method = 'create';
-    this.logger.log(`[${method}] START: email=${email}, role=${role}`);
-
+  @Log({
+    logArgsMessage: ({ role, email }) =>
+      `Create supabase user email=${email} role=${role}`,
+    logSuccessMessage: (result, _) =>
+      `Create supabase user account email=${result.email} role=${result.role}`,
+    logErrorMessage: (err, { email, role }) =>
+      `Create supabase user email=${email} role=${role}| Error: ${err.message}`,
+  })
+  async create(
+    @LogParam('role') role: Role,
+    @LogParam('email') email: string,
+    password?: string,
+  ) {
     const account = await this.supabase.auth.admin.createUser({
       email: email,
       password: password,
@@ -51,9 +59,6 @@ export class AuthService {
       throw account.error;
     }
 
-    const userId = account.data?.user?.id ?? 'unknown';
-    this.logger.log(`[${method}] SUCCESS: created user id=${userId}`);
-
     return account.data.user;
   }
 
@@ -65,7 +70,13 @@ export class AuthService {
    * @returns The user's session token.
    * @throws UnauthorizedException if the login fails (wrong email or password).
    */
-  async login(email: string, password: string) {
+  @Log({
+    logArgsMessage: ({ email }) => `Login supabase user email=${email}`,
+    logSuccessMessage: (_, { email }) => `Login supabase user email=${email}`,
+    logErrorMessage: (err, { email }) =>
+      `Login supabase user email=${email} | Error: ${err.message}`,
+  })
+  async login(@LogParam('email') email: string, password: string) {
     const user = await this.supabase.auth.signInWithPassword({
       email,
       password,
@@ -76,10 +87,15 @@ export class AuthService {
     return user.data.session.access_token;
   }
 
-  async invite(email: string, role: Role) {
-    const method = 'invite';
-    this.logger.log(`[${method}] START: email=${email}, role=${role}`);
-
+  @Log({
+    logArgsMessage: ({ email, role }) =>
+      `Invite supabase user email=${email} role=${role}`,
+    logSuccessMessage: (result, { email, role }) =>
+      `Invite supabase user email=${email} role=${role} | id=${result.id}`,
+    logErrorMessage: (err, { email, role }) =>
+      `Invite supabase user email=${email} role=${role} | Error=${err.message}`,
+  })
+  async invite(@LogParam('email') email: string, @LogParam('role') role: Role) {
     const account = await this.supabase.auth.admin.inviteUserByEmail(email, {
       data: {
         role: role,
@@ -92,9 +108,6 @@ export class AuthService {
       throw account.error;
     }
 
-    const userId = account.data?.user?.id ?? 'unknown';
-    this.logger.log(`[${method}] SUCCESS: invited user id=${userId}`);
-
     return account.data.user;
   }
 
@@ -106,10 +119,17 @@ export class AuthService {
    * @returns The updated Supabase user object.
    * @throws BadRequestException if the update operation fails.
    */
-  async updateMetadata(uid: string, metadata: Partial<UserMetadata>) {
-    const method = 'updateMetadata';
-    this.logger.log(`[${method}] START: uid=${uid}`);
-
+  @Log({
+    logArgsMessage: ({ uid }) => `Update supabase user metadata uid=${uid}`,
+    logSuccessMessage: (result, { uid }) =>
+      `Update supabase user metadata uid=${uid} | id=${result.id}`,
+    logErrorMessage: (err, { uid }) =>
+      `Update supabase user metadata uid=${uid} | Error=${err.message}`,
+  })
+  async updateMetadata(
+    @LogParam('uid') uid: string,
+    metadata: Partial<UserMetadata>,
+  ) {
     const account = await this.supabase.auth.admin.updateUserById(uid, {
       user_metadata: metadata,
     });
@@ -117,9 +137,6 @@ export class AuthService {
     if (account.error) {
       throw new BadRequestException('Error creating Supabase account');
     }
-
-    const updatedUserId = account.data?.user?.id ?? uid;
-    this.logger.log(`[${method}] SUCCESS: updated user id=${updatedUserId}`);
 
     return account.data.user;
   }
@@ -130,16 +147,17 @@ export class AuthService {
    * @param uid - The UID of the user to delete.
    * @throws BadRequestException if the deletion fails.
    */
-  async delete(uid: string) {
-    const method = 'delete';
-    this.logger.log(`[${method}] START: uid=${uid}`);
-
+  @Log({
+    logArgsMessage: ({ uid }) => `Delete supabase user uid=${uid}`,
+    logSuccessMessage: (_, { uid }) => `Delete supabase user uid=${uid}`,
+    logErrorMessage: (err, { uid }) =>
+      `Delete supabase user uid=${uid} | Error: ${err.message}`,
+  })
+  async delete(@LogParam('uid') uid: string) {
     const account = await this.supabase.auth.admin.deleteUser(uid);
 
     if (account.error) {
       throw new BadRequestException('Error deleting Supabase account');
     }
-
-    this.logger.log(`[${method}] SUCCESS: deleted user uid=${uid}`);
   }
 }

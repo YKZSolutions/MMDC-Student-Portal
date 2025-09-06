@@ -10,10 +10,22 @@ import {
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import ModuleCreationProcessModal from '@/features/courses/modules/module-creation-process-modal.tsx'
-import CardWithModal from '@/components/card-w-modal.tsx'
+import { CardWithModal } from '@/components/with-modal.tsx'
+import BtnCard from '@/components/btn-card.tsx'
 
-const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
+type CourseActionsModalProps = {
+  courseCode: string
+  opened: boolean
+  onClose: () => void
+} & ModalProps
+
+const CourseActionsModal = ({
+  courseCode,
+  opened,
+  onClose,
+  ...props
+}: CourseActionsModalProps) => {
+  function handleNavigate() {}
   return (
     <Modal
       opened={opened}
@@ -34,41 +46,23 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
           {/*TODO: add more content types, these are just placeholders*/}
           {/*Modal for each content type are currently not implemented*/}
           <GridCol span={6}>
-            <CardWithModal
-              title={'Course'}
-              description={'Create a new course that students can enroll in.'}
-              icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
-            />
-          </GridCol>
-          <GridCol span={6}>
-            <CardWithModal
-              title={'Module'}
-              description={
-                'Create a new module that contains assignments and other content.'
-              }
-              icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
-            />
-          </GridCol>
-          <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Content'}
               description={
                 'Create a new educational content that can be used in modules.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              url={`./edit`}
             />
           </GridCol>
           <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Assignment'}
               description={
                 'Create a new assignment or task that students can complete.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              url={`./edit`}
             />
           </GridCol>
           <GridCol span={6}>
@@ -78,7 +72,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
                 'Create a new student group that can be used to grade multiple students at once.'
               }
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal} //TODO: currently a placeholder
             />
           </GridCol>
           <GridCol span={6}>
@@ -86,7 +80,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
               title={'Progress Report'}
               description={'Create a new progress report that admins can view.'}
               icon={<IconBook />}
-              modalComponent={ModuleCreationProcessModal}
+              modalComponent={Modal} //TODO: currently a placeholder
             />
           </GridCol>
         </Grid>
@@ -105,5 +99,7 @@ const CourseActionsModal = ({ opened, onClose, ...props }: ModalProps) => {
     </Modal>
   )
 }
+
+CourseActionsModal.displayName = 'CourseActionsModal'
 
 export default CourseActionsModal
