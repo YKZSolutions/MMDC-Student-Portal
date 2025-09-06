@@ -27,10 +27,17 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
   const pathLinks = paths.map((_, i) => '/' + paths.slice(0, i + 1).join('/'))
 
   return (
-    <Group className="px-4 py-2" w={"100%"} justify="space-between" align="center">
+    <Group
+      className="px-4 py-2"
+      w={'100%'}
+      justify="space-between"
+      align="center"
+      grow
+    >
       <Breadcrumbs
         c="dimmed"
         separator={<IconChevronRight size={14} color="gray" />}
+        className="flex-nowrap hidden xs:flex"
       >
         <ActionIcon radius="xl" size="sm">
           <IconHomeFilled size={14} />
@@ -51,7 +58,7 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
         })}
       </Breadcrumbs>
 
-      <Group>
+      <Group justify="end" className="ml-auto xs:ml-0">
         <ActionIcon
           variant="subtle"
           radius="xl"
@@ -78,7 +85,14 @@ interface BreadcrumbItemProps {
 
 function BreadcrumbItem({ isLast, path, label }: BreadcrumbItemProps) {
   return isLast ? (
-    <Text key={path} size="sm" c={'dark.5'} fw="bold" className="capitalize">
+    <Text
+      key={path}
+      size="sm"
+      c={'dark.5'}
+      fw="bold"
+      className="capitalize truncate"
+      title={label}
+    >
       {label}
     </Text>
   ) : (

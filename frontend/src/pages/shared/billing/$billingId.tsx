@@ -24,6 +24,7 @@ import {
   Container,
   Drawer,
   Flex,
+  Grid,
   Group,
   LoadingOverlay,
   NumberFormatter,
@@ -38,7 +39,7 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
-import { IconArrowLeft, IconUpload, type ReactNode } from '@tabler/icons-react'
+import { IconArrowLeft, type ReactNode } from '@tabler/icons-react'
 import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
@@ -105,8 +106,17 @@ function BillingIdPage() {
 
   return (
     <Container size={'md'} pb={'lg'} w={'100%'}>
-      <Flex align={'center'} pb={'lg'}>
-        <Group>
+      <Flex
+        gap={'sm'}
+        direction={{
+          base: 'column',
+          xs: 'row',
+        }}
+        align={'start'}
+        pb={'lg'}
+        justify={'space-between'}
+      >
+        <Group gap={'sm'}>
           <ActionIcon
             radius={'xl'}
             variant="subtle"
@@ -122,19 +132,6 @@ function BillingIdPage() {
           <Title c={'dark.7'} variant="hero" order={2} fw={700}>
             Billing Details
           </Title>
-        </Group>
-        <Group align={'center'} gap={'sm'} ml={'auto'}>
-          <Button
-            variant="outline"
-            radius={'md'}
-            leftSection={<IconUpload size={20} />}
-            c={'gray.7'}
-            color="gray.4"
-            lts={rem(0.25)}
-            // onClick={() => mutateIntent()}
-          >
-            Export
-          </Button>
         </Group>
       </Flex>
 
@@ -199,48 +196,52 @@ function BillingIdPage() {
           </BillingIdQueryProvider>
         </Suspense>
 
-        <Group grow align="flex-start">
-          <Suspense
-            fallback={
-              <Stack gap={'xs'}>
-                <Skeleton height={rem(20)} w={rem(150)} />
-                <SuspendedBillingBreakdown />
-              </Stack>
-            }
-          >
-            <BillingIdQueryProvider>
-              {({ currentInvoice }) => (
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Suspense
+              fallback={
                 <Stack gap={'xs'}>
-                  <Text fw={500}>Billing Breakdown</Text>
-                  <BillingFeeBreakdown
-                    open={open}
-                    fees={currentInvoice.costBreakdown}
-                  />
+                  <Skeleton height={rem(20)} w={rem(150)} />
+                  <SuspendedBillingBreakdown />
                 </Stack>
-              )}
-            </BillingIdQueryProvider>
-          </Suspense>
-          <Suspense
-            fallback={
-              <Stack gap={'xs'}>
-                <Skeleton height={rem(20)} w={rem(150)} />
-                <SuspendedBillingInstallment />
-              </Stack>
-            }
-          >
-            <BillingIdQueryProvider>
-              {({ currentInvoice, currentInstallments }) => (
+              }
+            >
+              <BillingIdQueryProvider>
+                {({ currentInvoice }) => (
+                  <Stack gap={'xs'}>
+                    <Text fw={500}>Billing Breakdown</Text>
+                    <BillingFeeBreakdown
+                      open={open}
+                      fees={currentInvoice.costBreakdown}
+                    />
+                  </Stack>
+                )}
+              </BillingIdQueryProvider>
+            </Suspense>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Suspense
+              fallback={
                 <Stack gap={'xs'}>
-                  <Text fw={500}>Installments</Text>
-                  <BillingInstallments
-                    invoice={currentInvoice}
-                    installments={currentInstallments}
-                  />
+                  <Skeleton height={rem(20)} w={rem(150)} />
+                  <SuspendedBillingInstallment />
                 </Stack>
-              )}
-            </BillingIdQueryProvider>
-          </Suspense>
-        </Group>
+              }
+            >
+              <BillingIdQueryProvider>
+                {({ currentInvoice, currentInstallments }) => (
+                  <Stack gap={'xs'}>
+                    <Text fw={500}>Installments</Text>
+                    <BillingInstallments
+                      invoice={currentInvoice}
+                      installments={currentInstallments}
+                    />
+                  </Stack>
+                )}
+              </BillingIdQueryProvider>
+            </Suspense>
+          </Grid.Col>
+        </Grid>
       </Stack>
     </Container>
   )
