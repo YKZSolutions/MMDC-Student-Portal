@@ -42,6 +42,7 @@ import {
   Container,
   Divider,
   Flex,
+  Grid,
   Group,
   Loader,
   LoadingOverlay,
@@ -272,12 +273,23 @@ function EnrollmentPeriodIdPage() {
                 )}
               </EnrollmentPeriodAdminQueryProvider>
             </Suspense>
-            <Flex align={'center'} gap={5}>
+            <Flex
+              wrap={'wrap'}
+              w={{
+                xs: 'auto',
+                base: '100%',
+              }}
+              align={'center'}
+              gap={5}
+            >
               <TextInput
                 placeholder="Search name/email"
                 radius={'md'}
                 leftSection={<IconSearch size={18} stroke={1} />}
-                w={rem(250)}
+                w={{
+                  xs: rem(250),
+                  base: '100%',
+                }}
               />
               <Popover position="bottom" width={rem(300)}>
                 <Popover.Target>
@@ -286,6 +298,10 @@ function EnrollmentPeriodIdPage() {
                     radius={'md'}
                     leftSection={<IconFilter2 color="gray" size={20} />}
                     lts={rem(0.25)}
+                    w={{
+                      xs: 'auto',
+                      base: '100%',
+                    }}
                   >
                     Filters
                   </Button>
@@ -330,6 +346,10 @@ function EnrollmentPeriodIdPage() {
                     },
                   })
                 }
+                w={{
+                  xs: 'auto',
+                  base: '100%',
+                }}
               >
                 Create
               </Button>
@@ -729,55 +749,88 @@ function CourseOfferingSubjectCard({
         overlayProps={{ radius: 'sm', blur: 2 }}
       />
       <Box>
-        <Group justify="space-between" align="center">
-          <Stack gap={2}>
-            <Group gap="xs">
-              <Text fw={600} size="md">
-                {section.name}
+        <Grid gutter={0} justify="space-between" align="center">
+          {/* First column (left) */}
+          <Grid.Col
+            span={{
+              base: 12,
+              xs: 6,
+            }}
+          >
+            <Stack gap={2}>
+              <Group gap="xs">
+                <Text truncate maw="12ch" fw={600} size="md">
+                  {section.name}
+                </Text>
+                <Text c="dimmed" size="xs">
+                  {formatToTimeOfDay(section.startSched, section.endSched)}
+                </Text>
+              </Group>
+              <Text c="dimmed" size="sm">
+                {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
+                {section.endSched}
               </Text>
-              <Text c="dimmed" size="xs">
-                {formatToTimeOfDay(section.startSched, section.endSched)}
+              <Text c="gray.6" size="sm">
+                {section.mentorId
+                  ? `${section.user?.firstName} ${section.user?.lastName}`
+                  : 'No Mentor Assigned'}
               </Text>
-            </Group>
-            <Text c="dimmed" size="sm">
-              {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
-              {section.endSched}
-            </Text>
-            <Text c={'gray.6'} size="sm">
-              {section.mentorId
-                ? `${section.user?.firstName} ${section.user?.lastName}`
-                : 'No Mentor Assigned'}
-            </Text>
-          </Stack>
-          <Stack gap={'xs'} align="flex-end">
-            <Group gap={rem(5)}>
-              <ActionIcon
-                variant="subtle"
-                c={'dark.3'}
-                size={'md'}
-                radius={'xl'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  toggle()
+            </Stack>
+          </Grid.Col>
+
+          {/* Second + Third columns stacked */}
+          <Grid.Col
+            span={{
+              base: 12,
+              xs: 6,
+            }}
+          >
+            <Flex
+              direction={{
+                base: 'row-reverse',
+                xs: 'column',
+              }}
+              gap="xs"
+              align="flex-end"
+            >
+              <Group gap={rem(5)}>
+                <ActionIcon
+                  variant="subtle"
+                  c="dark.3"
+                  size="md"
+                  radius="xl"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggle()
+                  }}
+                >
+                  {opened ? <IconX size={18} /> : <IconPencil size={18} />}
+                </ActionIcon>
+                <ActionIcon
+                  variant="subtle"
+                  c="red.4"
+                  size="md"
+                  radius="xl"
+                  onClick={(e) => handleRemoveCourseSection(e, course, section)}
+                >
+                  <IconTrash size={18} />
+                </ActionIcon>
+              </Group>
+
+              <Badge
+                mr={{
+                  base: 'auto',
+                  xs: 0,
                 }}
+                c="gray.6"
+                variant="light"
+                radius="sm"
               >
-                {opened ? <IconX size={18} /> : <IconPencil size={18} />}
-              </ActionIcon>
-              <ActionIcon
-                variant="subtle"
-                c={'red.4'}
-                size={'md'}
-                radius={'xl'}
-                onClick={(e) => handleRemoveCourseSection(e, course, section)}
-              >
-                <IconTrash size={18} />
-              </ActionIcon>
-            </Group>
-            <Badge c="gray.6" variant="light" radius="sm">
-              {section.maxSlot} / {section.maxSlot} slots
-            </Badge>
-          </Stack>
-        </Group>
+                {section.maxSlot} / {section.maxSlot} slots
+              </Badge>
+            </Flex>
+          </Grid.Col>
+        </Grid>
 
         <Collapse in={opened} keepMounted={false}>
           <Stack pt={'sm'}>

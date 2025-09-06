@@ -195,7 +195,7 @@ function UsersPage() {
       </Box>
 
       <Flex gap={'md'} direction={'column'}>
-        <Group justify={'space-between'}>
+        <Group>
           <Flex align={'center'} gap={'xs'}>
             <Title
               display={'flex'}
@@ -224,12 +224,24 @@ function UsersPage() {
             </Suspense>
           </Flex>
 
-          <Group align={'center'} gap={5}>
+          <Flex
+            wrap={'wrap'}
+            w={{
+              base: '100%',
+              xs: 'auto',
+            }}
+            align={'center'}
+            gap={5}
+            ml={'auto'}
+          >
             <TextInput
               placeholder="Search name/email"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
-              w={rem(250)}
+              w={{
+                base: '100%',
+                xs: rem(250),
+              }}
               value={query.search}
               onChange={(e) => handleSearch(e)}
             />
@@ -240,6 +252,10 @@ function UsersPage() {
                   radius={'md'}
                   leftSection={<IconFilter2 color="gray" size={20} />}
                   lts={rem(0.25)}
+                  w={{
+                    base: '100%',
+                    xs: 'auto',
+                  }}
                 >
                   Filters
                 </Button>
@@ -321,10 +337,14 @@ function UsersPage() {
                   innerProps: {},
                 })
               }
+              w={{
+                base: '100%',
+                xs: 'auto',
+              }}
             >
               Add user
             </Button>
-          </Group>
+          </Flex>
         </Group>
 
         <UsersTable props={debouncedQuery} />
