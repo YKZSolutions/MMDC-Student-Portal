@@ -330,6 +330,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
               from={'/courses/$courseCode/modules'}
               to={`$itemId/publish`}
               params={{ itemId: item.id }}
+              search={{ scheduled: false, unpublish: false }}
             >
               <Menu.Item
                 onClick={() => {}} //TODO: handle publish
@@ -350,6 +351,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
               from={'/courses/$courseCode/modules'}
               to={`$itemId/publish`}
               params={{ itemId: item.id }}
+              search={{ scheduled: true, unpublish: false }}
             >
               <Menu.Item
                 onClick={() => {}} //TODO: handle schedule publish

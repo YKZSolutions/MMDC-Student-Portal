@@ -1,4 +1,9 @@
-import type { CourseBasicDetails } from '@/features/courses/types.ts'
+import type {
+  AcademicProgram,
+  AcademicTerm,
+  Course,
+  CourseBasicDetails,
+} from '@/features/courses/types.ts'
 import type { Block } from '@blocknote/core'
 import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
 import type {
@@ -23,6 +28,157 @@ export const mockCourseBasicDetails: CourseBasicDetails[] = [
   {
     courseCode: 'MO-IT500',
     courseName: 'Capstone 2',
+  },
+]
+
+export const mockTerms: AcademicTerm[] = [
+  {
+    termId: 'termId1',
+    schoolYear: 'SY 2024-2025',
+    term: 'Term 1',
+    isCurrent: false,
+  },
+  {
+    termId: 'termId2',
+    schoolYear: 'SY 2024-2025',
+    term: 'Term 2',
+    isCurrent: false,
+  },
+  {
+    termId: 'termId3',
+    schoolYear: 'SY 2024-2025',
+    term: 'Term 3',
+    isCurrent: false,
+  },
+  {
+    termId: 'termId4',
+    schoolYear: 'SY 2025-2026',
+    term: 'Term 1',
+    isCurrent: true,
+  },
+]
+
+export const mockAcademicPrograms: AcademicProgram[] = [
+  {
+    program: 'Bachelor of Science in Information Technology',
+    programCode: 'BSIT',
+    major: 'Software Development',
+    majorCode: 'SD',
+  },
+  {
+    program: 'Bachelor of Science in Computer Science',
+    programCode: 'BSCS',
+    major: 'Software Engineering',
+    majorCode: 'SE',
+  },
+  {
+    program: 'Bachelor of Science in Information Systems',
+    programCode: 'BSIS',
+    major: 'Information Systems',
+    majorCode: 'IS',
+  },
+]
+
+// TODO: Consider adding program and/or department and major to the course data
+// TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
+export const mockCourseData: Course[] = [
+  {
+    courseName: 'Web Technology Applications',
+    courseCode: 'MO-IT200',
+    courseProgress: 0.5,
+    section: {
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'MWF',
+        time: '10:00 - 11:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2023-08-20T10:00',
+          endTimeStamp: '2023-08-20T11:00',
+          meetingLink: 'https://zoom.us',
+        },
+      ],
+    },
+    activities: [],
+    program: mockAcademicPrograms[0],
+    academicTerms: [mockTerms[0]],
+  },
+  {
+    courseName: 'Data Structures and Algorithms',
+    courseCode: 'MO-IT351',
+    courseProgress: 0.5,
+    section: {
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'TTHS',
+        time: '10:00 - 11:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2023-08-20T10:00',
+          endTimeStamp: '2023-08-20T11:00',
+          meetingLink: 'https://zoom.us',
+        },
+      ],
+    },
+    activities: [],
+    program: mockAcademicPrograms[1],
+    academicTerms: [mockTerms[1]],
+  },
+
+  {
+    courseName: 'Capstone 1',
+    courseCode: 'MO-IT400',
+    courseProgress: 0.5,
+    section: {
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'MWF',
+        time: '8:00 - 9:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2023-08-20T15:45',
+          endTimeStamp: '2023-08-20T22:00',
+          meetingLink: 'https://zoom.us',
+        },
+      ],
+    },
+    activities: [],
+    program: mockAcademicPrograms[2],
+    academicTerms: [mockTerms[2]],
+  },
+  {
+    courseName: 'Capstone 2',
+    courseCode: 'MO-IT500',
+    courseProgress: 0.5,
+    section: {
+      sectionName: 'A2101',
+      sectionSchedule: {
+        day: 'TTHS',
+        time: '8:00 - 9:00 AM',
+      },
+      classMeetings: [
+        {
+          startTimeStamp: '2025-08-23T00:00',
+          endTimeStamp: '2025-08-29T23:59',
+          meetingLink: 'https://zoom.us',
+        },
+      ],
+    },
+    activities: [
+      {
+        activityName: 'Assignment 1',
+        dueTimestamp: '2025-08-20T23:59:59',
+      },
+      {
+        activityName: 'Assignment 2',
+        dueTimestamp: '2025-08-20T23:59:59',
+      },
+    ],
+    program: mockAcademicPrograms[0],
+    academicTerms: [mockTerms[3]],
   },
 ]
 
@@ -195,7 +351,6 @@ export const mockInitialContent: Block[] = [
     children: [],
   },
 ]
-export const mockInitialContentString = JSON.stringify(mockInitialContent)
 
 export const mockModule: Module = {
   id: 'module-1',
@@ -235,7 +390,7 @@ export const mockModule: Module = {
               type: 'lesson',
               title: 'Welcome Lesson',
               order: 1,
-              content: mockInitialContentString,
+              content: mockInitialContent,
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
@@ -286,7 +441,7 @@ export const mockModule: Module = {
               type: 'lesson',
               title: 'Programming Basics',
               order: 1,
-              content: mockInitialContentString,
+              content: mockInitialContent,
               parentId: 'subsection-2-1',
               prerequisites: ['lesson-1'],
               published: {
@@ -312,7 +467,7 @@ export const mockModule: Module = {
               title: 'Q&A Forum',
               order: 3,
               parentId: 'subsection-2-1',
-              content: 'Discuss questions about basic concepts here',
+              content: mockInitialContent,
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
@@ -372,7 +527,7 @@ export const mockModule: Module = {
               title: 'External Resources',
               order: 3,
               parentId: 'subsection-4-1',
-              content: 'https://example.com/resources',
+              url: 'https://example.com/resources',
               published: {
                 isPublished: false,
               },
@@ -383,7 +538,7 @@ export const mockModule: Module = {
               title: 'Course Materials',
               order: 4,
               parentId: 'subsection-4-1',
-              content: '/uploads/course-materials.pdf',
+              url: '/uploads/course-materials.pdf',
               published: {
                 isPublished: false,
               },
@@ -394,7 +549,7 @@ export const mockModule: Module = {
               title: 'Additional Exercise',
               order: 5,
               parentId: 'subsection-4-1',
-              content: mockInitialContentString,
+              content: mockInitialContent,
               assignment: mockAssignmentBase[4],
               published: {
                 isPublished: false,

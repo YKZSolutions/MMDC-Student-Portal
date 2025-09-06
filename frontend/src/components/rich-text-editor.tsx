@@ -7,7 +7,7 @@ import {
   ScrollArea,
   Stack,
 } from '@mantine/core'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   BasicTextStyleButton,
   BlockNoteViewEditor,
@@ -35,39 +35,27 @@ import {
   IconEye,
   IconLink,
 } from '@tabler/icons-react'
-import { mockInitialContentString } from '@/features/courses/mocks.ts'
+import { mockInitialContent } from '@/features/courses/mocks.ts'
+import type { Block } from '@blocknote/core'
 
 interface RichTextEditorProps {
-  content: string | null
-  onUpdate?: (content: string) => void
+  content: Block[] | null
+  onUpdate: (content: Block[]) => void
 }
 
 const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
   const editor = useCreateBlockNote({
-    initialContent: JSON.parse(mockInitialContentString),
+    initialContent: mockInitialContent,
   })
 
   const [isPreviewMode, setIsPreviewMode] = useState(false)
-  const [previewContent, setPreviewContent] = useState<string>('')
-
-  useEffect(() => {
-    if (!isPreviewMode) return
-    // Convert to HTML for preview
-
-    const updatePreview = async () => {
-      const html = await editor.blocksToFullHTML(editor.document)
-      setPreviewContent(html)
-    }
-
-    updatePreview()
-  }, [isPreviewMode])
 
   const updateContent = useCallback(async () => {
     // Save to JSON for saving
-    const jsonObject = JSON.stringify(editor.document)
+    const jsonObject = editor.document
 
     // Save to database
-    onUpdate?.(jsonObject)
+    onUpdate(jsonObject)
   }, [editor, onUpdate])
 
   useEditorChange(updateContent, editor)
@@ -207,11 +195,7 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
                 }}
                 mt={'xl'}
               >
-                {isPreviewMode ? (
-                  <Preview content={previewContent} />
-                ) : (
-                  <BlockNoteViewEditor />
-                )}
+                <BlockNoteViewEditor editable={!isPreviewMode} />
               </Box>
             </Box>
           </ScrollArea>
@@ -263,19 +247,6 @@ export function CustomCreateLinkButton() {
         />
       </Components.Generic.Popover.Content>
     </Components.Generic.Popover.Root>
-  )
-}
-
-const Preview = ({ content }: { content: string }) => {
-  return (
-    <Box
-      style={{
-        width: '100%',
-        maxWidth: '1080px',
-        minWidth: '300px',
-      }}
-      dangerouslySetInnerHTML={{ __html: content }}
-    ></Box>
   )
 }
 

@@ -3,6 +3,7 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type { NodeModel } from '@minoru/react-dnd-treeview'
+import type { Block } from '@blocknote/core'
 
 export interface ContentProgress {
   contentId: string
@@ -43,7 +44,8 @@ export interface ModuleItem {
   title: string
   order: number
   prerequisites?: string[]
-  content?: string
+  content?: Block[]
+  url?: string
   progress?: ContentProgress
   assignment?: AssignmentBase | StudentAssignment
   published: Published

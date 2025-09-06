@@ -36,6 +36,8 @@ import type {
   ContentNode,
   ContentNodeType,
   Module,
+  ModuleItem,
+  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ContentTree from '@/features/courses/cms/content-tree.tsx'
@@ -44,6 +46,7 @@ import CourseSelector from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { Link } from '@tanstack/react-router'
 import { getTypeFromLevel } from '@/utils/helpers.ts'
+import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
 
 type CMSProps = {
   courseCode?: string
@@ -107,8 +110,7 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
           <RichTextEditor
             content={
               editorState.data && 'content' in editorState.data
-                ? editorState.data?.content ||
-                  JSON.stringify(mockInitialContent)
+                ? editorState.data?.content || mockInitialContent
                 : null
             }
             onUpdate={(newContent) => {
@@ -125,14 +127,13 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
         )
       case 'preview':
         return (
-          <RichTextEditor
-            content={
-              editorState.data && 'content' in editorState.data
-                ? editorState.data?.content ||
-                  JSON.stringify(mockInitialContent)
-                : null
+          <ModuleContentView
+            module={module}
+            moduleItem={editorState.data as ModuleItem}
+            parentSection={
+              getNode(editorState.data?.parentId as string)
+                ?.node as ModuleSection
             }
-            onUpdate={(newContent) => console.log('Updated:', newContent)}
           />
         )
     }
@@ -193,6 +194,9 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
               view={editorState.view}
               variant={variant}
               onViewChange={(view) => setView(view as EditorView)}
+              hasDetails={!!editorState.data}
+              hasContent={!!editorState.data && 'content' in editorState.data}
+              isItem={editorState.type === 'item'}
             />
 
             <Box
@@ -240,6 +244,9 @@ interface CMSHeaderProps {
   view: string
   variant: 'full' | 'editor'
   onViewChange: (view: string) => void
+  isItem: boolean
+  hasDetails: boolean
+  hasContent: boolean
 }
 
 const CMSHeader = ({
@@ -252,6 +259,9 @@ const CMSHeader = ({
   view,
   variant,
   onViewChange,
+  hasDetails,
+  hasContent,
+  isItem,
 }: CMSHeaderProps) => {
   const theme = useMantineTheme()
   console.log('variant', variant)
@@ -289,8 +299,16 @@ const CMSHeader = ({
           onChange={onViewChange}
           data={[
             { label: 'Details', value: 'detail' },
-            { label: 'Content', value: 'content' },
-            { label: 'Preview', value: 'preview' },
+            {
+              label: 'Content',
+              value: 'content',
+              disabled: !hasDetails && !isItem,
+            },
+            {
+              label: 'Preview',
+              value: 'preview',
+              disabled: !hasContent && !hasDetails && !isItem,
+            },
           ]}
         />
       </Group>

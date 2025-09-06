@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type {
-  AcademicProgram,
   AcademicTerm,
   ClassMeeting,
   Course,
@@ -45,6 +44,11 @@ import {
 } from '@/components/multi-filter.tsx'
 import { useFilter } from '@/hooks/useFilter.ts'
 import { createFilterOption } from '@/utils/helpers.ts'
+import {
+  mockAcademicPrograms,
+  mockCourseData,
+  mockTerms,
+} from '@/features/courses/mocks.ts'
 
 export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
@@ -52,157 +56,6 @@ export const Route = createFileRoute('/(protected)/courses/')({
     return mockTerms //TODO: replace this with actual fetch
   },
 })
-
-const mockTerms: AcademicTerm[] = [
-  {
-    termId: 'termId1',
-    schoolYear: 'SY 2024-2025',
-    term: 'Term 1',
-    isCurrent: false,
-  },
-  {
-    termId: 'termId2',
-    schoolYear: 'SY 2024-2025',
-    term: 'Term 2',
-    isCurrent: false,
-  },
-  {
-    termId: 'termId3',
-    schoolYear: 'SY 2024-2025',
-    term: 'Term 3',
-    isCurrent: false,
-  },
-  {
-    termId: 'termId4',
-    schoolYear: 'SY 2025-2026',
-    term: 'Term 1',
-    isCurrent: true,
-  },
-]
-
-const mockAcademicPrograms: AcademicProgram[] = [
-  {
-    program: 'Bachelor of Science in Information Technology',
-    programCode: 'BSIT',
-    major: 'Software Development',
-    majorCode: 'SD',
-  },
-  {
-    program: 'Bachelor of Science in Computer Science',
-    programCode: 'BSCS',
-    major: 'Software Engineering',
-    majorCode: 'SE',
-  },
-  {
-    program: 'Bachelor of Science in Information Systems',
-    programCode: 'BSIS',
-    major: 'Information Systems',
-    majorCode: 'IS',
-  },
-]
-
-// TODO: Consider adding program and/or department and major to the course data
-// TODO: Course types might also be necessary such as 'General Education', 'Specialization', etc.
-const MockCourseData: Course[] = [
-  {
-    courseName: 'Web Technology Applications',
-    courseCode: 'MO-IT200',
-    courseProgress: 0.5,
-    section: {
-      sectionName: 'A2101',
-      sectionSchedule: {
-        day: 'MWF',
-        time: '10:00 - 11:00 AM',
-      },
-      classMeetings: [
-        {
-          startTimeStamp: '2023-08-20T10:00',
-          endTimeStamp: '2023-08-20T11:00',
-          meetingLink: 'https://zoom.us',
-        },
-      ],
-    },
-    activities: [],
-    program: mockAcademicPrograms[0],
-    academicTerms: [mockTerms[0]],
-  },
-  {
-    courseName: 'Data Structures and Algorithms',
-    courseCode: 'MO-IT351',
-    courseProgress: 0.5,
-    section: {
-      sectionName: 'A2101',
-      sectionSchedule: {
-        day: 'TTHS',
-        time: '10:00 - 11:00 AM',
-      },
-      classMeetings: [
-        {
-          startTimeStamp: '2023-08-20T10:00',
-          endTimeStamp: '2023-08-20T11:00',
-          meetingLink: 'https://zoom.us',
-        },
-      ],
-    },
-    activities: [],
-    program: mockAcademicPrograms[1],
-    academicTerms: [mockTerms[1]],
-  },
-
-  {
-    courseName: 'Capstone 1',
-    courseCode: 'MO-IT400',
-    courseProgress: 0.5,
-    section: {
-      sectionName: 'A2101',
-      sectionSchedule: {
-        day: 'MWF',
-        time: '8:00 - 9:00 AM',
-      },
-      classMeetings: [
-        {
-          startTimeStamp: '2023-08-20T15:45',
-          endTimeStamp: '2023-08-20T22:00',
-          meetingLink: 'https://zoom.us',
-        },
-      ],
-    },
-    activities: [],
-    program: mockAcademicPrograms[2],
-    academicTerms: [mockTerms[2]],
-  },
-  {
-    courseName: 'Capstone 2',
-    courseCode: 'MO-IT500',
-    courseProgress: 0.5,
-    section: {
-      sectionName: 'A2101',
-      sectionSchedule: {
-        day: 'TTHS',
-        time: '8:00 - 9:00 AM',
-      },
-      classMeetings: [
-        {
-          startTimeStamp: '2025-08-23T00:00',
-          endTimeStamp: '2025-08-29T23:59',
-          meetingLink: 'https://zoom.us',
-        },
-      ],
-    },
-    activities: [
-      {
-        activityName: 'Assignment 1',
-        dueTimestamp: '2025-08-20T23:59:59',
-      },
-      {
-        activityName: 'Assignment 2',
-        dueTimestamp: '2025-08-20T23:59:59',
-      },
-    ],
-    program: mockAcademicPrograms[0],
-    academicTerms: [mockTerms[3]],
-  },
-]
 
 // Course-specific filter configuration
 export const courseFilterConfig = {
@@ -237,10 +90,10 @@ function RouteComponent() {
 
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [searchFilteredCourses, setSearchFilteredCourses] =
-    useState<Course[]>(MockCourseData)
+    useState<Course[]>(mockCourseData)
 
   //TODO: implement API call to get courses, get it by academic term Id
-  const coursesData = MockCourseData
+  const coursesData = mockCourseData
 
   const formatTerm = (academicTerm: AcademicTerm | undefined) => {
     return academicTerm

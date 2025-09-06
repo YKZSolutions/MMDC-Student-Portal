@@ -9,6 +9,8 @@ export const Route = createFileRoute(
   validateSearch: (search: Record<string, unknown>) => {
     return {
       scheduled: search.scheduled === 'true',
+      publish: search.publish === 'true',
+      unpublish: search.unpublish === 'true',
     }
   },
   component: RouteComponent,
@@ -17,7 +19,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { authUser } = useAuth('protected')
   const { courseCode } = useParams({ strict: false })
-  const { scheduled } = Route.useSearch()
+  const { scheduled, publish, unpublish } = Route.useSearch()
 
   if (!authUser || !courseCode) {
     //TODO: or a loader / skeleton
