@@ -172,9 +172,11 @@ model Program {
   /// @DtoApiHidden
   majors Major[]
 
-  code        String @unique
+  programCode String @unique
   name        String @unique
   description String
+  yearDuration    Int
+  isActive    Boolean @default(true)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -196,8 +198,10 @@ model Major {
   /// @DtoApiHidden
   curriculums Curriculum[]
 
+  majorCode   String @unique
   name        String @unique
   description String
+  isActive    Boolean @default(true)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -225,6 +229,8 @@ model Course {
   name        String
   description String
   units       Int
+  type        String
+  isActive    Boolean @default(true)
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings

@@ -24,6 +24,14 @@ export class CourseDto {
   units: number;
   @ApiProperty({
     type: 'string',
+  })
+  type: string;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
+  @ApiProperty({
+    type: 'string',
     format: 'date-time',
   })
   createdAt: Date;

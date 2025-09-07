@@ -24,11 +24,19 @@ export class Major {
   @ApiProperty({
     type: 'string',
   })
+  majorCode: string;
+  @ApiProperty({
+    type: 'string',
+  })
   name: string;
   @ApiProperty({
     type: 'string',
   })
   description: string;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
