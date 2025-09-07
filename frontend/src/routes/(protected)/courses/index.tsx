@@ -5,9 +5,8 @@ import type {
   ClassMeeting,
   Course,
 } from '@/features/courses/types'
-import { Component, useState } from 'react'
+import { Component, type ReactNode, useState } from 'react'
 import {
-  ActionIcon,
   Box,
   Button,
   Card,
@@ -28,7 +27,7 @@ import SearchComponent from '@/components/search-component.tsx'
 import {
   IconCalendarTime,
   IconDeviceDesktop,
-  IconFilter,
+  IconFilter2,
   IconLayoutGridFilled,
   IconList,
   IconUserCode,
@@ -148,7 +147,7 @@ function RouteComponent() {
   } = useFilter(defaultFilters, searchFilteredCourses, courseFilterConfig)
 
   return (
-    <Container fluid m={0}>
+    <Container size={'lg'} w={'100%'} pb={'xl'}>
       <Stack gap={'lg'}>
         <Header
           coursesData={coursesData}
@@ -274,7 +273,7 @@ class FilterButton extends Component<{
   render() {
     return (
       <Tooltip label={this.props.showFilters ? 'Hide Filters' : 'Show Filters'}>
-        <ActionIcon
+        <Button
           variant={'subtle'}
           c={
             this.props.filterCount !== 0 || this.props.showFilters
@@ -282,9 +281,10 @@ class FilterButton extends Component<{
               : 'gray.6'
           }
           onClick={this.props.onClick}
+          leftSection={<IconFilter2 size={20} />}
         >
-          <IconFilter size={20} />
-        </ActionIcon>
+          Filters
+        </Button>
       </Tooltip>
     )
   }
@@ -292,7 +292,7 @@ class FilterButton extends Component<{
 
 class SelectorButton extends Component<{
   active: boolean
-  icon: React.ReactNode
+  icon: ReactNode
   onClick: () => void
 }> {
   render() {
