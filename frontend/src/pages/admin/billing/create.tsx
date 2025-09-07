@@ -1,6 +1,10 @@
 import AsyncEmployeeCombobox from '@/features/billing/async-employee-combobox'
 import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
-import { billCategories, billTypes, paymentSchemes } from '@/features/billing/constants'
+import {
+  billCategories,
+  billTypes,
+  paymentSchemes,
+} from '@/features/billing/constants'
 import {
   CreateBillFormSchema,
   type CreateBillFormValues,
@@ -18,6 +22,7 @@ import {
   Collapse,
   Container,
   Divider,
+  Grid,
   Group,
   NumberInput,
   rem,
@@ -233,81 +238,89 @@ function CreateBillingPage() {
                 <Stack>
                   {form.getValues().bill.costBreakdown.map((item, index) => (
                     <Stack gap={'xl'} key={item.id}>
-                      <Group grow gap="sm" align="start">
-                        <Select
-                          searchable
-                          label="Category"
-                          placeholder="Pick category"
-                          data={billCategories}
-                          withAsterisk
-                          key={form.key(`costBreakdown.${index}.category`)}
-                          {...form.getInputProps(
-                            `costBreakdown.${index}.category`,
-                          )}
-                          onChange={(value) => {
-                            form.setFieldValue(
-                              `bill.costBreakdown.${index}.category`,
-                              value || '',
-                            )
-                          }}
-                        />
-                        <TextInput
-                          label="Name"
-                          placeholder="Enter name"
-                          withAsterisk
-                          key={form.key(`bill.costBreakdown.${index}.name`)}
-                          {...form.getInputProps(
-                            `bill.costBreakdown.${index}.name`,
-                          )}
-                        />
-
-                        <Group
-                          wrap="nowrap"
-                          gap="sm"
-                          align={
-                            form.errors[`bill.costBreakdown.${index}.cost`]
-                              ? 'center'
-                              : 'end'
-                          }
-                        >
-                          <NumberInput
-                            label="Cost"
-                            placeholder="Enter cost"
-                            decimalScale={2}
-                            fixedDecimalScale
+                      <Grid align="start">
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Select
+                            searchable
+                            label="Category"
+                            placeholder="Pick category"
+                            data={billCategories}
                             withAsterisk
-                            thousandSeparator=","
-                            key={form.key(`bill.costBreakdown.${index}.cost`)}
+                            key={form.key(`costBreakdown.${index}.category`)}
                             {...form.getInputProps(
-                              `bill.costBreakdown.${index}.cost`,
+                              `costBreakdown.${index}.category`,
                             )}
-                          />
-
-                          <ActionIcon
-                            variant="subtle"
-                            color="red"
-                            radius={'xl'}
-                            mb={
-                              form.errors[`bill.costBreakdown.${index}.cost`]
-                                ? rem(-3.5)
-                                : rem(5)
-                            }
-                            onClick={() => {
-                              const newBreakdown = form
-                                .getValues()
-                                .bill.costBreakdown.filter(
-                                  (_, i) => i !== index,
-                                )
+                            onChange={(value) => {
                               form.setFieldValue(
-                                'bill.costBreakdown',
-                                newBreakdown,
+                                `bill.costBreakdown.${index}.category`,
+                                value || '',
                               )
                             }}
+                          />
+                        </Grid.Col>
+
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <TextInput
+                            label="Name"
+                            placeholder="Enter name"
+                            withAsterisk
+                            key={form.key(`bill.costBreakdown.${index}.name`)}
+                            {...form.getInputProps(
+                              `bill.costBreakdown.${index}.name`,
+                            )}
+                          />
+                        </Grid.Col>
+
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Group
+                            wrap="nowrap"
+                            gap="sm"
+                            align={
+                              form.errors[`bill.costBreakdown.${index}.cost`]
+                                ? 'center'
+                                : 'end'
+                            }
                           >
-                            <IconTrash size={18} />
-                          </ActionIcon>
-                        </Group>
-                      </Group>
+                            <NumberInput
+                              w={'100%'}
+                              label="Cost"
+                              placeholder="Enter cost"
+                              decimalScale={2}
+                              fixedDecimalScale
+                              withAsterisk
+                              thousandSeparator=","
+                              key={form.key(`bill.costBreakdown.${index}.cost`)}
+                              {...form.getInputProps(
+                                `bill.costBreakdown.${index}.cost`,
+                              )}
+                            />
+
+                            <ActionIcon
+                              variant="subtle"
+                              color="red"
+                              radius={'xl'}
+                              mb={
+                                form.errors[`bill.costBreakdown.${index}.cost`]
+                                  ? rem(-3.5)
+                                  : rem(5)
+                              }
+                              onClick={() => {
+                                const newBreakdown = form
+                                  .getValues()
+                                  .bill.costBreakdown.filter(
+                                    (_, i) => i !== index,
+                                  )
+                                form.setFieldValue(
+                                  'bill.costBreakdown',
+                                  newBreakdown,
+                                )
+                              }}
+                            >
+                              <IconTrash size={18} />
+                            </ActionIcon>
+                          </Group>
+                        </Grid.Col>
+                      </Grid>
 
                       <Divider />
                     </Stack>
@@ -363,7 +376,16 @@ function CreateBillingPage() {
 
       {/* Action buttons */}
       <Group mt="xl" justify="flex-end">
-        <Button variant="subtle">Cancel</Button>
+        <Button
+          variant="subtle"
+          onClick={() =>
+            navigate({
+              to: '..',
+            })
+          }
+        >
+          Cancel
+        </Button>
         <Button variant="filled" color="primary" onClick={() => handleCreate()}>
           Create
         </Button>

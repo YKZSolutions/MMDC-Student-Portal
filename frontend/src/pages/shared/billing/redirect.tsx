@@ -127,35 +127,37 @@ function RedirectPage() {
   }
 
   return (
-    <Container size="sm" className="my-auto pb-40">
-      <Stack align="center" gap="md">
-        <Suspense fallback={<Loader />}>
-          <RedirectQueryProvider>
-            {(props) => (
-              <>
-                {handleStatusIcon(props.message)}
-                <Stack align="center" gap={rem(5)}>
-                  <Title order={2}>
-                    {handleStatusMessage(props.message, 'title')}
-                  </Title>
-                  <Text size="md" c={'dimmed'}>
-                    {handleStatusMessage(props.message, 'subtitle')}
-                  </Text>
-                </Stack>
-                <Button
-                  size="md"
-                  variant="subtle"
-                  leftSection={<IconArrowLeft />}
-                  onClick={() => navigate({ to: '/billing', replace: true })}
-                >
-                  Go back to Billing Page
-                </Button>
-              </>
-            )}
-          </RedirectQueryProvider>
-        </Suspense>
-      </Stack>
-    </Container>
+    <Stack mih={'100%'} align="center" justify="center">
+      <Container size="sm" className="pb-40">
+        <Stack align="center" gap="md">
+          <Suspense fallback={<Loader />}>
+            <RedirectQueryProvider>
+              {(props) => (
+                <>
+                  {handleStatusIcon(props.message)}
+                  <Stack align="center" gap={rem(5)}>
+                    <Title order={2}>
+                      {handleStatusMessage(props.message, 'title')}
+                    </Title>
+                    <Text size="md" c={'dimmed'} ta={"center"}>
+                      {handleStatusMessage(props.message, 'subtitle')}
+                    </Text>
+                  </Stack>
+                  <Button
+                    size="md"
+                    variant="subtle"
+                    leftSection={<IconArrowLeft />}
+                    onClick={() => navigate({ to: '/billing', replace: true })}
+                  >
+                    Go back to Billing Page
+                  </Button>
+                </>
+              )}
+            </RedirectQueryProvider>
+          </Suspense>
+        </Stack>
+      </Container>
+    </Stack>
   )
 }
 

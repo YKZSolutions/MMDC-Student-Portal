@@ -19,6 +19,7 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   Group,
   Menu,
   Pagination,
@@ -156,18 +157,34 @@ function EnrollmentAdminPage() {
         </Box>
 
         <Stack gap={'md'}>
-          <Group gap={rem(5)} justify="end" align="center">
+          <Flex
+            w={{
+              base: '100%',
+              xs: 'auto',
+            }}
+            wrap={'wrap'}
+            gap={rem(5)}
+            justify="end"
+            align="center"
+          >
             {/* Changed spacing to gap */}
             <TextInput
               placeholder="Search year/term/date"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
-              w={rem(250)}
+              w={{
+                base: '100%',
+                xs: rem(250),
+              }}
               value={query.search}
               // TODO: This feature is currently not implemented
               onChange={(e) => {}}
             />
             <Button
+              w={{
+                base: '100%',
+                xs: 'auto',
+              }}
               variant="default"
               radius={'md'}
               leftSection={<IconFilter2 color="gray" size={20} />}
@@ -176,6 +193,10 @@ function EnrollmentAdminPage() {
               Filters
             </Button>
             <Button
+              w={{
+                base: '100%',
+                xs: 'auto',
+              }}
               variant="filled"
               radius={'md'}
               leftSection={<IconPlus size={20} />}
@@ -184,7 +205,7 @@ function EnrollmentAdminPage() {
             >
               Create
             </Button>
-          </Group>
+          </Flex>
 
           {/* Table */}
           <EnrollmentTable props={debouncedQuery} />
@@ -287,121 +308,127 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
     )
 
   return (
-    <Table
-      verticalSpacing={'md'}
-      highlightOnHover
-      highlightOnHoverColor="gray.0"
-      style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-      styles={{
-        th: {
-          fontWeight: 500,
-        },
-      }}
-    >
-      <Table.Thead>
-        <Table.Tr
-          style={{
-            border: '0px',
-          }}
-          bg={'gray.1'}
-          c={'dark.5'}
-        >
-          <Table.Th>School Year</Table.Th>
-          <Table.Th>Term</Table.Th>
-          <Table.Th>Start Date</Table.Th>
-          <Table.Th>End Date</Table.Th>
-          <Table.Th>Status</Table.Th>
-          <Table.Th></Table.Th>
-        </Table.Tr>
-      </Table.Thead>
-      <Table.Tbody
-        style={{
-          cursor: 'pointer',
+    <Table.ScrollContainer minWidth={600}>
+      <Table
+        verticalSpacing={'md'}
+        highlightOnHover
+        highlightOnHoverColor="gray.0"
+        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+        styles={{
+          th: {
+            fontWeight: 500,
+          },
         }}
       >
-        <Suspense fallback={<SuspendedAdminEnrollmentTableRows />}>
-          <EnrollmentAdminQueryProvider props={props}>
-            {(props) =>
-              props.enrollmentPeriods.map((period) => (
-                <Table.Tr
-                  onClick={(e) =>
-                    navigate({
-                      to: '/enrollment/' + period.id,
-                    })
-                  }
-                  key={period.id}
-                >
-                  <Table.Td>
-                    <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
-                      {formatToSchoolYear(period.startYear, period.endYear)}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c={'dark.3'} fw={500}>
-                      {period.term}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c={'dark.3'} fw={500}>
-                      {dayjs(period.startDate).format('MMM D, YYYY')}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c={'dark.3'} fw={500}>
-                      {dayjs(period.endDate).format('MMM D, YYYY')}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <EnrollmentBadgeStatus period={period} />
-                  </Table.Td>
+        <Table.Thead>
+          <Table.Tr
+            style={{
+              border: '0px',
+            }}
+            bg={'gray.1'}
+            c={'dark.5'}
+          >
+            <Table.Th>School Year</Table.Th>
+            <Table.Th>Term</Table.Th>
+            <Table.Th>Start Date</Table.Th>
+            <Table.Th>End Date</Table.Th>
+            <Table.Th>Status</Table.Th>
+            <Table.Th></Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody
+          style={{
+            cursor: 'pointer',
+          }}
+        >
+          <Suspense fallback={<SuspendedAdminEnrollmentTableRows />}>
+            <EnrollmentAdminQueryProvider props={props}>
+              {(props) =>
+                props.enrollmentPeriods.map((period) => (
+                  <Table.Tr
+                    onClick={(e) =>
+                      navigate({
+                        to: '/enrollment/' + period.id,
+                      })
+                    }
+                    key={period.id}
+                  >
+                    <Table.Td>
+                      <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
+                        {formatToSchoolYear(period.startYear, period.endYear)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c={'dark.3'} fw={500}>
+                        {period.term}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c={'dark.3'} fw={500}>
+                        {dayjs(period.startDate).format('MMM D, YYYY')}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c={'dark.3'} fw={500}>
+                        {dayjs(period.endDate).format('MMM D, YYYY')}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <EnrollmentBadgeStatus period={period} />
+                    </Table.Td>
 
-                  <Table.Td>
-                    <Menu shadow="md" width={200}>
-                      <Menu.Target>
-                        <ActionIcon
-                          onClick={(e) => e.stopPropagation()}
-                          variant="subtle"
-                          color="gray"
-                          radius="xl"
-                        >
-                          <IconDotsVertical size={20} stroke={1.5} />
-                        </ActionIcon>
-                      </Menu.Target>
+                    <Table.Td>
+                      <Menu shadow="md" width={200}>
+                        <Menu.Target>
+                          <ActionIcon
+                            onClick={(e) => e.stopPropagation()}
+                            variant="subtle"
+                            color="gray"
+                            radius="xl"
+                          >
+                            <IconDotsVertical size={20} stroke={1.5} />
+                          </ActionIcon>
+                        </Menu.Target>
 
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          leftSection={<IconEye size={16} stroke={1.5} />}
-                          onClick={(e) => handleMenuAction(period.id, e).view()}
-                        >
-                          View Details
-                        </Menu.Item>
+                        <Menu.Dropdown>
+                          <Menu.Item
+                            leftSection={<IconEye size={16} stroke={1.5} />}
+                            onClick={(e) =>
+                              handleMenuAction(period.id, e).view()
+                            }
+                          >
+                            View Details
+                          </Menu.Item>
 
-                        <Menu.Item
-                          leftSection={<IconPencil size={16} stroke={1.5} />}
-                          onClick={(e) => handleMenuAction(period.id, e).edit()}
-                        >
-                          Edit
-                        </Menu.Item>
+                          <Menu.Item
+                            leftSection={<IconPencil size={16} stroke={1.5} />}
+                            onClick={(e) =>
+                              handleMenuAction(period.id, e).edit()
+                            }
+                          >
+                            Edit
+                          </Menu.Item>
 
-                        <Menu.Item
-                          leftSection={<IconTrash size={16} stroke={1.5} />}
-                          onClick={(e) =>
-                            handleMenuAction(period.id, e).delete()
-                          }
-                          c="red"
-                        >
-                          Delete
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
-                  </Table.Td>
-                </Table.Tr>
-              ))
-            }
-          </EnrollmentAdminQueryProvider>
-        </Suspense>
-      </Table.Tbody>
-    </Table>
+                          <Menu.Item
+                            leftSection={<IconTrash size={16} stroke={1.5} />}
+                            onClick={(e) =>
+                              handleMenuAction(period.id, e).delete()
+                            }
+                            c="red"
+                          >
+                            Delete
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    </Table.Td>
+                  </Table.Tr>
+                ))
+              }
+            </EnrollmentAdminQueryProvider>
+          </Suspense>
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   )
 }
 
