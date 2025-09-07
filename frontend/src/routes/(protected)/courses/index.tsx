@@ -478,20 +478,23 @@ const CourseCard = ({ url, ...courseDetails }: CourseDetailProps) => {
 }
 
 const CourseListRow = ({ url, ...courseDetails }: CourseDetailProps) => {
+  const theme = useMantineTheme()
   const { sectionName, sectionSchedule, classMeetings } = courseDetails.section
   const { courseName, courseCode, courseProgress } = courseDetails
   const { currentMeeting } = useCurrentMeeting(classMeetings)
 
   return (
     <Card
-      withBorder
       radius="md"
       p="0"
+      px={'md'}
       className={'drop-shadow-sm hover:drop-shadow-lg'}
       w={'100%'}
+      style={{
+        borderLeft: `4px solid ${theme.colors.primary[0]}`,
+      }}
     >
       <Group justify="space-between" wrap="nowrap">
-        <Box bg={'primary'} h={'100%'} w={'20px'}></Box>
         <Stack w={'65%'} p={'xs'} justify={'space-between'}>
           <Group gap={'xs'}>
             <Link to={url} className="hover:underline">
