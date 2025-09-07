@@ -304,7 +304,12 @@ const AdminActions = ({ item }: AdminActionsProps) => {
               onClick={(e) => {
                 if (item.published.isPublished) {
                   e.stopPropagation()
-                  //TODO: handle unpublish
+                  navigate({
+                    from: '/courses/$courseCode/modules',
+                    to: `$itemId/publish`,
+                    params: { itemId: item.id },
+                    search: { scheduled: false, unpublish: true },
+                  })
                 } else {
                   open()
                 }
