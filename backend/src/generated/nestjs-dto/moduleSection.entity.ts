@@ -1,9 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
+import { User, type User as UserAsType } from './user.entity';
 
 export class ModuleSection {
   @ApiProperty({
@@ -36,10 +37,29 @@ export class ModuleSection {
     required: false,
   })
   subsections?: ModuleSection[];
-  @ApiProperty({
-    type: () => ModuleContent,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  publishedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  toPublishAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  publishedBy: string | null;
+  @ApiProperty({
+    type: () => User,
+    required: false,
+    nullable: true,
+  })
+  user?: UserAsType | null;
 }

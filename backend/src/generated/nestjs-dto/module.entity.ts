@@ -3,6 +3,7 @@ import {
   CourseEnrollment,
   type CourseEnrollment as CourseEnrollmentAsType,
 } from './courseEnrollment.entity';
+import { User, type User as UserAsType } from './user.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
@@ -26,6 +27,29 @@ export class Module {
     required: false,
   })
   courseEnrollment?: CourseEnrollmentAsType;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  publishedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  toPublishAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  publishedBy: string | null;
+  @ApiProperty({
+    type: () => User,
+    required: false,
+    nullable: true,
+  })
+  user?: UserAsType | null;
   @ApiHideProperty()
   moduleSections?: ModuleSectionAsType[];
   @ApiProperty({
