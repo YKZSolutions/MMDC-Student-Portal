@@ -40,6 +40,7 @@ import {
   Container,
   Divider,
   Flex,
+  Grid,
   Group,
   LoadingOverlay,
   Pagination,
@@ -63,9 +64,13 @@ import {
   IconSearch,
   type ReactNode,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useSuspenseQuery,
+  type QueryObserverResult,
+  type RefetchOptions,
+} from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/')
@@ -202,28 +207,16 @@ function EnrollmentStudentFinalizationQueryProvider({
 }: {
   children: (props: {
     enrolledCourses: DetailedCourseEnrollmentDto[]
+    refetch: (
+      options?: RefetchOptions | undefined,
+    ) => Promise<QueryObserverResult<DetailedCourseEnrollmentDto[], Error>>
   }) => ReactNode
 }) {
-  const searchParam: {
-    tab: (typeof tabsData)[number]['value']
-  } = route.useSearch()
-
   const { data: enrolledCourses, refetch } = useSuspenseQuery({
     ...courseEnrollmentControllerGetCourseEnrollmentsOptions(),
   })
 
-  /**
-   * Refetch enrolled courses when the tab changes to finalization
-   *
-   * I'M VERY SORRY FOR THIS IMPLEMENTATION. THERE'S NO OTHER WAY TO ACHIEVE THIS
-   */
-  useEffect(() => {
-    if (searchParam.tab == 'finalization') {
-      refetch()
-    }
-  }, [searchParam.tab])
-
-  return children({ enrolledCourses })
+  return children({ enrolledCourses, refetch })
 }
 
 function EnrollmentStudentPage() {
@@ -295,7 +288,7 @@ function EnrollmentStudentPage() {
             <Tabs.List grow>
               <Suspense fallback={<Skeleton height={30} radius="md" />}>
                 <EnrollmentStudentFinalizationQueryProvider>
-                  {({ enrolledCourses }) => (
+                  {({ enrolledCourses, refetch }) => (
                     <>
                       {tabsData.map((tab) => (
                         <Tabs.Tab
@@ -308,6 +301,11 @@ function EnrollmentStudentPage() {
                           }}
                           key={tab.value}
                           value={tab.value}
+                          onClick={() =>
+                            // This will refetch the enrolled courses when switching to finalization tab
+                            // Which is useful when the user has enrolled something in the course selection tab
+                            tab.value == 'finalization' && refetch()
+                          }
                         >
                           <Text fw={500} fz={'sm'} c={'dark.5'}>
                             {tab.label}
@@ -359,6 +357,16 @@ function CourseSelectionPanel() {
         status: value !== 'all' ? value : undefined,
       }),
     })
+
+    // Invalidate the course offerings query here so it only refetches
+    // on enrolled and not enrolled tab and it retriggers suspense
+    if (value == 'enrolled' || value == 'not enrolled')
+      queryClient.removeQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0]?._id ===
+            'courseOfferingControllerFindCourseOfferingsByPeriod',
+      })
   }
 
   return (
@@ -366,7 +374,7 @@ function CourseSelectionPanel() {
       <Paper radius={'md'}>
         <Group py={'sm'} justify={'space-between'}>
           <SegmentedControl
-            className="grow max-w-2xs"
+            className="grow xs:max-w-2xs xs:min-w-2xs"
             bd={'1px solid gray.2'}
             radius={'md'}
             data-cy="enrollment-tabs" // Add to the container
@@ -378,14 +386,34 @@ function CourseSelectionPanel() {
                 e as IEnrollmentStudentQuery['status'],
               )
             }
+            fullWidth
+            w={{
+              base: '100%',
+              xs: 'auto',
+            }}
           />
 
-          <Flex align={'center'} gap={5}>
+          <Flex
+            wrap={'wrap'}
+            w={{
+              base: '100%',
+              xs: 'auto',
+            }}
+            align={'center'}
+            gap={5}
+            ml={{
+              base: 0,
+              xs: 'auto',
+            }}
+          >
             <TextInput
               placeholder="Search name/email"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
-              w={rem(250)}
+              w={{
+                base: '100%',
+                xs: rem(250),
+              }}
             />
             <Popover position="bottom" width={rem(300)}>
               <Popover.Target>
@@ -394,6 +422,10 @@ function CourseSelectionPanel() {
                   radius={'md'}
                   leftSection={<IconFilter2 color="gray" size={20} />}
                   lts={rem(0.25)}
+                  w={{
+                    base: '100%',
+                    xs: 'auto',
+                  }}
                 >
                   Filters
                 </Button>
@@ -665,32 +697,79 @@ function EnrolledCourseCard({
   mentor: string
 }) {
   return (
-    <Card withBorder radius="md" p="md" className="flex-1">
-      <Group justify="space-between" wrap="nowrap">
-        <Stack gap={4} miw={0} className="truncate">
-          <Text fw={600} size="md" truncate="end">
-            {courseName}
-          </Text>
-          <Text fw={500} fz={'xs'} c={'dark.3'}>
-            {courseCode}
-          </Text>
-          <Text c={'gray.6'} size="sm">
-            {mentor}
-          </Text>
-        </Stack>
-        <Stack gap={4} miw={'fit-content'}>
-          <Group gap="xs" justify="end">
-            <Text fw={600} size="md">
-              {sectionName}
-            </Text>
+    <Card withBorder radius="md" p="lg">
+      <Stack gap={rem(2.5)} className="truncate">
+        <Flex
+          gap={rem(2.5)}
+          justify="space-between"
+          align="flex-start"
+          wrap="wrap"
+          direction={{ base: 'column', xs: 'row' }}
+        >
+          <Group
+            gap="xs"
+            align="center"
+            w={{
+              base: '100%',
+              xs: 'auto',
+            }}
+          >
+            <Box maw={'100%'}>
+              <Text fw={600} size="lg" truncate>
+                {courseName}
+              </Text>
+              <Text fw={500} fz="xs" c="dark.3" truncate>
+                {courseCode}
+              </Text>
+            </Box>
           </Group>
-          <Group gap="xs" justify="end">
-            <Text c="dimmed" size="sm">
-              {sectionSchedule.day} | {sectionSchedule.time}
-            </Text>
+          <Divider
+            variant="dashed"
+            size={rem(2.5)}
+            w={{
+              base: '100%',
+              xs: 0,
+            }}
+            my={{
+              base: rem(10),
+              xs: 0,
+            }}
+          />
+          <Group
+            gap="xs"
+            align="center"
+            justify="start"
+            w={{
+              base: '100%',
+              xs: 'auto',
+            }}
+          >
+            <Box maw={'100%'}>
+              <Text fw={600} size="md" truncate>
+                {sectionName}
+              </Text>
+              <Text
+                ta={{
+                  base: 'left',
+                  xs: 'right',
+                }}
+                c="dimmed"
+                size="sm"
+                truncate
+              >
+                {sectionSchedule.day} | {sectionSchedule.time}
+              </Text>
+            </Box>
           </Group>
-        </Stack>
-      </Group>
+        </Flex>
+        <Group gap="xs" align="center" wrap="wrap">
+          <Box>
+            <Text c="gray.6" size="sm" truncate>
+              {mentor}
+            </Text>
+          </Box>
+        </Group>
+      </Stack>
     </Card>
   )
 }
@@ -771,6 +850,23 @@ function CourseOfferingAccordionPanel({
     <Stack>
       <Divider />
       <Stack gap={'xs'}>
+        {course.courseSections.length === 0 && (
+          <Center py="md">
+            <Stack gap={rem(2)} align="center">
+              <IconBook
+                size={28}
+                stroke={1.5}
+                color="var(--mantine-color-dimmed)"
+              />
+              <Text fw={600} size="sm" c={'dark.3'}>
+                No sections available
+              </Text>
+              <Text size="xs" c="dimmed">
+                This course currently has no available sections.
+              </Text>
+            </Stack>
+          </Center>
+        )}
         {course.courseSections.map((section) => (
           <CourseOfferingSubjectCard
             key={section.id}
@@ -891,64 +987,94 @@ function CourseOfferingSubjectCard({
         overlayProps={{ radius: 'sm', blur: 2 }}
       />
       <Box>
-        <Group justify="space-between" align="center">
-          <Stack gap={2}>
-            <Group gap="xs">
-              <Text fw={600} size="md">
-                {section.name}
+        <Grid gutter={0} justify="space-between" align="center">
+          {/* First column (left) */}
+          <Grid.Col
+            span={{
+              base: 12,
+              xs: 6,
+            }}
+          >
+            <Stack gap={2}>
+              <Group gap="xs">
+                <Text truncate maw="12ch" fw={600} size="md">
+                  {section.name}
+                </Text>
+                <Text c="dimmed" size="xs">
+                  {formatToTimeOfDay(section.startSched, section.endSched)}
+                </Text>
+              </Group>
+              <Text c="dimmed" size="sm">
+                {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
+                {section.endSched}
               </Text>
-              <Text c="dimmed" size="xs">
-                {formatToTimeOfDay(section.startSched, section.endSched)}
+              <Text c={'gray.6'} size="sm">
+                {section.mentorId
+                  ? `${section.user?.firstName} ${section.user?.lastName}`
+                  : 'No Mentor Assigned'}
               </Text>
-            </Group>
-            <Text c="dimmed" size="sm">
-              {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
-              {section.endSched}
-            </Text>
-            <Text c={'gray.6'} size="sm">
-              {section.mentorId
-                ? `${section.user?.firstName} ${section.user?.lastName}`
-                : 'No Mentor Assigned'}
-            </Text>
-          </Stack>
-          <Stack gap={'xs'} align="flex-end">
-            {isEnrolled ? (
-              <Button
-                size="xs"
-                radius={'lg'}
-                onClick={() =>
-                  dropMutate({
-                    path: {
-                      sectionId: section.id,
-                    },
-                    body: {},
-                  })
-                }
+            </Stack>
+          </Grid.Col>
+          <Grid.Col
+            span={{
+              base: 12,
+              xs: 6,
+            }}
+          >
+            <Flex
+              direction={{
+                base: 'row-reverse',
+                xs: 'column',
+              }}
+              gap="xs"
+              align="flex-end"
+            >
+              {isEnrolled ? (
+                <Button
+                  size="xs"
+                  radius={'lg'}
+                  onClick={() =>
+                    dropMutate({
+                      path: {
+                        sectionId: section.id,
+                      },
+                      body: {},
+                    })
+                  }
+                >
+                  Drop
+                </Button>
+              ) : (
+                <Button
+                  disabled={course.courseEnrollment.length > 0}
+                  size="xs"
+                  radius={'lg'}
+                  onClick={() =>
+                    enrollMutate({
+                      path: {
+                        sectionId: section.id,
+                      },
+                      body: {},
+                    })
+                  }
+                >
+                  Enroll
+                </Button>
+              )}
+              <Badge
+                mr={{
+                  base: 'auto',
+                  xs: 0,
+                }}
+                c="gray.6"
+                variant="light"
+                radius="sm"
               >
-                Drop
-              </Button>
-            ) : (
-              <Button
-                disabled={course.courseEnrollment.length > 0}
-                size="xs"
-                radius={'lg'}
-                onClick={() =>
-                  enrollMutate({
-                    path: {
-                      sectionId: section.id,
-                    },
-                    body: {},
-                  })
-                }
-              >
-                Enroll
-              </Button>
-            )}
-            <Badge c="gray.6" variant="light" radius="sm">
-              {section.maxSlot} / {section.maxSlot} slots
-            </Badge>
-          </Stack>
-        </Group>
+                {section.maxSlot} / {section.maxSlot} slots
+              </Badge>
+            </Flex>
+          </Grid.Col>
+        </Grid>
       </Box>
     </Card>
   )
