@@ -43,11 +43,11 @@ export class ProgramService {
 
   @Log({
     logArgsMessage: ({ dto }) =>
-      `Create program code=${dto.code} name=${dto.name}`,
+      `Create program code=${dto.programCode} name=${dto.name}`,
     logSuccessMessage: (result) =>
       `Created program id=${result.id} code=${result.programCode} name=${result.name}`,
     logErrorMessage: (err, { dto }) =>
-      `Create program code=${dto.code} name=${dto.name} | Error: ${err.message}`,
+      `Create program code=${dto.programCode} name=${dto.name} | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
