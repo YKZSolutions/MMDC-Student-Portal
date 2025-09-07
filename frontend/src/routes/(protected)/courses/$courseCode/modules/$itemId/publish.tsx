@@ -6,7 +6,7 @@ export const Route = createFileRoute(
   validateSearch: (search: Record<string, unknown>) => {
     return {
       unpublish: search.unpublish === 'true',
-      scheduled: search.schedule === 'true',
+      scheduled: search.scheduled === 'true',
     }
   },
   component: RouteComponent,
