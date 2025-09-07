@@ -29,10 +29,6 @@ export class ModuleContentDto {
   })
   contentType: ContentType;
   @ApiProperty({
-    type: 'boolean',
-  })
-  isPublished: boolean;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,

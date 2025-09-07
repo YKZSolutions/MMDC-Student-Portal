@@ -40,10 +40,6 @@ export class ModuleSection {
   @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
   @ApiProperty({
-    type: 'boolean',
-  })
-  isPublished: boolean;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,

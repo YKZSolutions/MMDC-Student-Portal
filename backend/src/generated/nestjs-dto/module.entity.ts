@@ -28,10 +28,6 @@ export class Module {
   })
   courseEnrollment?: CourseEnrollmentAsType;
   @ApiProperty({
-    type: 'boolean',
-  })
-  isPublished: boolean;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,

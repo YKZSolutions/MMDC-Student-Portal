@@ -6,10 +6,6 @@ export class ModuleSectionDto {
   })
   id: string;
   @ApiProperty({
-    type: 'boolean',
-  })
-  isPublished: boolean;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,
