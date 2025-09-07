@@ -11,7 +11,7 @@ export class Program {
   @ApiProperty({
     type: 'string',
   })
-  code: string;
+  programCode: string;
   @ApiProperty({
     type: 'string',
   })
@@ -20,6 +20,15 @@ export class Program {
     type: 'string',
   })
   description: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  yearDuration: number;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

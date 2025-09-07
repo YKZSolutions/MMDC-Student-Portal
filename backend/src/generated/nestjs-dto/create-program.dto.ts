@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateProgramDto {
   @ApiProperty({
@@ -7,7 +7,7 @@ export class CreateProgramDto {
   })
   @IsNotEmpty()
   @IsString()
-  code: string;
+  programCode: string;
   @ApiProperty({
     type: 'string',
   })
@@ -20,4 +20,11 @@ export class CreateProgramDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  @IsNotEmpty()
+  @IsInt()
+  yearDuration: number;
 }

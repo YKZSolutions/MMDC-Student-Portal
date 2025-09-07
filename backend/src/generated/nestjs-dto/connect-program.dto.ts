@@ -15,7 +15,7 @@ export class ConnectProgramDto {
   })
   @IsOptional()
   @IsString()
-  code?: string;
+  programCode?: string;
   @ApiProperty({
     type: 'string',
     required: false,

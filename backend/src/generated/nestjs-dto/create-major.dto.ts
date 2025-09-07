@@ -7,6 +7,12 @@ export class CreateMajorDto {
   })
   @IsNotEmpty()
   @IsString()
+  majorCode: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
   name: string;
   @ApiProperty({
     type: 'string',
