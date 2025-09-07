@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProgramDto {
   @ApiProperty({
@@ -8,7 +8,7 @@ export class UpdateProgramDto {
   })
   @IsOptional()
   @IsString()
-  code?: string;
+  programCode?: string;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -23,4 +23,12 @@ export class UpdateProgramDto {
   @IsOptional()
   @IsString()
   description?: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  yearDuration?: number;
 }

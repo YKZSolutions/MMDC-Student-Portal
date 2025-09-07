@@ -8,6 +8,13 @@ export class UpdateMajorDto {
   })
   @IsOptional()
   @IsString()
+  majorCode?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
   name?: string;
   @ApiProperty({
     type: 'string',

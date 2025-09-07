@@ -63,6 +63,14 @@ export class Course {
     format: 'int32',
   })
   units: number;
+  @ApiProperty({
+    type: 'string',
+  })
+  type: string;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
   @ApiHideProperty()
   courseOfferings?: CourseOfferingAsType[];
   @ApiProperty({

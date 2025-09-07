@@ -52,8 +52,7 @@ export class MajorService {
   ): Promise<MajorDto> {
     const major = await this.prisma.client.major.create({
       data: {
-        name: createProgramMajorDto.major.name,
-        description: createProgramMajorDto.major.description,
+        ...createProgramMajorDto.major,
         program: {
           connect: { id: createProgramMajorDto.programId },
         },

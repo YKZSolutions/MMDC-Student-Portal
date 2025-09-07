@@ -15,5 +15,12 @@ export class ConnectMajorDto {
   })
   @IsOptional()
   @IsString()
+  majorCode?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
   name?: string;
 }

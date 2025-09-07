@@ -8828,6 +8828,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "type": {
+            "type": "string"
+          },
           "majorIds": {
             "type": "array",
             "items": {
@@ -8854,7 +8857,8 @@
           "courseCode",
           "name",
           "description",
-          "units"
+          "units",
+          "type"
         ]
       },
       "CourseRelationDto": {
@@ -8894,6 +8898,12 @@
           "units": {
             "type": "integer",
             "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -8939,6 +8949,8 @@
           "name",
           "description",
           "units",
+          "type",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt",
@@ -8988,6 +9000,9 @@
           "units": {
             "type": "integer",
             "format": "int32"
+          },
+          "type": {
+            "type": "string"
           },
           "majorIds": {
             "type": "array",
@@ -9807,7 +9822,7 @@
       "CreateProgramDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -9815,12 +9830,17 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "required": [
-          "code",
+          "programCode",
           "name",
-          "description"
+          "description",
+          "yearDuration"
         ]
       },
       "Program": {
@@ -9829,7 +9849,7 @@
           "id": {
             "type": "string"
           },
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -9837,6 +9857,13 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -9854,9 +9881,11 @@
         },
         "required": [
           "id",
-          "code",
+          "programCode",
           "name",
           "description",
+          "yearDuration",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -9868,7 +9897,7 @@
           "id": {
             "type": "string"
           },
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -9876,6 +9905,13 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -9893,9 +9929,11 @@
         },
         "required": [
           "id",
-          "code",
+          "programCode",
           "name",
           "description",
+          "yearDuration",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -9928,7 +9966,7 @@
       "UpdateProgramDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -9936,6 +9974,10 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -9990,6 +10032,9 @@
       "CreateMajorDto": {
         "type": "object",
         "properties": {
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
@@ -9998,6 +10043,7 @@
           }
         },
         "required": [
+          "majorCode",
           "name",
           "description"
         ]
@@ -10027,11 +10073,17 @@
           "programId": {
             "type": "string"
           },
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
           "description": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10050,8 +10102,10 @@
         "required": [
           "id",
           "programId",
+          "majorCode",
           "name",
           "description",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -10063,11 +10117,17 @@
           "id": {
             "type": "string"
           },
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
           "description": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10085,8 +10145,10 @@
         },
         "required": [
           "id",
+          "majorCode",
           "name",
           "description",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -10119,6 +10181,9 @@
       "UpdateMajorDto": {
         "type": "object",
         "properties": {
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
