@@ -27,15 +27,23 @@ FROM base AS builder
 
 WORKDIR /usr/src/app
 
+# Declare build args
+ARG DATABASE_CLOUD_URL
+ARG DIRECT_CLOUD_URL
+
+# Export as env so Prisma can use them
+ENV DATABASE_CLOUD_URL=${DATABASE_CLOUD_URL}
+ENV DIRECT_CLOUD_URL=${DIRECT_CLOUD_URL}
+
 # Copy the necessary files from the dependencies stage
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY --from=deps /usr/src/app/package*.json ./package*.json
 
-# Copy the rest of the application code to the working directory
+# Copy the rest of the application code
 RUN rm -rf prisma
 COPY backend/ .
 
-# Generate Prisma client and SQL files
+# Generate Prisma client and SQL files (requires DB env vars)
 RUN pnpm run prisma-gen
 RUN pnpm run prisma-gen-sql
 

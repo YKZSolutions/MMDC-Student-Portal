@@ -1,0 +1,64 @@
+name: Build and Push Docker Image
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  packages: write
+
+jobs:
+  commit-hash:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_hash: ${{ steps.get_commit_hash.outputs.commit_hash }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get commit hash
+        id: get_commit_hash
+        run: echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    needs: commit-hash
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DATABASE_CLOUD_URL: ${{ secrets.DATABASE_CLOUD_URL }}
+      DIRECT_CLOUD_URL: ${{ secrets.DIRECT_CLOUD_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
+      - name: Set lowercase repo owner
+        run: echo "REPO_OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./backend/Dockerfile
+          push: true
+          build-args: |
+            DATABASE_CLOUD_URL=${{ secrets.DATABASE_CLOUD_URL }}
+            DIRECT_CLOUD_URL=${{ secrets.DIRECT_CLOUD_URL }}
+          tags: |
+            ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
+            ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:latest
+
