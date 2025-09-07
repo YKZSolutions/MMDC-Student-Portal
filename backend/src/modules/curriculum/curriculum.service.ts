@@ -29,7 +29,7 @@ export class CurriculumService {
    */
   @Log({
     logArgsMessage: ({ createCurriculumDto }) =>
-      `Creating curriculum for major=${createCurriculumDto.majorId}`,
+      `Creating curriculum for major=${createCurriculumDto.majorId} and ${createCurriculumDto.courses.length} courses`,
     logSuccessMessage: (res) => `Created curriculum with id=${res.id}`,
   })
   @PrismaError({
@@ -52,7 +52,7 @@ export class CurriculumService {
 
       const courses = await tx.course.findMany({
         where: {
-          courseCode: {
+          id: {
             in: createCurriculumDto.courses.map((course) => course.courseId),
           },
         },

@@ -1,30 +1,30 @@
 import {
-    ActionIcon,
-    Badge,
-    Box,
-    Button,
-    Container,
-    Divider,
-    Drawer,
-    Group,
-    MultiSelect,
-    Paper,
-    rem,
-    Select,
-    Stack,
-    Switch,
-    Tabs,
-    Text,
-    TextInput,
-    Title,
+  ActionIcon,
+  Badge,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Drawer,
+  Group,
+  MultiSelect,
+  Paper,
+  rem,
+  Select,
+  Stack,
+  Switch,
+  Tabs,
+  Text,
+  TextInput,
+  Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
-    IconCheck,
-    IconEdit,
-    IconPlus,
-    IconSearch,
-    IconTrash,
+  IconCheck,
+  IconEdit,
+  IconPlus,
+  IconSearch,
+  IconTrash,
 } from '@tabler/icons-react'
 
 type IndividualFee = {
@@ -98,7 +98,7 @@ const initialClusters: FeeCluster[] = [
 
 function PricingPage() {
   return (
-    <Container size={'md'} p="md">
+    <Container size={'md'} w={'100%'} p="md">
       <Stack gap="lg">
         <Group align="flex-start">
           <Box>

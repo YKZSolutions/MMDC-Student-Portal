@@ -1,9 +1,9 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import AddCurriculumCourse from '@/pages/admin/curriculum/curriculum.add-course'
+import CurriculumCreate from '@/pages/admin/curriculum/curriculum.create'
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/(protected)/curriculum/courses/create')({
+export const Route = createFileRoute('/(protected)/curriculum/create')({
   component: RouteComponent,
 })
 
@@ -14,7 +14,7 @@ function RouteComponent() {
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        admin: <AddCurriculumCourse />,
+        admin: <CurriculumCreate />,
       }}
     />
   )

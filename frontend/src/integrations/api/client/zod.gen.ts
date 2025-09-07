@@ -714,6 +714,24 @@ export const zPaginatedProgramsDto = z.object({
     programs: z.array(zProgramDto)
 });
 
+export const zMajorItemDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    programId: z.string()
+});
+
+export const zPaginatedMajorsDto = z.object({
+    meta: zPaginationMetaDto,
+    majors: z.array(zMajorItemDto)
+});
+
 export const zUpdateProgramDto = z.object({
     code: z.optional(z.string()),
     name: z.optional(z.string()),
@@ -747,19 +765,6 @@ export const zCreateProgramMajorDto = z.object({
     programId: z.uuid()
 });
 
-export const zMajor = z.object({
-    id: z.string(),
-    programId: z.string(),
-    name: z.string(),
-    description: z.string(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
 export const zMajorDto = z.object({
     id: z.string(),
     name: z.string(),
@@ -772,14 +777,22 @@ export const zMajorDto = z.object({
     ])
 });
 
-export const zPaginatedMajorsDto = z.object({
-    meta: zPaginationMetaDto,
-    majors: z.array(zMajorDto)
-});
-
 export const zUpdateMajorDto = z.object({
     name: z.optional(z.string()),
     description: z.optional(z.string())
+});
+
+export const zMajor = z.object({
+    id: z.string(),
+    programId: z.string(),
+    name: z.string(),
+    description: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
 });
 
 export const zEnrollmentStatus = z.enum([
@@ -1585,6 +1598,19 @@ export const zProgramControllerCreateData = z.object({
 
 export const zProgramControllerCreateResponse = zProgram;
 
+export const zProgramControllerFindAllMajorsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        programId: z.string()
+    }),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1)
+    }))
+});
+
+export const zProgramControllerFindAllMajorsResponse = zPaginatedMajorsDto;
+
 export const zProgramControllerRemoveData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -1653,7 +1679,7 @@ export const zMajorControllerCreateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zMajorControllerCreateResponse = zMajor;
+export const zMajorControllerCreateResponse = zMajorDto;
 
 export const zMajorControllerRemoveData = z.object({
     body: z.optional(z.never()),
@@ -1677,7 +1703,7 @@ export const zMajorControllerFindOneData = z.object({
     query: z.optional(z.never())
 });
 
-export const zMajorControllerFindOneResponse = zMajor;
+export const zMajorControllerFindOneResponse = zMajorItemDto;
 
 export const zMajorControllerUpdateData = z.object({
     body: zUpdateMajorDto,

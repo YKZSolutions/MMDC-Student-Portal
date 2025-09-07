@@ -25,8 +25,7 @@ import {
   IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
-import { getRouteApi } from '@tanstack/react-router'
-import { memo, type Dispatch } from 'react'
+import { memo, Suspense, type Dispatch } from 'react'
 import Droppable from '@/integrations/dnd-kit/droppable'
 import { useImmer, type Updater } from 'use-immer'
 import Sortable from '@/integrations/dnd-kit/sortable'
@@ -40,119 +39,30 @@ import {
   type StructureAction,
   type YearStructure,
 } from '@/features/curriculum/hooks/curriculum.builder.hook'
+import { useDisclosure } from '@mantine/hooks'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { coursesControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 
-const route = getRouteApi('/(protected)/curriculum/$curriculumId_/edit')
-
-export default function CurriculumBuilder() {
-  const navigate = route.useNavigate()
+export default function CurriculumBuilder({
+  currentCourses,
+  structure,
+  dispatch,
+  courses,
+  setCurrentCourses,
+}: ReturnType<typeof useCurriculumBuilder>) {
+  const [opened, { open, close }] = useDisclosure(false)
 
   return (
-    <Container size={'sm'} w={'100%'} pb={'xl'}>
-      <Group mb="lg" justify="space-between">
-        <Group align="start">
-          <ActionIcon
-            variant="subtle"
-            radius="lg"
-            mt={4}
-            onClick={() =>
-              navigate({
-                to: '/curriculum',
-              })
-            }
-          >
-            <IconArrowLeft />
-          </ActionIcon>
-          <Stack gap={0}>
-            <Title c={'dark.7'} variant="hero" order={2} fw={700}>
-              Curriculum Builder
-            </Title>
-            <Text c={'dark.3'} fw={500}>
-              Create a new curriculum for a program and major
-            </Text>
-          </Stack>
-        </Group>
+    <Stack>
+      <Group justify="space-between">
+        <Title order={4} fw={700}>
+          Curriculum Plan
+        </Title>
 
-        <Group>
-          <Button leftSection={<IconDeviceFloppy size={20} />}>Save</Button>
-        </Group>
+        <Button variant="outline" onClick={opened ? close : open}>
+          Course List
+        </Button>
       </Group>
-
-      <Stack>
-        <Group>
-          <Autocomplete
-            variant="filled"
-            label="Program"
-            // description="The curriculum's program"
-            placeholder="Pick a program"
-            selectFirstOptionOnChange
-            data={['BS Information Technology', 'BS Business Administration']}
-            withAsterisk
-            className="flex-1"
-          />
-          <Autocomplete
-            variant="filled"
-            label="Major"
-            // description="The major for the program"
-            placeholder="Pick a major"
-            selectFirstOptionOnChange
-            data={[
-              'Software Development',
-              'Data Analytics',
-              'Networking & Cybersecurity',
-            ]}
-            withAsterisk
-            className="flex-1"
-          />
-          {/* <IconSelector variant="filled" w={120} /> */}
-        </Group>
-
-        <Textarea
-          variant="filled"
-          label="Description"
-          placeholder="Write the description here..."
-          autosize
-          minRows={4}
-        />
-
-        <Stack>
-          <Group justify="space-between">
-            <Title order={4} fw={700}>
-              Curriculum Plan
-            </Title>
-
-            <Button
-              onClick={() =>
-                navigate({
-                  search: (prev) => ({
-                    openCourseList:
-                      prev.openCourseList !== true ? true : undefined,
-                  }),
-                })
-              }
-            >
-              Course List
-            </Button>
-          </Group>
-          <YearLevels />
-        </Stack>
-      </Stack>
-    </Container>
-  )
-}
-
-function YearLevels() {
-  const { structure, courses, currentCourses, setCurrentCourses, dispatch } =
-    useCurriculumBuilder()
-
-  // useEffect(() => {
-  //   console.log(currentCourses)
-  // }, [currentCourses])
-  // useEffect(() => {
-  //   console.log(courses)
-  // }, [courses])
-
-  return (
-    <Stack gap="lg">
       <DragDropProvider
         onDragOver={(event) => {
           const { source, target } = event.operation
@@ -197,30 +107,57 @@ function YearLevels() {
           })
         }}
       >
-        <CourseList currentCourses={currentCourses} />
-        {structure.map((year) => (
-          <YearCard
-            key={year.year}
-            courses={courses}
-            dispatch={dispatch}
-            setCurrentCourses={setCurrentCourses}
-            {...year}
-          />
-        ))}
-        <DragOverlay>
-          {(source) => {
-            const { external, course } = source.data
-            return (
-              <Group gap={4}>
-                <CourseCard {...course} isOverlay isBase={external === true} />
-                {external !== true && (
-                  <ActionIcon variant="subtle" radius="xl"></ActionIcon>
-                )}
-              </Group>
-            )
-          }}
-        </DragOverlay>
+        <CourseListDrawer
+          currentCourses={currentCourses}
+          opened={opened}
+          onClose={close}
+        />
+        <YearLevels
+          structure={structure}
+          courses={courses}
+          dispatch={dispatch}
+          setCurrentCourses={setCurrentCourses}
+        />
       </DragDropProvider>
+    </Stack>
+  )
+}
+
+function YearLevels({
+  structure,
+  courses,
+  dispatch,
+  setCurrentCourses,
+}: {
+  structure: YearStructure[]
+  courses: Record<string, CurriculumCourse[]>
+  dispatch: Dispatch<StructureAction>
+  setCurrentCourses: Updater<CurriculumCourse[]>
+}) {
+  return (
+    <Stack gap="lg">
+      {structure.map((year) => (
+        <YearCard
+          key={year.year}
+          courses={courses}
+          dispatch={dispatch}
+          setCurrentCourses={setCurrentCourses}
+          {...year}
+        />
+      ))}
+      <DragOverlay>
+        {(source) => {
+          const { external, course } = source.data
+          return (
+            <Group gap={4}>
+              <CourseCard {...course} isOverlay isBase={external === true} />
+              {external !== true && (
+                <ActionIcon variant="subtle" radius="xl"></ActionIcon>
+              )}
+            </Group>
+          )
+        }}
+      </DragOverlay>
 
       <Button
         variant="outline"
@@ -235,31 +172,20 @@ function YearLevels() {
   )
 }
 
-function CourseList({
+function CourseListDrawer({
   currentCourses,
+  opened,
+  onClose,
 }: {
+  opened: boolean
+  onClose: () => void
   currentCourses: CurriculumCourse[]
 }) {
-  const { openCourseList } = route.useSearch()
-  const navigate = route.useNavigate()
-  const [data, setData] = useImmer(mockCourses)
-
-  const availableCourses = data.filter(
-    (course) =>
-      !currentCourses.some((currCourse) => currCourse.code === course.code),
-  )
-
   return (
     <>
       <Drawer
-        opened={!!openCourseList}
-        onClose={() =>
-          navigate({
-            search: {
-              openCourseList: undefined,
-            },
-          })
-        }
+        opened={opened}
+        onClose={onClose}
         title="Course List"
         withOverlay={false}
         lockScroll={false}
@@ -268,24 +194,61 @@ function CourseList({
         <Stack>
           <TextInput leftSection={<IconSearch />} placeholder="Search course" />
           <Stack gap="xs">
-            {availableCourses.map((course) => (
-              <Draggable
-                key={course.id}
-                id={course.code}
-                data={{
-                  external: true,
-                  course: course,
-                }}
-              >
-                {({ handleRef }) => (
-                  <CourseCard handleRef={handleRef} isBase {...course} />
-                )}
-              </Draggable>
-            ))}
+            <Suspense fallback={'Loading'}>
+              <CourseList currentCourses={currentCourses} />
+            </Suspense>
           </Stack>
         </Stack>
       </Drawer>
     </>
+  )
+}
+
+function CourseList({
+  currentCourses,
+}: {
+  currentCourses: CurriculumCourse[]
+}) {
+  const { data } = useSuspenseQuery(coursesControllerFindAllOptions())
+
+  const availableCourses = data.courses.filter(
+    (course) =>
+      !currentCourses.some(
+        (currCourse) => currCourse.code === course.courseCode,
+      ),
+  )
+
+  return (
+    <Stack gap="xs">
+      <Suspense fallback={'Loading'}>
+        {availableCourses.map((course) => (
+          <Draggable
+            key={course.id}
+            id={course.courseCode}
+            data={{
+              external: true,
+              course: {
+                ...course,
+                code: course.courseCode,
+              },
+            }}
+          >
+            {({ handleRef }) => (
+              <CourseCard
+                handleRef={handleRef}
+                isBase
+                code={course.courseCode}
+                type="Major"
+                department="GE"
+                year={0}
+                semester={0}
+                {...course}
+              />
+            )}
+          </Draggable>
+        ))}
+      </Suspense>
+    </Stack>
   )
 }
 

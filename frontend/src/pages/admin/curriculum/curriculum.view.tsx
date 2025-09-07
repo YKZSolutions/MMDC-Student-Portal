@@ -1,3 +1,5 @@
+import type { CurriculumCourseItemDto } from '@/integrations/api/client'
+import { curriculumControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Accordion,
   ActionIcon,
@@ -17,10 +19,25 @@ import {
   IconBookFilled,
   IconCode,
 } from '@tabler/icons-react'
-import { useRouter } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi, useRouter } from '@tanstack/react-router'
+
+const route = getRouteApi('/(protected)/curriculum/$curriculumId')
 
 export default function CurriculumView() {
   const router = useRouter()
+  const { curriculumId } = route.useParams()
+
+  const { data: data } = useSuspenseQuery(
+    curriculumControllerFindOneOptions({ path: { id: curriculumId } }),
+  )
+
+  const curriculum = data.curriculum
+  const courses = data.courses
+  console.log(data)
+  const years = Math.max(...courses.map((item) => item.year))
+  const sems = Math.max(...courses.map((item) => item.semester))
+  const units = courses.reduce((acc, curr) => acc + curr.course.units, 0)
 
   return (
     <Container size={'sm'} w={'100%'} pb={'xl'}>
@@ -50,9 +67,9 @@ export default function CurriculumView() {
           <Group justify="space-between" pr="sm">
             <Stack gap={4}>
               <Title order={2} fw={700}>
-                Software Development
+                {curriculum.major.name}
               </Title>
-              <Text fw={500}>BS Information Technology</Text>
+              <Text fw={500}>{curriculum.program.name}</Text>
             </Stack>
 
             <ThemeIcon variant="transparent" radius="xl" size="xl" c="white">
@@ -63,26 +80,25 @@ export default function CurriculumView() {
           <Divider opacity={0.3} />
 
           <Text size="sm" c="gray.1">
-            This course focuses on the core aspects of IT and software
-            engineering.
+            {curriculum.description}
           </Text>
         </Stack>
 
         <Group mt="md">
           <Card radius="xl" px="md" py={4} bg="rgba(255,255,255,0.15)">
             <Text c="white" size="xs">
-              4 Years
+              {years} Years
             </Text>
           </Card>
 
           <Card radius="xl" px="md" py={4} bg="rgba(255,255,255,0.15)">
             <Text c="white" size="xs">
-              3 Semesters
+              {sems} Semesters
             </Text>
           </Card>
           <Card radius="xl" px="md" py={4} bg="rgba(255,255,255,0.15)">
             <Text c="white" size="xs">
-              150 Units
+              {units} Units
             </Text>
           </Card>
         </Group>
@@ -93,7 +109,7 @@ export default function CurriculumView() {
           Curriculum Plan
         </Title>
         <Divider />
-        <YearLevels />
+        <YearLevels courses={courses} />
       </Stack>
     </Container>
   )
@@ -106,7 +122,7 @@ interface Curriculum {
 
 interface Semester {
   semester: number
-  courses: Course[]
+  courses: CurriculumCourseItemDto[]
 }
 
 interface Course {
@@ -126,68 +142,23 @@ interface Course {
   units: number
 }
 
-const mockCurriculum: Curriculum[] = [
-  {
-    year: 1,
-    semesters: [
-      {
-        semester: 1,
-        courses: [
-          {
-            id: 'c2',
-            code: 'MO-GE102',
-            name: 'Philippine Popular Culture',
-            type: 'General',
-            department: 'GE',
-            units: 3,
-          },
-        ],
+function YearLevels({ courses }: { courses: CurriculumCourseItemDto[] }) {
+  const data: Curriculum[] = Object.entries(
+    courses.reduce<Record<number, Record<number, CurriculumCourseItemDto[]>>>(
+      (acc, c) => {
+        ;(acc[c.year] ??= {})[c.semester] ??= []
+        acc[c.year][c.semester].push(c)
+        return acc
       },
-      {
-        semester: 2,
-        courses: [
-          {
-            id: 'c3',
-            code: 'MO-IT200D2',
-            name: 'Capstone 2',
-            type: 'Core',
-            department: 'IT',
-            units: 3,
-          },
-          {
-            id: 'c4',
-            code: 'MO-IT151',
-            name: 'Platform Technologies',
-            type: 'Major',
-            department: 'IT',
-            units: 3,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    year: 2,
-    semesters: [
-      {
-        semester: 1,
-        courses: [
-          {
-            id: 'c5',
-            code: 'GE-MATH2',
-            name: 'Discrete Mathematics',
-            type: 'General',
-            department: 'GE',
-            units: 3,
-          },
-        ],
-      },
-    ],
-  },
-]
-
-function YearLevels() {
-  const data = mockCurriculum
+      {},
+    ),
+  ).map(([year, semesters]) => ({
+    year: +year,
+    semesters: Object.entries(semesters).map(([sem, list]) => ({
+      semester: +sem,
+      courses: list,
+    })),
+  }))
 
   return (
     <Stack gap="lg">
@@ -259,22 +230,22 @@ function SemesterSection({ semester, courses }: Semester) {
   )
 }
 
-function CourseCard(props: Course) {
+function CourseCard(props: CurriculumCourseItemDto) {
   return (
     <Card shadow="none" radius="md" withBorder p="md">
       <Group justify="space-between" align="start">
         <Stack gap={2}>
-          <Text fw={500}>{props.name}</Text>
+          <Text fw={500}>{props.course.name}</Text>
           <Text size="sm" c="dimmed">
-            {props.code}
+            {props.course.courseCode}
           </Text>
         </Stack>
         <Group gap="xs">
-          <Badge color="blue" size="sm" variant="light">
+          {/* <Badge color="blue" size="sm" variant="light">
             {props.type}
-          </Badge>
+          </Badge> */}
           <Badge color="gray" size="sm" variant="outline">
-            {props.units} units
+            {props.course.units} units
           </Badge>
         </Group>
       </Group>

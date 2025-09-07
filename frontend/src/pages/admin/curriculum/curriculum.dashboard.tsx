@@ -1,3 +1,5 @@
+import { usePaginationSearch } from '@/features/pagination/usePaginationSearch'
+import { curriculumControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Box,
   Button,
@@ -13,6 +15,7 @@ import {
   Title,
 } from '@mantine/core'
 import {
+  IconBox,
   IconChartAreaLineFilled,
   IconCode,
   IconPlus,
@@ -20,32 +23,15 @@ import {
   IconShieldFilled,
   type ReactNode,
 } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi, Link } from '@tanstack/react-router'
+
+const route = getRouteApi('/(protected)/curriculum/')
 
 export default function CurriculumDashboard() {
-  const mockData = [
-    {
-      id: '1',
-      code: 'BSIT-SD',
-      program: 'BS Information Technology',
-      major: 'Software Development',
-      icon: <IconCode />,
-    },
-    {
-      id: '2',
-      code: 'BSIT-DA',
-      program: 'BS Information Technology',
-      major: 'Data Analytics',
-      icon: <IconChartAreaLineFilled />,
-    },
-    {
-      id: '3',
-      code: 'BSIT-NC',
-      program: 'BS Information Technology',
-      major: 'Networking & Cybersecurity',
-      icon: <IconShieldFilled />,
-    },
-  ]
+  const { data: curriculums } = useSuspenseQuery(
+    curriculumControllerFindAllOptions(),
+  )
 
   return (
     <Container fluid m={0}>
@@ -66,7 +52,9 @@ export default function CurriculumDashboard() {
             leftSection={<IconSearch size={18} stroke={1} />}
             w={rem(250)}
           />
-          <Button leftSection={<IconPlus />}>Create Curriculum</Button>
+          <Link to="/curriculum/create">
+            <Button leftSection={<IconPlus />}>Create Curriculum</Button>
+          </Link>
         </Group>
 
         <SimpleGrid
@@ -78,13 +66,13 @@ export default function CurriculumDashboard() {
             xl: 4,
           }}
         >
-          {mockData.map((curriculum) => (
+          {curriculums.map((curriculum) => (
             <CurriculumCard
               key={curriculum.id}
               id={curriculum.id}
-              code={curriculum.code}
-              program={curriculum.program}
-              major={curriculum.major}
+              code={curriculum.id}
+              program={curriculum.program.name}
+              major={curriculum.major.name}
               icon={curriculum.icon}
             />
           ))}
@@ -108,7 +96,7 @@ function CurriculumCard(props: CurriculumCardProps) {
       <Stack gap={0} h="100%" justify="space-between">
         <Group wrap="nowrap" w="100%">
           <ThemeIcon variant="transparent" radius="lg">
-            {props.icon}
+            {props.icon !== '' ? props.icon : <IconBox />}
           </ThemeIcon>
 
           <Stack gap={0} flex={1} className="overflow-hidden">

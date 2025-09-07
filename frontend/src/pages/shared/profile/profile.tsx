@@ -17,7 +17,7 @@ import {
   rem,
   Stack,
   Text,
-  Title
+  Title,
 } from '@mantine/core'
 import {
   IconBriefcase,
@@ -55,7 +55,7 @@ function ProfilePage() {
             `${data.firstName} ${data.middleName ?? ''} ${data.lastName}`.trim()
 
           return (
-            <Container size="md" py="xl">
+            <Container size="md" w="100%" py="xl">
               <Stack gap="xl">
                 {/* Header Section */}
                 <Group gap="lg" align="start">

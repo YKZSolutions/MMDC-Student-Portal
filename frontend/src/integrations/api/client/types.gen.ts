@@ -532,6 +532,21 @@ export type PaginatedProgramsDto = {
     programs: Array<ProgramDto>;
 };
 
+export type MajorItemDto = {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    programId: string;
+};
+
+export type PaginatedMajorsDto = {
+    meta: PaginationMetaDto;
+    majors: Array<MajorItemDto>;
+};
+
 export type UpdateProgramDto = {
     code?: string;
     name?: string;
@@ -562,16 +577,6 @@ export type CreateProgramMajorDto = {
     programId: string;
 };
 
-export type Major = {
-    id: string;
-    programId: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type MajorDto = {
     id: string;
     name: string;
@@ -581,14 +586,19 @@ export type MajorDto = {
     deletedAt: string | null;
 };
 
-export type PaginatedMajorsDto = {
-    meta: PaginationMetaDto;
-    majors: Array<MajorDto>;
-};
-
 export type UpdateMajorDto = {
     name?: string;
     description?: string;
+};
+
+export type Major = {
+    id: string;
+    programId: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type EnrollmentStatus = 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
@@ -1962,6 +1972,44 @@ export type ProgramControllerCreateResponses = {
 
 export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
 
+export type ProgramControllerFindAllMajorsData = {
+    body?: never;
+    path: {
+        programId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/programs/{programId}/majors';
+};
+
+export type ProgramControllerFindAllMajorsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindAllMajorsError = ProgramControllerFindAllMajorsErrors[keyof ProgramControllerFindAllMajorsErrors];
+
+export type ProgramControllerFindAllMajorsResponses = {
+    200: PaginatedMajorsDto;
+};
+
+export type ProgramControllerFindAllMajorsResponse = ProgramControllerFindAllMajorsResponses[keyof ProgramControllerFindAllMajorsResponses];
+
 export type ProgramControllerRemoveData = {
     body?: never;
     path: {
@@ -2160,7 +2208,7 @@ export type MajorControllerCreateErrors = {
 export type MajorControllerCreateError = MajorControllerCreateErrors[keyof MajorControllerCreateErrors];
 
 export type MajorControllerCreateResponses = {
-    201: Major;
+    201: MajorDto;
 };
 
 export type MajorControllerCreateResponse = MajorControllerCreateResponses[keyof MajorControllerCreateResponses];
@@ -2227,7 +2275,7 @@ export type MajorControllerFindOneErrors = {
 export type MajorControllerFindOneError = MajorControllerFindOneErrors[keyof MajorControllerFindOneErrors];
 
 export type MajorControllerFindOneResponses = {
-    200: Major;
+    200: MajorItemDto;
 };
 
 export type MajorControllerFindOneResponse = MajorControllerFindOneResponses[keyof MajorControllerFindOneResponses];

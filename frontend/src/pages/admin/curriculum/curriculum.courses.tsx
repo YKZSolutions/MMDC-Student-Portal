@@ -1,12 +1,11 @@
+import PaginatedTable from '@/components/paginated-table'
+import { usePaginationSearch } from '@/features/pagination/usePaginationSearch'
+import { coursesControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
-  ActionIcon,
-  Badge,
   Box,
   Button,
-  Checkbox,
   Container,
   Group,
-  Menu,
   rem,
   Stack,
   Table,
@@ -14,17 +13,15 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import {
-  IconDotsVertical,
-  IconFilter2,
-  IconPlus,
-  IconSearch,
-} from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
+import { IconFilter2, IconPlus, IconSearch } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi, Link } from '@tanstack/react-router'
+
+const route = getRouteApi('/(protected)/curriculum/courses/')
 
 export default function CurriculumCourses() {
   return (
-    <Container fluid m={0}>
+    <Container fluid w="100%" flex={1} m={0} pb="xl" className="flex flex-col">
       <Box pb={'xl'}>
         <Title c={'dark.7'} variant="hero" order={2} fw={700}>
           Courses
@@ -34,9 +31,8 @@ export default function CurriculumCourses() {
         </Text>
       </Box>
 
-      <Stack gap={'md'}>
+      <Stack gap={'md'} flex={1}>
         <Group gap={rem(5)} justify="end" align="center">
-          {/* Changed spacing to gap */}
           <TextInput
             placeholder="Search year/term/date"
             radius={'md'}
@@ -63,7 +59,6 @@ export default function CurriculumCourses() {
           </Button>
         </Group>
 
-        {/* Table */}
         <EnrollmentTable />
       </Stack>
     </Container>
@@ -91,104 +86,39 @@ interface Courses {
   deleted_at: Date | null
 }
 
-const mockCourses: Courses[] = [
-  {
-    id: 'course_1',
-    code: 'MO-IT200D2',
-    name: 'Capstone 2',
-    prereq: {
-      name: 'Capstone 1',
-      code: 'MO-IT200D1',
-    },
-    type: 'Core',
-    department: 'IT',
-    units: 3,
-    created_at: new Date('2023-12-01T10:00:00Z'),
-    updated_at: new Date('2024-05-16T12:00:00Z'),
-    deleted_at: null,
-  },
-  {
-    id: 'course_2',
-    code: 'MO-IT200D2',
-    name: 'Philippine Popular Culture',
-    type: 'General',
-    department: 'GE',
-    units: 3,
-    created_at: new Date('2023-12-01T10:00:00Z'),
-    updated_at: new Date('2024-05-16T12:00:00Z'),
-    deleted_at: null,
-  },
-  {
-    id: 'course_3',
-    code: 'MO-IT151',
-    name: 'Platform Technologies',
-    type: 'Major',
-    department: 'IT',
-    units: 3,
-    created_at: new Date('2023-12-01T10:00:00Z'),
-    updated_at: new Date('2024-05-16T12:00:00Z'),
-    deleted_at: null,
-  },
-]
-
 function EnrollmentTable() {
+  const { pagination, changePage } = usePaginationSearch(route)
+
+  const { data: paginated } = useSuspenseQuery(
+    coursesControllerFindAllOptions({ query: { ...pagination } }),
+  )
+
+  const courses = paginated.courses
+  const meta = paginated.meta
+
   return (
-    <Table
-      verticalSpacing={'md'}
-      highlightOnHover
-      highlightOnHoverColor="gray.0"
-      style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-      styles={{
-        th: {
-          fontWeight: 500,
-        },
-      }}
-    >
-      <Table.Thead>
-        <Table.Tr
-          style={{
-            border: '0px',
-          }}
-          bg={'gray.1'}
-          c={'dark.5'}
-        >
-          <Table.Th>
-            <Checkbox size="sm" />
-          </Table.Th>
-          <Table.Th>Code</Table.Th>
-          <Table.Th>Name</Table.Th>
-          <Table.Th>Department</Table.Th>
-          <Table.Th>Type</Table.Th>
-          <Table.Th>Units</Table.Th>
-          <Table.Th>Prerequisites</Table.Th>
-          <Table.Th>Corequisites</Table.Th>
-          <Table.Th></Table.Th>
-        </Table.Tr>
-      </Table.Thead>
-      <Table.Tbody
-        style={{
-          cursor: 'pointer',
-        }}
-      >
-        {mockCourses.map((course) => (
-          <Table.Tr>
-            <Table.Td>
-              <Checkbox size="sm" />
-            </Table.Td>
+    <PaginatedTable
+      fullHeight
+      data={courses}
+      meta={meta}
+      currentPage={pagination.page}
+      onPaginationChange={(val) => changePage(val, meta.pageCount)}
+      heading={['Code', 'Name', 'Units', 'Prerequisites', 'Corequisites']}
+      rowComponent={(course) => (
+        <>
+          <Table.Td>
+            <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
+              {course.courseCode}
+            </Text>
+          </Table.Td>
 
-            <Table.Td>
-              <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
-                {course.code}
-              </Text>
-            </Table.Td>
+          <Table.Td>
+            <Text size="sm" c={'dark.8'} fw={500} py={'xs'}>
+              {course?.name}
+            </Text>
+          </Table.Td>
 
-            <Table.Td>
-              <Text size="sm" c={'dark.8'} fw={500} py={'xs'}>
-                {course.name}
-              </Text>
-            </Table.Td>
-
-            <Table.Td>
+          {/* <Table.Td>
               <Badge radius="lg">
                 <Text size="sm" className="capitalize" fw={500} py={'xs'}>
                   {course.department}
@@ -202,58 +132,53 @@ function EnrollmentTable() {
                   {course.type}
                 </Text>
               </Badge>
-            </Table.Td>
+            </Table.Td> */}
 
-            <Table.Td>
-              <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
-                {course.units}
-              </Text>
-            </Table.Td>
+          <Table.Td>
+            <Text size="sm" c={'dark.3'} fw={500} py={'xs'}>
+              {course.units}
+            </Text>
+          </Table.Td>
 
-            <Table.Td>
-              <Stack gap={0} py={'xs'}>
+          <Table.Td>
+            <Stack gap={0} py={'xs'}>
+              {course.prereqs.length > 0 ? (
+                <>
+                  <Text size="sm" c={'dark.3'} fw={500}>
+                    {course.prereqs[0].name}
+                  </Text>
+                  <Text size="xs" c={'dark.1'} fw={500}>
+                    {course.prereqs[0].courseCode}
+                  </Text>
+                </>
+              ) : (
                 <Text size="sm" c={'dark.3'} fw={500}>
-                  {course.prereq?.name}
+                  N/A
                 </Text>
-                <Text size="xs" c={'dark.1'} fw={500}>
-                  {course.prereq?.code}
-                </Text>
-              </Stack>
-            </Table.Td>
+              )}
+            </Stack>
+          </Table.Td>
 
-            <Table.Td>
-              <Stack gap={0} py={'xs'}>
+          <Table.Td>
+            <Stack gap={0} py={'xs'}>
+              {course.coreqs.length > 0 ? (
+                <>
+                  <Text size="sm" c={'dark.3'} fw={500}>
+                    {course.coreqs[0].name}
+                  </Text>
+                  <Text size="xs" c={'dark.1'} fw={500}>
+                    {course.coreqs[0].courseCode}
+                  </Text>
+                </>
+              ) : (
                 <Text size="sm" c={'dark.3'} fw={500}>
-                  {course.coreq?.name}
+                  N/A
                 </Text>
-                <Text size="xs" c={'dark.1'} fw={500}>
-                  {course.coreq?.code}
-                </Text>
-              </Stack>
-            </Table.Td>
-
-            <Table.Td>
-              <Menu shadow="md" width={200}>
-                <Menu.Target>
-                  <ActionIcon
-                    onClick={(e) => e.stopPropagation()}
-                    variant="subtle"
-                    color="gray"
-                    radius={'xl'}
-                  >
-                    <IconDotsVertical size={20} stroke={1.5} />
-                  </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item>View Details</Menu.Item>
-                  <Menu.Item>Edit</Menu.Item>
-                  <Menu.Item c="red">Delete</Menu.Item>{' '}
-                </Menu.Dropdown>
-              </Menu>
-            </Table.Td>
-          </Table.Tr>
-        ))}
-      </Table.Tbody>
-    </Table>
+              )}
+            </Stack>
+          </Table.Td>
+        </>
+      )}
+    />
   )
 }

@@ -184,7 +184,7 @@ function UsersPage() {
   }
 
   return (
-    <Container size={'md'} pb={'xl'}>
+    <Container size={'md'} w="100%" pb={'xl'}>
       <Box pb={'xl'}>
         <Title c={'dark.7'} variant="hero" order={2} fw={700}>
           User management

@@ -1,3 +1,10 @@
+import {
+  courseFormSchema,
+  type CourseFormInput,
+  type CourseFormOutput,
+} from '@/features/curriculum/schema/add-course.schema'
+import { coursesControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { Route } from '@/routes/(protected)/curriculum/courses/create'
 import {
   ActionIcon,
@@ -12,10 +19,52 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
+import { useForm } from '@mantine/form'
 import { IconArrowLeft } from '@tabler/icons-react'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 
 function AddCurriculumCourse() {
   const navigate = Route.useNavigate()
+
+  const form = useForm<CourseFormInput>({
+    mode: 'uncontrolled',
+    initialValues: {
+      courseCode: '',
+      name: '',
+      description: '',
+      units: 0,
+      majorIds: [],
+    },
+    validate: zod4Resolver(courseFormSchema),
+  })
+
+  const { mutate: addCourse, isPending } = useAppMutation(
+    coursesControllerCreateMutation,
+    {
+      loading: {
+        title: 'Adding Course',
+        message: 'Adding course',
+      },
+      success: {
+        title: 'Added Course',
+        message: 'Successfully added course',
+      },
+    },
+  )
+
+  const handleFinish = async (values: CourseFormOutput) => {
+    if (form.validate().hasErrors) return
+    const { courseCode, name, description, units } = values
+
+    addCourse({
+      body: {
+        courseCode,
+        name,
+        description,
+        units,
+      },
+    })
+  }
 
   return (
     <Container size={'sm'} w={'100%'} pb={'xl'}>
@@ -45,19 +94,27 @@ function AddCurriculumCourse() {
 
         <Group justify="end">
           {/* <Button variant="light">Cancel</Button> */}
-          <Button>Save</Button>
+          <Button
+            onClick={() => handleFinish(form.getValues() as CourseFormOutput)}
+            disabled={isPending}
+          >
+            Save
+          </Button>
         </Group>
       </Group>
 
       <Stack>
         <Stack>
-          <Group>
+          <Group align="start">
             <TextInput
               variant="filled"
               label="Name"
               placeholder="Course name"
               withAsterisk
               className="flex-2"
+              disabled={isPending}
+              key={form.key('name')}
+              {...form.getInputProps('name')}
             />
             <TextInput
               variant="filled"
@@ -65,6 +122,9 @@ function AddCurriculumCourse() {
               placeholder="MO-IT100"
               withAsterisk
               className="flex-1"
+              disabled={isPending}
+              key={form.key('courseCode')}
+              {...form.getInputProps('courseCode')}
             />
             <NumberInput
               variant="filled"
@@ -73,6 +133,9 @@ function AddCurriculumCourse() {
               withAsterisk
               className="flex-1"
               min={0}
+              disabled={isPending}
+              key={form.key('units')}
+              {...form.getInputProps('units')}
             />
           </Group>
 
@@ -90,6 +153,7 @@ function AddCurriculumCourse() {
                 { value: 'major', label: 'Major' },
                 { value: 'specialization', label: 'Specialization' },
               ]}
+              disabled={isPending}
             />
             <Select
               variant="filled"
@@ -102,6 +166,7 @@ function AddCurriculumCourse() {
                 { value: 'IT', label: 'Information Technology' },
                 { value: 'BA', label: 'Business Administration' },
               ]}
+              disabled={isPending}
             />
           </Group>
 
@@ -111,6 +176,9 @@ function AddCurriculumCourse() {
             placeholder="Write the description here..."
             autosize
             minRows={4}
+            disabled={isPending}
+            key={form.key('description')}
+            {...form.getInputProps('description')}
           />
         </Stack>
 
