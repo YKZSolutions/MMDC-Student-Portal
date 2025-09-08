@@ -3,6 +3,7 @@ import type {
   AcademicTerm,
   Course,
   CourseBasicDetails,
+  EnrolledCourse,
 } from '@/features/courses/types.ts'
 import type { Block } from '@blocknote/core'
 import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
@@ -85,6 +86,34 @@ export const mockCourseData: Course[] = [
   {
     courseName: 'Web Technology Applications',
     courseCode: 'MO-IT200',
+    programs: mockAcademicPrograms,
+    academicTerms: [mockTerms[0]],
+  },
+  {
+    courseName: 'Data Structures and Algorithms',
+    courseCode: 'MO-IT351',
+    programs: mockAcademicPrograms,
+    academicTerms: [mockTerms[1]],
+  },
+
+  {
+    courseName: 'Capstone 1',
+    courseCode: 'MO-IT400',
+    programs: mockAcademicPrograms,
+    academicTerms: [mockTerms[2]],
+  },
+  {
+    courseName: 'Capstone 2',
+    courseCode: 'MO-IT500',
+    programs: mockAcademicPrograms,
+    academicTerms: [mockTerms[3]],
+  },
+]
+
+export const mockEnrolledCourse: EnrolledCourse[] = [
+  {
+    courseName: 'Web Technology Applications',
+    courseCode: 'MO-IT200',
     courseProgress: 0.5,
     section: {
       sectionName: 'A2101',
@@ -102,7 +131,7 @@ export const mockCourseData: Course[] = [
     },
     activities: [],
     program: mockAcademicPrograms[0],
-    academicTerms: [mockTerms[0]],
+    academicTerm: mockTerms[0],
   },
   {
     courseName: 'Data Structures and Algorithms',
@@ -124,7 +153,7 @@ export const mockCourseData: Course[] = [
     },
     activities: [],
     program: mockAcademicPrograms[1],
-    academicTerms: [mockTerms[1]],
+    academicTerm: mockTerms[0],
   },
 
   {
@@ -147,7 +176,7 @@ export const mockCourseData: Course[] = [
     },
     activities: [],
     program: mockAcademicPrograms[2],
-    academicTerms: [mockTerms[2]],
+    academicTerm: mockTerms[1],
   },
   {
     courseName: 'Capstone 2',
@@ -178,7 +207,7 @@ export const mockCourseData: Course[] = [
       },
     ],
     program: mockAcademicPrograms[0],
-    academicTerms: [mockTerms[3]],
+    academicTerm: mockTerms[2],
   },
 ]
 

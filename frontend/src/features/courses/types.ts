@@ -6,12 +6,19 @@ export interface CourseBasicDetails {
 export interface Course {
   courseName: string
   courseCode: string
+  programs: AcademicProgram[]
+  academicTerms: AcademicTerm[]
+  sections?: Section[]
+}
+
+export interface EnrolledCourse {
+  courseName: string
+  courseCode: string
   courseProgress: number
   section: Section
   activities: Activity[]
   program: AcademicProgram
-  academicTerms: AcademicTerm[]
-  sections?: Section[]
+  academicTerm: AcademicTerm
 }
 
 export interface SectionSchedule {

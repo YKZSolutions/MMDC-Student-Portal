@@ -5,8 +5,10 @@ import type {
 import type {
   CourseNodeModel,
   Module,
+  ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
+import type { AcademicTerm } from '@/features/courses/types.ts'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -132,3 +134,38 @@ export const createFilterOption = (value: string) => ({
   label: value,
   value: value.toLowerCase(),
 })
+
+export const getCompletedItemsCount = (items: ModuleItem[]) => {
+  return items.filter((item) => {
+    if (item.type === 'lesson' && item.progress) {
+      return item.progress.isCompleted
+    }
+    if (item.type === 'assignment' && item.assignment) {
+      const submissionStatus = getSubmissionStatus(item.assignment)
+      return (
+        submissionStatus === 'graded' ||
+        submissionStatus === 'ready-for-grading' ||
+        submissionStatus === 'submitted'
+      )
+    }
+    return false
+  }).length
+}
+
+export const getOverdueItemsCount = (items: ModuleItem[]) => {
+  return items.filter((item) => {
+    if (item.type === 'assignment' && item.assignment?.dueDate) {
+      return (
+        new Date(item.assignment.dueDate) < new Date() &&
+        getSubmissionStatus(item.assignment) === 'pending'
+      )
+    }
+    return false
+  }).length
+}
+
+export const formatTerm = (academicTerm: AcademicTerm | undefined) => {
+  return academicTerm
+    ? `${academicTerm.schoolYear} - ${academicTerm.term}`
+    : 'N/A'
+}
