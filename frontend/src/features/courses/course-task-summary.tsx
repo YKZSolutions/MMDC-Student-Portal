@@ -1,4 +1,4 @@
-import type { Course } from '@/features/courses/types.ts'
+import type { Course, EnrolledCourse } from '@/features/courses/types.ts'
 import {
   Button,
   Center,
@@ -12,7 +12,7 @@ import {
 } from '@mantine/core'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 
-const CourseTasksSummary = ({ courses }: { courses: Course[] }) => {
+const CourseTasksSummary = ({ courses }: { courses: EnrolledCourse[] }) => {
   const theme = useMantineTheme()
   return (
     <Paper withBorder radius={'md'} shadow="xs" p="lg">

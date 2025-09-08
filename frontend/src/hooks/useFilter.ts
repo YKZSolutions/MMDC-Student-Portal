@@ -1,7 +1,7 @@
 import { type FilterType } from '@/components/multi-filter.tsx'
 import { useCallback, useMemo, useState } from 'react'
 
-type FilterConfig<T> = {
+export type FilterConfig<T> = {
   [key: string]: (item: T, value: string) => boolean
 }
 

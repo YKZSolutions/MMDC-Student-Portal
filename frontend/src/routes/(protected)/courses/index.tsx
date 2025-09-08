@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type {
-  AcademicTerm,
   ClassMeeting,
   Course,
+  EnrolledCourse,
 } from '@/features/courses/types'
 import { Component, type ReactNode, useState } from 'react'
 import {
@@ -41,11 +41,12 @@ import {
   type FilterType,
   MultiFilter,
 } from '@/components/multi-filter.tsx'
-import { useFilter } from '@/hooks/useFilter.ts'
-import { createFilterOption } from '@/utils/helpers.ts'
+import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
+import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
 import {
   mockAcademicPrograms,
   mockCourseData,
+  mockEnrolledCourse,
   mockTerms,
 } from '@/features/courses/mocks.ts'
 
@@ -57,28 +58,41 @@ export const Route = createFileRoute('/(protected)/courses/')({
 })
 
 // Course-specific filter configuration
-export const courseFilterConfig = {
-  Program: (course: Course, value: string) => {
-    const programCode = course.program.programCode
-    return programCode.toLowerCase() === value.toLowerCase()
-  },
-
-  Term: (course: Course, value: string) => {
-    if (value === 'current' && course.academicTerms.length > 0) {
-      const currentTerm = course.academicTerms.find((term) => term.isCurrent)
-      if (currentTerm) return true
+export const courseFilterConfig: FilterConfig<Course | EnrolledCourse> = {
+  Program: (course, value) => {
+    if ('programs' in course) {
+      // Course
+      const programCodes = course.programs.map((program) => program.programCode)
+      return programCodes.includes(value)
     }
-
-    return course.academicTerms.some((term) => {
-      const termId = term.termId
-      return termId.toLowerCase() === value.toLowerCase()
-    })
+    return false
   },
 
-  Schedule: (course: Course, value: string) => {
-    return course.section.sectionSchedule.day //TODO: Placeholder - implement the logic
-      .toLowerCase()
-      .includes(value.toLowerCase())
+  Term: (course: EnrolledCourse | Course, value: string) => {
+    if ('academicTerm' in course) {
+      // Handle EnrolledCourse case
+      if (value === 'current' && course.academicTerm.isCurrent) return true
+      return (
+        formatTerm(course.academicTerm).toLowerCase() === value.toLowerCase()
+      )
+    } else {
+      // Handle Course case
+      if (value === 'current') {
+        return course.academicTerms.some((term) => term.isCurrent)
+      }
+      return course.academicTerms.some(
+        (term) => formatTerm(term).toLowerCase() === value.toLowerCase(),
+      )
+    }
+  },
+
+  Schedule: (course: Course | EnrolledCourse, value: string) => {
+    if ('section' in course) {
+      return course.section.sectionSchedule.day
+        .toLowerCase()
+        .includes(value.toLowerCase())
+    }
+    return false
   },
 }
 
@@ -88,17 +102,11 @@ function RouteComponent() {
   const academicPrograms = mockAcademicPrograms
 
   const [view, setView] = useState<'grid' | 'list'>('grid')
-  const [searchFilteredCourses, setSearchFilteredCourses] =
-    useState<Course[]>(mockCourseData)
-
   //TODO: implement API call to get courses, get it by academic term Id
-  const coursesData = mockCourseData
-
-  const formatTerm = (academicTerm: AcademicTerm | undefined) => {
-    return academicTerm
-      ? `${academicTerm.schoolYear} - ${academicTerm.term}`
-      : 'N/A'
-  }
+  const coursesData: (Course | EnrolledCourse)[] =
+    authUser?.role === 'student' ? mockEnrolledCourse : mockCourseData
+  const [searchFilteredCourses, setSearchFilteredCourses] =
+    useState<(Course | EnrolledCourse)[]>(coursesData)
 
   const filters: FilterType[] = [
     {
@@ -108,7 +116,16 @@ function RouteComponent() {
       value: '',
       options: [
         { label: 'Current', value: 'current' },
-        ...academicTerms.map((term) => createFilterOption(formatTerm(term))),
+        ...(authUser?.role === 'student'
+          ? []
+          : coursesData.map((course) =>
+              'academicTerm' in course
+                ? createFilterOption(formatTerm(course.academicTerm))
+                : { label: '', value: '' },
+            )),
+        ...(authUser?.role !== 'student'
+          ? []
+          : academicTerms.map((term) => createFilterOption(formatTerm(term)))),
       ],
     },
     ...(authUser?.role !== 'student'
@@ -185,7 +202,9 @@ function RouteComponent() {
               className={'self-end'}
               style={{ flexGrow: 1, flexBasis: '20%', minWidth: 250 }}
             >
-              <CourseTasksSummary courses={filteredData} />
+              <CourseTasksSummary
+                courses={filteredData as unknown as EnrolledCourse[]}
+              />
             </div>
           )}
         </Group>
@@ -195,8 +214,8 @@ function RouteComponent() {
 }
 
 type HeaderProps = {
-  coursesData: Course[]
-  onSearchFilter: (courses: Course[]) => void
+  coursesData: any
+  onSearchFilter: (courses: Course[] | EnrolledCourse[]) => void
   filters: FilterType[]
   activeFilters: FilterType[]
   handleAddFilter: (filterType: FilterType) => void
@@ -371,27 +390,23 @@ const CourseItem = ({
   variant,
 }: {
   url: string
-  course: Course
+  course: Course | EnrolledCourse
   variant: 'grid' | 'list'
 }) => {
   return variant === 'grid' ? (
-    <CourseCard url={url} {...course} />
+    <CourseCard url={url} course={course} />
   ) : (
-    <CourseListRow url={url} {...course} />
+    <CourseListRow url={url} course={course} />
   )
 }
 
-interface CourseDetailProps extends Omit<Course, 'activities'> {
+interface CourseDetailProps {
+  course: Course | EnrolledCourse
   url: string
 }
 
-const CourseCard = ({ url, ...courseDetails }: CourseDetailProps) => {
+const CourseCard = ({ course, url }: CourseDetailProps) => {
   const theme = useMantineTheme()
-
-  const { sectionName, sectionSchedule, classMeetings } = courseDetails.section
-  const { courseName, courseCode, courseProgress } = courseDetails
-  const { currentMeeting } = useCurrentMeeting(classMeetings)
-
   return (
     <Card
       withBorder
@@ -421,14 +436,14 @@ const CourseCard = ({ url, ...courseDetails }: CourseDetailProps) => {
           bg="black"
           opacity={0.75}
         >
-          {courseCode} • {sectionName}
+          {course.courseCode} • {course.courseName}
         </Text>
       </Flex>
       {/*Course Details*/}
       <Group justify="space-between" wrap="nowrap" mt="xs">
         <Stack gap={'md'} w={'16rem'} px={'xs'}>
           <Stack mt={'xs'}>
-            <Tooltip label={courseName}>
+            <Tooltip label={course.courseName}>
               <Link to={url} className="hover:underline">
                 <Title
                   order={3}
@@ -436,38 +451,47 @@ const CourseCard = ({ url, ...courseDetails }: CourseDetailProps) => {
                   lineClamp={1}
                   c={theme.primaryColor}
                 >
-                  {courseName}
+                  {course.courseName}
                 </Title>
               </Link>
             </Tooltip>
-            <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
-              {sectionSchedule.day} {sectionSchedule.time}
-            </Text>
+            {'section' in course && (
+              <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
+                {course.section.sectionSchedule.day}{' '}
+                {course.section.sectionSchedule.time}
+              </Text>
+            )}
           </Stack>
           <CourseCardActionButton
-            currentMeeting={currentMeeting}
-            courseCode={courseCode}
+            currentMeeting={
+              useCurrentMeeting(course as EnrolledCourse).currentMeeting
+            }
+            courseCode={course.courseCode}
           />
           <Group justify="space-between">
             <Group gap="0.25rem">
-              <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                Completed
-              </Text>
-              <Group gap="0">
-                <RingProgress
-                  size={20}
-                  thickness={3}
-                  sections={[
-                    {
-                      value: courseProgress * 100,
-                      color: theme.colors.blue[5],
-                    },
-                  ]}
-                />
-                <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                  {courseProgress * 100}%
-                </Text>
-              </Group>
+              {'courseProgress' in course && (
+                <>
+                  <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                    Completed
+                  </Text>
+                  <Group gap="0">
+                    <RingProgress
+                      size={20}
+                      thickness={3}
+                      sections={[
+                        {
+                          value: course.courseProgress * 100,
+                          color: theme.colors.blue[5],
+                        },
+                      ]}
+                    />
+                    <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                      {course.courseProgress * 100}%
+                    </Text>
+                  </Group>
+                </>
+              )}
             </Group>
             <CourseDashboardQuickActions />
           </Group>
@@ -477,11 +501,8 @@ const CourseCard = ({ url, ...courseDetails }: CourseDetailProps) => {
   )
 }
 
-const CourseListRow = ({ url, ...courseDetails }: CourseDetailProps) => {
+const CourseListRow = ({ course, url }: CourseDetailProps) => {
   const theme = useMantineTheme()
-  const { sectionName, sectionSchedule, classMeetings } = courseDetails.section
-  const { courseName, courseCode, courseProgress } = courseDetails
-  const { currentMeeting } = useCurrentMeeting(classMeetings)
 
   return (
     <Card
@@ -499,29 +520,39 @@ const CourseListRow = ({ url, ...courseDetails }: CourseDetailProps) => {
           <Group gap={'xs'}>
             <Link to={url} className="hover:underline">
               <Title order={3} lineClamp={1} c={'primary'}>
-                {courseName}
+                {course.courseName}
               </Title>
             </Link>
             <CourseDashboardQuickActions />
           </Group>
           <Text fw={400} size={'sm'} c={'dark.3'}>
-            {courseCode} • {sectionName} | {sectionSchedule.day}{' '}
-            {sectionSchedule.time}
+            {course.courseCode}{' '}
+            {'section' in course && (
+              <>
+                • {course.section.sectionName} |{' '}
+                {course.section.sectionSchedule.day}{' '}
+                {course.section.sectionSchedule.time}
+              </>
+            )}
           </Text>
         </Stack>
         <Stack w={'30%'} p={'xs'} justify={'space-between'}>
           <CourseCardActionButton
-            currentMeeting={currentMeeting}
-            courseCode={courseCode}
+            currentMeeting={
+              useCurrentMeeting(course as EnrolledCourse).currentMeeting
+            }
+            courseCode={course.courseCode}
           />
           <Group gap="xs">
             <Text fw={500} size={'xs'} c={'dark.3'}>
               Completed:
             </Text>
             <Progress color={'blue.5'} value={50} w={'50%'} />
-            <Text fw={500} size={'xs'} c={'dark.3'}>
-              {courseProgress * 100}%
-            </Text>
+            {'courseProgress' in course && (
+              <Text fw={500} size={'xs'} c={'dark.3'}>
+                {course.courseProgress * 100}%
+              </Text>
+            )}
           </Group>
         </Stack>
       </Group>
@@ -538,9 +569,9 @@ const CourseCardActionButton = ({
   courseCode,
 }: CourseCardActionButtonProps) => {
   const { authUser } = useAuth('protected')
+  const navigate = useNavigate()
   return (
     <Button
-      component={Link}
       leftSection={
         authUser.role === 'student' ? (
           <IconVideo size={16} />
@@ -552,11 +583,13 @@ const CourseCardActionButton = ({
       radius="xl"
       variant="filled"
       disabled={authUser.role === 'student' ? !currentMeeting : false}
-      to={
-        authUser.role === 'student'
-          ? currentMeeting?.meetingLink
-          : `/courses/${courseCode}/edit`
-      }
+      onClick={() => {
+        navigate({
+          from: '/courses/$courseCode',
+          to: 'edit',
+          params: { courseCode },
+        })
+      }}
     >
       {authUser.role === 'student'
         ? 'Join Meeting'
