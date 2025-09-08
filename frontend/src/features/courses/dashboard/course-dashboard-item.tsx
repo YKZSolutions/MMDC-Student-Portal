@@ -4,7 +4,7 @@ import type {
   EnrolledCourse,
 } from '@/features/courses/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import {
   Button,
   Card,
@@ -21,6 +21,7 @@ import {
 } from '@mantine/core'
 import { IconDeviceDesktop, IconVideo } from '@tabler/icons-react'
 import CourseDashboardQuickActions from './course-dashboard-quick-actions'
+import { useState } from 'react'
 
 interface CourseDashboardItemProps {
   course: Course | EnrolledCourse
@@ -34,12 +35,20 @@ const CourseCard = ({
   url,
 }: CourseDashboardItemProps) => {
   const theme = useMantineTheme()
+  const [hovered, setHovered] = useState(false)
+  const navigate = useNavigate()
   return (
     <Card
       withBorder
       radius="md"
       p="xs"
       className={'drop-shadow-sm hover:drop-shadow-lg'}
+      style={{
+        cursor: 'pointer',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => navigate({ to: url })}
     >
       {/*Image*/}
       <Flex pos="relative">
@@ -72,16 +81,17 @@ const CourseCard = ({
         <Stack gap={'md'} w={'16rem'} px={'xs'}>
           <Stack mt={'xs'}>
             <Tooltip label={course.courseName}>
-              <Link to={url} className="hover:underline">
-                <Title
-                  order={3}
-                  w={'100%'}
-                  lineClamp={1}
-                  c={theme.primaryColor}
-                >
-                  {course.courseName}
-                </Title>
-              </Link>
+              <Title
+                order={3}
+                w={'100%'}
+                lineClamp={1}
+                c={theme.primaryColor}
+                style={{
+                  textDecoration: hovered ? 'underline' : 'none',
+                }}
+              >
+                {course.courseName}
+              </Title>
             </Tooltip>
             {'section' in course && (
               <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
@@ -133,6 +143,8 @@ const CourseListRow = ({
   url,
 }: CourseDashboardItemProps) => {
   const theme = useMantineTheme()
+  const [hovered, setHovered] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <Card
@@ -143,16 +155,25 @@ const CourseListRow = ({
       w={'100%'}
       style={{
         borderLeft: `4px solid ${theme.colors.primary[0]}`,
+        cursor: 'pointer',
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => navigate({ to: url })}
     >
       <Group justify="space-between" wrap="nowrap">
         <Stack w={'65%'} p={'xs'} justify={'space-between'}>
           <Group gap={'xs'}>
-            <Link to={url} className="hover:underline">
-              <Title order={3} lineClamp={1} c={'primary'}>
-                {course.courseName}
-              </Title>
-            </Link>
+            <Title
+              order={3}
+              lineClamp={1}
+              c={'primary'}
+              style={{
+                textDecoration: hovered ? 'underline' : 'none',
+              }}
+            >
+              {course.courseName}
+            </Title>
             <CourseDashboardQuickActions />
           </Group>
           <Text fw={400} size={'sm'} c={'dark.3'}>
