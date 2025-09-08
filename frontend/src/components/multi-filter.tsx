@@ -1,4 +1,4 @@
-import React, { type ReactNode, useState } from 'react'
+import React, { type ReactNode, useEffect, useState } from 'react'
 import { Button, Group, Menu, Stack, Text, TextInput } from '@mantine/core'
 import {
   IconCalendar,
@@ -17,23 +17,17 @@ type MultiFiltersProps = {
   filters: FilterType[]
   activeFilters: FilterPillProps[]
   onAddFilter: (filterType: FilterType) => void
-  onRemoveFilter: (index: number) => void
 }
 
 const MultiFilter = ({
   filters,
   activeFilters,
   onAddFilter,
-  onRemoveFilter,
 }: MultiFiltersProps) => {
   return (
     <Group align={'center'} gap={2} p={'sm'}>
-      {activeFilters.map((filter: FilterPillProps, index) => (
-        <FilterPill
-          key={index}
-          {...filter}
-          onRemove={() => onRemoveFilter(index)}
-        />
+      {activeFilters.map((filter: FilterPillProps) => (
+        <FilterPill key={filter.id} {...filter} />
       ))}
       <AddFilterButton filters={filters} onAddFilter={onAddFilter} />
     </Group>
@@ -48,6 +42,7 @@ type FilterOption = {
 }
 
 type FilterPillProps = {
+  id: string
   label: string
   icon: ReactNode
   type: FilterInputType
@@ -70,11 +65,13 @@ const FilterPill = ({
   const [isOpen, setIsOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState(value || '')
 
+  useEffect(() => {
+    setSelectedValue(value || '')
+  }, [value])
+
   const handleValueChange = (newValue: string) => {
     setSelectedValue(newValue)
-    if (onChange) {
-      onChange(newValue)
-    }
+    onChange?.(newValue)
   }
 
   const renderFilterContent = () => {
@@ -219,6 +216,7 @@ const FilterPill = ({
 }
 
 type FilterType = {
+  id: string
   label: string
   icon: ReactNode
   type: FilterInputType
@@ -237,6 +235,7 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
 
   const filterTypes: FilterType[] = [
     {
+      id: '',
       label: 'Status',
       icon: <IconCircleCheck size={16} />,
       type: 'select',
@@ -248,6 +247,7 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
       ],
     },
     {
+      id: '',
       label: 'Assigned to',
       icon: <IconUser size={16} />,
       type: 'select',
@@ -259,6 +259,7 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
       ],
     },
     {
+      id: '',
       label: 'Tags',
       icon: <IconTag size={16} />,
       type: 'select',
@@ -270,6 +271,7 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
       ],
     },
     {
+      id: '',
       label: 'Created',
       icon: <IconCalendar size={16} />,
       type: 'date',
@@ -277,6 +279,7 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
       options: [],
     },
     {
+      id: '',
       label: 'Name',
       icon: <IconHash size={16} />,
       type: 'text',

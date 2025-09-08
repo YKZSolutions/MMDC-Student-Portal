@@ -13,21 +13,30 @@ export function useFilter<T>(
   const [activeFilters, setActiveFilters] =
     useState<FilterType[]>(defaultFilters)
 
-  const handleAddFilter = useCallback((filterType: FilterType) => {
-    setActiveFilters((prevFilters) => [
-      ...prevFilters,
-      { ...filterType, value: '' },
-    ])
-  }, [])
+  const handleAddFilter = useCallback(
+    (filterType: Omit<FilterType, 'value' | 'id'>) => {
+      setActiveFilters((prevFilters) => [
+        ...prevFilters,
+        {
+          ...filterType,
+          value: '',
+          id: Math.random().toString(36).slice(2, 9),
+        },
+      ])
+    },
+    [],
+  )
 
-  const handleRemoveFilter = useCallback((index: number) => {
-    setActiveFilters((prevFilters) => prevFilters.filter((_, i) => i !== index))
-  }, [])
-
-  const handleFilterChange = useCallback((index: number, value: string) => {
+  const handleRemoveFilter = useCallback((id: string) => {
     setActiveFilters((prevFilters) =>
-      prevFilters.map((filter, i) =>
-        i === index ? { ...filter, value } : filter,
+      prevFilters.filter((filter) => filter.id !== id),
+    )
+  }, [])
+
+  const handleFilterChange = useCallback((id: string, value: string) => {
+    setActiveFilters((prevFilters) =>
+      prevFilters.map((filter) =>
+        filter.id === id ? { ...filter, value } : filter,
       ),
     )
   }, [])

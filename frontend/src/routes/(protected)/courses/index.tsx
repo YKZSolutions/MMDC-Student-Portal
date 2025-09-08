@@ -110,6 +110,7 @@ function RouteComponent() {
 
   const filters: FilterType[] = [
     {
+      id: '',
       label: 'Term',
       icon: <IconCalendarTime size={16} />,
       type: 'select',
@@ -128,6 +129,7 @@ function RouteComponent() {
     ...(authUser?.role !== 'student'
       ? [
           {
+            id: '',
             label: 'Program',
             icon: <IconUserCode size={16} />,
             type: 'select' as FilterInputType,
@@ -229,8 +231,8 @@ type HeaderProps = {
   filters: FilterType[]
   activeFilters: FilterType[]
   handleAddFilter: (filterType: FilterType) => void
-  handleRemoveFilter: (index: number) => void
-  handleFilterChange: (index: number, value: string) => void
+  handleRemoveFilter: (id: string) => void
+  handleFilterChange: (id: string, value: string) => void
   showFilters: boolean
   onToggleShowFilter: (show: boolean) => void
   activeFilterCount: number
@@ -368,8 +370,8 @@ type CourseDashboardFiltersProps = {
   filters: FilterType[]
   activeFilters: FilterType[]
   onAddFilter: (filterType: FilterType) => void
-  onRemoveFilter: (index: number) => void
-  onFilterChange: (index: number, value: string) => void
+  onRemoveFilter: (id: string) => void
+  onFilterChange: (id: string, value: string) => void
 }
 
 const CourseDashboardFilters = ({
@@ -383,12 +385,12 @@ const CourseDashboardFilters = ({
     <Group gap={'md'} align="start">
       <MultiFilter
         filters={filters}
-        activeFilters={activeFilters.map((filter, index) => ({
+        activeFilters={activeFilters.map((filter) => ({
           ...filter,
-          onChange: (value) => onFilterChange(index, value),
+          onChange: (value: string) => onFilterChange(filter.id, value),
+          onRemove: () => onRemoveFilter(filter.id),
         }))}
         onAddFilter={onAddFilter}
-        onRemoveFilter={onRemoveFilter}
       />
     </Group>
   )
