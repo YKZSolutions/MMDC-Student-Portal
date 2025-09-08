@@ -164,7 +164,7 @@ export interface AssignmentSubmissionSummary {
   studentName: string
   submissionStatus: SubmissionStatus
   submittedAt?: string
-  grade?: number
+  grade: number | null
 }
 
 /**
@@ -182,7 +182,7 @@ export interface GroupSubmissionSummary {
   members: string[]
   submissionStatus: SubmissionStatus
   submittedAt?: string
-  grade?: number
+  grade: number | null
 }
 
 /**

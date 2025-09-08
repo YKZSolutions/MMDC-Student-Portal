@@ -83,7 +83,7 @@ function RouteComponent() {
 
   return (
     <Stack w="100%" h="100%" gap={0}>
-      <Group wrap={'nowrap'} justify='space-between' align='center' mb={'md'}>
+      <Group wrap={'nowrap'} justify="space-between" align="center" mb={'md'}>
         <Group gap="sm" align="center">
           <ThemeIcon size="lg" variant="light" color="blue">
             <IconBookmark size={20} />
@@ -96,14 +96,16 @@ function RouteComponent() {
             </Text>
           </div>
         </Group>
-        <Button
-          bg={'secondary'}
-          leftSection={<IconTool size={18} />}
-          onClick={() => setShowActions(true)}
-          size={'sm'}
-        >
-          Manage Content
-        </Button>
+        {authUser.role === 'admin' && (
+          <Button
+            bg={'secondary'}
+            leftSection={<IconTool size={18} />}
+            onClick={() => setShowActions(true)}
+            size={'sm'}
+          >
+            Manage Content
+          </Button>
+        )}
       </Group>
       <Divider />
       <Group

@@ -9,6 +9,7 @@ import type { Block } from '@blocknote/core'
 import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
 import type {
   AssignmentBase,
+  AssignmentSubmissionReport,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type { Module } from '@/features/courses/modules/types.ts'
@@ -338,6 +339,71 @@ export const mockStudentAssignments: StudentAssignment[] = [
     mode: 'individual',
     status: 'closed',
     submissionStatus: 'pending',
+  },
+]
+
+// Mock of AssignmentSubmissionReport
+export const mockAssignmentSubmissionReports: AssignmentSubmissionReport[] = [
+  {
+    ...mockAssignmentBase[0],
+    submissions: [],
+  },
+  {
+    ...mockAssignmentBase[1],
+    submissions: [
+      {
+        studentId: 'stud1',
+        studentName: 'Student 1',
+        submissionStatus: 'submitted',
+        submittedAt: getPastDate(1),
+        grade: 95,
+      },
+      {
+        groupId: 'grp2',
+        members: ['stud2', 'stud3', 'stud4'],
+        submissionStatus: 'graded',
+        submittedAt: getPastDate(1),
+        grade: 85,
+      },
+    ],
+  },
+  {
+    ...mockAssignmentBase[2],
+    submissions: [
+      {
+        studentId: 'stud1',
+        studentName: 'Student 1',
+        submissionStatus: 'graded',
+        submittedAt: getPastDate(1),
+        grade: 90,
+      },
+      {
+        groupId: 'grp3',
+        members: ['stud2', 'stud3', 'stud4'],
+        submissionStatus: 'graded',
+        submittedAt: getPastDate(1),
+        grade: 80,
+      },
+    ],
+  },
+  {
+    ...mockAssignmentBase[3],
+    submissions: [
+      {
+        studentId: 'stud1',
+        studentName: 'Student 1',
+        submissionStatus: 'ready-for-grading',
+        submittedAt: getPastDate(1),
+        grade: null,
+      },
+      {
+        groupId: 'grp4',
+        members: ['stud2', 'stud3', 'stud4'],
+        submissionStatus: 'ready-for-grading',
+        submittedAt: getPastDate(1),
+        grade: null,
+      },
+    ],
   },
 ]
 

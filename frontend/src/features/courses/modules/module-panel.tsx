@@ -88,10 +88,11 @@ const ModulePanel = ({
         radius="md"
         styles={{
           item: {
-            border: `1px solid ${theme.colors.gray[3]}`,
-            '&[data-active]': {
-              borderColor: theme.colors.blue[4],
-            },
+            border: 0,
+            padding: 0,
+          },
+          control: {
+            padding: 0,
           },
         }}
       >
@@ -130,10 +131,8 @@ const ModulePanel = ({
                   variant="separated"
                   radius="md"
                   styles={{
-                    item: {
-                      border: `1px solid ${theme.colors.gray[2]}`,
-                      marginBottom: theme.spacing.sm,
-                    },
+                    item: { border: 0, padding: 0 },
+                    control: { padding: 0 },
                   }}
                 >
                   {section.subsections?.map((subsection) => {
