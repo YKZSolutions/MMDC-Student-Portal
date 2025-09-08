@@ -20,7 +20,7 @@ import { mockEnrolledCourse } from '@/features/courses/mocks.ts'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
 import React, { useState } from 'react'
 
-export const Route = createFileRoute('/(protected)/courses/$courseCode')({
+export const Route = createFileRoute('/(protected)/courses/$courseCode/')({
   component: RouteComponent,
 })
 
@@ -83,7 +83,7 @@ function RouteComponent() {
 
   return (
     <Stack w="100%" h="100%" gap={0}>
-      <Group wrap={'nowrap'} justify="space-between" align="center" mb={'md'}>
+      <Group wrap={'nowrap'} justify='space-between' align='center' mb={'md'}>
         <Group gap="sm" align="center">
           <ThemeIcon size="lg" variant="light" color="blue">
             <IconBookmark size={20} />

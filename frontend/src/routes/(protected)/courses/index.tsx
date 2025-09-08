@@ -581,8 +581,8 @@ const CourseCardActionButton = ({
         authUser.role === 'student'
           ? window.open(currentMeeting?.meetingLink!, '_blank')
           : navigate({
-              from: '/courses/$courseCode',
-              to: 'edit',
+              from: '/cms',
+              to: '/cms/$courseCode',
               params: { courseCode },
             })
       }}
