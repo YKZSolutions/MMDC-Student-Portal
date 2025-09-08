@@ -238,6 +238,7 @@ const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
       }}
       onClick={(e) => {
         e.stopPropagation()
+        e.preventDefault()
         navigate({
           from: '/courses/$courseCode/modules',
           to: `$itemId`,
@@ -556,6 +557,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
             }
             onClick={(e) => {
               e.stopPropagation()
+              e.preventDefault()
               navigate({
                 from: '/courses/$courseCode/modules',
                 to: `$itemId/edit`,

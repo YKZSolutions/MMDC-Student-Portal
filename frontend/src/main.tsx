@@ -11,13 +11,15 @@ import * as TanStackQueryProvider from './integrations/tanstack-query/root-provi
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
+import { theme } from './integrations/mantine/mantine-theme.ts'
+
+import reportWebVitals from './reportWebVitals.ts'
+
+import '@blocknote/core/fonts/inter.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
-import { theme } from './integrations/mantine/mantine-theme.ts'
-import reportWebVitals from './reportWebVitals.ts'
-import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
-import '@mantine/core/styles.css'
+
 import './styles.css'
 
 // Listen to auth token refresh
