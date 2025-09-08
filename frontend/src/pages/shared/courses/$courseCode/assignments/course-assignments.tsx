@@ -2,7 +2,6 @@ import { Group, Stack, Tabs, Title } from '@mantine/core'
 import { IconBook, IconCheck, IconHistory, IconSend } from '@tabler/icons-react'
 import SearchComponent from '@/components/search-component.tsx'
 import React, { useState } from 'react'
-import AssignmentPanel from '@/features/courses/assignments/assignment-panel.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type { Role } from '@/integrations/api/client'
 import type {
@@ -10,6 +9,7 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import { mockAssignmentsData } from '@/features/courses/mocks.ts'
+import AssignmentCard from '@/features/courses/assignments/assignment-card.tsx'
 
 type RoleBasedAssignmentConfig = {
   [K in Role]: {
@@ -131,6 +131,20 @@ const CourseAssignments = () => {
           </Stack>
         </Tabs>
       </Stack>
+    </Stack>
+  )
+}
+
+const AssignmentPanel = ({
+  assignments,
+}: {
+  assignments: StudentAssignment[]
+}) => {
+  return (
+    <Stack gap={'md'}>
+      {assignments.map((assignment) => (
+        <AssignmentCard key={assignment.id} assignment={assignment} />
+      ))}
     </Stack>
   )
 }

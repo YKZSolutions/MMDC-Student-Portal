@@ -39,7 +39,9 @@ import { Route as protectedCoursesCourseCodeGradesIndexRouteImport } from './rou
 import { Route as protectedCoursesCourseCodeAssignmentsIndexRouteImport } from './routes/(protected)/courses/$courseCode/assignments/index'
 import { Route as protectedCoursesCourseCodeModulesCreateRouteImport } from './routes/(protected)/courses/$courseCode/modules/create'
 import { Route as protectedCoursesCourseCodeModulesItemIdIndexRouteImport } from './routes/(protected)/courses/$courseCode/modules/$itemId/index'
+import { Route as protectedCoursesCourseCodeModulesItemIdPublishRouteImport } from './routes/(protected)/courses/$courseCode/modules/$itemId/publish'
 import { Route as protectedCoursesCourseCodeModulesItemIdEditRouteImport } from './routes/(protected)/courses/$courseCode/modules/$itemId/edit'
+import { Route as protectedCoursesCourseCodeModulesItemIdCreateRouteImport } from './routes/(protected)/courses/$courseCode/modules/$itemId/create'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
   id: '/(protected)',
@@ -206,10 +208,22 @@ const protectedCoursesCourseCodeModulesItemIdIndexRoute =
     path: '/modules/$itemId/',
     getParentRoute: () => protectedCoursesCourseCodeRoute,
   } as any)
+const protectedCoursesCourseCodeModulesItemIdPublishRoute =
+  protectedCoursesCourseCodeModulesItemIdPublishRouteImport.update({
+    id: '/modules/$itemId/publish',
+    path: '/modules/$itemId/publish',
+    getParentRoute: () => protectedCoursesCourseCodeRoute,
+  } as any)
 const protectedCoursesCourseCodeModulesItemIdEditRoute =
   protectedCoursesCourseCodeModulesItemIdEditRouteImport.update({
     id: '/modules/$itemId/edit',
     path: '/modules/$itemId/edit',
+    getParentRoute: () => protectedCoursesCourseCodeRoute,
+  } as any)
+const protectedCoursesCourseCodeModulesItemIdCreateRoute =
+  protectedCoursesCourseCodeModulesItemIdCreateRouteImport.update({
+    id: '/modules/$itemId/create',
+    path: '/modules/$itemId/create',
     getParentRoute: () => protectedCoursesCourseCodeRoute,
   } as any)
 
@@ -242,7 +256,9 @@ export interface FileRoutesByFullPath {
   '/courses/$courseCode/grades': typeof protectedCoursesCourseCodeGradesIndexRoute
   '/courses/$courseCode/modules': typeof protectedCoursesCourseCodeModulesIndexRoute
   '/courses/$courseCode/overview': typeof protectedCoursesCourseCodeOverviewIndexRoute
+  '/courses/$courseCode/modules/$itemId/create': typeof protectedCoursesCourseCodeModulesItemIdCreateRoute
   '/courses/$courseCode/modules/$itemId/edit': typeof protectedCoursesCourseCodeModulesItemIdEditRoute
+  '/courses/$courseCode/modules/$itemId/publish': typeof protectedCoursesCourseCodeModulesItemIdPublishRoute
   '/courses/$courseCode/modules/$itemId': typeof protectedCoursesCourseCodeModulesItemIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -274,7 +290,9 @@ export interface FileRoutesByTo {
   '/courses/$courseCode/grades': typeof protectedCoursesCourseCodeGradesIndexRoute
   '/courses/$courseCode/modules': typeof protectedCoursesCourseCodeModulesIndexRoute
   '/courses/$courseCode/overview': typeof protectedCoursesCourseCodeOverviewIndexRoute
+  '/courses/$courseCode/modules/$itemId/create': typeof protectedCoursesCourseCodeModulesItemIdCreateRoute
   '/courses/$courseCode/modules/$itemId/edit': typeof protectedCoursesCourseCodeModulesItemIdEditRoute
+  '/courses/$courseCode/modules/$itemId/publish': typeof protectedCoursesCourseCodeModulesItemIdPublishRoute
   '/courses/$courseCode/modules/$itemId': typeof protectedCoursesCourseCodeModulesItemIdIndexRoute
 }
 export interface FileRoutesById {
@@ -308,7 +326,9 @@ export interface FileRoutesById {
   '/(protected)/courses/$courseCode/grades/': typeof protectedCoursesCourseCodeGradesIndexRoute
   '/(protected)/courses/$courseCode/modules/': typeof protectedCoursesCourseCodeModulesIndexRoute
   '/(protected)/courses/$courseCode/overview/': typeof protectedCoursesCourseCodeOverviewIndexRoute
+  '/(protected)/courses/$courseCode/modules/$itemId/create': typeof protectedCoursesCourseCodeModulesItemIdCreateRoute
   '/(protected)/courses/$courseCode/modules/$itemId/edit': typeof protectedCoursesCourseCodeModulesItemIdEditRoute
+  '/(protected)/courses/$courseCode/modules/$itemId/publish': typeof protectedCoursesCourseCodeModulesItemIdPublishRoute
   '/(protected)/courses/$courseCode/modules/$itemId/': typeof protectedCoursesCourseCodeModulesItemIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -342,7 +362,9 @@ export interface FileRouteTypes {
     | '/courses/$courseCode/grades'
     | '/courses/$courseCode/modules'
     | '/courses/$courseCode/overview'
+    | '/courses/$courseCode/modules/$itemId/create'
     | '/courses/$courseCode/modules/$itemId/edit'
+    | '/courses/$courseCode/modules/$itemId/publish'
     | '/courses/$courseCode/modules/$itemId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -374,7 +396,9 @@ export interface FileRouteTypes {
     | '/courses/$courseCode/grades'
     | '/courses/$courseCode/modules'
     | '/courses/$courseCode/overview'
+    | '/courses/$courseCode/modules/$itemId/create'
     | '/courses/$courseCode/modules/$itemId/edit'
+    | '/courses/$courseCode/modules/$itemId/publish'
     | '/courses/$courseCode/modules/$itemId'
   id:
     | '__root__'
@@ -407,7 +431,9 @@ export interface FileRouteTypes {
     | '/(protected)/courses/$courseCode/grades/'
     | '/(protected)/courses/$courseCode/modules/'
     | '/(protected)/courses/$courseCode/overview/'
+    | '/(protected)/courses/$courseCode/modules/$itemId/create'
     | '/(protected)/courses/$courseCode/modules/$itemId/edit'
+    | '/(protected)/courses/$courseCode/modules/$itemId/publish'
     | '/(protected)/courses/$courseCode/modules/$itemId/'
   fileRoutesById: FileRoutesById
 }
@@ -632,11 +658,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedCoursesCourseCodeModulesItemIdIndexRouteImport
       parentRoute: typeof protectedCoursesCourseCodeRoute
     }
+    '/(protected)/courses/$courseCode/modules/$itemId/publish': {
+      id: '/(protected)/courses/$courseCode/modules/$itemId/publish'
+      path: '/modules/$itemId/publish'
+      fullPath: '/courses/$courseCode/modules/$itemId/publish'
+      preLoaderRoute: typeof protectedCoursesCourseCodeModulesItemIdPublishRouteImport
+      parentRoute: typeof protectedCoursesCourseCodeRoute
+    }
     '/(protected)/courses/$courseCode/modules/$itemId/edit': {
       id: '/(protected)/courses/$courseCode/modules/$itemId/edit'
       path: '/modules/$itemId/edit'
       fullPath: '/courses/$courseCode/modules/$itemId/edit'
       preLoaderRoute: typeof protectedCoursesCourseCodeModulesItemIdEditRouteImport
+      parentRoute: typeof protectedCoursesCourseCodeRoute
+    }
+    '/(protected)/courses/$courseCode/modules/$itemId/create': {
+      id: '/(protected)/courses/$courseCode/modules/$itemId/create'
+      path: '/modules/$itemId/create'
+      fullPath: '/courses/$courseCode/modules/$itemId/create'
+      preLoaderRoute: typeof protectedCoursesCourseCodeModulesItemIdCreateRouteImport
       parentRoute: typeof protectedCoursesCourseCodeRoute
     }
   }
@@ -648,7 +688,9 @@ interface protectedCoursesCourseCodeRouteChildren {
   protectedCoursesCourseCodeGradesIndexRoute: typeof protectedCoursesCourseCodeGradesIndexRoute
   protectedCoursesCourseCodeModulesIndexRoute: typeof protectedCoursesCourseCodeModulesIndexRoute
   protectedCoursesCourseCodeOverviewIndexRoute: typeof protectedCoursesCourseCodeOverviewIndexRoute
+  protectedCoursesCourseCodeModulesItemIdCreateRoute: typeof protectedCoursesCourseCodeModulesItemIdCreateRoute
   protectedCoursesCourseCodeModulesItemIdEditRoute: typeof protectedCoursesCourseCodeModulesItemIdEditRoute
+  protectedCoursesCourseCodeModulesItemIdPublishRoute: typeof protectedCoursesCourseCodeModulesItemIdPublishRoute
   protectedCoursesCourseCodeModulesItemIdIndexRoute: typeof protectedCoursesCourseCodeModulesItemIdIndexRoute
 }
 
@@ -664,8 +706,12 @@ const protectedCoursesCourseCodeRouteChildren: protectedCoursesCourseCodeRouteCh
       protectedCoursesCourseCodeModulesIndexRoute,
     protectedCoursesCourseCodeOverviewIndexRoute:
       protectedCoursesCourseCodeOverviewIndexRoute,
+    protectedCoursesCourseCodeModulesItemIdCreateRoute:
+      protectedCoursesCourseCodeModulesItemIdCreateRoute,
     protectedCoursesCourseCodeModulesItemIdEditRoute:
       protectedCoursesCourseCodeModulesItemIdEditRoute,
+    protectedCoursesCourseCodeModulesItemIdPublishRoute:
+      protectedCoursesCourseCodeModulesItemIdPublishRoute,
     protectedCoursesCourseCodeModulesItemIdIndexRoute:
       protectedCoursesCourseCodeModulesItemIdIndexRoute,
   }

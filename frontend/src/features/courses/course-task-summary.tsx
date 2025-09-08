@@ -35,7 +35,7 @@ const CourseTasksSummary = ({ courses }: { courses: Course[] }) => {
             .map((course, index) => (
               <Stack gap={'sm'}>
                 <Title c={'dark.7'} variant="hero" order={5} fw={700}>
-                  {course.courseDetails.courseName}
+                  {course.courseName}
                 </Title>
                 <Divider />
                 <Stack gap={'md'}>

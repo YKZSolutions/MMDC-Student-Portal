@@ -5,6 +5,7 @@ import {
   type Module,
 } from '@/features/courses/modules/types.ts'
 import { mockCourseBasicDetails, mockModule } from '@/features/courses/mocks.ts'
+import type { Block } from '@blocknote/core'
 
 // Helper function to find a node in the module structure
 const findNodeInModule = (
@@ -95,7 +96,7 @@ export const useCourseData = (courseCode?: string) => {
     setModule((prev) => updateNodeInModule(prev, data.id, data))
   }
 
-  const updateCourseContent = (data: string, itemId?: string) => {
+  const updateCourseContent = (data: Block[], itemId?: string | undefined) => {
     if (itemId) {
       setModule((prev) => updateNodeInModule(prev, itemId, { content: data }))
     }
