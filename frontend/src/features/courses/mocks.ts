@@ -12,6 +12,9 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type { Module } from '@/features/courses/modules/types.ts'
+import type { StudentModule } from '@/features/courses/modules/student/types.ts'
+import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
+import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
 
 export const mockCourseBasicDetails: CourseBasicDetails[] = [
   {
@@ -263,7 +266,7 @@ export const mockAssignmentBase: AssignmentBase[] = [
 ]
 
 // Student assignments with submission data
-export const mockAssignmentsData: StudentAssignment[] = [
+export const mockStudentAssignments: StudentAssignment[] = [
   {
     ...mockAssignmentBase[0],
     submissionStatus: 'pending',
@@ -275,17 +278,17 @@ export const mockAssignmentsData: StudentAssignment[] = [
   {
     ...mockAssignmentBase[2],
     submissionStatus: 'submitted',
-    submissionTimestamp: getPastDate(1),
+    submittedAt: getPastDate(1),
   },
   {
     ...mockAssignmentBase[3],
     submissionStatus: 'ready-for-grading',
-    submissionTimestamp: getPastDate(1),
+    submittedAt: getPastDate(1),
   },
   {
     ...mockAssignmentBase[4],
     submissionStatus: 'graded',
-    submissionTimestamp: getPastDate(1),
+    submittedAt: getPastDate(1),
     grade: {
       id: 'grade-1',
       assignmentId: 'assign-5',
@@ -305,7 +308,7 @@ export const mockAssignmentsData: StudentAssignment[] = [
     mode: 'group',
     status: 'open',
     submissionStatus: 'graded',
-    submissionTimestamp: getPastDate(1),
+    submittedAt: getPastDate(1),
     grade: {
       id: 'grade-2',
       assignmentId: 'assign-6',
@@ -592,18 +595,55 @@ export const mockModule: Module = {
   ],
 }
 
-// Create the student mock module (uses StudentAssignment)
-export const mockStudentModule: Module = {
+// Student module view with progress data
+export const mockStudentModule: StudentModule = {
   ...mockModule,
+  studentProgress: {
+    overallProgress: 65,
+    completedItems: 13,
+    totalItems: 20,
+    overdueItems: 1,
+  },
   sections: mockModule.sections.map((section) => ({
     ...section,
-    items: section.items
-      .filter((item) => item.published.isPublished)
-      .map((item) => {
-        if (item.type === 'assignment' && item.assignment) {
-          // Find the corresponding student assignment
-          const studentAssignment = mockAssignmentsData.find(
-            (a) => a.id === item.assignment!.id,
+    items: section.items?.map((item) => {
+      if (item.type === 'lesson') {
+        return {
+          ...item,
+          progress: {
+            contentId: item.id,
+            isCompleted: Math.random() > 0.3, // Random completion status for demo
+            completedAt:
+              Math.random() > 0.5 ? new Date().toISOString() : undefined,
+          },
+        }
+      } else if (item.type === 'assignment') {
+        const studentAssignment = mockStudentAssignments.find(
+          (a) => a.id === item.assignment?.id,
+        )
+        return {
+          ...item,
+          assignment: studentAssignment || item.assignment,
+        }
+      }
+      return item
+    }),
+    subsections: section.subsections?.map((subsection) => ({
+      ...subsection,
+      items: subsection.items.map((item) => {
+        if (item.type === 'lesson') {
+          return {
+            ...item,
+            progress: {
+              contentId: item.id,
+              isCompleted: Math.random() > 0.3, // Random completion status for demo
+              completedAt:
+                Math.random() > 0.5 ? new Date().toISOString() : undefined,
+            },
+          }
+        } else if (item.type === 'assignment') {
+          const studentAssignment = mockStudentAssignments.find(
+            (a) => a.id === item.assignment?.id,
           )
           return {
             ...item,
@@ -612,23 +652,57 @@ export const mockStudentModule: Module = {
         }
         return item
       }),
-    subsections: section.subsections?.map((subsection) => ({
-      ...subsection,
-      items: subsection.items
-        .filter((item) => item.published.isPublished)
-        .map((item) => {
-          if (item.type === 'assignment' && item.assignment) {
-            // Find the corresponding student assignment
-            const studentAssignment = mockAssignmentsData.find(
-              (a) => a.id === item.assignment!.id,
-            )
-            return {
-              ...item,
-              assignment: studentAssignment || item.assignment,
-            }
-          }
-          return item
-        }),
     })),
   })),
+}
+
+// Mentor module view with section statistics
+export const mockMentorModule: MentorModule = {
+  ...mockModule,
+  sectionStats: [
+    {
+      sectionId: 'section-1',
+      averageProgress: 75,
+      completedStudents: 15,
+      totalStudents: 20,
+    },
+    {
+      sectionId: 'section-2',
+      averageProgress: 60,
+      completedStudents: 12,
+      totalStudents: 20,
+    },
+    {
+      sectionId: 'section-3',
+      averageProgress: 45,
+      completedStudents: 9,
+      totalStudents: 20,
+    },
+  ],
+}
+
+// Admin module view with editing permissions
+export const mockAdminModule: AdminModule = {
+  ...mockModule,
+  editingPermissions: {
+    canPublish: true,
+    canSchedule: true,
+    canDelete: true,
+  },
+}
+
+// Helper function to get appropriate mock based on role
+export const getMockModuleByRole = (
+  role: string,
+): Module | StudentModule | MentorModule | AdminModule => {
+  switch (role) {
+    case 'student':
+      return mockStudentModule
+    case 'mentor':
+      return mockMentorModule
+    case 'admin':
+      return mockAdminModule
+    default:
+      return mockModule
+  }
 }

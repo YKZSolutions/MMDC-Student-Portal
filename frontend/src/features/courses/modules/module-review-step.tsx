@@ -86,7 +86,7 @@ const ModuleReviewStep = ({ module }: ReviewStepProps) => {
         </Tabs.List>
 
         <Tabs.Panel value="preview" pt="md">
-          <ModulePanel allExpanded={true} isPreview={true} module={module} />
+          <ModulePanel allExpanded={true} viewMode="student" module={module} />
         </Tabs.Panel>
 
         <Tabs.Panel value="summary" pt="md">

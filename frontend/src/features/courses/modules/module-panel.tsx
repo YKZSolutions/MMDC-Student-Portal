@@ -6,7 +6,6 @@ import {
   Badge,
   Box,
   Card,
-  Divider,
   Flex,
   Group,
   type GroupProps,
@@ -23,7 +22,6 @@ import {
 import React, { useEffect, useState } from 'react'
 import {
   getCompletedItemsCount,
-  getModuleItemsFromModule,
   getOverdueItemsCount,
   getSubmissionStatus,
 } from '@/utils/helpers.ts'
@@ -35,13 +33,10 @@ import type {
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { CompletedStatusIcon } from '@/components/icon-selector.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import RoleComponentManager from '@/components/role-component-manager.tsx'
 import SubmitButton from '@/components/submit-button.tsx'
 import {
   IconAlertCircle,
-  IconBookmark,
   IconCalendarTime,
-  IconCheck,
   IconClipboard,
   IconClock,
   IconDotsVertical,
@@ -54,23 +49,21 @@ import {
   IconRubberStamp,
   IconRubberStampOff,
   IconTrash,
-  IconTrendingUp,
   IconUsers,
 } from '@tabler/icons-react'
-import type { Role } from '@/integrations/api/client'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useDisclosure } from '@mantine/hooks'
 
 interface ModulePanelProps {
-  allExpanded: boolean
   module: Module
-  isPreview?: boolean
+  viewMode: 'student' | 'mentor' | 'admin'
+  allExpanded?: boolean
 }
 
 const ModulePanel = ({
-  allExpanded,
   module,
-  isPreview = false,
+  viewMode,
+  allExpanded = false,
 }: ModulePanelProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
@@ -88,104 +81,8 @@ const ModulePanel = ({
     }
   }, [allExpanded])
 
-  // Calculate overall module progress
-  const allItems = getModuleItemsFromModule(module)
-  const totalItems = allItems.length
-  const completedItems = getCompletedItemsCount(allItems)
-  const overdueItems = getOverdueItemsCount(allItems)
-  const progressPercentage =
-    totalItems > 0 ? (completedItems / totalItems) * 100 : 0
-
   return (
     <Box p="md">
-      {/* Module Header with Overall Progress */}
-      <Box mb="lg">
-        <Group justify="space-between" mb="sm">
-          <Group gap="sm">
-            <ThemeIcon size="lg" variant="light" color="blue">
-              <IconBookmark size={20} />
-            </ThemeIcon>
-            <div>
-              <Title order={3} size="h4">
-                {module.courseName}
-              </Title>
-              <Text size="sm" c="dimmed">
-                {module.courseCode} • {module.courseSection}
-              </Text>
-            </div>
-          </Group>
-
-          <Group gap="xs">
-            <Badge
-              variant="light"
-              color={module.published.isPublished ? 'green' : 'orange'}
-            >
-              {module.published.isPublished ? 'Published' : 'Draft'}
-            </Badge>
-            {overdueItems > 0 && (
-              <Badge variant="light" color="red">
-                {overdueItems} Overdue
-              </Badge>
-            )}
-          </Group>
-        </Group>
-
-        {/* Overall Progress Bar */}
-        <Box>
-          <Group justify="space-between" mb="xs">
-            <Text size="sm" fw={500}>
-              Overall Progress
-            </Text>
-            <Text size="sm" c="dimmed">
-              {completedItems}/{totalItems} items completed
-            </Text>
-          </Group>
-          <Progress
-            value={progressPercentage}
-            size="lg"
-            radius="xl"
-            color={progressPercentage === 100 ? 'green' : 'blue'}
-          />
-        </Box>
-
-        {/* Quick Stats */}
-        <Group mt="sm" gap="xl">
-          <Group gap="xs">
-            <IconTrendingUp size={16} color={theme.colors.blue[6]} />
-            <Text size="sm">
-              <Text span fw={500}>
-                {Math.round(progressPercentage)}%
-              </Text>{' '}
-              Complete
-            </Text>
-          </Group>
-
-          <Group gap="xs">
-            <IconCheck size={16} color={theme.colors.green[6]} />
-            <Text size="sm">
-              <Text span fw={500}>
-                {completedItems}
-              </Text>{' '}
-              Finished
-            </Text>
-          </Group>
-
-          {overdueItems > 0 && (
-            <Group gap="xs">
-              <IconAlertCircle size={16} color={theme.colors.red[6]} />
-              <Text size="sm" c="red">
-                <Text span fw={500}>
-                  {overdueItems}
-                </Text>{' '}
-                Overdue
-              </Text>
-            </Group>
-          )}
-        </Group>
-      </Box>
-
-      <Divider mb="lg" />
-
       {/* Sections Accordion */}
       <Accordion
         multiple
@@ -226,7 +123,7 @@ const ModulePanel = ({
                 totalItemsCount={sectionItems.length}
                 overdueItemsCount={sectionOverdue}
                 progressPercentage={sectionProgress}
-                isPreview={isPreview}
+                viewMode={viewMode}
               />
               <Accordion.Panel>
                 {/* Subsections */}
@@ -269,7 +166,7 @@ const ModulePanel = ({
                           totalItemsCount={subsection.items.length}
                           overdueItemsCount={subsectionOverdue}
                           progressPercentage={subsectionProgress}
-                          isPreview={isPreview}
+                          viewMode={viewMode}
                           isSubsection
                         />
 
@@ -279,7 +176,7 @@ const ModulePanel = ({
                               <ModuleItemCard
                                 key={item.id}
                                 item={item}
-                                isPreview={isPreview}
+                                viewMode={viewMode}
                               />
                             ))}
                           </Stack>
@@ -299,13 +196,15 @@ const ModulePanel = ({
 
 interface ModuleItemCardProps {
   item: ModuleItem
-  isPreview?: boolean
+  viewMode: 'student' | 'mentor' | 'admin'
 }
 
-const ModuleItemCard = ({ item, isPreview = false }: ModuleItemCardProps) => {
-  const { authUser } = useAuth('protected')
-  const role: Role = isPreview ? 'student' : authUser.role
+const ModuleItemCard = ({
+  item,
+  viewMode = 'student',
+}: ModuleItemCardProps) => {
   const theme = useMantineTheme()
+  const { authUser } = useAuth('protected')
 
   const getContentTypeIcon = (type: string) => {
     switch (type) {
@@ -384,7 +283,7 @@ const ModuleItemCard = ({ item, isPreview = false }: ModuleItemCardProps) => {
         <Group justify="space-between" align="flex-start">
           <Flex gap="sm" flex={1}>
             {/* Status Indicator */}
-            {role === 'student' && (
+            {viewMode === 'student' && (
               <Box mt={2}>
                 <CompletedStatusIcon
                   status={
@@ -525,27 +424,18 @@ const ModuleItemCard = ({ item, isPreview = false }: ModuleItemCardProps) => {
 
           {/* Action Button */}
           <Box>
-            <RoleComponentManager
-              currentRole={role}
-              roleRender={{
-                student: (
-                  <>
-                    {item.type === 'assignment' && (
-                      <SubmitButton
-                        submissionStatus={
-                          getSubmissionStatus(item.assignment) || 'pending'
-                        }
-                        onClick={() => {}}
-                        dueDate={item.assignment?.dueDate || ''}
-                        assignmentStatus={item.assignment?.status || 'open'}
-                        isPreview={isPreview}
-                      />
-                    )}
-                  </>
-                ),
-                admin: <AdminActions item={item} />,
-              }}
-            />
+            {viewMode === 'student' && item.type === 'assignment' && (
+              <SubmitButton
+                submissionStatus={
+                  getSubmissionStatus(item.assignment) || 'pending'
+                }
+                onClick={() => {}}
+                dueDate={item.assignment?.dueDate || ''}
+                assignmentStatus={item.assignment?.status || 'open'}
+                isPreview={authUser.role !== 'student'}
+              />
+            )}
+            {viewMode === 'mentor' && <AdminActions item={item} />}
           </Box>
         </Group>
       </Card>
@@ -560,7 +450,7 @@ type CustomAccordionControlProps = {
   totalItemsCount?: number
   overdueItemsCount?: number
   progressPercentage?: number
-  isPreview?: boolean
+  viewMode?: 'student' | 'mentor' | 'admin'
   isSubsection?: boolean
   accordionControlProps?: AccordionControlProps
 } & GroupProps
@@ -572,13 +462,11 @@ function CustomAccordionControl({
   totalItemsCount = 0,
   overdueItemsCount = 0,
   progressPercentage = 0,
-  isPreview = false,
+  viewMode = 'student',
   isSubsection = false,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
-  const { authUser } = useAuth('protected')
-  const role: Role = isPreview ? 'student' : authUser.role
   const theme = useMantineTheme()
 
   return (
@@ -617,7 +505,7 @@ function CustomAccordionControl({
               </Group>
 
               {/* Progress Information */}
-              {totalItemsCount > 0 && (
+              {viewMode === 'student' && totalItemsCount > 0 && (
                 <Box>
                   <Group justify="space-between" mb="xs">
                     <Text size="xs" c="dimmed">
@@ -637,7 +525,7 @@ function CustomAccordionControl({
               )}
 
               {/* Published Date */}
-              {item.published.publishedAt && (
+              {viewMode !== 'student' && item.published.publishedAt && (
                 <Text size="xs" c="dimmed" mt="xs">
                   Published:{' '}
                   {formatTimestampToDateTimeText(
@@ -650,7 +538,7 @@ function CustomAccordionControl({
           </Group>
         </Group>
 
-        {role === 'admin' && <AdminActions item={item} />}
+        {viewMode === 'admin' && <AdminActions item={item} />}
       </Group>
     </Box>
   )
