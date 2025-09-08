@@ -47,7 +47,6 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
-import { useDisclosure } from '@mantine/hooks'
 
 interface ModulePanelProps {
   module: Module
@@ -434,16 +433,16 @@ const AdminActions = ({ item }: AdminActionsProps) => {
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const handleDelete = () => {} //TODO: implement this
-  const [opened, { open, close }] = useDisclosure()
+  const [publishMenuOpen, setPublishMenuOpen] = useState(false)
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
 
   return (
     <Group gap="xs">
       <Menu
         shadow="md"
         width={200}
-        opened={opened}
-        onOpen={open}
-        onClose={close}
+        opened={publishMenuOpen}
+        onClose={() => setPublishMenuOpen(false)}
       >
         <Menu.Target>
           <Tooltip
@@ -455,8 +454,8 @@ const AdminActions = ({ item }: AdminActionsProps) => {
               radius="xl"
               size="lg"
               onClick={(e) => {
+                e.stopPropagation()
                 if (item.published.isPublished) {
-                  e.stopPropagation()
                   navigate({
                     from: '/courses/$courseCode/modules',
                     to: `$itemId/publish`,
@@ -464,7 +463,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
                     search: { scheduled: false, unpublish: true },
                   })
                 } else {
-                  open()
+                  setPublishMenuOpen(true)
                 }
               }}
             >
@@ -480,7 +479,8 @@ const AdminActions = ({ item }: AdminActionsProps) => {
           <Menu.Label>Publish Actions</Menu.Label>
           {!item.published.isPublished && (
             <Menu.Item
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 navigate({
                   from: '/courses/$courseCode/modules',
                   to: `$itemId/publish`,
@@ -501,7 +501,8 @@ const AdminActions = ({ item }: AdminActionsProps) => {
           )}
           {!item.published.isPublished && (
             <Menu.Item
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 navigate({
                   from: '/courses/$courseCode/modules',
                   to: `$itemId/publish`,
@@ -542,9 +543,23 @@ const AdminActions = ({ item }: AdminActionsProps) => {
         </ActionIcon>
       </Tooltip>
 
-      <Menu shadow="md" width={200}>
+      <Menu
+        shadow="md"
+        width={200}
+        opened={actionsMenuOpen}
+        onClose={() => setActionsMenuOpen(false)}
+      >
         <Menu.Target>
-          <ActionIcon variant="light" color="gray" radius="xl" size="lg">
+          <ActionIcon
+            variant="light"
+            color="gray"
+            radius="xl"
+            size="lg"
+            onClick={(e) => {
+              e.stopPropagation()
+              setActionsMenuOpen(true)
+            }}
+          >
             <IconDotsVertical size={16} />
           </ActionIcon>
         </Menu.Target>
@@ -557,7 +572,6 @@ const AdminActions = ({ item }: AdminActionsProps) => {
             }
             onClick={(e) => {
               e.stopPropagation()
-              e.preventDefault()
               navigate({
                 from: '/courses/$courseCode/modules',
                 to: `$itemId/edit`,
