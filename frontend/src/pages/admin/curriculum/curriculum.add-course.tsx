@@ -5,7 +5,6 @@ import {
 } from '@/features/curriculum/schema/add-course.schema'
 import { coursesControllerCreateMutation } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { Route } from '@/routes/(protected)/curriculum/courses/create'
 import {
   ActionIcon,
   Button,
@@ -21,10 +20,13 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconArrowLeft } from '@tabler/icons-react'
+import { getRouteApi } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
+const route = getRouteApi('/(protected)/curriculum/courses/create')
+
 function AddCurriculumCourse() {
-  const navigate = Route.useNavigate()
+  const navigate = route.useNavigate()
 
   const form = useForm<CourseFormInput>({
     mode: 'uncontrolled',
@@ -32,6 +34,7 @@ function AddCurriculumCourse() {
       courseCode: '',
       name: '',
       description: '',
+      type: '',
       units: 0,
       majorIds: [],
     },
@@ -50,17 +53,25 @@ function AddCurriculumCourse() {
         message: 'Successfully added course',
       },
     },
+    {
+      onSuccess: () => {
+        navigate({
+          to: '/curriculum/courses',
+        })
+      },
+    },
   )
 
   const handleFinish = async (values: CourseFormOutput) => {
     if (form.validate().hasErrors) return
-    const { courseCode, name, description, units } = values
+    const { courseCode, name, description, units, type } = values
 
     addCourse({
       body: {
         courseCode,
         name,
         description,
+        type,
         units,
       },
     })
@@ -126,6 +137,26 @@ function AddCurriculumCourse() {
               key={form.key('courseCode')}
               {...form.getInputProps('courseCode')}
             />
+          </Group>
+
+          <Group>
+            <Select
+              variant="filled"
+              label="Type"
+              placeholder="Select type"
+              withAsterisk
+              className="flex-3"
+              data={[
+                { value: 'core', label: 'Core' },
+                { value: 'elective', label: 'Elective' },
+                { value: 'general', label: 'General' },
+                { value: 'major', label: 'Major' },
+                { value: 'specialization', label: 'Specialization' },
+              ]}
+              disabled={isPending}
+              key={form.key('type')}
+              {...form.getInputProps('type')}
+            />
             <NumberInput
               variant="filled"
               label="Units"
@@ -137,25 +168,7 @@ function AddCurriculumCourse() {
               key={form.key('units')}
               {...form.getInputProps('units')}
             />
-          </Group>
-
-          <Group>
-            <Select
-              variant="filled"
-              label="Type"
-              placeholder="Select type"
-              withAsterisk
-              className="flex-1"
-              data={[
-                { value: 'core', label: 'Core' },
-                { value: 'elective', label: 'Elective' },
-                { value: 'general', label: 'General' },
-                { value: 'major', label: 'Major' },
-                { value: 'specialization', label: 'Specialization' },
-              ]}
-              disabled={isPending}
-            />
-            <Select
+            {/* <Select
               variant="filled"
               label="Department"
               placeholder="Select department"
@@ -167,7 +180,7 @@ function AddCurriculumCourse() {
                 { value: 'BA', label: 'Business Administration' },
               ]}
               disabled={isPending}
-            />
+            /> */}
           </Group>
 
           <Textarea
@@ -182,13 +195,13 @@ function AddCurriculumCourse() {
           />
         </Stack>
 
-        <Stack>
+        {/* <Stack>
           <Text fw={500}>Pre-requisites</Text>
         </Stack>
 
         <Stack>
           <Text fw={500}>Co-requisites</Text>
-        </Stack>
+        </Stack> */}
       </Stack>
     </Container>
   )

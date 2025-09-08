@@ -1,4 +1,3 @@
-import { usePaginationSearch } from '@/features/pagination/usePaginationSearch'
 import { curriculumControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Box,
@@ -70,7 +69,7 @@ export default function CurriculumDashboard() {
             <CurriculumCard
               key={curriculum.id}
               id={curriculum.id}
-              code={curriculum.id}
+              code={`${curriculum.program.programCode}-${curriculum.major.majorCode}`}
               program={curriculum.program.name}
               major={curriculum.major.name}
               icon={curriculum.icon}
@@ -111,16 +110,16 @@ function CurriculumCard(props: CurriculumCardProps) {
 
         <Group justify="end" gap="xs">
           <Link
-            to="/curriculum/$curriculumId/edit"
-            params={{ curriculumId: props.code }}
+            to="/curriculum/$curriculumCode/edit"
+            params={{ curriculumCode: props.code }}
           >
             <Button size="xs" variant="outline" radius="lg" px="lg">
               Edit
             </Button>
           </Link>
           <Link
-            to="/curriculum/$curriculumId"
-            params={{ curriculumId: props.code }}
+            to="/curriculum/$curriculumCode"
+            params={{ curriculumCode: props.code }}
           >
             <Button size="xs" radius="lg" px="lg">
               View

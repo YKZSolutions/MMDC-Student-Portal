@@ -28,7 +28,7 @@ import { Route as protectedBillingIndexRouteImport } from './routes/(protected)/
 import { Route as protectedEnrollmentCreateRouteImport } from './routes/(protected)/enrollment/create'
 import { Route as protectedEnrollmentPeriodIdRouteImport } from './routes/(protected)/enrollment/$periodId'
 import { Route as protectedCurriculumCreateRouteImport } from './routes/(protected)/curriculum/create'
-import { Route as protectedCurriculumCurriculumIdRouteImport } from './routes/(protected)/curriculum/$curriculumId'
+import { Route as protectedCurriculumCurriculumCodeRouteImport } from './routes/(protected)/curriculum/$curriculumCode'
 import { Route as protectedCoursesCourseCodeRouteImport } from './routes/(protected)/courses/$courseCode'
 import { Route as protectedBillingRedirectRouteImport } from './routes/(protected)/billing/redirect'
 import { Route as protectedBillingCreateRouteImport } from './routes/(protected)/billing/create'
@@ -38,7 +38,7 @@ import { Route as protectedCurriculumMajorsIndexRouteImport } from './routes/(pr
 import { Route as protectedCurriculumCoursesIndexRouteImport } from './routes/(protected)/curriculum/courses/index'
 import { Route as protectedCurriculumBuilderIndexRouteImport } from './routes/(protected)/curriculum/builder/index'
 import { Route as protectedCurriculumCoursesCreateRouteImport } from './routes/(protected)/curriculum/courses/create'
-import { Route as protectedCurriculumCurriculumIdEditRouteImport } from './routes/(protected)/curriculum/$curriculumId_.edit'
+import { Route as protectedCurriculumCurriculumCodeEditRouteImport } from './routes/(protected)/curriculum/$curriculumCode_.edit'
 import { Route as protectedCoursesCourseCodePublishRouteImport } from './routes/(protected)/courses/$courseCode_.publish'
 import { Route as protectedCoursesCourseCodeEditRouteImport } from './routes/(protected)/courses/$courseCode_.edit'
 import { Route as protectedBillingBillingIdEditRouteImport } from './routes/(protected)/billing/$billingId_.edit'
@@ -150,10 +150,10 @@ const protectedCurriculumCreateRoute =
     path: '/curriculum/create',
     getParentRoute: () => protectedRouteRoute,
   } as any)
-const protectedCurriculumCurriculumIdRoute =
-  protectedCurriculumCurriculumIdRouteImport.update({
-    id: '/curriculum/$curriculumId',
-    path: '/curriculum/$curriculumId',
+const protectedCurriculumCurriculumCodeRoute =
+  protectedCurriculumCurriculumCodeRouteImport.update({
+    id: '/curriculum/$curriculumCode',
+    path: '/curriculum/$curriculumCode',
     getParentRoute: () => protectedRouteRoute,
   } as any)
 const protectedCoursesCourseCodeRoute =
@@ -209,10 +209,10 @@ const protectedCurriculumCoursesCreateRoute =
     path: '/curriculum/courses/create',
     getParentRoute: () => protectedRouteRoute,
   } as any)
-const protectedCurriculumCurriculumIdEditRoute =
-  protectedCurriculumCurriculumIdEditRouteImport.update({
-    id: '/curriculum/$curriculumId_/edit',
-    path: '/curriculum/$curriculumId/edit',
+const protectedCurriculumCurriculumCodeEditRoute =
+  protectedCurriculumCurriculumCodeEditRouteImport.update({
+    id: '/curriculum/$curriculumCode_/edit',
+    path: '/curriculum/$curriculumCode/edit',
     getParentRoute: () => protectedRouteRoute,
   } as any)
 const protectedCoursesCourseCodePublishRoute =
@@ -286,7 +286,7 @@ export interface FileRoutesByFullPath {
   '/billing/create': typeof protectedBillingCreateRoute
   '/billing/redirect': typeof protectedBillingRedirectRoute
   '/courses/$courseCode': typeof protectedCoursesCourseCodeRouteWithChildren
-  '/curriculum/$curriculumId': typeof protectedCurriculumCurriculumIdRoute
+  '/curriculum/$curriculumCode': typeof protectedCurriculumCurriculumCodeRoute
   '/curriculum/create': typeof protectedCurriculumCreateRoute
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/enrollment/create': typeof protectedEnrollmentCreateRoute
@@ -303,7 +303,7 @@ export interface FileRoutesByFullPath {
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/courses/$courseCode/edit': typeof protectedCoursesCourseCodeEditRoute
   '/courses/$courseCode/publish': typeof protectedCoursesCourseCodePublishRoute
-  '/curriculum/$curriculumId/edit': typeof protectedCurriculumCurriculumIdEditRoute
+  '/curriculum/$curriculumCode/edit': typeof protectedCurriculumCurriculumCodeEditRoute
   '/curriculum/courses/create': typeof protectedCurriculumCoursesCreateRoute
   '/curriculum/builder': typeof protectedCurriculumBuilderIndexRoute
   '/curriculum/courses': typeof protectedCurriculumCoursesIndexRoute
@@ -327,7 +327,7 @@ export interface FileRoutesByTo {
   '/billing/create': typeof protectedBillingCreateRoute
   '/billing/redirect': typeof protectedBillingRedirectRoute
   '/courses/$courseCode': typeof protectedCoursesCourseCodeRouteWithChildren
-  '/curriculum/$curriculumId': typeof protectedCurriculumCurriculumIdRoute
+  '/curriculum/$curriculumCode': typeof protectedCurriculumCurriculumCodeRoute
   '/curriculum/create': typeof protectedCurriculumCreateRoute
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/enrollment/create': typeof protectedEnrollmentCreateRoute
@@ -344,7 +344,7 @@ export interface FileRoutesByTo {
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/courses/$courseCode/edit': typeof protectedCoursesCourseCodeEditRoute
   '/courses/$courseCode/publish': typeof protectedCoursesCourseCodePublishRoute
-  '/curriculum/$curriculumId/edit': typeof protectedCurriculumCurriculumIdEditRoute
+  '/curriculum/$curriculumCode/edit': typeof protectedCurriculumCurriculumCodeEditRoute
   '/curriculum/courses/create': typeof protectedCurriculumCoursesCreateRoute
   '/curriculum/builder': typeof protectedCurriculumBuilderIndexRoute
   '/curriculum/courses': typeof protectedCurriculumCoursesIndexRoute
@@ -370,7 +370,7 @@ export interface FileRoutesById {
   '/(protected)/billing/create': typeof protectedBillingCreateRoute
   '/(protected)/billing/redirect': typeof protectedBillingRedirectRoute
   '/(protected)/courses/$courseCode': typeof protectedCoursesCourseCodeRouteWithChildren
-  '/(protected)/curriculum/$curriculumId': typeof protectedCurriculumCurriculumIdRoute
+  '/(protected)/curriculum/$curriculumCode': typeof protectedCurriculumCurriculumCodeRoute
   '/(protected)/curriculum/create': typeof protectedCurriculumCreateRoute
   '/(protected)/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/(protected)/enrollment/create': typeof protectedEnrollmentCreateRoute
@@ -387,7 +387,7 @@ export interface FileRoutesById {
   '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
   '/(protected)/courses/$courseCode_/edit': typeof protectedCoursesCourseCodeEditRoute
   '/(protected)/courses/$courseCode_/publish': typeof protectedCoursesCourseCodePublishRoute
-  '/(protected)/curriculum/$curriculumId_/edit': typeof protectedCurriculumCurriculumIdEditRoute
+  '/(protected)/curriculum/$curriculumCode_/edit': typeof protectedCurriculumCurriculumCodeEditRoute
   '/(protected)/curriculum/courses/create': typeof protectedCurriculumCoursesCreateRoute
   '/(protected)/curriculum/builder/': typeof protectedCurriculumBuilderIndexRoute
   '/(protected)/curriculum/courses/': typeof protectedCurriculumCoursesIndexRoute
@@ -413,7 +413,7 @@ export interface FileRouteTypes {
     | '/billing/create'
     | '/billing/redirect'
     | '/courses/$courseCode'
-    | '/curriculum/$curriculumId'
+    | '/curriculum/$curriculumCode'
     | '/curriculum/create'
     | '/enrollment/$periodId'
     | '/enrollment/create'
@@ -430,7 +430,7 @@ export interface FileRouteTypes {
     | '/billing/$billingId/edit'
     | '/courses/$courseCode/edit'
     | '/courses/$courseCode/publish'
-    | '/curriculum/$curriculumId/edit'
+    | '/curriculum/$curriculumCode/edit'
     | '/curriculum/courses/create'
     | '/curriculum/builder'
     | '/curriculum/courses'
@@ -454,7 +454,7 @@ export interface FileRouteTypes {
     | '/billing/create'
     | '/billing/redirect'
     | '/courses/$courseCode'
-    | '/curriculum/$curriculumId'
+    | '/curriculum/$curriculumCode'
     | '/curriculum/create'
     | '/enrollment/$periodId'
     | '/enrollment/create'
@@ -471,7 +471,7 @@ export interface FileRouteTypes {
     | '/billing/$billingId/edit'
     | '/courses/$courseCode/edit'
     | '/courses/$courseCode/publish'
-    | '/curriculum/$curriculumId/edit'
+    | '/curriculum/$curriculumCode/edit'
     | '/curriculum/courses/create'
     | '/curriculum/builder'
     | '/curriculum/courses'
@@ -496,7 +496,7 @@ export interface FileRouteTypes {
     | '/(protected)/billing/create'
     | '/(protected)/billing/redirect'
     | '/(protected)/courses/$courseCode'
-    | '/(protected)/curriculum/$curriculumId'
+    | '/(protected)/curriculum/$curriculumCode'
     | '/(protected)/curriculum/create'
     | '/(protected)/enrollment/$periodId'
     | '/(protected)/enrollment/create'
@@ -513,7 +513,7 @@ export interface FileRouteTypes {
     | '/(protected)/billing/$billingId_/edit'
     | '/(protected)/courses/$courseCode_/edit'
     | '/(protected)/courses/$courseCode_/publish'
-    | '/(protected)/curriculum/$curriculumId_/edit'
+    | '/(protected)/curriculum/$curriculumCode_/edit'
     | '/(protected)/curriculum/courses/create'
     | '/(protected)/curriculum/builder/'
     | '/(protected)/curriculum/courses/'
@@ -672,11 +672,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedCurriculumCreateRouteImport
       parentRoute: typeof protectedRouteRoute
     }
-    '/(protected)/curriculum/$curriculumId': {
-      id: '/(protected)/curriculum/$curriculumId'
-      path: '/curriculum/$curriculumId'
-      fullPath: '/curriculum/$curriculumId'
-      preLoaderRoute: typeof protectedCurriculumCurriculumIdRouteImport
+    '/(protected)/curriculum/$curriculumCode': {
+      id: '/(protected)/curriculum/$curriculumCode'
+      path: '/curriculum/$curriculumCode'
+      fullPath: '/curriculum/$curriculumCode'
+      preLoaderRoute: typeof protectedCurriculumCurriculumCodeRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/courses/$courseCode': {
@@ -742,11 +742,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedCurriculumCoursesCreateRouteImport
       parentRoute: typeof protectedRouteRoute
     }
-    '/(protected)/curriculum/$curriculumId_/edit': {
-      id: '/(protected)/curriculum/$curriculumId_/edit'
-      path: '/curriculum/$curriculumId/edit'
-      fullPath: '/curriculum/$curriculumId/edit'
-      preLoaderRoute: typeof protectedCurriculumCurriculumIdEditRouteImport
+    '/(protected)/curriculum/$curriculumCode_/edit': {
+      id: '/(protected)/curriculum/$curriculumCode_/edit'
+      path: '/curriculum/$curriculumCode/edit'
+      fullPath: '/curriculum/$curriculumCode/edit'
+      preLoaderRoute: typeof protectedCurriculumCurriculumCodeEditRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/courses/$courseCode_/publish': {
@@ -860,7 +860,7 @@ interface protectedRouteRouteChildren {
   protectedBillingCreateRoute: typeof protectedBillingCreateRoute
   protectedBillingRedirectRoute: typeof protectedBillingRedirectRoute
   protectedCoursesCourseCodeRoute: typeof protectedCoursesCourseCodeRouteWithChildren
-  protectedCurriculumCurriculumIdRoute: typeof protectedCurriculumCurriculumIdRoute
+  protectedCurriculumCurriculumCodeRoute: typeof protectedCurriculumCurriculumCodeRoute
   protectedCurriculumCreateRoute: typeof protectedCurriculumCreateRoute
   protectedEnrollmentPeriodIdRoute: typeof protectedEnrollmentPeriodIdRoute
   protectedEnrollmentCreateRoute: typeof protectedEnrollmentCreateRoute
@@ -877,7 +877,7 @@ interface protectedRouteRouteChildren {
   protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
   protectedCoursesCourseCodeEditRoute: typeof protectedCoursesCourseCodeEditRoute
   protectedCoursesCourseCodePublishRoute: typeof protectedCoursesCourseCodePublishRoute
-  protectedCurriculumCurriculumIdEditRoute: typeof protectedCurriculumCurriculumIdEditRoute
+  protectedCurriculumCurriculumCodeEditRoute: typeof protectedCurriculumCurriculumCodeEditRoute
   protectedCurriculumCoursesCreateRoute: typeof protectedCurriculumCoursesCreateRoute
   protectedCurriculumBuilderIndexRoute: typeof protectedCurriculumBuilderIndexRoute
   protectedCurriculumCoursesIndexRoute: typeof protectedCurriculumCoursesIndexRoute
@@ -890,7 +890,8 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedBillingCreateRoute: protectedBillingCreateRoute,
   protectedBillingRedirectRoute: protectedBillingRedirectRoute,
   protectedCoursesCourseCodeRoute: protectedCoursesCourseCodeRouteWithChildren,
-  protectedCurriculumCurriculumIdRoute: protectedCurriculumCurriculumIdRoute,
+  protectedCurriculumCurriculumCodeRoute:
+    protectedCurriculumCurriculumCodeRoute,
   protectedCurriculumCreateRoute: protectedCurriculumCreateRoute,
   protectedEnrollmentPeriodIdRoute: protectedEnrollmentPeriodIdRoute,
   protectedEnrollmentCreateRoute: protectedEnrollmentCreateRoute,
@@ -908,8 +909,8 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedCoursesCourseCodeEditRoute: protectedCoursesCourseCodeEditRoute,
   protectedCoursesCourseCodePublishRoute:
     protectedCoursesCourseCodePublishRoute,
-  protectedCurriculumCurriculumIdEditRoute:
-    protectedCurriculumCurriculumIdEditRoute,
+  protectedCurriculumCurriculumCodeEditRoute:
+    protectedCurriculumCurriculumCodeEditRoute,
   protectedCurriculumCoursesCreateRoute: protectedCurriculumCoursesCreateRoute,
   protectedCurriculumBuilderIndexRoute: protectedCurriculumBuilderIndexRoute,
   protectedCurriculumCoursesIndexRoute: protectedCurriculumCoursesIndexRoute,

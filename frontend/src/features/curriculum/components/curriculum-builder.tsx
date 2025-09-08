@@ -1,24 +1,18 @@
-// import { IconSelector } from '@/components/icon-selector'
 import {
   ActionIcon,
-  Autocomplete,
   Badge,
   Button,
   Card,
-  Container,
   Drawer,
   Group,
   Stack,
   Text,
-  Textarea,
   TextInput,
   Title,
 } from '@mantine/core'
 import {
-  IconArrowLeft,
   IconBook2,
   IconBookFilled,
-  IconDeviceFloppy,
   IconGripVertical,
   IconMinus,
   IconPlus,
@@ -27,13 +21,12 @@ import {
 } from '@tabler/icons-react'
 import { memo, Suspense, type Dispatch } from 'react'
 import Droppable from '@/integrations/dnd-kit/droppable'
-import { useImmer, type Updater } from 'use-immer'
+import { type Updater } from 'use-immer'
 import Sortable from '@/integrations/dnd-kit/sortable'
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
 import { move } from '@dnd-kit/helpers'
 import Draggable from '@/integrations/dnd-kit/draggable'
 import {
-  mockCourses,
   useCurriculumBuilder,
   type CurriculumCourse,
   type StructureAction,
@@ -237,12 +230,12 @@ function CourseList({
               <CourseCard
                 handleRef={handleRef}
                 isBase
+                {...course}
                 code={course.courseCode}
                 type="Major"
                 department="GE"
                 year={0}
                 semester={0}
-                {...course}
               />
             )}
           </Draggable>

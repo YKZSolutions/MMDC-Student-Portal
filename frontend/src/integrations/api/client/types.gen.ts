@@ -253,6 +253,7 @@ export type CreateCourseDto = {
     name: string;
     description: string;
     units: number;
+    type: string;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
     coreqIds?: Array<string>;
@@ -270,6 +271,8 @@ export type CourseDto = {
     name: string;
     description: string;
     units: number;
+    type: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -292,6 +295,7 @@ export type UpdateCourseDto = {
     name?: string;
     description?: string;
     units?: number;
+    type?: string;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
     coreqIds?: Array<string>;
@@ -502,16 +506,19 @@ export type UpdateBillPaymentDto = {
 };
 
 export type CreateProgramDto = {
-    code: string;
+    programCode: string;
     name: string;
     description: string;
+    yearDuration: number;
 };
 
 export type Program = {
     id: string;
-    code: string;
+    programCode: string;
     name: string;
     description: string;
+    yearDuration: number;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -519,9 +526,11 @@ export type Program = {
 
 export type ProgramDto = {
     id: string;
-    code: string;
+    programCode: string;
     name: string;
     description: string;
+    yearDuration: number;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -534,8 +543,10 @@ export type PaginatedProgramsDto = {
 
 export type MajorItemDto = {
     id: string;
+    majorCode: string;
     name: string;
     description: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -548,9 +559,10 @@ export type PaginatedMajorsDto = {
 };
 
 export type UpdateProgramDto = {
-    code?: string;
+    programCode?: string;
     name?: string;
     description?: string;
+    yearDuration?: number;
 };
 
 export type Turn = {
@@ -568,6 +580,7 @@ export type ChatbotResponseDto = {
 };
 
 export type CreateMajorDto = {
+    majorCode: string;
     name: string;
     description: string;
 };
@@ -579,14 +592,17 @@ export type CreateProgramMajorDto = {
 
 export type MajorDto = {
     id: string;
+    majorCode: string;
     name: string;
     description: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
 };
 
 export type UpdateMajorDto = {
+    majorCode?: string;
     name?: string;
     description?: string;
 };
@@ -594,8 +610,10 @@ export type UpdateMajorDto = {
 export type Major = {
     id: string;
     programId: string;
+    majorCode: string;
     name: string;
     description: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -690,6 +708,10 @@ export type CourseOffering = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+};
+
+export type CreateCourseOfferingCurriculumDto = {
+    curriculumId: string;
 };
 
 export type UserDto = {
@@ -2559,6 +2581,36 @@ export type CourseOfferingControllerCreateCourseOfferingResponses = {
 
 export type CourseOfferingControllerCreateCourseOfferingResponse = CourseOfferingControllerCreateCourseOfferingResponses[keyof CourseOfferingControllerCreateCourseOfferingResponses];
 
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData = {
+    body: CreateCourseOfferingCurriculumDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/curriculum';
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdError = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors];
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses = {
+    201: Array<CourseOffering>;
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponse = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses];
+
 export type CourseOfferingControllerRemoveCourseOfferingData = {
     body?: never;
     path: {
@@ -3025,6 +3077,11 @@ export type CurriculumControllerFindOneData = {
 };
 
 export type CurriculumControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     404: {
         statusCode: number;
         message: string;

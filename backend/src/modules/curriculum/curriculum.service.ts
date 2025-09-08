@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCurriculumWithCoursesDto } from './dto/create-curriculum.dto';
 import { UpdateCurriculumWithCourseDto } from './dto/update-curriculum.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
@@ -13,6 +18,7 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
+import { validate } from 'uuid';
 
 @Injectable()
 export class CurriculumService {
@@ -133,8 +139,25 @@ export class CurriculumService {
       new NotFoundException(`Curriculum with id=${id} was not found`),
   })
   async findOne(@LogParam('id') id: string): Promise<CurriculumWithCoursesDto> {
+    const where: Prisma.CurriculumWhereInput = {};
+
+    if (validate(id)) {
+      where.id = id;
+    } else if (/^[A-Za-z]+-[A-Za-z]+$/.test(id)) {
+      const [programCode, majorCode] = id.split('-');
+
+      where.major = {
+        majorCode,
+        program: {
+          programCode,
+        },
+      };
+    } else {
+      throw new BadRequestException('Invalid id: not a uuid or code format');
+    }
+
     const curriculum = await this.prisma.client.curriculum.findFirstOrThrow({
-      where: { id },
+      where,
       include: {
         major: {
           include: {

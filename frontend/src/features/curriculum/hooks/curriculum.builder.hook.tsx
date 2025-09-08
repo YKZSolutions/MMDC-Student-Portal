@@ -1,5 +1,6 @@
 import { produce } from 'immer'
 import { useImmer, useImmerReducer } from 'use-immer'
+import { useMemo } from 'react'
 
 export interface CurriculumCourse {
   id: string
@@ -13,65 +14,12 @@ export interface CurriculumCourse {
     name: string
     code: string
   }
-  type: 'Core' | 'Elective' | 'General' | 'Major' | 'Specialization'
-  department: 'GE' | 'IT' | 'BA'
+  type: 'Core' | 'Elective' | 'General' | 'Major' | 'Specialization' | string
+  department: 'GE' | 'IT' | 'BA' | string
   units: number
   year: number
   semester: number
 }
-
-export const mockCourses: CurriculumCourse[] = [
-  {
-    id: 'c2',
-    code: 'MO-GE102',
-    name: 'Philippine Popular Culture',
-    type: 'General',
-    department: 'GE',
-    units: 3,
-    year: 1,
-    semester: 1,
-  },
-  {
-    id: 'c3',
-    code: 'MO-IT200D2',
-    name: 'Capstone 2',
-    type: 'Core',
-    department: 'IT',
-    units: 3,
-    year: 1,
-    semester: 2,
-  },
-  {
-    id: 'c4',
-    code: 'MO-IT151',
-    name: 'Platform Technologies',
-    type: 'Major',
-    department: 'IT',
-    units: 3,
-    year: 1,
-    semester: 2,
-  },
-  {
-    id: 'c5',
-    code: 'MO-IT121',
-    name: 'Mobile Develpment',
-    type: 'Major',
-    department: 'IT',
-    units: 3,
-    year: 1,
-    semester: 3,
-  },
-  {
-    id: 'c6',
-    code: 'GE-MATH2',
-    name: 'Discrete Mathematics',
-    type: 'General',
-    department: 'GE',
-    units: 3,
-    year: 2,
-    semester: 1,
-  },
-]
 
 export interface YearStructure {
   year: number
@@ -121,10 +69,11 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
       return action.payload(draft)
     }
     case 'ADD_YEAR': {
-      const nextYear =
-        Math.max(
-          ...Object.keys(draft).map((key) => Number(key.split('-')[0])),
-        ) + 1
+      const years = Object.keys(draft)
+        .map((key) => Number(key.split('-')[0]))
+        .filter((year) => !isNaN(year))
+
+      const nextYear = years.length > 0 ? Math.max(...years) + 1 : 1
 
       draft[`${nextYear}-1`] = []
       draft[`${nextYear}-2`] = []
@@ -133,18 +82,21 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
     }
     case 'DEL_YEAR': {
       const { year } = action.payload
-      for (const key in draft) {
-        if (key.startsWith(`${year}-`)) {
-          delete draft[key]
-        }
-      }
-      const entries = Object.entries(draft)
+
+      const keysToDelete = Object.keys(draft).filter((key) =>
+        key.startsWith(`${year}-`),
+      )
+      keysToDelete.forEach((key) => {
+        delete draft[key]
+      })
+
+      const entries = [...Object.entries(draft)]
       for (const [key, value] of entries) {
         const [y, sem] = key.split('-').map(Number)
         if (y > year) {
           const newKey = `${y - 1}-${sem}`
+          draft[newKey] = [...value]
           delete draft[key]
-          draft[newKey] = value
         }
       }
       break
@@ -165,8 +117,11 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
     }
     case 'DEL_SEM': {
       const { year, sem } = action.payload
+      const yearSemKey = `${year}-${sem}`
 
-      delete draft[`${year}-${sem}`]
+      if (yearSemKey in draft) {
+        delete draft[yearSemKey]
+      }
 
       const remainingInYear = Object.keys(draft).some((k) => {
         const [y] = k.split('-').map(Number)
@@ -183,7 +138,7 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
           .sort((a, b) => a.y - b.y || a.s - b.s)
 
         for (const { y, s, v } of toShiftYears) {
-          draft[`${y - 1}-${s}`] = v
+          draft[`${y - 1}-${s}`] = [...v]
           delete draft[`${y}-${s}`]
         }
       } else {
@@ -196,7 +151,7 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
           .sort((a, b) => a.s - b.s)
 
         for (const { s, v } of toShift) {
-          draft[`${year}-${s - 1}`] = v
+          draft[`${year}-${s - 1}`] = [...v]
           delete draft[`${year}-${s}`]
         }
       }
@@ -204,14 +159,35 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
     }
     case 'ADD_COURSE_DRAG': {
       const { key, course } = action.payload
-      draft[key].push(course)
+
+      if (!(key in draft)) {
+        draft[key] = []
+      }
+
+      if (!draft[key].includes(course)) {
+        draft[key].push(course)
+      }
+
+      Object.keys(draft).forEach((otherKey) => {
+        if (otherKey !== key) {
+          const index = draft[otherKey].indexOf(course)
+          if (index !== -1) {
+            draft[otherKey].splice(index, 1)
+          }
+        }
+      })
+
       break
     }
     case 'DEL_COURSE': {
       const { year, sem, course } = action.payload
-      const index = draft[`${year}-${sem}`].indexOf(course)
-      if (index !== -1) {
-        draft[`${year}-${sem}`].splice(index, 1)
+      const key = `${year}-${sem}`
+
+      if (key in draft) {
+        const index = draft[key].indexOf(course)
+        if (index !== -1) {
+          draft[key].splice(index, 1)
+        }
       }
       break
     }
@@ -221,9 +197,34 @@ const reducer = (draft: Record<string, string[]>, action: StructureAction) => {
   }
 }
 
-export const useCurriculumBuilder = () => {
-  const [currentCourses, setCurrentCourses] = useImmer<CurriculumCourse[]>([])
-  const [sortables, dispatch] = useImmerReducer(reducer, initialSortable)
+export const useCurriculumBuilder = (initialCourses?: CurriculumCourse[]) => {
+  const [currentCourses, setCurrentCourses] = useImmer<CurriculumCourse[]>(
+    initialCourses || [],
+  )
+
+  const initialStructure = useMemo(() => {
+    if (!initialCourses || initialCourses.length === 0) {
+      return initialSortable
+    }
+
+    const structure = { ...initialSortable }
+
+    initialCourses.forEach((course) => {
+      const key = `${course.year}-${course.semester}`
+
+      if (!structure[key]) {
+        structure[key] = []
+      }
+
+      if (!structure[key].includes(course.code)) {
+        structure[key].push(course.code)
+      }
+    })
+
+    return structure
+  }, [])
+
+  const [sortables, dispatch] = useImmerReducer(reducer, initialStructure)
 
   const courses: Record<string, CurriculumCourse[]> = Object.fromEntries(
     Object.entries(sortables).map(([key, codes]) => [
@@ -255,6 +256,9 @@ export const useCurriculumBuilder = () => {
 
   const structure = produce(transformed, (draft) => {
     draft.sort((a, b) => a.year - b.year)
+    draft.forEach((year) => {
+      year.semesters.sort((a, b) => a - b)
+    })
   })
 
   return {

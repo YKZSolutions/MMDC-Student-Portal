@@ -22,19 +22,21 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useRouter } from '@tanstack/react-router'
 
-const route = getRouteApi('/(protected)/curriculum/$curriculumId')
+const route = getRouteApi('/(protected)/curriculum/$curriculumCode')
 
 export default function CurriculumView() {
   const router = useRouter()
-  const { curriculumId } = route.useParams()
+  const { curriculumCode } = route.useParams()
 
   const { data: data } = useSuspenseQuery(
-    curriculumControllerFindOneOptions({ path: { id: curriculumId } }),
+    curriculumControllerFindOneOptions({
+      path: { id: curriculumCode },
+    }),
   )
 
   const curriculum = data.curriculum
   const courses = data.courses
-  console.log(data)
+
   const years = Math.max(...courses.map((item) => item.year))
   const sems = Math.max(...courses.map((item) => item.semester))
   const units = courses.reduce((acc, curr) => acc + curr.course.units, 0)

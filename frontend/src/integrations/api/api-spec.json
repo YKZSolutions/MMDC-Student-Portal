@@ -6113,6 +6113,127 @@
         ]
       }
     },
+    "/enrollments/{enrollmentId}/curriculum": {
+      "post": {
+        "description": "Requires `ADMIN` role.",
+        "operationId": "CourseOfferingController_createCourseOfferingsByCurriculumId",
+        "parameters": [
+          {
+            "name": "enrollmentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCourseOfferingCurriculumDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseOffering"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Creates a course offerings given a curriculum",
+        "tags": [
+          "CourseOffering"
+        ]
+      }
+    },
     "/enrollments/{enrollmentId}/offerings/{offeringId}": {
       "get": {
         "description": "Requires `ADMIN` role.",
@@ -7684,7 +7805,7 @@
     },
     "/curriculum/{id}": {
       "get": {
-        "description": "Fetch the curriculum details and the courses attached to it",
+        "description": "Fetch the curriculum details and the courses attached to it.\nCan find by id or find by code with a format of (programCode-majorCode)",
         "operationId": "CurriculumController_findOne",
         "parameters": [
           {
@@ -7706,6 +7827,44 @@
                 }
               }
             }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
           },
           "404": {
             "content": {
@@ -8992,6 +9151,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "type": {
+            "type": "string"
+          },
           "majorIds": {
             "type": "array",
             "items": {
@@ -9018,7 +9180,8 @@
           "courseCode",
           "name",
           "description",
-          "units"
+          "units",
+          "type"
         ]
       },
       "CourseRelationDto": {
@@ -9058,6 +9221,12 @@
           "units": {
             "type": "integer",
             "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -9103,6 +9272,8 @@
           "name",
           "description",
           "units",
+          "type",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt",
@@ -9152,6 +9323,9 @@
           "units": {
             "type": "integer",
             "format": "int32"
+          },
+          "type": {
+            "type": "string"
           },
           "majorIds": {
             "type": "array",
@@ -9971,7 +10145,7 @@
       "CreateProgramDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -9979,12 +10153,17 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "required": [
-          "code",
+          "programCode",
           "name",
-          "description"
+          "description",
+          "yearDuration"
         ]
       },
       "Program": {
@@ -9993,7 +10172,7 @@
           "id": {
             "type": "string"
           },
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -10001,6 +10180,13 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10018,9 +10204,11 @@
         },
         "required": [
           "id",
-          "code",
+          "programCode",
           "name",
           "description",
+          "yearDuration",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -10032,7 +10220,7 @@
           "id": {
             "type": "string"
           },
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -10040,6 +10228,13 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10057,9 +10252,11 @@
         },
         "required": [
           "id",
-          "code",
+          "programCode",
           "name",
           "description",
+          "yearDuration",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -10095,11 +10292,17 @@
           "id": {
             "type": "string"
           },
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
           "description": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10120,8 +10323,10 @@
         },
         "required": [
           "id",
+          "majorCode",
           "name",
           "description",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt",
@@ -10155,7 +10360,7 @@
       "UpdateProgramDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "programCode": {
             "type": "string"
           },
           "name": {
@@ -10163,6 +10368,10 @@
           },
           "description": {
             "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -10217,6 +10426,9 @@
       "CreateMajorDto": {
         "type": "object",
         "properties": {
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
@@ -10225,6 +10437,7 @@
           }
         },
         "required": [
+          "majorCode",
           "name",
           "description"
         ]
@@ -10251,11 +10464,17 @@
           "id": {
             "type": "string"
           },
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
           "description": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10273,8 +10492,10 @@
         },
         "required": [
           "id",
+          "majorCode",
           "name",
           "description",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -10283,6 +10504,9 @@
       "UpdateMajorDto": {
         "type": "object",
         "properties": {
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
@@ -10300,11 +10524,17 @@
           "programId": {
             "type": "string"
           },
+          "majorCode": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
           "description": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -10323,8 +10553,10 @@
         "required": [
           "id",
           "programId",
+          "majorCode",
           "name",
           "description",
+          "isActive",
           "createdAt",
           "updatedAt",
           "deletedAt"
@@ -10711,6 +10943,18 @@
           "createdAt",
           "updatedAt",
           "deletedAt"
+        ]
+      },
+      "CreateCourseOfferingCurriculumDto": {
+        "type": "object",
+        "properties": {
+          "curriculumId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "curriculumId"
         ]
       },
       "UserDto": {

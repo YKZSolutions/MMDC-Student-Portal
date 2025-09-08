@@ -9,7 +9,8 @@ export const courseFormSchema = z.object({
   courseCode: zodCourseCreate.courseCode.nonempty('Course should have a code'),
   name: zodCourseCreate.name.nonempty('Name should not be empty'),
   description: zodCourseCreate.description,
-  units: nullableInput(zodCourseCreate.units, 'Employee number is required'),
+  units: nullableInput(zodCourseCreate.units, 'Units are required'),
+  type: nullableInput(zodCourseCreate.type, 'Type is required'),
   // majorIds: nullableInput(
   //   zodCourseCreate.majorIds,
   //   'Employee number is required',

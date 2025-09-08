@@ -8,8 +8,12 @@ import {
 } from '@/features/curriculum/schema/add-curriculum.schema'
 import {
   curriculumControllerCreateMutation,
+  curriculumControllerFindOneOptions,
+  curriculumControllerUpdateMutation,
+  majorControllerFindOneOptions,
   programControllerFindAllMajorsOptions,
   programControllerFindAllOptions,
+  programControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import {
@@ -24,35 +28,61 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconArrowLeft, IconDeviceFloppy } from '@tabler/icons-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 
-const route = getRouteApi('/(protected)/curriculum/create')
+const route = getRouteApi('/(protected)/curriculum/$curriculumCode_/edit')
 
-function CurriculumCreate() {
+export default function CurriculumUpdate() {
+  const { curriculumCode } = route.useParams()
+
+  const { data: data } = useSuspenseQuery(
+    curriculumControllerFindOneOptions({
+      path: { id: curriculumCode },
+    }),
+  )
+
+  const curriculum = data.curriculum
+  const courses = data.courses
+
   const navigate = route.useNavigate()
-  const { currentCourses, ...builder } = useCurriculumBuilder()
+  const { currentCourses, ...builder } = useCurriculumBuilder(
+    courses.map((item) => {
+      const { course, ...currCourse } = item
+      return {
+        ...course,
+        code: course.courseCode,
+        type: course.type,
+        department: 'GE',
+        units: course.units,
+        year: currCourse.year,
+        semester: currCourse.semester,
+      }
+    }),
+  )
   console.log(builder.courses)
+
   const form = useForm<CurriculumFormInput>({
     mode: 'uncontrolled',
     initialValues: {
-      program: null,
-      major: null,
-      description: '',
+      program: curriculum.program.id,
+      major: curriculum.major.id,
+      description: curriculum.description || '',
     },
     validate: zod4Resolver(curriculumFormSchema),
   })
 
-  const { mutate: addCurriculum, isPending } = useAppMutation(
-    curriculumControllerCreateMutation,
+  const { mutate: updateCurriculum, isPending } = useAppMutation(
+    curriculumControllerUpdateMutation,
     {
       loading: {
-        title: 'Adding Course',
-        message: 'Adding course',
+        title: 'Updating Curriculum',
+        message: 'Updating curriculum',
       },
       success: {
-        title: 'Added Course',
-        message: 'Successfully added course',
+        title: 'Updated Curriculum',
+        message: 'Successfully updated curriculum',
       },
     },
     {
@@ -76,7 +106,8 @@ function CurriculumCreate() {
       semester: course.semester,
     }))
 
-    addCurriculum({
+    updateCurriculum({
+      path: { id: curriculum.id },
       body: {
         majorId,
         curriculum: {
@@ -137,6 +168,14 @@ function CurriculumCreate() {
             withAsterisk
             className="flex-1"
             preloadOptions
+            initialValue={form.getValues().program || undefined}
+            getItemById={(id) =>
+              programControllerFindOneOptions({ path: { id } })
+            }
+            mapItem={(program) => ({
+              value: program.id,
+              label: program.name,
+            })}
             getOptions={(search) =>
               programControllerFindAllOptions({ query: { search } })
             }
@@ -163,6 +202,14 @@ function CurriculumCreate() {
             withAsterisk
             className="flex-1"
             preloadOptions
+            initialValue={form.getValues().major || undefined}
+            getItemById={(id) =>
+              majorControllerFindOneOptions({ path: { id } })
+            }
+            mapItem={(program) => ({
+              value: program.id,
+              label: program.name,
+            })}
             getOptions={(search) =>
               programControllerFindAllMajorsOptions({
                 path: { programId: form.getValues().program || '' },
@@ -198,5 +245,3 @@ function CurriculumCreate() {
     </Container>
   )
 }
-
-export default CurriculumCreate

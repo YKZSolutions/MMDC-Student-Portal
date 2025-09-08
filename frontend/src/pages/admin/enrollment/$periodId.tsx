@@ -14,6 +14,7 @@ import {
 } from '@/integrations/api/client'
 import {
   courseOfferingControllerCreateCourseOfferingMutation,
+  courseOfferingControllerCreateCourseOfferingsByCurriculumIdMutation,
   courseOfferingControllerFindCourseOfferingsByPeriodOptions,
   courseOfferingControllerFindCourseOfferingsByPeriodQueryKey,
   courseOfferingControllerRemoveCourseOfferingMutation,
@@ -46,6 +47,7 @@ import {
   Group,
   Loader,
   LoadingOverlay,
+  Menu,
   MultiSelect,
   NumberInput,
   Pagination,
@@ -67,9 +69,11 @@ import { modals } from '@mantine/modals'
 import {
   IconArrowLeft,
   IconBook,
+  IconChevronDown,
   IconFilter2,
   IconPencil,
   IconPlus,
+  IconSchool,
   IconSearch,
   IconTrash,
   IconX,
@@ -217,6 +221,55 @@ function EnrollmentPeriodIdPage() {
     })
   }
 
+  const { mutateAsync: addCurriculum, isPending: addCurriculumIsPending } =
+    useAppMutation(
+      courseOfferingControllerCreateCourseOfferingsByCurriculumIdMutation,
+      {
+        loading: {
+          title: 'Adding course offering',
+          message: 'Please wait while the course offering is being added.',
+        },
+        success: {
+          title: 'Course Offering Added',
+          message: 'The course offering has been added.',
+        },
+        error: {
+          title: 'Failed',
+          message: 'Something went wrong while adding the course offering.',
+        },
+      },
+      {
+        onSuccess: async () => {
+          const allOfferingsKey =
+            courseOfferingControllerFindCourseOfferingsByPeriodQueryKey({
+              path: { enrollmentId: periodId },
+            })
+
+          const enrollmentKey = enrollmentControllerFindOneEnrollmentQueryKey({
+            path: { enrollmentId: periodId },
+          })
+
+          // cancel outgoing refetches
+          await queryClient.cancelQueries({ queryKey: allOfferingsKey })
+          await queryClient.cancelQueries({ queryKey: enrollmentKey })
+
+          await queryClient.invalidateQueries({ queryKey: allOfferingsKey })
+          await queryClient.invalidateQueries({ queryKey: enrollmentKey })
+        },
+      },
+    )
+
+  const handleSelectCurriculum = async (curriculumId: string) => {
+    await addCurriculum({
+      body: {
+        curriculumId: curriculumId,
+      },
+      path: {
+        enrollmentId: periodId,
+      },
+    })
+  }
+
   return (
     <Container size={'md'} pb={'lg'}>
       <Stack>
@@ -333,26 +386,54 @@ function EnrollmentPeriodIdPage() {
                   </Stack>
                 </Popover.Dropdown>
               </Popover>
-              <Button
-                variant="filled"
-                radius={'md'}
-                leftSection={<IconPlus size={20} />}
-                lts={rem(0.25)}
-                onClick={() =>
-                  modals.openContextModal({
-                    modal: 'enrollmentCourseCreate',
-                    innerProps: {
-                      onSelect: handleSelectCourseOffering,
-                    },
-                  })
-                }
+              <Button.Group
                 w={{
                   xs: 'auto',
                   base: '100%',
                 }}
               >
-                Create
-              </Button>
+                <Button
+                  variant="filled"
+                  // radius={'md'}
+                  leftSection={<IconPlus size={20} />}
+                  lts={rem(0.25)}
+                  onClick={() =>
+                    modals.openContextModal({
+                      modal: 'enrollmentCourseCreate',
+                      innerProps: {
+                        onSelect: handleSelectCourseOffering,
+                      },
+                    })
+                  }
+                  fullWidth
+                  mr={1}
+                >
+                  Create
+                </Button>
+                <Menu position="bottom-end" width={200} withinPortal>
+                  <Menu.Target>
+                    <Button variant="filled" px={4}>
+                      <IconChevronDown size={22} stroke={1.5} />
+                    </Button>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={<IconSchool size={16} />}
+                      onClick={() =>
+                        modals.openContextModal({
+                          modal: 'enrollmentCurriculumAdd',
+                          innerProps: {
+                            onSelect: handleSelectCurriculum,
+                          },
+                        })
+                      }
+                    >
+                      Add curriculum
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Button.Group>
             </Flex>
           </Group>
 

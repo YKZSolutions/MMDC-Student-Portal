@@ -52,7 +52,7 @@ export class ProgramService {
   @PrismaError({
     [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
       new ConflictException(
-        `Program creation failed: code=${dto.code} or name=${dto.name} already exists`,
+        `Program creation failed: code=${dto.programCode} or name=${dto.name} already exists`,
       ),
     [PrismaErrorCode.TransactionDeadlock]: () =>
       new InternalServerErrorException(
@@ -116,7 +116,7 @@ export class ProgramService {
             name: { contains: term, mode: Prisma.QueryMode.insensitive },
           },
           {
-            code: { contains: term, mode: Prisma.QueryMode.insensitive },
+            programCode: { contains: term, mode: Prisma.QueryMode.insensitive },
           },
         ],
       }));
