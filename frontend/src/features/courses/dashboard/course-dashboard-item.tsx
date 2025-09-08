@@ -232,7 +232,8 @@ const CourseCardActionButton = ({
       radius="xl"
       variant="filled"
       disabled={authUser.role === 'student' ? !currentMeeting : false}
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation()
         authUser.role === 'student'
           ? window.open(currentMeeting?.meetingLink!, '_blank')
           : navigate({
