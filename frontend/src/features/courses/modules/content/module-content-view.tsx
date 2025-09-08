@@ -14,12 +14,15 @@ import {
   Button,
   Card,
   Container,
+  FileInput,
   Flex,
   Group,
   Paper,
   Progress,
   Stack,
   Text,
+  Textarea,
+  TextInput,
   Timeline,
   Title,
 } from '@mantine/core'
@@ -30,10 +33,14 @@ import {
   IconChevronRight,
   IconDownload,
   IconEdit,
+  IconExternalLink,
   IconFileText,
+  IconLink,
+  IconUpload,
 } from '@tabler/icons-react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { Link } from '@tanstack/react-router'
+import { useState } from 'react'
 
 interface ModuleContentViewProps {
   moduleItem: ModuleItem
@@ -82,6 +89,10 @@ const ModuleContentView = ({
           />
 
           <ContentArea moduleItem={moduleItem} editor={editor} />
+
+          {moduleItem.type === 'assignment' && moduleItem.assignment && (
+            <EmbeddedSubmissionBox assignmentItem={moduleItem} />
+          )}
 
           {/* Continue Button */}
           {nextItem && !isPreview && (
@@ -330,9 +341,100 @@ const Sidebar = ({
   )
 }
 
-/* ---------------------------------------------------
-   Helpers
---------------------------------------------------- */
+const EmbeddedSubmissionBox = ({
+  assignmentItem,
+}: {
+  assignmentItem: ModuleItem
+}) => {
+  const [file, setFile] = useState<File | null>(null)
+  const [link, setLink] = useState('')
+  const [comments, setComments] = useState('')
+
+  const submitted =
+    assignmentItem.assignment && 'submissionStatus' in assignmentItem.assignment
+      ? assignmentItem.assignment?.submissionStatus === 'submitted'
+      : false
+
+  return (
+    <Card shadow="sm" radius="md" mt="lg" p="md">
+      <Stack>
+        {/* Header */}
+        <Group justify="space-between">
+          <Text fw={500}>Submission</Text>
+          {submitted ? (
+            <Badge color="green">Submitted</Badge>
+          ) : (
+            <Badge color="red" variant="light">
+              Not Submitted
+            </Badge>
+          )}
+        </Group>
+
+        {/* Not Submitted State */}
+        {!submitted ? (
+          <>
+            {/* File Upload */}
+            <FileInput
+              placeholder="Attach a file"
+              leftSection={<IconUpload size={16} />}
+              value={file}
+              onChange={setFile}
+            />
+
+            {/* Link Submission */}
+            <TextInput
+              placeholder="https://example.com/your-work"
+              label="Submit a link"
+              leftSection={<IconLink size={16} />}
+              value={link}
+              onChange={(e) => setLink(e.currentTarget.value)}
+            />
+
+            {/* Comments */}
+            <Textarea
+              placeholder="Add a description or comments (optional)"
+              label="Comments"
+              minRows={3}
+              value={comments}
+              onChange={(e) => setComments(e.currentTarget.value)}
+            />
+
+            {/* Actions */}
+            <Group justify="flex-end">
+              <Button variant="light">Quick Submit</Button>
+              <Link
+                from={'/courses/$courseCode/modules'}
+                to={`$itemId/submit`}
+                params={{ itemId: assignmentItem.id }}
+              >
+                <Button rightSection={<IconExternalLink size={16} />}>
+                  Go to Submission Page
+                </Button>
+              </Link>
+            </Group>
+          </>
+        ) : (
+          // Submitted State
+          <Group justify="flex-end">
+            <Link
+              from={'/courses/$courseCode/modules'}
+              to={`$itemId/submit`}
+              params={{ itemId: assignmentItem.id }}
+            >
+              <Button
+                variant="light"
+                rightSection={<IconExternalLink size={16} />}
+              >
+                View Submission
+              </Button>
+            </Link>
+          </Group>
+        )}
+      </Stack>
+    </Card>
+  )
+}
+
 function getFlatItems(sections: ModuleSection[]): ModuleItem[] {
   let items: ModuleItem[] = []
   sections.forEach((s) => {

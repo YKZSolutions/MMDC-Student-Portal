@@ -17,8 +17,16 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
-import { getCompletedItemsCount, getOverdueItemsCount, getSubmissionStatus, } from '@/utils/helpers.ts'
-import type { Module, ModuleItem, ModuleSection, } from '@/features/courses/modules/types.ts'
+import {
+  getCompletedItemsCount,
+  getOverdueItemsCount,
+  getSubmissionStatus,
+} from '@/utils/helpers.ts'
+import type {
+  Module,
+  ModuleItem,
+  ModuleSection,
+} from '@/features/courses/modules/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SubmitButton from '@/components/submit-button.tsx'

@@ -118,13 +118,13 @@ const CourseAssignments = () => {
 
 const StudentAssignments = ({ activeTab }: { activeTab: string }) => {
   const [data, setData] = useState<StudentAssignment[]>(mockStudentAssignments)
-  const [filteredData, setFilteredData] =
-    useState<StudentAssignment[]>()
+  const [filteredData, setFilteredData] = useState<StudentAssignment[]>()
 
   useEffect(() => {
-    const assignments = activeTab === 'todo'
-      ? data.filter((a) => a.submissionStatus === 'pending')
-      : data.filter((a) => a.submissionStatus === 'graded')
+    const assignments =
+      activeTab === 'todo'
+        ? data.filter((a) => a.submissionStatus === 'pending')
+        : data.filter((a) => a.submissionStatus === 'graded')
     setFilteredData(assignments)
   }, [activeTab, data])
 
@@ -217,7 +217,7 @@ const AdminAssignments = ({ activeTab }: { activeTab: string }) => {
     mockAssignmentSubmissionReports,
   )
   const [filteredData, setFilteredData] =
-    useState<AssignmentSubmissionReport[]>()
+    useState<AssignmentSubmissionReport[]>(data)
 
   return (
     <Stack>
