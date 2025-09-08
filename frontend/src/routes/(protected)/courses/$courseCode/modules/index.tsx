@@ -1,14 +1,18 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { mockModule } from '@/features/courses/mocks.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { useState } from 'react'
-import { Button, Group, Stack, Title } from '@mantine/core'
+import React, { useState } from 'react'
+import { Badge, Button, Group, Stack, Text, Title } from '@mantine/core'
 import {
   IconPlus,
   IconViewportShort,
   IconViewportTall,
 } from '@tabler/icons-react'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import {
+  getModuleItemsFromModule,
+  getOverdueItemsCount,
+} from '@/utils/helpers.ts'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseCode/modules/',
@@ -31,11 +35,34 @@ function RouteComponent() {
     setAllExpanded((prev) => !prev)
   }
 
+  const allItems = getModuleItemsFromModule(module)
+  const overdueItems = getOverdueItemsCount(allItems)
+
   return (
     <Stack gap={'md'} p={'md'}>
       {/*Header*/}
       <Group justify="space-between" align="center">
-        <Title>Modules</Title>
+        <Group gap="sm" align="center">
+          <div>
+            <Title order={3} size="h4">
+              {module.courseName}
+            </Title>
+            <Text size="sm" c="dimmed">
+              {module.courseCode} • {module.courseSection}
+            </Text>
+          </div>
+          <Badge
+            variant="light"
+            color={module.published.isPublished ? 'green' : 'orange'}
+          >
+            {module.published.isPublished ? 'Published' : 'Draft'}
+          </Badge>
+          {overdueItems > 0 && (
+            <Badge variant="light" color="red">
+              {overdueItems} Overdue
+            </Badge>
+          )}
+        </Group>
         <Group align="center">
           <Button
             onClick={toggleExpandAll}

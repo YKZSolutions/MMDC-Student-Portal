@@ -34,7 +34,6 @@ import {
   IconVideo,
 } from '@tabler/icons-react'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
-import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import CourseDashboardQuickActions from '@/features/courses/dashboard/course-dashboard-quick-actions.tsx'
 import {
   type FilterInputType,
@@ -49,6 +48,7 @@ import {
   mockEnrolledCourse,
   mockTerms,
 } from '@/features/courses/mocks.ts'
+import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 
 export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
@@ -63,7 +63,7 @@ export const courseFilterConfig: FilterConfig<Course | EnrolledCourse> = {
     if ('programs' in course) {
       // Course
       const programCodes = course.programs.map((program) => program.programCode)
-      return programCodes.includes(value)
+      return programCodes.map((code) => code.toLowerCase()).includes(value)
     }
     return false
   },
@@ -117,14 +117,11 @@ function RouteComponent() {
       options: [
         { label: 'Current', value: 'current' },
         ...(authUser?.role === 'student'
-          ? []
-          : coursesData.map((course) =>
+          ? coursesData.map((course) =>
               'academicTerm' in course
                 ? createFilterOption(formatTerm(course.academicTerm))
                 : { label: '', value: '' },
-            )),
-        ...(authUser?.role !== 'student'
-          ? []
+            )
           : academicTerms.map((term) => createFilterOption(formatTerm(term)))),
       ],
     },
@@ -187,14 +184,27 @@ function RouteComponent() {
             gap={'md'}
             style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
           >
-            {filteredData.map((course, index) => (
-              <CourseItem
-                url={`/courses/${course.courseCode}`}
-                key={index}
-                course={course}
-                variant={view}
-              />
-            ))}
+            {filteredData.map((course, index) =>
+              view === 'grid' ? (
+                <CourseCard
+                  key={index}
+                  url={`/courses/${course.courseCode}`}
+                  course={course}
+                  currentMeeting={
+                    useCurrentMeeting(course as EnrolledCourse).currentMeeting
+                  }
+                />
+              ) : (
+                <CourseListRow
+                  key={index}
+                  url={`/courses/${course.courseCode}`}
+                  course={course}
+                  currentMeeting={
+                    useCurrentMeeting(course as EnrolledCourse).currentMeeting
+                  }
+                />
+              ),
+            )}
           </Group>
           {/*Upcoming Tasks*/}
           {authUser.role === 'student' && (
@@ -384,28 +394,13 @@ const CourseDashboardFilters = ({
   )
 }
 
-const CourseItem = ({
-  url,
-  course,
-  variant,
-}: {
-  url: string
-  course: Course | EnrolledCourse
-  variant: 'grid' | 'list'
-}) => {
-  return variant === 'grid' ? (
-    <CourseCard url={url} course={course} />
-  ) : (
-    <CourseListRow url={url} course={course} />
-  )
-}
-
 interface CourseDetailProps {
   course: Course | EnrolledCourse
+  currentMeeting?: ClassMeeting
   url: string
 }
 
-const CourseCard = ({ course, url }: CourseDetailProps) => {
+const CourseCard = ({ course, currentMeeting, url }: CourseDetailProps) => {
   const theme = useMantineTheme()
   return (
     <Card
@@ -436,7 +431,8 @@ const CourseCard = ({ course, url }: CourseDetailProps) => {
           bg="black"
           opacity={0.75}
         >
-          {course.courseCode} • {course.courseName}
+          {course.courseCode}
+          {'section' in course && ` • ${course.section.sectionName}`}
         </Text>
       </Flex>
       {/*Course Details*/}
@@ -463,9 +459,7 @@ const CourseCard = ({ course, url }: CourseDetailProps) => {
             )}
           </Stack>
           <CourseCardActionButton
-            currentMeeting={
-              useCurrentMeeting(course as EnrolledCourse).currentMeeting
-            }
+            currentMeeting={currentMeeting}
             courseCode={course.courseCode}
           />
           <Group justify="space-between">
@@ -501,7 +495,7 @@ const CourseCard = ({ course, url }: CourseDetailProps) => {
   )
 }
 
-const CourseListRow = ({ course, url }: CourseDetailProps) => {
+const CourseListRow = ({ course, currentMeeting, url }: CourseDetailProps) => {
   const theme = useMantineTheme()
 
   return (
@@ -538,9 +532,7 @@ const CourseListRow = ({ course, url }: CourseDetailProps) => {
         </Stack>
         <Stack w={'30%'} p={'xs'} justify={'space-between'}>
           <CourseCardActionButton
-            currentMeeting={
-              useCurrentMeeting(course as EnrolledCourse).currentMeeting
-            }
+            currentMeeting={currentMeeting}
             courseCode={course.courseCode}
           />
           <Group gap="xs">
@@ -584,11 +576,13 @@ const CourseCardActionButton = ({
       variant="filled"
       disabled={authUser.role === 'student' ? !currentMeeting : false}
       onClick={() => {
-        navigate({
-          from: '/courses/$courseCode',
-          to: 'edit',
-          params: { courseCode },
-        })
+        authUser.role === 'student'
+          ? window.open(currentMeeting?.meetingLink!, '_blank')
+          : navigate({
+              from: '/courses/$courseCode',
+              to: 'edit',
+              params: { courseCode },
+            })
       }}
     >
       {authUser.role === 'student'
