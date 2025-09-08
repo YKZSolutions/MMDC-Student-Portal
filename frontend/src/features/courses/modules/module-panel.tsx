@@ -2,14 +2,11 @@ import {
   Accordion,
   type AccordionControlProps,
   ActionIcon,
-  Alert,
   Badge,
   Box,
   Card,
-  Flex,
   Group,
   type GroupProps,
-  Indicator,
   Menu,
   Progress,
   Stack,
@@ -31,15 +28,12 @@ import type {
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { CompletedStatusIcon } from '@/components/icon-selector.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import SubmitButton from '@/components/submit-button.tsx'
 import {
-  IconAlertCircle,
   IconCalendarTime,
   IconChartBar,
   IconClipboard,
-  IconClock,
   IconDotsVertical,
   IconEdit,
   IconExternalLink,
@@ -51,9 +45,8 @@ import {
   IconRubberStamp,
   IconRubberStampOff,
   IconTrash,
-  IconUsers,
 } from '@tabler/icons-react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useDisclosure } from '@mantine/hooks'
 
 interface ModulePanelProps {
@@ -203,41 +196,7 @@ interface ModuleItemCardProps {
 
 const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
-  const theme = useMantineTheme()
-
-  const getContentTypeIcon = (type: string) => {
-    switch (type) {
-      case 'lesson':
-        return <IconFileText size={18} />
-      case 'assignment':
-        return <IconClipboard size={18} />
-      case 'discussion':
-        return <IconMessageCircle size={18} />
-      case 'url':
-        return <IconExternalLink size={18} />
-      case 'file':
-        return <IconFile size={18} />
-      default:
-        return <IconFileText size={18} />
-    }
-  }
-
-  const getContentTypeColor = (type: string) => {
-    switch (type) {
-      case 'lesson':
-        return 'blue'
-      case 'assignment':
-        return 'orange'
-      case 'discussion':
-        return 'green'
-      case 'url':
-        return 'cyan'
-      case 'file':
-        return 'gray'
-      default:
-        return 'gray'
-    }
-  }
+  const navigate = useNavigate()
 
   const isOverdue =
     item.type === 'assignment' && item.assignment?.dueDate
@@ -252,202 +211,133 @@ const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
           getSubmissionStatus(item.assignment) || '',
         )
 
+  const getContentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'lesson':
+        return <IconFileText size={16} />
+      case 'assignment':
+        return <IconClipboard size={16} />
+      case 'discussion':
+        return <IconMessageCircle size={16} />
+      case 'url':
+        return <IconExternalLink size={16} />
+      case 'file':
+        return <IconFile size={16} />
+      default:
+        return <IconFileText size={16} />
+    }
+  }
+
   return (
-    <Link
-      from={'/courses/$courseCode/modules'}
-      to={`$itemId`}
-      params={{ itemId: item.id }}
+    <Card
+      withBorder
+      radius="md"
+      p="sm"
+      style={{
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      }}
+      onClick={(e) => {
+        e.stopPropagation()
+        navigate({
+          from: '/courses/$courseCode/modules',
+          to: `$itemId`,
+          params: { itemId: item.id },
+        })
+      }}
     >
-      <Card
-        withBorder
-        radius="md"
-        p="md"
-        style={{
-          cursor: 'pointer',
-          borderLeft: `4px solid ${
-            isOverdue
-              ? theme.colors.red[5]
-              : isCompleted
-                ? theme.colors.green[5]
-                : theme.colors[getContentTypeColor(item.type)][5]
-          }`,
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: theme.shadows.md,
-          },
-        }}
-        bg={'background'}
-      >
-        <Group justify="space-between" align="flex-start">
-          <Flex gap="sm" flex={1}>
-            {/* Status Indicator */}
-            {viewMode === 'student' && (
-              <Box mt={2}>
-                <CompletedStatusIcon
-                  status={
-                    item.type === 'lesson'
-                      ? item.progress?.isCompleted
-                        ? 'read'
-                        : 'unread'
-                      : getSubmissionStatus(item.assignment)
-                  }
-                />
-              </Box>
-            )}
+      <Group align="center" justify="space-between" wrap="nowrap">
+        {/* Icon + Title */}
+        <Group align="center" gap="sm" wrap="nowrap" flex={1}>
+          <ThemeIcon
+            size="md"
+            variant="light"
+            color={isOverdue ? 'red' : isCompleted ? 'green' : 'gray'}
+          >
+            {getContentTypeIcon(item.type)}
+          </ThemeIcon>
 
-            {/* Content Type Icon */}
-            <ThemeIcon
-              size="lg"
-              variant="light"
-              color={isOverdue ? 'red' : getContentTypeColor(item.type)}
-              mt={2}
-            >
-              {getContentTypeIcon(item.type)}
-            </ThemeIcon>
+          <Box flex={1}>
+            <Group gap="xs" mb={4}>
+              <Text fw={500} size="sm" lineClamp={2}>
+                {item.title}
+              </Text>
 
-            {/* Content Details */}
-            <Box flex={1}>
-              <Group gap="xs" mb="xs">
-                <Text fw={500} size="sm" lineClamp={2}>
-                  {item.title}
-                </Text>
-                <Badge
-                  size="xs"
-                  variant="light"
-                  color={getContentTypeColor(item.type)}
-                >
+              {item.type && (
+                <Badge size="xs" variant="light" color="gray">
                   {item.type}
                 </Badge>
-                {!item.published.isPublished && viewMode !== 'student' && (
-                  <Badge size="xs" variant="light" color="gray">
-                    Draft
-                  </Badge>
-                )}
-              </Group>
+              )}
 
-              <Stack gap="xs">
-                {/* Item Type Specific Info */}
-                {item.type === 'lesson' ? (
-                  <Group gap="xs">
-                    <IconFileText size={14} color={theme.colors.gray[6]} />
-                    <Text size="xs" c="dimmed">
-                      Reading Material
-                    </Text>
-                    {item.progress?.completedAt && (
-                      <>
-                        <Text size="xs" c="dimmed">
-                          •
-                        </Text>
-                        <Text size="xs" c="green">
-                          Completed{' '}
-                          {formatTimestampToDateTimeText(
-                            item.progress.completedAt,
-                            'on',
-                          )}
-                        </Text>
-                      </>
+              {!item.published.isPublished && viewMode !== 'student' && (
+                <Badge size="xs" variant="outline" color="orange">
+                  Draft
+                </Badge>
+              )}
+
+              {isOverdue && (
+                <Badge size="xs" variant="filled" color="red">
+                  Overdue
+                </Badge>
+              )}
+            </Group>
+
+            {/* Meta info */}
+            {item.type === 'lesson' && (
+              <Text size="xs" c="dimmed">
+                Reading Material
+                {item.progress?.completedAt && (
+                  <>
+                    {' '}
+                    • Completed{' '}
+                    {formatTimestampToDateTimeText(
+                      item.progress.completedAt,
+                      'on',
                     )}
-                  </Group>
-                ) : item.assignment ? (
-                  <Stack gap="4px">
-                    <Group gap="xs">
-                      <IconClock
-                        size={14}
-                        color={
-                          isOverdue ? theme.colors.red[6] : theme.colors.gray[6]
-                        }
-                      />
-                      <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
-                        Due:{' '}
-                        {formatTimestampToDateTimeText(
-                          item.assignment.dueDate || '',
-                          'by',
-                        )}
-                      </Text>
-                      {item.assignment.points && (
-                        <>
-                          <Text size="xs" c="dimmed">
-                            •
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {item.assignment.points} pts
-                          </Text>
-                        </>
-                      )}
-                    </Group>
-
-                    {item.assignment.mode && (
-                      <Group gap="xs">
-                        <IconUsers size={14} color={theme.colors.gray[6]} />
-                        <Text size="xs" c="dimmed">
-                          {item.assignment.mode} submission
-                        </Text>
-                        {item.assignment.status && (
-                          <>
-                            <Text size="xs" c="dimmed">
-                              •
-                            </Text>
-                            <Badge
-                              size="xs"
-                              variant="light"
-                              color={
-                                item.assignment.status === 'open'
-                                  ? 'green'
-                                  : 'red'
-                              }
-                            >
-                              {item.assignment.status}
-                            </Badge>
-                          </>
-                        )}
-                      </Group>
-                    )}
-                  </Stack>
-                ) : null}
-
-                {/* Overdue Alert */}
-                {isOverdue && viewMode === 'student' && (
-                  <Alert
-                    variant="light"
-                    color="red"
-                    icon={<IconAlertCircle size={14} />}
-                    p="xs"
-                  >
-                    <Text size="xs">This assignment is overdue!</Text>
-                  </Alert>
+                  </>
                 )}
-              </Stack>
-            </Box>
-          </Flex>
-
-          {/* Action Button */}
-          <Box>
-            {viewMode === 'student' && item.type === 'assignment' && (
-              <SubmitButton
-                submissionStatus={
-                  getSubmissionStatus(item.assignment) || 'pending'
-                }
-                onClick={() => {}}
-                dueDate={item.assignment?.dueDate || ''}
-                assignmentStatus={item.assignment?.status || 'open'}
-                isPreview={authUser.role !== 'student'}
-              />
+              </Text>
             )}
 
-            {viewMode === 'mentor' && item.type === 'assignment' && (
-              <Tooltip label="View submissions">
-                <ActionIcon variant="light" color="blue" radius="xl" size="lg">
-                  <IconEye size={16} />
-                </ActionIcon>
-              </Tooltip>
+            {item.assignment && (
+              <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
+                Due{' '}
+                {formatTimestampToDateTimeText(
+                  item.assignment.dueDate || '',
+                  'by',
+                )}{' '}
+                • {item.assignment.points} pts
+              </Text>
             )}
-
-            {viewMode === 'admin' && <AdminActions item={item} />}
           </Box>
         </Group>
-      </Card>
-    </Link>
+
+        {/* Right-side Actions */}
+        <Box>
+          {viewMode === 'student' && item.type === 'assignment' && (
+            <SubmitButton
+              submissionStatus={
+                getSubmissionStatus(item.assignment) || 'pending'
+              }
+              onClick={() => {}}
+              dueDate={item.assignment?.dueDate || ''}
+              assignmentStatus={item.assignment?.status || 'open'}
+              isPreview={authUser.role !== 'student'}
+            />
+          )}
+
+          {viewMode === 'mentor' && item.type === 'assignment' && (
+            <Tooltip label="View submissions">
+              <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
+                <IconEye size={16} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+
+          {viewMode === 'admin' && <AdminActions item={item} />}
+        </Box>
+      </Group>
+    </Card>
   )
 }
 
@@ -471,7 +361,6 @@ function CustomAccordionControl({
   totalItemsCount = 0,
   overdueItemsCount = 0,
   progressPercentage = 0,
-  isPreview = false,
   isSubsection = false,
   viewMode,
   accordionControlProps,
@@ -479,82 +368,59 @@ function CustomAccordionControl({
 }: CustomAccordionControlProps) {
   return (
     <Box>
-      <Group
-        justify="space-between"
-        align="center"
-        h={'100%'}
-        py={'md'}
-        px={'sm'}
-        {...props}
-      >
+      <Group justify="space-between" align="center" px="sm" py="md" {...props}>
         <Group wrap="nowrap" flex={1}>
-          <Accordion.Control w={52} {...accordionControlProps} />
+          <Accordion.Control w={40} {...accordionControlProps} />
 
-          <Group gap="sm" wrap="nowrap" flex={1}>
-            <Box flex={1}>
-              <Group gap="xs" mb="xs">
-                <Title order={isSubsection ? 5 : 4} fw={600}>
-                  {title}
-                </Title>
+          <Stack gap={'xs'} flex={1}>
+            <Group gap="xs" mb={4}>
+              <Title order={isSubsection ? 5 : 4} fw={600}>
+                {title}
+              </Title>
 
-                {!item.published.isPublished && viewMode !== 'student' && (
-                  <Badge size="xs" variant="light" color="orange">
-                    Draft
-                  </Badge>
-                )}
-
-                {overdueItemsCount > 0 && viewMode === 'student' && (
-                  <Indicator color="red" size={16} label={overdueItemsCount}>
-                    <Badge size="xs" variant="light" color="red">
-                      Overdue
-                    </Badge>
-                  </Indicator>
-                )}
-              </Group>
-
-              {/* Progress Information */}
-              {viewMode === 'student' && totalItemsCount > 0 && (
-                <Box>
-                  <Group justify="space-between" mb="xs">
-                    <Text size="xs" c="dimmed">
-                      Progress: {completedItemsCount}/{totalItemsCount} items
-                    </Text>
-                    <Text size="xs" c="dimmed" fw={500}>
-                      {Math.round(progressPercentage)}%
-                    </Text>
-                  </Group>
-                  <Progress
-                    value={progressPercentage}
-                    size="sm"
-                    radius="xl"
-                    color={progressPercentage === 100 ? 'green' : 'blue'}
-                  />
-                </Box>
+              {!item.published.isPublished && viewMode !== 'student' && (
+                <Badge size="xs" variant="outline" color="orange">
+                  Draft
+                </Badge>
               )}
 
-              {/* Published Date */}
-              {viewMode !== 'student' && item.published.publishedAt && (
-                <Text size="xs" c="dimmed" mt="xs">
-                  Published:{' '}
-                  {formatTimestampToDateTimeText(
-                    item.published.publishedAt,
-                    'on',
-                  )}
-                </Text>
+              {overdueItemsCount > 0 && viewMode === 'student' && (
+                <Badge size="xs" variant="filled" color="red">
+                  {overdueItemsCount} Overdue
+                </Badge>
               )}
-            </Box>
-          </Group>
+            </Group>
+
+            {viewMode === 'student' && totalItemsCount > 0 && (
+              <Progress
+                value={progressPercentage}
+                size="sm"
+                radius="xl"
+                color={progressPercentage === 100 ? 'green' : 'blue'}
+              />
+            )}
+
+            {viewMode !== 'student' && item.published.publishedAt && (
+              <Text size="xs" c="dimmed">
+                Published{' '}
+                {formatTimestampToDateTimeText(
+                  item.published.publishedAt,
+                  'on',
+                )}
+              </Text>
+            )}
+          </Stack>
         </Group>
-
-        {viewMode === 'admin' && <AdminActions item={item} />}
 
         {viewMode === 'mentor' && (
           <Tooltip label="View section analytics">
-            <ActionIcon variant="light" color="blue" radius="xl" size="lg">
+            <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
               <IconChartBar size={16} />
             </ActionIcon>
           </Tooltip>
         )}
+
+        {viewMode === 'admin' && <AdminActions item={item} />}
       </Group>
     </Box>
   )
