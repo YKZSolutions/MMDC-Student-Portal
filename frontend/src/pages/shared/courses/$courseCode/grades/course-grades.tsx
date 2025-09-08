@@ -27,14 +27,14 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
         {
           submissionStatus: 'draft',
           submissionLink: 'https://example.com/submission/draft1',
-          submissionTimestamp: '2023-10-10T14:30:00Z',
+          submittedAt: '2023-10-10T14:30:00Z',
           attemptNumber: 1,
           isLate: false,
         },
         {
           submissionStatus: 'graded',
           submissionLink: 'https://example.com/submission/final',
-          submissionTimestamp: '2023-10-15T22:45:00Z',
+          submittedAt: '2023-10-15T22:45:00Z',
           attemptNumber: 2,
           isLate: false,
           grade: {
@@ -70,7 +70,7 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
         {
           submissionStatus: 'ready-for-grading',
           submissionLink: 'https://example.com/proposal/submission',
-          submissionTimestamp: '2023-10-24T15:20:00Z',
+          submittedAt: '2023-10-24T15:20:00Z',
           attemptNumber: 1,
           isLate: false,
         },
@@ -100,7 +100,7 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
         {
           submissionStatus: 'graded',
           submissionLink: 'https://example.com/api/submission',
-          submissionTimestamp: '2023-10-22T09:15:00Z', // 2 days late
+          submittedAt: '2023-10-22T09:15:00Z', // 2 days late
           attemptNumber: 1,
           isLate: true,
           lateDays: 2,
@@ -137,7 +137,7 @@ export const mockStudentGradebook: CourseGradebookForStudent = {
         {
           submissionStatus: 'graded',
           submissionLink: 'https://example.com/team-project',
-          submissionTimestamp: '2023-11-10T20:30:00Z',
+          submittedAt: '2023-11-10T20:30:00Z',
           attemptNumber: 1,
           isLate: false,
           grade: {

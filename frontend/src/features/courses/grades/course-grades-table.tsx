@@ -58,9 +58,9 @@ const StudentGradesTable = ({
                   {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
                 </Table.Td>
                 <Table.Td>
-                  {latestSubmission?.submissionTimestamp
+                  {latestSubmission?.submittedAt
                     ? formatTimestampToDateTimeText(
-                        latestSubmission.submissionTimestamp,
+                        latestSubmission.submittedAt,
                       )
                     : 'Not Submitted'}
                   {latestSubmission?.isLate && (

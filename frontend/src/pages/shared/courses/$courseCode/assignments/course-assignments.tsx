@@ -8,7 +8,7 @@ import type {
   AssignmentSubmissionReport,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
-import { mockAssignmentsData } from '@/features/courses/mocks.ts'
+import { mockStudentAssignments } from '@/features/courses/mocks.ts'
 import AssignmentCard from '@/features/courses/assignments/assignment-card.tsx'
 
 type RoleBasedAssignmentConfig = {
@@ -70,10 +70,10 @@ const CourseAssignments = () => {
     roleConfig[authUser.role].tabs[0].value,
   )
 
-  const todoAssignments = mockAssignmentsData.filter(
+  const todoAssignments = mockStudentAssignments.filter(
     (assignment) => assignment.submissionStatus === 'pending',
   )
-  const completedAssignments = mockAssignmentsData.filter(
+  const completedAssignments = mockStudentAssignments.filter(
     (assignment) => assignment.submissionStatus === 'graded',
   )
 

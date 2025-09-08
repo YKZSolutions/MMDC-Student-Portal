@@ -36,7 +36,7 @@ const AssignmentCard = ({ assignment }: { assignment: StudentAssignment }) => {
             <Text size="sm" c="dimmed">
               Due: {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
             </Text>
-            {assignment.submissionTimestamp && (
+            {assignment.submittedAt && (
               <Group gap="xs" wrap="nowrap">
                 <Text size="sm" c="dimmed">
                   |

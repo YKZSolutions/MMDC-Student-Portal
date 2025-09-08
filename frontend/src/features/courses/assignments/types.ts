@@ -91,11 +91,12 @@ export type SubmissionStatus =
 export interface Submission {
   submissionStatus: SubmissionStatus
   submissionLink?: string
-  submissionTimestamp?: string
+  submittedAt?: string
   attemptNumber?: number
   isLate?: boolean
   lateDays?: number
   grade?: Grade
+  feedback?: string
 }
 
 /**
