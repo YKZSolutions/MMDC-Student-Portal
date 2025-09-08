@@ -1,14 +1,28 @@
 import React from 'react'
-import { Box, Group, Progress, Text, useMantineTheme } from '@mantine/core'
+import {
+  Box,
+  Button,
+  Group,
+  Progress,
+  Stack,
+  Text,
+  useMantineTheme,
+} from '@mantine/core'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
 import type { StudentModule } from '@/features/courses/modules/student/types.ts'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
 
 interface StudentModuleViewProps {
   module: StudentModule
+  onExpandAll: () => void
+  allExpanded: boolean
 }
 
-export const StudentModuleView = ({ module }: StudentModuleViewProps) => {
+export const StudentModuleView = ({
+  module,
+  onExpandAll,
+  allExpanded,
+}: StudentModuleViewProps) => {
   const theme = useMantineTheme()
   const { studentProgress } = module
 
@@ -16,14 +30,19 @@ export const StudentModuleView = ({ module }: StudentModuleViewProps) => {
     <Box>
       {/* Progress Overview */}
       <Box mb="lg">
-        <Group justify="space-between" mb="xs">
-          <Text size="sm" fw={500}>
-            Your Progress
-          </Text>
-          <Text size="sm" c="dimmed">
-            {studentProgress.completedItems}/{studentProgress.totalItems}{' '}
-            completed
-          </Text>
+        <Group align="start" justify="space-between" mb="xs">
+          <Stack gap="xs">
+            <Text size="sm" fw={500}>
+              My Progress
+            </Text>
+            <Text size="sm" c="dimmed">
+              {studentProgress.completedItems}/{studentProgress.totalItems}{' '}
+              completed
+            </Text>
+          </Stack>
+          <Button onClick={onExpandAll} variant="default">
+            {allExpanded ? 'Collapse All' : 'Expand All'}
+          </Button>
         </Group>
         <Progress
           value={studentProgress.overallProgress}
@@ -50,7 +69,11 @@ export const StudentModuleView = ({ module }: StudentModuleViewProps) => {
       </Box>
 
       {/* Module Content */}
-      <ModulePanel module={module} viewMode="student" />
+      <ModulePanel
+        module={module}
+        viewMode="student"
+        allExpanded={allExpanded}
+      />
     </Box>
   )
 }

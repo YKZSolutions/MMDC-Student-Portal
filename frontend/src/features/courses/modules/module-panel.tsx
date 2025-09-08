@@ -37,11 +37,13 @@ import SubmitButton from '@/components/submit-button.tsx'
 import {
   IconAlertCircle,
   IconCalendarTime,
+  IconChartBar,
   IconClipboard,
   IconClock,
   IconDotsVertical,
   IconEdit,
   IconExternalLink,
+  IconEye,
   IconFile,
   IconFileText,
   IconMessageCircle,
@@ -199,12 +201,9 @@ interface ModuleItemCardProps {
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
-const ModuleItemCard = ({
-  item,
-  viewMode = 'student',
-}: ModuleItemCardProps) => {
-  const theme = useMantineTheme()
+const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
+  const theme = useMantineTheme()
 
   const getContentTypeIcon = (type: string) => {
     switch (type) {
@@ -320,7 +319,7 @@ const ModuleItemCard = ({
                 >
                   {item.type}
                 </Badge>
-                {!item.published.isPublished && (
+                {!item.published.isPublished && viewMode !== 'student' && (
                   <Badge size="xs" variant="light" color="gray">
                     Draft
                   </Badge>
@@ -408,7 +407,7 @@ const ModuleItemCard = ({
                 ) : null}
 
                 {/* Overdue Alert */}
-                {isOverdue && (
+                {isOverdue && viewMode === 'student' && (
                   <Alert
                     variant="light"
                     color="red"
@@ -435,7 +434,16 @@ const ModuleItemCard = ({
                 isPreview={authUser.role !== 'student'}
               />
             )}
-            {viewMode === 'mentor' && <AdminActions item={item} />}
+
+            {viewMode === 'mentor' && item.type === 'assignment' && (
+              <Tooltip label="View submissions">
+                <ActionIcon variant="light" color="blue" radius="xl" size="lg">
+                  <IconEye size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+
+            {viewMode === 'admin' && <AdminActions item={item} />}
           </Box>
         </Group>
       </Card>
@@ -450,8 +458,9 @@ type CustomAccordionControlProps = {
   totalItemsCount?: number
   overdueItemsCount?: number
   progressPercentage?: number
-  viewMode?: 'student' | 'mentor' | 'admin'
+  isPreview?: boolean
   isSubsection?: boolean
+  viewMode: 'student' | 'mentor' | 'admin'
   accordionControlProps?: AccordionControlProps
 } & GroupProps
 
@@ -462,13 +471,12 @@ function CustomAccordionControl({
   totalItemsCount = 0,
   overdueItemsCount = 0,
   progressPercentage = 0,
-  viewMode = 'student',
+  isPreview = false,
   isSubsection = false,
+  viewMode,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
-  const theme = useMantineTheme()
-
   return (
     <Box>
       <Group
@@ -489,13 +497,13 @@ function CustomAccordionControl({
                   {title}
                 </Title>
 
-                {!item.published.isPublished && (
+                {!item.published.isPublished && viewMode !== 'student' && (
                   <Badge size="xs" variant="light" color="orange">
                     Draft
                   </Badge>
                 )}
 
-                {overdueItemsCount > 0 && (
+                {overdueItemsCount > 0 && viewMode === 'student' && (
                   <Indicator color="red" size={16} label={overdueItemsCount}>
                     <Badge size="xs" variant="light" color="red">
                       Overdue
@@ -539,6 +547,14 @@ function CustomAccordionControl({
         </Group>
 
         {viewMode === 'admin' && <AdminActions item={item} />}
+
+        {viewMode === 'mentor' && (
+          <Tooltip label="View section analytics">
+            <ActionIcon variant="light" color="blue" radius="xl" size="lg">
+              <IconChartBar size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
     </Box>
   )

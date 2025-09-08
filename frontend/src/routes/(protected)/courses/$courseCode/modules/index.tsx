@@ -34,8 +34,20 @@ function RouteComponent() {
       <RoleComponentManager
         currentRole={authUser.role}
         roleRender={{
-          student: <StudentModuleView module={module as StudentModule} />,
-          mentor: <MentorModuleView module={module as MentorModule} />,
+          student: (
+            <StudentModuleView
+              module={module as StudentModule}
+              onExpandAll={toggleExpandAll}
+              allExpanded={allExpanded}
+            />
+          ),
+          mentor: (
+            <MentorModuleView
+              module={module as MentorModule}
+              onExpandAll={toggleExpandAll}
+              allExpanded={allExpanded}
+            />
+          ),
           admin: (
             <AdminModuleView
               module={module as AdminModule}

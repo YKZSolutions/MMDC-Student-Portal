@@ -20,7 +20,7 @@ import { mockEnrolledCourse } from '@/features/courses/mocks.ts'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
 import React, { useState } from 'react'
 
-export const Route = createFileRoute('/(protected)/courses/$courseCode/')({
+export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
 

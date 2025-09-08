@@ -21,7 +21,7 @@ export const AdminModuleView = ({
   return (
     <Box>
       {/* Admin Actions Header */}
-      <Group justify="space-between" mb="lg">
+      <Group align={'center'} justify="end" mb="lg">
         <Group>
           <Button onClick={onExpandAll} variant="default">
             {allExpanded ? 'Collapse All' : 'Expand All'}
@@ -33,7 +33,7 @@ export const AdminModuleView = ({
       </Group>
 
       {/* Module Content with admin actions */}
-      <ModulePanel module={module} viewMode="admin" />
+      <ModulePanel module={module} viewMode="admin" allExpanded={allExpanded} />
     </Box>
   )
 }
