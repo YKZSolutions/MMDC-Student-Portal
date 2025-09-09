@@ -253,6 +253,7 @@ export type CreateCourseDto = {
     name: string;
     description: string;
     units: number;
+    type: string;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
     coreqIds?: Array<string>;
@@ -270,6 +271,8 @@ export type CourseDto = {
     name: string;
     description: string;
     units: number;
+    type: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -292,6 +295,7 @@ export type UpdateCourseDto = {
     name?: string;
     description?: string;
     units?: number;
+    type?: string;
     majorIds?: Array<string>;
     prereqIds?: Array<string>;
     coreqIds?: Array<string>;
@@ -502,16 +506,19 @@ export type UpdateBillPaymentDto = {
 };
 
 export type CreateProgramDto = {
-    code: string;
+    programCode: string;
     name: string;
     description: string;
+    yearDuration: number;
 };
 
 export type Program = {
     id: string;
-    code: string;
+    programCode: string;
     name: string;
     description: string;
+    yearDuration: number;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -519,9 +526,11 @@ export type Program = {
 
 export type ProgramDto = {
     id: string;
-    code: string;
+    programCode: string;
     name: string;
     description: string;
+    yearDuration: number;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -533,9 +542,10 @@ export type PaginatedProgramsDto = {
 };
 
 export type UpdateProgramDto = {
-    code?: string;
+    programCode?: string;
     name?: string;
     description?: string;
+    yearDuration?: number;
 };
 
 export type Turn = {
@@ -553,6 +563,7 @@ export type ChatbotResponseDto = {
 };
 
 export type CreateMajorDto = {
+    majorCode: string;
     name: string;
     description: string;
 };
@@ -565,8 +576,10 @@ export type CreateProgramMajorDto = {
 export type Major = {
     id: string;
     programId: string;
+    majorCode: string;
     name: string;
     description: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -574,8 +587,10 @@ export type Major = {
 
 export type MajorDto = {
     id: string;
+    majorCode: string;
     name: string;
     description: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -587,6 +602,7 @@ export type PaginatedMajorsDto = {
 };
 
 export type UpdateMajorDto = {
+    majorCode?: string;
     name?: string;
     description?: string;
 };

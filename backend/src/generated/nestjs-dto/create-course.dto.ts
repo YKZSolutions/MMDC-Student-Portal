@@ -27,4 +27,10 @@ export class CreateCourseDto {
   @IsNotEmpty()
   @IsInt()
   units: number;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  type: string;
 }

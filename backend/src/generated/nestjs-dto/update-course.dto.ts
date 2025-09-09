@@ -31,4 +31,11 @@ export class UpdateCourseDto {
   @IsOptional()
   @IsInt()
   units?: number;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
 }

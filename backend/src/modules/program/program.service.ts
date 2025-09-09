@@ -43,11 +43,11 @@ export class ProgramService {
 
   @Log({
     logArgsMessage: ({ dto }) =>
-      `Create program code=${dto.code} name=${dto.name}`,
+      `Create program code=${dto.programCode} name=${dto.name}`,
     logSuccessMessage: (result) =>
-      `Created program id=${result.id} code=${result.code} name=${result.name}`,
+      `Created program id=${result.id} code=${result.programCode} name=${result.name}`,
     logErrorMessage: (err, { dto }) =>
-      `Create program code=${dto.code} name=${dto.name} | Error: ${err.message}`,
+      `Create program code=${dto.programCode} name=${dto.name} | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
@@ -148,7 +148,7 @@ export class ProgramService {
   @Log({
     logArgsMessage: ({ id }) => `Find program by id=${id}`,
     logSuccessMessage: (result) =>
-      `Found program id=${result.id} code=${result.code}`,
+      `Found program id=${result.id} code=${result.programCode}`,
     logErrorMessage: (err, { id }) =>
       `Failed to find program id=${id} | Error: ${err.message}`,
   })
@@ -184,7 +184,7 @@ export class ProgramService {
     logArgsMessage: ({ id, dto }) =>
       `Update program id=${id} payload=${JSON.stringify(dto)}`,
     logSuccessMessage: (result) =>
-      `Updated program id=${result.id} code=${result.code}`,
+      `Updated program id=${result.id} code=${result.programCode}`,
     logErrorMessage: (err, { id }) =>
       `Failed to update program id=${id} | Error: ${err.message}`,
   })

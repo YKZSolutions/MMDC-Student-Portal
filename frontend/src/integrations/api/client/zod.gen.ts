@@ -372,6 +372,7 @@ export const zCreateCourseDto = z.object({
     name: z.string(),
     description: z.string(),
     units: z.int(),
+    type: z.string(),
     majorIds: z.optional(z.array(z.uuid())),
     prereqIds: z.optional(z.array(z.uuid())),
     coreqIds: z.optional(z.array(z.uuid()))
@@ -389,6 +390,8 @@ export const zCourseDto = z.object({
     name: z.string(),
     description: z.string(),
     units: z.int(),
+    type: z.string(),
+    isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -411,6 +414,7 @@ export const zUpdateCourseDto = z.object({
     name: z.optional(z.string()),
     description: z.optional(z.string()),
     units: z.optional(z.int()),
+    type: z.optional(z.string()),
     majorIds: z.optional(z.array(z.uuid())),
     prereqIds: z.optional(z.array(z.uuid())),
     coreqIds: z.optional(z.array(z.uuid()))
@@ -678,16 +682,19 @@ export const zUpdateBillPaymentDto = z.object({
 });
 
 export const zCreateProgramDto = z.object({
-    code: z.string(),
+    programCode: z.string(),
     name: z.string(),
-    description: z.string()
+    description: z.string(),
+    yearDuration: z.int()
 });
 
 export const zProgram = z.object({
     id: z.string(),
-    code: z.string(),
+    programCode: z.string(),
     name: z.string(),
     description: z.string(),
+    yearDuration: z.int(),
+    isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -698,9 +705,11 @@ export const zProgram = z.object({
 
 export const zProgramDto = z.object({
     id: z.string(),
-    code: z.string(),
+    programCode: z.string(),
     name: z.string(),
     description: z.string(),
+    yearDuration: z.int(),
+    isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -715,9 +724,10 @@ export const zPaginatedProgramsDto = z.object({
 });
 
 export const zUpdateProgramDto = z.object({
-    code: z.optional(z.string()),
+    programCode: z.optional(z.string()),
     name: z.optional(z.string()),
-    description: z.optional(z.string())
+    description: z.optional(z.string()),
+    yearDuration: z.optional(z.int())
 });
 
 export const zTurn = z.object({
@@ -738,6 +748,7 @@ export const zChatbotResponseDto = z.object({
 });
 
 export const zCreateMajorDto = z.object({
+    majorCode: z.string(),
     name: z.string(),
     description: z.string()
 });
@@ -750,8 +761,10 @@ export const zCreateProgramMajorDto = z.object({
 export const zMajor = z.object({
     id: z.string(),
     programId: z.string(),
+    majorCode: z.string(),
     name: z.string(),
     description: z.string(),
+    isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -762,8 +775,10 @@ export const zMajor = z.object({
 
 export const zMajorDto = z.object({
     id: z.string(),
+    majorCode: z.string(),
     name: z.string(),
     description: z.string(),
+    isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -778,6 +793,7 @@ export const zPaginatedMajorsDto = z.object({
 });
 
 export const zUpdateMajorDto = z.object({
+    majorCode: z.optional(z.string()),
     name: z.optional(z.string()),
     description: z.optional(z.string())
 });
