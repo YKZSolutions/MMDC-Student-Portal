@@ -16,7 +16,10 @@ import type { Module } from '@/features/courses/modules/types.ts'
 import type { StudentModule } from '@/features/courses/modules/student/types.ts'
 import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
 import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
-import type { CourseGradebookForMentor, CourseGradebookForStudent, } from '@/features/courses/grades/types.ts'
+import type {
+  CourseGradebookForMentor,
+  CourseGradebookForStudent,
+} from '@/features/courses/grades/types.ts'
 
 export const mockCourseBasicDetails: CourseBasicDetails[] = [
   {

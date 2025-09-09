@@ -39,6 +39,7 @@ import {
   SubmissionForm,
   type SubmissionPayload,
 } from '@/features/courses/modules/content/submission-form.tsx'
+import { getModuleItemsFromSections } from '@/utils/helpers.ts'
 
 interface ModuleContentViewProps {
   moduleItem: ModuleItem
@@ -54,7 +55,7 @@ const ModuleContentView = ({
   isPreview = false,
 }: ModuleContentViewProps) => {
   // Flattened list of all module items
-  const allItems = getFlatItems(module.sections)
+  const allItems = getModuleItemsFromSections(module.sections)
   const currentIndex = allItems.findIndex((i) => i.id === moduleItem.id)
   const previousItem = currentIndex > 0 ? allItems[currentIndex - 1] : null
   const nextItem =
@@ -339,7 +340,7 @@ const Sidebar = ({
   )
 }
 
-export const EmbeddedSubmissionBox = ({
+const EmbeddedSubmissionBox = ({
   assignmentItem,
 }: {
   assignmentItem: ModuleItem
@@ -401,14 +402,6 @@ export const EmbeddedSubmissionBox = ({
       </Stack>
     </Card>
   )
-}
-
-function getFlatItems(sections: ModuleSection[]): ModuleItem[] {
-  let items: ModuleItem[] = []
-  sections.forEach((s) => {
-    items = [...items, ...s.items, ...getFlatItems(s.subsections || [])]
-  })
-  return items.sort((a, b) => a.order - b.order)
 }
 
 export default ModuleContentView

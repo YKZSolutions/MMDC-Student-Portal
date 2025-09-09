@@ -127,7 +127,15 @@ export function getModuleItemsFromModule(module: Module) {
 }
 
 export function getModuleItemsFromSections(sections: ModuleSection[]) {
-  return sections.flatMap((section) => section.items)
+  let items: ModuleItem[] = []
+  sections.forEach((s) => {
+    items = [
+      ...items,
+      ...s.items,
+      ...getModuleItemsFromSections(s.subsections || []),
+    ]
+  })
+  return items.sort((a, b) => a.order - b.order)
 }
 
 export const createFilterOption = (value: string) => ({
