@@ -3,9 +3,13 @@ import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
   mockAcademicPrograms,
   mockCourseData,
+  mockEnrolledCourse,
   mockTerms,
 } from '@/features/courses/mocks.ts'
-import CourseDashboard from '@/pages/shared/courses/course-dashboard.tsx'
+import StudentCourseDashboard from '@/pages/student/courses/student-course-dashboard.tsx'
+import RoleComponentManager from '@/components/role-component-manager.tsx'
+import MentorAdminDashboardPage from '@/pages/admin/courses/admin-course-dashboard.tsx'
+import type { Course, EnrolledCourse } from '@/features/courses/types.ts'
 
 export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
@@ -13,7 +17,10 @@ export const Route = createFileRoute('/(protected)/courses/')({
     return {
       terms: mockTerms,
       academicPrograms: mockAcademicPrograms,
-      courses: mockCourseData,
+      courses:
+        context.authUser?.role === 'student'
+          ? mockEnrolledCourse
+          : mockCourseData,
     } //TODO: replace this with actual fetch
   },
 })
@@ -24,12 +31,35 @@ function RouteComponent() {
   const academicPrograms = Route.useLoaderData().academicPrograms
   const coursesData = Route.useLoaderData().courses
 
+  if (!authUser) {
+  }
+
   return (
-    <CourseDashboard
-      role={authUser.role}
-      academicTerms={academicTerms}
-      academicPrograms={academicPrograms}
-      coursesData={coursesData}
+    <RoleComponentManager
+      currentRole={authUser.role}
+      roleRender={{
+        student: (
+          <StudentCourseDashboard
+            coursesData={coursesData as EnrolledCourse[]}
+          />
+        ),
+        mentor: (
+          //TODO: might need to separate this later
+          // since mentors should only see courses they've been assigned
+          <MentorAdminDashboardPage
+            academicTerms={academicTerms}
+            academicPrograms={academicPrograms}
+            coursesData={coursesData as Course[]}
+          />
+        ),
+        admin: (
+          <MentorAdminDashboardPage
+            academicTerms={academicTerms}
+            academicPrograms={academicPrograms}
+            coursesData={coursesData as Course[]}
+          />
+        ),
+      }}
     />
   )
 }
