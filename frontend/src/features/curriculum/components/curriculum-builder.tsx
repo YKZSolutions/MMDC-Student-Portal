@@ -355,7 +355,7 @@ const SemesterCard = memo(function SemesterCard(props: {
               props.setCurrentCourses((draft) =>
                 draft.filter(
                   (course) =>
-                    course.year !== props.year &&
+                    course.year !== props.year ||
                     course.semester !== props.semester,
                 ),
               )
