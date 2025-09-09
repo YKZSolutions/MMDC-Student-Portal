@@ -402,77 +402,98 @@ const MentorGradesTable = ({
                   {/* Expanded student rows */}
                   {isExpanded && (
                     <Table.Tr>
-                      <Table.Td colSpan={5} p={0}>
+                      <Table.Td colSpan={6} p={0}>
                         <Collapse in={isExpanded}>
-                          <Box bg="gray.0" p="md">
-                            <Stack gap="xs">
-                              {assignment.submissions.map((submission) => (
-                                <Card
-                                  key={submission.studentId}
-                                  withBorder
-                                  p="sm"
-                                >
-                                  <Group justify="space-between">
-                                    <div>
-                                      <Text fw={500}>
+                          <Box bg="gray.0" p="sm">
+                            <Text fw={500} size="sm" mb={6}>
+                              Student Performance
+                            </Text>
+
+                            <Table
+                              withColumnBorders
+                              withRowBorders={false}
+                              highlightOnHover
+                              verticalSpacing="xs"
+                              horizontalSpacing="sm"
+                            >
+                              <Table.Thead>
+                                <Table.Tr>
+                                  <Table.Th w="40%">Student</Table.Th>
+                                  <Table.Th w="20%">Status</Table.Th>
+                                  <Table.Th w="20%">Grade</Table.Th>
+                                  <Table.Th w="20%" ta="right">
+                                    Actions
+                                  </Table.Th>
+                                </Table.Tr>
+                              </Table.Thead>
+
+                              <Table.Tbody>
+                                {assignment.submissions.map((submission) => (
+                                  <Table.Tr key={submission.studentId}>
+                                    <Table.Td>
+                                      <Text size="sm">
                                         {submission.studentName}
                                       </Text>
-                                      <Group gap="xs">
-                                        <Badge
-                                          color={submission.submissionStatus}
-                                          variant="filled"
-                                          size="xs"
-                                        >
-                                          {submission.submissionStatus}
-                                        </Badge>
-                                        {submission.submissionTimestamp && (
-                                          <Text size="xs" c="dimmed">
-                                            {formatTimestampToDateTimeText(
-                                              submission.submissionTimestamp,
-                                            )}
-                                          </Text>
-                                        )}
-                                      </Group>
-                                    </div>
-                                    <Group gap="xs">
-                                      <div>
-                                        {submission.grade ? (
-                                          <Text fw={500}>
-                                            {submission.grade.score}/
-                                            {submission.grade.maxScore}
-                                          </Text>
-                                        ) : (
-                                          <Text c="dimmed">Not graded</Text>
-                                        )}
-                                      </div>
-                                      {submission.grade?.feedback && (
-                                        <Tooltip
-                                          label={submission.grade.feedback}
-                                        >
-                                          <IconNote size={16} color="blue" />
-                                        </Tooltip>
-                                      )}
-                                      <Button
-                                        size="xs"
+                                    </Table.Td>
+
+                                    <Table.Td>
+                                      <Badge
+                                        color={submission.submissionStatus}
                                         variant="light"
-                                        onClick={() => {
-                                          console.log(
-                                            'Grade:',
-                                            assignment.assignmentId,
-                                            submission.studentId,
-                                          )
-                                        }}
+                                        size="sm"
                                       >
-                                        {submission.submissionStatus ===
-                                        'graded'
-                                          ? 'Edit'
-                                          : 'Grade'}
-                                      </Button>
-                                    </Group>
-                                  </Group>
-                                </Card>
-                              ))}
-                            </Stack>
+                                        {submission.submissionStatus}
+                                      </Badge>
+                                    </Table.Td>
+
+                                    <Table.Td>
+                                      {submission.grade ? (
+                                        <Text size="sm" fw={500}>
+                                          {submission.grade.score}/
+                                          {submission.grade.maxScore}
+                                        </Text>
+                                      ) : (
+                                        <Text size="sm" c="dimmed">
+                                          Not graded
+                                        </Text>
+                                      )}
+                                    </Table.Td>
+
+                                    <Table.Td ta="right">
+                                      <Group
+                                        gap={6}
+                                        justify="flex-end"
+                                        wrap="nowrap"
+                                      >
+                                        {submission.grade?.feedback && (
+                                          <Tooltip
+                                            label={submission.grade.feedback}
+                                          >
+                                            <IconNote size={16} color="blue" />
+                                          </Tooltip>
+                                        )}
+                                        <Button
+                                          size="xs"
+                                          variant="subtle"
+                                          onClick={() =>
+                                            console.log(
+                                              'Grade:',
+                                              assignment.assignmentId,
+                                              submission.studentId,
+                                            )
+                                          }
+                                        >
+                                          {submission.submissionStatus ===
+                                          'graded'
+                                            ? 'Edit'
+                                            : 'Grade'}
+                                        </Button>
+                                      </Group>
+                                    </Table.Td>
+                                  </Table.Tr>
+                                ))}
+                              </Table.Tbody>
+                            </Table>
                           </Box>
                         </Collapse>
                       </Table.Td>
@@ -575,26 +596,26 @@ const AdminGradesTable = ({
           <Title order={4} mb="sm">
             Class Overview
           </Title>
-          <Group gap="xl">
-            <div>
+          <Group justify="space-evenly" px={'xl'}>
+            <Stack gap={'xs'} align="center">
               <Text size="sm" c="dimmed">
                 Total Students
               </Text>
               <Text size="xl" fw={700}>
                 {studentMap.size}
               </Text>
-            </div>
+            </Stack>
             <Divider orientation="vertical" />
-            <div>
+            <Stack gap={'xs'} align="center">
               <Text size="sm" c="dimmed">
                 Total Assignments
               </Text>
               <Text size="xl" fw={700}>
                 {assignments.length}
               </Text>
-            </div>
+            </Stack>
             <Divider orientation="vertical" />
-            <div>
+            <Stack gap={'xs'} align="center">
               <Text size="sm" c="dimmed">
                 Class Average
               </Text>
@@ -615,7 +636,7 @@ const AdminGradesTable = ({
                   )
                 ).toFixed(1)}
               </Text>
-            </div>
+            </Stack>
           </Group>
         </Card>
 
@@ -834,49 +855,71 @@ const AdminGradesTable = ({
                     <Table.Tr>
                       <Table.Td colSpan={6} p={0}>
                         <Collapse in={isExpanded}>
-                          <Box bg="gray.0" p="md">
-                            <Group justify="space-between" align="start">
-                              <Stack gap="xs" style={{ flex: 1 }}>
-                                <Text fw={500} size="sm">
-                                  Student Performance
-                                </Text>
-                                {assignment.submissions
-                                  .sort(
-                                    (a, b) =>
-                                      (b.grade?.score || 0) -
-                                      (a.grade?.score || 0),
-                                  )
-                                  .map((submission) => (
-                                    <Group
-                                      key={submission.studentId}
-                                      justify="space-between"
+                          <Box bg="gray.0" p="xs">
+                            <Text fw={500} size="sm" mb="xs">
+                              Student Performance
+                            </Text>
+                            <Stack gap={4}>
+                              {assignment.submissions.map((submission) => (
+                                <Group
+                                  key={submission.studentId}
+                                  justify="space-between"
+                                  py={4}
+                                  px="xs"
+                                  style={{
+                                    borderBottom:
+                                      '1px solid var(--mantine-color-gray-3)',
+                                  }}
+                                >
+                                  <div>
+                                    <Text size="sm">
+                                      {submission.studentName}
+                                    </Text>
+                                    <Badge
+                                      color={submission.submissionStatus}
+                                      variant="filled"
+                                      size="xs"
                                     >
-                                      <Text size="sm">
-                                        {submission.studentName}
+                                      {submission.submissionStatus}
+                                    </Badge>
+                                  </div>
+                                  <Group gap="xs">
+                                    {submission.grade ? (
+                                      <Text size="sm" fw={500}>
+                                        {submission.grade.score}/
+                                        {submission.grade.maxScore}
                                       </Text>
-                                      <Group gap="xs">
-                                        <Badge
-                                          color={submission.submissionStatus}
-                                          variant="filled"
-                                          size="xs"
-                                        >
-                                          {submission.submissionStatus}
-                                        </Badge>
-                                        {submission.grade ? (
-                                          <Text size="sm" fw={500}>
-                                            {submission.grade.score}/
-                                            {submission.grade.maxScore}
-                                          </Text>
-                                        ) : (
-                                          <Text size="sm" c="dimmed">
-                                            Not graded
-                                          </Text>
-                                        )}
-                                      </Group>
-                                    </Group>
-                                  ))}
-                              </Stack>
-                            </Group>
+                                    ) : (
+                                      <Text size="sm" c="dimmed">
+                                        Not graded
+                                      </Text>
+                                    )}
+                                    {submission.grade?.feedback && (
+                                      <Tooltip
+                                        label={submission.grade.feedback}
+                                      >
+                                        <IconNote size={16} color="blue" />
+                                      </Tooltip>
+                                    )}
+                                    <Button
+                                      size="xs"
+                                      variant="subtle"
+                                      onClick={() =>
+                                        console.log(
+                                          'Grade:',
+                                          assignment.assignmentId,
+                                          submission.studentId,
+                                        )
+                                      }
+                                    >
+                                      {submission.submissionStatus === 'graded'
+                                        ? 'Edit'
+                                        : 'Grade'}
+                                    </Button>
+                                  </Group>
+                                </Group>
+                              ))}
+                            </Stack>
                           </Box>
                         </Collapse>
                       </Table.Td>
