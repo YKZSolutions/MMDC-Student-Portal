@@ -97,13 +97,6 @@ export const adminLinks: NavItem[] = [
     fuzzy: true,
     subItems: [
       {
-        link: '/curriculum/programs',
-        label: 'Programs',
-        Icon: IconBooks,
-        IconInactive: IconBooks,
-        fuzzy: true,
-      },
-      {
         link: '/curriculum/courses',
         label: 'Courses',
         Icon: IconBooks,
