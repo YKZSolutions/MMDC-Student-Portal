@@ -30,7 +30,7 @@ export const adminCourseFilterConfig: FilterConfig<Course> = {
   },
   Program: (course, value) => {
     return course.programs.some(
-      (program) => program.programCode.toLowerCase === value.toLowerCase,
+      (program) => program.programCode.toLowerCase() === value.toLowerCase(),
     )
   },
 }
