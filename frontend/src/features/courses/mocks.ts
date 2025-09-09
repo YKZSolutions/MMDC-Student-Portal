@@ -161,7 +161,7 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
     },
     activities: [],
     program: mockAcademicPrograms[1],
-    academicTerm: mockTerms[0],
+    academicTerm: mockTerms[1],
   },
 
   {
@@ -184,7 +184,7 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
     },
     activities: [],
     program: mockAcademicPrograms[2],
-    academicTerm: mockTerms[1],
+    academicTerm: mockTerms[2],
   },
   {
     courseName: 'Capstone 2',
@@ -215,7 +215,7 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
       },
     ],
     program: mockAcademicPrograms[0],
-    academicTerm: mockTerms[2],
+    academicTerm: mockTerms[3],
   },
 ]
 

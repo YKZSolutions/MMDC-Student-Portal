@@ -32,6 +32,10 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
   const [searchFilteredCourses, setSearchFilteredCourses] =
     useState<EnrolledCourse[]>(coursesData)
 
+  const academicTermOptions = Array.from(
+    new Set(coursesData.map((course) => formatTerm(course.academicTerm))),
+  ).map((term) => createFilterOption(term))
+
   const filters: FilterType[] = [
     {
       id: '',
@@ -39,12 +43,7 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
       icon: <IconCalendarTime size={16} />,
       type: 'select',
       value: '',
-      options: [
-        { label: 'Current', value: 'current' },
-        ...coursesData.map((course) =>
-          createFilterOption(formatTerm(course.academicTerm)),
-        ),
-      ],
+      options: [{ label: 'Current', value: 'current' }, ...academicTermOptions],
     },
   ]
 
