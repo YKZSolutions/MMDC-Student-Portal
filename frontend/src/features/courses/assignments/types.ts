@@ -91,11 +91,12 @@ export type SubmissionStatus =
 export interface Submission {
   submissionStatus: SubmissionStatus
   submissionLink?: string
-  submissionTimestamp?: string
+  submittedAt?: string
   attemptNumber?: number
   isLate?: boolean
   lateDays?: number
   grade?: Grade
+  feedback?: string
 }
 
 /**
@@ -163,7 +164,7 @@ export interface AssignmentSubmissionSummary {
   studentName: string
   submissionStatus: SubmissionStatus
   submittedAt?: string
-  grade?: number
+  grade: number | null
 }
 
 /**
@@ -181,7 +182,7 @@ export interface GroupSubmissionSummary {
   members: string[]
   submissionStatus: SubmissionStatus
   submittedAt?: string
-  grade?: number
+  grade: number | null
 }
 
 /**

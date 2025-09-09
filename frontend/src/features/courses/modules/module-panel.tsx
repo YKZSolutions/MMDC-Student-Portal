@@ -2,11 +2,13 @@ import {
   Accordion,
   type AccordionControlProps,
   ActionIcon,
+  Badge,
   Box,
   Card,
   Group,
   type GroupProps,
   Menu,
+  Progress,
   Stack,
   Text,
   ThemeIcon,
@@ -15,42 +17,50 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
-import { getSubmissionStatus } from '@/utils/helpers.ts'
+import {
+  getCompletedItemsCount,
+  getOverdueItemsCount,
+  getSubmissionStatus,
+} from '@/utils/helpers.ts'
 import type {
   Module,
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { CompletedStatusIcon } from '@/components/icon-selector.tsx'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import RoleComponentManager from '@/components/role-component-manager.tsx'
 import SubmitButton from '@/components/submit-button.tsx'
 import {
   IconCalendarTime,
+  IconChartBar,
+  IconClipboard,
   IconDotsVertical,
   IconEdit,
+  IconExternalLink,
+  IconEye,
+  IconFile,
+  IconFileText,
+  IconMessageCircle,
   IconPlus,
   IconRubberStamp,
   IconRubberStampOff,
   IconTrash,
 } from '@tabler/icons-react'
-import type { Role } from '@/integrations/api/client'
-import { Link, useNavigate } from '@tanstack/react-router'
-import { useDisclosure } from '@mantine/hooks'
+import { useNavigate } from '@tanstack/react-router'
 
 interface ModulePanelProps {
-  allExpanded: boolean
   module: Module
-  isPreview?: boolean
+  viewMode: 'student' | 'mentor' | 'admin'
+  allExpanded?: boolean
 }
 
 const ModulePanel = ({
-  allExpanded,
   module,
-  isPreview = false,
+  viewMode,
+  allExpanded = false,
 }: ModulePanelProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const theme = useMantineTheme()
 
   // Update expanded state when allExpanded prop changes
   useEffect(() => {
@@ -65,170 +75,271 @@ const ModulePanel = ({
     }
   }, [allExpanded])
 
-  const getCompletedItemsCount = (items: ModuleItem[]) => {
-    return items.filter((item) => {
-      if (item.type === 'lesson' && item.progress) {
-        return item.progress.isCompleted
-      }
-      if (item.type === 'assignment' && item.assignment) {
-        const submissionStatus = getSubmissionStatus(item.assignment)
-        return (
-          submissionStatus === 'graded' ||
-          submissionStatus === 'ready-for-grading' ||
-          submissionStatus === 'submitted'
-        )
-      }
-      return false
-    }).length
-  }
-
   return (
-    <Accordion
-      multiple
-      value={expandedItems}
-      onChange={setExpandedItems}
-      chevronPosition="left"
-      variant="separated"
-      radius="md"
-    >
-      {module.sections.map((section) => (
-        <Accordion.Item
-          value={section.id}
-          key={section.title}
-          bg={'background'}
-        >
-          <CustomAccordionControl
-            item={section}
-            title={section.title}
-            completedItemsCount={getCompletedItemsCount(
-              section.subsections?.flatMap((sub) => sub.items) || [],
-            )}
-            totalItemsCount={
-              section.subsections?.flatMap((sub) => sub.items).length
-            }
-            isPreview={isPreview}
-          />
-          <Accordion.Panel>
-            <Accordion
-              multiple
-              value={expandedItems}
-              onChange={setExpandedItems}
-              chevronPosition="left"
-              variant="separated"
-              radius="md"
-            >
-              {section.subsections?.map((subsection) => (
-                <Accordion.Item
-                  value={subsection.id}
-                  key={subsection.title}
-                  bg={'white'}
-                >
-                  <CustomAccordionControl
-                    item={subsection}
-                    title={subsection.title}
-                    completedItemsCount={getCompletedItemsCount(
-                      subsection.items,
-                    )}
-                    totalItemsCount={subsection.items.length}
-                    isPreview={isPreview}
-                  />
+    <Box p="md">
+      {/* Sections Accordion */}
+      <Accordion
+        multiple
+        value={expandedItems}
+        onChange={setExpandedItems}
+        chevronPosition="left"
+        variant="separated"
+        radius="md"
+        styles={{
+          item: {
+            border: 0,
+            padding: 0,
+          },
+          control: {
+            padding: 0,
+          },
+        }}
+      >
+        {module.sections.map((section) => {
+          const sectionItems =
+            section.subsections?.flatMap((sub) => sub.items) || []
+          const sectionCompleted = getCompletedItemsCount(sectionItems)
+          const sectionOverdue = getOverdueItemsCount(sectionItems)
+          const sectionProgress =
+            sectionItems.length > 0
+              ? (sectionCompleted / sectionItems.length) * 100
+              : 0
 
-                  {subsection.items.map((item) => (
-                    <Accordion.Panel
-                      key={item.id}
-                      styles={{
-                        content: {
-                          padding: '8px',
-                        },
-                      }}
-                    >
-                      <ModuleItemCard item={item} isPreview={isPreview} />
-                    </Accordion.Panel>
-                  ))}
-                </Accordion.Item>
-              ))}
-            </Accordion>
-          </Accordion.Panel>
-        </Accordion.Item>
-      ))}
-    </Accordion>
+          return (
+            <Accordion.Item
+              value={section.id}
+              key={section.title}
+              bg={'background'}
+            >
+              <CustomAccordionControl
+                item={section}
+                title={section.title}
+                completedItemsCount={sectionCompleted}
+                totalItemsCount={sectionItems.length}
+                overdueItemsCount={sectionOverdue}
+                progressPercentage={sectionProgress}
+                viewMode={viewMode}
+              />
+              <Accordion.Panel>
+                {/* Subsections */}
+                <Accordion
+                  multiple
+                  value={expandedItems}
+                  onChange={setExpandedItems}
+                  chevronPosition="left"
+                  variant="separated"
+                  radius="md"
+                  styles={{
+                    item: { border: 0, padding: 0 },
+                    control: { padding: 0 },
+                  }}
+                >
+                  {section.subsections?.map((subsection) => {
+                    const subsectionCompleted = getCompletedItemsCount(
+                      subsection.items,
+                    )
+                    const subsectionOverdue = getOverdueItemsCount(
+                      subsection.items,
+                    )
+                    const subsectionProgress =
+                      subsection.items.length > 0
+                        ? (subsectionCompleted / subsection.items.length) * 100
+                        : 0
+
+                    return (
+                      <Accordion.Item
+                        value={subsection.id}
+                        key={subsection.title}
+                        bg={'white'}
+                      >
+                        <CustomAccordionControl
+                          item={subsection}
+                          title={subsection.title}
+                          completedItemsCount={subsectionCompleted}
+                          totalItemsCount={subsection.items.length}
+                          overdueItemsCount={subsectionOverdue}
+                          progressPercentage={subsectionProgress}
+                          viewMode={viewMode}
+                          isSubsection
+                        />
+
+                        <Accordion.Panel>
+                          <Stack gap="xs">
+                            {subsection.items.map((item) => (
+                              <ModuleItemCard
+                                key={item.id}
+                                item={item}
+                                viewMode={viewMode}
+                              />
+                            ))}
+                          </Stack>
+                        </Accordion.Panel>
+                      </Accordion.Item>
+                    )
+                  })}
+                </Accordion>
+              </Accordion.Panel>
+            </Accordion.Item>
+          )
+        })}
+      </Accordion>
+    </Box>
   )
 }
 
 interface ModuleItemCardProps {
   item: ModuleItem
-  isPreview?: boolean
+  viewMode: 'student' | 'mentor' | 'admin'
 }
 
-const ModuleItemCard = ({ item, isPreview = false }: ModuleItemCardProps) => {
+const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
   const { authUser } = useAuth('protected')
-  const role: Role = isPreview ? 'student' : authUser.role
-  const theme = useMantineTheme()
+  const navigate = useNavigate()
+
+  const isOverdue =
+    item.type === 'assignment' && item.assignment?.dueDate
+      ? new Date(item.assignment.dueDate) < new Date() &&
+        getSubmissionStatus(item.assignment) === 'pending'
+      : false
+
+  const isCompleted =
+    item.type === 'lesson'
+      ? item.progress?.isCompleted
+      : ['graded', 'ready-for-grading', 'submitted'].includes(
+          getSubmissionStatus(item.assignment) || '',
+        )
+
+  const getContentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'lesson':
+        return <IconFileText size={16} />
+      case 'assignment':
+        return <IconClipboard size={16} />
+      case 'discussion':
+        return <IconMessageCircle size={16} />
+      case 'url':
+        return <IconExternalLink size={16} />
+      case 'file':
+        return <IconFile size={16} />
+      default:
+        return <IconFileText size={16} />
+    }
+  }
+
+  const navigateToItem = () => {
+    navigate({
+      from: '/courses/$courseCode/modules',
+      to: `$itemId`,
+      params: { itemId: item.id },
+    })
+  }
 
   return (
-    <Link
-      from={'/courses/$courseCode/modules'}
-      to={`$itemId`}
-      params={{ itemId: item.id }}
+    <Card
+      withBorder
+      radius="md"
+      p="sm"
+      style={{
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      }}
+      onClick={(e) => {
+        e.stopPropagation()
+        navigateToItem()
+      }}
     >
-      <Card
-        withBorder
-        radius="md"
-        p="sm"
-        style={{
-          cursor: 'pointer',
-          borderLeft: `3px solid ${item.type === 'lesson' ? theme.colors.blue[5] : theme.colors.green[5]}`,
-        }}
-        bg={'background'}
-      >
-        <Group justify="space-between" align="center">
-          <Group gap="sm">
-            {role === 'student' && (
-              <CompletedStatusIcon
-                status={
-                  item.type === 'lesson'
-                    ? item.progress?.isCompleted
-                      ? 'read'
-                      : 'unread'
-                    : getSubmissionStatus(item.assignment)
-                }
-              />
+      <Group align="center" justify="space-between" wrap="nowrap">
+        {/* Icon + Title */}
+        <Group align="center" gap="sm" wrap="nowrap" flex={1}>
+          <ThemeIcon
+            size="md"
+            variant="light"
+            color={isOverdue ? 'red' : isCompleted ? 'green' : 'gray'}
+          >
+            {getContentTypeIcon(item.type)}
+          </ThemeIcon>
+
+          <Box flex={1}>
+            <Group gap="xs" mb={4}>
+              <Text fw={500} size="sm" lineClamp={2}>
+                {item.title}
+              </Text>
+
+              {item.type && (
+                <Badge size="xs" variant="light" color="gray">
+                  {item.type}
+                </Badge>
+              )}
+
+              {!item.published.isPublished && viewMode !== 'student' && (
+                <Badge size="xs" variant="outline" color="orange">
+                  Draft
+                </Badge>
+              )}
+
+              {isOverdue && (
+                <Badge size="xs" variant="filled" color="red">
+                  Overdue
+                </Badge>
+              )}
+            </Group>
+
+            {/* Meta info */}
+            {item.type === 'lesson' && (
+              <Text size="xs" c="dimmed">
+                Reading Material
+                {item.progress?.completedAt && (
+                  <>
+                    {' '}
+                    • Completed{' '}
+                    {formatTimestampToDateTimeText(
+                      item.progress.completedAt,
+                      'on',
+                    )}
+                  </>
+                )}
+              </Text>
             )}
 
-            <Box>
-              <Text fw={500}>{item.title}</Text>
-              <Text size="sm" c="dimmed">
-                {item.type === 'lesson'
-                  ? 'Reading Material'
-                  : `Due: ${formatTimestampToDateTimeText(item.assignment?.dueDate || '', 'by')}`}
+            {item.assignment && (
+              <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
+                Due{' '}
+                {formatTimestampToDateTimeText(
+                  item.assignment.dueDate || '',
+                  'by',
+                )}{' '}
+                • {item.assignment.points} pts
               </Text>
-            </Box>
-          </Group>
-
-          <RoleComponentManager
-            currentRole={role}
-            roleRender={{
-              student: (
-                <>
-                  {item.type === 'assignment' && (
-                    <SubmitButton
-                      submissionStatus={
-                        getSubmissionStatus(item.assignment) || 'pending'
-                      }
-                      onClick={() => {}}
-                      dueDate={item.assignment?.dueDate || ''}
-                      assignmentStatus={item.assignment?.status || 'open'}
-                      isPreview={isPreview}
-                    />
-                  )}
-                </>
-              ),
-              admin: <AdminActions item={item} />,
-            }}
-          />
+            )}
+          </Box>
         </Group>
-      </Card>
-    </Link>
+
+        {/* Right-side Actions */}
+        <Box>
+          {viewMode === 'student' && item.type === 'assignment' && (
+            <SubmitButton
+              submissionStatus={
+                getSubmissionStatus(item.assignment) || 'pending'
+              }
+              onClick={() => {}}
+              dueDate={item.assignment?.dueDate || ''}
+              assignmentStatus={item.assignment?.status || 'open'}
+              isPreview={authUser.role !== 'student'}
+            />
+          )}
+
+          {viewMode === 'mentor' && item.type === 'assignment' && (
+            <Tooltip label="View submissions">
+              <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
+                <IconEye size={16} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+
+          {viewMode === 'admin' && <AdminActions item={item} />}
+        </Box>
+      </Group>
+    </Card>
   )
 }
 
@@ -237,44 +348,83 @@ type CustomAccordionControlProps = {
   title: string
   completedItemsCount?: number
   totalItemsCount?: number
+  overdueItemsCount?: number
+  progressPercentage?: number
   isPreview?: boolean
+  isSubsection?: boolean
+  viewMode: 'student' | 'mentor' | 'admin'
   accordionControlProps?: AccordionControlProps
 } & GroupProps
 
 function CustomAccordionControl({
   item,
   title,
-  completedItemsCount,
-  totalItemsCount,
-  isPreview = false,
+  completedItemsCount = 0,
+  totalItemsCount = 0,
+  overdueItemsCount = 0,
+  progressPercentage = 0,
+  isSubsection = false,
+  viewMode,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
-  const { authUser } = useAuth('protected')
-  const role: Role = isPreview ? 'student' : authUser.role
-
   return (
-    <Group
-      justify="space-between"
-      align="center"
-      h={'100%'}
-      py={'md'}
-      px={'sm'}
-      {...props}
-    >
-      <Group wrap="nowrap">
-        <Accordion.Control w={52} {...accordionControlProps} />
+    <Box>
+      <Group justify="space-between" align="center" px="sm" py="md" {...props}>
+        <Group wrap="nowrap" flex={1}>
+          <Accordion.Control w={40} {...accordionControlProps} />
 
-        <Group gap={'sm'} wrap="nowrap">
-          <Stack gap={'1'}>
-            <Title order={4} fw={600}>
-              {title}
-            </Title>
+          <Stack gap={'xs'} flex={1}>
+            <Group gap="xs" mb={4}>
+              <Title order={isSubsection ? 5 : 4} fw={600}>
+                {title}
+              </Title>
+
+              {!item.published.isPublished && viewMode !== 'student' && (
+                <Badge size="xs" variant="outline" color="orange">
+                  Draft
+                </Badge>
+              )}
+
+              {overdueItemsCount > 0 && viewMode === 'student' && (
+                <Badge size="xs" variant="filled" color="red">
+                  {overdueItemsCount} Overdue
+                </Badge>
+              )}
+            </Group>
+
+            {viewMode === 'student' && totalItemsCount > 0 && (
+              <Progress
+                value={progressPercentage}
+                size="sm"
+                radius="xl"
+                color={progressPercentage === 100 ? 'green' : 'blue'}
+              />
+            )}
+
+            {viewMode !== 'student' && item.published.publishedAt && (
+              <Text size="xs" c="dimmed">
+                Published{' '}
+                {formatTimestampToDateTimeText(
+                  item.published.publishedAt,
+                  'on',
+                )}
+              </Text>
+            )}
           </Stack>
         </Group>
+
+        {viewMode === 'mentor' && (
+          <Tooltip label="View section analytics">
+            <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
+              <IconChartBar size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )}
+
+        {viewMode === 'admin' && <AdminActions item={item} />}
       </Group>
-      {role === 'admin' && <AdminActions item={item} />}
-    </Group>
+    </Box>
   )
 }
 
@@ -286,24 +436,29 @@ const AdminActions = ({ item }: AdminActionsProps) => {
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const handleDelete = () => {} //TODO: implement this
-  const [opened, { open, close }] = useDisclosure()
+  const [publishMenuOpen, setPublishMenuOpen] = useState(false)
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
+
   return (
-    <Group>
+    <Group gap="xs">
       <Menu
         shadow="md"
         width={200}
-        opened={opened}
-        onOpen={open}
-        onClose={close}
+        opened={publishMenuOpen}
+        onClose={() => setPublishMenuOpen(false)}
       >
         <Menu.Target>
-          <Tooltip label={item.published.isPublished ? 'Unpublish' : 'Publish'}>
+          <Tooltip
+            label={item.published.isPublished ? 'Published' : 'Not Published'}
+          >
             <ActionIcon
-              variant="default"
-              radius="lg"
+              variant={item.published.isPublished ? 'filled' : 'light'}
+              color={item.published.isPublished ? 'green' : 'gray'}
+              radius="xl"
+              size="lg"
               onClick={(e) => {
+                e.stopPropagation()
                 if (item.published.isPublished) {
-                  e.stopPropagation()
                   navigate({
                     from: '/courses/$courseCode/modules',
                     to: `$itemId/publish`,
@@ -311,21 +466,15 @@ const AdminActions = ({ item }: AdminActionsProps) => {
                     search: { scheduled: false, unpublish: true },
                   })
                 } else {
-                  open()
+                  setPublishMenuOpen(true)
                 }
               }}
             >
-              <ThemeIcon
-                color={item.published.isPublished ? 'green' : 'gray'}
-                size="md"
-                radius="xl"
-              >
-                {item.published.isPublished ? (
-                  <IconRubberStamp size={20} />
-                ) : (
-                  <IconRubberStampOff size={20} />
-                )}
-              </ThemeIcon>
+              {item.published.isPublished ? (
+                <IconRubberStamp size={16} />
+              ) : (
+                <IconRubberStampOff size={16} />
+              )}
             </ActionIcon>
           </Tooltip>
         </Menu.Target>
@@ -333,19 +482,20 @@ const AdminActions = ({ item }: AdminActionsProps) => {
           <Menu.Label>Publish Actions</Menu.Label>
           {!item.published.isPublished && (
             <Menu.Item
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 navigate({
                   from: '/courses/$courseCode/modules',
                   to: `$itemId/publish`,
                   params: { itemId: item.id },
                   search: { scheduled: false, unpublish: false },
                 })
-              }} //TODO: handle publish
+              }}
               leftSection={
                 <IconRubberStamp
                   size={16}
                   stroke={1.5}
-                  color={theme.colors.blue[5]}
+                  color={theme.colors.green[6]}
                 />
               }
             >
@@ -354,19 +504,20 @@ const AdminActions = ({ item }: AdminActionsProps) => {
           )}
           {!item.published.isPublished && (
             <Menu.Item
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 navigate({
                   from: '/courses/$courseCode/modules',
                   to: `$itemId/publish`,
                   params: { itemId: item.id },
                   search: { scheduled: true, unpublish: false },
                 })
-              }} //TODO: handle schedule publish
+              }}
               leftSection={
                 <IconCalendarTime
                   size={16}
                   stroke={1.5}
-                  color={theme.colors.blue[5]}
+                  color={theme.colors.blue[6]}
                 />
               }
             >
@@ -375,11 +526,15 @@ const AdminActions = ({ item }: AdminActionsProps) => {
           )}
         </Menu.Dropdown>
       </Menu>
-      <Tooltip label="Add new">
+
+      <Tooltip label="Add new item">
         <ActionIcon
-          variant="subtle"
-          radius="lg"
-          onClick={() => {
+          variant="light"
+          color="blue"
+          radius="xl"
+          size="lg"
+          onClick={(e) => {
+            e.stopPropagation()
             navigate({
               from: '/courses/$courseCode/modules',
               to: `$itemId/create`,
@@ -387,24 +542,39 @@ const AdminActions = ({ item }: AdminActionsProps) => {
             })
           }}
         >
-          <IconPlus size={20} />
+          <IconPlus size={16} />
         </ActionIcon>
       </Tooltip>
-      <Menu shadow="md" width={200}>
+
+      <Menu
+        shadow="md"
+        width={200}
+        opened={actionsMenuOpen}
+        onClose={() => setActionsMenuOpen(false)}
+      >
         <Menu.Target>
-          <ActionIcon variant="default" radius="lg">
-            <IconDotsVertical size={20} />
+          <ActionIcon
+            variant="light"
+            color="gray"
+            radius="xl"
+            size="lg"
+            onClick={(e) => {
+              e.stopPropagation()
+              setActionsMenuOpen(true)
+            }}
+          >
+            <IconDotsVertical size={16} />
           </ActionIcon>
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Label>Actions</Menu.Label>
+          <Menu.Label>Item Actions</Menu.Label>
           <Menu.Item
-            variant={'subtle'}
             leftSection={
-              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[5]} />
+              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[6]} />
             }
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation()
               navigate({
                 from: '/courses/$courseCode/modules',
                 to: `$itemId/edit`,
@@ -414,12 +584,15 @@ const AdminActions = ({ item }: AdminActionsProps) => {
           >
             Edit
           </Menu.Item>
-          <Menu.Item //TODO: implement this
-            leftSection={
-              <IconTrash size={16} stroke={1.5} color={theme.colors.red[5]} />
-            }
+          <Menu.Item
+            color="red"
+            leftSection={<IconTrash size={16} stroke={1.5} />}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDelete()
+            }}
           >
-            Delete Item
+            Delete
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

@@ -8,16 +8,17 @@ import {
   Group,
   Stack,
   Text,
+  ThemeIcon,
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import { type Course } from '@/features/courses/types.ts'
+import { type EnrolledCourse } from '@/features/courses/types.ts'
 import CourseNavBar, {
   type CourseNavItem,
 } from '@/features/courses/course-navbar.tsx'
-import { mockCourseData } from '@/features/courses/mocks.ts'
-import { IconTool } from '@tabler/icons-react'
-import { useState } from 'react'
+import { mockEnrolledCourse } from '@/features/courses/mocks.ts'
+import { IconBookmark, IconTool } from '@tabler/icons-react'
+import React, { useState } from 'react'
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
@@ -27,7 +28,7 @@ function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
 
-  const courses: Course[] = mockCourseData
+  const courses: EnrolledCourse[] = mockEnrolledCourse
   const { courseCode } = Route.useParams()
   const course = courses.find((c) => c.courseCode === courseCode)
 
@@ -83,20 +84,28 @@ function RouteComponent() {
   return (
     <Stack w="100%" h="100%" gap={0}>
       <Group wrap={'nowrap'} justify="space-between" align="center" mb={'md'}>
-        <Stack gap={0} align="start" justify="start">
-          <Title order={3}>{course?.courseName}</Title>
-          <Text size="sm" c="dimmed">
-            {course?.courseCode} • {course?.program.program}
-          </Text>
-        </Stack>
-        <Button
-          bg={'secondary'}
-          leftSection={<IconTool size={18} />}
-          onClick={() => setShowActions(true)}
-          size={'sm'}
-        >
-          Manage Content
-        </Button>
+        <Group gap="sm" align="center">
+          <ThemeIcon size="lg" variant="light" color="blue">
+            <IconBookmark size={20} />
+          </ThemeIcon>
+          <div>
+            <Title order={3}>{course?.courseName}</Title>
+            <Text size="sm" c="dimmed">
+              {course?.courseCode} • {course?.program.program} •{' '}
+              {course?.section.sectionName}
+            </Text>
+          </div>
+        </Group>
+        {authUser.role === 'admin' && (
+          <Button
+            bg={'secondary'}
+            leftSection={<IconTool size={18} />}
+            onClick={() => setShowActions(true)}
+            size={'sm'}
+          >
+            Manage Content
+          </Button>
+        )}
       </Group>
       <Divider />
       <Group

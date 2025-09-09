@@ -30,10 +30,16 @@ import {
   IconChevronRight,
   IconDownload,
   IconEdit,
+  IconExternalLink,
   IconFileText,
 } from '@tabler/icons-react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { Link } from '@tanstack/react-router'
+import {
+  SubmissionForm,
+  type SubmissionPayload,
+} from '@/features/courses/modules/content/submission-form.tsx'
+import { getModuleItemsFromSections } from '@/utils/helpers.ts'
 
 interface ModuleContentViewProps {
   moduleItem: ModuleItem
@@ -49,7 +55,7 @@ const ModuleContentView = ({
   isPreview = false,
 }: ModuleContentViewProps) => {
   // Flattened list of all module items
-  const allItems = getFlatItems(module.sections)
+  const allItems = getModuleItemsFromSections(module.sections)
   const currentIndex = allItems.findIndex((i) => i.id === moduleItem.id)
   const previousItem = currentIndex > 0 ? allItems[currentIndex - 1] : null
   const nextItem =
@@ -82,6 +88,10 @@ const ModuleContentView = ({
           />
 
           <ContentArea moduleItem={moduleItem} editor={editor} />
+
+          {moduleItem.type === 'assignment' && moduleItem.assignment && (
+            <EmbeddedSubmissionBox assignmentItem={moduleItem} />
+          )}
 
           {/* Continue Button */}
           {nextItem && !isPreview && (
@@ -330,15 +340,68 @@ const Sidebar = ({
   )
 }
 
-/* ---------------------------------------------------
-   Helpers
---------------------------------------------------- */
-function getFlatItems(sections: ModuleSection[]): ModuleItem[] {
-  let items: ModuleItem[] = []
-  sections.forEach((s) => {
-    items = [...items, ...s.items, ...getFlatItems(s.subsections || [])]
-  })
-  return items.sort((a, b) => a.order - b.order)
+const EmbeddedSubmissionBox = ({
+  assignmentItem,
+}: {
+  assignmentItem: ModuleItem
+}) => {
+  const submitted =
+    assignmentItem.assignment && 'submissionStatus' in assignmentItem.assignment
+      ? assignmentItem.assignment?.submissionStatus === 'submitted'
+      : false
+
+  const handleQuickSubmit = (payload: SubmissionPayload) => {
+    console.log('Quick submitting...', {
+      ...payload,
+      assignmentId: assignmentItem.assignment?.id,
+    })
+    // TODO: mutation call
+  }
+
+  return (
+    <Card shadow="sm" radius="md" mt="lg" p="md">
+      <Stack>
+        {/* Header */}
+        <Group justify="space-between">
+          <Text fw={500}>Submission</Text>
+          {submitted ? (
+            <Badge color="green">Submitted</Badge>
+          ) : (
+            <Badge color="red" variant="light">
+              Not Submitted
+            </Badge>
+          )}
+        </Group>
+
+        {/* Not Submitted State */}
+        {!submitted ? (
+          <>
+            <SubmissionForm
+              onSubmit={handleQuickSubmit}
+              buttonLabel="Quick Submit"
+              withSubmissionPageNavigation={true}
+            />
+          </>
+        ) : (
+          // Submitted State
+          <Group justify="flex-end">
+            <Link
+              from={'/courses/$courseCode/modules'}
+              to={`$itemId/submit`}
+              params={{ itemId: assignmentItem.id }}
+            >
+              <Button
+                variant="light"
+                rightSection={<IconExternalLink size={16} />}
+              >
+                View Submission
+              </Button>
+            </Link>
+          </Group>
+        )}
+      </Stack>
+    </Card>
+  )
 }
 
 export default ModuleContentView
