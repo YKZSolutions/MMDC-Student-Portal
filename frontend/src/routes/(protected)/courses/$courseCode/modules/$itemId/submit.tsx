@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import SubmissionPage from '@/features/courses/modules/content/submissionPage.tsx'
+import SubmissionPage from '@/features/courses/modules/content/submission-page.tsx'
 import { mockStudentModule } from '@/features/courses/mocks.ts'
 import { getModuleItemsFromModule } from '@/utils/helpers.ts'
 
