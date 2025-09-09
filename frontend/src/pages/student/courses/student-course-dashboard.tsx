@@ -2,7 +2,7 @@
 import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FilterType } from '@/components/multi-filter.tsx'
 import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import { Container, Group, Stack } from '@mantine/core'
@@ -64,6 +64,15 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
     studentCourseFilterConfig,
   )
 
+  const currentMeetings = useMemo(
+    () =>
+      filteredData.map((course) => ({
+        course,
+        currentMeeting: useCurrentMeeting(course).currentMeeting,
+      })),
+    [filteredData],
+  )
+
   return (
     <Container size="lg" w="100%" pb="xl">
       <Stack gap="lg">
@@ -87,23 +96,23 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
             gap="md"
             style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
           >
-            {filteredData.map((course, index) =>
-              view === 'grid' ? (
-                <CourseCard
-                  key={index}
-                  url={`/courses/${course.courseCode}`}
-                  course={course}
-                  currentMeeting={useCurrentMeeting(course).currentMeeting}
-                />
-              ) : (
-                <CourseListRow
-                  key={index}
-                  url={`/courses/${course.courseCode}`}
-                  course={course}
-                  currentMeeting={useCurrentMeeting(course).currentMeeting}
-                />
-              ),
-            )}
+            {view === 'grid'
+              ? filteredData.map((course, index) => (
+                  <CourseCard
+                    key={index}
+                    url={`/courses/${course.courseCode}`}
+                    course={course}
+                    currentMeeting={currentMeetings[index].currentMeeting}
+                  />
+                ))
+              : filteredData.map((course, index) => (
+                  <CourseListRow
+                    key={index}
+                    url={`/courses/${course.courseCode}`}
+                    course={course}
+                    currentMeeting={currentMeetings[index].currentMeeting}
+                  />
+                ))}
           </Group>
           <div
             className="self-end"

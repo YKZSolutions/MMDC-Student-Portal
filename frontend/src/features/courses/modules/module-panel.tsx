@@ -226,6 +226,14 @@ const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
     }
   }
 
+  const navigateToItem = () => {
+    navigate({
+      from: '/courses/$courseCode/modules',
+      to: `$itemId`,
+      params: { itemId: item.id },
+    })
+  }
+
   return (
     <Card
       withBorder
@@ -237,11 +245,7 @@ const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
       }}
       onClick={(e) => {
         e.stopPropagation()
-        navigate({
-          from: '/courses/$courseCode/modules',
-          to: `$itemId`,
-          params: { itemId: item.id },
-        })
+        navigateToItem()
       }}
     >
       <Group align="center" justify="space-between" wrap="nowrap">

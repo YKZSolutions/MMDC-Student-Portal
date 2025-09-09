@@ -35,7 +35,10 @@ import {
 } from '@tabler/icons-react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { Link } from '@tanstack/react-router'
-import { SubmissionForm } from '@/features/courses/modules/content/submission-form.tsx'
+import {
+  SubmissionForm,
+  type SubmissionPayload,
+} from '@/features/courses/modules/content/submission-form.tsx'
 
 interface ModuleContentViewProps {
   moduleItem: ModuleItem
@@ -341,29 +344,17 @@ export const EmbeddedSubmissionBox = ({
 }: {
   assignmentItem: ModuleItem
 }) => {
-  const [file, setFile] = useState<File | null>(null)
-  const [link, setLink] = useState('')
-  const [comments, setComments] = useState('')
-
   const submitted =
     assignmentItem.assignment && 'submissionStatus' in assignmentItem.assignment
       ? assignmentItem.assignment?.submissionStatus === 'submitted'
       : false
 
-  const canSubmit = Boolean(file || link.trim())
-
-  const handleQuickSubmit = () => {
-    if (!canSubmit) return
-
-    const payload = {
-      file,
-      link: link.trim() || null,
-      comments: comments.trim() || null,
+  const handleQuickSubmit = (payload: SubmissionPayload) => {
+    console.log('Quick submitting...', {
+      ...payload,
       assignmentId: assignmentItem.assignment?.id,
-    }
-
-    // TODO: Replace with actual mutation call
-    console.log('Submitting...', payload)
+    })
+    // TODO: mutation call
   }
 
   return (

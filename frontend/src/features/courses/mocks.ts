@@ -16,10 +16,7 @@ import type { Module } from '@/features/courses/modules/types.ts'
 import type { StudentModule } from '@/features/courses/modules/student/types.ts'
 import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
 import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
-import type {
-  CourseGradebookForMentor,
-  CourseGradebookForStudent,
-} from '@/features/courses/grades/types.ts'
+import type { CourseGradebookForMentor, CourseGradebookForStudent, } from '@/features/courses/grades/types.ts'
 
 export const mockCourseBasicDetails: CourseBasicDetails[] = [
   {
@@ -131,8 +128,8 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
       },
       classMeetings: [
         {
-          startTimeStamp: '2023-08-20T10:00',
-          endTimeStamp: '2023-08-20T11:00',
+          startTime: getPastDate(1),
+          endTime: getFutureDate(1),
           meetingLink: 'https://zoom.us',
         },
       ],
@@ -153,8 +150,8 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
       },
       classMeetings: [
         {
-          startTimeStamp: '2023-08-20T10:00',
-          endTimeStamp: '2023-08-20T11:00',
+          startTime: getPastDate(1),
+          endTime: getFutureDate(1),
           meetingLink: 'https://zoom.us',
         },
       ],
@@ -176,8 +173,8 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
       },
       classMeetings: [
         {
-          startTimeStamp: '2023-08-20T15:45',
-          endTimeStamp: '2023-08-20T22:00',
+          startTime: getPastDate(1),
+          endTime: getFutureDate(1),
           meetingLink: 'https://zoom.us',
         },
       ],
@@ -198,8 +195,8 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
       },
       classMeetings: [
         {
-          startTimeStamp: '2025-08-23T00:00',
-          endTimeStamp: '2025-08-29T23:59',
+          startTime: getPastDate(1),
+          endTime: getFutureDate(1),
           meetingLink: 'https://zoom.us',
         },
       ],
@@ -207,11 +204,11 @@ export const mockEnrolledCourse: EnrolledCourse[] = [
     activities: [
       {
         activityName: 'Assignment 1',
-        dueTimestamp: '2025-08-20T23:59:59',
+        dueTimestamp: getFutureDate(1),
       },
       {
         activityName: 'Assignment 2',
-        dueTimestamp: '2025-08-20T23:59:59',
+        dueTimestamp: getFutureDate(1),
       },
     ],
     program: mockAcademicPrograms[0],
@@ -233,7 +230,7 @@ export const mockAssignmentBase: AssignmentBase[] = [
     id: 'assign-2',
     title: 'First Code Assignment',
     type: 'assignment',
-    dueDate: '2024-06-20T23:59:59Z',
+    dueDate: getFutureDate(1),
     mode: 'individual',
     points: 20,
     status: 'open',
@@ -244,7 +241,7 @@ export const mockAssignmentBase: AssignmentBase[] = [
     id: 'assign-3',
     title: 'Final Project Draft',
     type: 'draft',
-    dueDate: '2024-07-01T23:59:59Z',
+    dueDate: getFutureDate(1),
     mode: 'group',
     points: 30,
     status: 'open',
@@ -254,7 +251,7 @@ export const mockAssignmentBase: AssignmentBase[] = [
     id: 'assign-4',
     title: 'Project Milestone',
     type: 'milestone',
-    dueDate: '2024-07-15T23:59:59Z',
+    dueDate: getFutureDate(1),
     mode: 'group',
     points: 40,
     status: 'closed',
@@ -263,7 +260,7 @@ export const mockAssignmentBase: AssignmentBase[] = [
     id: 'assign-5',
     title: 'Additional Exercise',
     type: 'other',
-    dueDate: '2024-07-20T23:59:59Z',
+    dueDate: getFutureDate(1),
     mode: 'individual',
     status: 'open',
     allowLateSubmission: true,

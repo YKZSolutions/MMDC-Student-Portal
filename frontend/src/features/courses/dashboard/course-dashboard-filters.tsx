@@ -1,5 +1,6 @@
 import { type FilterType, MultiFilter } from '@/components/multi-filter.tsx'
 import { Group } from '@mantine/core'
+import { useMemo } from 'react'
 
 type CourseDashboardFiltersProps = {
   filters: FilterType[]
@@ -16,15 +17,21 @@ const CourseDashboardFilters = ({
   onRemoveFilter,
   onFilterChange,
 }: CourseDashboardFiltersProps) => {
+  const transformedFilters = useMemo(
+    () =>
+      activeFilters.map((filter) => ({
+        ...filter,
+        onChange: (value: string) => onFilterChange(filter.id, value),
+        onRemove: () => onRemoveFilter(filter.id),
+      })),
+    [activeFilters, onAddFilter, onFilterChange, onRemoveFilter],
+  )
+
   return (
     <Group gap={'md'} align="start">
       <MultiFilter
         filters={filters}
-        activeFilters={activeFilters.map((filter) => ({
-          ...filter,
-          onChange: (value: string) => onFilterChange(filter.id, value),
-          onRemove: () => onRemoveFilter(filter.id),
-        }))}
+        activeFilters={transformedFilters}
         onAddFilter={onAddFilter}
       />
     </Group>

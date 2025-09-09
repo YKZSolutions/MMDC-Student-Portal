@@ -45,8 +45,8 @@ export interface AcademicTerm {
 }
 
 export interface ClassMeeting {
-  startTimeStamp: string
-  endTimeStamp: string
+  startTime: string
+  endTime: string
   meetingLink: string
 }
 

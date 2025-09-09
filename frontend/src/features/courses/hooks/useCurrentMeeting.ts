@@ -12,9 +12,9 @@ export function useCurrentMeeting(course: EnrolledCourse) {
   const now = new Date()
 
   currentMeeting = course.section.classMeetings.find((meeting) => {
-    start = dayjs(meeting.startTimeStamp)
+    start = dayjs(meeting.startTime)
     earlyJoin = start.subtract(15, 'minute').toDate() // 15 minutes before start
-    end = dayjs(meeting.endTimeStamp).toDate()
+    end = dayjs(meeting.endTime).toDate()
     return now >= earlyJoin && now <= end
   })
 
