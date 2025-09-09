@@ -86,8 +86,8 @@ function PaginatedTable<T>({
             cursor: 'pointer',
           }}
         >
-          {data.map((item) => (
-            <Table.Tr>
+          {data.map((item, idx) => (
+            <Table.Tr key={idx}>
               {checkbox && (
                 <Table.Td>
                   <Checkbox size="sm" />
