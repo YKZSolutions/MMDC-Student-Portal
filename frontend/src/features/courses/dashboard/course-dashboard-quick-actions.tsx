@@ -1,4 +1,4 @@
-import React from 'react'
+import { type ReactNode } from 'react'
 import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core'
 import { IconCalendar, IconMessage } from '@tabler/icons-react'
 
@@ -10,7 +10,7 @@ const CourseDashboardQuickActions = () => {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')
 
-  const IconButton = (label: string, icon: React.ReactNode) => {
+  const IconButton = (label: string, icon: ReactNode) => {
     return (
       <Tooltip label={label} withArrow color={theme.colors.dark[6]}>
         <ActionIcon
@@ -34,22 +34,24 @@ const CourseDashboardQuickActions = () => {
             'Book Mentoring Session',
             <IconCalendar size={'60%'} stroke={1.5} />,
           ),
-          admin: IconButton(
+          mentor: IconButton(
             'Manage Mentoring Sessions',
             <IconCalendar size={'60%'} stroke={1.5} />,
           ),
         }}
       />
-      <Tooltip label="Got to Chat" withArrow color={theme.colors.dark[6]}>
-        <ActionIcon
-          color={theme.colors.dark[6]}
-          variant="white"
-          radius="lg"
-          bd={`1px solid ${theme.colors.dark[0]}`}
-        >
-          <IconMessage size={'50%'} stroke={1.5} />
-        </ActionIcon>
-      </Tooltip>
+      {authUser.role !== 'admin' && (
+        <Tooltip label="Got to Chat" withArrow color={theme.colors.dark[6]}>
+          <ActionIcon
+            color={theme.colors.dark[6]}
+            variant="white"
+            radius="lg"
+            bd={`1px solid ${theme.colors.dark[0]}`}
+          >
+            <IconMessage size={'50%'} stroke={1.5} />
+          </ActionIcon>
+        </Tooltip>
+      )}
     </Group>
   )
 }

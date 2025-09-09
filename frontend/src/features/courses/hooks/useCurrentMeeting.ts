@@ -1,16 +1,20 @@
-import type { ClassMeeting } from '@/features/courses/types.ts'
+import type { EnrolledCourse } from '@/features/courses/types.ts'
 import dayjs from 'dayjs'
 
-export function useCurrentMeeting(classMeetings: ClassMeeting[]) {
-  const now = new Date()
+export function useCurrentMeeting(course: EnrolledCourse) {
   let start
   let end
   let earlyJoin
+  let currentMeeting
 
-  const currentMeeting = classMeetings.find((meeting) => {
-    start = dayjs(meeting.startTimeStamp)
+  if (!course.section) return { currentMeeting, earlyJoin }
+
+  const now = new Date()
+
+  currentMeeting = course.section.classMeetings.find((meeting) => {
+    start = dayjs(meeting.startTime)
     earlyJoin = start.subtract(15, 'minute').toDate() // 15 minutes before start
-    end = dayjs(meeting.endTimeStamp).toDate()
+    end = dayjs(meeting.endTime).toDate()
     return now >= earlyJoin && now <= end
   })
 

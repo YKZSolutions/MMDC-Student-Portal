@@ -10,7 +10,6 @@ import {
   Title,
 } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
-import { CardWithModal } from '@/components/with-modal.tsx'
 import BtnCard from '@/components/btn-card.tsx'
 
 type CourseActionsModalProps = {
@@ -66,21 +65,19 @@ const CourseActionsModal = ({
             />
           </GridCol>
           <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Student Group'}
               description={
                 'Create a new student group that can be used to grade multiple students at once.'
               }
               icon={<IconBook />}
-              modalComponent={Modal} //TODO: currently a placeholder
             />
           </GridCol>
           <GridCol span={6}>
-            <CardWithModal
+            <BtnCard
               title={'Progress Report'}
               description={'Create a new progress report that admins can view.'}
               icon={<IconBook />}
-              modalComponent={Modal} //TODO: currently a placeholder
             />
           </GridCol>
         </Grid>

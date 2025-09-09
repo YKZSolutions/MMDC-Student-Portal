@@ -30,7 +30,7 @@ export interface Grade {
   studentId?: string // if graded individually
   groupId?: string // if graded as a group
   groupMemberIds?: string[] // snapshot of members at grading
-  score: number | null
+  score?: number
   maxScore: number
   feedback?: string
   gradedBy: string // teacher/mentor ID

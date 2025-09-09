@@ -21,6 +21,7 @@ import {
   IconListTree,
   IconRubberStamp,
   IconTrash,
+  IconX,
 } from '@tabler/icons-react'
 import {
   mockCourseBasicDetails,
@@ -35,14 +36,17 @@ import type {
   ContentNode,
   ContentNodeType,
   Module,
+  ModuleItem,
+  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import ContentTree from '@/features/courses/cms/content-tree.tsx'
-import { RichTextEditor } from '@/components/editor-w-preview.tsx'
+import RichTextEditor from '@/components/rich-text-editor.tsx'
 import CourseSelector from '@/features/courses/cms/course-selector.tsx'
 import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { Link } from '@tanstack/react-router'
 import { getTypeFromLevel } from '@/utils/helpers.ts'
+import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
 
 type CMSProps = {
   courseCode?: string
@@ -52,7 +56,7 @@ type CMSProps = {
 
 export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
   const theme = useMantineTheme()
-  const [isTreeVisible, setIsTreeVisible] = useState(true)
+  const [isTreeVisible, setIsTreeVisible] = useState(variant === 'full')
   const [isDragging, setIsDragging] = useState(false)
 
   const {
@@ -106,8 +110,7 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
           <RichTextEditor
             content={
               editorState.data && 'content' in editorState.data
-                ? editorState.data?.content ||
-                  JSON.stringify(mockInitialContent)
+                ? editorState.data?.content || mockInitialContent
                 : null
             }
             onUpdate={(newContent) => {
@@ -124,14 +127,14 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
         )
       case 'preview':
         return (
-          <RichTextEditor
-            content={
-              editorState.data && 'content' in editorState.data
-                ? editorState.data?.content ||
-                  JSON.stringify(mockInitialContent)
-                : null
+          <ModuleContentView
+            module={module}
+            moduleItem={editorState.data as ModuleItem}
+            parentSection={
+              getNode(editorState.data?.parentId as string)
+                ?.node as ModuleSection
             }
-            onUpdate={(newContent) => console.log('Updated:', newContent)}
+            isPreview={true}
           />
         )
     }
@@ -186,11 +189,15 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
               courseDetails={courseDetails}
               courses={mockCourseBasicDetails}
               contentTitle={editorState.data?.title}
-              isTreeVisible={isTreeVisible}
+              isTreeVisible={isTreeVisible && variant === 'full'}
               onCourseChange={handleCourseChange}
               onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
               view={editorState.view}
+              variant={variant}
               onViewChange={(view) => setView(view as EditorView)}
+              hasDetails={!!editorState.data}
+              hasContent={!!editorState.data && 'content' in editorState.data}
+              isItem={editorState.type === 'item'}
             />
 
             <Box
@@ -236,7 +243,11 @@ interface CMSHeaderProps {
   onToggleTree: () => void
   contentTitle?: string
   view: string
+  variant: 'full' | 'editor'
   onViewChange: (view: string) => void
+  isItem: boolean
+  hasDetails: boolean
+  hasContent: boolean
 }
 
 const CMSHeader = ({
@@ -247,10 +258,14 @@ const CMSHeader = ({
   onToggleTree,
   contentTitle,
   view,
+  variant,
   onViewChange,
+  hasDetails,
+  hasContent,
+  isItem,
 }: CMSHeaderProps) => {
   const theme = useMantineTheme()
-
+  console.log('variant', variant)
   return (
     <Group
       justify="space-between"
@@ -262,7 +277,7 @@ const CMSHeader = ({
       <Group>
         <Group
           gap={'md'}
-          display={isTreeVisible ? 'none' : 'flex'}
+          display={isTreeVisible || variant === 'editor' ? 'none' : 'flex'}
           align={'center'}
         >
           <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
@@ -272,19 +287,34 @@ const CMSHeader = ({
             onCourseChange={onCourseChange}
           />
         </Group>
+        <ActionIcon
+          variant={'transparent'}
+          hidden={variant !== 'editor'}
+          onClick={() => window.history.back()}
+        >
+          <IconX />
+        </ActionIcon>
 
         <SegmentedControl
           value={view}
           onChange={onViewChange}
           data={[
             { label: 'Details', value: 'detail' },
-            { label: 'Content', value: 'content' },
-            { label: 'Preview', value: 'preview' },
+            {
+              label: 'Content',
+              value: 'content',
+              disabled: !hasDetails && !isItem,
+            },
+            {
+              label: 'Preview',
+              value: 'preview',
+              disabled: !hasContent && !hasDetails && !isItem,
+            },
           ]}
         />
       </Group>
 
-      <Title order={3} c={'gray.7'} maw={'50%'} lineClamp={1}>
+      <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
         {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
         {courseDetails?.courseName} {contentTitle && ` | ${contentTitle} `}
       </Title>

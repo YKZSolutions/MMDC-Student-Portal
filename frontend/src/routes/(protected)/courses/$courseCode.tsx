@@ -1,11 +1,24 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import { Box, Group, useMantineTheme } from '@mantine/core'
-import { type CourseBasicDetails } from '@/features/courses/types.ts'
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
+  useMantineTheme,
+} from '@mantine/core'
+import { type EnrolledCourse } from '@/features/courses/types.ts'
 import CourseNavBar, {
   type CourseNavItem,
 } from '@/features/courses/course-navbar.tsx'
-import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
+import { mockEnrolledCourse } from '@/features/courses/mocks.ts'
+import { IconBookmark, IconTool } from '@tabler/icons-react'
+import React, { useState } from 'react'
 
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
@@ -15,8 +28,9 @@ function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
 
-  const courses: CourseBasicDetails[] = mockCourseBasicDetails
+  const courses: EnrolledCourse[] = mockEnrolledCourse
   const { courseCode } = Route.useParams()
+  const course = courses.find((c) => c.courseCode === courseCode)
 
   const studentNavItems: CourseNavItem[] = [
     {
@@ -65,47 +79,78 @@ function RouteComponent() {
     },
   ]
 
-  return (
-    <Group
-      w="100%"
-      h="100%"
-      align="stretch"
-      style={{
-        overflow: 'hidden',
-      }}
-      gap={0}
-    >
-      {/* Course Nav */}
-      <Box
-        style={{
-          width: '184px',
-          minWidth: '184px',
-          borderRight: `1px solid ${theme.colors.gray[2]}`,
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
-        <CourseNavBar
-          navItems={
-            authUser.role === 'student' ? studentNavItems : adminNavItems
-          }
-          courses={courses} //TODO: use all courses for admin
-          courseCode={courseCode}
-        />
-      </Box>
+  const [showActions, setShowActions] = useState(false)
 
-      {/* Main Content */}
-      <Box
+  return (
+    <Stack w="100%" h="100%" gap={0}>
+      <Group wrap={'nowrap'} justify="space-between" align="center" mb={'md'}>
+        <Group gap="sm" align="center">
+          <ThemeIcon size="lg" variant="light" color="blue">
+            <IconBookmark size={20} />
+          </ThemeIcon>
+          <div>
+            <Title order={3}>{course?.courseName}</Title>
+            <Text size="sm" c="dimmed">
+              {course?.courseCode} • {course?.program.program} •{' '}
+              {course?.section.sectionName}
+            </Text>
+          </div>
+        </Group>
+        {authUser.role === 'admin' && (
+          <Button
+            bg={'secondary'}
+            leftSection={<IconTool size={18} />}
+            onClick={() => setShowActions(true)}
+            size={'sm'}
+          >
+            Manage Content
+          </Button>
+        )}
+      </Group>
+      <Divider />
+      <Group
+        w="100%"
+        h="100%"
+        align="stretch"
         style={{
-          flex: 1,
-          minWidth: 0,
-          height: '100%',
-          overflowY: 'auto',
-          scrollbarGutter: 'stable',
+          overflow: 'hidden',
         }}
+        gap={0}
       >
-        <Outlet />
-      </Box>
-    </Group>
+        {/* Course Nav */}
+        <Box
+          style={{
+            width: '184px',
+            minWidth: '184px',
+            borderRight: `1px solid ${theme.colors.gray[2]}`,
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          <CourseNavBar
+            navItems={
+              authUser.role === 'student' ? studentNavItems : adminNavItems
+            }
+            courses={courses} //TODO: use all courses for admin
+            courseCode={courseCode}
+          />
+        </Box>
+
+        {/* Main Content */}
+        <Box
+          style={{
+            flex: 1,
+            minWidth: 0,
+            height: '100%',
+            overflowY: 'auto',
+            scrollbarGutter: 'stable',
+          }}
+        >
+          <Container size="lg" py="md">
+            <Outlet />
+          </Container>
+        </Box>
+      </Group>
+    </Stack>
   )
 }

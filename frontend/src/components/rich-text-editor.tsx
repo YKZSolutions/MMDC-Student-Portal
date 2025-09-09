@@ -1,17 +1,13 @@
 import {
   Box,
-  Button,
   Divider,
   Group,
-  Modal,
-  type ModalProps,
   Paper,
   Popover,
   ScrollArea,
   Stack,
-  Title,
 } from '@mantine/core'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   BasicTextStyleButton,
   BlockNoteViewEditor,
@@ -39,39 +35,27 @@ import {
   IconEye,
   IconLink,
 } from '@tabler/icons-react'
-import { mockInitialContentString } from '@/features/courses/mocks.ts'
+import { mockInitialContent } from '@/features/courses/mocks.ts'
+import type { Block } from '@blocknote/core'
 
 interface RichTextEditorProps {
-  content: string | null
-  onUpdate?: (content: string) => void
+  content: Block[] | null
+  onUpdate: (content: Block[]) => void
 }
 
 const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
   const editor = useCreateBlockNote({
-    initialContent: JSON.parse(mockInitialContentString),
+    initialContent: mockInitialContent,
   })
 
   const [isPreviewMode, setIsPreviewMode] = useState(false)
-  const [previewContent, setPreviewContent] = useState<string>('')
-
-  useEffect(() => {
-    if (!isPreviewMode) return
-    // Convert to HTML for preview
-
-    const updatePreview = async () => {
-      const html = await editor.blocksToFullHTML(editor.document)
-      setPreviewContent(html)
-    }
-
-    updatePreview()
-  }, [isPreviewMode])
 
   const updateContent = useCallback(async () => {
     // Save to JSON for saving
-    const jsonObject = JSON.stringify(editor.document)
+    const jsonObject = editor.document
 
     // Save to database
-    onUpdate?.(jsonObject)
+    onUpdate(jsonObject)
   }, [editor, onUpdate])
 
   useEditorChange(updateContent, editor)
@@ -211,11 +195,7 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
                 }}
                 mt={'xl'}
               >
-                {isPreviewMode ? (
-                  <Preview content={previewContent} />
-                ) : (
-                  <BlockNoteViewEditor />
-                )}
+                <BlockNoteViewEditor editable={!isPreviewMode} />
               </Box>
             </Box>
           </ScrollArea>
@@ -225,7 +205,7 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
   )
 }
 
-export function CustomCreateLinkButton() {
+function CustomCreateLinkButton() {
   const editor = useBlockNoteEditor()
   const Components = useComponentsContext()!
   const [opened, setOpened] = useState(false)
@@ -267,19 +247,6 @@ export function CustomCreateLinkButton() {
         />
       </Components.Generic.Popover.Content>
     </Components.Generic.Popover.Root>
-  )
-}
-
-const Preview = ({ content }: { content: string }) => {
-  return (
-    <Box
-      style={{
-        width: '100%',
-        maxWidth: '1080px',
-        minWidth: '300px',
-      }}
-      dangerouslySetInnerHTML={{ __html: content }}
-    ></Box>
   )
 }
 
@@ -334,67 +301,4 @@ const ModeToggleButton = ({
   )
 }
 
-type EditorWithPreviewModalProps = ModalProps & RichTextEditorProps
-
-const EditorWithPreviewModal = ({
-  content,
-  onChange,
-  ...modalProps
-}: EditorWithPreviewModalProps) => {
-  const [editorContent, setEditorContent] = useState(content)
-  return (
-    <Modal.Root size={'xl'} {...modalProps}>
-      <Modal.Overlay />
-      <Modal.Content>
-        <Modal.Header>
-          <Stack flex={1}>
-            <Group>
-              <Modal.Title fz={'md'} fw={500}>
-                Edit Content
-              </Modal.Title>
-              <Modal.CloseButton />
-            </Group>
-            <Title ta={'center'}>Course Name</Title>
-          </Stack>
-        </Modal.Header>
-        <Modal.Body
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '70vh',
-            overflow: 'hidden',
-          }}
-        >
-          <Stack
-            style={{
-              flex: 1,
-              overflow: 'auto',
-            }}
-          >
-            <Stack flex={'1 0 auto'}>
-              <RichTextEditor content={editorContent} />
-              <Divider></Divider>
-              <Group justify="space-between">
-                <Button
-                  variant="default"
-                  onClick={modalProps.onClose}
-                  radius={'md'}
-                  size={'sm'}
-                >
-                  Cancel
-                </Button>
-                <Button radius={'md'} size={'sm'}>
-                  Save
-                </Button>
-              </Group>
-            </Stack>
-          </Stack>
-        </Modal.Body>
-      </Modal.Content>
-    </Modal.Root>
-  )
-}
-
-EditorWithPreviewModal.displayName = 'EditorWithPreviewModal'
-
-export { RichTextEditor, EditorWithPreviewModal }
+export default RichTextEditor

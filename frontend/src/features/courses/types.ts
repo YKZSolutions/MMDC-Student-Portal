@@ -4,10 +4,21 @@ export interface CourseBasicDetails {
 }
 
 export interface Course {
-  courseDetails: CourseBasicDetails
+  courseName: string
+  courseCode: string
+  programs: AcademicProgram[]
+  academicTerms: AcademicTerm[]
+  sections?: Section[]
+}
+
+export interface EnrolledCourse {
+  courseName: string
+  courseCode: string
   courseProgress: number
   section: Section
   activities: Activity[]
+  program: AcademicProgram
+  academicTerm: AcademicTerm
 }
 
 export interface SectionSchedule {
@@ -26,7 +37,7 @@ export interface Activity {
   dueTimestamp: string
 }
 
-export interface EnrolledAcademicTerm {
+export interface AcademicTerm {
   termId: string
   schoolYear: string
   term: string
@@ -34,8 +45,8 @@ export interface EnrolledAcademicTerm {
 }
 
 export interface ClassMeeting {
-  startTimeStamp: string
-  endTimeStamp: string
+  startTime: string
+  endTime: string
   meetingLink: string
 }
 
