@@ -74,8 +74,8 @@ function PaginatedTable<T>({
               </Table.Th>
             )}
 
-            {heading.map((item) => (
-              <Table.Th>{item}</Table.Th>
+            {heading.map((item, index) => (
+              <Table.Th key={index}>{item}</Table.Th>
             ))}
 
             {menu && <Table.Th></Table.Th>}
