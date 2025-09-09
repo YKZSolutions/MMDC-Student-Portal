@@ -31,7 +31,6 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react'
 
-// --- Student View Table (unchanged - working well) ---
 const StudentGradesTable = ({
   assignments,
 }: {
@@ -140,7 +139,6 @@ const StudentGradesTable = ({
   </Box>
 )
 
-// --- Mentor View Table (with grouping improvements) ---
 const MentorGradesTable = ({
   assignments,
   viewMode = 'by-assignment',

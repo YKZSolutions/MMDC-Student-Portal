@@ -3,7 +3,7 @@ import type {
   StudentAssignmentGrade,
 } from '@/features/courses/grades/types.ts'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button, Group, rem, Stack, Tabs, Title } from '@mantine/core'
 import SearchComponent from '@/components/search-component.tsx'
 import {
@@ -67,6 +67,12 @@ const CourseGrades = () => {
   }
 
   const { data, filtered, onFilter, identifiers } = getRoleSpecificContent()
+
+  useEffect(() => {
+    if (filtered.length === 0 && data.length > 0) {
+      onFilter(data as any)
+    }
+  }, [data])
 
   return (
     <Stack gap={'md'} p={'md'}>
