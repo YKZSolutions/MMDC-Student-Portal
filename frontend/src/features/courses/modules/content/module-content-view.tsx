@@ -14,15 +14,12 @@ import {
   Button,
   Card,
   Container,
-  FileInput,
   Flex,
   Group,
   Paper,
   Progress,
   Stack,
   Text,
-  Textarea,
-  TextInput,
   Timeline,
   Title,
 } from '@mantine/core'
@@ -35,12 +32,11 @@ import {
   IconEdit,
   IconExternalLink,
   IconFileText,
-  IconLink,
-  IconUpload,
 } from '@tabler/icons-react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { SubmissionForm } from '@/features/courses/modules/content/submission-form.tsx'
 
 interface ModuleContentViewProps {
   moduleItem: ModuleItem
@@ -341,7 +337,7 @@ const Sidebar = ({
   )
 }
 
-const EmbeddedSubmissionBox = ({
+export const EmbeddedSubmissionBox = ({
   assignmentItem,
 }: {
   assignmentItem: ModuleItem
@@ -354,6 +350,22 @@ const EmbeddedSubmissionBox = ({
     assignmentItem.assignment && 'submissionStatus' in assignmentItem.assignment
       ? assignmentItem.assignment?.submissionStatus === 'submitted'
       : false
+
+  const canSubmit = Boolean(file || link.trim())
+
+  const handleQuickSubmit = () => {
+    if (!canSubmit) return
+
+    const payload = {
+      file,
+      link: link.trim() || null,
+      comments: comments.trim() || null,
+      assignmentId: assignmentItem.assignment?.id,
+    }
+
+    // TODO: Replace with actual mutation call
+    console.log('Submitting...', payload)
+  }
 
   return (
     <Card shadow="sm" radius="md" mt="lg" p="md">
@@ -373,45 +385,11 @@ const EmbeddedSubmissionBox = ({
         {/* Not Submitted State */}
         {!submitted ? (
           <>
-            {/* File Upload */}
-            <FileInput
-              placeholder="Attach a file"
-              leftSection={<IconUpload size={16} />}
-              value={file}
-              onChange={setFile}
+            <SubmissionForm
+              onSubmit={handleQuickSubmit}
+              buttonLabel="Quick Submit"
+              withSubmissionPageNavigation={true}
             />
-
-            {/* Link Submission */}
-            <TextInput
-              placeholder="https://example.com/your-work"
-              label="Submit a link"
-              leftSection={<IconLink size={16} />}
-              value={link}
-              onChange={(e) => setLink(e.currentTarget.value)}
-            />
-
-            {/* Comments */}
-            <Textarea
-              placeholder="Add a description or comments (optional)"
-              label="Comments"
-              minRows={3}
-              value={comments}
-              onChange={(e) => setComments(e.currentTarget.value)}
-            />
-
-            {/* Actions */}
-            <Group justify="flex-end">
-              <Button variant="light">Quick Submit</Button>
-              <Link
-                from={'/courses/$courseCode/modules'}
-                to={`$itemId/submit`}
-                params={{ itemId: assignmentItem.id }}
-              >
-                <Button rightSection={<IconExternalLink size={16} />}>
-                  Go to Submission Page
-                </Button>
-              </Link>
-            </Group>
           </>
         ) : (
           // Submitted State
