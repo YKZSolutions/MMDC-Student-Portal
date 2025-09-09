@@ -1,22 +1,21 @@
-import React from 'react'
-import { Box, Button, Group, useMantineTheme } from '@mantine/core'
-import { IconPlus } from '@tabler/icons-react'
 import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import { Box, Button, Group, useMantineTheme } from '@mantine/core'
+import { IconPlus } from '@tabler/icons-react'
 
-interface AdminModuleViewProps {
+interface ModulesAdminPageProps {
   module: AdminModule
   onAddContent: () => void
   onExpandAll: () => void
   allExpanded: boolean
 }
 
-export const AdminModuleView = ({
+function ModulesAdminPage({
   module,
   onAddContent,
   onExpandAll,
   allExpanded,
-}: AdminModuleViewProps) => {
+}: ModulesAdminPageProps) {
   const theme = useMantineTheme()
   return (
     <Box>
@@ -37,3 +36,5 @@ export const AdminModuleView = ({
     </Box>
   )
 }
+
+export default ModulesAdminPage

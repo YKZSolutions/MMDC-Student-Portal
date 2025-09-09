@@ -1,29 +1,28 @@
 import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
-import {
-  Box,
-  Card,
-  Group,
-  Progress,
-  Text,
-  ThemeIcon,
-  Title,
-  useMantineTheme,
-} from '@mantine/core'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
-import React from 'react'
+import {
+    Box,
+    Card,
+    Group,
+    Progress,
+    Text,
+    ThemeIcon,
+    Title,
+    useMantineTheme,
+} from '@mantine/core'
 import { IconChartBar } from '@tabler/icons-react'
 
-interface MentorModuleViewProps {
+interface ModulesMentorPageProps {
   module: MentorModule
   onExpandAll: () => void
   allExpanded: boolean
 }
 
-export const MentorModuleView = ({
+function ModulesMentorPage({
   module,
   onExpandAll,
   allExpanded,
-}: MentorModuleViewProps) => {
+}: ModulesMentorPageProps) {
   const theme = useMantineTheme()
   return (
     <Box>
@@ -76,3 +75,5 @@ export const MentorModuleView = ({
     </Box>
   )
 }
+
+export default ModulesMentorPage

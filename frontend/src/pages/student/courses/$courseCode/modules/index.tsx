@@ -1,28 +1,27 @@
-import React from 'react'
+import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import type { StudentModule } from '@/features/courses/modules/student/types.ts'
 import {
-  Box,
-  Button,
-  Group,
-  Progress,
-  Stack,
-  Text,
-  useMantineTheme,
+    Box,
+    Button,
+    Group,
+    Progress,
+    Stack,
+    Text,
+    useMantineTheme,
 } from '@mantine/core'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
-import type { StudentModule } from '@/features/courses/modules/student/types.ts'
-import ModulePanel from '@/features/courses/modules/module-panel.tsx'
 
-interface StudentModuleViewProps {
+interface ModulesStudentPageProps {
   module: StudentModule
   onExpandAll: () => void
   allExpanded: boolean
 }
 
-export const StudentModuleView = ({
+function ModulesStudentPage({
   module,
   onExpandAll,
   allExpanded,
-}: StudentModuleViewProps) => {
+}: ModulesStudentPageProps) {
   const theme = useMantineTheme()
   const { studentProgress } = module
 
@@ -77,3 +76,5 @@ export const StudentModuleView = ({
     </Box>
   )
 }
+
+export default ModulesStudentPage
