@@ -89,7 +89,6 @@ export class ProgramController {
     @Param('programId', new ParseUUIDPipe()) programId: string,
     @Query() filters: BaseFilterDto,
   ) {
-    console.log(programId);
     return this.majorService.findAll(filters, programId);
   }
 
