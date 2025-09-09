@@ -35,7 +35,6 @@ import {
 } from '@tabler/icons-react'
 import { BlockNoteView } from '@blocknote/mantine'
 import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
 import { SubmissionForm } from '@/features/courses/modules/content/submission-form.tsx'
 
 interface ModuleContentViewProps {
