@@ -234,7 +234,7 @@ model Course {
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings
-  /// @DtoApiHidden 
+  /// @DtoApiHidden
   modules         Module[]
 
   /// @DtoReadOnly
@@ -566,18 +566,27 @@ model ModuleSection {
   /// @DtoApiHidden
   moduleContents ModuleContent[]
 
-  publishedAt DateTime?
-  toPublishAt DateTime?
+  title       String  @db.VarChar(255)
+  order       Int     @default(0)
 
-  publishedBy String? @db.Uuid
+  publishedAt DateTime? @map("published_at") @db.Timestamptz
+  toPublishAt DateTime? @map("to_publish_at") @db.Timestamptz
+
+  publishedBy String? @db.Uuid @map("published_by")
   user        User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   /// @DtoReadOnly
-  deletedAt DateTime?
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@index([moduleId])
+  @@index([parentSectionId])
+  @@index([order])
+  @@index([publishedAt])
+  @@map("module_sections")
 }
 
 enum ContentType {
@@ -590,21 +599,23 @@ enum ContentType {
 }
 
 model ModuleContent {
-  id       String  @id @default(uuid()) @db.Uuid
-  order    Int
-  title    String
-  subtitle String?
+  id       String @id @default(uuid()) @db.Uuid
+  order    Int    @default(0)
+  title    String @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json
 
+  /// @DtoApiHidden
   moduleSectionId String        @db.Uuid
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  content     Json
-  contentType ContentType
+  contentType ContentType @default(OVERVIEW)
+  isActive    Boolean     @default(true)
 
-  publishedAt DateTime?
-  toPublishAt DateTime?
+  publishedAt DateTime? @map("published_at") @db.Timestamptz
+  toPublishAt DateTime? @map("to_publish_at") @db.Timestamptz
 
-  publishedBy String? @db.Uuid
+  publishedBy String? @db.Uuid @map("published_by")
   user        User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
@@ -615,36 +626,56 @@ model ModuleContent {
   studentProgress StudentProgress[]
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   /// @DtoReadOnly
-  deletedAt DateTime?
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@index([moduleSectionId])
+  @@index([contentType])
+  @@index([order])
+  @@index([publishedAt])
+  @@map("module_contents")
 }
 
-model AssignmentBase {
+model Assignment {
   id String @id @default(uuid()) @db.Uuid
 
   moduleContentId String        @unique @db.Uuid
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
 
-  title               String
-  rubric              Json
-  type                AssignmentType
-  dueDate             DateTime
-  mode                AssignmentMode
-  points              Int?
-  status              AssignmentStatus
-  allowResubmission   Boolean?         @default(false)
-  maxAttempts         Int?
-  allowLateSubmission Boolean?         @default(false)
+  title       String @db.VarChar(255)
+  description String @db.Text
+  rubric      Json
+
+  type   AssignmentType   @default(ASSIGNMENT)
+  mode   AssignmentMode   @default(INDIVIDUAL)
+  status AssignmentStatus @default(OPEN)
+
+  dueDate   DateTime @map("due_date") @db.Timestamptz
+  points    Int?     @default(100) @db.SmallInt
+  maxPoints Int?     @default(100) @map("max_points") @db.SmallInt
+
+  allowResubmission   Boolean @default(false) @map("allow_resubmission")
+  maxAttempts         Int?    @map("max_attempts") @db.SmallInt
+  allowLateSubmission Boolean @default(false) @map("allow_late_submission")
+  latePenalty         Float?  @default(0.0) @map("late_penalty") @db.Decimal(5, 2)
+
+  publishedBy String? @db.Uuid @map("published_by")
+  user        User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   /// @DtoReadOnly
-  deletedAt DateTime?
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@index([moduleContentId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("assignments")
 }
 
 enum AssignmentMode {
@@ -659,26 +690,40 @@ enum AssignmentStatus {
 
 enum AssignmentType {
   ASSIGNMENT
-  DRAFT
   MILESTONE
   QUIZ
   TERMINAL_ASSESSMENT
+  PRESENTATION
 }
 
 model StudentProgress {
   id          String    @id @default(uuid()) @db.Uuid
   completed   Boolean   @default(false)
-  completedAt DateTime?
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
 
-  userId String @db.Uuid
+  /// Progress percentage (0-100)
+  progress Int @default(0) @db.SmallInt
+
+  userId String @db.Uuid @map("user_id")
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id])
 
-  moduleContentId String        @db.Uuid
+  moduleContentId String        @db.Uuid @map("module_content_id")
+  moduleId        String        @db.Uuid @map("module_id")
   /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+  moduleContent   ModuleContent @relation(fields: [moduleContentId, moduleId], references: [id, moduleId])
 
-  @@unique([userId, moduleContentId])
+  /// @DtoReadOnly
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  /// @DtoReadOnly
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([userId, moduleContentId, moduleId])
+  @@index([userId])
+  @@index([moduleContentId, moduleId])
+  @@index([completed])
+  @@index([moduleId])
+  @@map("student_progress")
 }
 
 enum SubmissionStatus {
@@ -690,35 +735,56 @@ enum SubmissionStatus {
 
 model Submission {
   id    String @id @default(uuid()) @db.Uuid
-  title String
+  title String @db.VarChar(255)
 
-  moduleContentId String        @db.Uuid
+  /// Text submission or additional notes
+  submission String? @db.Text
+
+  /// Submission status
+  status SubmissionStatus @default(NOT_SUBMITTED)
+
+  /// Grading information
+  score    Int?    @db.SmallInt
+  maxScore Int?    @map("max_score") @db.SmallInt
+  grade    String? @db.VarChar(10)
+  feedback String? @db.Text
+
+  /// Submission metadata
+  attemptNumber Int?      @map("attempt_number") @db.SmallInt
+  isLate        Boolean   @default(false) @map("is_late")
+  lateDays      Int?      @map("late_days") @db.SmallInt
+  submittedAt   DateTime? @map("submitted_at") @db.Timestamptz
+  gradedAt      DateTime? @map("graded_at") @db.Timestamptz
+
+  /// Relations
+  moduleContentId String        @db.Uuid @map("module_content_id")
   /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
 
-  studentId String @db.Uuid
+  studentId String @db.Uuid @map("student_id")
   /// @DtoApiHidden
   user      User   @relation(fields: [studentId], references: [id])
 
-  submission String? // Text submission
-
-  status SubmissionStatus @default(NOT_SUBMITTED)
-
-  score Int?
-
-  attemptNumber Int?
-  isLate        Boolean? @default(false)
-  lateDays      Int?
+  gradedBy String? @db.Uuid @map("graded_by")
+  /// @DtoApiHidden
+  grader   User?   @relation("GradedSubmissions", fields: [gradedBy], references: [id])
 
   /// @DtoApiHidden
   attachments SubmissionAttachment[]
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   /// @DtoReadOnly
-  deletedAt DateTime?
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@index([moduleContentId])
+  @@index([studentId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([gradedAt])
+  @@map("submissions")
 }
 
 model SubmissionAttachment {
