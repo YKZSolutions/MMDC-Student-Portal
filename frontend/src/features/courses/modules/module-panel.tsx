@@ -538,9 +538,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
         <Menu.Dropdown>
           <Menu.Label>Item Actions</Menu.Label>
           <Menu.Item
-            leftSection={
-              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[6]} />
-            }
+            leftSection={<IconEdit size={16} stroke={1.5} />}
             onClick={(e) => {
               e.stopPropagation()
               navigate({
