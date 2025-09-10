@@ -657,7 +657,6 @@ model ModuleContent {
   deletedAt DateTime?
 
   @@unique([moduleSectionId, order]) // unique order within a section
-  @@unique([moduleId, order]) // unique order for content directly attached to modules
   @@index([moduleSectionId])
   @@index([contentType])
   @@index([order])
