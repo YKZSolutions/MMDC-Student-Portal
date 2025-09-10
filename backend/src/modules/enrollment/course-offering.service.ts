@@ -159,7 +159,7 @@ export class CourseOfferingService {
     }
 
     if (isStudent && (status === 'enrolled' || status === 'not enrolled')) {
-      whereClause.courseEnrollment =
+      whereClause.courseEnrollments =
         status === 'enrolled'
           ? { some: { studentId, status: { not: 'dropped' } } } // offerings the student is enrolled in
           : { none: { studentId, status: { not: 'dropped' } } }; // offerings the student is NOT enrolled in
@@ -175,7 +175,7 @@ export class CourseOfferingService {
 
       // Disable fetching for the admin side first
       // TODO: Implement an FE interface for this
-      courseEnrollment: isStudent
+      courseEnrollments: isStudent
         ? {
             where: { studentId, status: { not: 'dropped' } },
           }
