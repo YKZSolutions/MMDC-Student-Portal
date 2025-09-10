@@ -21,18 +21,6 @@ export class Submission {
   title: string;
   @ApiProperty({
     type: 'string',
-  })
-  moduleContentId: string;
-  @ApiHideProperty()
-  moduleContent?: ModuleContentAsType;
-  @ApiProperty({
-    type: 'string',
-  })
-  studentId: string;
-  @ApiHideProperty()
-  user?: UserAsType;
-  @ApiProperty({
-    type: 'string',
     nullable: true,
   })
   submission: string | null;
@@ -52,18 +40,74 @@ export class Submission {
     format: 'int32',
     nullable: true,
   })
+  maxScore: number | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  grade: string | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  feedback: string | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
   attemptNumber: number | null;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  isLate: boolean | null;
+  isLate: boolean;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,
   })
   lateDays: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  gradedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+  })
+  moduleContentId: string;
+  @ApiProperty({
+    type: () => ModuleContent,
+    required: false,
+  })
+  moduleContent?: ModuleContentAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  studentId: string;
+  @ApiProperty({
+    type: () => User,
+    required: false,
+  })
+  student?: UserAsType;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  gradedBy: string | null;
+  @ApiProperty({
+    type: () => User,
+    required: false,
+    nullable: true,
+  })
+  grader?: UserAsType | null;
   @ApiHideProperty()
   attachments?: SubmissionAttachmentAsType[];
   @ApiProperty({

@@ -31,18 +31,45 @@ export class SubmissionDto {
     format: 'int32',
     nullable: true,
   })
+  maxScore: number | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  grade: string | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  feedback: string | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
   attemptNumber: number | null;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  isLate: boolean | null;
+  isLate: boolean;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,
   })
   lateDays: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  gradedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

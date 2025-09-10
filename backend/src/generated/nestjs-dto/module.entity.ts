@@ -9,6 +9,14 @@ import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
+import {
+  ModuleContent,
+  type ModuleContent as ModuleContentAsType,
+} from './moduleContent.entity';
+import {
+  StudentProgress,
+  type StudentProgress as StudentProgressAsType,
+} from './studentProgress.entity';
 
 export class Module {
   @ApiProperty({
@@ -61,9 +69,13 @@ export class Module {
     required: false,
     nullable: true,
   })
-  user?: UserAsType | null;
+  publishedByUser?: UserAsType | null;
   @ApiHideProperty()
   moduleSections?: ModuleSectionAsType[];
+  @ApiHideProperty()
+  moduleContents?: ModuleContentAsType[];
+  @ApiHideProperty()
+  progresses?: StudentProgressAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -39,33 +39,34 @@ enum UserStatus {
 }
 
 model User {
-  id               String             @id @default(uuid()) @db.Uuid
+  id                String             @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  userAccount      UserAccount?
+  userAccount       UserAccount?
   /// @DtoApiHidden
-  userDetails      UserDetails?
+  userDetails       UserDetails?
   /// @DtoApiHidden
-  studentDetails   StudentDetails?
+  studentDetails    StudentDetails?
   /// @DtoApiHidden
-  staffDetails     StaffDetails?
+  staffDetails      StaffDetails?
   /// @DtoApiHidden
-  bills            Bill[]
+  bills             Bill[]
   /// @DtoApiHidden
-  notifications    Notification[]
+  notifications     Notification[]
   /// @DtoApiHidden
-  courseEnrollment CourseEnrollment[]
+  courseEnrollment  CourseEnrollment[]
   /// @DtoApiHidden
-  courseSections   CourseSection[]
+  courseSections    CourseSection[]
   /// @DtoApiHidden
-  submissions      Submission[]
+  submissions       Submission[]       @relation("SubmissionStudent")
+  gradedSubmissions Submission[]       @relation("SubmissionGrader")
   /// @DtoApiHidden
-  moduleProgress   StudentProgress[]
+  moduleProgress    StudentProgress[]  @relation("StudentProgressUser")
   /// @DtoApiHidden
-  modules          Module[]
+  publishedModules  Module[]           @relation("ModulePublishedBy")
   /// @DtoApiHidden
-  moduleSections   ModuleSection[]
+  publishedSections ModuleSection[]    @relation("ModuleSectionPublishedBy")
   /// @DtoApiHidden
-  moduleContents   ModuleContent[]
+  publishedContents ModuleContent[]    @relation("ModuleContentPublishedBy")
 
   firstName  String
   middleName String?
@@ -543,6 +544,10 @@ model Module {
 
   /// @DtoApiHidden
   moduleSections ModuleSection[]
+  /// @DtoApiHidden
+  moduleContents ModuleContent[]
+  /// @DtoApiHidden
+  progresses     StudentProgress[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -669,9 +674,6 @@ model Assignment {
   maxAttempts         Int?     @default(1) @db.SmallInt
   allowLateSubmission Boolean  @default(false)
   latePenalty         Decimal? @default(0.0) @db.Decimal(5, 2)
-
-  publishedBy     String? @db.Uuid
-  publishedByUser User?   @relation("AssignmentPublishedBy", fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

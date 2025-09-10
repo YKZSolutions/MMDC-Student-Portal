@@ -41,6 +41,15 @@ export class ModuleSection {
   moduleContents?: ModuleContentAsType[];
   @ApiProperty({
     type: 'string',
+  })
+  title: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  order: number;
+  @ApiProperty({
+    type: 'string',
     format: 'date-time',
     nullable: true,
   })
@@ -61,7 +70,7 @@ export class ModuleSection {
     required: false,
     nullable: true,
   })
-  user?: UserAsType | null;
+  publishedByUser?: UserAsType | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

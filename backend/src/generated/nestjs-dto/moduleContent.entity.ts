@@ -1,14 +1,15 @@
 import { ContentType, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
 import { User, type User as UserAsType } from './user.entity';
 import {
-  AssignmentBase,
-  type AssignmentBase as AssignmentBaseAsType,
-} from './assignmentBase.entity';
+  Assignment,
+  type Assignment as AssignmentAsType,
+} from './assignment.entity';
 import {
   Submission,
   type Submission as SubmissionAsType,
@@ -24,6 +25,26 @@ export class ModuleContent {
   })
   id: string;
   @ApiProperty({
+    type: 'string',
+  })
+  moduleId: string;
+  @ApiProperty({
+    type: () => Module,
+    required: false,
+  })
+  module?: ModuleAsType;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  moduleSectionId: string | null;
+  @ApiProperty({
+    type: () => ModuleSection,
+    required: false,
+    nullable: true,
+  })
+  moduleSection?: ModuleSectionAsType | null;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
@@ -38,15 +59,6 @@ export class ModuleContent {
   })
   subtitle: string | null;
   @ApiProperty({
-    type: 'string',
-  })
-  moduleSectionId: string;
-  @ApiProperty({
-    type: () => ModuleSection,
-    required: false,
-  })
-  moduleSection?: ModuleSectionAsType;
-  @ApiProperty({
     type: () => Object,
   })
   content: Prisma.JsonValue;
@@ -55,6 +67,10 @@ export class ModuleContent {
     enumName: 'ContentType',
   })
   contentType: ContentType;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -77,9 +93,9 @@ export class ModuleContent {
     required: false,
     nullable: true,
   })
-  user?: UserAsType | null;
+  publishedByUser?: UserAsType | null;
   @ApiHideProperty()
-  assignmentBase?: AssignmentBaseAsType | null;
+  assignment?: AssignmentAsType | null;
   @ApiHideProperty()
   submissions?: SubmissionAsType[];
   @ApiHideProperty()

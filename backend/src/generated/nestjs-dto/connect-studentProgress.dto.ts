@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class StudentProgressUserIdModuleContentIdUniqueInputDto {
+export class StudentProgressUserIdModuleContentIdModuleIdUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -20,9 +20,15 @@ export class StudentProgressUserIdModuleContentIdUniqueInputDto {
   @IsNotEmpty()
   @IsString()
   moduleContentId: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  moduleId: string;
 }
 
-@ApiExtraModels(StudentProgressUserIdModuleContentIdUniqueInputDto)
+@ApiExtraModels(StudentProgressUserIdModuleContentIdModuleIdUniqueInputDto)
 export class ConnectStudentProgressDto {
   @ApiProperty({
     type: 'string',
@@ -32,11 +38,11 @@ export class ConnectStudentProgressDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: StudentProgressUserIdModuleContentIdUniqueInputDto,
+    type: StudentProgressUserIdModuleContentIdModuleIdUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => StudentProgressUserIdModuleContentIdUniqueInputDto)
-  userId_moduleContentId?: StudentProgressUserIdModuleContentIdUniqueInputDto;
+  @Type(() => StudentProgressUserIdModuleContentIdModuleIdUniqueInputDto)
+  userId_moduleContentId_moduleId?: StudentProgressUserIdModuleContentIdModuleIdUniqueInputDto;
 }

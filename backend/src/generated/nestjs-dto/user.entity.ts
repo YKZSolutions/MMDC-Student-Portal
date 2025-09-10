@@ -70,14 +70,20 @@ export class User {
   courseSections?: CourseSectionAsType[];
   @ApiHideProperty()
   submissions?: SubmissionAsType[];
+  @ApiProperty({
+    type: () => Submission,
+    isArray: true,
+    required: false,
+  })
+  gradedSubmissions?: SubmissionAsType[];
   @ApiHideProperty()
   moduleProgress?: StudentProgressAsType[];
   @ApiHideProperty()
-  modules?: ModuleAsType[];
+  publishedModules?: ModuleAsType[];
   @ApiHideProperty()
-  moduleSections?: ModuleSectionAsType[];
+  publishedSections?: ModuleSectionAsType[];
   @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
+  publishedContents?: ModuleContentAsType[];
   @ApiProperty({
     type: 'string',
   })
