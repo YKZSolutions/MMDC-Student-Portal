@@ -17,6 +17,7 @@ import {
   Button,
   Card,
   Container,
+  Divider,
   Grid,
   Group,
   Paper,
@@ -70,7 +71,7 @@ function ModuleContentView({
   const editor = useCreateBlockNote({ initialContent })
 
   return (
-    <Container size="lg" py="xl" pt={"lg"}>
+    <Container size="lg" py="xl" pt={'lg'}>
       {/* Main Content Area */}
       <Stack flex={1}>
         <Button
@@ -132,6 +133,8 @@ function ModuleContentView({
             />
           </Grid.Col>
         </Grid>
+
+        <Divider my={"lg"} mb={"md"} />
 
         {/* Continue Button */}
         <Navigation previousItem={previousItem} nextItem={nextItem} />
