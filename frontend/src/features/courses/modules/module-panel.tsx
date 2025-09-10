@@ -54,11 +54,11 @@ interface ModulePanelProps {
   allExpanded?: boolean
 }
 
-const ModulePanel = ({
+function ModulePanel({
   module,
   viewMode,
   allExpanded = false,
-}: ModulePanelProps) => {
+}: ModulePanelProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
 
@@ -158,7 +158,7 @@ interface ModuleItemCardProps {
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
-const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
+function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
@@ -397,7 +397,7 @@ type AdminActionsProps = {
   item: ModuleItem | ModuleSection
 }
 
-const AdminActions = ({ item }: AdminActionsProps) => {
+function AdminActions({ item }: AdminActionsProps) {
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const handleDelete = () => {} //TODO: implement this
