@@ -34,10 +34,10 @@ function ModulesAdminPage() {
       {/* Admin Actions Header */}
       <Group align={'center'} justify="end" mb="lg">
         <Group>
-          <Button onClick={toggleExpandAll} variant="default">
+          <Button radius={"md"} onClick={toggleExpandAll} variant="default">
             {allExpanded ? 'Collapse All' : 'Expand All'}
           </Button>
-          <Button leftSection={<IconPlus />} onClick={handleAddContent}>
+          <Button radius={"md"} leftSection={<IconPlus />} onClick={handleAddContent}>
             Add New Content
           </Button>
         </Group>
