@@ -975,7 +975,7 @@ function CourseOfferingSubjectCard({
     },
   )
 
-  const isEnrolled = course.courseEnrollment.find(
+  const isEnrolled = course.courseEnrollments.find(
     (enrolled) => enrolled.courseSectionId == section.id,
   )
 
@@ -1046,7 +1046,7 @@ function CourseOfferingSubjectCard({
                 </Button>
               ) : (
                 <Button
-                  disabled={course.courseEnrollment.length > 0}
+                  disabled={course.courseEnrollments.length > 0}
                   size="xs"
                   radius={'lg'}
                   onClick={() =>
