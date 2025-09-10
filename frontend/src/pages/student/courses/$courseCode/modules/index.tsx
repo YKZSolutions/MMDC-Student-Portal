@@ -1,15 +1,19 @@
+import { useAuth } from '@/features/auth/auth.hook'
+import { getMockModuleByRole } from '@/features/courses/mocks'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
 import type { StudentModule } from '@/features/courses/modules/student/types.ts'
 import {
-    Box,
-    Button,
-    Group,
-    Progress,
-    Stack,
-    Text,
-    useMantineTheme,
+  Box,
+  Button,
+  Group,
+  Progress,
+  Stack,
+  Text,
+  useMantineTheme,
 } from '@mantine/core'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
+import { useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 
 interface ModulesStudentPageProps {
   module: StudentModule
@@ -17,13 +21,15 @@ interface ModulesStudentPageProps {
   allExpanded: boolean
 }
 
-function ModulesStudentPage({
-  module,
-  onExpandAll,
-  allExpanded,
-}: ModulesStudentPageProps) {
+function ModulesStudentPage() {
   const theme = useMantineTheme()
-  const { studentProgress } = module
+  const { authUser } = useAuth('protected')
+  const navigate = useNavigate()
+  const [allExpanded, setAllExpanded] = useState(false)
+  const module = getMockModuleByRole(authUser.role) //TODO: replace with actual data
+  const { studentProgress } = module as StudentModule
+
+  const toggleExpandAll = () => setAllExpanded((prev) => !prev)
 
   return (
     <Box>
@@ -39,7 +45,7 @@ function ModulesStudentPage({
               completed
             </Text>
           </Stack>
-          <Button onClick={onExpandAll} variant="default">
+          <Button onClick={toggleExpandAll} variant="default">
             {allExpanded ? 'Collapse All' : 'Expand All'}
           </Button>
         </Group>
