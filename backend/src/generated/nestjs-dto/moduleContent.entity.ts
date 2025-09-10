@@ -15,9 +15,9 @@ import {
   type Submission as SubmissionAsType,
 } from './submission.entity';
 import {
-  StudentProgress,
-  type StudentProgress as StudentProgressAsType,
-} from './studentProgress.entity';
+  ContentProgress,
+  type ContentProgress as ContentProgressAsType,
+} from './contentProgress.entity';
 
 export class ModuleContent {
   @ApiProperty({
@@ -99,7 +99,7 @@ export class ModuleContent {
   @ApiHideProperty()
   submissions?: SubmissionAsType[];
   @ApiHideProperty()
-  studentProgress?: StudentProgressAsType[];
+  studentProgress?: ContentProgressAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

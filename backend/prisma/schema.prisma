@@ -39,34 +39,35 @@ enum UserStatus {
 }
 
 model User {
-  id                String             @id @default(uuid()) @db.Uuid
+  id                   String             @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  userAccount       UserAccount?
+  userAccount          UserAccount?
   /// @DtoApiHidden
-  userDetails       UserDetails?
+  userDetails          UserDetails?
   /// @DtoApiHidden
-  studentDetails    StudentDetails?
+  studentDetails       StudentDetails?
   /// @DtoApiHidden
-  staffDetails      StaffDetails?
+  staffDetails         StaffDetails?
   /// @DtoApiHidden
-  bills             Bill[]
+  bills                Bill[]
   /// @DtoApiHidden
-  notifications     Notification[]
+  notifications        Notification[]
   /// @DtoApiHidden
-  courseEnrollment  CourseEnrollment[]
+  courseEnrollment     CourseEnrollment[]
   /// @DtoApiHidden
-  courseSections    CourseSection[]
+  courseSections       CourseSection[]
   /// @DtoApiHidden
-  submissions       Submission[]       @relation("SubmissionStudent")
-  gradedSubmissions Submission[]       @relation("SubmissionGrader")
+  submittedSubmissions Submission[]       @relation("SubmissionStudent")
   /// @DtoApiHidden
-  moduleProgress    StudentProgress[]  @relation("StudentProgressUser")
+  gradedSubmissions    Submission[]       @relation("SubmissionGrader")
   /// @DtoApiHidden
-  publishedModules  Module[]           @relation("ModulePublishedBy")
+  moduleProgress       ContentProgress[]
   /// @DtoApiHidden
-  publishedSections ModuleSection[]    @relation("ModuleSectionPublishedBy")
+  publishedModules     Module[]
   /// @DtoApiHidden
-  publishedContents ModuleContent[]    @relation("ModuleContentPublishedBy")
+  publishedSections    ModuleSection[]
+  /// @DtoApiHidden
+  publishedContents    ModuleContent[]
 
   firstName  String
   middleName String?
@@ -540,14 +541,14 @@ model Module {
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
-  publishedByUser User?   @relation("ModulePublishedBy", fields: [publishedBy], references: [id])
+  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
   moduleSections ModuleSection[]
   /// @DtoApiHidden
   moduleContents ModuleContent[]
   /// @DtoApiHidden
-  progresses     StudentProgress[]
+  progresses     ContentProgress[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -580,7 +581,7 @@ model ModuleSection {
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
-  publishedByUser User?   @relation("ModuleSectionPublishedBy", fields: [publishedBy], references: [id])
+  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -589,11 +590,11 @@ model ModuleSection {
   /// @DtoReadOnly
   deletedAt DateTime?
 
+  @@unique([moduleId, order]) // ensure unique order within module
   @@index([moduleId])
   @@index([parentSectionId])
   @@index([order])
   @@index([publishedAt])
-  @@unique([moduleId, order]) // ensure unique order within module
 }
 
 enum ContentType {
@@ -610,6 +611,7 @@ model ModuleContent {
 
   // moduleId (content can belong to a module even if not in a section)
   // used for storing draft content that is not part of a section
+  /// @DtoCreate
   moduleId String @db.Uuid
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
@@ -629,14 +631,14 @@ model ModuleContent {
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
-  publishedByUser User?   @relation("ModuleContentPublishedBy", fields: [publishedBy], references: [id])
+  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
   assignment      Assignment?
   /// @DtoApiHidden
   submissions     Submission[]
   /// @DtoApiHidden
-  studentProgress StudentProgress[]
+  studentProgress ContentProgress[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -645,11 +647,11 @@ model ModuleContent {
   /// @DtoReadOnly
   deletedAt DateTime?
 
+  @@unique([moduleSectionId, order]) // unique order within a section
   @@index([moduleSectionId])
   @@index([contentType])
   @@index([order])
   @@index([publishedAt])
-  @@unique([moduleSectionId, order]) // unique order within a section
 }
 
 model Assignment {
@@ -658,17 +660,15 @@ model Assignment {
   moduleContentId String        @unique @db.Uuid
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
 
-  title       String @db.VarChar(255)
-  description String @db.Text
-  rubric      Json
+  title  String @db.VarChar(255)
+  rubric Json
 
   type   AssignmentType   @default(ASSIGNMENT)
   mode   AssignmentMode   @default(INDIVIDUAL)
   status AssignmentStatus @default(OPEN)
 
-  dueDate   DateTime?
-  points    Int?      @default(100) @db.SmallInt
-  maxPoints Int?      @default(100) @db.SmallInt
+  dueDate DateTime?
+  points  Int?      @default(100) @db.SmallInt
 
   allowResubmission   Boolean  @default(false)
   maxAttempts         Int?     @default(1) @db.SmallInt
@@ -705,16 +705,13 @@ enum AssignmentType {
   PRESENTATION
 }
 
-model StudentProgress {
+model ContentProgress {
   id          String    @id @default(uuid()) @db.Uuid
   completed   Boolean   @default(false)
   completedAt DateTime?
 
-  /// Progress percentage (0-100)
-  progress Int @default(0) @db.SmallInt
-
   userId String @db.Uuid
-  user   User   @relation("StudentProgressUser", fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   moduleContentId String        @db.Uuid
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])

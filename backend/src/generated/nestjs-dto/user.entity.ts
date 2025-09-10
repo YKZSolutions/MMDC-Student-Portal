@@ -34,9 +34,9 @@ import {
   type Submission as SubmissionAsType,
 } from './submission.entity';
 import {
-  StudentProgress,
-  type StudentProgress as StudentProgressAsType,
-} from './studentProgress.entity';
+  ContentProgress,
+  type ContentProgress as ContentProgressAsType,
+} from './contentProgress.entity';
 import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleSection,
@@ -69,15 +69,11 @@ export class User {
   @ApiHideProperty()
   courseSections?: CourseSectionAsType[];
   @ApiHideProperty()
-  submissions?: SubmissionAsType[];
-  @ApiProperty({
-    type: () => Submission,
-    isArray: true,
-    required: false,
-  })
+  submittedSubmissions?: SubmissionAsType[];
+  @ApiHideProperty()
   gradedSubmissions?: SubmissionAsType[];
   @ApiHideProperty()
-  moduleProgress?: StudentProgressAsType[];
+  moduleProgress?: ContentProgressAsType[];
   @ApiHideProperty()
   publishedModules?: ModuleAsType[];
   @ApiHideProperty()
