@@ -32,15 +32,6 @@ export class CreateSubmissionDto {
   @IsInt()
   score?: number | null;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsInt()
-  maxScore?: number | null;
-  @ApiProperty({
     type: 'string',
     required: false,
     nullable: true,

@@ -744,13 +744,6 @@ model ContentProgress {
   @@index([moduleId])
 }
 
-enum SubmissionStatus {
-  NOT_SUBMITTED
-  SUBMITTED
-  LATE
-  GRADED
-}
-
 model Submission {
   id    String @id @default(uuid()) @db.Uuid
   title String @db.VarChar(255)
@@ -758,11 +751,10 @@ model Submission {
   /// Text submission or additional notes
   submission String? @db.Text
 
-  /// Submission status
-  status SubmissionStatus @default(NOT_SUBMITTED)
-
   /// Grading information
-  score    Int?    @db.SmallInt
+  score Int? @db.SmallInt
+
+  /// For non-numeric grading
   grade    String? @db.VarChar(10)
   feedback String? @db.Text
 
@@ -797,7 +789,6 @@ model Submission {
 
   @@index([moduleContentId])
   @@index([studentId])
-  @@index([status])
   @@index([submittedAt])
   @@index([gradedAt])
 }
