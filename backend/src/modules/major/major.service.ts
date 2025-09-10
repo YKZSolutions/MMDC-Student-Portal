@@ -17,6 +17,7 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
+import { MajorItemDto } from './dto/major-item.dto';
 
 @Injectable()
 export class MajorService {
@@ -62,7 +63,7 @@ export class MajorService {
   }
 
   /**
-   * Retrives all majors matching the provided filters, with pagination support.
+   * Retrives all majors matching the provided filters, with pagination support. Can optionally filter by programId
    *
    * @async
    * @param {FilterMajorDto} filters - Filter and pagination options (e.g., search keyword, page number).
@@ -83,9 +84,16 @@ export class MajorService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('No majors found'),
   })
-  async findAll(filters: BaseFilterDto): Promise<PaginatedMajorsDto> {
+  async findAll(
+    filters: BaseFilterDto,
+    programId?: string,
+  ): Promise<PaginatedMajorsDto> {
     const where: Prisma.MajorWhereInput = {};
     const page = filters.page || 1;
+
+    if (programId) {
+      where.programId = programId;
+    }
 
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
@@ -106,8 +114,11 @@ export class MajorService {
     }
 
     const [majors, meta] = await this.prisma.client.major
-      .paginate({ where })
+      .paginate({
+        where,
+      })
       .withPages({ limit: 10, page, includePageCount: true });
+
     return { majors, meta };
   }
 
@@ -131,7 +142,7 @@ export class MajorService {
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Major with ID ${id} not found`),
   })
-  async findOne(id: string): Promise<MajorDto> {
+  async findOne(id: string): Promise<MajorItemDto> {
     const major = await this.prisma.client.major.findUniqueOrThrow({
       where: { id },
     });

@@ -22,6 +22,7 @@ import {
   FilterCourseOfferingDto,
 } from './dto/filter-course-offering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-course-offering.dto';
+import { CreateCourseOfferingCurriculumDto } from './dto/create-course-offering-curriculum.dto';
 
 @Injectable()
 export class CourseOfferingService {
@@ -68,6 +69,59 @@ export class CourseOfferingService {
   ): Promise<CourseOffering> {
     return await this.prisma.client.courseOffering.create({
       data: { ...createCourseOfferingDto, periodId },
+    });
+  }
+
+  /**
+   * Create courses under an enrollment period based n a given curriculum
+   *
+   * @param periodId - The ID of the enrollment period
+   * @param createCourseOfferingDto - DTO containing the the curriculum id
+   * @returns The created {@link CourseOfferingDto[]}
+   *
+   * @throws NotFoundException - If the enrollment period or course does not exist
+   * @throws BadRequestException - If invalid references are provided
+   */
+  @Log({
+    logArgsMessage: ({ periodId, courseOffering }) =>
+      `Creating curriculum course offering [${courseOffering.curriculumId}] for period [${periodId}]`,
+    logSuccessMessage: (offering, periodId) =>
+      `Curriculum course offerings with ${offering.length} items successfully created for period [${periodId}]`,
+    logErrorMessage: (err, { periodId, courseOffering }) =>
+      `Error creating course offering [${courseOffering.curriculumId}] for period [${periodId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RelatedRecordNotFound]: (
+      _,
+      { periodId, courseOffering },
+    ) =>
+      new NotFoundException(
+        `Enrollment period [${periodId}] or Curriculum [${courseOffering.curriculumId}] does not exist.`,
+      ),
+    [PrismaErrorCode.ForeignKeyConstraint]: (_, { periodId, courseOffering }) =>
+      new BadRequestException(
+        `Invalid reference: Enrollment period [${periodId}] or Curriculum [${courseOffering.curriculumId}] is invalid.`,
+      ),
+  })
+  async createCourseOfferingsByCurriculum(
+    @LogParam('periodId') periodId: string,
+    @LogParam('courseOffering')
+    createCourseOfferingDto: CreateCourseOfferingCurriculumDto,
+  ): Promise<CourseOffering[]> {
+    return this.prisma.client.$transaction(async (tx) => {
+      const curriculums = await tx.curriculumCourse.findMany({
+        where: { curriculumId: createCourseOfferingDto.curriculumId },
+        include: {
+          course: true,
+        },
+      });
+
+      return tx.courseOffering.createManyAndReturn({
+        data: curriculums.map((item) => ({
+          courseId: item.course.id,
+          periodId: periodId,
+        })),
+      });
     });
   }
 

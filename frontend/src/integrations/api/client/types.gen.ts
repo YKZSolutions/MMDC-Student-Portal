@@ -541,6 +541,23 @@ export type PaginatedProgramsDto = {
     programs: Array<ProgramDto>;
 };
 
+export type MajorItemDto = {
+    id: string;
+    majorCode: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    programId: string;
+};
+
+export type PaginatedMajorsDto = {
+    meta: PaginationMetaDto;
+    majors: Array<MajorItemDto>;
+};
+
 export type UpdateProgramDto = {
     programCode?: string;
     name?: string;
@@ -573,18 +590,6 @@ export type CreateProgramMajorDto = {
     programId: string;
 };
 
-export type Major = {
-    id: string;
-    programId: string;
-    majorCode: string;
-    name: string;
-    description: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type MajorDto = {
     id: string;
     majorCode: string;
@@ -596,15 +601,22 @@ export type MajorDto = {
     deletedAt: string | null;
 };
 
-export type PaginatedMajorsDto = {
-    meta: PaginationMetaDto;
-    majors: Array<MajorDto>;
-};
-
 export type UpdateMajorDto = {
     majorCode?: string;
     name?: string;
     description?: string;
+};
+
+export type Major = {
+    id: string;
+    programId: string;
+    majorCode: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type EnrollmentStatus = 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
@@ -696,6 +708,10 @@ export type CourseOffering = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+};
+
+export type CreateCourseOfferingCurriculumDto = {
+    curriculumId: string;
 };
 
 export type UserDto = {
@@ -1978,6 +1994,44 @@ export type ProgramControllerCreateResponses = {
 
 export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
 
+export type ProgramControllerFindAllMajorsData = {
+    body?: never;
+    path: {
+        programId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/programs/{programId}/majors';
+};
+
+export type ProgramControllerFindAllMajorsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindAllMajorsError = ProgramControllerFindAllMajorsErrors[keyof ProgramControllerFindAllMajorsErrors];
+
+export type ProgramControllerFindAllMajorsResponses = {
+    200: PaginatedMajorsDto;
+};
+
+export type ProgramControllerFindAllMajorsResponse = ProgramControllerFindAllMajorsResponses[keyof ProgramControllerFindAllMajorsResponses];
+
 export type ProgramControllerRemoveData = {
     body?: never;
     path: {
@@ -2176,7 +2230,7 @@ export type MajorControllerCreateErrors = {
 export type MajorControllerCreateError = MajorControllerCreateErrors[keyof MajorControllerCreateErrors];
 
 export type MajorControllerCreateResponses = {
-    201: Major;
+    201: MajorDto;
 };
 
 export type MajorControllerCreateResponse = MajorControllerCreateResponses[keyof MajorControllerCreateResponses];
@@ -2243,7 +2297,7 @@ export type MajorControllerFindOneErrors = {
 export type MajorControllerFindOneError = MajorControllerFindOneErrors[keyof MajorControllerFindOneErrors];
 
 export type MajorControllerFindOneResponses = {
-    200: Major;
+    200: MajorItemDto;
 };
 
 export type MajorControllerFindOneResponse = MajorControllerFindOneResponses[keyof MajorControllerFindOneResponses];
@@ -2526,6 +2580,36 @@ export type CourseOfferingControllerCreateCourseOfferingResponses = {
 };
 
 export type CourseOfferingControllerCreateCourseOfferingResponse = CourseOfferingControllerCreateCourseOfferingResponses[keyof CourseOfferingControllerCreateCourseOfferingResponses];
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData = {
+    body: CreateCourseOfferingCurriculumDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/curriculum';
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdError = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors];
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses = {
+    201: Array<CourseOffering>;
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponse = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses];
 
 export type CourseOfferingControllerRemoveCourseOfferingData = {
     body?: never;
@@ -2993,6 +3077,11 @@ export type CurriculumControllerFindOneData = {
 };
 
 export type CurriculumControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     404: {
         statusCode: number;
         message: string;

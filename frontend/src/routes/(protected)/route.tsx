@@ -1,3 +1,4 @@
+import { Loader } from '@/components/loader-component'
 import { type Role } from '@/integrations/api/client'
 import { client } from '@/integrations/api/client/client.gen'
 import { supabase } from '@/integrations/supabase/supabase-client'
@@ -29,6 +30,7 @@ export const Route = createFileRoute('/(protected)')({
     }
     return { authUser }
   },
+  pendingComponent: Loader,
 })
 
 function RouteComponent() {
@@ -60,7 +62,7 @@ function RouteComponent() {
             justify="start"
             style={{ position: 'relative', overflow: 'hidden' }}
           >
-            <Group justify="space-between" align="center" wrap='nowrap'>
+            <Group justify="space-between" align="center" wrap="nowrap">
               {!isDesktop && (
                 <Burger
                   opened={sidebarOpened}
@@ -77,6 +79,8 @@ function RouteComponent() {
             <Box
               style={{
                 flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
                 minHeight: 0,
                 minWidth: 0,
                 overflowY: 'auto',
