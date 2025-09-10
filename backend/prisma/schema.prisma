@@ -172,11 +172,11 @@ model Program {
   /// @DtoApiHidden
   majors Major[]
 
-  programCode String @unique
-  name        String @unique
-  description String
-  yearDuration    Int
-  isActive    Boolean @default(true)
+  programCode  String  @unique
+  name         String  @unique
+  description  String
+  yearDuration Int
+  isActive     Boolean @default(true)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -198,8 +198,8 @@ model Major {
   /// @DtoApiHidden
   curriculums Curriculum[]
 
-  majorCode   String @unique
-  name        String @unique
+  majorCode   String  @unique
+  name        String  @unique
   description String
   isActive    Boolean @default(true)
 
@@ -215,7 +215,7 @@ model Course {
   id String @id @default(uuid()) @db.Uuid
 
   /// @DtoApiHidden
-  major Major[]
+  majors Major[]
 
   prereqs   Course[] @relation("CoursePrereq")
   prereqFor Course[] @relation("CoursePrereq")
@@ -225,7 +225,7 @@ model Course {
 
   curriculumCourses CurriculumCourse[]
 
-  courseCode  String @unique
+  courseCode  String  @unique
   name        String
   description String
   units       Int
@@ -234,6 +234,8 @@ model Course {
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings
+  /// @DtoApiHidden 
+  modules         Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -334,9 +336,12 @@ model CourseOffering {
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
 
-  courseEnrollment CourseEnrollment[] // Each offering can have multiple enrollments
-
-  courseSections CourseSection[] // Each offering can have multiple sections
+  /// @DtoApiHidden
+  courseEnrollments CourseEnrollment[] // Each offering can have multiple enrollments
+  /// @DtoApiHidden
+  courseSections    CourseSection[] // Each offering can have multiple sections
+  /// @DtoApiHidden
+  modules           Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -406,11 +411,9 @@ model CourseEnrollment {
   /// @DtoApiHidden
   courseSection   CourseSection @relation(fields: [courseSectionId], references: [id])
 
-  studentId String   @db.Uuid // Each enrolled course belong to one user i.e student
+  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
-  user      User     @relation(fields: [studentId], references: [id])
-  /// @DtoApiHidden
-  Module    Module[]
+  user      User   @relation(fields: [studentId], references: [id])
 
   status      CourseEnrollmentStatus
   startedAt   DateTime
@@ -526,8 +529,11 @@ model Module {
   id    String @id @default(uuid()) @db.Uuid
   title String
 
-  courseEnrollmentId String           @db.Uuid
-  courseEnrollment   CourseEnrollment @relation(fields: [courseEnrollmentId], references: [id])
+  courseId String @db.Uuid
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  courseOfferingId String?         @db.Uuid
+  courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
 
   publishedAt DateTime?
   toPublishAt DateTime?
@@ -565,6 +571,13 @@ model ModuleSection {
 
   publishedBy String? @db.Uuid
   user        User?   @relation(fields: [publishedBy], references: [id])
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
 }
 
 enum ContentType {
@@ -572,13 +585,15 @@ enum ContentType {
   DISCUSSION
   ASSIGNMENT
   REFLECTION
+  URL
+  FILE
 }
 
 model ModuleContent {
-  id       String @id @default(uuid()) @db.Uuid
+  id       String  @id @default(uuid()) @db.Uuid
   order    Int
   title    String
-  subtitle String
+  subtitle String?
 
   moduleSectionId String        @db.Uuid
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
