@@ -1,4 +1,3 @@
-import { SubmissionStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SubmissionDto {
@@ -16,22 +15,11 @@ export class SubmissionDto {
   })
   submission: string | null;
   @ApiProperty({
-    enum: SubmissionStatus,
-    enumName: 'SubmissionStatus',
-  })
-  status: SubmissionStatus;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,
   })
   score: number | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  maxScore: number | null;
   @ApiProperty({
     type: 'string',
     nullable: true,

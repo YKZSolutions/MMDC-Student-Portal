@@ -25,9 +25,6 @@ CREATE TYPE "public"."AssignmentStatus" AS ENUM ('OPEN', 'CLOSED');
 -- CreateEnum
 CREATE TYPE "public"."AssignmentType" AS ENUM ('ASSIGNMENT', 'MILESTONE', 'QUIZ', 'TERMINAL_ASSESSMENT', 'PRESENTATION');
 
--- CreateEnum
-CREATE TYPE "public"."SubmissionStatus" AS ENUM ('NOT_SUBMITTED', 'SUBMITTED', 'LATE', 'GRADED');
-
 -- DropForeignKey
 ALTER TABLE "public"."CourseSection" DROP CONSTRAINT "CourseSection_mentorId_fkey";
 
@@ -177,9 +174,7 @@ CREATE TABLE "public"."Submission" (
     "id" UUID NOT NULL,
     "title" VARCHAR(255) NOT NULL,
     "submission" TEXT,
-    "status" "public"."SubmissionStatus" NOT NULL DEFAULT 'NOT_SUBMITTED',
     "score" SMALLINT,
-    "maxScore" SMALLINT,
     "grade" VARCHAR(10),
     "feedback" TEXT,
     "attemptNumber" SMALLINT,
@@ -277,9 +272,6 @@ CREATE INDEX "Submission_moduleContentId_idx" ON "public"."Submission"("moduleCo
 
 -- CreateIndex
 CREATE INDEX "Submission_studentId_idx" ON "public"."Submission"("studentId");
-
--- CreateIndex
-CREATE INDEX "Submission_status_idx" ON "public"."Submission"("status");
 
 -- CreateIndex
 CREATE INDEX "Submission_submittedAt_idx" ON "public"."Submission"("submittedAt");
