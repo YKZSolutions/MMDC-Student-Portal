@@ -25,10 +25,12 @@ export class CreateModuleContentDto {
   title: string;
   @ApiProperty({
     type: 'string',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  subtitle: string;
+  subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
   })
