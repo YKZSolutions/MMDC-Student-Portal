@@ -10751,153 +10751,6 @@
           "courseId"
         ]
       },
-      "CourseEnrollmentStatus": {
-        "type": "string",
-        "enum": [
-          "enlisted",
-          "finalized",
-          "enrolled",
-          "completed",
-          "incomplete",
-          "dropped",
-          "failed"
-        ]
-      },
-      "CourseEnrollment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "courseOfferingId": {
-            "type": "string"
-          },
-          "courseSectionId": {
-            "type": "string"
-          },
-          "studentId": {
-            "type": "string"
-          },
-          "status": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CourseEnrollmentStatus"
-              }
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "courseOfferingId",
-          "courseSectionId",
-          "studentId",
-          "status",
-          "startedAt",
-          "completedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "Days": {
-        "type": "string",
-        "enum": [
-          "monday",
-          "tuesday",
-          "wednesday",
-          "thursday",
-          "friday",
-          "saturday"
-        ]
-      },
-      "CourseSection": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "mentorId": {
-            "type": "string",
-            "nullable": true
-          },
-          "courseOfferingId": {
-            "type": "string"
-          },
-          "courseEnrollments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CourseEnrollment"
-            }
-          },
-          "maxSlot": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startSched": {
-            "type": "string"
-          },
-          "endSched": {
-            "type": "string"
-          },
-          "days": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Days"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "mentorId",
-          "courseOfferingId",
-          "maxSlot",
-          "startSched",
-          "endSched",
-          "days",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
       "CourseOffering": {
         "type": "object",
         "properties": {
@@ -10909,18 +10762,6 @@
           },
           "periodId": {
             "type": "string"
-          },
-          "courseEnrollment": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CourseEnrollment"
-            }
-          },
-          "courseSections": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CourseSection"
-            }
           },
           "createdAt": {
             "type": "string",
@@ -10955,6 +10796,17 @@
         },
         "required": [
           "curriculumId"
+        ]
+      },
+      "Days": {
+        "type": "string",
+        "enum": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday"
         ]
       },
       "UserDto": {
@@ -11077,6 +10929,18 @@
           "mentorId"
         ]
       },
+      "CourseEnrollmentStatus": {
+        "type": "string",
+        "enum": [
+          "enlisted",
+          "finalized",
+          "enrolled",
+          "completed",
+          "incomplete",
+          "dropped",
+          "failed"
+        ]
+      },
       "DetailedCourseOfferingSubsetDto": {
         "type": "object",
         "properties": {
@@ -11183,7 +11047,7 @@
               "$ref": "#/components/schemas/DetailedCourseSectionDto"
             }
           },
-          "courseEnrollment": {
+          "courseEnrollments": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetailedCourseEnrollmentDto"
@@ -11200,7 +11064,7 @@
           "deletedAt",
           "course",
           "courseSections",
-          "courseEnrollment",
+          "courseEnrollments",
           "periodId"
         ]
       },
