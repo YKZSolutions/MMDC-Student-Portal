@@ -763,7 +763,6 @@ model Submission {
 
   /// Grading information
   score    Int?    @db.SmallInt
-  maxScore Int?    @db.SmallInt
   grade    String? @db.VarChar(10)
   feedback String? @db.Text
 
