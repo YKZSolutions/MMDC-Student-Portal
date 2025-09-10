@@ -88,26 +88,55 @@ const ModulePanel = ({
         },
       }}
     >
+      {module.sections.map((section) => (
+        <Accordion.Item
+          py={'sm'}
+          value={section.id}
+          key={section.id}
+          className="ring-1 ring-inset ring-gray-200"
+        >
+          <CustomAccordionControl
+            item={section}
+            title={section.title}
+            viewMode={viewMode}
+          />
+          <Accordion.Panel>
+            {/* Subsections */}
+            <Accordion
+              multiple
+              value={expandedItems}
+              onChange={setExpandedItems}
+              chevronPosition="left"
+              variant="filled"
+              radius="md"
+              styles={{
+                chevron: {
+                  padding: theme.spacing.sm,
+                },
+                item: {
+                  marginBottom: theme.spacing.sm,
+                },
+              }}
+            >
+              {section.subsections?.map((subsection) => (
+                <Accordion.Item
+                  value={subsection.id}
+                  key={subsection.id}
+                  className="ring-1 ring-inset ring-gray-200"
+                  py={'sm'}
+                >
+                  <CustomAccordionControl
+                    item={subsection}
+                    title={subsection.title}
+                    viewMode={viewMode}
+                    isSubsection
+                  />
 
-                      <Accordion.Panel>
-                        <Stack gap="xs">
-                          {subsection.items.map((item) => (
-                            <ModuleItemCard
-                              key={item.id}
-                              item={item}
-                              viewMode={viewMode}
-                            />
-                          ))}
-                        </Stack>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  )
-                })}
-              </Accordion>
-            </Accordion.Panel>
-          </Accordion.Item>
-        )
-      })}
+                  <Accordion.Panel>
+                    <Stack gap="xs">
+                      {subsection.items.map((item) => (
+                        <ModuleItemCard
+                          key={item.id}
                           item={item}
                           viewMode={viewMode}
                         />
