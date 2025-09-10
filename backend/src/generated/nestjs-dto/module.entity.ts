@@ -31,21 +31,14 @@ export class Module {
     type: 'string',
   })
   courseId: string;
-  @ApiProperty({
-    type: () => Course,
-    required: false,
-  })
+  @ApiHideProperty()
   course?: CourseAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   courseOfferingId: string | null;
-  @ApiProperty({
-    type: () => CourseOffering,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   courseOffering?: CourseOfferingAsType | null;
   @ApiProperty({
     type: 'string',
@@ -64,11 +57,7 @@ export class Module {
     nullable: true,
   })
   publishedBy: string | null;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   publishedByUser?: UserAsType | null;
   @ApiHideProperty()
   moduleSections?: ModuleSectionAsType[];

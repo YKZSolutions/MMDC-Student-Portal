@@ -15,27 +15,16 @@ export class ModuleSection {
     type: 'string',
   })
   moduleId: string;
-  @ApiProperty({
-    type: () => Module,
-    required: false,
-  })
+  @ApiHideProperty()
   module?: ModuleAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   parentSectionId: string | null;
-  @ApiProperty({
-    type: () => ModuleSection,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   parentSection?: ModuleSection | null;
-  @ApiProperty({
-    type: () => ModuleSection,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   subsections?: ModuleSection[];
   @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
@@ -65,11 +54,7 @@ export class ModuleSection {
     nullable: true,
   })
   publishedBy: string | null;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   publishedByUser?: UserAsType | null;
   @ApiProperty({
     type: 'string',

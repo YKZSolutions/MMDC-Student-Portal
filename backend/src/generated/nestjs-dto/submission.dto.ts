@@ -49,10 +49,6 @@ export class SubmissionDto {
   })
   attemptNumber: number | null;
   @ApiProperty({
-    type: 'boolean',
-  })
-  isLate: boolean;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,

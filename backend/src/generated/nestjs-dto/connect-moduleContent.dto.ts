@@ -24,8 +24,27 @@ export class ModuleContentModuleSectionIdOrderUniqueInputDto {
   @IsInt()
   order: number;
 }
+export class ModuleContentModuleIdOrderUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  moduleId: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+  })
+  @IsNotEmpty()
+  @IsInt()
+  order: number;
+}
 
-@ApiExtraModels(ModuleContentModuleSectionIdOrderUniqueInputDto)
+@ApiExtraModels(
+  ModuleContentModuleSectionIdOrderUniqueInputDto,
+  ModuleContentModuleIdOrderUniqueInputDto,
+)
 export class ConnectModuleContentDto {
   @ApiProperty({
     type: 'string',
@@ -42,4 +61,12 @@ export class ConnectModuleContentDto {
   @ValidateNested()
   @Type(() => ModuleContentModuleSectionIdOrderUniqueInputDto)
   moduleSectionId_order?: ModuleContentModuleSectionIdOrderUniqueInputDto;
+  @ApiProperty({
+    type: ModuleContentModuleIdOrderUniqueInputDto,
+    required: false,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ModuleContentModuleIdOrderUniqueInputDto)
+  moduleId_order?: ModuleContentModuleIdOrderUniqueInputDto;
 }

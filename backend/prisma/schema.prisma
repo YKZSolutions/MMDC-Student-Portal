@@ -532,15 +532,18 @@ model Module {
   title String
 
   courseId String @db.Uuid
+  /// @DtoApiHidden
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   courseOfferingId String?         @db.Uuid
+  /// @DtoApiHidden
   courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
 
   publishedAt DateTime?
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
+  /// @DtoApiHidden
   publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
@@ -564,11 +567,14 @@ model ModuleSection {
   id String @id @default(uuid()) @db.Uuid
 
   moduleId String @db.Uuid
+  /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   // self reference subsections
   parentSectionId String?         @db.Uuid
+  /// @DtoApiHidden
   parentSection   ModuleSection?  @relation("ModuleSubsection", fields: [parentSectionId], references: [id], onDelete: Cascade)
+  /// @DtoApiHidden
   subsections     ModuleSection[] @relation("ModuleSubsection")
 
   /// @DtoApiHidden
@@ -581,6 +587,7 @@ model ModuleSection {
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
+  /// @DtoApiHidden
   publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
@@ -611,12 +618,13 @@ model ModuleContent {
 
   // moduleId (content can belong to a module even if not in a section)
   // used for storing draft content that is not part of a section
-  /// @DtoCreate
   moduleId String @db.Uuid
+  /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   // optional: if content is part of a section
   moduleSectionId String?        @db.Uuid
+  /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
   order    Int     @default(0)
@@ -631,6 +639,7 @@ model ModuleContent {
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
+  /// @DtoApiHidden
   publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
@@ -659,6 +668,7 @@ model Assignment {
   id String @id @default(uuid()) @db.Uuid
 
   moduleContentId String        @unique @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
 
   title  String @db.VarChar(255)
@@ -712,13 +722,16 @@ model ContentProgress {
   completedAt DateTime?
 
   userId String @db.Uuid
+  /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id])
 
   moduleContentId String        @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
 
   // denormalized for easier queries by module
   moduleId String @db.Uuid
+  /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id])
 
   /// @DtoReadOnly
@@ -758,19 +771,21 @@ model Submission {
 
   /// Submission metadata
   attemptNumber Int?      @db.SmallInt
-  isLate        Boolean   @default(false)
   lateDays      Int?      @db.SmallInt
   submittedAt   DateTime?
   gradedAt      DateTime?
 
   /// Relations
   moduleContentId String        @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
 
   studentId String @db.Uuid
+  /// @DtoApiHidden
   student   User   @relation("SubmissionStudent", fields: [studentId], references: [id])
 
   gradedBy String? @db.Uuid
+  /// @DtoApiHidden
   grader   User?   @relation("SubmissionGrader", fields: [gradedBy], references: [id])
 
   /// @DtoApiHidden
@@ -794,6 +809,7 @@ model SubmissionAttachment {
   id String @id @default(uuid()) @db.Uuid
 
   submissionId String     @db.Uuid
+  /// @DtoApiHidden
   submission   Submission @relation(fields: [submissionId], references: [id])
 
   name String

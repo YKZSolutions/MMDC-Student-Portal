@@ -28,21 +28,14 @@ export class ModuleContent {
     type: 'string',
   })
   moduleId: string;
-  @ApiProperty({
-    type: () => Module,
-    required: false,
-  })
+  @ApiHideProperty()
   module?: ModuleAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   moduleSectionId: string | null;
-  @ApiProperty({
-    type: () => ModuleSection,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   moduleSection?: ModuleSectionAsType | null;
   @ApiProperty({
     type: 'integer',
@@ -88,11 +81,7 @@ export class ModuleContent {
     nullable: true,
   })
   publishedBy: string | null;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   publishedByUser?: UserAsType | null;
   @ApiHideProperty()
   assignment?: AssignmentAsType | null;

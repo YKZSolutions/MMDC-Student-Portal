@@ -58,10 +58,6 @@ export class Submission {
   })
   attemptNumber: number | null;
   @ApiProperty({
-    type: 'boolean',
-  })
-  isLate: boolean;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,
@@ -83,30 +79,20 @@ export class Submission {
     type: 'string',
   })
   moduleContentId: string;
-  @ApiProperty({
-    type: () => ModuleContent,
-    required: false,
-  })
+  @ApiHideProperty()
   moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
   studentId: string;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-  })
+  @ApiHideProperty()
   student?: UserAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   gradedBy: string | null;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   grader?: UserAsType | null;
   @ApiHideProperty()
   attachments?: SubmissionAttachmentAsType[];
