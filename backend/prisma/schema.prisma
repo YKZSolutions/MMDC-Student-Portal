@@ -718,7 +718,6 @@ enum AssignmentType {
 
 model ContentProgress {
   id          String    @id @default(uuid()) @db.Uuid
-  completed   Boolean   @default(false)
   completedAt DateTime?
 
   userId String @db.Uuid
@@ -742,7 +741,7 @@ model ContentProgress {
   @@unique([userId, moduleContentId])
   @@index([userId])
   @@index([moduleContentId, moduleId])
-  @@index([completed])
+  @@index([completedAt])
   @@index([moduleId])
 }
 
