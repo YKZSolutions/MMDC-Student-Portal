@@ -538,8 +538,8 @@ model Module {
   publishedAt DateTime?
   toPublishAt DateTime?
 
-  publishedBy String? @db.Uuid
-  user        User?   @relation(fields: [publishedBy], references: [id])
+  publishedBy     String? @db.Uuid
+  publishedByUser User?   @relation("ModulePublishedBy", fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
   moduleSections ModuleSection[]
@@ -550,6 +550,8 @@ model Module {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@index([courseId])
 }
 
 model ModuleSection {
@@ -566,27 +568,27 @@ model ModuleSection {
   /// @DtoApiHidden
   moduleContents ModuleContent[]
 
-  title       String  @db.VarChar(255)
-  order       Int     @default(0)
+  title String @db.VarChar(255)
+  order Int    @default(0)
 
-  publishedAt DateTime? @map("published_at") @db.Timestamptz
-  toPublishAt DateTime? @map("to_publish_at") @db.Timestamptz
+  publishedAt DateTime?
+  toPublishAt DateTime?
 
-  publishedBy String? @db.Uuid @map("published_by")
-  user        User?   @relation(fields: [publishedBy], references: [id])
+  publishedBy     String? @db.Uuid
+  publishedByUser User?   @relation("ModuleSectionPublishedBy", fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  deletedAt DateTime?
 
   @@index([moduleId])
   @@index([parentSectionId])
   @@index([order])
   @@index([publishedAt])
-  @@map("module_sections")
+  @@unique([moduleId, order]) // ensure unique order within module
 }
 
 enum ContentType {
@@ -599,44 +601,50 @@ enum ContentType {
 }
 
 model ModuleContent {
-  id       String @id @default(uuid()) @db.Uuid
-  order    Int    @default(0)
-  title    String @db.VarChar(255)
+  id String @id @default(uuid()) @db.Uuid
+
+  // moduleId (content can belong to a module even if not in a section)
+  // used for storing draft content that is not part of a section
+  moduleId String @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  // optional: if content is part of a section
+  moduleSectionId String?        @db.Uuid
+  moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
+
+  order    Int     @default(0)
+  title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
   content  Json
-
-  /// @DtoApiHidden
-  moduleSectionId String        @db.Uuid
-  moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
   contentType ContentType @default(OVERVIEW)
   isActive    Boolean     @default(true)
 
-  publishedAt DateTime? @map("published_at") @db.Timestamptz
-  toPublishAt DateTime? @map("to_publish_at") @db.Timestamptz
+  publishedAt DateTime?
+  toPublishAt DateTime?
 
-  publishedBy String? @db.Uuid @map("published_by")
-  user        User?   @relation(fields: [publishedBy], references: [id])
+  publishedBy     String? @db.Uuid
+  publishedByUser User?   @relation("ModuleContentPublishedBy", fields: [publishedBy], references: [id])
 
   /// @DtoApiHidden
-  assignmentBase  AssignmentBase?
+  assignment      Assignment?
   /// @DtoApiHidden
   submissions     Submission[]
   /// @DtoApiHidden
   studentProgress StudentProgress[]
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  deletedAt DateTime?
 
   @@index([moduleSectionId])
   @@index([contentType])
   @@index([order])
   @@index([publishedAt])
-  @@map("module_contents")
+  @@unique([moduleSectionId, order]) // unique order within a section
 }
 
 model Assignment {
@@ -653,29 +661,28 @@ model Assignment {
   mode   AssignmentMode   @default(INDIVIDUAL)
   status AssignmentStatus @default(OPEN)
 
-  dueDate   DateTime @map("due_date") @db.Timestamptz
-  points    Int?     @default(100) @db.SmallInt
-  maxPoints Int?     @default(100) @map("max_points") @db.SmallInt
+  dueDate   DateTime?
+  points    Int?      @default(100) @db.SmallInt
+  maxPoints Int?      @default(100) @db.SmallInt
 
-  allowResubmission   Boolean @default(false) @map("allow_resubmission")
-  maxAttempts         Int?    @map("max_attempts") @db.SmallInt
-  allowLateSubmission Boolean @default(false) @map("allow_late_submission")
-  latePenalty         Float?  @default(0.0) @map("late_penalty") @db.Decimal(5, 2)
+  allowResubmission   Boolean  @default(false)
+  maxAttempts         Int?     @default(1) @db.SmallInt
+  allowLateSubmission Boolean  @default(false)
+  latePenalty         Decimal? @default(0.0) @db.Decimal(5, 2)
 
-  publishedBy String? @db.Uuid @map("published_by")
-  user        User?   @relation(fields: [publishedBy], references: [id])
+  publishedBy     String? @db.Uuid
+  publishedByUser User?   @relation("AssignmentPublishedBy", fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  deletedAt DateTime?
 
   @@index([moduleContentId])
   @@index([status])
   @@index([dueDate])
-  @@map("assignments")
 }
 
 enum AssignmentMode {
@@ -699,31 +706,31 @@ enum AssignmentType {
 model StudentProgress {
   id          String    @id @default(uuid()) @db.Uuid
   completed   Boolean   @default(false)
-  completedAt DateTime? @map("completed_at") @db.Timestamptz
+  completedAt DateTime?
 
   /// Progress percentage (0-100)
   progress Int @default(0) @db.SmallInt
 
-  userId String @db.Uuid @map("user_id")
-  /// @DtoApiHidden
-  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.Uuid
+  user   User   @relation("StudentProgressUser", fields: [userId], references: [id])
 
-  moduleContentId String        @db.Uuid @map("module_content_id")
-  moduleId        String        @db.Uuid @map("module_id")
-  /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId, moduleId], references: [id, moduleId])
+  moduleContentId String        @db.Uuid
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+
+  // denormalized for easier queries by module
+  moduleId String @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id])
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, moduleContentId, moduleId])
   @@index([userId])
   @@index([moduleContentId, moduleId])
   @@index([completed])
   @@index([moduleId])
-  @@map("student_progress")
 }
 
 enum SubmissionStatus {
@@ -745,46 +752,42 @@ model Submission {
 
   /// Grading information
   score    Int?    @db.SmallInt
-  maxScore Int?    @map("max_score") @db.SmallInt
+  maxScore Int?    @db.SmallInt
   grade    String? @db.VarChar(10)
   feedback String? @db.Text
 
   /// Submission metadata
-  attemptNumber Int?      @map("attempt_number") @db.SmallInt
-  isLate        Boolean   @default(false) @map("is_late")
-  lateDays      Int?      @map("late_days") @db.SmallInt
-  submittedAt   DateTime? @map("submitted_at") @db.Timestamptz
-  gradedAt      DateTime? @map("graded_at") @db.Timestamptz
+  attemptNumber Int?      @db.SmallInt
+  isLate        Boolean   @default(false)
+  lateDays      Int?      @db.SmallInt
+  submittedAt   DateTime?
+  gradedAt      DateTime?
 
   /// Relations
-  moduleContentId String        @db.Uuid @map("module_content_id")
-  /// @DtoApiHidden
+  moduleContentId String        @db.Uuid
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
 
-  studentId String @db.Uuid @map("student_id")
-  /// @DtoApiHidden
-  user      User   @relation(fields: [studentId], references: [id])
+  studentId String @db.Uuid
+  student   User   @relation("SubmissionStudent", fields: [studentId], references: [id])
 
-  gradedBy String? @db.Uuid @map("graded_by")
-  /// @DtoApiHidden
-  grader   User?   @relation("GradedSubmissions", fields: [gradedBy], references: [id])
+  gradedBy String? @db.Uuid
+  grader   User?   @relation("SubmissionGrader", fields: [gradedBy], references: [id])
 
   /// @DtoApiHidden
   attachments SubmissionAttachment[]
 
   /// @DtoReadOnly
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  deletedAt DateTime?
 
   @@index([moduleContentId])
   @@index([studentId])
   @@index([status])
   @@index([submittedAt])
   @@index([gradedAt])
-  @@map("submissions")
 }
 
 model SubmissionAttachment {
