@@ -12,7 +12,6 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
-import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 interface ModulesStudentPageProps {
@@ -24,7 +23,6 @@ interface ModulesStudentPageProps {
 function ModulesStudentPage() {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')
-  const navigate = useNavigate()
   const [allExpanded, setAllExpanded] = useState(false)
   const module = getMockModuleByRole(authUser.role) //TODO: replace with actual data
   const { studentProgress } = module as StudentModule

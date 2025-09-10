@@ -2,7 +2,6 @@ import RoleComponentManager from '@/components/role-component-manager.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import { getMockModuleByRole, mockModule } from '@/features/courses/mocks.ts'
 import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
-import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
 import ModulesAdminPage from '@/pages/admin/courses/$courseCode/modules'
 import ModulesMentorPage from '@/pages/mentor/courses/$courseCode/modules'
 import ModulesStudentPage from '@/pages/student/courses/$courseCode/modules'
@@ -34,13 +33,7 @@ function RouteComponent() {
         currentRole={authUser.role}
         roleRender={{
           student: <ModulesStudentPage />,
-          mentor: (
-            <ModulesMentorPage
-              module={module as MentorModule}
-              onExpandAll={toggleExpandAll}
-              allExpanded={allExpanded}
-            />
-          ),
+          mentor: <ModulesMentorPage />,
           admin: (
             <ModulesAdminPage
               module={module as AdminModule}
