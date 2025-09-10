@@ -417,6 +417,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
             label={item.published.isPublished ? 'Published' : 'Not Published'}
           >
             <ActionIcon
+              component="div"
               variant={'subtle'}
               color={item.published.isPublished ? 'green' : 'gray'}
               radius="xl"
@@ -494,6 +495,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
 
       <Tooltip label="Add new item">
         <ActionIcon
+          component="div"
           variant={'subtle'}
           color="blue"
           radius="xl"
@@ -519,6 +521,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
       >
         <Menu.Target>
           <ActionIcon
+            component="div"
             variant={'subtle'}
             color="gray"
             radius="xl"
