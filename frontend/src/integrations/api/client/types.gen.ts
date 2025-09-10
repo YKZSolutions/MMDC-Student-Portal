@@ -667,44 +667,10 @@ export type CreateCourseOfferingDto = {
     courseId: string;
 };
 
-export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
-
-export type CourseEnrollment = {
-    id: string;
-    courseOfferingId: string;
-    courseSectionId: string;
-    studentId: string;
-    status: CourseEnrollmentStatus;
-    startedAt: string;
-    completedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
-
-export type CourseSection = {
-    id: string;
-    name: string;
-    mentorId: string | null;
-    courseOfferingId: string;
-    courseEnrollments?: Array<CourseEnrollment>;
-    maxSlot: number;
-    startSched: string;
-    endSched: string;
-    days: Array<Days>;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type CourseOffering = {
     id: string;
     courseId: string;
     periodId: string;
-    courseEnrollment?: Array<CourseEnrollment>;
-    courseSections?: Array<CourseSection>;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -713,6 +679,8 @@ export type CourseOffering = {
 export type CreateCourseOfferingCurriculumDto = {
     curriculumId: string;
 };
+
+export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
 export type UserDto = {
     id: string;
@@ -740,6 +708,8 @@ export type DetailedCourseSectionDto = {
     mentorId: string | null;
 };
 
+export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
+
 export type DetailedCourseOfferingSubsetDto = {
     course: CourseDto;
 };
@@ -766,7 +736,7 @@ export type DetailedCourseOfferingDto = {
     deletedAt: string | null;
     course: CourseDto;
     courseSections: Array<DetailedCourseSectionDto>;
-    courseEnrollment: Array<DetailedCourseEnrollmentDto>;
+    courseEnrollments: Array<DetailedCourseEnrollmentDto>;
     periodId: string;
 };
 
