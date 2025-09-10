@@ -27,10 +27,11 @@ export class UpdateModuleContentDto {
   @ApiProperty({
     type: 'string',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsString()
-  subtitle?: string;
+  subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
     required: false,

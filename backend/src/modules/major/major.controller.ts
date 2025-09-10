@@ -44,7 +44,6 @@ export class MajorController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiCreatedResponse({ type: Major })
   @ApiException(() => ConflictException)
   @ApiException(() => [ConflictException, InternalServerErrorException])
   create(@Body() createProgramMajorDto: CreateProgramMajorDto) {
@@ -59,7 +58,6 @@ export class MajorController {
    */
   @Get()
   @Roles(Role.ADMIN)
-  @ApiOkResponse({ type: PaginatedMajorsDto })
   @ApiException(() => [
     BadRequestException,
     NotFoundException,
@@ -77,7 +75,6 @@ export class MajorController {
    */
   @Get(':id')
   @Roles(Role.ADMIN)
-  @ApiOkResponse({ type: Major })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.majorService.findOne(id);

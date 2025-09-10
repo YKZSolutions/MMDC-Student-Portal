@@ -19,6 +19,7 @@ import { ApiOkResponse } from '@nestjs/swagger';
 import { CourseOfferingService } from './course-offering.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offering.dto';
 import { FilterCourseOfferingDto } from './dto/filter-course-offering.dto';
+import { CreateCourseOfferingCurriculumDto } from './dto/create-course-offering-curriculum.dto';
 
 @Controller('enrollments')
 export class CourseOfferingController {
@@ -41,6 +42,28 @@ export class CourseOfferingController {
     @Body() dto: CreateCourseOfferingDto,
   ) {
     return this.courseOfferingService.createCourseOffering(enrollmentId, dto);
+  }
+
+  /**
+   * Creates a course offerings given a curriculum
+   *
+   * @remarks
+   * Requires `ADMIN` role.
+   *
+   * @throws NotFoundException If the enrollment period or course does not exist
+   * @throws BadRequestException If invalid references are provided
+   */
+  @ApiException(() => [NotFoundException, BadRequestException])
+  @Roles(Role.ADMIN)
+  @Post(':enrollmentId/curriculum')
+  createCourseOfferingsByCurriculumId(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Body() dto: CreateCourseOfferingCurriculumDto,
+  ) {
+    return this.courseOfferingService.createCourseOfferingsByCurriculum(
+      enrollmentId,
+      dto,
+    );
   }
 
   /**

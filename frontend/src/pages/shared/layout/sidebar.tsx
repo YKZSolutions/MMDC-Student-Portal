@@ -60,7 +60,7 @@ function Sidebar() {
           <Stack
             gap={isExpanded ? 4 : 12}
             p={0}
-            align={'center'}
+            align={!isExpanded ? 'center' : 'start'}
             mt={!isExpanded ? 'xs' : 0}
           >
             {/* <Image src={logo} w={80} h={80} className="mb-4 contrast-[0.96]" /> */}

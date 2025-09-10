@@ -44,4 +44,5 @@ export const theme = createTheme({
     ...customColors,
     ...statusColors,
   },
+  fontFamily: 'Inter, sans-serif',
 })

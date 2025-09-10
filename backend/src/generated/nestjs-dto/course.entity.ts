@@ -8,6 +8,7 @@ import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
+import { Module, type Module as ModuleAsType } from './module.entity';
 
 export class Course {
   @ApiProperty({
@@ -15,7 +16,7 @@ export class Course {
   })
   id: string;
   @ApiHideProperty()
-  major?: MajorAsType[];
+  majors?: MajorAsType[];
   @ApiProperty({
     type: () => Course,
     isArray: true,
@@ -73,6 +74,8 @@ export class Course {
   isActive: boolean;
   @ApiHideProperty()
   courseOfferings?: CourseOfferingAsType[];
+  @ApiHideProperty()
+  modules?: ModuleAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

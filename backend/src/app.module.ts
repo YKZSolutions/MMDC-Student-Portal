@@ -21,6 +21,7 @@ import { InstallmentModule } from './modules/installment/installment.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { CurriculumModule } from './modules/curriculum/curriculum.module';
 import { SwaggerModule } from './modules/swagger/swagger.module';
+import { LmsModule } from '@/modules/lms/lms.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SwaggerModule } from './modules/swagger/swagger.module';
     InstallmentModule,
     EnrollmentModule,
     CurriculumModule,
+    LmsModule,
     SwaggerModule,
   ],
   controllers: [],

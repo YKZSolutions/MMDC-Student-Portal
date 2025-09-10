@@ -9,6 +9,7 @@ import {
   Query,
   NotFoundException,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CurriculumService } from './curriculum.service';
 import { CreateCurriculumWithCoursesDto } from './dto/create-curriculum.dto';
@@ -49,11 +50,17 @@ export class CurriculumController {
 
   /**
    * Fetch a single curriculum
-   * @remarks Fetch the curriculum details and the courses attached to it
+   * @remarks
+   * Fetch the curriculum details and the courses attached to it.
+   * Can find by id or find by code with a format of (programCode-majorCode)
    */
   @Get(':id')
   @Roles(Role.ADMIN)
-  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
   findOne(@Param('id') id: string) {
     return this.curriculumService.findOne(id);
   }

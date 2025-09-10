@@ -17,6 +17,6 @@ export class PaginatedCourseOfferingsDto extends PaginatedDto {
 export class DetailedCourseOfferingDto extends CourseOfferingDto {
   course: CourseDto;
   courseSections: DetailedCourseSectionDto[];
-  courseEnrollment: DetailedCourseEnrollmentDto[];
+  courseEnrollments: DetailedCourseEnrollmentDto[];
   periodId: string;
 }

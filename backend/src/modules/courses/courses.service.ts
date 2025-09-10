@@ -60,7 +60,7 @@ export class CoursesService {
     };
 
     if (majorIds?.length) {
-      data.major = { connect: majorIds.map((id) => ({ id })) };
+      data.majors = { connect: majorIds.map((id) => ({ id })) };
     }
 
     if (prereqIds?.length) {
@@ -213,7 +213,7 @@ export class CoursesService {
     };
 
     if (majorIds) {
-      data.major = { set: majorIds.map((id) => ({ id })) };
+      data.majors = { set: majorIds.map((id) => ({ id })) };
     }
 
     if (coreqIds) {

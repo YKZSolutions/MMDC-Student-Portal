@@ -17,8 +17,9 @@ export class ModuleContentDto {
   title: string;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  subtitle: string;
+  subtitle: string | null;
   @ApiProperty({
     type: () => Object,
   })

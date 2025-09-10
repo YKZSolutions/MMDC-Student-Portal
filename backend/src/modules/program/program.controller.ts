@@ -25,6 +25,7 @@ import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
 import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { MajorService } from '../major/major.service';
 
 /**
  * @remarks
@@ -32,7 +33,10 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
  */
 @Controller('programs')
 export class ProgramController {
-  constructor(private readonly programService: ProgramService) {}
+  constructor(
+    private readonly programService: ProgramService,
+    private readonly majorService: MajorService,
+  ) {}
 
   /**
    * Create a new program
@@ -66,6 +70,26 @@ export class ProgramController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   findAll(@Query() filters: BaseFilterDto) {
     return this.programService.findAll(filters);
+  }
+
+  /**
+   * Retrive all majors of a program
+   *
+   * @remarks Retrives a paginated list of majors based on the program id and provided filters.
+   * Requires `ADMIN` role.
+   */
+  @Get(':programId/majors')
+  @Roles(Role.ADMIN)
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
+  findAllMajors(
+    @Param('programId', new ParseUUIDPipe()) programId: string,
+    @Query() filters: BaseFilterDto,
+  ) {
+    return this.majorService.findAll(filters, programId);
   }
 
   /**
