@@ -1,20 +1,23 @@
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import {
+  SubmissionForm,
+  type SubmissionPayload,
+} from '@/features/courses/modules/content/submission-form.tsx'
 import type {
   Module,
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
+import { getModuleItemsFromSections } from '@/utils/helpers.ts'
+import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
-import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
-  ActionIcon,
-  Anchor,
   Badge,
   Box,
-  Breadcrumbs,
   Button,
   Card,
   Container,
-  Flex,
+  Grid,
   Group,
   Paper,
   Progress,
@@ -22,24 +25,19 @@ import {
   Text,
   Timeline,
   Title,
+  useMantineTheme,
 } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import {
   IconBookmark,
   IconCheck,
   IconChevronLeft,
   IconChevronRight,
-  IconDownload,
   IconEdit,
   IconExternalLink,
   IconFileText,
 } from '@tabler/icons-react'
-import { BlockNoteView } from '@blocknote/mantine'
 import { Link } from '@tanstack/react-router'
-import {
-  SubmissionForm,
-  type SubmissionPayload,
-} from '@/features/courses/modules/content/submission-form.tsx'
-import { getModuleItemsFromSections } from '@/utils/helpers.ts'
 
 interface ModuleContentViewProps {
   moduleItem: ModuleItem
@@ -48,12 +46,12 @@ interface ModuleContentViewProps {
   isPreview?: boolean
 }
 
-const ModuleContentView = ({
+function ModuleContentView({
   moduleItem,
   parentSection,
   module,
   isPreview = false,
-}: ModuleContentViewProps) => {
+}: ModuleContentViewProps) {
   // Flattened list of all module items
   const allItems = getModuleItemsFromSections(module.sections)
   const currentIndex = allItems.findIndex((i) => i.id === moduleItem.id)
@@ -72,59 +70,72 @@ const ModuleContentView = ({
   const editor = useCreateBlockNote({ initialContent })
 
   return (
-    <Container size="lg" py="md">
-      {/* Top Progress Indicator */}
-      <Progress value={progressPercentage} size="sm" radius="xl" mb="lg" />
+    <Container size="lg" py="xl" pt={"lg"}>
+      {/* Main Content Area */}
+      <Stack flex={1}>
+        <Button
+          variant="default"
+          radius={'md'}
+          component={Link}
+          to="../"
+          maw={'fit-content'}
+        >
+          <Group>
+            <IconChevronLeft size={16} />
+            <span>Back to Modules</span>
+          </Group>
+        </Button>
 
-      <Flex gap="xl" align="flex-start">
-        {/* Main Content Area */}
-        <Box flex={1}>
-          <HeaderSection
-            moduleItem={moduleItem}
-            parentSection={parentSection}
-            module={module}
-            onMarkComplete={() => {}}
-            onPublish={() => {}}
-          />
+        {/* Header Section */}
 
-          <ContentArea moduleItem={moduleItem} editor={editor} />
+        <Grid>
+          <Grid.Col
+            span={{
+              base: 12,
+              lg: 8,
+            }}
+            order={{
+              base: 2,
+              lg: 1,
+            }}
+          >
+            <Stack flex={1}>
+              <HeaderSection
+                moduleItem={moduleItem}
+                parentSection={parentSection}
+                module={module}
+                onMarkComplete={() => {}}
+                onPublish={() => {}}
+              />
+              <ContentArea moduleItem={moduleItem} editor={editor} />
 
-          {moduleItem.type === 'assignment' && moduleItem.assignment && (
-            <EmbeddedSubmissionBox assignmentItem={moduleItem} />
-          )}
+              {moduleItem.type === 'assignment' && moduleItem.assignment && (
+                <EmbeddedSubmissionBox assignmentItem={moduleItem} />
+              )}
+            </Stack>
+          </Grid.Col>
 
-          {/* Continue Button */}
-          {nextItem && !isPreview && (
-            <Link
-              from={'/courses/$courseCode/modules'}
-              to={`$itemId`}
-              params={{ itemId: nextItem.id }}
-            >
-              <Button
-                mt="xl"
-                fullWidth
-                size="md"
-                rightSection={<IconChevronRight size={18} />}
-              >
-                Continue to {nextItem.title}
-              </Button>
-            </Link>
-          )}
-        </Box>
+          <Grid.Col
+            span={{
+              base: 12,
+              lg: 4,
+            }}
+            order={{
+              base: 1,
+              lg: 2,
+            }}
+          >
+            <ProgressCard
+              allItems={allItems}
+              moduleItem={moduleItem}
+              progressPercentage={progressPercentage}
+            />
+          </Grid.Col>
+        </Grid>
 
-        {/* Sidebar */}
-        <div hidden={isPreview}>
-          <Sidebar
-            previousItem={previousItem}
-            nextItem={nextItem}
-            allItems={allItems}
-            moduleItem={moduleItem}
-            progressPercentage={progressPercentage}
-            completed={completed}
-            total={allItems.length}
-          />
-        </div>
-      </Flex>
+        {/* Continue Button */}
+        <Navigation previousItem={previousItem} nextItem={nextItem} />
+      </Stack>
     </Container>
   )
 }
@@ -140,31 +151,20 @@ type ModuleItemProps = {
   onMarkComplete: () => void
   onPublish: () => void
 }
-const HeaderSection = ({
+function HeaderSection({
   moduleItem,
   parentSection,
   module,
   onMarkComplete,
   onPublish,
-}: ModuleItemProps) => {
+}: ModuleItemProps) {
   const { authUser } = useAuth('protected')
-  const breadcrumbItems = [
-    { title: `${module.courseCode}: ${module.courseName}`, href: '#' },
-    { title: parentSection.title, href: '#' },
-    { title: moduleItem.title, href: '#' },
-  ].map((item, idx) => (
-    <Anchor href={item.href} key={idx} size="sm">
-      {item.title}
-    </Anchor>
-  ))
 
   return (
-    <Paper shadow="sm" radius="md" p="xl" mb="xl">
+    <Paper withBorder radius="md" p="xl">
       <Stack gap="md">
-        <Breadcrumbs>{breadcrumbItems}</Breadcrumbs>
-
-        <Group justify="space-between" align="flex-start">
-          <Box flex={1}>
+        <Group align="start" gap="sm" justify="space-between">
+          <Box>
             <Title order={1} size="h2" mb="xs">
               {moduleItem.title}
             </Title>
@@ -181,7 +181,7 @@ const HeaderSection = ({
             </Group>
           </Box>
 
-          <Group gap="sm">
+          <Group>
             <Button
               variant={moduleItem.progress?.isCompleted ? 'filled' : 'outline'}
               color={moduleItem.progress?.isCompleted ? 'green' : 'blue'}
@@ -203,11 +203,10 @@ const HeaderSection = ({
                   : 'Mark Complete'}
             </Button>
             {moduleItem.type === 'assignment' && (
-              <Button leftSection={<IconEdit size={16} />}>Submit</Button>
+              <Button color="blue" leftSection={<IconEdit size={16} />}>
+                Submit
+              </Button>
             )}
-            <ActionIcon variant="light" size="lg">
-              <IconDownload size={16} />
-            </ActionIcon>
           </Group>
         </Group>
       </Stack>
@@ -220,9 +219,9 @@ type ContentAreaProps = {
   moduleItem: ModuleItem
   editor: any
 }
-const ContentArea = ({ moduleItem, editor }: ContentAreaProps) => {
+function ContentArea({ moduleItem, editor }: ContentAreaProps) {
   return (
-    <Paper shadow="sm" radius="md" p="xl">
+    <Paper withBorder radius="md" p="xl">
       {moduleItem.content ? (
         <BlockNoteView editor={editor} theme="light" editable={false} />
       ) : (
@@ -234,117 +233,131 @@ const ContentArea = ({ moduleItem, editor }: ContentAreaProps) => {
   )
 }
 
-type SidebarProps = {
-  previousItem: ModuleItem | null
-  nextItem: ModuleItem | null
-  allItems: ModuleItem[]
-  moduleItem: ModuleItem
-  progressPercentage: number
-  completed: number
-  total: number
-}
-
-const Sidebar = ({
+function Navigation({
   previousItem,
   nextItem,
-  allItems,
-  moduleItem,
-  progressPercentage,
-  completed,
-  total,
-}: SidebarProps) => {
+}: {
+  previousItem: ModuleItem | null
+  nextItem: ModuleItem | null
+}) {
   return (
-    <Box w={280} style={{ position: 'sticky', top: 20 }}>
-      {/* Navigation */}
-      <Paper shadow="sm" radius="md" p="lg" mb="lg">
-        <Stack gap="md">
-          <Group justify="space-between">
+    <Paper radius="md">
+      <Stack gap="md">
+        <Group justify="space-between">
+          {previousItem && (
             <Link
               from={'/courses/$courseCode/modules'}
               to={`$itemId`}
               params={{ itemId: previousItem?.id || '' }}
             >
               <Button
-                variant="light"
+                variant="default"
+                radius={'md'}
                 size="sm"
                 leftSection={<IconChevronLeft size={14} />}
-                disabled={!previousItem}
               >
-                Previous
+                <Text fw={500} fz={'sm'} truncate maw={'20ch'}>
+                  {previousItem.title}
+                </Text>
               </Button>
             </Link>
+          )}
+          {nextItem && (
             <Link
               from={'/courses/$courseCode/modules'}
               to={`$itemId`}
               params={{ itemId: nextItem?.id || '' }}
+              className="ml-auto"
             >
               <Button
-                variant="light"
+                variant="default"
+                radius={'md'}
                 size="sm"
                 rightSection={<IconChevronRight size={14} />}
-                disabled={!nextItem}
               >
-                Next
+                <Text fw={500} fz={'sm'} truncate maw={'20ch'}>
+                  {nextItem.title}
+                </Text>
               </Button>
             </Link>
-          </Group>
-          {nextItem && (
-            <Card withBorder radius="md" p="sm">
-              <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                Up Next
-              </Text>
-              <Text size="sm" fw={500}>
-                {nextItem.title}
-              </Text>
-            </Card>
           )}
-        </Stack>
-      </Paper>
-
-      {/* Progress */}
-      <Paper shadow="sm" radius="md" p="lg">
-        <Text fw={600} size="sm" mb="sm">
-          Progress
-        </Text>
-        <Progress value={progressPercentage} size="lg" radius="md" mb="md" />
-        <Timeline bulletSize={20} lineWidth={2}>
-          {allItems.slice(0, 5).map((item) => (
-            <Timeline.Item
-              key={item.id}
-              bullet={
-                item.progress?.isCompleted ? (
-                  <IconCheck size={12} />
-                ) : (
-                  <IconFileText size={12} />
-                )
-              }
-              title={item.title}
-              color={
-                item.progress?.isCompleted
-                  ? 'green'
-                  : item.id === moduleItem.id
-                    ? 'blue'
-                    : 'gray'
-              }
-            />
-          ))}
-          {allItems.length > 5 && (
-            <Timeline.Item
-              title={`+${allItems.length - 5} more`}
-              color="gray"
-            />
-          )}
-        </Timeline>
-      </Paper>
-    </Box>
+        </Group>
+      </Stack>
+    </Paper>
   )
 }
 
-const EmbeddedSubmissionBox = ({
+function ProgressCard({
+  allItems,
+  moduleItem,
+  progressPercentage,
+}: {
+  allItems: ModuleItem[]
+  moduleItem: ModuleItem
+  progressPercentage: number
+}) {
+  const theme = useMantineTheme()
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.lg})`)
+
+  return (
+    <Paper
+      withBorder
+      radius="md"
+      p={{
+        base: 'md',
+        lg: 'xl',
+      }}
+    >
+      <Stack gap={'xs'}>
+        <Text fw={600} size="sm">
+          Progress
+        </Text>
+        <Progress
+          value={progressPercentage}
+          size="lg"
+          radius="md"
+          mb={isMobile ? undefined : 'lg'}
+        />
+        {!isMobile && (
+          <Timeline bulletSize={20} lineWidth={2}>
+            {allItems.slice(0, 5).map((item) => (
+              <Timeline.Item
+                key={item.id}
+                bullet={
+                  item.progress?.isCompleted ? (
+                    <IconCheck size={12} />
+                  ) : (
+                    <IconFileText size={12} />
+                  )
+                }
+                title={item.title}
+                color={
+                  item.progress?.isCompleted
+                    ? 'green'
+                    : item.id === moduleItem.id
+                      ? 'blue'
+                      : 'gray'
+                }
+              />
+            ))}
+            {allItems.length > 5 && (
+              <Timeline.Item
+                title={`+${allItems.length - 5} more`}
+                color="gray"
+              />
+            )}
+          </Timeline>
+        )}
+      </Stack>
+    </Paper>
+  )
+}
+
+function EmbeddedSubmissionBox({
   assignmentItem,
 }: {
   assignmentItem: ModuleItem
-}) => {
+}) {
   const submitted =
     assignmentItem.assignment && 'submissionStatus' in assignmentItem.assignment
       ? assignmentItem.assignment?.submissionStatus === 'submitted'
@@ -359,7 +372,7 @@ const EmbeddedSubmissionBox = ({
   }
 
   return (
-    <Card shadow="sm" radius="md" mt="lg" p="md">
+    <Card withBorder radius="md" p="lg">
       <Stack>
         {/* Header */}
         <Group justify="space-between">
