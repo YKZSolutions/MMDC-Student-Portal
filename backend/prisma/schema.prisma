@@ -725,7 +725,7 @@ model ContentProgress {
   /// @DtoReadOnly
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, moduleContentId, moduleId])
+  @@unique([userId, moduleContentId])
   @@index([userId])
   @@index([moduleContentId, moduleId])
   @@index([completed])
