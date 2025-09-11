@@ -16,6 +16,7 @@ import { ConflictException } from '@nestjs/common/exceptions/conflict.exception'
 import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
 import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
 import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
+import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
 
 @Injectable()
 export class LmsContentService {
@@ -37,11 +38,24 @@ export class LmsContentService {
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
-    logArgsMessage: ({ content }) =>
-      `Creating module content [${content.title}] in section ${content.moduleSectionId}`,
+    logArgsMessage: ({
+      content,
+      moduleSectionId,
+    }: {
+      content: CreateModuleContentDto;
+      moduleSectionId: string;
+    }) =>
+      `Creating module content [${content.title}] in section ${moduleSectionId}`,
     logSuccessMessage: (content) =>
       `Module content [${content.title}] successfully created.`,
-    logErrorMessage: (err, { content }) =>
+    logErrorMessage: (
+      err,
+      {
+        content,
+      }: {
+        content: CreateModuleContentDto;
+      },
+    ) =>
       `An error has occurred while creating module content [${content.title}] | Error: ${err.message}`,
   })
   @PrismaError({
@@ -104,35 +118,35 @@ export class LmsContentService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const baseQuery = {
+    if (role === 'admin') {
+      return (await this.prisma.client.moduleContent.findUniqueOrThrow({
+        where: { id },
+        include: {
+          assignment: true,
+        },
+      })) as ModuleContentDto;
+    }
+
+    // Default to Student
+    return (await this.prisma.client.moduleContent.findUniqueOrThrow({
       where: { id },
       include: {
-        assignment: true,
-      },
-    };
-
-    const studentQuery = {
-      ...baseQuery,
-      include: {
-        ...baseQuery.include,
+        assignment: {
+          omit: { ...omitAuditDates },
+        },
         submissions: {
           where: {
             studentId: userId,
           },
         },
+        studentProgress: {
+          where: {
+            userId: userId,
+          },
+        },
       },
-    };
-
-    if (role === 'admin') {
-      return (await this.prisma.client.moduleContent.findUniqueOrThrow(
-        baseQuery,
-      )) as ModuleContentDto;
-    }
-
-    // Default to Student
-    return (await this.prisma.client.moduleContent.findUniqueOrThrow(
-      studentQuery,
-    )) as StudentContentDto;
+      omit: { ...omitAuditDates, ...omitPublishFields },
+    })) as StudentContentDto;
   }
 
   /**

@@ -1,6 +1,5 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   ConflictException,
   Controller,
   Delete,
@@ -11,8 +10,6 @@ import {
   Patch,
   Post,
   Query,
-  SerializeOptions,
-  UseInterceptors,
 } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import {
@@ -33,7 +30,6 @@ import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 
 @Controller('lms/:lmsId/contents/') //TODO: configure pathing
-@UseInterceptors(ClassSerializerInterceptor)
 export class LmsContentController {
   constructor(private readonly lmsContentService: LmsContentService) {}
 
@@ -77,10 +73,6 @@ export class LmsContentController {
         { $ref: getSchemaPath(StudentContentDto) },
       ],
     },
-  })
-  @SerializeOptions({
-    excludeExtraneousValues: true,
-    exposeUnsetFields: false,
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)

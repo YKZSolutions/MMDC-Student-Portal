@@ -1,12 +1,20 @@
-import { StudentAssignmentDto } from '@/modules/assignment/dto/student-assignment.dto';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
-import { IntersectionType, PartialType } from '@nestjs/swagger';
-import { SubmissionDto } from '@/generated/nestjs-dto/submission.dto';
-import { ContentProgressDto } from '@/generated/nestjs-dto/contentProgress.dto';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { StudentAssignmentDto } from '@/modules/assignment/dto/student-assignment.dto';
+import { StudentSubmissionDto } from '@/modules/lms/dto/student-submission.dto';
 
-export class StudentContentDto extends IntersectionType(
-  ModuleContentDto,
-  PartialType(StudentAssignmentDto),
-  PartialType(SubmissionDto),
-  PartialType(ContentProgressDto),
-) {}
+export class StudentContentDto extends OmitType(ModuleContentDto, [
+  'toPublishAt',
+  'publishedAt',
+  'createdAt',
+  'updatedAt',
+  'deletedAt',
+]) {
+  @ApiProperty({ type: StudentAssignmentDto, required: false })
+  assignment?: StudentAssignmentDto;
+  @ApiProperty({
+    type: StudentSubmissionDto,
+    required: false,
+  })
+  submission?: StudentSubmissionDto;
+}
