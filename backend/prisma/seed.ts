@@ -464,7 +464,7 @@ async function main() {
           userId: user.id,
           title: 'Welcome to the System',
           content: 'Your account has been successfully created',
-          isRead: Math.random() > 0.5 ? 'true' : 'false',
+          isRead: Math.random() > 0.5,
         },
       }),
     ),
