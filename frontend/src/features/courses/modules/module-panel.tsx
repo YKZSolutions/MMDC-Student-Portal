@@ -1,14 +1,27 @@
+import SubmitButton from '@/components/submit-button.tsx'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import type {
+  Module,
+  ModuleItem,
+  ModuleSection,
+} from '@/features/courses/modules/types.ts'
+import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
+import {
+  getCompletedItemsCount,
+  getOverdueItemsCount,
+  getSubmissionStatus,
+} from '@/utils/helpers.ts'
 import {
   Accordion,
-  type AccordionControlProps,
   ActionIcon,
   Badge,
   Box,
   Card,
+  Divider,
   Group,
-  type GroupProps,
   Menu,
   Progress,
+  rem,
   Stack,
   Text,
   ThemeIcon,
@@ -16,20 +29,6 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
-import React, { useEffect, useState } from 'react'
-import {
-  getCompletedItemsCount,
-  getOverdueItemsCount,
-  getSubmissionStatus,
-} from '@/utils/helpers.ts'
-import type {
-  Module,
-  ModuleItem,
-  ModuleSection,
-} from '@/features/courses/modules/types.ts'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import SubmitButton from '@/components/submit-button.tsx'
 import {
   IconCalendarTime,
   IconChartBar,
@@ -47,6 +46,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
+import { Fragment, useEffect, useState } from 'react'
 
 interface ModulePanelProps {
   module: Module
@@ -54,20 +54,20 @@ interface ModulePanelProps {
   allExpanded?: boolean
 }
 
-const ModulePanel = ({
+function ModulePanel({
   module,
   viewMode,
   allExpanded = false,
-}: ModulePanelProps) => {
+}: ModulePanelProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
 
   // Update expanded state when allExpanded prop changes
   useEffect(() => {
     if (allExpanded) {
-      const allSectionIds = module.sections.map((section) => section.id)
-      const allSubSectionIds = module.sections.flatMap((section) =>
-        section.subsections?.map((section) => section.id),
+      const allSectionIds = module.sections.map((s) => s.id)
+      const allSubSectionIds = module.sections.flatMap((s) =>
+        s.subsections?.map((sub) => sub.id),
       )
       setExpandedItems([...allSectionIds, ...(allSubSectionIds as string[])])
     } else {
@@ -76,114 +76,80 @@ const ModulePanel = ({
   }, [allExpanded])
 
   return (
-    <Box p="md">
-      {/* Sections Accordion */}
-      <Accordion
-        multiple
-        value={expandedItems}
-        onChange={setExpandedItems}
-        chevronPosition="left"
-        variant="separated"
-        radius="md"
-        styles={{
-          item: {
-            border: 0,
-            padding: 0,
-          },
-          control: {
-            padding: 0,
-          },
-        }}
-      >
-        {module.sections.map((section) => {
-          const sectionItems =
-            section.subsections?.flatMap((sub) => sub.items) || []
-          const sectionCompleted = getCompletedItemsCount(sectionItems)
-          const sectionOverdue = getOverdueItemsCount(sectionItems)
-          const sectionProgress =
-            sectionItems.length > 0
-              ? (sectionCompleted / sectionItems.length) * 100
-              : 0
+    <Accordion
+      multiple
+      value={expandedItems}
+      onChange={setExpandedItems}
+      chevronPosition="left"
+      variant="filled"
+      styles={{
+        chevron: {
+          padding: theme.spacing.sm,
+        },
+      }}
+    >
+      <Divider />
+      {module.sections.map((section) => (
+        <Fragment key={section.id}>
+          <Accordion.Item py={'sm'} value={section.id}>
+            <CustomAccordionControl
+              item={section}
+              title={section.title}
+              viewMode={viewMode}
+            />
+            <Accordion.Panel>
+              {/* Subsections */}
+              <Accordion
+                multiple
+                value={expandedItems}
+                onChange={setExpandedItems}
+                chevronPosition="left"
+                variant="separated"
+                radius={'md'}
+                styles={{
+                  chevron: {
+                    padding: theme.spacing.sm,
+                  },
+                  // item: {
+                  //   marginBottom: theme.spacing.sm,
+                  // },
+                }}
+              >
+                {section.subsections?.map((subsection) => (
+                  <Accordion.Item
+                    value={subsection.id}
+                    key={subsection.id}
+                    py={'sm'}
+                    bg={'white'}
+                    className="ring-1 ring-gray-200"
+                  >
+                    <CustomAccordionControl
+                      item={subsection}
+                      title={subsection.title}
+                      viewMode={viewMode}
+                      isSubsection
+                    />
 
-          return (
-            <Accordion.Item
-              value={section.id}
-              key={section.title}
-              bg={'background'}
-            >
-              <CustomAccordionControl
-                item={section}
-                title={section.title}
-                completedItemsCount={sectionCompleted}
-                totalItemsCount={sectionItems.length}
-                overdueItemsCount={sectionOverdue}
-                progressPercentage={sectionProgress}
-                viewMode={viewMode}
-              />
-              <Accordion.Panel>
-                {/* Subsections */}
-                <Accordion
-                  multiple
-                  value={expandedItems}
-                  onChange={setExpandedItems}
-                  chevronPosition="left"
-                  variant="separated"
-                  radius="md"
-                  styles={{
-                    item: { border: 0, padding: 0 },
-                    control: { padding: 0 },
-                  }}
-                >
-                  {section.subsections?.map((subsection) => {
-                    const subsectionCompleted = getCompletedItemsCount(
-                      subsection.items,
-                    )
-                    const subsectionOverdue = getOverdueItemsCount(
-                      subsection.items,
-                    )
-                    const subsectionProgress =
-                      subsection.items.length > 0
-                        ? (subsectionCompleted / subsection.items.length) * 100
-                        : 0
-
-                    return (
-                      <Accordion.Item
-                        value={subsection.id}
-                        key={subsection.title}
-                        bg={'white'}
-                      >
-                        <CustomAccordionControl
-                          item={subsection}
-                          title={subsection.title}
-                          completedItemsCount={subsectionCompleted}
-                          totalItemsCount={subsection.items.length}
-                          overdueItemsCount={subsectionOverdue}
-                          progressPercentage={subsectionProgress}
-                          viewMode={viewMode}
-                          isSubsection
-                        />
-
-                        <Accordion.Panel>
-                          <Stack gap="xs">
-                            {subsection.items.map((item) => (
-                              <ModuleItemCard
-                                key={item.id}
-                                item={item}
-                                viewMode={viewMode}
-                              />
-                            ))}
-                          </Stack>
-                        </Accordion.Panel>
-                      </Accordion.Item>
-                    )
-                  })}
-                </Accordion>
-              </Accordion.Panel>
-            </Accordion.Item>
-          )
-        })}
-      </Accordion>
-    </Box>
+                    <Accordion.Panel>
+                      <Stack gap="xs">
+                        {subsection.items.map((item) => (
+                          <ModuleItemCard
+                            key={item.id}
+                            item={item}
+                            viewMode={viewMode}
+                          />
+                        ))}
+                      </Stack>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Divider />
+        </Fragment>
+      ))}
+    </Accordion>
   )
 }
 
@@ -192,7 +158,7 @@ interface ModuleItemCardProps {
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
-const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
+function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
@@ -346,73 +312,72 @@ const ModuleItemCard = ({ item, viewMode }: ModuleItemCardProps) => {
 type CustomAccordionControlProps = {
   item: ModuleSection
   title: string
-  completedItemsCount?: number
-  totalItemsCount?: number
-  overdueItemsCount?: number
-  progressPercentage?: number
   isPreview?: boolean
   isSubsection?: boolean
   viewMode: 'student' | 'mentor' | 'admin'
-  accordionControlProps?: AccordionControlProps
-} & GroupProps
+  accordionControlProps?: any
+}
 
 function CustomAccordionControl({
   item,
   title,
-  completedItemsCount = 0,
-  totalItemsCount = 0,
-  overdueItemsCount = 0,
-  progressPercentage = 0,
   isSubsection = false,
   viewMode,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
+  // Derive items for sections or subsections to avoid prop drilling
+  const items: ModuleItem[] =
+    (item.items as ModuleItem[]) ??
+    (item.subsections?.flatMap(
+      (s: ModuleSection) => s.items,
+    ) as ModuleItem[]) ??
+    []
+
+  const completedItemsCount = getCompletedItemsCount(items)
+  const overdueItemsCount = getOverdueItemsCount(items)
+  const totalItemsCount = items.length
+  const progressPercentage =
+    totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0
+
   return (
-    <Box>
-      <Group justify="space-between" align="center" px="sm" py="md" {...props}>
-        <Group wrap="nowrap" flex={1}>
-          <Accordion.Control w={40} {...accordionControlProps} />
+    <Accordion.Control {...accordionControlProps}>
+      <Group wrap="nowrap" flex={1}>
+        <Stack gap={'xs'} flex={1}>
+          <Group gap="xs" mb={4}>
+            <Title order={isSubsection ? 5 : 4} fw={600}>
+              {title}
+            </Title>
 
-          <Stack gap={'xs'} flex={1}>
-            <Group gap="xs" mb={4}>
-              <Title order={isSubsection ? 5 : 4} fw={600}>
-                {title}
-              </Title>
-
-              {!item.published.isPublished && viewMode !== 'student' && (
-                <Badge size="xs" variant="outline" color="orange">
-                  Draft
-                </Badge>
-              )}
-
-              {overdueItemsCount > 0 && viewMode === 'student' && (
-                <Badge size="xs" variant="filled" color="red">
-                  {overdueItemsCount} Overdue
-                </Badge>
-              )}
-            </Group>
-
-            {viewMode === 'student' && totalItemsCount > 0 && (
-              <Progress
-                value={progressPercentage}
-                size="sm"
-                radius="xl"
-                color={progressPercentage === 100 ? 'green' : 'blue'}
-              />
+            {!item.published.isPublished && viewMode !== 'student' && (
+              <Badge size="xs" variant="outline" color="orange">
+                Draft
+              </Badge>
             )}
 
-            {viewMode !== 'student' && item.published.publishedAt && (
-              <Text size="xs" c="dimmed">
-                Published{' '}
-                {formatTimestampToDateTimeText(
-                  item.published.publishedAt,
-                  'on',
-                )}
-              </Text>
+            {overdueItemsCount > 0 && viewMode === 'student' && (
+              <Badge size="xs" variant="filled" color="red">
+                {overdueItemsCount} Overdue
+              </Badge>
             )}
-          </Stack>
-        </Group>
+          </Group>
+
+          {viewMode === 'student' && totalItemsCount > 0 && (
+            <Progress
+              value={progressPercentage}
+              size="sm"
+              radius="xl"
+              color={progressPercentage === 100 ? 'green' : 'blue'}
+            />
+          )}
+
+          {viewMode !== 'student' && item.published.publishedAt && (
+            <Text size="xs" c="dimmed">
+              Published{' '}
+              {formatTimestampToDateTimeText(item.published.publishedAt, 'on')}
+            </Text>
+          )}
+        </Stack>
 
         {viewMode === 'mentor' && (
           <Tooltip label="View section analytics">
@@ -424,7 +389,7 @@ function CustomAccordionControl({
 
         {viewMode === 'admin' && <AdminActions item={item} />}
       </Group>
-    </Box>
+    </Accordion.Control>
   )
 }
 
@@ -432,7 +397,7 @@ type AdminActionsProps = {
   item: ModuleItem | ModuleSection
 }
 
-const AdminActions = ({ item }: AdminActionsProps) => {
+function AdminActions({ item }: AdminActionsProps) {
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const handleDelete = () => {} //TODO: implement this
@@ -440,7 +405,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
 
   return (
-    <Group gap="xs">
+    <Group gap={rem(5)}>
       <Menu
         shadow="md"
         width={200}
@@ -452,7 +417,8 @@ const AdminActions = ({ item }: AdminActionsProps) => {
             label={item.published.isPublished ? 'Published' : 'Not Published'}
           >
             <ActionIcon
-              variant={item.published.isPublished ? 'filled' : 'light'}
+              component="div"
+              variant={'subtle'}
               color={item.published.isPublished ? 'green' : 'gray'}
               radius="xl"
               size="lg"
@@ -529,7 +495,8 @@ const AdminActions = ({ item }: AdminActionsProps) => {
 
       <Tooltip label="Add new item">
         <ActionIcon
-          variant="light"
+          component="div"
+          variant={'subtle'}
           color="blue"
           radius="xl"
           size="lg"
@@ -554,7 +521,8 @@ const AdminActions = ({ item }: AdminActionsProps) => {
       >
         <Menu.Target>
           <ActionIcon
-            variant="light"
+            component="div"
+            variant={'subtle'}
             color="gray"
             radius="xl"
             size="lg"
@@ -570,9 +538,7 @@ const AdminActions = ({ item }: AdminActionsProps) => {
         <Menu.Dropdown>
           <Menu.Label>Item Actions</Menu.Label>
           <Menu.Item
-            leftSection={
-              <IconEdit size={16} stroke={1.5} color={theme.colors.blue[6]} />
-            }
+            leftSection={<IconEdit size={16} stroke={1.5} />}
             onClick={(e) => {
               e.stopPropagation()
               navigate({
