@@ -20,7 +20,8 @@
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --silent --config ./test/jest-e2e.json",
     "api-gen": "nest build && node dist/swagger.gen.js",
     "prisma-gen": "prisma generate",
-    "prisma-gen-sql": "prisma generate --sql"
+    "prisma-gen-sql": "prisma generate --sql",
+    "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@electric-sql/pglite-socket": "^0.0.12",
@@ -53,6 +54,7 @@
     "@electric-sql/pglite": "^0.3.7",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@faker-js/faker": "^10.0.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
