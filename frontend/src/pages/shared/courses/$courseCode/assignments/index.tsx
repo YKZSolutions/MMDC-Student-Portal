@@ -135,7 +135,7 @@ function AssignmentPanelsFactory({ activeTab }: { activeTab: string }) {
     case 'mentor':
       return <MentorAssignments activeTab={activeTab} />
     case 'admin':
-      return <MentorAssignments activeTab={activeTab} />
+      return <AdminAssignments activeTab={activeTab} />
     default:
       return null
   }
