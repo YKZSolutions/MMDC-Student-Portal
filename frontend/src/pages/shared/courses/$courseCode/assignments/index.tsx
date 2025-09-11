@@ -1,6 +1,20 @@
+import SubmitButton from '@/components/submit-button.tsx'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import type {
+  AssignmentSubmissionReport,
+  StudentAssignment,
+} from '@/features/courses/assignments/types.ts'
+import {
+  mockAssignmentSubmissionReports,
+  mockStudentAssignments,
+} from '@/features/courses/mocks.ts'
+import type { Role } from '@/integrations/api/client'
+import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import {
   ActionIcon,
+  Avatar,
   Badge,
+  Box,
   Button,
   Card,
   Collapse,
@@ -11,6 +25,7 @@ import {
   Table,
   Tabs,
   Text,
+  TextInput,
   Title,
   useMantineTheme,
 } from '@mantine/core'
@@ -19,25 +34,12 @@ import {
   IconCheck,
   IconChevronDown,
   IconChevronRight,
-  IconClock,
   IconEye,
   IconHistory,
+  IconSearch,
   IconSend,
 } from '@tabler/icons-react'
 import React, { type ReactNode, useEffect, useState } from 'react'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import type { Role } from '@/integrations/api/client'
-import type {
-  AssignmentSubmissionReport,
-  StudentAssignment,
-} from '@/features/courses/assignments/types.ts'
-import {
-  mockAssignmentSubmissionReports,
-  mockStudentAssignments,
-} from '@/features/courses/mocks.ts'
-import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import SubmitButton from '@/components/submit-button.tsx'
-import SearchComponent from '@/components/search-component.tsx'
 
 type RoleBasedAssignmentConfig = {
   [K in Role]: {
@@ -83,7 +85,7 @@ const roleConfig: RoleBasedAssignmentConfig = {
   },
 }
 
-const AssignmentPage = () => {
+function AssignmentPage() {
   const { authUser } = useAuth('protected')
   const [activeTab, setActiveTab] = useState(
     roleConfig[authUser.role].tabs[0].value,
@@ -93,7 +95,7 @@ const AssignmentPage = () => {
     <Stack gap={'md'} p={'md'}>
       {/*Header*/}
       <Group justify="space-between" align="center">
-        <Title>Assignments</Title>
+        <Title size={'h2'}>Assignments</Title>
       </Group>
 
       <Stack>
@@ -113,17 +115,9 @@ const AssignmentPage = () => {
             ))}
           </Tabs.List>
 
-          <Stack gap="md" p="md">
+          <Stack gap="md" py={'md'}>
             {/* Role-specific Panels */}
-            {authUser.role === 'student' && (
-              <StudentAssignments activeTab={activeTab} />
-            )}
-            {authUser.role === 'mentor' && (
-              <MentorAssignments activeTab={activeTab} />
-            )}
-            {authUser.role === 'admin' && (
-              <AdminAssignments activeTab={activeTab} />
-            )}
+            <AssignmentPanelsFactory activeTab={activeTab} />
           </Stack>
         </Tabs>
       </Stack>
@@ -131,8 +125,23 @@ const AssignmentPage = () => {
   )
 }
 
+function AssignmentPanelsFactory({ activeTab }: { activeTab: string }) {
+  const { authUser } = useAuth('protected')
+
+  switch (authUser.role) {
+    case 'student':
+      return <StudentAssignments activeTab={activeTab} />
+    case 'mentor':
+      return <MentorAssignments activeTab={activeTab} />
+    case 'admin':
+      return <AdminAssignments activeTab={activeTab} />
+    default:
+      return null
+  }
+}
+
 // Student view - keep card layout (friendly, task-oriented)
-const StudentAssignments = ({ activeTab }: { activeTab: string }) => {
+function StudentAssignments({ activeTab }: { activeTab: string }) {
   const [data, setData] = useState<StudentAssignment[]>(mockStudentAssignments)
   const [filteredData, setFilteredData] = useState<StudentAssignment[]>()
 
@@ -146,12 +155,12 @@ const StudentAssignments = ({ activeTab }: { activeTab: string }) => {
 
   return (
     <Stack>
-      <SearchComponent
-        data={filteredData || []}
-        identifiers={['title']}
-        placeholder={'Search assignments...'}
-        onFilter={setFilteredData}
+      <TextInput
+        placeholder="Search assignments"
+        radius="md"
+        leftSection={<IconSearch size={18} stroke={1} />}
       />
+
       {filteredData?.map((assignment) => (
         <AssignmentCard key={assignment.id} assignment={assignment} />
       ))}
@@ -160,7 +169,7 @@ const StudentAssignments = ({ activeTab }: { activeTab: string }) => {
 }
 
 // Mentor view - table-first for grading queue
-const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
+function MentorAssignments({ activeTab }: { activeTab: string }) {
   const [data, setData] = useState<AssignmentSubmissionReport[]>(
     mockAssignmentSubmissionReports,
   )
@@ -212,21 +221,36 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
 
   return (
     <Stack>
-      <SearchComponent
-        data={data}
-        identifiers={['title']}
-        placeholder={'Search assignments...'}
-        onFilter={setFilteredData}
+      <TextInput
+        placeholder="Search assignments"
+        radius="md"
+        leftSection={<IconSearch size={18} stroke={1} />}
       />
 
-      <Table highlightOnHover style={{ borderRadius: rem('8px') }}>
+      <Table
+        highlightOnHover
+        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+        styles={{
+          th: {
+            fontWeight: 500,
+          },
+        }}
+        verticalSpacing={'lg'}
+      >
         <Table.Thead>
-          <Table.Tr bg={'gray.1'} c={'dark.5'}>
+          <Table.Tr
+            style={{
+              border: '0px',
+              borderBottom: '1px solid',
+              borderColor: 'var(--mantine-color-gray-3)',
+            }}
+            bg={'gray.1'}
+            c={'dark.5'}
+          >
             <Table.Th>Assignment</Table.Th>
             <Table.Th>Due Date</Table.Th>
             <Table.Th>Submissions</Table.Th>
             <Table.Th>Progress</Table.Th>
-            <Table.Th>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -236,7 +260,10 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
 
             return (
               <React.Fragment key={report.id}>
-                <Table.Tr>
+                <Table.Tr
+                  onClick={() => toggleExpand(report.id)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <Table.Td>
                     <Group gap="xs">
                       <ActionIcon
@@ -250,16 +277,18 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
                           <IconChevronRight size={16} />
                         )}
                       </ActionIcon>
-                      <div>
-                        <Text fw={500}>{report.title}</Text>
+                      <Box>
+                        <Text fw={500} c="dark.5">
+                          {report.title}
+                        </Text>
                         <Text size="sm" c="dimmed">
                           {report.points} points • {report.type}
                         </Text>
-                      </div>
+                      </Box>
                     </Group>
                   </Table.Td>
                   <Table.Td>
-                    <Text>
+                    <Text fw={500} size="sm" c={'dark.3'}>
                       {formatTimestampToDateTimeText(report.dueDate, 'by')}
                     </Text>
                     <Badge
@@ -281,24 +310,17 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
                     </Group>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm">
+                    <Text size="sm" fw={500} c={'dark.5'}>
                       {counts.graded}/{counts.total} completed
                     </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Button
-                      size="xs"
-                      variant="light"
-                      onClick={() => toggleExpand(report.id)}
-                    >
-                      {isExpanded ? 'Hide' : 'View'} Submissions
-                    </Button>
                   </Table.Td>
                 </Table.Tr>
 
                 {/* Expanded submissions row */}
                 <Table.Tr
-                  style={{ display: isExpanded ? 'table-row' : 'none' }}
+                  style={{
+                    border: isExpanded ? undefined : '0px',
+                  }}
                 >
                   <Table.Td colSpan={5} p={0}>
                     <Collapse in={isExpanded}>
@@ -312,10 +334,11 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
                             }
                             withBorder
                             p="sm"
+                            radius={'md'}
                           >
                             <Group justify="space-between">
                               <Stack gap={2}>
-                                <Text fw={500}>
+                                <Text fw={500} size="sm">
                                   {'studentName' in submission
                                     ? submission.studentName
                                     : `Group ${submission.groupId}`}
@@ -329,7 +352,7 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
                                     {submission.submissionStatus}
                                   </Badge>
                                   {submission.submittedAt && (
-                                    <Text size="xs" c="dimmed">
+                                    <Text size="sm" c="dimmed">
                                       {formatTimestampToDateTimeText(
                                         submission.submittedAt,
                                       )}
@@ -337,8 +360,8 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
                                   )}
                                 </Group>
                               </Stack>
-                              <Group gap="xs">
-                                <Text size="sm" fw={500}>
+                              <Group gap={rem(10)}>
+                                <Text size="xs" fw={500}>
                                   {submission.grade
                                     ? `${submission.grade}/${report.points}`
                                     : 'Not graded'}
@@ -347,6 +370,7 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
                                   size="xs"
                                   variant="light"
                                   leftSection={<IconEye size={14} />}
+                                  radius={'md'}
                                   onClick={() =>
                                     setSubmissionModalData({
                                       assignment: report,
@@ -404,7 +428,7 @@ const MentorAssignments = ({ activeTab }: { activeTab: string }) => {
 }
 
 // Admin view - summary/oversight focused
-const AdminAssignments = ({ activeTab }: { activeTab: string }) => {
+function AdminAssignments({ activeTab }: { activeTab: string }) {
   const [data, setData] = useState<AssignmentSubmissionReport[]>(
     mockAssignmentSubmissionReports,
   )
@@ -451,133 +475,160 @@ const AdminAssignments = ({ activeTab }: { activeTab: string }) => {
 
   return (
     <Stack>
-      <SearchComponent
-        data={data}
-        identifiers={['title']}
-        placeholder={'Search assignments...'}
-        onFilter={setFilteredData}
+      <TextInput
+        placeholder="Search assignments"
+        radius="md"
+        leftSection={<IconSearch size={18} stroke={1} />}
       />
+      <Table.ScrollContainer minWidth={rem(800)}>
+        <Table
+          highlightOnHover
+          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+          styles={{
+            th: {
+              fontWeight: 500,
+            },
+          }}
+          verticalSpacing={'lg'}
+        >
+          <Table.Thead>
+            <Table.Tr
+              style={{
+                border: '0px',
+                borderBottom: '1px solid',
+                borderColor: 'var(--mantine-color-gray-3)',
+              }}
+              bg={'gray.1'}
+              c={'dark.5'}
+            >
+              <Table.Th>Assignment</Table.Th>
+              <Table.Th>Due Date</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Progress</Table.Th>
+              <Table.Th>Completion Rate</Table.Th>
+              <Table.Th>Configuration</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {filteredData?.map((report) => {
+              const stats = getAssignmentStats(report)
 
-      <Table highlightOnHover style={{ borderRadius: rem('8px') }}>
-        <Table.Thead>
-          <Table.Tr bg={'gray.1'} c={'dark.5'}>
-            <Table.Th>Assignment</Table.Th>
-            <Table.Th>Due Date</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>Progress</Table.Th>
-            <Table.Th>Completion Rate</Table.Th>
-            <Table.Th>Configuration</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {filteredData?.map((report) => {
-            const stats = getAssignmentStats(report)
-
-            return (
-              <Table.Tr key={report.id}>
-                <Table.Td>
-                  <div>
-                    <Text fw={500}>{report.title}</Text>
-                    <Text size="sm" c="dimmed">
-                      {report.points} points • {report.type}
+              return (
+                <Table.Tr key={report.id}>
+                  <Table.Td>
+                    <Box>
+                      <Text fw={500} c={'dark.5'}>
+                        {report.title}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {report.points} points • {report.type}
+                      </Text>
+                    </Box>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text fw={500} size="sm" c={'dark.3'}>
+                      {formatTimestampToDateTimeText(report.dueDate, 'by')}
                     </Text>
-                  </div>
-                </Table.Td>
-                <Table.Td>
-                  {formatTimestampToDateTimeText(report.dueDate, 'by')}
-                </Table.Td>
-                <Table.Td>
-                  <Badge
-                    variant="outline"
-                    color={report.status === 'open' ? 'green' : 'red'}
-                  >
-                    {report.status}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <Text size="sm">Pending: {stats.pending}</Text>
-                    <Text size="sm">Submitted: {stats.submitted}</Text>
-                    <Text size="sm">Graded: {stats.graded}</Text>
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    Total: {stats.total}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text fw={500}>{stats.completionRate}%</Text>
-                  <Text size="xs" c="dimmed">
-                    {stats.graded}/{stats.total} completed
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <Badge color="blue" variant="light" size="xs">
-                      {report.mode === 'group' ? 'Group' : 'Individual'}
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      color={report.status === 'open' ? 'green' : 'red'}
+                    >
+                      {report.status}
                     </Badge>
-                    {report.allowResubmission && (
-                      <Badge color="orange" variant="light" size="xs">
-                        Resubmission
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs" c={'dimmed'}>
+                      <Badge color="blue" variant="light" size="sm">
+                        {stats.pending} submitted
                       </Badge>
-                    )}
-                  </Group>
-                </Table.Td>
-              </Table.Tr>
-            )
-          })}
-        </Table.Tbody>
-      </Table>
+                      <Badge color="green" variant="light" size="sm">
+                        {stats.graded} graded
+                      </Badge>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text fw={500} c="dark.5">
+                      {stats.completionRate || 0}%
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {stats.graded}/{stats.total} completed
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <Badge color="blue" variant="dot" size="xs">
+                        {report.mode === 'group' ? 'Group' : 'Individual'}
+                      </Badge>
+                      {report.allowResubmission && (
+                        <Badge color="orange" variant="dot" size="xs">
+                          Resubmission
+                        </Badge>
+                      )}
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              )
+            })}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
     </Stack>
   )
 }
 
-const AssignmentCard = ({ assignment }: { assignment: StudentAssignment }) => {
+function AssignmentCard({ assignment }: { assignment: StudentAssignment }) {
   const theme = useMantineTheme()
+
   return (
-    <Card withBorder radius="md" p="lg" shadow="xs">
-      <Group justify="space-between" align="stretch">
-        {/* Left Section: Title, Description, and Status */}
-        <Stack flex={1} justify="space-between" gap="xs">
-          <Group>
-            <Title order={4} fw={600}>
-              {assignment.title}
-            </Title>
-            <Badge
-              color={assignment.submissionStatus}
-              variant="outline"
-              size="md"
-            >
-              {assignment.submissionStatus}
-            </Badge>
-          </Group>
-          <Group gap="xs" wrap="nowrap">
-            <IconClock size={16} color={theme.colors.gray[6]} />
-            <Text size="sm" c="dimmed">
-              Due: {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
+    <Card withBorder radius="md" p={'lg'}>
+      <Group justify="space-between" align="center">
+        <Group gap="md" align="flex-start" style={{ flex: 1 }}>
+          <Avatar radius="md" color="blue">
+            <IconBook size={18} />
+          </Avatar>
+
+          <Stack gap={rem(5)}>
+            <Group align="center">
+              <Title order={5} fw={600}>
+                {assignment.title}
+              </Title>
+              <Badge
+                color={assignment.submissionStatus}
+                variant="outline"
+                size="sm"
+              >
+                {assignment.submissionStatus}
+              </Badge>
+            </Group>
+
+            <Text size="sm" c="dimmed" lineClamp={2} tt={'capitalize'}>
+              {assignment.type} • {assignment.points} points
             </Text>
-            {assignment.submittedAt && (
-              <Group gap="xs" wrap="nowrap">
-                <Text size="sm" c="dimmed">
-                  |
-                </Text>
-                <Text size="sm" c="dimmed">
+
+            <Group gap="sm">
+              {assignment.submittedAt ? (
+                <Text size="sm" fw={600} c="dimmed">
                   Submitted:{' '}
                   {formatTimestampToDateTimeText(assignment.submittedAt)}
                 </Text>
-              </Group>
-            )}
-          </Group>
-        </Stack>
+              ) : (
+                <Text size="sm" fw={600} c="dimmed">
+                  Due: {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
+                </Text>
+              )}
+            </Group>
+          </Stack>
+        </Group>
 
-        {/* Right Section: Action Button */}
-        <Stack align="flex-end" justify="center" flex={1}>
-          <SubmitButton
-            submissionStatus={assignment.submissionStatus}
-            onClick={() => {}}
-            dueDate={assignment.dueDate}
-            assignmentStatus={assignment.status}
-          />
-        </Stack>
+        <SubmitButton
+          submissionStatus={assignment.submissionStatus}
+          onClick={() => {}}
+          dueDate={assignment.dueDate}
+          assignmentStatus={assignment.status}
+        />
       </Group>
     </Card>
   )
