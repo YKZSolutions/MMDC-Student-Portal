@@ -1,5 +1,5 @@
+import SubmissionPage from '@/pages/admin/courses/$courseCode/modules/$itemId/submit'
 import { createFileRoute } from '@tanstack/react-router'
-import SubmissionPage from '@/features/courses/modules/content/submission-page.tsx'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseCode/modules/$itemId/submit',
