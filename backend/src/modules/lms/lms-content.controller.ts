@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   ConflictException,
   Controller,
   Delete,
@@ -10,9 +11,16 @@ import {
   Patch,
   Post,
   Query,
+  SerializeOptions,
+  UseInterceptors,
 } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOkResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
@@ -21,9 +29,11 @@ import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@supabase/supabase-js';
+import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 
 @Controller('lms/:lmsId/contents/') //TODO: configure pathing
+@UseInterceptors(ClassSerializerInterceptor)
 export class LmsContentController {
   constructor(private readonly lmsContentService: LmsContentService) {}
 
@@ -50,31 +60,37 @@ export class LmsContentController {
     );
   }
 
-  // /**
-  //  * Retrieve all module contents
-  //  *
-  //  * @remarks Retrieves a paginated list of module contents based on the provided filters.
-  //  * Requires `ADMIN` or `MENTOR` role.
-  //  */
-  // @ApiException(() => [BadRequestException, InternalServerErrorException])
-  // @Roles(Role.ADMIN, Role.MENTOR)
-  // @Get('/contents')
-  // findAll(@Query() filters: BaseFilterDto & { moduleSectionId?: string }) {
-  //   return this.lmsContentService.findAll(filters);
-  // }
-
   /**
    * Retrieve a specific module content by ID
    *
    * @remarks Requires `ADMIN` or `MENTOR` role.
    *
+   * @returns ModuleContentDto if role is `ADMIN` or `MENTOR`
+   * @returns StudentContentDto if role is `STUDENT`
+   *
    */
-  @ApiOkResponse({ type: ModuleContentDto })
+  @ApiExtraModels(ModuleContentDto, StudentContentDto)
+  @ApiOkResponse({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(ModuleContentDto) },
+        { $ref: getSchemaPath(StudentContentDto) },
+      ],
+    },
+  })
+  @SerializeOptions({
+    excludeExtraneousValues: true,
+    exposeUnsetFields: false,
+  })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get(':id')
-  findOne(@Param('id') id: string, @CurrentUser() user: AuthUser) {
-    return this.lmsContentService.findOne(id, user.role, userId: user.id);
+  findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<ModuleContentDto | StudentContentDto> {
+    const { role, user_id } = user.user_metadata;
+    return this.lmsContentService.findOne(id, role, user_id);
   }
 
   /**

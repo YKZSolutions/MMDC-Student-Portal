@@ -10,12 +10,12 @@ import { LogParam } from '@/common/decorators/log-param.decorator';
 import { isUUID } from 'class-validator';
 import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
 import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
 import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
-import { Role } from '@/common/enums/roles.enum';
+import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -98,47 +98,41 @@ export class LmsContentService {
   async findOne(
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
-    @LogParam('userId') userId?: string,
-  ): Promise<ModuleContentDto> {
+    @LogParam('userId') userId: string,
+  ): Promise<ModuleContentDto | StudentContentDto> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    if (role === Role.ADMIN) {
-      return (await this.prisma.client.moduleContent.findUniqueOrThrow({
-        where: { id },
-        include: {
-          assignment: true,
-        },
-      })) as ModuleContentDto;
-    }
-
-    //Default to Student
-    return await this.prisma.client.moduleContent.findUniqueOrThrow({
+    const baseQuery = {
       where: { id },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        contentType: true,
-        moduleId: true,
-        moduleSectionId: true,
-      },
       include: {
-        assignment: {
-          select: {
-            id: true,
-            title: true,
-            dueDate: true,
-            type: true,
-            points: true,
-            rubric: true,
-            mode: true,
-            maxAttempts: true,
+        assignment: true,
+      },
+    };
+
+    const studentQuery = {
+      ...baseQuery,
+      include: {
+        ...baseQuery.include,
+        submissions: {
+          where: {
+            studentId: userId,
           },
         },
       },
-    });
+    };
+
+    if (role === 'admin') {
+      return (await this.prisma.client.moduleContent.findUniqueOrThrow(
+        baseQuery,
+      )) as ModuleContentDto;
+    }
+
+    // Default to Student
+    return (await this.prisma.client.moduleContent.findUniqueOrThrow(
+      studentQuery,
+    )) as StudentContentDto;
   }
 
   /**
