@@ -1,4 +1,7 @@
+import { useAuth } from '@/features/auth/auth.hook'
+import { getMockModuleByRole } from '@/features/courses/mocks'
 import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
+import ModulePanel from '@/features/courses/modules/module-panel.tsx'
 import {
   Box,
   Card,
@@ -9,22 +12,23 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import ModulePanel from '@/features/courses/modules/module-panel.tsx'
-import React from 'react'
 import { IconChartBar } from '@tabler/icons-react'
+import { useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 
-interface MentorModuleViewProps {
+interface ModulesMentorPageProps {
   module: MentorModule
   onExpandAll: () => void
   allExpanded: boolean
 }
 
-export const MentorModuleView = ({
-  module,
-  onExpandAll,
-  allExpanded,
-}: MentorModuleViewProps) => {
+function ModulesMentorPage() {
   const theme = useMantineTheme()
+  const { authUser } = useAuth('protected')
+  const navigate = useNavigate()
+  const [allExpanded, setAllExpanded] = useState(false)
+  const module = getMockModuleByRole(authUser.role) as MentorModule
+
   return (
     <Box>
       {/* Section Statistics */}
@@ -76,3 +80,5 @@ export const MentorModuleView = ({
     </Box>
   )
 }
+
+export default ModulesMentorPage

@@ -1,4 +1,3 @@
-// prisma/seed.ts
 import {
   AssignmentMode,
   AssignmentStatus,
@@ -14,12 +13,12 @@ import {
   PrismaClient,
   Role,
   StudentType,
-  SubmissionStatus,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
+//TODO: Do update on schema changes
 async function main() {
   console.log('Starting seed...');
 
@@ -376,10 +375,6 @@ async function main() {
             title: `Submission for ${assignment.title}`,
             moduleContentId: assignment.moduleContentId,
             studentId: student.id,
-            status:
-              Math.random() > 0.5
-                ? SubmissionStatus.SUBMITTED
-                : SubmissionStatus.NOT_SUBMITTED,
             submittedAt: Math.random() > 0.5 ? new Date() : null,
             attemptNumber: 1,
             attachments: {

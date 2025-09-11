@@ -12,6 +12,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["typedSql", "driverAdapters"]
+  seed            = "ts-node prisma/seed.ts"
 }
 
 generator json {

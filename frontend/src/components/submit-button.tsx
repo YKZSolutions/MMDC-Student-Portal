@@ -1,11 +1,10 @@
-import React from 'react'
-import { IconEye, IconSend } from '@tabler/icons-react'
-import { Button } from '@mantine/core'
 import type {
   AssignmentStatus,
   SubmissionStatus,
 } from '@/features/courses/assignments/types.ts'
 import { isPastDueDate } from '@/utils/helpers.ts'
+import { Button } from '@mantine/core'
+import { IconEye, IconSend } from '@tabler/icons-react'
 
 type SubmissionButtonProps = {
   submissionStatus: SubmissionStatus
@@ -43,9 +42,11 @@ const SubmitButton = ({
   return (
     <Button
       variant="filled"
+      radius={'md'}
       leftSection={
         isPending || isDraft ? <IconSend size={16} /> : <IconEye size={16} />
       }
+      size="xs"
       onClick={onClick}
       color={isLate ? submissionStatus : 'primary'}
       disabled={isMissed || isPreview}

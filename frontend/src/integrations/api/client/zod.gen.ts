@@ -869,71 +869,10 @@ export const zCreateCourseOfferingDto = z.object({
     courseId: z.uuid()
 });
 
-export const zCourseEnrollmentStatus = z.enum([
-    'enlisted',
-    'finalized',
-    'enrolled',
-    'completed',
-    'incomplete',
-    'dropped',
-    'failed'
-]);
-
-export const zCourseEnrollment = z.object({
-    id: z.string(),
-    courseOfferingId: z.string(),
-    courseSectionId: z.string(),
-    studentId: z.string(),
-    status: zCourseEnrollmentStatus,
-    startedAt: z.iso.datetime(),
-    completedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zDays = z.enum([
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday'
-]);
-
-export const zCourseSection = z.object({
-    id: z.string(),
-    name: z.string(),
-    mentorId: z.union([
-        z.string(),
-        z.null()
-    ]),
-    courseOfferingId: z.string(),
-    courseEnrollments: z.optional(z.array(zCourseEnrollment)),
-    maxSlot: z.int(),
-    startSched: z.string(),
-    endSched: z.string(),
-    days: z.array(zDays),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
 export const zCourseOffering = z.object({
     id: z.string(),
     courseId: z.string(),
     periodId: z.string(),
-    courseEnrollment: z.optional(z.array(zCourseEnrollment)),
-    courseSections: z.optional(z.array(zCourseSection)),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -945,6 +884,15 @@ export const zCourseOffering = z.object({
 export const zCreateCourseOfferingCurriculumDto = z.object({
     curriculumId: z.uuid()
 });
+
+export const zDays = z.enum([
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday'
+]);
 
 export const zUserDto = z.object({
     id: z.string(),
@@ -990,6 +938,16 @@ export const zDetailedCourseSectionDto = z.object({
     ])
 });
 
+export const zCourseEnrollmentStatus = z.enum([
+    'enlisted',
+    'finalized',
+    'enrolled',
+    'completed',
+    'incomplete',
+    'dropped',
+    'failed'
+]);
+
 export const zDetailedCourseOfferingSubsetDto = z.object({
     course: zCourseDto
 });
@@ -1025,7 +983,7 @@ export const zDetailedCourseOfferingDto = z.object({
     ]),
     course: zCourseDto,
     courseSections: z.array(zDetailedCourseSectionDto),
-    courseEnrollment: z.array(zDetailedCourseEnrollmentDto),
+    courseEnrollments: z.array(zDetailedCourseEnrollmentDto),
     periodId: z.string()
 });
 
