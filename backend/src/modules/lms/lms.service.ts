@@ -126,7 +126,7 @@ export class LmsService {
       await this.prisma.client.$transaction(async (tx) => {
         // For each previous course offerings
         for (const oldModule of previousOffering.modules) {
-          const newModule = await this.prisma.client.module.create({
+          const newModule = await tx.module.create({
             data: {
               title: oldModule.title,
               courseId: oldModule.courseId,
@@ -136,7 +136,7 @@ export class LmsService {
 
           // Copy module sections to current module
           for (const oldSection of oldModule.moduleSections) {
-            const newSection = await this.prisma.client.moduleSection.create({
+            const newSection = await tx.moduleSection.create({
               data: {
                 moduleId: newModule.id,
               },
@@ -144,7 +144,7 @@ export class LmsService {
 
             // Copy module content to current module section
             for (const oldContent of oldSection.moduleContents) {
-              await this.prisma.client.moduleContent.create({
+              await tx.moduleContent.create({
                 data: {
                   order: oldContent.order,
                   title: oldContent.title,
