@@ -16,11 +16,4 @@ export class UpdateNotificationDto {
   @IsOptional()
   @IsString()
   content?: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  isRead?: string;
 }

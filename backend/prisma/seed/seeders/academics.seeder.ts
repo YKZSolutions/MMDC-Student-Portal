@@ -1,0 +1,99 @@
+import {
+  Course,
+  Curriculum,
+  Major,
+  PrismaClient,
+  Program,
+} from '@prisma/client';
+
+import { log, pickRandom } from '../utils/helpers';
+import { seedConfig } from '../seed.config';
+import {
+  createCourseData,
+  createMajorData,
+  createProgramData,
+} from '../factories/academic.factory';
+
+export async function seedAcademics(prisma: PrismaClient) {
+  log('Seeding academics (Programs, Majors, Courses, Curriculums)...');
+
+  // 1. Create Programs
+  const programs: Program[] = await Promise.all(
+    Array.from({ length: seedConfig.PROGRAMS }, () =>
+      prisma.program.create({ data: createProgramData() }),
+    ),
+  );
+  log(`-> Created ${programs.length} programs.`);
+
+  // 2. Create Majors for each Program
+  const majors: Major[] = (
+    await Promise.all(
+      programs.map((program) =>
+        Promise.all(
+          Array.from({ length: seedConfig.MAJORS_PER_PROGRAM }, () =>
+            prisma.major.create({ data: createMajorData(program.id) }),
+          ),
+        ),
+      ),
+    )
+  ).flat();
+  log(`-> Created ${majors.length} majors.`);
+
+  // 3. Create Courses and link them to Majors
+  const courses: Course[] = [];
+  const majorCourseMap = new Map<string, Course[]>();
+
+  for (const major of majors) {
+    const createdCourses = await Promise.all(
+      Array.from({ length: seedConfig.COURSES_PER_MAJOR }, (_, i) =>
+        prisma.course.create({
+          data: {
+            ...createCourseData(i),
+            majors: { connect: { id: major.id } },
+          },
+        }),
+      ),
+    );
+    courses.push(...createdCourses);
+    majorCourseMap.set(major.id, createdCourses);
+  }
+  log(`-> Created ${courses.length} courses.`);
+
+  // 4. Link some courses as prerequisites
+  for (const majorId of Array.from(majorCourseMap.keys())) {
+    const majorCourses = majorCourseMap.get(majorId)!;
+    for (let i = 0; i < majorCourses.length / 2; i++) {
+      const course = pickRandom(majorCourses);
+      const prereq = pickRandom(majorCourses.filter((c) => c.id !== course.id));
+      await prisma.course.update({
+        where: { id: course.id },
+        data: { prereqs: { connect: { id: prereq.id } } },
+      });
+    }
+  }
+  log(`-> Linked random course prerequisites.`);
+
+  // 5. Create a Curriculum for each Major and add courses to it
+  const curriculums: Curriculum[] = [];
+  for (const major of majors) {
+    const curriculum = await prisma.curriculum.create({
+      data: {
+        majorId: major.id,
+        name: `${major.name} Curriculum`,
+        description: `Official curriculum for ${major.name}`,
+        courses: {
+          create: majorCourseMap.get(major.id)!.map((course, i) => ({
+            courseId: course.id,
+            order: i + 1,
+            year: Math.floor(i / 5) + 1, // Simple logic for year/sem
+            semester: (i % 2) + 1,
+          })),
+        },
+      },
+    });
+    curriculums.push(curriculum);
+  }
+  log(`-> Created ${curriculums.length} curriculums.`);
+
+  return { programs, majors, courses, curriculums };
+}
