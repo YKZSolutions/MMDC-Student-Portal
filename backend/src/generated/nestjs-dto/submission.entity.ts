@@ -1,4 +1,3 @@
-import { SubmissionStatus } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ModuleContent,
@@ -21,6 +20,51 @@ export class Submission {
   title: string;
   @ApiProperty({
     type: 'string',
+    nullable: true,
+  })
+  submission: string | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  score: number | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  grade: string | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  feedback: string | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  attemptNumber: number | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  lateDays: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  gradedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
   })
   moduleContentId: string;
   @ApiHideProperty()
@@ -30,40 +74,14 @@ export class Submission {
   })
   studentId: string;
   @ApiHideProperty()
-  user?: UserAsType;
+  student?: UserAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
-  submission: string | null;
-  @ApiProperty({
-    enum: SubmissionStatus,
-    enumName: 'SubmissionStatus',
-  })
-  status: SubmissionStatus;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  score: number | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  attemptNumber: number | null;
-  @ApiProperty({
-    type: 'boolean',
-    nullable: true,
-  })
-  isLate: boolean | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  lateDays: number | null;
+  gradedBy: string | null;
+  @ApiHideProperty()
+  grader?: UserAsType | null;
   @ApiHideProperty()
   attachments?: SubmissionAttachmentAsType[];
   @ApiProperty({

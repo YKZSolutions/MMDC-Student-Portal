@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateSubmissionDto {
   @ApiProperty({
@@ -27,6 +27,22 @@ export class UpdateSubmissionDto {
   @IsInt()
   score?: number | null;
   @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  grade?: string | null;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  feedback?: string | null;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,
@@ -36,15 +52,6 @@ export class UpdateSubmissionDto {
   @IsInt()
   attemptNumber?: number | null;
   @ApiProperty({
-    type: 'boolean',
-    default: false,
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsBoolean()
-  isLate?: boolean | null;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,
@@ -53,4 +60,22 @@ export class UpdateSubmissionDto {
   @IsOptional()
   @IsInt()
   lateDays?: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  submittedAt?: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  gradedAt?: Date | null;
 }

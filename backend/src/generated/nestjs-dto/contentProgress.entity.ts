@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { User, type User as UserAsType } from './user.entity';
 import {
   ModuleContent,
@@ -6,15 +6,11 @@ import {
 } from './moduleContent.entity';
 import { Module, type Module as ModuleAsType } from './module.entity';
 
-export class StudentProgress {
+export class ContentProgress {
   @ApiProperty({
     type: 'string',
   })
   id: string;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  completed: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -22,36 +18,22 @@ export class StudentProgress {
   })
   completedAt: Date | null;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  progress: number;
-  @ApiProperty({
     type: 'string',
   })
   userId: string;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-  })
+  @ApiHideProperty()
   user?: UserAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleContentId: string;
-  @ApiProperty({
-    type: () => ModuleContent,
-    required: false,
-  })
+  @ApiHideProperty()
   moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleId: string;
-  @ApiProperty({
-    type: () => Module,
-    required: false,
-  })
+  @ApiHideProperty()
   module?: ModuleAsType;
   @ApiProperty({
     type: 'string',

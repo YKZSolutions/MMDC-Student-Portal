@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Submission,
   type Submission as SubmissionAsType,
@@ -13,10 +13,7 @@ export class SubmissionAttachment {
     type: 'string',
   })
   submissionId: string;
-  @ApiProperty({
-    type: () => Submission,
-    required: false,
-  })
+  @ApiHideProperty()
   submission?: SubmissionAsType;
   @ApiProperty({
     type: 'string',

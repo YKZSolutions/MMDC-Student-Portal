@@ -1,28 +1,42 @@
 import { ContentType, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
 import { User, type User as UserAsType } from './user.entity';
 import {
-  AssignmentBase,
-  type AssignmentBase as AssignmentBaseAsType,
-} from './assignmentBase.entity';
+  Assignment,
+  type Assignment as AssignmentAsType,
+} from './assignment.entity';
 import {
   Submission,
   type Submission as SubmissionAsType,
 } from './submission.entity';
 import {
-  StudentProgress,
-  type StudentProgress as StudentProgressAsType,
-} from './studentProgress.entity';
+  ContentProgress,
+  type ContentProgress as ContentProgressAsType,
+} from './contentProgress.entity';
 
 export class ModuleContent {
   @ApiProperty({
     type: 'string',
   })
   id: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  moduleId: string;
+  @ApiHideProperty()
+  module?: ModuleAsType;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  moduleSectionId: string | null;
+  @ApiHideProperty()
+  moduleSection?: ModuleSectionAsType | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -38,15 +52,6 @@ export class ModuleContent {
   })
   subtitle: string | null;
   @ApiProperty({
-    type: 'string',
-  })
-  moduleSectionId: string;
-  @ApiProperty({
-    type: () => ModuleSection,
-    required: false,
-  })
-  moduleSection?: ModuleSectionAsType;
-  @ApiProperty({
     type: () => Object,
   })
   content: Prisma.JsonValue;
@@ -55,6 +60,10 @@ export class ModuleContent {
     enumName: 'ContentType',
   })
   contentType: ContentType;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -72,18 +81,14 @@ export class ModuleContent {
     nullable: true,
   })
   publishedBy: string | null;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-    nullable: true,
-  })
-  user?: UserAsType | null;
   @ApiHideProperty()
-  assignmentBase?: AssignmentBaseAsType | null;
+  publishedByUser?: UserAsType | null;
+  @ApiHideProperty()
+  assignment?: AssignmentAsType | null;
   @ApiHideProperty()
   submissions?: SubmissionAsType[];
   @ApiHideProperty()
-  studentProgress?: StudentProgressAsType[];
+  studentProgress?: ContentProgressAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

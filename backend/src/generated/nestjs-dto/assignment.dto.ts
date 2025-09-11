@@ -1,6 +1,12 @@
+import {
+  AssignmentMode,
+  AssignmentStatus,
+  AssignmentType,
+  Prisma,
+} from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SubmissionDto {
+export class AssignmentDto {
   @ApiProperty({
     type: 'string',
   })
@@ -10,50 +16,56 @@ export class SubmissionDto {
   })
   title: string;
   @ApiProperty({
-    type: 'string',
-    nullable: true,
+    type: () => Object,
   })
-  submission: string | null;
+  rubric: Prisma.JsonValue;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
+    enum: AssignmentType,
+    enumName: 'AssignmentType',
   })
-  score: number | null;
+  type: AssignmentType;
   @ApiProperty({
-    type: 'string',
-    nullable: true,
+    enum: AssignmentMode,
+    enumName: 'AssignmentMode',
   })
-  grade: string | null;
+  mode: AssignmentMode;
   @ApiProperty({
-    type: 'string',
-    nullable: true,
+    enum: AssignmentStatus,
+    enumName: 'AssignmentStatus',
   })
-  feedback: string | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  attemptNumber: number | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  lateDays: number | null;
+  status: AssignmentStatus;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,
   })
-  submittedAt: Date | null;
+  dueDate: Date | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: 'integer',
+    format: 'int32',
     nullable: true,
   })
-  gradedAt: Date | null;
+  points: number | null;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  allowResubmission: boolean;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  maxAttempts: number | null;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  allowLateSubmission: boolean;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    nullable: true,
+  })
+  latePenalty: Prisma.Decimal | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
