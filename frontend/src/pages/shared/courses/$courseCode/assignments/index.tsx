@@ -20,6 +20,7 @@ import {
   Collapse,
   Group,
   Modal,
+  Progress,
   rem,
   Stack,
   Table,
@@ -134,7 +135,7 @@ function AssignmentPanelsFactory({ activeTab }: { activeTab: string }) {
     case 'mentor':
       return <MentorAssignments activeTab={activeTab} />
     case 'admin':
-      return <AdminAssignments activeTab={activeTab} />
+      return <MentorAssignments activeTab={activeTab} />
     default:
       return null
   }
@@ -313,6 +314,10 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                     <Text size="sm" fw={500} c={'dark.5'}>
                       {counts.graded}/{counts.total} completed
                     </Text>
+                    <Progress
+                      value={(counts.graded / counts.total) * 100}
+                      color={'blue'}
+                    />
                   </Table.Td>
                 </Table.Tr>
 
@@ -504,7 +509,6 @@ function AdminAssignments({ activeTab }: { activeTab: string }) {
               <Table.Th>Assignment</Table.Th>
               <Table.Th>Due Date</Table.Th>
               <Table.Th>Status</Table.Th>
-              <Table.Th>Progress</Table.Th>
               <Table.Th>Completion Rate</Table.Th>
               <Table.Th>Configuration</Table.Th>
             </Table.Tr>
@@ -540,22 +544,16 @@ function AdminAssignments({ activeTab }: { activeTab: string }) {
                     </Badge>
                   </Table.Td>
                   <Table.Td>
-                    <Group gap="xs" c={'dimmed'}>
-                      <Badge color="blue" variant="light" size="sm">
-                        {stats.pending} submitted
-                      </Badge>
-                      <Badge color="green" variant="light" size="sm">
-                        {stats.graded} graded
-                      </Badge>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
                     <Text fw={500} c="dark.5">
                       {stats.completionRate || 0}%
                     </Text>
                     <Text size="xs" c="dimmed">
                       {stats.graded}/{stats.total} completed
                     </Text>
+                    <Progress
+                      value={(stats.graded / stats.total) * 100}
+                      color={'blue'}
+                    />
                   </Table.Td>
                   <Table.Td>
                     <Group gap="xs">
