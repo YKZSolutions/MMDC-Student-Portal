@@ -1,6 +1,5 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -8,25 +7,23 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ModuleSectionModuleIdOrderUniqueInputDto {
+export class ContentProgressUserIdModuleContentIdUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
   @IsNotEmpty()
   @IsString()
-  moduleId: string;
+  userId: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    default: 0,
+    type: 'string',
   })
   @IsNotEmpty()
-  @IsInt()
-  order: number;
+  @IsString()
+  moduleContentId: string;
 }
 
-@ApiExtraModels(ModuleSectionModuleIdOrderUniqueInputDto)
-export class ConnectModuleSectionDto {
+@ApiExtraModels(ContentProgressUserIdModuleContentIdUniqueInputDto)
+export class ConnectContentProgressDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -35,11 +32,11 @@ export class ConnectModuleSectionDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: ModuleSectionModuleIdOrderUniqueInputDto,
+    type: ContentProgressUserIdModuleContentIdUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => ModuleSectionModuleIdOrderUniqueInputDto)
-  moduleId_order?: ModuleSectionModuleIdOrderUniqueInputDto;
+  @Type(() => ContentProgressUserIdModuleContentIdUniqueInputDto)
+  userId_moduleContentId?: ContentProgressUserIdModuleContentIdUniqueInputDto;
 }

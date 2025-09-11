@@ -30,6 +30,10 @@ export class ModuleContentDto {
   })
   contentType: ContentType;
   @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,

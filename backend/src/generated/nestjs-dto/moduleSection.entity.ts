@@ -15,30 +15,28 @@ export class ModuleSection {
     type: 'string',
   })
   moduleId: string;
-  @ApiProperty({
-    type: () => Module,
-    required: false,
-  })
+  @ApiHideProperty()
   module?: ModuleAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   parentSectionId: string | null;
-  @ApiProperty({
-    type: () => ModuleSection,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   parentSection?: ModuleSection | null;
-  @ApiProperty({
-    type: () => ModuleSection,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   subsections?: ModuleSection[];
   @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
+  @ApiProperty({
+    type: 'string',
+  })
+  title: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  order: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -56,12 +54,8 @@ export class ModuleSection {
     nullable: true,
   })
   publishedBy: string | null;
-  @ApiProperty({
-    type: () => User,
-    required: false,
-    nullable: true,
-  })
-  user?: UserAsType | null;
+  @ApiHideProperty()
+  publishedByUser?: UserAsType | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
