@@ -627,13 +627,13 @@ model ModuleContent {
   /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  order    Int     @default(0)
+  order    Int
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
   content  Json
 
-  contentType ContentType @default(OVERVIEW)
-  isActive    Boolean     @default(true)
+  contentType ContentType
+  isActive    Boolean
 
   publishedAt DateTime?
   toPublishAt DateTime?

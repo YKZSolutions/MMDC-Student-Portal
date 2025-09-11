@@ -21,13 +21,13 @@ import {
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
-import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 
 @Controller('lms/:lmsId/contents/') //TODO: configure pathing
 export class LmsContentController {
@@ -45,15 +45,11 @@ export class LmsContentController {
   @Roles(Role.ADMIN)
   @Post()
   create(
-    @Body() createModuleContentDto: CreateModuleContentDto,
+    @Body() createModuleContentDto: CreateContentDto,
     @Param('lmsId') lmsId: string,
-    @Param('sectionId') moduleSectionId: string,
   ) {
-    return this.lmsContentService.create(
-      createModuleContentDto,
-      lmsId,
-      moduleSectionId,
-    );
+    console.log('lmsId', lmsId);
+    return this.lmsContentService.create(createModuleContentDto, lmsId);
   }
 
   /**

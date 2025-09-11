@@ -1,22 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { isUUID } from 'class-validator';
-import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { Prisma, Role } from '@prisma/client';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
-import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
-import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
+import { isUUID } from 'class-validator';
 import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
+import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -38,14 +32,8 @@ export class LmsContentService {
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
-    logArgsMessage: ({
-      content,
-      moduleSectionId,
-    }: {
-      content: CreateModuleContentDto;
-      moduleSectionId: string;
-    }) =>
-      `Creating module content [${content.title}] in section ${moduleSectionId}`,
+    logArgsMessage: ({ content }: { content: CreateContentDto }) =>
+      `Creating module content [${content.title}] in section ${content.sectionId}`,
     logSuccessMessage: (content) =>
       `Module content [${content.title}] successfully created.`,
     logErrorMessage: (
@@ -53,7 +41,7 @@ export class LmsContentService {
       {
         content,
       }: {
-        content: CreateModuleContentDto;
+        content: CreateContentDto;
       },
     ) =>
       `An error has occurred while creating module content [${content.title}] | Error: ${err.message}`,
@@ -65,14 +53,16 @@ export class LmsContentService {
       ),
   })
   async create(
-    @LogParam('content') createModuleContentDto: CreateModuleContentDto,
+    @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
-    @LogParam('moduleSectionId') moduleSectionId?: string,
   ): Promise<ModuleContentDto> {
+    const { sectionId, assignment, ...rest } = createModuleContentDto;
+
     const data: Prisma.ModuleContentCreateInput = {
-      ...createModuleContentDto,
+      ...rest,
       module: { connect: { id: moduleId } },
-      moduleSection: { connect: { id: moduleSectionId } },
+      moduleSection: sectionId ? { connect: { id: sectionId } } : undefined,
+      assignment: assignment ? { create: assignment } : undefined,
     };
 
     //TODO: add content creation based on type
@@ -81,6 +71,7 @@ export class LmsContentService {
       include: {
         module: true,
         moduleSection: true,
+        assignment: true,
       },
     })) as ModuleContentDto;
   }
