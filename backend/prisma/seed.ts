@@ -423,15 +423,16 @@ async function main() {
   );
 
   // Create Bill Installments
+  const NUM_INSTALLMENTS = 2;
   const billInstallments = await Promise.all(
     bills.flatMap((bill) =>
-      Array.from({ length: 2 }).map((_, i) =>
+      Array.from({ length: NUM_INSTALLMENTS }).map((_, i) =>
         prisma.billInstallment.create({
           data: {
             billId: bill.id,
             name: `Installment ${i + 1}`,
             installmentOrder: i + 1,
-            amountToPay: new Prisma.Decimal(bill.totalAmount.toNumber() / 2),
+            amountToPay: new Prisma.Decimal(bill.totalAmount.toNumber() / NUM_INSTALLMENTS),
             dueAt: faker.date.future(),
           },
         }),
