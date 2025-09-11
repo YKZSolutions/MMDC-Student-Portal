@@ -14,10 +14,4 @@ export class CreateNotificationDto {
   @IsNotEmpty()
   @IsString()
   content: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  isRead: string;
 }
