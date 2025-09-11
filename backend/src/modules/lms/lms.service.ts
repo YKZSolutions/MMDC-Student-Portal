@@ -139,6 +139,7 @@ export class LmsService {
             const newSection = await tx.moduleSection.create({
               data: {
                 moduleId: newModule.id,
+                title: oldSection.title,
               },
             });
 
@@ -146,6 +147,7 @@ export class LmsService {
             for (const oldContent of oldSection.moduleContents) {
               await tx.moduleContent.create({
                 data: {
+                  moduleId: newModule.id,
                   order: oldContent.order,
                   title: oldContent.title,
                   subtitle: oldContent.subtitle,
