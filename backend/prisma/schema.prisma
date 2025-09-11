@@ -12,7 +12,6 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["typedSql", "driverAdapters"]
-  seed            = "ts-node prisma/seed.ts"
 }
 
 generator json {
@@ -821,7 +820,7 @@ model Notification {
 
   title   String
   content String
-  isRead  String
+  isRead  Boolean @default(false)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
