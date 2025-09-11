@@ -1,15 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { getMockModuleByRole, mockModule } from '@/features/courses/mocks.ts'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import React, { useState } from 'react'
-import { Box } from '@mantine/core'
 import RoleComponentManager from '@/components/role-component-manager.tsx'
-import { AdminModuleView } from '@/features/courses/modules/admin/admin-module-view.tsx'
-import { MentorModuleView } from '@/features/courses/modules/mentor/mentor-module-view.tsx'
-import { StudentModuleView } from '@/features/courses/modules/student/student-module-view.tsx'
-import type { StudentModule } from '@/features/courses/modules/student/types.ts'
-import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
-import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import { getMockModuleByRole, mockModule } from '@/features/courses/mocks.ts'
+import ModulesAdminPage from '@/pages/admin/courses/$courseCode/modules'
+import ModulesMentorPage from '@/pages/mentor/courses/$courseCode/modules'
+import ModulesStudentPage from '@/pages/student/courses/$courseCode/modules'
+import { Box } from '@mantine/core'
+import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
 
 export const Route = createFileRoute(
   '/(protected)/courses/$courseCode/modules/',
@@ -34,28 +31,9 @@ function RouteComponent() {
       <RoleComponentManager
         currentRole={authUser.role}
         roleRender={{
-          student: (
-            <StudentModuleView
-              module={module as StudentModule}
-              onExpandAll={toggleExpandAll}
-              allExpanded={allExpanded}
-            />
-          ),
-          mentor: (
-            <MentorModuleView
-              module={module as MentorModule}
-              onExpandAll={toggleExpandAll}
-              allExpanded={allExpanded}
-            />
-          ),
-          admin: (
-            <AdminModuleView
-              module={module as AdminModule}
-              onAddContent={handleAddContent}
-              onExpandAll={toggleExpandAll}
-              allExpanded={allExpanded}
-            />
-          ),
+          student: <ModulesStudentPage />,
+          mentor: <ModulesMentorPage />,
+          admin: <ModulesAdminPage />,
         }}
       />
     </Box>

@@ -1,25 +1,25 @@
-import React, { useState } from 'react'
+import '@blocknote/mantine/style.css'
 import {
-  ActionIcon,
-  Badge,
-  Button,
-  Card,
-  Container,
-  FileInput,
-  Group,
-  Stack,
-  Tabs,
-  Textarea,
-  TextInput,
-  Title,
-  Tooltip,
+    ActionIcon,
+    Badge,
+    Button,
+    Card,
+    Container,
+    FileInput,
+    Group,
+    Stack,
+    Tabs,
+    Textarea,
+    TextInput,
+    Title,
+    Tooltip,
 } from '@mantine/core'
 import { IconHistory, IconPencil, IconUpload } from '@tabler/icons-react'
-import '@blocknote/mantine/style.css'
+import { useState } from 'react'
 
-import { useCreateBlockNote } from '@blocknote/react'
 import type { SubmissionPayload } from '@/features/courses/modules/content/submission-form.tsx'
 import { BlockNoteView } from '@blocknote/mantine'
+import { useCreateBlockNote } from '@blocknote/react'
 
 const SubmissionPage = ({ assignmentId }: { assignmentId: string }) => {
   const editor = useCreateBlockNote()
