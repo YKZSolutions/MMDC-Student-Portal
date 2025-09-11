@@ -60,18 +60,19 @@ export class LmsService {
   }
 
   /**
-   * Clones learning modules from the previous enrollment period into the given enrollment period.
+   * Clones learning modules from the most recent past course offering into the given enrollment period.
    *
    * This includes:
    * - Modules
    * - Module sections
    * - Module contents
    *
-   * The "previous enrollment period" is determined by finding the most recent period
-   * with the same `term` and an `endYear` exactly one year before the current period.
-   * Each course offering in the current period is matched with its corresponding
-   * course offering from the previous period. If found, the entire module structure
-   * (module → sections → contents) is duplicated and linked to the new course offering.
+   * The "previous course offering" is determined by finding the most
+   * recently created course offering (`createdAt` descending) for the
+   * same course, where its enrollment period started before the current
+   * enrollment period. If found, the entire module structure
+   * (module → sections → contents) is duplicated and linked to the
+   * new course offering.
    *
    * @async
    * @param {string} enrollmentPeriodId - The UUID of the target enrollment period
@@ -93,7 +94,9 @@ export class LmsService {
         `Enrollment period not found for id ${enrollmentPeriodId}`,
       ),
   })
-  async copyModulesFromPreviousTerm(enrollmentPeriodId: string) {
+  async cloneMostRecentModules(
+    @LogParam('enrollmentPeriodId') enrollmentPeriodId: string,
+  ) {
     // Get enrollment period and course offerings
     const currentEnrollment =
       await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
@@ -103,60 +106,52 @@ export class LmsService {
 
     // For each course offering in this period
     for (const courseOffering of currentEnrollment.courseOfferings) {
-      // Look for the latest previous period in which the term is the same
-      const previousOffering =
-        await this.prisma.client.courseOffering.findFirst({
-          where: {
-            courseId: courseOffering.courseId,
-            enrollmentPeriod: {
-              endYear: currentEnrollment.startYear - 1,
-              term: currentEnrollment.term,
-            },
-          },
-          include: {
-            modules: {
-              include: {
-                moduleSections: { include: { moduleContents: true } },
-              },
-            },
+      const latestModule = await this.prisma.client.module.findFirstOrThrow({
+        where: {
+          courseId: courseOffering.courseId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          moduleSections: { include: { moduleContents: true } },
+        },
+      });
+
+      if (!latestModule) continue;
+
+      await this.prisma.client.$transaction(async (tx) => {
+        // Create new module for this current offering
+        const newModule = await tx.module.create({
+          data: {
+            title: latestModule.title,
+            courseId: latestModule.courseId,
+            courseOfferingId: courseOffering.id,
           },
         });
 
-      if (!previousOffering) continue;
-      await this.prisma.client.$transaction(async (tx) => {
-        // For each previous course offerings
-        for (const oldModule of previousOffering.modules) {
-          const newModule = await tx.module.create({
+        // Copy module sections to new module
+        for (const oldSection of latestModule.moduleSections) {
+          const newSection = await tx.moduleSection.create({
             data: {
-              title: oldModule.title,
-              courseId: oldModule.courseId,
-              courseOfferingId: courseOffering.id,
+              moduleId: newModule.id,
+              title: oldSection.title,
             },
           });
 
-          // Copy module sections to current module
-          for (const oldSection of oldModule.moduleSections) {
-            const newSection = await tx.moduleSection.create({
+          // Copy module content to new module section
+          for (const oldContent of oldSection.moduleContents) {
+            await tx.moduleContent.create({
               data: {
                 moduleId: newModule.id,
-                title: oldSection.title,
+                order: oldContent.order,
+                title: oldContent.title,
+                subtitle: oldContent.subtitle,
+                moduleSectionId: newSection.id,
+                content: oldContent.content,
+                contentType: oldContent.contentType,
               },
             });
-
-            // Copy module content to current module section
-            for (const oldContent of oldSection.moduleContents) {
-              await tx.moduleContent.create({
-                data: {
-                  moduleId: newModule.id,
-                  order: oldContent.order,
-                  title: oldContent.title,
-                  subtitle: oldContent.subtitle,
-                  moduleSectionId: newSection.id,
-                  content: oldContent.content,
-                  contentType: oldContent.contentType,
-                },
-              });
-            }
           }
         }
       });
