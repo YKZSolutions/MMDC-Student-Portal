@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Delete,
   Get,
@@ -50,7 +51,10 @@ export class LmsController {
   @Patch(':id')
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  update(@Param('id', new ParseUUIDPipe()) id: string, dto: UpdateModuleDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateModuleDto,
+  ) {
     return this.lmsService.update(id, dto);
   }
 
