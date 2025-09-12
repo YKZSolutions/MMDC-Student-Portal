@@ -820,7 +820,7 @@ model Notification {
 
   title   String
   content String
-  isRead  String
+  isRead  Boolean @default(false)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

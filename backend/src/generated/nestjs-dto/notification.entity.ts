@@ -21,9 +21,9 @@ export class Notification {
   })
   content: string;
   @ApiProperty({
-    type: 'string',
+    type: 'boolean',
   })
-  isRead: string;
+  isRead: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
