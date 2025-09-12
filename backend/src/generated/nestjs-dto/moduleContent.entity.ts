@@ -81,7 +81,11 @@ export class ModuleContent {
     nullable: true,
   })
   publishedBy: string | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => User,
+    required: false,
+    nullable: true,
+  })
   publishedByUser?: UserAsType | null;
   @ApiProperty({
     type: () => Assignment,
@@ -89,9 +93,17 @@ export class ModuleContent {
     nullable: true,
   })
   assignment?: AssignmentAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Submission,
+    isArray: true,
+    required: false,
+  })
   submissions?: SubmissionAsType[];
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => ContentProgress,
+    isArray: true,
+    required: false,
+  })
   studentProgress?: ContentProgressAsType[];
   @ApiProperty({
     type: 'string',

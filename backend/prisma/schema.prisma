@@ -646,13 +646,10 @@ model ModuleContent {
   toPublishAt DateTime?
 
   publishedBy     String? @db.Uuid
-  /// @DtoApiHidden
   publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   assignment      Assignment?
-  /// @DtoApiHidden
   submissions     Submission[]
-  /// @DtoApiHidden
   studentProgress ContentProgress[]
 
   /// @DtoReadOnly

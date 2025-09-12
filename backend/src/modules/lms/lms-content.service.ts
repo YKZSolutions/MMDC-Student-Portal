@@ -1,25 +1,16 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { Log } from '@/common/decorators/log.decorator';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { Prisma, Role } from '@prisma/client';
+import { ContentType, Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
-import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { StudentAssignmentsSubmissionsDto } from '@/generated/nestjs-dto/studentAssignmentsSubmissions.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -27,6 +18,55 @@ export class LmsContentService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
+
+  /**
+   * Builds Prisma `include` object based on role and content type.
+   */
+  private buildIncludeForRoleAndType(
+    role: Role,
+    contentType: ContentType,
+    userId?: string,
+  ): Prisma.ModuleContentInclude {
+    const contentHasProgress =
+      contentType === ContentType.ASSIGNMENT ||
+      contentType === ContentType.REFLECTION ||
+      contentType === ContentType.DISCUSSION;
+
+    if (role === Role.mentor || role === Role.admin) {
+      return {
+        assignment: contentType === ContentType.ASSIGNMENT,
+        studentProgress:
+          userId && contentHasProgress ? { where: { userId } } : undefined,
+      };
+    }
+
+    if (role === Role.student) {
+      return {
+        assignment:
+          contentType === ContentType.ASSIGNMENT
+            ? { omit: omitAuditDates }
+            : undefined,
+        submissions:
+          contentType === ContentType.ASSIGNMENT
+            ? { where: { studentId: userId } }
+            : undefined,
+        studentProgress:
+          userId && contentHasProgress ? { where: { userId } } : undefined,
+      };
+    }
+
+    throw new Error('Invalid role or content type');
+  }
+
+  /**
+   * Builds Prisma `omit` rules based on role.
+   */
+  private buildOmitForRole(role: Role): Prisma.ModuleContentOmit | undefined {
+    if (role === Role.student) {
+      return { ...omitAuditDates, ...omitPublishFields };
+    }
+    return undefined;
+  }
 
   /**
    * Creates a new module content in the database.
@@ -73,12 +113,21 @@ export class LmsContentService {
       assignment: assignment ? { create: assignment } : undefined,
     };
 
-    return (await this.prisma.client.moduleContent.create({
+    const content = await this.prisma.client.moduleContent.create({
       data,
-      include: {
-        assignment: true,
-      },
-    })) as ModuleContent;
+      include: { assignment: true },
+    });
+
+    return {
+      ...content,
+      content: content.content as Prisma.JsonValue,
+      assignment: content.assignment
+        ? {
+            ...content.assignment,
+            rubric: content.assignment.rubric as Prisma.JsonValue,
+          }
+        : null,
+    };
   }
 
   /**
@@ -89,6 +138,7 @@ export class LmsContentService {
    * @returns {Promise<ModuleContentDto>} The module content record.
    * @param {Role} role - The role of the user making the request.
    * @param {string} [userId] - The UUID of the user making the request.
+   * @param {ContentType} contentType - The type of content to retrieve.
    *
    * @throws {BadRequestException} If the provided ID is not a valid UUID.
    * @throws {NotFoundException} If no module content is found with the given ID.
@@ -108,41 +158,33 @@ export class LmsContentService {
   async findOne(
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
-    @LogParam('userId') userId: string,
-  ): Promise<ModuleContent | StudentContentDto> {
+    @LogParam('userId') userId: string | null,
+    @LogParam('contentType') contentType: ContentType,
+  ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    if (role === Role.admin) {
-      return (await this.prisma.client.moduleContent.findUniqueOrThrow({
-        where: { id },
-        include: {
-          assignment: true,
-        },
-      })) as ModuleContent;
-    }
-
-    // Default to Student
-    return (await this.prisma.client.moduleContent.findUniqueOrThrow({
+    const content = await this.prisma.client.moduleContent.findUniqueOrThrow({
       where: { id },
-      include: {
-        assignment: {
-          omit: { ...omitAuditDates },
-        },
-        submissions: {
-          where: {
-            studentId: userId,
-          },
-        },
-        studentProgress: {
-          where: {
-            userId: userId,
-          },
-        },
-      },
-      omit: { ...omitAuditDates, ...omitPublishFields },
-    })) as StudentContentDto;
+      include: this.buildIncludeForRoleAndType(
+        role,
+        contentType,
+        userId ?? undefined,
+      ),
+      omit: this.buildOmitForRole(role),
+    });
+
+    return {
+      ...content,
+      content: content.content as Prisma.JsonValue,
+      assignment: content.assignment
+        ? {
+            ...content.assignment,
+            rubric: content.assignment.rubric as Prisma.JsonValue,
+          }
+        : null,
+    };
   }
 
   /**
@@ -212,13 +254,24 @@ export class LmsContentService {
       data.publishedByUser = { disconnect: true };
     }
 
-    return (await this.prisma.client.moduleContent.update({
+    const updatedContent = await this.prisma.client.moduleContent.update({
       where: { id },
       include: {
         assignment: true,
       },
       data,
-    })) as ModuleContent;
+    });
+
+    return {
+      ...updatedContent,
+      content: updatedContent.content as Prisma.JsonValue,
+      assignment: updatedContent.assignment
+        ? {
+            ...updatedContent.assignment,
+            rubric: updatedContent.assignment.rubric as Prisma.JsonValue,
+          }
+        : null,
+    };
   }
 
   /**
@@ -270,5 +323,75 @@ export class LmsContentService {
 
     await this.prisma.client.moduleContent.delete({ where: { id } });
     return { message: 'Module content permanently deleted' };
+  }
+
+  // @Log({
+  //   logArgsMessage: ({ role, user_id, filters }) =>
+  //     `Fetching assignments for user ${user_id} role=${role}, filters=${JSON.stringify(filters)}`,
+  //   logSuccessMessage: ({ id }) =>
+  //     `Successfully fetched module content for id ${id}`,
+  //   logErrorMessage: (err, { id }) =>
+  //     `An error has occurred while fetching module content for id ${id} | Error: ${err.message}`,
+  // })
+  // @PrismaError({
+  //   [PrismaErrorCode.RecordNotFound]: () =>
+  //     new NotFoundException('Module content not found'),
+  // })
+  // async findAllAssignments(
+  //   @LogParam('id') id: string,
+  //   @LogParam('role') role: Role,
+  //   @LogParam('userId') userId: string,
+  //   @LogParam('filters') filters: FilterAssignmentsDto,
+  // ): Promise<StudentAssignmentsSubmissionsDto[]> {
+  //   if (!isUUID(id)) {
+  //     throw new BadRequestException('Invalid module content ID format');
+  //   }
+  //
+  //   if (role === Role.admin) {
+  //     return await this.prisma.client.studentAssignmentsSubmissions.findMany(
+  //       {},
+  //     );
+  //   }
+  //
+  //   if (role === Role.student) {
+  //     return await this.prisma.client.studentAssignmentsSubmissions.findMany({
+  //       where: {
+  //         user_id: userId,
+  //         submission_id: null, // not submitted yet
+  //         dueDate: { gte: new Date() }, // upcoming only
+  //       },
+  //       orderBy: { dueDate: 'asc' },
+  //     });
+  //   }
+  // }
+
+  @Log({
+    logArgsMessage: ({ role, user_id, filters }) =>
+      `Fetching todo assignments for user ${user_id} role=${role}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (assignments, { userId }) =>
+      `Successfully fetched ${assignments.length} todo assignments for user ${userId}`,
+    logErrorMessage: (err, { id }) =>
+      `An error has occurred while fetching module content for id ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('Assignment not found'),
+  })
+  async findAssignmentTodos(
+    @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
+  ): Promise<StudentAssignmentsSubmissionsDto[]> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid module content ID format');
+    }
+
+    return await this.prisma.client.studentAssignmentsSubmissions.findMany({
+      where: {
+        user_id: userId,
+        submission_id: null, // not submitted yet
+        dueDate: { gte: new Date() }, // upcoming only
+      },
+      orderBy: { dueDate: 'asc' },
+    });
   }
 }

@@ -12,14 +12,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, getSchemaPath, } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
@@ -40,14 +39,16 @@ export class LmsContentController {
    * Requires `ADMIN` role.
    *
    */
-  @ApiCreatedResponse({ type: ModuleContent })
+  @ApiCreatedResponse({
+    type: OmitType(ModuleContent, ['submissions', 'studentProgress'] as const),
+  })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Post()
   create(
     @Body() createModuleContentDto: CreateContentDto,
     @Param('lmsId') lmsId: string,
-  ) {
+  ): Omit<ModuleContent, 'submissions' | 'studentProgress'> {
     return this.lmsContentService.create(createModuleContentDto, lmsId);
   }
 
@@ -60,14 +61,8 @@ export class LmsContentController {
    * @returns StudentContentDto if role is `STUDENT`
    *
    */
-  @ApiExtraModels(ModuleContent, StudentContentDto)
   @ApiOkResponse({
-    schema: {
-      oneOf: [
-        { $ref: getSchemaPath(ModuleContent) },
-        { $ref: getSchemaPath(StudentContentDto) },
-      ],
-    },
+    type: ModuleContent,
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
@@ -75,7 +70,7 @@ export class LmsContentController {
   findOne(
     @Param('id') id: string,
     @CurrentUser() user: CurrentAuthUser,
-  ): Promise<ModuleContent | StudentContentDto> {
+  ): Promise<ModuleContent> {
     const { role, user_id } = user.user_metadata;
     return this.lmsContentService.findOne(id, role, user_id);
   }
