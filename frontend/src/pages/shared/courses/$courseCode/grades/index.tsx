@@ -29,6 +29,7 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import {
   IconChevronDown,
   IconChevronRight,
@@ -37,7 +38,7 @@ import {
   IconTrendingDown,
   IconTrendingUp,
 } from '@tabler/icons-react'
-import { Suspense, useEffect, useState } from 'react'
+import { Fragment, Suspense, useEffect, useState } from 'react'
 
 function CourseGrades() {
   const { authUser } = useAuth('protected')
@@ -132,11 +133,17 @@ function CourseGrades() {
       )}
 
       {authUser.role === 'mentor' && (
-        <MentorGradesTable assignments={mentorFiltered} viewMode={viewMode} />
+        <ElevatedRoleGradesTable
+          assignments={mentorFiltered}
+          viewMode={viewMode}
+        />
       )}
 
       {authUser.role === 'admin' && (
-        <AdminGradesTable assignments={adminFiltered} viewMode={viewMode} />
+        <ElevatedRoleGradesTable
+          assignments={adminFiltered}
+          viewMode={viewMode}
+        />
       )}
     </Stack>
   )
@@ -173,7 +180,7 @@ function StudentGradesTable({
               c={'dark.5'}
             >
               <Table.Th>Assignment</Table.Th>
-              <Table.Th>Due</Table.Th>
+              <Table.Th>Due At</Table.Th>
               <Table.Th>Submitted At</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th>Grade</Table.Th>
@@ -257,6 +264,584 @@ function StudentGradesTable({
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
+    </Box>
+  )
+}
+
+function ElevatedRoleGradesTable({
+  assignments,
+  viewMode = 'by-assignment',
+}: {
+  assignments: CourseGradebookForMentor['assignments']
+  viewMode?: 'by-assignment' | 'by-student'
+}) {
+  const theme = useMantineTheme()
+
+  const [expandedAssignments, setExpandedAssignments] = useState<Set<string>>(
+    new Set(),
+  )
+
+  const [isStudentExpanded, { toggle: toggleStudent }] = useDisclosure(false)
+
+  const toggleExpand = (assignmentId: string) => {
+    const newExpanded = new Set(expandedAssignments)
+    if (newExpanded.has(assignmentId)) {
+      newExpanded.delete(assignmentId)
+    } else {
+      newExpanded.add(assignmentId)
+    }
+    setExpandedAssignments(newExpanded)
+  }
+
+  const getDetailedStats = (
+    assignment: CourseGradebookForMentor['assignments'][number],
+  ) => {
+    const scores = assignment.submissions
+      .filter((s) => s.grade)
+      .map((s) => s.grade!.score)
+
+    const totalSubmissions = assignment.submissions.length
+    const gradedSubmissions = scores.length
+    const averageScore =
+      scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
+    const minScore = scores.length > 0 ? Math.min(...scores) : 0
+    const maxScore = scores.length > 0 ? Math.max(...scores) : 0
+
+    return {
+      totalSubmissions,
+      gradedSubmissions,
+      pendingSubmissions: assignment.submissions.filter(
+        (s) => s.submissionStatus === 'pending',
+      ).length,
+      submittedSubmissions: assignment.submissions.filter(
+        (s) => s.submissionStatus === 'submitted',
+      ).length,
+      averageScore,
+      minScore,
+      maxScore,
+      completionRate: (gradedSubmissions / totalSubmissions) * 100,
+      averagePercentage: (averageScore / (assignment.points || 1)) * 100,
+    }
+  }
+
+  if (viewMode === 'by-student') {
+    // Student overview for admin
+    const studentMap = new Map()
+    let totalPossiblePoints = 0
+
+    assignments.forEach((assignment) => {
+      totalPossiblePoints += assignment.points || 0
+      assignment.submissions.forEach((submission) => {
+        if (!studentMap.has(submission.studentId)) {
+          studentMap.set(submission.studentId, {
+            studentId: submission.studentId,
+            studentName: submission.studentName,
+            totalScore: 0,
+            totalPossible: 0,
+            gradedAssignments: 0,
+            totalAssignments: 0,
+            assignments: [],
+          })
+        }
+        const student = studentMap.get(submission.studentId)
+        student.totalAssignments++
+        if (submission.grade) {
+          student.totalScore += submission.grade.score
+          student.totalPossible += submission.grade.maxScore
+          student.gradedAssignments++
+        }
+        studentMap.get(submission.studentId).assignments.push({
+          ...assignment,
+          submission,
+        })
+      })
+    })
+
+    return (
+      <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
+        <Card withBorder mb="md" p="md">
+          <Title order={4} mb="sm">
+            Class Overview
+          </Title>
+          <Group justify="space-evenly" px={'xl'}>
+            <Stack gap={'xs'} align="center">
+              <Text size="sm" c="dimmed">
+                Total Students
+              </Text>
+              <Text size="xl" fw={700}>
+                {studentMap.size}
+              </Text>
+            </Stack>
+            <Divider orientation="vertical" />
+            <Stack gap={'xs'} align="center">
+              <Text size="sm" c="dimmed">
+                Total Assignments
+              </Text>
+              <Text size="xl" fw={700}>
+                {assignments.length}
+              </Text>
+            </Stack>
+            <Divider orientation="vertical" />
+            <Stack gap={'xs'} align="center">
+              <Text size="sm" c="dimmed">
+                Class Average
+              </Text>
+              <Text size="xl" fw={700}>
+                {(
+                  Array.from(studentMap.values())
+                    .filter((s: any) => s.gradedAssignments > 0)
+                    .reduce(
+                      (sum: number, s: any) =>
+                        sum + (s.totalScore / s.totalPossible) * 100,
+                      0,
+                    ) /
+                  Math.max(
+                    1,
+                    Array.from(studentMap.values()).filter(
+                      (s: any) => s.gradedAssignments > 0,
+                    ).length,
+                  )
+                ).toFixed(1)}
+              </Text>
+            </Stack>
+          </Group>
+        </Card>
+
+        <Table
+          highlightOnHover
+          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+          styles={{
+            th: {
+              fontWeight: 500,
+            },
+          }}
+          verticalSpacing={'lg'}
+        >
+          <Table.Thead>
+            <Table.Tr
+              style={{
+                border: '0px',
+                borderBottom: '1px solid',
+                borderColor: 'var(--mantine-color-gray-3)',
+              }}
+              bg={'gray.1'}
+              c={'dark.5'}
+            >
+              <Table.Th>Student</Table.Th>
+              <Table.Th>Progress</Table.Th>
+              <Table.Th>Current Score</Table.Th>
+              <Table.Th>Grade Percentage</Table.Th>
+              <Table.Th>Trend</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            <Suspense fallback={<SuspendedTableRows columns={5} />}>
+              {Array.from(studentMap.values())
+                .sort(
+                  (a: any, b: any) =>
+                    b.totalScore / Math.max(1, b.totalPossible) -
+                    a.totalScore / Math.max(1, a.totalPossible),
+                )
+                .map((student: any) => {
+                  const percentage =
+                    student.totalPossible > 0
+                      ? (student.totalScore / student.totalPossible) * 100
+                      : 0
+                  const completionRate =
+                    (student.gradedAssignments / student.totalAssignments) * 100
+
+                  return (
+                    <Fragment key={student.studentId}>
+                      <Table.Tr
+                        key={student.studentId}
+                        onClick={toggleStudent}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <Table.Td>
+                          <Box>
+                            <Text fw={500}>{student.studentName}</Text>
+                            <Text size="xs" c="dimmed">
+                              ID: {student.studentId}
+                            </Text>
+                          </Box>
+                        </Table.Td>
+                        <Table.Td>
+                          <Stack gap="xs">
+                            <Progress
+                              value={completionRate}
+                              size="sm"
+                              color="blue"
+                            />
+                            <Text size="sm">
+                              {student.gradedAssignments}/
+                              {student.totalAssignments} completed
+                            </Text>
+                          </Stack>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text fw={500}>
+                            {student.totalScore}/{student.totalPossible}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text
+                            fw={500}
+                            c={
+                              percentage >= 80
+                                ? 'green'
+                                : percentage >= 60
+                                  ? 'orange'
+                                  : 'red'
+                            }
+                          >
+                            {percentage.toFixed(1)}%
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          {percentage >= 80 ? (
+                            <IconTrendingUp color="green" size={20} />
+                          ) : percentage >= 60 ? (
+                            <IconMinus color="orange" size={20} />
+                          ) : (
+                            <IconTrendingDown color="red" size={20} />
+                          )}
+                        </Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td
+                          colSpan={6}
+                          p={0}
+                          style={{ background: '#f8f9fa' }}
+                        >
+                          <Collapse in={isStudentExpanded}>
+                            <Stack p={'md'} gap={'xs'}>
+                              {Array.from(studentMap.values()).flatMap(
+                                (student: any) =>
+                                  student.assignments.map(
+                                    (assignmentWithSubmission: any) => (
+                                      <Card
+                                        key={`${student.studentId}-${assignmentWithSubmission.assignmentId}`}
+                                        radius="md"
+                                        withBorder
+                                      >
+                                        <Group
+                                          justify="space-between"
+                                          align="center"
+                                          style={{ width: '100%' }}
+                                        >
+                                          {/* Assignment title & due */}
+                                          <Box style={{ minWidth: 180 }}>
+                                            <Text fw={500} size="md">
+                                              {
+                                                assignmentWithSubmission.assignmentTitle
+                                              }
+                                            </Text>
+                                            <Text size="xs" c="dimmed">
+                                              {assignmentWithSubmission.points}{' '}
+                                              points
+                                            </Text>
+                                            <Text size="xs" c="dimmed">
+                                              {formatTimestampToDateTimeText(
+                                                assignmentWithSubmission.dueDate,
+                                                'by',
+                                              )}
+                                            </Text>
+                                            <Badge
+                                              color={
+                                                assignmentWithSubmission
+                                                  .submission.submissionStatus
+                                              }
+                                              variant="filled"
+                                              size="md"
+                                              style={{
+                                                textTransform: 'capitalize',
+                                                fontWeight: 600,
+                                              }}
+                                            >
+                                              {assignmentWithSubmission.submission.submissionStatus.replace(
+                                                /-/g,
+                                                ' ',
+                                              )}
+                                            </Badge>
+                                          </Box>
+
+                                          <Group>
+                                            {/* Grade */}
+                                            <Box
+                                              style={{
+                                                minWidth: 120,
+                                                textAlign: 'right',
+                                              }}
+                                            >
+                                              {assignmentWithSubmission
+                                                .submission.grade ? (
+                                                <>
+                                                  <Text fw={700} size="md">
+                                                    {
+                                                      assignmentWithSubmission
+                                                        .submission.grade.score
+                                                    }{' '}
+                                                    /{' '}
+                                                    {
+                                                      assignmentWithSubmission
+                                                        .submission.grade
+                                                        .maxScore
+                                                    }
+                                                  </Text>
+                                                  <Text size="xs" c="dimmed">
+                                                    {assignmentWithSubmission
+                                                      .submission.grade
+                                                      .gradedAt &&
+                                                      `Graded ${formatTimestampToDateTimeText(assignmentWithSubmission.submission.grade.gradedAt)}`}
+                                                  </Text>
+                                                </>
+                                              ) : (
+                                                <Text
+                                                  c="dimmed"
+                                                  fw={500}
+                                                  size="md"
+                                                >
+                                                  - /{' '}
+                                                  {
+                                                    assignmentWithSubmission.points
+                                                  }
+                                                </Text>
+                                              )}
+                                            </Box>
+
+                                            {/* Action button */}
+                                            <Button
+                                              size="xs"
+                                              variant="light"
+                                              style={{ minWidth: 64 }}
+                                              onClick={() => {
+                                                console.log(
+                                                  'Grade assignment:',
+                                                  assignmentWithSubmission.assignmentId,
+                                                  student.studentId,
+                                                )
+                                              }}
+                                            >
+                                              {assignmentWithSubmission
+                                                .submission.submissionStatus ===
+                                              'graded'
+                                                ? 'Edit'
+                                                : 'Grade'}
+                                            </Button>
+                                          </Group>
+                                        </Group>
+                                      </Card>
+                                    ),
+                                  ),
+                              )}
+                            </Stack>
+                          </Collapse>
+                        </Table.Td>
+                      </Table.Tr>
+                    </Fragment>
+                  )
+                })}
+            </Suspense>
+          </Table.Tbody>
+        </Table>
+      </Box>
+    )
+  }
+
+  // Default: by-assignment view with detailed stats
+  return (
+    <Box>
+      <Table
+        highlightOnHover
+        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+        styles={{
+          th: {
+            fontWeight: 500,
+          },
+        }}
+        verticalSpacing={'lg'}
+      >
+        <Table.Thead>
+          <Table.Tr
+            style={{
+              border: '0px',
+              borderBottom: '1px solid',
+              borderColor: 'var(--mantine-color-gray-3)',
+            }}
+            bg={'gray.1'}
+            c={'dark.5'}
+          >
+            <Table.Th>Assignment</Table.Th>
+            <Table.Th>Due Date</Table.Th>
+            <Table.Th>Completion Rate</Table.Th>
+            <Table.Th>Score Statistics</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Suspense fallback={<SuspendedTableRows columns={6} />}>
+            {assignments.map((assignment) => {
+              const stats = getDetailedStats(assignment)
+              const isExpanded = expandedAssignments.has(
+                assignment.assignmentId,
+              )
+
+              return (
+                <>
+                  <Table.Tr
+                    key={assignment.assignmentId}
+                    onClick={() => toggleExpand(assignment.assignmentId)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Table.Td>
+                      <Group gap="xs">
+                        <ActionIcon
+                          variant="transparent"
+                          size="sm"
+                          onClick={() => toggleExpand(assignment.assignmentId)}
+                        >
+                          {isExpanded ? (
+                            <IconChevronDown size={16} />
+                          ) : (
+                            <IconChevronRight size={16} />
+                          )}
+                        </ActionIcon>
+                        <Box>
+                          <Text fw={500}>{assignment.assignmentTitle}</Text>
+                          <Text size="sm" c="dimmed">
+                            {assignment.points} points
+                          </Text>
+                        </Box>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text fw={500} size="sm" c={'dark.4'}>
+                        {formatTimestampToDateTimeText(
+                          assignment.dueDate,
+                          'by',
+                        )}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text fw={500} c="dark.5">
+                        {stats.completionRate || 0}%
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {stats.gradedSubmissions}/{stats.totalSubmissions}{' '}
+                        completed
+                      </Text>
+                      <Progress value={stats.completionRate} color={'blue'} />
+                    </Table.Td>
+                    <Table.Td>
+                      <Box>
+                        <Text
+                          fw={500}
+                          c={
+                            stats.averagePercentage >= 80
+                              ? 'green'
+                              : stats.averagePercentage >= 60
+                                ? 'orange'
+                                : 'red'
+                          }
+                        >
+                          {stats.averagePercentage.toFixed(1)}%
+                        </Text>
+                        <Text size="xs" fw={500} c={'dimmed'}>
+                          Avg: {stats.averageScore.toFixed(1)}/
+                          {assignment.points}
+                        </Text>
+
+                        <Group gap="xs">
+                          <Text size="xs" fw={500} c="dimmed">
+                            Min: {stats.minScore}
+                          </Text>
+                          <Text size="xs" fw={500} c="dimmed">
+                            Max: {stats.maxScore}
+                          </Text>
+                        </Group>
+                      </Box>
+                    </Table.Td>
+                  </Table.Tr>
+
+                  {/* Expanded details */}
+                  <Table.Tr bd={0}>
+                    <Table.Td colSpan={4} p={0}>
+                      <Collapse in={isExpanded}>
+                        <Box bg="gray.0" p="lg">
+                          <Text fw={500} size="sm" mb="xs">
+                            Student Performance
+                          </Text>
+                          <Stack gap={4}>
+                            {assignment.submissions.map((submission) => (
+                              <Group
+                                key={submission.studentId}
+                                justify="space-between"
+                                py={'sm'}
+                                px="xs"
+                                style={{
+                                  borderBottom:
+                                    '1px solid var(--mantine-color-gray-3)',
+                                }}
+                              >
+                                <Box>
+                                  <Text size="sm">
+                                    {submission.studentName}
+                                  </Text>
+                                  <Badge
+                                    color={submission.submissionStatus}
+                                    variant="filled"
+                                    size="xs"
+                                  >
+                                    {submission.submissionStatus}
+                                  </Badge>
+                                </Box>
+                                <Group gap="xs">
+                                  {submission.grade ? (
+                                    <Text size="sm" fw={500} c={'dark.5'}>
+                                      {submission.grade.score}/
+                                      {submission.grade.maxScore}
+                                    </Text>
+                                  ) : (
+                                    <Text size="sm" c="dimmed">
+                                      Not graded
+                                    </Text>
+                                  )}
+                                  {submission.grade?.feedback && (
+                                    <Tooltip label={submission.grade.feedback}>
+                                      <IconNote
+                                        size={16}
+                                        color={theme.colors.dark[4]}
+                                      />
+                                    </Tooltip>
+                                  )}
+                                  <Button
+                                    size="xs"
+                                    variant="subtle"
+                                    onClick={() =>
+                                      console.log(
+                                        'Grade:',
+                                        assignment.assignmentId,
+                                        submission.studentId,
+                                      )
+                                    }
+                                  >
+                                    {submission.submissionStatus === 'graded'
+                                      ? 'Edit'
+                                      : 'Grade'}
+                                  </Button>
+                                </Group>
+                              </Group>
+                            ))}
+                          </Stack>
+                        </Box>
+                      </Collapse>
+                    </Table.Td>
+                  </Table.Tr>
+                </>
+              )
+            })}
+          </Suspense>
+        </Table.Tbody>
+      </Table>
     </Box>
   )
 }
@@ -435,7 +1020,7 @@ function MentorGradesTable({
                     </Table.Td>
                     <Table.Td>
                       {assignmentWithSubmission.submission.grade ? (
-                        <div>
+                        <Box>
                           <Text fw={500}>
                             {assignmentWithSubmission.submission.grade.score} /{' '}
                             {assignmentWithSubmission.submission.grade.maxScore}
@@ -445,7 +1030,7 @@ function MentorGradesTable({
                               .gradedAt &&
                               `Graded ${formatTimestampToDateTimeText(assignmentWithSubmission.submission.grade.gradedAt)}`}
                           </Text>
-                        </div>
+                        </Box>
                       ) : (
                         <Text c="dimmed">
                           - / {assignmentWithSubmission.points}
@@ -521,12 +1106,12 @@ function MentorGradesTable({
                             <IconChevronRight size={16} />
                           )}
                         </ActionIcon>
-                        <div>
+                        <Box>
                           <Text fw={500}>{assignment.assignmentTitle}</Text>
                           <Text size="sm" c="dimmed">
                             {assignment.points} points
                           </Text>
-                        </div>
+                        </Box>
                       </Group>
                     </Table.Td>
                     <Table.Td>
@@ -811,11 +1396,24 @@ function AdminGradesTable({
 
         <Table
           highlightOnHover
-          highlightOnHoverColor="gray.0"
-          style={{ borderRadius: rem('8px'), minWidth: '800px' }}
+          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+          styles={{
+            th: {
+              fontWeight: 500,
+            },
+          }}
+          verticalSpacing={'lg'}
         >
           <Table.Thead>
-            <Table.Tr bg={'gray.1'} c={'dark.5'}>
+            <Table.Tr
+              style={{
+                border: '0px',
+                borderBottom: '1px solid',
+                borderColor: 'var(--mantine-color-gray-3)',
+              }}
+              bg={'gray.1'}
+              c={'dark.5'}
+            >
               <Table.Th>Student</Table.Th>
               <Table.Th>Progress</Table.Th>
               <Table.Th>Current Score</Table.Th>
@@ -842,12 +1440,12 @@ function AdminGradesTable({
                   return (
                     <Table.Tr key={student.studentId}>
                       <Table.Td>
-                        <div>
+                        <Box>
                           <Text fw={500}>{student.studentName}</Text>
                           <Text size="xs" c="dimmed">
                             ID: {student.studentId}
                           </Text>
-                        </div>
+                        </Box>
                       </Table.Td>
                       <Table.Td>
                         <Stack gap="xs">
@@ -902,20 +1500,32 @@ function AdminGradesTable({
 
   // Default: by-assignment view with detailed stats
   return (
-    <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
+    <Box>
       <Table
         highlightOnHover
-        highlightOnHoverColor="gray.0"
-        style={{ borderRadius: rem('8px'), minWidth: '1200px' }}
+        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+        styles={{
+          th: {
+            fontWeight: 500,
+          },
+        }}
+        verticalSpacing={'lg'}
       >
         <Table.Thead>
-          <Table.Tr bg={'gray.1'} c={'dark.5'}>
+          <Table.Tr
+            style={{
+              border: '0px',
+              borderBottom: '1px solid',
+              borderColor: 'var(--mantine-color-gray-3)',
+            }}
+            bg={'gray.1'}
+            c={'dark.5'}
+          >
             <Table.Th>Assignment</Table.Th>
             <Table.Th>Due Date</Table.Th>
             <Table.Th>Completion</Table.Th>
             <Table.Th>Score Statistics</Table.Th>
             <Table.Th>Class Performance</Table.Th>
-            <Table.Th>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -928,7 +1538,11 @@ function AdminGradesTable({
 
               return (
                 <>
-                  <Table.Tr key={assignment.assignmentId}>
+                  <Table.Tr
+                    key={assignment.assignmentId}
+                    onClick={() => toggleExpand(assignment.assignmentId)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <Table.Td>
                       <Group gap="xs">
                         <ActionIcon
@@ -942,12 +1556,12 @@ function AdminGradesTable({
                             <IconChevronRight size={16} />
                           )}
                         </ActionIcon>
-                        <div>
+                        <Box>
                           <Text fw={500}>{assignment.assignmentTitle}</Text>
                           <Text size="sm" c="dimmed">
                             {assignment.points} points
                           </Text>
-                        </div>
+                        </Box>
                       </Group>
                     </Table.Td>
                     <Table.Td>
@@ -1008,15 +1622,6 @@ function AdminGradesTable({
                         </Text>
                       </Stack>
                     </Table.Td>
-                    <Table.Td>
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={() => toggleExpand(assignment.assignmentId)}
-                      >
-                        {isExpanded ? 'Hide' : 'View'} Details
-                      </Button>
-                    </Table.Td>
                   </Table.Tr>
 
                   {/* Expanded details */}
@@ -1040,7 +1645,7 @@ function AdminGradesTable({
                                       '1px solid var(--mantine-color-gray-3)',
                                   }}
                                 >
-                                  <div>
+                                  <Box>
                                     <Text size="sm">
                                       {submission.studentName}
                                     </Text>
@@ -1051,7 +1656,7 @@ function AdminGradesTable({
                                     >
                                       {submission.submissionStatus}
                                     </Badge>
-                                  </div>
+                                  </Box>
                                   <Group gap="xs">
                                     {submission.grade ? (
                                       <Text size="sm" fw={500}>
