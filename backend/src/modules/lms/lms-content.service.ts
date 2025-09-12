@@ -55,20 +55,45 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const { sectionId, assignment, ...rest } = createModuleContentDto;
+    const { sectionId, assignment, type, ...rest } = createModuleContentDto;
 
-    const data: Prisma.ModuleContentCreateInput = {
+    let data: Prisma.ModuleContentCreateInput = {
       ...rest,
       module: { connect: { id: moduleId } },
       moduleSection: sectionId ? { connect: { id: sectionId } } : undefined,
       assignment: assignment ? { create: assignment } : undefined,
     };
 
-    //TODO: add content creation based on type
+    // Add content creation logic based on type
+    if (type) {
+      switch (type) {
+        case 'assignment':
+          // assignment already handled above
+          break;
+        case 'quiz':
+          // Example: handle quiz creation if quiz data is present
+          if (createModuleContentDto.quiz) {
+            data.quiz = { create: createModuleContentDto.quiz };
+          }
+          break;
+        case 'file':
+          // Example: handle file creation if file data is present
+          if (createModuleContentDto.file) {
+            data.file = { create: createModuleContentDto.file };
+          }
+          break;
+        // Add more cases as needed
+        default:
+          // No special handling
+          break;
+      }
+    }
     return (await this.prisma.client.moduleContent.create({
       data,
       include: {
         assignment: true,
+        quiz: true,
+        file: true,
       },
     })) as ModuleContent;
   }
