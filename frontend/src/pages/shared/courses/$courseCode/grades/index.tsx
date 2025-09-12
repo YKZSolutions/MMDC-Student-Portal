@@ -101,7 +101,7 @@ function CourseGrades() {
     <Stack gap={'md'} p={'md'}>
       {/*Header*/}
       <Group justify="space-between" align="center">
-        <Title>Grades</Title>
+        <Title size={'h2'}>Grades</Title>
         <Group align="start">
           <SearchComponent
             data={data as any}
