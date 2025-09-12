@@ -1,4 +1,3 @@
-import SearchComponent from '@/components/search-component.tsx'
 import SuspendedTableRows from '@/components/suspended-table-rows'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type {
@@ -21,10 +20,11 @@ import {
   Group,
   Progress,
   rem,
+  SegmentedControl,
   Stack,
   Table,
-  Tabs,
   Text,
+  TextInput,
   Title,
   Tooltip,
   useMantineTheme,
@@ -35,70 +35,11 @@ import {
   IconChevronRight,
   IconMinus,
   IconNote,
+  IconSearch,
   IconTrendingDown,
   IconTrendingUp,
 } from '@tabler/icons-react'
 import { Fragment, Suspense, useEffect, useState } from 'react'
-
-function CourseGrades() {
-  const { authUser } = useAuth('protected')
-  const [studentFiltered, setStudentFiltered] = useState<
-    StudentAssignmentGrade[]
-  >([])
-  const [mentorFiltered, setMentorFiltered] = useState<
-    CourseGradebookForMentor['assignments']
-  >([])
-  const [adminFiltered, setAdminFiltered] = useState<
-    CourseGradebookForMentor['assignments']
-  >([])
-  const [viewMode, setViewMode] = useState<'by-assignment' | 'by-student'>(
-    'by-assignment',
-  )
-
-  const { data, filtered, onFilter, identifiers } = getRoleSpecificContent({
-    role: authUser.role,
-    studentFiltered,
-    mentorFiltered,
-    adminFiltered,
-    setStudentFiltered,
-    setMentorFiltered,
-    setAdminFiltered,
-  })
-
-  useEffect(() => {
-    if (filtered.length === 0 && data.length > 0) {
-      onFilter(data as any)
-    }
-  }, [data])
-
-  return (
-    <Stack gap={'md'} p={'md'}>
-      <GradesHeader
-        role={authUser.role}
-        data={data}
-        onFilter={onFilter}
-        identifiers={identifiers}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-      />
-      {authUser.role === 'student' && (
-        <StudentGradesTable assignments={studentFiltered} />
-      )}
-      {authUser.role === 'mentor' && (
-        <ElevatedRoleGradesTable
-          assignments={mentorFiltered}
-          viewMode={viewMode}
-        />
-      )}
-      {authUser.role === 'admin' && (
-        <ElevatedRoleGradesTable
-          assignments={adminFiltered}
-          viewMode={viewMode}
-        />
-      )}
-    </Stack>
-  )
-}
 
 function getRoleSpecificContent({
   role,
@@ -156,49 +97,77 @@ function getRoleSpecificContent({
   }
 }
 
-interface GradesHeaderProps {
-  role: 'student' | 'mentor' | 'admin'
-  data: StudentAssignmentGrade[] | CourseGradebookForMentor['assignments']
-  onFilter: (filtered: any) => void
-  identifiers: any
-  viewMode: 'by-assignment' | 'by-student'
-  setViewMode: React.Dispatch<
-    React.SetStateAction<'by-assignment' | 'by-student'>
-  >
-}
+function CourseGrades() {
+  const { authUser } = useAuth('protected')
+  const [studentFiltered, setStudentFiltered] = useState<
+    StudentAssignmentGrade[]
+  >([])
+  const [mentorFiltered, setMentorFiltered] = useState<
+    CourseGradebookForMentor['assignments']
+  >([])
+  const [adminFiltered, setAdminFiltered] = useState<
+    CourseGradebookForMentor['assignments']
+  >([])
+  const [viewMode, setViewMode] = useState<'by-assignment' | 'by-student'>(
+    'by-assignment',
+  )
 
-function GradesHeader({
-  role,
-  data,
-  onFilter,
-  identifiers,
-  viewMode,
-  setViewMode,
-}: GradesHeaderProps) {
+  const { data, filtered, onFilter, identifiers } = getRoleSpecificContent({
+    role: authUser.role,
+    studentFiltered,
+    mentorFiltered,
+    adminFiltered,
+    setStudentFiltered,
+    setMentorFiltered,
+    setAdminFiltered,
+  })
+
+  useEffect(() => {
+    if (filtered.length === 0 && data.length > 0) {
+      onFilter(data as any)
+    }
+  }, [data])
+
   return (
-    <Group justify="space-between" align="center">
-      <Title size={'h2'}>Grades</Title>
-      <Group align="start">
-        <SearchComponent
-          data={data as any}
-          onFilter={onFilter as any}
-          identifiers={identifiers as any}
-          placeholder="Search..."
-        />
-        {(role === 'mentor' || role === 'admin') && (
-          <Tabs
-            value={viewMode}
-            onChange={(value) => setViewMode(value as any)}
-            variant="pills"
-          >
-            <Tabs.List>
-              <Tabs.Tab value="by-assignment">By Assignment</Tabs.Tab>
-              <Tabs.Tab value="by-student">By Student</Tabs.Tab>
-            </Tabs.List>
-          </Tabs>
-        )}
+    <Stack gap={'md'} p={'md'}>
+      <Group justify="space-between" align="center">
+        <Title size={'h2'}>Grades</Title>
+        <Group align="start">
+          {(authUser.role === 'mentor' || authUser.role === 'admin') && (
+            <SegmentedControl
+              value={viewMode}
+              onChange={(value) => setViewMode(value as any)}
+              data={[
+                { label: 'By Assignment', value: 'by-assignment' },
+                { label: 'By Student', value: 'by-student' },
+              ]}
+              color={'primary'}
+            />
+          )}
+          <TextInput
+            placeholder="Search..."
+            radius={'md'}
+            leftSection={<IconSearch size={18} stroke={1} />}
+            w={rem(250)}
+          />
+        </Group>
       </Group>
-    </Group>
+      {authUser.role === 'student' && (
+        <StudentGradesTable assignments={studentFiltered} />
+      )}
+      {authUser.role === 'mentor' && (
+        <ElevatedRoleGradesTable
+          assignments={mentorFiltered}
+          viewMode={viewMode}
+        />
+      )}
+      {authUser.role === 'admin' && (
+        <ElevatedRoleGradesTable
+          assignments={adminFiltered}
+          viewMode={viewMode}
+        />
+      )}
+    </Stack>
   )
 }
 
