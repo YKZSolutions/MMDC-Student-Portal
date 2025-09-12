@@ -16,9 +16,10 @@ import { theme } from './integrations/mantine/mantine-theme.ts'
 import reportWebVitals from './reportWebVitals.ts'
 
 import '@blocknote/core/fonts/inter.css'
+import '@blocknote/mantine/style.css'
+import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
-import '@blocknote/mantine/style.css'
 
 import './styles.css'
 
