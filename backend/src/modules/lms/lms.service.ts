@@ -11,8 +11,8 @@ import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { Prisma } from '@prisma/client';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { PaginatedModulesDto } from './dto/paginated-module.dto';
+import { FilterModulesDto } from './dto/filter-modules.dto';
 
 @Injectable()
 export class LmsService {
@@ -181,7 +181,7 @@ export class LmsService {
    * @param {AuthUser} user - The authenticated user making the request.
    * @param {BaseFilterDto} filters - Filters for search, pagination, and other options.
    *
-   * @returns {Promise<{ modules: ModuleDto[]; meta: any }>} A list of matching modules and pagination metadata.
+   * @returns {Promise<PaginatedModulesDto>} A list of matching modules and pagination metadata.
    *
    * @throws {NotFoundException} If no modules are found (Prisma `RecordNotFound`).
    */
@@ -199,7 +199,7 @@ export class LmsService {
   })
   async findAll(
     @LogParam('user') user: AuthUser,
-    @LogParam('filters') filters: BaseFilterDto,
+    @LogParam('filters') filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
@@ -253,7 +253,17 @@ export class LmsService {
       };
     }
 
-    // If admin retrieve all modules without course section
+    // All users can filter by academic year and term
+    if (filters.startYear || filters.endYear || filters.term) {
+      where.courseOffering = {
+        enrollmentPeriod: {
+          startYear: filters.startYear,
+          endYear: filters.endYear,
+          term: filters.term,
+        },
+      };
+    }
+
     const [modules, meta] = await this.prisma.client.module
       .paginate({
         where,
