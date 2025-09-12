@@ -11,7 +11,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["typedSql", "driverAdapters"]
+  previewFeatures = ["typedSql", "driverAdapters", "views"]
 }
 
 generator json {
@@ -838,7 +838,7 @@ model Notification {
 }
 
 // -------- VIEWS --------
-model StudentAssignmentsSubmissions {
+view StudentAssignmentsSubmissions {
   user_id                String           @db.Uuid
   firstName              String
   lastName               String
@@ -880,7 +880,4 @@ model StudentAssignmentsSubmissions {
   assignment_published_at DateTime
   assignment_created_at   DateTime
   is_todo                 Boolean
-
-  @@id([user_id, module_content_id])
-  @@map("StudentAssignmentsSubmissions")
 }

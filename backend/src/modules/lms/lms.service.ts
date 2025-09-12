@@ -157,6 +157,7 @@ export class LmsService {
               subtitle: c.subtitle,
               content: c.content,
               contentType: c.contentType,
+              isActive: true,
             })),
         );
 
