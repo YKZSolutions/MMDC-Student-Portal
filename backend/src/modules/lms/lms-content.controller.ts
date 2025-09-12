@@ -12,12 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
-import {
-  ApiCreatedResponse,
-  ApiExtraModels,
-  ApiOkResponse,
-  getSchemaPath,
-} from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, getSchemaPath, } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
@@ -53,7 +48,6 @@ export class LmsContentController {
     @Body() createModuleContentDto: CreateContentDto,
     @Param('lmsId') lmsId: string,
   ) {
-    console.log('lmsId', lmsId);
     return this.lmsContentService.create(createModuleContentDto, lmsId);
   }
 
