@@ -55,42 +55,15 @@ function CourseGrades() {
     'by-assignment',
   )
 
-  // Get role-specific data and filtering
-  const getRoleSpecificContent = () => {
-    switch (authUser.role) {
-      case 'student':
-        return {
-          data: mockStudentGradebook.assignments,
-          filtered: studentFiltered,
-          onFilter: setStudentFiltered,
-          identifiers: ['assignmentTitle'] as const,
-        }
-      case 'mentor':
-        return {
-          data: mockMentorGradebook.assignments,
-          filtered: mentorFiltered,
-          onFilter: setMentorFiltered,
-          identifiers: [
-            'assignmentTitle',
-            ['submissions', 'studentName'],
-          ] as const,
-        }
-      case 'admin':
-        return {
-          data: mockMentorGradebook.assignments, // Admins see same data as mentors but different view
-          filtered: adminFiltered,
-          onFilter: setAdminFiltered,
-          identifiers: [
-            'assignmentTitle',
-            ['submissions', 'studentName'],
-          ] as const,
-        }
-      default:
-        throw new Error('Invalid role')
-    }
-  }
-
-  const { data, filtered, onFilter, identifiers } = getRoleSpecificContent()
+  const { data, filtered, onFilter, identifiers } = getRoleSpecificContent({
+    role: authUser.role,
+    studentFiltered,
+    mentorFiltered,
+    adminFiltered,
+    setStudentFiltered,
+    setMentorFiltered,
+    setAdminFiltered,
+  })
 
   useEffect(() => {
     if (filtered.length === 0 && data.length > 0) {
@@ -100,45 +73,23 @@ function CourseGrades() {
 
   return (
     <Stack gap={'md'} p={'md'}>
-      {/*Header*/}
-      <Group justify="space-between" align="center">
-        <Title size={'h2'}>Grades</Title>
-        <Group align="start">
-          <SearchComponent
-            data={data as any}
-            onFilter={onFilter as any}
-            identifiers={identifiers as any}
-            placeholder="Search..."
-          />
-
-          {/* View mode tabs for mentor/admin */}
-          {(authUser.role === 'mentor' || authUser.role === 'admin') && (
-            <Tabs
-              value={viewMode}
-              onChange={(value) => setViewMode(value as any)}
-              variant="pills"
-            >
-              <Tabs.List>
-                <Tabs.Tab value="by-assignment">By Assignment</Tabs.Tab>
-                <Tabs.Tab value="by-student">By Student</Tabs.Tab>
-              </Tabs.List>
-            </Tabs>
-          )}
-        </Group>
-      </Group>
-
-      {/* Role-specific table views */}
+      <GradesHeader
+        role={authUser.role}
+        data={data}
+        onFilter={onFilter}
+        identifiers={identifiers}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+      />
       {authUser.role === 'student' && (
         <StudentGradesTable assignments={studentFiltered} />
       )}
-
       {authUser.role === 'mentor' && (
         <ElevatedRoleGradesTable
           assignments={mentorFiltered}
           viewMode={viewMode}
         />
       )}
-
       {authUser.role === 'admin' && (
         <ElevatedRoleGradesTable
           assignments={adminFiltered}
@@ -146,6 +97,108 @@ function CourseGrades() {
         />
       )}
     </Stack>
+  )
+}
+
+function getRoleSpecificContent({
+  role,
+  studentFiltered,
+  mentorFiltered,
+  adminFiltered,
+  setStudentFiltered,
+  setMentorFiltered,
+  setAdminFiltered,
+}: {
+  role: 'student' | 'mentor' | 'admin'
+  studentFiltered: StudentAssignmentGrade[]
+  mentorFiltered: CourseGradebookForMentor['assignments']
+  adminFiltered: CourseGradebookForMentor['assignments']
+  setStudentFiltered: React.Dispatch<
+    React.SetStateAction<StudentAssignmentGrade[]>
+  >
+  setMentorFiltered: React.Dispatch<
+    React.SetStateAction<CourseGradebookForMentor['assignments']>
+  >
+  setAdminFiltered: React.Dispatch<
+    React.SetStateAction<CourseGradebookForMentor['assignments']>
+  >
+}) {
+  switch (role) {
+    case 'student':
+      return {
+        data: mockStudentGradebook.assignments,
+        filtered: studentFiltered,
+        onFilter: setStudentFiltered,
+        identifiers: ['assignmentTitle'] as const,
+      }
+    case 'mentor':
+      return {
+        data: mockMentorGradebook.assignments,
+        filtered: mentorFiltered,
+        onFilter: setMentorFiltered,
+        identifiers: [
+          'assignmentTitle',
+          ['submissions', 'studentName'],
+        ] as const,
+      }
+    case 'admin':
+      return {
+        data: mockMentorGradebook.assignments,
+        filtered: adminFiltered,
+        onFilter: setAdminFiltered,
+        identifiers: [
+          'assignmentTitle',
+          ['submissions', 'studentName'],
+        ] as const,
+      }
+    default:
+      throw new Error('Invalid role')
+  }
+}
+
+interface GradesHeaderProps {
+  role: 'student' | 'mentor' | 'admin'
+  data: StudentAssignmentGrade[] | CourseGradebookForMentor['assignments']
+  onFilter: (filtered: any) => void
+  identifiers: any
+  viewMode: 'by-assignment' | 'by-student'
+  setViewMode: React.Dispatch<
+    React.SetStateAction<'by-assignment' | 'by-student'>
+  >
+}
+
+function GradesHeader({
+  role,
+  data,
+  onFilter,
+  identifiers,
+  viewMode,
+  setViewMode,
+}: GradesHeaderProps) {
+  return (
+    <Group justify="space-between" align="center">
+      <Title size={'h2'}>Grades</Title>
+      <Group align="start">
+        <SearchComponent
+          data={data as any}
+          onFilter={onFilter as any}
+          identifiers={identifiers as any}
+          placeholder="Search..."
+        />
+        {(role === 'mentor' || role === 'admin') && (
+          <Tabs
+            value={viewMode}
+            onChange={(value) => setViewMode(value as any)}
+            variant="pills"
+          >
+            <Tabs.List>
+              <Tabs.Tab value="by-assignment">By Assignment</Tabs.Tab>
+              <Tabs.Tab value="by-student">By Student</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        )}
+      </Group>
+    </Group>
   )
 }
 
@@ -281,8 +334,6 @@ function ElevatedRoleGradesTable({
     new Set(),
   )
 
-  const [isStudentExpanded, { toggle: toggleStudent }] = useDisclosure(false)
-
   const toggleExpand = (assignmentId: string) => {
     const newExpanded = new Set(expandedAssignments)
     if (newExpanded.has(assignmentId)) {
@@ -325,327 +376,7 @@ function ElevatedRoleGradesTable({
   }
 
   if (viewMode === 'by-student') {
-    // Student overview for admin
-    const studentMap = new Map()
-    let totalPossiblePoints = 0
-
-    assignments.forEach((assignment) => {
-      totalPossiblePoints += assignment.points || 0
-      assignment.submissions.forEach((submission) => {
-        if (!studentMap.has(submission.studentId)) {
-          studentMap.set(submission.studentId, {
-            studentId: submission.studentId,
-            studentName: submission.studentName,
-            totalScore: 0,
-            totalPossible: 0,
-            gradedAssignments: 0,
-            totalAssignments: 0,
-            assignments: [],
-          })
-        }
-        const student = studentMap.get(submission.studentId)
-        student.totalAssignments++
-        if (submission.grade) {
-          student.totalScore += submission.grade.score
-          student.totalPossible += submission.grade.maxScore
-          student.gradedAssignments++
-        }
-        studentMap.get(submission.studentId).assignments.push({
-          ...assignment,
-          submission,
-        })
-      })
-    })
-
-    return (
-      <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
-        <Card withBorder mb="md" p="md">
-          <Title order={4} mb="sm">
-            Class Overview
-          </Title>
-          <Group justify="space-evenly" px={'xl'}>
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Total Students
-              </Text>
-              <Text size="xl" fw={700}>
-                {studentMap.size}
-              </Text>
-            </Stack>
-            <Divider orientation="vertical" />
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Total Assignments
-              </Text>
-              <Text size="xl" fw={700}>
-                {assignments.length}
-              </Text>
-            </Stack>
-            <Divider orientation="vertical" />
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Class Average
-              </Text>
-              <Text size="xl" fw={700}>
-                {(
-                  Array.from(studentMap.values())
-                    .filter((s: any) => s.gradedAssignments > 0)
-                    .reduce(
-                      (sum: number, s: any) =>
-                        sum + (s.totalScore / s.totalPossible) * 100,
-                      0,
-                    ) /
-                  Math.max(
-                    1,
-                    Array.from(studentMap.values()).filter(
-                      (s: any) => s.gradedAssignments > 0,
-                    ).length,
-                  )
-                ).toFixed(1)}
-              </Text>
-            </Stack>
-          </Group>
-        </Card>
-
-        <Table
-          highlightOnHover
-          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-          styles={{
-            th: {
-              fontWeight: 500,
-            },
-          }}
-          verticalSpacing={'lg'}
-        >
-          <Table.Thead>
-            <Table.Tr
-              style={{
-                border: '0px',
-                borderBottom: '1px solid',
-                borderColor: 'var(--mantine-color-gray-3)',
-              }}
-              bg={'gray.1'}
-              c={'dark.5'}
-            >
-              <Table.Th>Student</Table.Th>
-              <Table.Th>Progress</Table.Th>
-              <Table.Th>Current Score</Table.Th>
-              <Table.Th>Grade Percentage</Table.Th>
-              <Table.Th>Trend</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            <Suspense fallback={<SuspendedTableRows columns={5} />}>
-              {Array.from(studentMap.values())
-                .sort(
-                  (a: any, b: any) =>
-                    b.totalScore / Math.max(1, b.totalPossible) -
-                    a.totalScore / Math.max(1, a.totalPossible),
-                )
-                .map((student: any) => {
-                  const percentage =
-                    student.totalPossible > 0
-                      ? (student.totalScore / student.totalPossible) * 100
-                      : 0
-                  const completionRate =
-                    (student.gradedAssignments / student.totalAssignments) * 100
-
-                  return (
-                    <Fragment key={student.studentId}>
-                      <Table.Tr
-                        key={student.studentId}
-                        onClick={toggleStudent}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <Table.Td>
-                          <Box>
-                            <Text fw={500}>{student.studentName}</Text>
-                            <Text size="xs" c="dimmed">
-                              ID: {student.studentId}
-                            </Text>
-                          </Box>
-                        </Table.Td>
-                        <Table.Td>
-                          <Stack gap="xs">
-                            <Progress
-                              value={completionRate}
-                              size="sm"
-                              color="blue"
-                            />
-                            <Text size="sm">
-                              {student.gradedAssignments}/
-                              {student.totalAssignments} completed
-                            </Text>
-                          </Stack>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text fw={500}>
-                            {student.totalScore}/{student.totalPossible}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text
-                            fw={500}
-                            c={
-                              percentage >= 80
-                                ? 'green'
-                                : percentage >= 60
-                                  ? 'orange'
-                                  : 'red'
-                            }
-                          >
-                            {percentage.toFixed(1)}%
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          {percentage >= 80 ? (
-                            <IconTrendingUp color="green" size={20} />
-                          ) : percentage >= 60 ? (
-                            <IconMinus color="orange" size={20} />
-                          ) : (
-                            <IconTrendingDown color="red" size={20} />
-                          )}
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td
-                          colSpan={6}
-                          p={0}
-                          style={{ background: '#f8f9fa' }}
-                        >
-                          <Collapse in={isStudentExpanded}>
-                            <Stack p={'md'} gap={'xs'}>
-                              {Array.from(studentMap.values()).flatMap(
-                                (student: any) =>
-                                  student.assignments.map(
-                                    (assignmentWithSubmission: any) => (
-                                      <Card
-                                        key={`${student.studentId}-${assignmentWithSubmission.assignmentId}`}
-                                        radius="md"
-                                        withBorder
-                                      >
-                                        <Group
-                                          justify="space-between"
-                                          align="center"
-                                          style={{ width: '100%' }}
-                                        >
-                                          {/* Assignment title & due */}
-                                          <Box style={{ minWidth: 180 }}>
-                                            <Text fw={500} size="md">
-                                              {
-                                                assignmentWithSubmission.assignmentTitle
-                                              }
-                                            </Text>
-                                            <Text size="xs" c="dimmed">
-                                              {assignmentWithSubmission.points}{' '}
-                                              points
-                                            </Text>
-                                            <Text size="xs" c="dimmed">
-                                              {formatTimestampToDateTimeText(
-                                                assignmentWithSubmission.dueDate,
-                                                'by',
-                                              )}
-                                            </Text>
-                                            <Badge
-                                              color={
-                                                assignmentWithSubmission
-                                                  .submission.submissionStatus
-                                              }
-                                              variant="filled"
-                                              size="md"
-                                              style={{
-                                                textTransform: 'capitalize',
-                                                fontWeight: 600,
-                                              }}
-                                            >
-                                              {assignmentWithSubmission.submission.submissionStatus.replace(
-                                                /-/g,
-                                                ' ',
-                                              )}
-                                            </Badge>
-                                          </Box>
-
-                                          <Group>
-                                            {/* Grade */}
-                                            <Box
-                                              style={{
-                                                minWidth: 120,
-                                                textAlign: 'right',
-                                              }}
-                                            >
-                                              {assignmentWithSubmission
-                                                .submission.grade ? (
-                                                <>
-                                                  <Text fw={700} size="md">
-                                                    {
-                                                      assignmentWithSubmission
-                                                        .submission.grade.score
-                                                    }{' '}
-                                                    /{' '}
-                                                    {
-                                                      assignmentWithSubmission
-                                                        .submission.grade
-                                                        .maxScore
-                                                    }
-                                                  </Text>
-                                                  <Text size="xs" c="dimmed">
-                                                    {assignmentWithSubmission
-                                                      .submission.grade
-                                                      .gradedAt &&
-                                                      `Graded ${formatTimestampToDateTimeText(assignmentWithSubmission.submission.grade.gradedAt)}`}
-                                                  </Text>
-                                                </>
-                                              ) : (
-                                                <Text
-                                                  c="dimmed"
-                                                  fw={500}
-                                                  size="md"
-                                                >
-                                                  - /{' '}
-                                                  {
-                                                    assignmentWithSubmission.points
-                                                  }
-                                                </Text>
-                                              )}
-                                            </Box>
-
-                                            {/* Action button */}
-                                            <Button
-                                              size="xs"
-                                              variant="light"
-                                              style={{ minWidth: 64 }}
-                                              onClick={() => {
-                                                console.log(
-                                                  'Grade assignment:',
-                                                  assignmentWithSubmission.assignmentId,
-                                                  student.studentId,
-                                                )
-                                              }}
-                                            >
-                                              {assignmentWithSubmission
-                                                .submission.submissionStatus ===
-                                              'graded'
-                                                ? 'Edit'
-                                                : 'Grade'}
-                                            </Button>
-                                          </Group>
-                                        </Group>
-                                      </Card>
-                                    ),
-                                  ),
-                              )}
-                            </Stack>
-                          </Collapse>
-                        </Table.Td>
-                      </Table.Tr>
-                    </Fragment>
-                  )
-                })}
-            </Suspense>
-          </Table.Tbody>
-        </Table>
-      </Box>
-    )
+    return <ElevatedRoleGradesTableByStudent assignments={assignments} />
   }
 
   // Default: by-assignment view with detailed stats
@@ -766,73 +497,7 @@ function ElevatedRoleGradesTable({
                   <Table.Tr bd={0}>
                     <Table.Td colSpan={4} p={0}>
                       <Collapse in={isExpanded}>
-                        <Box bg="gray.0" p="lg">
-                          <Text fw={500} size="sm" mb="xs">
-                            Student Performance
-                          </Text>
-                          <Stack gap={4}>
-                            {assignment.submissions.map((submission) => (
-                              <Group
-                                key={submission.studentId}
-                                justify="space-between"
-                                py={'sm'}
-                                px="xs"
-                                style={{
-                                  borderBottom:
-                                    '1px solid var(--mantine-color-gray-3)',
-                                }}
-                              >
-                                <Box>
-                                  <Text size="sm">
-                                    {submission.studentName}
-                                  </Text>
-                                  <Badge
-                                    color={submission.submissionStatus}
-                                    variant="filled"
-                                    size="xs"
-                                  >
-                                    {submission.submissionStatus}
-                                  </Badge>
-                                </Box>
-                                <Group gap="xs">
-                                  {submission.grade ? (
-                                    <Text size="sm" fw={500} c={'dark.5'}>
-                                      {submission.grade.score}/
-                                      {submission.grade.maxScore}
-                                    </Text>
-                                  ) : (
-                                    <Text size="sm" c="dimmed">
-                                      Not graded
-                                    </Text>
-                                  )}
-                                  {submission.grade?.feedback && (
-                                    <Tooltip label={submission.grade.feedback}>
-                                      <IconNote
-                                        size={16}
-                                        color={theme.colors.dark[4]}
-                                      />
-                                    </Tooltip>
-                                  )}
-                                  <Button
-                                    size="xs"
-                                    variant="subtle"
-                                    onClick={() =>
-                                      console.log(
-                                        'Grade:',
-                                        assignment.assignmentId,
-                                        submission.studentId,
-                                      )
-                                    }
-                                  >
-                                    {submission.submissionStatus === 'graded'
-                                      ? 'Edit'
-                                      : 'Grade'}
-                                  </Button>
-                                </Group>
-                              </Group>
-                            ))}
-                          </Stack>
-                        </Box>
+                        <AssignmentRowByAssignment assignment={assignment} />
                       </Collapse>
                     </Table.Td>
                   </Table.Tr>
@@ -846,599 +511,212 @@ function ElevatedRoleGradesTable({
   )
 }
 
-function MentorGradesTable({
-  assignments,
-  viewMode = 'by-assignment',
+function AssignmentRowByAssignment({
+  assignment,
 }: {
-  assignments: CourseGradebookForMentor['assignments']
-  viewMode?: 'by-assignment' | 'by-student'
+  assignment: CourseGradebookForMentor['assignments'][number]
 }) {
-  const [expandedAssignments, setExpandedAssignments] = useState<Set<string>>(
-    new Set(),
-  )
-
-  const toggleExpand = (assignmentId: string) => {
-    const newExpanded = new Set(expandedAssignments)
-    if (newExpanded.has(assignmentId)) {
-      newExpanded.delete(assignmentId)
-    } else {
-      newExpanded.add(assignmentId)
-    }
-    setExpandedAssignments(newExpanded)
-  }
-
-  const getAssignmentStats = (
-    assignment: CourseGradebookForMentor['assignments'][number],
-  ) => {
-    const totalSubmissions = assignment.submissions.length
-    const gradedSubmissions = assignment.submissions.filter(
-      (s) => s.grade,
-    ).length
-    const averageScore =
-      gradedSubmissions > 0
-        ? assignment.submissions
-            .filter((s) => s.grade)
-            .reduce((sum, s) => sum + (s.grade?.score || 0), 0) /
-          gradedSubmissions
-        : 0
-
-    return {
-      totalSubmissions,
-      gradedSubmissions,
-      averageScore,
-      completionRate: (gradedSubmissions / totalSubmissions) * 100,
-    }
-  }
-
-  if (viewMode === 'by-student') {
-    // Group by student view
-    const studentMap = new Map()
-    assignments.forEach((assignment) => {
-      assignment.submissions.forEach((submission) => {
-        if (!studentMap.has(submission.studentId)) {
-          studentMap.set(submission.studentId, {
-            studentId: submission.studentId,
-            studentName: submission.studentName,
-            assignments: [],
-          })
-        }
-        studentMap.get(submission.studentId).assignments.push({
-          ...assignment,
-          submission,
-        })
-      })
-    })
-
-    return (
-      <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
-        <Card withBorder mb="md" p="md">
-          <Title order={4} mb="sm">
-            Class Overview
-          </Title>
-          <Group justify="space-evenly" px={'xl'}>
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Total Students
-              </Text>
-              <Text size="xl" fw={700}>
-                {studentMap.size}
-              </Text>
-            </Stack>
-            <Divider orientation="vertical" />
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Total Assignments
-              </Text>
-              <Text size="xl" fw={700}>
-                {assignments.length}
-              </Text>
-            </Stack>
-            <Divider orientation="vertical" />
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Class Average
-              </Text>
-              <Text size="xl" fw={700}>
-                {(
-                  Array.from(studentMap.values())
-                    .filter((s: any) => s.gradedAssignments > 0)
-                    .reduce(
-                      (sum: number, s: any) =>
-                        sum + (s.totalScore / s.totalPossible) * 100,
-                      0,
-                    ) /
-                  Math.max(
-                    1,
-                    Array.from(studentMap.values()).filter(
-                      (s: any) => s.gradedAssignments > 0,
-                    ).length,
-                  )
-                ).toFixed(1)}
-              </Text>
-            </Stack>
-          </Group>
-        </Card>
-        <Table
-          highlightOnHover
-          highlightOnHoverColor="gray.0"
-          style={{ borderRadius: rem('8px'), minWidth: '1000px' }}
-        >
-          <Table.Thead>
-            <Table.Tr bg={'gray.1'} c={'dark.5'}>
-              <Table.Th>Student</Table.Th>
-              <Table.Th>Assignment</Table.Th>
-              <Table.Th>Due Date</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Submitted</Table.Th>
-              <Table.Th>Grade</Table.Th>
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            <Suspense fallback={<SuspendedTableRows columns={7} />}>
-              {Array.from(studentMap.values()).flatMap((student: any) =>
-                student.assignments.map((assignmentWithSubmission: any) => (
-                  <Table.Tr
-                    key={`${student.studentId}-${assignmentWithSubmission.assignmentId}`}
-                  >
-                    <Table.Td>
-                      <Text fw={500}>{student.studentName}</Text>
-                      <Text size="xs" c="dimmed">
-                        ID: {student.studentId}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text>{assignmentWithSubmission.assignmentTitle}</Text>
-                      <Text size="xs" c="dimmed">
-                        {assignmentWithSubmission.points} points
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      {formatTimestampToDateTimeText(
-                        assignmentWithSubmission.dueDate,
-                        'by',
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        color={
-                          assignmentWithSubmission.submission.submissionStatus
-                        }
-                        variant="filled"
-                        size="sm"
-                      >
-                        {assignmentWithSubmission.submission.submissionStatus}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      {assignmentWithSubmission.submission.submissionTimestamp
-                        ? formatTimestampToDateTimeText(
-                            assignmentWithSubmission.submission
-                              .submissionTimestamp,
-                          )
-                        : 'Not Submitted'}
-                    </Table.Td>
-                    <Table.Td>
-                      {assignmentWithSubmission.submission.grade ? (
-                        <Box>
-                          <Text fw={500}>
-                            {assignmentWithSubmission.submission.grade.score} /{' '}
-                            {assignmentWithSubmission.submission.grade.maxScore}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {assignmentWithSubmission.submission.grade
-                              .gradedAt &&
-                              `Graded ${formatTimestampToDateTimeText(assignmentWithSubmission.submission.grade.gradedAt)}`}
-                          </Text>
-                        </Box>
-                      ) : (
-                        <Text c="dimmed">
-                          - / {assignmentWithSubmission.points}
-                        </Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={() => {
-                          console.log(
-                            'Grade assignment:',
-                            assignmentWithSubmission.assignmentId,
-                            student.studentId,
-                          )
-                        }}
-                      >
-                        {assignmentWithSubmission.submission
-                          .submissionStatus === 'graded'
-                          ? 'Edit'
-                          : 'Grade'}
-                      </Button>
-                    </Table.Td>
-                  </Table.Tr>
-                )),
-              )}
-            </Suspense>
-          </Table.Tbody>
-        </Table>
-      </Box>
-    )
-  }
-
-  // Default: by-assignment view with collapsible grouping
+  const theme = useMantineTheme()
   return (
-    <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
-      <Table
-        highlightOnHover
-        highlightOnHoverColor="gray.0"
-        style={{ borderRadius: rem('8px'), minWidth: '1000px' }}
-      >
-        <Table.Thead>
-          <Table.Tr bg={'gray.1'} c={'dark.5'}>
-            <Table.Th>Assignment</Table.Th>
-            <Table.Th>Due Date</Table.Th>
-            <Table.Th>Progress</Table.Th>
-            <Table.Th>Average Score</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          <Suspense fallback={<SuspendedTableRows columns={5} />}>
-            {assignments.map((assignment) => {
-              const stats = getAssignmentStats(assignment)
-              const isExpanded = expandedAssignments.has(
-                assignment.assignmentId,
-              )
-
-              return (
-                <>
-                  <Table.Tr key={assignment.assignmentId}>
-                    <Table.Td>
-                      <Group gap="xs">
-                        <ActionIcon
-                          variant="transparent"
-                          size="sm"
-                          onClick={() => toggleExpand(assignment.assignmentId)}
-                        >
-                          {isExpanded ? (
-                            <IconChevronDown size={16} />
-                          ) : (
-                            <IconChevronRight size={16} />
-                          )}
-                        </ActionIcon>
-                        <Box>
-                          <Text fw={500}>{assignment.assignmentTitle}</Text>
-                          <Text size="sm" c="dimmed">
-                            {assignment.points} points
-                          </Text>
-                        </Box>
-                      </Group>
-                    </Table.Td>
-                    <Table.Td>
-                      {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
-                    </Table.Td>
-                    <Table.Td>
-                      <Stack gap="xs">
-                        <Progress
-                          value={stats.completionRate}
-                          size="sm"
-                          color="green"
-                        />
-                        <Text size="sm">
-                          {stats.gradedSubmissions}/{stats.totalSubmissions}{' '}
-                          graded
-                        </Text>
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text fw={500}>
-                        {stats.averageScore.toFixed(1)}/{assignment.points}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {(
-                          (stats.averageScore / (assignment.points || 1)) *
-                          100
-                        ).toFixed(1)}
-                        %
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={() => toggleExpand(assignment.assignmentId)}
-                      >
-                        {isExpanded ? 'Hide' : 'View'} Students
-                      </Button>
-                    </Table.Td>
-                  </Table.Tr>
-
-                  {/* Expanded student rows */}
-                  {isExpanded && (
-                    <Table.Tr>
-                      <Table.Td colSpan={6} p={0}>
-                        <Collapse in={isExpanded}>
-                          <Box bg="gray.0" p="sm">
-                            <Text fw={500} size="sm" mb={6}>
-                              Student Performance
-                            </Text>
-
-                            <Table
-                              withColumnBorders
-                              withRowBorders={false}
-                              highlightOnHover
-                              verticalSpacing="xs"
-                              horizontalSpacing="sm"
-                            >
-                              <Table.Thead>
-                                <Table.Tr>
-                                  <Table.Th w="40%">Student</Table.Th>
-                                  <Table.Th w="20%">Status</Table.Th>
-                                  <Table.Th w="20%">Grade</Table.Th>
-                                  <Table.Th w="20%" ta="right">
-                                    Actions
-                                  </Table.Th>
-                                </Table.Tr>
-                              </Table.Thead>
-
-                              <Table.Tbody>
-                                {assignment.submissions.map((submission) => (
-                                  <Table.Tr key={submission.studentId}>
-                                    <Table.Td>
-                                      <Text size="sm">
-                                        {submission.studentName}
-                                      </Text>
-                                    </Table.Td>
-
-                                    <Table.Td>
-                                      <Badge
-                                        color={submission.submissionStatus}
-                                        variant="light"
-                                        size="sm"
-                                      >
-                                        {submission.submissionStatus}
-                                      </Badge>
-                                    </Table.Td>
-
-                                    <Table.Td>
-                                      {submission.grade ? (
-                                        <Text size="sm" fw={500}>
-                                          {submission.grade.score}/
-                                          {submission.grade.maxScore}
-                                        </Text>
-                                      ) : (
-                                        <Text size="sm" c="dimmed">
-                                          Not graded
-                                        </Text>
-                                      )}
-                                    </Table.Td>
-
-                                    <Table.Td ta="right">
-                                      <Group
-                                        gap={6}
-                                        justify="flex-end"
-                                        wrap="nowrap"
-                                      >
-                                        {submission.grade?.feedback && (
-                                          <Tooltip
-                                            label={submission.grade.feedback}
-                                          >
-                                            <IconNote size={16} color="blue" />
-                                          </Tooltip>
-                                        )}
-                                        <Button
-                                          size="xs"
-                                          variant="subtle"
-                                          onClick={() =>
-                                            console.log(
-                                              'Grade:',
-                                              assignment.assignmentId,
-                                              submission.studentId,
-                                            )
-                                          }
-                                        >
-                                          {submission.submissionStatus ===
-                                          'graded'
-                                            ? 'Edit'
-                                            : 'Grade'}
-                                        </Button>
-                                      </Group>
-                                    </Table.Td>
-                                  </Table.Tr>
-                                ))}
-                              </Table.Tbody>
-                            </Table>
-                          </Box>
-                        </Collapse>
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
-                </>
-              )
-            })}
-          </Suspense>
-        </Table.Tbody>
-      </Table>
+    <Box bg="gray.0" p="lg">
+      <Text fw={500} size="sm" mb="xs">
+        Student Performance
+      </Text>
+      <Stack gap={4}>
+        {assignment.submissions.map((submission) => (
+          <Group
+            key={submission.studentId}
+            justify="space-between"
+            py={'sm'}
+            px="xs"
+            style={{
+              borderBottom: '1px solid var(--mantine-color-gray-3)',
+            }}
+          >
+            <Box>
+              <Text size="sm">{submission.studentName}</Text>
+              <Badge
+                color={submission.submissionStatus}
+                variant="filled"
+                size="xs"
+              >
+                {submission.submissionStatus}
+              </Badge>
+            </Box>
+            <Group gap="xs">
+              {submission.grade ? (
+                <Text size="sm" fw={500} c={'dark.5'}>
+                  {submission.grade.score}/{submission.grade.maxScore}
+                </Text>
+              ) : (
+                <Text size="sm" c="dimmed">
+                  Not graded
+                </Text>
+              )}
+              {submission.grade?.feedback && (
+                <Tooltip label={submission.grade.feedback}>
+                  <IconNote size={16} color={theme.colors.dark[4]} />
+                </Tooltip>
+              )}
+              <Button
+                size="xs"
+                variant="subtle"
+                onClick={() =>
+                  console.log(
+                    'Grade:',
+                    assignment.assignmentId,
+                    submission.studentId,
+                  )
+                }
+              >
+                {submission.submissionStatus === 'graded' ? 'Edit' : 'Grade'}
+              </Button>
+            </Group>
+          </Group>
+        ))}
+      </Stack>
     </Box>
   )
 }
 
-// --- Admin View Table (read-only oversight with summary stats) ---
-function AdminGradesTable({
+function ElevatedRoleGradesTableByStudent({
   assignments,
-  viewMode = 'by-assignment',
 }: {
   assignments: CourseGradebookForMentor['assignments']
-  viewMode?: 'by-assignment' | 'by-student'
 }) {
-  const [expandedAssignments, setExpandedAssignments] = useState<Set<string>>(
-    new Set(),
-  )
+  const [isStudentExpanded, { toggle: toggleStudent }] = useDisclosure(false)
+  // Student overview for admin
+  const studentMap = new Map()
+  let totalPossiblePoints = 0
 
-  const toggleExpand = (assignmentId: string) => {
-    const newExpanded = new Set(expandedAssignments)
-    if (newExpanded.has(assignmentId)) {
-      newExpanded.delete(assignmentId)
-    } else {
-      newExpanded.add(assignmentId)
-    }
-    setExpandedAssignments(newExpanded)
-  }
-
-  const getDetailedStats = (
-    assignment: CourseGradebookForMentor['assignments'][number],
-  ) => {
-    const scores = assignment.submissions
-      .filter((s) => s.grade)
-      .map((s) => s.grade!.score)
-
-    const totalSubmissions = assignment.submissions.length
-    const gradedSubmissions = scores.length
-    const averageScore =
-      scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
-    const minScore = scores.length > 0 ? Math.min(...scores) : 0
-    const maxScore = scores.length > 0 ? Math.max(...scores) : 0
-
-    return {
-      totalSubmissions,
-      gradedSubmissions,
-      pendingSubmissions: assignment.submissions.filter(
-        (s) => s.submissionStatus === 'pending',
-      ).length,
-      submittedSubmissions: assignment.submissions.filter(
-        (s) => s.submissionStatus === 'submitted',
-      ).length,
-      averageScore,
-      minScore,
-      maxScore,
-      completionRate: (gradedSubmissions / totalSubmissions) * 100,
-      averagePercentage: (averageScore / (assignment.points || 1)) * 100,
-    }
-  }
-
-  if (viewMode === 'by-student') {
-    // Student overview for admin
-    const studentMap = new Map()
-    let totalPossiblePoints = 0
-
-    assignments.forEach((assignment) => {
-      totalPossiblePoints += assignment.points || 0
-      assignment.submissions.forEach((submission) => {
-        if (!studentMap.has(submission.studentId)) {
-          studentMap.set(submission.studentId, {
-            studentId: submission.studentId,
-            studentName: submission.studentName,
-            totalScore: 0,
-            totalPossible: 0,
-            gradedAssignments: 0,
-            totalAssignments: 0,
-          })
-        }
-        const student = studentMap.get(submission.studentId)
-        student.totalAssignments++
-        if (submission.grade) {
-          student.totalScore += submission.grade.score
-          student.totalPossible += submission.grade.maxScore
-          student.gradedAssignments++
-        }
+  assignments.forEach((assignment) => {
+    totalPossiblePoints += assignment.points || 0
+    assignment.submissions.forEach((submission) => {
+      if (!studentMap.has(submission.studentId)) {
+        studentMap.set(submission.studentId, {
+          studentId: submission.studentId,
+          studentName: submission.studentName,
+          totalScore: 0,
+          totalPossible: 0,
+          gradedAssignments: 0,
+          totalAssignments: 0,
+          assignments: [],
+        })
+      }
+      const student = studentMap.get(submission.studentId)
+      student.totalAssignments++
+      if (submission.grade) {
+        student.totalScore += submission.grade.score
+        student.totalPossible += submission.grade.maxScore
+        student.gradedAssignments++
+      }
+      studentMap.get(submission.studentId).assignments.push({
+        ...assignment,
+        submission,
       })
     })
+  })
 
-    return (
-      <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
-        <Card withBorder mb="md" p="md">
-          <Title order={4} mb="sm">
-            Class Overview
-          </Title>
-          <Group justify="space-evenly" px={'xl'}>
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Total Students
-              </Text>
-              <Text size="xl" fw={700}>
-                {studentMap.size}
-              </Text>
-            </Stack>
-            <Divider orientation="vertical" />
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Total Assignments
-              </Text>
-              <Text size="xl" fw={700}>
-                {assignments.length}
-              </Text>
-            </Stack>
-            <Divider orientation="vertical" />
-            <Stack gap={'xs'} align="center">
-              <Text size="sm" c="dimmed">
-                Class Average
-              </Text>
-              <Text size="xl" fw={700}>
-                {(
-                  Array.from(studentMap.values())
-                    .filter((s: any) => s.gradedAssignments > 0)
-                    .reduce(
-                      (sum: number, s: any) =>
-                        sum + (s.totalScore / s.totalPossible) * 100,
-                      0,
-                    ) /
-                  Math.max(
-                    1,
-                    Array.from(studentMap.values()).filter(
-                      (s: any) => s.gradedAssignments > 0,
-                    ).length,
-                  )
-                ).toFixed(1)}
-              </Text>
-            </Stack>
-          </Group>
-        </Card>
-
-        <Table
-          highlightOnHover
-          style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-          styles={{
-            th: {
-              fontWeight: 500,
-            },
-          }}
-          verticalSpacing={'lg'}
-        >
-          <Table.Thead>
-            <Table.Tr
-              style={{
-                border: '0px',
-                borderBottom: '1px solid',
-                borderColor: 'var(--mantine-color-gray-3)',
-              }}
-              bg={'gray.1'}
-              c={'dark.5'}
-            >
-              <Table.Th>Student</Table.Th>
-              <Table.Th>Progress</Table.Th>
-              <Table.Th>Current Score</Table.Th>
-              <Table.Th>Grade Percentage</Table.Th>
-              <Table.Th>Trend</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            <Suspense fallback={<SuspendedTableRows columns={5} />}>
-              {Array.from(studentMap.values())
-                .sort(
-                  (a: any, b: any) =>
-                    b.totalScore / Math.max(1, b.totalPossible) -
-                    a.totalScore / Math.max(1, a.totalPossible),
+  return (
+    <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
+      <Card withBorder mb="md" p="md">
+        <Title order={4} mb="sm">
+          Class Overview
+        </Title>
+        <Group justify="space-evenly" px={'xl'}>
+          <Stack gap={'xs'} align="center">
+            <Text size="sm" c="dimmed">
+              Total Students
+            </Text>
+            <Text size="xl" fw={700}>
+              {studentMap.size}
+            </Text>
+          </Stack>
+          <Divider orientation="vertical" />
+          <Stack gap={'xs'} align="center">
+            <Text size="sm" c="dimmed">
+              Total Assignments
+            </Text>
+            <Text size="xl" fw={700}>
+              {assignments.length}
+            </Text>
+          </Stack>
+          <Divider orientation="vertical" />
+          <Stack gap={'xs'} align="center">
+            <Text size="sm" c="dimmed">
+              Class Average
+            </Text>
+            <Text size="xl" fw={700}>
+              {(
+                Array.from(studentMap.values())
+                  .filter((s: any) => s.gradedAssignments > 0)
+                  .reduce(
+                    (sum: number, s: any) =>
+                      sum + (s.totalScore / s.totalPossible) * 100,
+                    0,
+                  ) /
+                Math.max(
+                  1,
+                  Array.from(studentMap.values()).filter(
+                    (s: any) => s.gradedAssignments > 0,
+                  ).length,
                 )
-                .map((student: any) => {
-                  const percentage =
-                    student.totalPossible > 0
-                      ? (student.totalScore / student.totalPossible) * 100
-                      : 0
-                  const completionRate =
-                    (student.gradedAssignments / student.totalAssignments) * 100
+              ).toFixed(1)}
+            </Text>
+          </Stack>
+        </Group>
+      </Card>
 
-                  return (
-                    <Table.Tr key={student.studentId}>
+      <Table
+        highlightOnHover
+        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+        styles={{
+          th: {
+            fontWeight: 500,
+          },
+        }}
+        verticalSpacing={'lg'}
+      >
+        <Table.Thead>
+          <Table.Tr
+            style={{
+              border: '0px',
+              borderBottom: '1px solid',
+              borderColor: 'var(--mantine-color-gray-3)',
+            }}
+            bg={'gray.1'}
+            c={'dark.5'}
+          >
+            <Table.Th>Student</Table.Th>
+            <Table.Th>Progress</Table.Th>
+            <Table.Th>Current Score</Table.Th>
+            <Table.Th>Grade Percentage</Table.Th>
+            <Table.Th>Trend</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Suspense fallback={<SuspendedTableRows columns={5} />}>
+            {Array.from(studentMap.values())
+              .sort(
+                (a: any, b: any) =>
+                  b.totalScore / Math.max(1, b.totalPossible) -
+                  a.totalScore / Math.max(1, a.totalPossible),
+              )
+              .map((student: any) => {
+                const percentage =
+                  student.totalPossible > 0
+                    ? (student.totalScore / student.totalPossible) * 100
+                    : 0
+                const completionRate =
+                  (student.gradedAssignments / student.totalAssignments) * 100
+
+                return (
+                  <Fragment key={student.studentId}>
+                    <Table.Tr
+                      key={student.studentId}
+                      onClick={toggleStudent}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <Table.Td>
                         <Box>
                           <Text fw={500}>{student.studentName}</Text>
@@ -1489,223 +767,128 @@ function AdminGradesTable({
                         )}
                       </Table.Td>
                     </Table.Tr>
-                  )
-                })}
-            </Suspense>
-          </Table.Tbody>
-        </Table>
-      </Box>
-    )
-  }
-
-  // Default: by-assignment view with detailed stats
-  return (
-    <Box>
-      <Table
-        highlightOnHover
-        style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
-        styles={{
-          th: {
-            fontWeight: 500,
-          },
-        }}
-        verticalSpacing={'lg'}
-      >
-        <Table.Thead>
-          <Table.Tr
-            style={{
-              border: '0px',
-              borderBottom: '1px solid',
-              borderColor: 'var(--mantine-color-gray-3)',
-            }}
-            bg={'gray.1'}
-            c={'dark.5'}
-          >
-            <Table.Th>Assignment</Table.Th>
-            <Table.Th>Due Date</Table.Th>
-            <Table.Th>Completion</Table.Th>
-            <Table.Th>Score Statistics</Table.Th>
-            <Table.Th>Class Performance</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          <Suspense fallback={<SuspendedTableRows columns={6} />}>
-            {assignments.map((assignment) => {
-              const stats = getDetailedStats(assignment)
-              const isExpanded = expandedAssignments.has(
-                assignment.assignmentId,
-              )
-
-              return (
-                <>
-                  <Table.Tr
-                    key={assignment.assignmentId}
-                    onClick={() => toggleExpand(assignment.assignmentId)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <Table.Td>
-                      <Group gap="xs">
-                        <ActionIcon
-                          variant="transparent"
-                          size="sm"
-                          onClick={() => toggleExpand(assignment.assignmentId)}
-                        >
-                          {isExpanded ? (
-                            <IconChevronDown size={16} />
-                          ) : (
-                            <IconChevronRight size={16} />
-                          )}
-                        </ActionIcon>
-                        <Box>
-                          <Text fw={500}>{assignment.assignmentTitle}</Text>
-                          <Text size="sm" c="dimmed">
-                            {assignment.points} points
-                          </Text>
-                        </Box>
-                      </Group>
-                    </Table.Td>
-                    <Table.Td>
-                      {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
-                    </Table.Td>
-                    <Table.Td>
-                      <Stack gap="xs">
-                        <Progress
-                          value={stats.completionRate}
-                          size="sm"
-                          color="green"
-                        />
-                        <Group gap="xs">
-                          <Text size="xs">
-                            Pending: {stats.pendingSubmissions}
-                          </Text>
-                          <Text size="xs">
-                            Submitted: {stats.submittedSubmissions}
-                          </Text>
-                          <Text size="xs">
-                            Graded: {stats.gradedSubmissions}
-                          </Text>
-                        </Group>
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td>
-                      <Stack gap="xs">
-                        <Text size="sm" fw={500}>
-                          Avg: {stats.averageScore.toFixed(1)}/
-                          {assignment.points}
-                        </Text>
-                        <Group gap="xs">
-                          <Text size="xs" c="dimmed">
-                            Min: {stats.minScore}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            Max: {stats.maxScore}
-                          </Text>
-                        </Group>
-                      </Stack>
-                    </Table.Td>
-                    <Table.Td>
-                      <Stack gap="xs">
-                        <Text
-                          fw={500}
-                          c={
-                            stats.averagePercentage >= 80
-                              ? 'green'
-                              : stats.averagePercentage >= 60
-                                ? 'orange'
-                                : 'red'
-                          }
-                        >
-                          {stats.averagePercentage.toFixed(1)}%
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          Class Average
-                        </Text>
-                      </Stack>
-                    </Table.Td>
-                  </Table.Tr>
-
-                  {/* Expanded details */}
-                  {isExpanded && (
                     <Table.Tr>
-                      <Table.Td colSpan={6} p={0}>
-                        <Collapse in={isExpanded}>
-                          <Box bg="gray.0" p="xs">
-                            <Text fw={500} size="sm" mb="xs">
-                              Student Performance
-                            </Text>
-                            <Stack gap={4}>
-                              {assignment.submissions.map((submission) => (
-                                <Group
-                                  key={submission.studentId}
-                                  justify="space-between"
-                                  py={4}
-                                  px="xs"
-                                  style={{
-                                    borderBottom:
-                                      '1px solid var(--mantine-color-gray-3)',
-                                  }}
-                                >
-                                  <Box>
-                                    <Text size="sm">
-                                      {submission.studentName}
-                                    </Text>
-                                    <Badge
-                                      color={submission.submissionStatus}
-                                      variant="filled"
-                                      size="xs"
-                                    >
-                                      {submission.submissionStatus}
-                                    </Badge>
-                                  </Box>
-                                  <Group gap="xs">
-                                    {submission.grade ? (
-                                      <Text size="sm" fw={500}>
-                                        {submission.grade.score}/
-                                        {submission.grade.maxScore}
-                                      </Text>
-                                    ) : (
-                                      <Text size="sm" c="dimmed">
-                                        Not graded
-                                      </Text>
-                                    )}
-                                    {submission.grade?.feedback && (
-                                      <Tooltip
-                                        label={submission.grade.feedback}
-                                      >
-                                        <IconNote size={16} color="blue" />
-                                      </Tooltip>
-                                    )}
-                                    <Button
-                                      size="xs"
-                                      variant="subtle"
-                                      onClick={() =>
-                                        console.log(
-                                          'Grade:',
-                                          assignment.assignmentId,
-                                          submission.studentId,
-                                        )
+                      <Table.Td
+                        colSpan={6}
+                        p={0}
+                        style={{ background: '#f8f9fa' }}
+                      >
+                        <Collapse in={isStudentExpanded}>
+                          <Stack p={'md'} gap={'xs'}>
+                            {Array.from(studentMap.values()).flatMap(
+                              (student: any) =>
+                                student.assignments.map(
+                                  (assignmentWithSubmission: any) => (
+                                    <AssignmentRowByStudent
+                                      key={`${student.studentId}-${assignmentWithSubmission.assignmentId}`}
+                                      assignmentWithSubmission={
+                                        assignmentWithSubmission
                                       }
-                                    >
-                                      {submission.submissionStatus === 'graded'
-                                        ? 'Edit'
-                                        : 'Grade'}
-                                    </Button>
-                                  </Group>
-                                </Group>
-                              ))}
-                            </Stack>
-                          </Box>
+                                      student={student}
+                                    />
+                                  ),
+                                ),
+                            )}
+                          </Stack>
                         </Collapse>
                       </Table.Td>
                     </Table.Tr>
-                  )}
-                </>
-              )
-            })}
+                  </Fragment>
+                )
+              })}
           </Suspense>
         </Table.Tbody>
       </Table>
     </Box>
+  )
+}
+
+function AssignmentRowByStudent({
+  assignmentWithSubmission,
+  student,
+}: {
+  assignmentWithSubmission: any
+  student: any
+}) {
+  return (
+    <Card radius="md" withBorder>
+      <Group justify="space-between" align="center" style={{ width: '100%' }}>
+        {/* Assignment title & due */}
+        <Box style={{ minWidth: 180 }}>
+          <Text fw={500} size="md">
+            {assignmentWithSubmission.assignmentTitle}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {assignmentWithSubmission.points} points
+          </Text>
+          <Text size="xs" c="dimmed">
+            {formatTimestampToDateTimeText(
+              assignmentWithSubmission.dueDate,
+              'by',
+            )}
+          </Text>
+          <Badge
+            color={assignmentWithSubmission.submission.submissionStatus}
+            variant="filled"
+            size="md"
+            style={{
+              textTransform: 'capitalize',
+              fontWeight: 600,
+            }}
+          >
+            {assignmentWithSubmission.submission.submissionStatus.replace(
+              /-/g,
+              ' ',
+            )}
+          </Badge>
+        </Box>
+
+        <Group>
+          {/* Grade */}
+          <Box
+            style={{
+              minWidth: 120,
+              textAlign: 'right',
+            }}
+          >
+            {assignmentWithSubmission.submission.grade ? (
+              <>
+                <Text fw={700} size="md">
+                  {assignmentWithSubmission.submission.grade.score} /{' '}
+                  {assignmentWithSubmission.submission.grade.maxScore}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {assignmentWithSubmission.submission.grade.gradedAt &&
+                    `Graded ${formatTimestampToDateTimeText(assignmentWithSubmission.submission.grade.gradedAt)}`}
+                </Text>
+              </>
+            ) : (
+              <Text c="dimmed" fw={500} size="md">
+                - / {assignmentWithSubmission.points}
+              </Text>
+            )}
+          </Box>
+
+          {/* Action button */}
+          <Button
+            size="xs"
+            variant="light"
+            style={{ minWidth: 64 }}
+            onClick={() => {
+              console.log(
+                'Grade assignment:',
+                assignmentWithSubmission.assignmentId,
+                student.studentId,
+              )
+            }}
+          >
+            {assignmentWithSubmission.submission.submissionStatus === 'graded'
+              ? 'Edit'
+              : 'Grade'}
+          </Button>
+        </Group>
+      </Group>
+    </Card>
   )
 }
 
