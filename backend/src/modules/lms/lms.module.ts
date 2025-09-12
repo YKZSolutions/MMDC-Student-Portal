@@ -6,9 +6,15 @@ import { LmsSectionController } from '@/modules/lms/lms-section.controller';
 import { LmsSectionService } from '@/modules/lms/lms-section.service';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { LmsAssignmentController } from '@/modules/lms/lms-assignment.controller';
 
 @Module({
-  controllers: [LmsController, LmsSectionController, LmsContentController],
+  controllers: [
+    LmsController,
+    LmsSectionController,
+    LmsContentController,
+    LmsAssignmentController,
+  ],
   providers: [
     LmsService,
     LmsSectionService,
