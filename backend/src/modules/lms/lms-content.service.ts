@@ -1,16 +1,16 @@
-import {BadRequestException, ConflictException, Inject, Injectable, NotFoundException,} from '@nestjs/common';
-import {CustomPrismaService} from 'nestjs-prisma';
-import {Log} from '@/common/decorators/log.decorator';
-import {CreateContentDto} from '@/modules/lms/dto/create-content.dto';
-import {PrismaError, PrismaErrorCode,} from '@/common/decorators/prisma-error.decorator';
-import {LogParam} from '@/common/decorators/log-param.decorator';
-import {Prisma, Role} from '@prisma/client';
-import {isUUID} from 'class-validator';
-import {omitAuditDates, omitPublishFields} from '@/config/prisma_omit.config';
-import {StudentContentDto} from '@/modules/lms/dto/student-content.dto';
-import {ExtendedPrismaClient} from '@/lib/prisma/prisma.extension';
-import {UpdateContentDto} from '@/modules/lms/dto/update-content.dto';
-import {ModuleContent} from '@/generated/nestjs-dto/moduleContent.entity';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { Log } from '@/common/decorators/log.decorator';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Prisma, Role } from '@prisma/client';
+import { isUUID } from 'class-validator';
+import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
+import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
 @Injectable()
 export class LmsContentService {
@@ -141,8 +141,9 @@ export class LmsContentService {
    * Updates the details of an existing module content.
    *
    * @async
-   * @param {string} id - The UUID of the module content to update.
+   * @param {string} id - The UUID of the module content to update
    * @param {UpdateContentDto} updateContentDto - Data Transfer Object containing updated module content details.
+   * @param {string} publishedBy - The UUID of the user who published the content, if applicable.
    * @returns {Promise<ModuleContentDto>} The updated module content record.
    *
    * @throws {NotFoundException} If no module content is found with the given ID.
@@ -171,24 +172,36 @@ export class LmsContentService {
   async update(
     @LogParam('id') id: string,
     @LogParam('content') updateContentDto: UpdateContentDto,
+    @LogParam('publishedBy') publishedBy?: string | null,
   ): Promise<ModuleContent> {
     if (!isUUID(id)) {
-      throw new NotFoundException(`Module content with ID ${id} not found.`);
+      throw new BadRequestException('Invalid module content ID format');
     }
+
     const { sectionId, assignment, ...contentData } = updateContentDto;
 
     const data: Prisma.ModuleContentUpdateInput = {
       ...contentData,
     };
 
+    // Connect section if provided
     if (sectionId) {
       data.moduleSection = { connect: { id: sectionId } };
     }
 
+    // Update assignment if provided
     if (assignment) {
-      data.assignment = {
-        update: assignment,
-      };
+      data.assignment = { update: assignment };
+    }
+
+    // Handle publishing
+    if (contentData.publishedAt || contentData.toPublishAt) {
+      if (publishedBy) {
+        data.publishedByUser = { connect: { id: publishedBy } };
+      }
+    } else {
+      // If neither publishedAt nor toPublishAt are set, disconnect
+      data.publishedByUser = { disconnect: true };
     }
 
     return (await this.prisma.client.moduleContent.update({

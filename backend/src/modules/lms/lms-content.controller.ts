@@ -28,10 +28,15 @@ import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
 
 @Controller('lms/:lmsId/contents/') //TODO: configure pathing
 export class LmsContentController {
-  constructor(private readonly lmsContentService: LmsContentService) {}
+  constructor(
+    private readonly lmsContentService: LmsContentService,
+    private readonly lmsPublishService: LmsPublishService,
+  ) {}
 
   /**
    * Creates a module content
@@ -96,8 +101,13 @@ export class LmsContentController {
   ])
   @Roles(Role.ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateContentDto: UpdateContentDto) {
-    return this.lmsContentService.update(id, updateContentDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateContentDto: UpdateContentDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ) {
+    const { user_id } = user.user_metadata;
+    return this.lmsContentService.update(id, updateContentDto, user_id);
   }
 
   /**
@@ -126,5 +136,46 @@ export class LmsContentController {
   @Delete(':id')
   remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
     return this.lmsContentService.remove(id, query?.directDelete);
+  }
+
+  /**
+   * Publish a module content
+   *
+   * @remarks
+   * This operation publishes a module content.
+   * Requires `ADMIN` role.
+   */
+  @ApiException(() => [
+    NotFoundException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  @Roles(Role.ADMIN)
+  @Patch(':id/publish')
+  publish(
+    @Param('id') id: string,
+    @Body() updatePublishDto: UpdatePublishDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ) {
+    const { user_id } = user.user_metadata;
+    return this.lmsPublishService.publishContent(id, updatePublishDto, user_id);
+  }
+
+  /**
+   * Unpublish a module content
+   *
+   * @remarks
+   * This operation unpublishes a module content
+   * Requires `ADMIN` role.
+   */
+  @ApiException(() => [
+    NotFoundException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  @Roles(Role.ADMIN)
+  @Patch(':id/unpublish')
+  unpublish(@Param('id') id: string) {
+    return this.lmsPublishService.unpublishContent(id);
   }
 }
