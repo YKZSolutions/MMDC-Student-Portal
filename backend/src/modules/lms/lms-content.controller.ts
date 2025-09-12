@@ -31,7 +31,7 @@ import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
-@Controller('lms/:lmsId/contents/') //TODO: configure pathing
+@Controller('lms/:lmsId/contents')
 export class LmsContentController {
   constructor(
     private readonly lmsContentService: LmsContentService,
