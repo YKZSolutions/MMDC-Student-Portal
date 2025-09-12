@@ -11,7 +11,6 @@ import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { Prisma } from '@prisma/client';
-import { Role } from '@/common/enums/roles.enum';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { PaginatedModulesDto } from './dto/paginated-module.dto';
 
@@ -188,7 +187,7 @@ export class LmsService {
    */
   @Log({
     logArgsMessage: ({ user, filters }) =>
-      `Fetching modules for user ${user.user_metadata.user_id} role=${user.role}, filters=${JSON.stringify(filters)}`,
+      `Fetching modules for user ${user.user_metadata.user_id} role=${user.user_metadata.role}, filters=${JSON.stringify(filters)}`,
     logSuccessMessage: (result, { user }) =>
       `Fetched ${result.modules.length} modules for user ${user.user_metadata.user_id}`,
     logErrorMessage: (err, { user }) =>
@@ -196,13 +195,11 @@ export class LmsService {
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { user }) =>
-      new NotFoundException(
-        `No modules found for user ${user.user_metadata.user_id}`,
-      ),
+      new NotFoundException(`No modules found for user ${user.id}`),
   })
   async findAll(
-    user: AuthUser,
-    filters: BaseFilterDto,
+    @LogParam('user') user: AuthUser,
+    @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
@@ -235,7 +232,7 @@ export class LmsService {
     }
 
     // If student retrieve all modules based on course enrollment and course section
-    if (user.role === Role.STUDENT) {
+    if (user.user_metadata.role === 'student') {
       where.courseOffering = {
         is: {
           courseEnrollments: {
@@ -248,7 +245,7 @@ export class LmsService {
     }
 
     // If mentor retrieve all modules based on assigned course section
-    if (user.role === Role.MENTOR) {
+    if (user.user_metadata.role === 'mentor') {
       where.courseOffering = {
         is: {
           courseSections: { some: { mentorId: user.user_metadata.user_id } },
