@@ -1,0 +1,75 @@
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { CustomPrismaModule } from 'nestjs-prisma';
+import { AuthGuard } from './common/guards/auth.guard';
+import { RoleGuard } from './common/guards/role.guard';
+import { EnvConfigModule } from './config/config.module';
+import { extendedPrismaClient } from './lib/prisma/prisma.extension';
+import { SupabaseModule } from './lib/supabase/supabase.module';
+import { CoursesModule } from './modules/courses/courses.module';
+import { TestModule } from './modules/test/test.module';
+import { UsersModule } from './modules/users/users.module';
+import { UserStatusGuard } from './common/guards/user-status.guard';
+import { AuthModule } from './modules/auth/auth.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { RequestIdMiddleware } from '@/middleware/request-id.middleware';
+import { ChatbotModule } from '@/modules/chatbot/chatbot.module';
+import { ProgramModule } from './modules/program/program.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { MajorModule } from './modules/major/major.module';
+import { InstallmentModule } from './modules/installment/installment.module';
+import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { CurriculumModule } from './modules/curriculum/curriculum.module';
+import { SwaggerModule } from './modules/swagger/swagger.module';
+import { LmsModule } from '@/modules/lms/lms.module';
+
+@Module({
+  imports: [
+    EnvConfigModule,
+    CustomPrismaModule.forRootAsync({
+      isGlobal: true,
+      name: 'PrismaService',
+      useFactory: () => {
+        return extendedPrismaClient;
+      },
+    }),
+    SupabaseModule,
+    TestModule,
+    UsersModule,
+    CoursesModule,
+    AuthModule,
+    BillingModule,
+    PaymentsModule,
+    ProgramModule,
+    ChatbotModule,
+    MajorModule,
+    InstallmentModule,
+    EnrollmentModule,
+    CurriculumModule,
+    LmsModule,
+    SwaggerModule,
+  ],
+  controllers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useExisting: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useExisting: UserStatusGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useExisting: RoleGuard,
+    },
+    AuthGuard,
+    UserStatusGuard,
+    RoleGuard,
+  ],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}

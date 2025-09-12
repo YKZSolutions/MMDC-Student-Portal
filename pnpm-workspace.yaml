@@ -1,0 +1,8 @@
+packages:
+  - frontend
+  - backend
+  - scripts
+  - supabase
+  - cypress
+onlyBuiltDependencies:
+  - supabase

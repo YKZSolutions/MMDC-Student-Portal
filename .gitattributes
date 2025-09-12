@@ -1,0 +1,6 @@
+backend/src/generated/** linguist-generated=true
+backend/prisma/migrations/** linguist-generated=true
+frontend/src/integrations/api/api-spec.json linguist-generated=true
+frontend/src/integrations/api/client/** linguist-generated=true
+frontend/src/routeTree.gen.ts linguist-generated=true
+* text=auto eol=lf
