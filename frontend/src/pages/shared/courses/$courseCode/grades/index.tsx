@@ -204,24 +204,31 @@ function StudentGradesTable({
                       </Box>
                     </Table.Td>
                     <Table.Td>
-                      {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
+                      <Text fw={500} size="sm" c={'dark.4'}>
+                        {formatTimestampToDateTimeText(
+                          assignment.dueDate,
+                          'by',
+                        )}
+                      </Text>
                     </Table.Td>
                     <Table.Td>
-                      {latestSubmission?.submittedAt
-                        ? formatTimestampToDateTimeText(
-                            latestSubmission.submittedAt,
-                          )
-                        : 'Not Submitted'}
-                      {latestSubmission?.isLate && (
-                        <Text size="xs" c="red">
-                          {latestSubmission.lateDays} day(s) late
-                        </Text>
-                      )}
+                      <Text fw={500} size="sm" c={'dark.4'}>
+                        {latestSubmission?.submittedAt
+                          ? formatTimestampToDateTimeText(
+                              latestSubmission.submittedAt,
+                            )
+                          : 'Not Submitted'}
+                        {latestSubmission?.isLate && (
+                          <Text size="xs" c="red.4" fw={500}>
+                            {latestSubmission.lateDays} day(s) late
+                          </Text>
+                        )}
+                      </Text>
                     </Table.Td>
                     <Table.Td>
                       {assignment.currentGrade ? (
                         <Box>
-                          <Text fw={500}>
+                          <Text fw={500} c={'dark.4'}>
                             {assignment.currentGrade.score} /{' '}
                             {assignment.currentGrade.maxScore}
                           </Text>
