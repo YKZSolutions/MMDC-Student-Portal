@@ -20,7 +20,6 @@ import {
 } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
@@ -30,6 +29,7 @@ import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
 @Controller('lms/:lmsId/contents/') //TODO: configure pathing
 export class LmsContentController {
@@ -45,7 +45,7 @@ export class LmsContentController {
    * Requires `ADMIN` role.
    *
    */
-  @ApiCreatedResponse({ type: ModuleContentDto })
+  @ApiCreatedResponse({ type: ModuleContent })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Post()
@@ -62,15 +62,15 @@ export class LmsContentController {
    *
    * @remarks Requires `ADMIN` or `MENTOR` role.
    *
-   * @returns ModuleContentDto if role is `ADMIN` or `MENTOR`
+   * @returns ModuleContent if role is `ADMIN` or `MENTOR`
    * @returns StudentContentDto if role is `STUDENT`
    *
    */
-  @ApiExtraModels(ModuleContentDto, StudentContentDto)
+  @ApiExtraModels(ModuleContent, StudentContentDto)
   @ApiOkResponse({
     schema: {
       oneOf: [
-        { $ref: getSchemaPath(ModuleContentDto) },
+        { $ref: getSchemaPath(ModuleContent) },
         { $ref: getSchemaPath(StudentContentDto) },
       ],
     },
@@ -81,7 +81,7 @@ export class LmsContentController {
   findOne(
     @Param('id') id: string,
     @CurrentUser() user: CurrentAuthUser,
-  ): Promise<ModuleContentDto | StudentContentDto> {
+  ): Promise<ModuleContent | StudentContentDto> {
     const { role, user_id } = user.user_metadata;
     return this.lmsContentService.findOne(id, role, user_id);
   }
@@ -93,7 +93,7 @@ export class LmsContentController {
    * This operation updates the details of an existing module content.
    * Requires `ADMIN` role.
    */
-  @ApiOkResponse({ type: ModuleContentDto })
+  @ApiOkResponse({ type: ModuleContent })
   @ApiException(() => [
     NotFoundException,
     ConflictException,
