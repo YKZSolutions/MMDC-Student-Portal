@@ -25,6 +25,13 @@ import { ApiOkResponse } from '@nestjs/swagger';
 export class LmsController {
   constructor(private readonly lmsService: LmsService) {}
 
+  /**
+   * Retrieve all modules
+   *
+   * @remarks
+   * Retrieves a paginated list of modules based on the user role and provided filters.
+   *
+   */
   @Get()
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
@@ -32,6 +39,14 @@ export class LmsController {
     return this.lmsService.findAll(user, filters);
   }
 
+  /**
+   * Updates a module
+   *
+   * @remarks
+   * This operation updates the details of an existing module.
+   * Requires `ADMIN` role.
+   *
+   */
   @Patch(':id')
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
@@ -39,6 +54,14 @@ export class LmsController {
     return this.lmsService.update(id, dto);
   }
 
+  /**
+   * Deletes a module
+   *
+   * @remarks
+   * This operation deletes a module from the system.
+   * Requires `ADMIN` role.
+   *
+   */
   @Delete(':id')
   @Roles(Role.ADMIN)
   @ApiOkResponse({
