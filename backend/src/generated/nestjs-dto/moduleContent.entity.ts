@@ -83,7 +83,11 @@ export class ModuleContent {
   publishedBy: string | null;
   @ApiHideProperty()
   publishedByUser?: UserAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Assignment,
+    required: false,
+    nullable: true,
+  })
   assignment?: AssignmentAsType | null;
   @ApiHideProperty()
   submissions?: SubmissionAsType[];

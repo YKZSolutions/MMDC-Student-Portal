@@ -1,16 +1,16 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { Log } from '@/common/decorators/log.decorator';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
-import { Prisma, Role } from '@prisma/client';
-import { isUUID } from 'class-validator';
-import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
-import { StudentContentDto } from '@/modules/lms/dto/student-content.dto';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import {BadRequestException, ConflictException, Inject, Injectable, NotFoundException,} from '@nestjs/common';
+import {CustomPrismaService} from 'nestjs-prisma';
+import {Log} from '@/common/decorators/log.decorator';
+import {CreateContentDto} from '@/modules/lms/dto/create-content.dto';
+import {PrismaError, PrismaErrorCode,} from '@/common/decorators/prisma-error.decorator';
+import {LogParam} from '@/common/decorators/log-param.decorator';
+import {Prisma, Role} from '@prisma/client';
+import {isUUID} from 'class-validator';
+import {omitAuditDates, omitPublishFields} from '@/config/prisma_omit.config';
+import {StudentContentDto} from '@/modules/lms/dto/student-content.dto';
+import {ExtendedPrismaClient} from '@/lib/prisma/prisma.extension';
+import {UpdateContentDto} from '@/modules/lms/dto/update-content.dto';
+import {ModuleContent} from '@/generated/nestjs-dto/moduleContent.entity';
 
 @Injectable()
 export class LmsContentService {
@@ -25,8 +25,7 @@ export class LmsContentService {
    * @async
    * @param {CreateModuleContentDto} createModuleContentDto - Data Transfer Object containing the module content details to create.
    * @param {string} moduleId - The UUID of the module to which the content belongs.
-   * @param {string} [moduleSectionId] - The UUID of the module section to which the content belongs. If not provided, the content will be created in the default section.
-   * @returns {Promise<ModuleContentDto>} The created module content record
+   * @returns {Promise<ModuleContent>} The created module content record
    *
    * @throws {ConflictException} - If the module content title already exists in the same section.
    * @throws {Error} Any other unexpected errors.
@@ -55,7 +54,7 @@ export class LmsContentService {
   async create(
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
-  ): Promise<ModuleContentDto> {
+  ): Promise<ModuleContent> {
     const { sectionId, assignment, ...rest } = createModuleContentDto;
 
     const data: Prisma.ModuleContentCreateInput = {
@@ -69,11 +68,9 @@ export class LmsContentService {
     return (await this.prisma.client.moduleContent.create({
       data,
       include: {
-        module: true,
-        moduleSection: true,
         assignment: true,
       },
-    })) as ModuleContentDto;
+    })) as ModuleContent;
   }
 
   /**
@@ -104,7 +101,7 @@ export class LmsContentService {
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
     @LogParam('userId') userId: string,
-  ): Promise<ModuleContentDto | StudentContentDto> {
+  ): Promise<ModuleContent | StudentContentDto> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
@@ -115,7 +112,7 @@ export class LmsContentService {
         include: {
           assignment: true,
         },
-      })) as ModuleContentDto;
+      })) as ModuleContent;
     }
 
     // Default to Student
@@ -153,28 +150,32 @@ export class LmsContentService {
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
-    logArgsMessage: ({ id }) => `Updating module content for id ${id}`,
-    logSuccessMessage: (id) =>
-      `Successfully updated module content for id ${id}`,
+    logArgsMessage: ({ id }: { id: string }) =>
+      `Updating module content for id ${id}`,
+    logSuccessMessage: (moduleContent) =>
+      `Successfully updated module content for id ${moduleContent.id}`,
     logErrorMessage: (err, { id }) =>
       `An error has occurred while updating module content for id ${id} | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Module content not found for Id ${id}`),
-    [PrismaErrorCode.UniqueConstraint]: (_, { content }) =>
+    [PrismaErrorCode.UniqueConstraint]: (
+      _,
+      { content }: { content: UpdateContentDto },
+    ) =>
       new ConflictException(
-        `Module content title ${content.title} already exists in this section`,
+        `Module content title ${content?.title} already exists in this section`,
       ),
   })
   async update(
     @LogParam('id') id: string,
     @LogParam('content') updateContentDto: UpdateContentDto,
-  ): Promise<ModuleContentDto> {
+  ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new NotFoundException(`Module content with ID ${id} not found.`);
     }
-    const { sectionId, ...contentData } = updateContentDto;
+    const { sectionId, assignment, ...contentData } = updateContentDto;
 
     const data: Prisma.ModuleContentUpdateInput = {
       ...contentData,
@@ -184,15 +185,19 @@ export class LmsContentService {
       data.moduleSection = { connect: { id: sectionId } };
     }
 
+    if (assignment) {
+      data.assignment = {
+        update: assignment,
+      };
+    }
+
     return (await this.prisma.client.moduleContent.update({
       where: { id },
       include: {
-        module: true,
-        moduleSection: true,
         assignment: true,
       },
       data,
-    })) as ModuleContentDto;
+    })) as ModuleContent;
   }
 
   /**

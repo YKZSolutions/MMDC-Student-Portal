@@ -642,7 +642,6 @@ model ModuleContent {
   /// @DtoApiHidden
   publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
-  /// @DtoApiHidden
   assignment      Assignment?
   /// @DtoApiHidden
   submissions     Submission[]
