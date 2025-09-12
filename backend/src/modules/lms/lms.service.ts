@@ -123,13 +123,14 @@ export class LmsService {
       },
     });
 
-    for (const courseOffering of currentEnrollment.courseOfferings) {
-      const latestModule = latestModules.find(
-        (m) => m.courseId === courseOffering.courseId,
-      );
-      if (!latestModule) continue;
+    await this.prisma.client.$transaction(async (tx) => {
+      for (const courseOffering of currentEnrollment.courseOfferings) {
+        const latestModule = latestModules.find(
+          (m) => m.courseId === courseOffering.courseId,
+        );
+        if (!latestModule) continue;
 
-      await this.prisma.client.$transaction(async (tx) => {
+        // Create the new module
         const newModule = await tx.module.create({
           data: {
             title: latestModule.title,
@@ -138,25 +139,33 @@ export class LmsService {
           },
         });
 
-        for (const oldSection of latestModule.moduleSections) {
-          const newSection = await tx.moduleSection.create({
-            data: { moduleId: newModule.id, title: oldSection.title },
-          });
+        // Batch create sections and return the created sections
+        const newSections = await tx.moduleSection.createManyAndReturn({
+          data: latestModule.moduleSections.map((s) => ({
+            moduleId: newModule.id,
+            title: s.title,
+          })),
+        });
 
-          await tx.moduleContent.createMany({
-            data: oldSection.moduleContents.map((c) => ({
+        // Flatten contents for batch creation
+        const allContents = latestModule.moduleSections.flatMap(
+          (oldSection, index) =>
+            oldSection.moduleContents.map((c) => ({
               moduleId: newModule.id,
-              moduleSectionId: newSection.id,
+              moduleSectionId: newSections[index].id,
               order: c.order,
               title: c.title,
               subtitle: c.subtitle,
               content: c.content,
               contentType: c.contentType,
             })),
-          });
+        );
+
+        if (allContents.length > 0) {
+          await tx.moduleContent.createMany({ data: allContents });
         }
-      });
-    }
+      }
+    });
   }
 
   /**
@@ -268,7 +277,7 @@ export class LmsService {
    * Updates the details of an existing module.
    *
    * @async
-   * @param {string} id - The UUId of the module to update.
+   * @param {string} id - The UUID of the module to update.
    * @param {UpdateModuleDto} updateModuleDto - Data Transfer object containing the updated module details.
    * @returns {Promise<UpdateModuleDto>} The updated module record.
    *
@@ -302,7 +311,7 @@ export class LmsService {
    * - If `directDelete` is true, the module is permanently deleted.
    *
    * @async
-   * @param {string} id - The UUId of the module to delete.
+   * @param {string} id - The UUID of the module to delete.
    * @param {boolean} [directDelete=false] - Whether to premamnently delete the module.
    * @returns {Promise<{message: string}>} - Deletion confirmation message.
    *
@@ -328,18 +337,40 @@ export class LmsService {
       where: { id },
     });
 
+    const now = new Date();
+
     if (!directDelete && !module.deletedAt) {
-      await this.prisma.client.module.update({
-        where: { id },
-        data: {
-          deletedAt: new Date(),
-        },
+      await this.prisma.client.$transaction(async (tx) => {
+        await tx.module.update({
+          where: { id },
+          data: {
+            deletedAt: now,
+          },
+        });
+
+        await tx.moduleSection.updateMany({
+          where: { moduleId: id },
+          data: {
+            deletedAt: now,
+          },
+        });
+
+        await tx.moduleContent.updateMany({
+          where: { moduleId: id },
+          data: {
+            deletedAt: now,
+          },
+        });
       });
 
-      return { message: 'Module marked for deletion' };
+      return {
+        message: `Module "${module.title}" and all its sections and contents were marked as deleted.`,
+      };
     }
 
     await this.prisma.client.module.delete({ where: { id } });
-    return { message: 'Module permanently deleted' };
+    return {
+      message: `Module "${module.title}" and all related sections and contents were permanently deleted.`,
+    };
   }
 }
