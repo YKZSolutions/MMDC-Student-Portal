@@ -131,7 +131,7 @@ export class LmsContentService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    if (role === 'admin') {
+    if (role === Role.admin) {
       return (await this.prisma.client.moduleContent.findUniqueOrThrow({
         where: { id },
         include: {
