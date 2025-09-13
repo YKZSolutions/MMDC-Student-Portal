@@ -1,19 +1,15 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentDto {
+export class UpdateFileResourceDto {
   @ApiProperty({
     type: 'string',
+    required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  title: string;
+  title?: string;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -31,11 +27,32 @@ export class CreateAssignmentDto {
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  path?: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  size?: number;
+  @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
+  @IsString()
+  mimeType?: string | null;
 }

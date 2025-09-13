@@ -1,19 +1,15 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentDto {
+export class UpdateLessonDto {
   @ApiProperty({
     type: 'string',
+    required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  title: string;
+  title?: string;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -29,13 +25,4 @@ export class CreateAssignmentDto {
   })
   @IsOptional()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
 }

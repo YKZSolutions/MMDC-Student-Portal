@@ -1,39 +1,39 @@
-import { ContentType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ModuleContentDto {
+export class QuizDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
+    type: 'string',
+  })
+  title: string;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  subtitle: string | null;
+  @ApiProperty({
+    type: () => Object,
+  })
+  content: Prisma.JsonValue;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  timeLimit: number | null;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
-  order: number;
+  maxAttempts: number;
   @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
+    type: () => Object,
   })
-  contentType: ContentType;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  publishedAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  toPublishAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  unpublishedAt: Date | null;
+  questions: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -1,13 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentDto {
+export class CreateExternalUrlDto {
   @ApiProperty({
     type: 'string',
   })
@@ -31,11 +26,8 @@ export class CreateAssignmentDto {
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
   })
-  @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
+  @IsNotEmpty()
+  @IsString()
+  url: string;
 }

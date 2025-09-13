@@ -1,39 +1,34 @@
-import { ContentType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ModuleContentDto {
+export class AssignmentGradingDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: () => Object,
   })
-  order: number;
-  @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
-  })
-  contentType: ContentType;
+  gradingSchema: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
-    nullable: true,
+    format: 'Decimal.js',
   })
-  publishedAt: Date | null;
+  maxScore: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
-    nullable: true,
+    format: 'Decimal.js',
   })
-  toPublishAt: Date | null;
+  weight: Prisma.Decimal;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: 'boolean',
+  })
+  isCurved: boolean;
+  @ApiProperty({
+    type: () => Object,
     nullable: true,
   })
-  unpublishedAt: Date | null;
+  curveSettings: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

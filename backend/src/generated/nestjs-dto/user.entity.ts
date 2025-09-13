@@ -30,9 +30,21 @@ import {
   type CourseSection as CourseSectionAsType,
 } from './courseSection.entity';
 import {
-  Submission,
-  type Submission as SubmissionAsType,
-} from './submission.entity';
+  AssignmentSubmission,
+  type AssignmentSubmission as AssignmentSubmissionAsType,
+} from './assignmentSubmission.entity';
+import {
+  GradeRecord,
+  type GradeRecord as GradeRecordAsType,
+} from './gradeRecord.entity';
+import {
+  QuizSubmission,
+  type QuizSubmission as QuizSubmissionAsType,
+} from './quizSubmission.entity';
+import {
+  DiscussionPost,
+  type DiscussionPost as DiscussionPostAsType,
+} from './discussionPost.entity';
 import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
@@ -42,10 +54,6 @@ import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
-import {
-  ModuleContent,
-  type ModuleContent as ModuleContentAsType,
-} from './moduleContent.entity';
 
 export class User {
   @ApiProperty({
@@ -69,17 +77,21 @@ export class User {
   @ApiHideProperty()
   courseSections?: CourseSectionAsType[];
   @ApiHideProperty()
-  submittedSubmissions?: SubmissionAsType[];
+  submittedAssignments?: AssignmentSubmissionAsType[];
   @ApiHideProperty()
-  gradedSubmissions?: SubmissionAsType[];
+  grades?: GradeRecordAsType[];
+  @ApiHideProperty()
+  gradedSubmissions?: GradeRecordAsType[];
+  @ApiHideProperty()
+  quizAttempts?: QuizSubmissionAsType[];
+  @ApiHideProperty()
+  postedDiscussions?: DiscussionPostAsType[];
   @ApiHideProperty()
   moduleProgress?: ContentProgressAsType[];
   @ApiHideProperty()
   publishedModules?: ModuleAsType[];
   @ApiHideProperty()
   publishedSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  publishedContents?: ModuleContentAsType[];
   @ApiProperty({
     type: 'string',
   })

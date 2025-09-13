@@ -1,7 +1,15 @@
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsInt, IsOptional } from 'class-validator';
 
-export class CreateContentProgressDto {
+export class CreateAssignmentSubmissionDto {
+  @ApiProperty({
+    type: () => Object,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -10,7 +18,7 @@ export class CreateContentProgressDto {
   })
   @IsOptional()
   @IsDateString()
-  completedAt?: Date | null;
+  submittedAt?: Date | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -19,14 +27,14 @@ export class CreateContentProgressDto {
   })
   @IsOptional()
   @IsInt()
-  timeSpent?: number | null;
+  attemptNumber?: number | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: 'integer',
+    format: 'int32',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  lastAccessedAt?: Date | null;
+  @IsInt()
+  lateDays?: number | null;
 }

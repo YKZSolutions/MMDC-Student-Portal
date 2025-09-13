@@ -1,41 +1,37 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDecimal, IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentDto {
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  title: string;
+export class UpdateRubricScoreDto {
   @ApiProperty({
     type: 'string',
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsString()
-  subtitle?: string | null;
-  @ApiProperty({
-    type: () => Object,
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  criterionKey?: string;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
+  @IsString()
+  label?: string | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    required: false,
+  })
+  @IsOptional()
+  @IsDecimal()
+  maxPoints?: Prisma.Decimal;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    required: false,
+  })
+  @IsOptional()
+  @IsDecimal()
+  score?: Prisma.Decimal;
 }

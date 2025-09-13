@@ -1,13 +1,15 @@
-import { ProgressStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
-import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
+import {
+  QuizSubmission,
+  type QuizSubmission as QuizSubmissionAsType,
+} from './quizSubmission.entity';
 
-export class ContentProgress {
+export class Quiz {
   @ApiProperty({
     type: 'string',
   })
@@ -15,44 +17,42 @@ export class ContentProgress {
   @ApiProperty({
     type: 'string',
   })
-  userId: string;
-  @ApiHideProperty()
-  user?: UserAsType;
-  @ApiHideProperty()
-  module?: ModuleAsType;
+  moduleContentId: string;
   @ApiProperty({
-    type: 'string',
+    type: () => ModuleContent,
+    required: false,
   })
-  moduleId: string;
-  @ApiHideProperty()
   moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
-  moduleContentId: string;
-  @ApiProperty({
-    enum: ProgressStatus,
-    enumName: 'ProgressStatus',
-  })
-  status: ProgressStatus;
+  title: string;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
     nullable: true,
   })
-  completedAt: Date | null;
+  subtitle: string | null;
+  @ApiProperty({
+    type: () => Object,
+  })
+  content: Prisma.JsonValue;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,
   })
-  timeSpent: number | null;
+  timeLimit: number | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
+    type: 'integer',
+    format: 'int32',
   })
-  lastAccessedAt: Date | null;
+  maxAttempts: number;
+  @ApiProperty({
+    type: () => Object,
+  })
+  questions: Prisma.JsonValue;
+  @ApiHideProperty()
+  submissions?: QuizSubmissionAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -63,4 +63,10 @@ export class ContentProgress {
     format: 'date-time',
   })
   updatedAt: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  deletedAt: Date | null;
 }

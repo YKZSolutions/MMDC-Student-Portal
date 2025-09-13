@@ -1,19 +1,15 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentDto {
+export class UpdateQuizDto {
   @ApiProperty({
     type: 'string',
+    required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  title: string;
+  title?: string;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -25,17 +21,22 @@ export class CreateAssignmentDto {
   @ApiProperty({
     type: () => Object,
     required: false,
-    nullable: true,
   })
   @IsOptional()
-  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  content?: Prisma.InputJsonValue;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: 'integer',
+    format: 'int32',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
+  @IsInt()
+  timeLimit?: number | null;
+  @ApiProperty({
+    type: () => Object,
+    required: false,
+  })
+  @IsOptional()
+  questions?: Prisma.InputJsonValue;
 }

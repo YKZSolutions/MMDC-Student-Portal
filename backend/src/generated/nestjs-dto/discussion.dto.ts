@@ -1,39 +1,33 @@
-import { ContentType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ModuleContentDto {
+export class DiscussionDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  order: number;
-  @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
-  })
-  contentType: ContentType;
+  title: string;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
     nullable: true,
   })
-  publishedAt: Date | null;
+  subtitle: string | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: () => Object,
     nullable: true,
   })
-  toPublishAt: Date | null;
+  content: Prisma.JsonValue | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
+    type: 'boolean',
   })
-  unpublishedAt: Date | null;
+  isThreaded: boolean;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  requirePost: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

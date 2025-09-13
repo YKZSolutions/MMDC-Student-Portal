@@ -1,39 +1,35 @@
-import { ProgressStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ContentProgressDto {
+export class GradeRecordDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    enum: ProgressStatus,
-    enumName: 'ProgressStatus',
+    type: 'string',
+    format: 'Decimal.js',
   })
-  status: ProgressStatus;
+  rawScore: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
-    nullable: true,
+    format: 'Decimal.js',
   })
-  completedAt: Date | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  timeSpent: number | null;
+  finalScore: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
+  })
+  grade: string;
+  @ApiProperty({
+    type: 'string',
     nullable: true,
   })
-  lastAccessedAt: Date | null;
+  feedback: string | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  createdAt: Date;
+  gradedAt: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

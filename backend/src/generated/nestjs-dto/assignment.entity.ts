@@ -1,14 +1,17 @@
-import {
-  AssignmentMode,
-  AssignmentStatus,
-  AssignmentType,
-  Prisma,
-} from '@prisma/client';
+import { AssignmentMode, AssignmentStatus, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
+import {
+  AssignmentGrading,
+  type AssignmentGrading as AssignmentGradingAsType,
+} from './assignmentGrading.entity';
+import {
+  AssignmentSubmission,
+  type AssignmentSubmission as AssignmentSubmissionAsType,
+} from './assignmentSubmission.entity';
 
 export class Assignment {
   @ApiProperty({
@@ -26,14 +29,15 @@ export class Assignment {
   })
   title: string;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
+    nullable: true,
   })
-  rubric: Prisma.JsonValue;
+  subtitle: string | null;
   @ApiProperty({
-    enum: AssignmentType,
-    enumName: 'AssignmentType',
+    type: () => Object,
+    nullable: true,
   })
-  type: AssignmentType;
+  content: Prisma.JsonValue | null;
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
@@ -45,27 +49,10 @@ export class Assignment {
   })
   status: AssignmentStatus;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  dueDate: Date | null;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  points: number | null;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  allowResubmission: boolean;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  maxAttempts: number | null;
+  maxAttempts: number;
   @ApiProperty({
     type: 'boolean',
   })
@@ -73,9 +60,14 @@ export class Assignment {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
+  })
+  latePenalty: Prisma.Decimal;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
     nullable: true,
   })
-  latePenalty: Prisma.Decimal | null;
+  dueDate: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -92,4 +84,17 @@ export class Assignment {
     nullable: true,
   })
   deletedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  gradingId: string | null;
+  @ApiProperty({
+    type: () => AssignmentGrading,
+    required: false,
+    nullable: true,
+  })
+  grading?: AssignmentGradingAsType | null;
+  @ApiHideProperty()
+  submissions?: AssignmentSubmissionAsType[];
 }

@@ -1,13 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentDto {
+export class CreateVideoDto {
   @ApiProperty({
     type: 'string',
   })
@@ -31,11 +26,25 @@ export class CreateAssignmentDto {
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsString()
+  url: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
+  @IsInt()
+  duration?: number | null;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  transcript?: string | null;
 }

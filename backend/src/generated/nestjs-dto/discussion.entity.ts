@@ -1,11 +1,28 @@
-import { AssignmentMode, AssignmentStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  ModuleContent,
+  type ModuleContent as ModuleContentAsType,
+} from './moduleContent.entity';
+import {
+  DiscussionPost,
+  type DiscussionPost as DiscussionPostAsType,
+} from './discussionPost.entity';
 
-export class AssignmentDto {
+export class Discussion {
   @ApiProperty({
     type: 'string',
   })
   id: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  moduleContentId: string;
+  @ApiProperty({
+    type: () => ModuleContent,
+    required: false,
+  })
+  moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
@@ -21,35 +38,13 @@ export class AssignmentDto {
   })
   content: Prisma.JsonValue | null;
   @ApiProperty({
-    enum: AssignmentMode,
-    enumName: 'AssignmentMode',
+    type: 'boolean',
   })
-  mode: AssignmentMode;
-  @ApiProperty({
-    enum: AssignmentStatus,
-    enumName: 'AssignmentStatus',
-  })
-  status: AssignmentStatus;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  maxAttempts: number;
+  isThreaded: boolean;
   @ApiProperty({
     type: 'boolean',
   })
-  allowLateSubmission: boolean;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  latePenalty: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  dueDate: Date | null;
+  requirePost: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -66,4 +61,10 @@ export class AssignmentDto {
     nullable: true,
   })
   deletedAt: Date | null;
+  @ApiProperty({
+    type: () => DiscussionPost,
+    isArray: true,
+    required: false,
+  })
+  posts?: DiscussionPostAsType[];
 }

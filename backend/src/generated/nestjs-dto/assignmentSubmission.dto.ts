@@ -1,39 +1,34 @@
-import { ContentType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ModuleContentDto {
+export class AssignmentSubmissionDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  content: Prisma.JsonValue | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
-  })
-  order: number;
-  @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
-  })
-  contentType: ContentType;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
     nullable: true,
   })
-  publishedAt: Date | null;
+  attemptNumber: number | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: 'integer',
+    format: 'int32',
     nullable: true,
   })
-  toPublishAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  unpublishedAt: Date | null;
+  lateDays: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
