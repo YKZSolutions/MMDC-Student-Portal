@@ -84,9 +84,6 @@ const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
           handleAddFilter={handleAddFilter}
           handleRemoveFilter={handleRemoveFilter}
           handleFilterChange={handleFilterChange}
-          showFilters={showFilters}
-          onToggleShowFilter={setShowFilters}
-          activeFilterCount={activeFilterCount}
           view={view}
           onViewChange={setView}
         />

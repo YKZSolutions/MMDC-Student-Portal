@@ -1,4 +1,6 @@
-import { type ReactNode } from 'react'
+import type { FilterType } from '@/components/multi-filter.tsx'
+import SearchComponent from '@/components/search-component.tsx'
+import CourseDashboardFilters from '@/features/courses/dashboard/course-dashboard-filters.tsx'
 import {
   Box,
   Button,
@@ -13,9 +15,7 @@ import {
   IconLayoutGridFilled,
   IconList,
 } from '@tabler/icons-react'
-import type { FilterType } from '@/components/multi-filter.tsx'
-import CourseDashboardFilters from '@/features/courses/dashboard/course-dashboard-filters.tsx'
-import SearchComponent from '@/components/search-component.tsx'
+import { type ReactNode } from 'react'
 
 type DashboardHeaderProps = {
   coursesData: any
@@ -25,9 +25,6 @@ type DashboardHeaderProps = {
   handleAddFilter: (filterType: FilterType) => void
   handleRemoveFilter: (id: string) => void
   handleFilterChange: (id: string, value: string) => void
-  showFilters: boolean
-  onToggleShowFilter: (show: boolean) => void
-  activeFilterCount: number
   view: 'grid' | 'list'
   onViewChange: (view: 'grid' | 'list') => void
 }
@@ -40,9 +37,6 @@ const CourseDashboardHeader = ({
   handleAddFilter,
   handleRemoveFilter,
   handleFilterChange,
-  showFilters,
-  onToggleShowFilter,
-  activeFilterCount,
   view,
   onViewChange,
 }: DashboardHeaderProps) => (
@@ -64,23 +58,16 @@ const CourseDashboardHeader = ({
             onGridClick={() => onViewChange('grid')}
             onListClick={() => onViewChange('list')}
           />
-          <FilterButton
-            showFilters={showFilters}
-            filterCount={activeFilterCount}
-            onClick={() => onToggleShowFilter(!showFilters)}
-          />
         </Group>
+        <CourseDashboardFilters
+          filters={filters}
+          activeFilters={activeFilters}
+          onAddFilter={handleAddFilter}
+          onRemoveFilter={handleRemoveFilter}
+          onFilterChange={handleFilterChange}
+        />
       </Group>
     </Group>
-    <Box hidden={!showFilters}>
-      <CourseDashboardFilters
-        filters={filters}
-        activeFilters={activeFilters}
-        onAddFilter={handleAddFilter}
-        onRemoveFilter={handleRemoveFilter}
-        onFilterChange={handleFilterChange}
-      />
-    </Box>
     <Divider />
   </Stack>
 )
@@ -118,10 +105,9 @@ const SelectorButton = ({ active, icon, onClick }: SelectorButtonProps) => (
     variant="default"
     radius={'md'}
     bg={active ? 'gray.3' : 'gray.0'}
-    size={'xs'}
     onClick={onClick}
   >
-    <div color={active ? 'black' : 'dark.2'}>{icon}</div>
+    <Box color={active ? 'black' : 'dark.2'}>{icon}</Box>
   </Button>
 )
 
