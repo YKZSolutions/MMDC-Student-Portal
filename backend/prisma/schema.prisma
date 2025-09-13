@@ -1009,8 +1009,7 @@ model AssignmentGradeRecord {
   grade      String  @db.VarChar(10) // A, B+, Pass, Fail etc.
   feedback   String?
 
-  /// @DtoApiHidden
-  rubricScores RubricScore[] // Detailed scores for each criterion
+  rubricScores Json // Detailed scores for each criterion
 
   /// @DtoReadOnly
   gradedAt  DateTime @default(now())
@@ -1021,21 +1020,6 @@ model AssignmentGradeRecord {
   @@index([studentId, finalScore])
   @@index([gradedAt])
   @@index([finalScore, gradingId])
-}
-
-model RubricScore {
-  id            String                @id @default(uuid()) @db.Uuid
-  /// @DtoApiHidden
-  gradeRecord   AssignmentGradeRecord @relation(fields: [gradeRecordId], references: [id], onDelete: Cascade)
-  gradeRecordId String                @db.Uuid
-
-  criterionKey String
-  label        String?
-  maxPoints    Decimal @db.Decimal(5, 2)
-  score        Decimal @db.Decimal(5, 2)
-
-  @@index([gradeRecordId])
-  @@index([criterionKey])
 }
 
 model Notification {

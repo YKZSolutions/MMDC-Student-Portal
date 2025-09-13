@@ -26,6 +26,10 @@ export class AssignmentGradeRecordDto {
   })
   feedback: string | null;
   @ApiProperty({
+    type: () => Object,
+  })
+  rubricScores: Prisma.JsonValue;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
   })

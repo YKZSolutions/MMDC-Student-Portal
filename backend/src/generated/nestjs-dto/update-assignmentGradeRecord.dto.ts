@@ -34,4 +34,10 @@ export class UpdateAssignmentGradeRecordDto {
   @IsOptional()
   @IsString()
   feedback?: string | null;
+  @ApiProperty({
+    type: () => Object,
+    required: false,
+  })
+  @IsOptional()
+  rubricScores?: Prisma.InputJsonValue;
 }

@@ -31,4 +31,9 @@ export class CreateAssignmentGradeRecordDto {
   @IsOptional()
   @IsString()
   feedback?: string | null;
+  @ApiProperty({
+    type: () => Object,
+  })
+  @IsNotEmpty()
+  rubricScores: Prisma.InputJsonValue;
 }

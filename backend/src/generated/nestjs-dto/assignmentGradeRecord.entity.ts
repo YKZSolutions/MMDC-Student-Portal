@@ -5,10 +5,6 @@ import {
   type AssignmentGrading as AssignmentGradingAsType,
 } from './assignmentGrading.entity';
 import { User, type User as UserAsType } from './user.entity';
-import {
-  RubricScore,
-  type RubricScore as RubricScoreAsType,
-} from './rubricScore.entity';
 
 export class AssignmentGradeRecord {
   @ApiProperty({
@@ -46,8 +42,10 @@ export class AssignmentGradeRecord {
     nullable: true,
   })
   feedback: string | null;
-  @ApiHideProperty()
-  rubricScores?: RubricScoreAsType[];
+  @ApiProperty({
+    type: () => Object,
+  })
+  rubricScores: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
