@@ -1,8 +1,10 @@
-import { useState } from 'react'
 import type {
   ContentNode,
   ContentNodeType,
 } from '@/features/courses/modules/types.ts'
+import { createContext, useContext, useState, type ReactNode } from 'react'
+
+export type EditorView = 'detail' | 'content' | 'preview'
 
 export interface EditorState {
   type: ContentNodeType
@@ -11,9 +13,21 @@ export interface EditorState {
   view: EditorView
 }
 
-export type EditorView = 'detail' | 'content' | 'preview'
+interface EditorContextValue {
+  editorState: EditorState
+  handleAdd: (parentId?: string, newType?: ContentNodeType) => void
+  handleUpdate: (
+    nodeType: ContentNodeType,
+    nodeData: ContentNode,
+    view: EditorView,
+  ) => void
+  handlePreview: (nodeType: ContentNodeType, nodeData: ContentNode) => void
+  setView: (view: EditorView) => void
+}
 
-export const useEditorState = () => {
+const EditorContext = createContext<EditorContextValue | null>(null)
+
+export function EditorProvider({ children }: { children: ReactNode }) {
   const [editorState, setEditorState] = useState<EditorState>({
     type: 'section',
     data: null,
@@ -56,11 +70,25 @@ export const useEditorState = () => {
     setEditorState((prev) => ({ ...prev, view }))
   }
 
-  return {
-    editorState,
-    handleAdd,
-    handleUpdate,
-    handlePreview,
-    setView,
+  return (
+    <EditorContext.Provider
+      value={{
+        editorState,
+        handleAdd,
+        handleUpdate,
+        handlePreview,
+        setView,
+      }}
+    >
+      {children}
+    </EditorContext.Provider>
+  )
+}
+
+export function useEditorState() {
+  const context = useContext(EditorContext)
+  if (!context) {
+    throw new Error('useEditorState must be used within an EditorProvider')
   }
+  return context
 }

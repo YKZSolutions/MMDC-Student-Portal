@@ -1,4 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import RichTextEditor from '@/components/rich-text-editor.tsx'
+import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
+import ContentTree from '@/features/courses/cms/content-tree.tsx'
+import CourseSelector from '@/features/courses/cms/course-selector.tsx'
+import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
+import {
+  EditorProvider,
+  type EditorView,
+  useEditorState,
+} from '@/features/courses/hooks/useEditorState.tsx'
+import {
+  mockCourseBasicDetails,
+  mockInitialContent,
+} from '@/features/courses/mocks.ts'
+import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
+import type {
+  ContentNode,
+  ContentNodeType,
+  Module,
+  ModuleItem,
+  ModuleSection,
+} from '@/features/courses/modules/types.ts'
+import type { CourseBasicDetails } from '@/features/courses/types.ts'
+import { getTypeFromLevel } from '@/utils/helpers.ts'
 import {
   ActionIcon,
   Box,
@@ -13,7 +36,6 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import {
   IconCalendar,
   IconChevronDown,
@@ -23,30 +45,9 @@ import {
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
-import {
-  mockCourseBasicDetails,
-  mockInitialContent,
-} from '@/features/courses/mocks.ts'
-import {
-  type EditorView,
-  useEditorState,
-} from '@/features/courses/hooks/useEditorState.ts'
-import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
-import type {
-  ContentNode,
-  ContentNodeType,
-  Module,
-  ModuleItem,
-  ModuleSection,
-} from '@/features/courses/modules/types.ts'
-import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import ContentTree from '@/features/courses/cms/content-tree.tsx'
-import RichTextEditor from '@/components/rich-text-editor.tsx'
-import CourseSelector from '@/features/courses/cms/course-selector.tsx'
-import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
 import { Link } from '@tanstack/react-router'
-import { getTypeFromLevel } from '@/utils/helpers.ts'
-import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
+import { useEffect, useState } from 'react'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
 type CMSProps = {
   courseCode?: string
@@ -54,19 +55,23 @@ type CMSProps = {
   variant?: 'editor' | 'full'
 }
 
-export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
+export function CMS(props: CMSProps) {
+  return (
+    <EditorProvider>
+      <CMSWrapper {...props} />
+    </EditorProvider>
+  )
+}
+
+function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
   const theme = useMantineTheme()
   const [isTreeVisible, setIsTreeVisible] = useState(variant === 'full')
   const [isDragging, setIsDragging] = useState(false)
 
-  const {
-    courseDetails,
-    setCourseDetails,
-    module,
-    updateCourseData,
-    updateCourseContent,
-    getNode,
-  } = useCourseData(courseCode)
+  const { courseDetails, setCourseDetails, module, getNode } =
+    useCourseData(courseCode)
+
+  const { editorState, handleAdd, handleUpdate, setView } = useEditorState()
 
   useEffect(() => {
     if (itemId) {
@@ -76,90 +81,92 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
     }
   }, [itemId])
 
-  const { editorState, handleAdd, handleUpdate, handlePreview, setView } =
-    useEditorState()
-
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {
     setCourseDetails(course)
     setIsTreeVisible(true)
   }
 
-  const View = () => {
-    switch (editorState.view) {
-      case 'detail': {
-        return (
-          <ContentDetailsEditor
-            opened={true}
-            type={editorState.type as ContentNodeType}
-            data={editorState.data}
-            onSave={(nodeData) => {
-              updateCourseData(nodeData)
-              handleUpdate(editorState.type, nodeData, editorState.view)
-            }}
-            p={'xl'}
-            mx={'xl'}
-            style={{
-              overflowY: 'auto',
-              scrollbarGutter: 'stable',
-            }}
-          />
-        )
-      }
-      case 'content':
-        return (
-          <RichTextEditor
-            content={
-              editorState.data && 'content' in editorState.data
-                ? editorState.data?.content || mockInitialContent
-                : null
-            }
-            onUpdate={(newContent) => {
-              updateCourseContent(newContent, editorState.data?.id)
-              if (editorState.data) {
-                const updatedNode = {
-                  ...editorState.data,
-                  content: newContent,
-                }
-                handleUpdate(editorState.type, updatedNode, editorState.view)
-              }
-            }}
-          />
-        )
-      case 'preview':
-        return (
-          <ModuleContentView
-            module={module}
-            moduleItem={editorState.data as ModuleItem}
-            parentSection={
-              getNode(editorState.data?.parentId as string)
-                ?.node as ModuleSection
-            }
-            isPreview={true}
-          />
-        )
-    }
-  }
-
   return (
     <Box h={'100%'} w={'100%'} style={{ overflow: 'hidden' }}>
       <PanelGroup direction="horizontal">
-        <Panel
-          hidden={!isTreeVisible || variant === 'editor'}
-          minSize={15}
-          defaultSize={20}
-        >
-          <SidePanel
-            courseDetails={courseDetails}
-            courses={mockCourseBasicDetails}
-            module={module}
-            isTreeVisible={isTreeVisible}
-            onCourseChange={handleCourseChange}
-            onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
-            onAddContent={handleAdd}
-            onNodeChange={(nodeData) => {
-              handleUpdate(editorState.type, nodeData, editorState.view)
-            }}
-          />
+        <Panel defaultSize={70} minSize={50}>
+          <Stack flex={'1 0 auto'} h={'100%'} w={'100%'} gap={0}>
+            <Group
+              justify="space-between"
+              align="center"
+              w={'100%'}
+              style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
+              p={'xs'}
+            >
+              <Group>
+                <Group
+                  gap={'md'}
+                  display={
+                    isTreeVisible || variant === 'editor' ? 'none' : 'flex'
+                  }
+                  align={'center'}
+                >
+                  <TreeToggleButton
+                    isVisible={isTreeVisible}
+                    onToggle={() => setIsTreeVisible(!isTreeVisible)}
+                  />
+                  <CourseSelector
+                    courses={mockCourseBasicDetails}
+                    selectedCourse={courseDetails}
+                    onCourseChange={handleCourseChange}
+                  />
+                </Group>
+                <ActionIcon
+                  variant={'transparent'}
+                  hidden={variant !== 'editor'}
+                  onClick={() => window.history.back()}
+                >
+                  <IconX />
+                </ActionIcon>
+
+                <SegmentedControl
+                  value={editorState.view}
+                  onChange={(view) => setView(view as EditorView)}
+                  data={[
+                    { label: 'Details', value: 'detail' },
+                    {
+                      label: 'Content',
+                      value: 'content',
+                      disabled:
+                        !!editorState.data && editorState.type === 'item',
+                    },
+                    {
+                      label: 'Preview',
+                      value: 'preview',
+                      disabled:
+                        !!editorState.data && 'content' in editorState.data,
+                    },
+                  ]}
+                />
+              </Group>
+
+              <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
+                {courseDetails?.courseCode
+                  ? `[${courseDetails?.courseCode}]`
+                  : ''}{' '}
+                {courseDetails?.courseName}{' '}
+                {editorState.data?.title && ` | ${editorState.data.title} `}
+              </Title>
+
+              <ActionMenu />
+            </Group>
+
+            <Box
+              h="100%"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+              }}
+            >
+              <CMSView courseCode={courseCode} />
+            </Box>
+          </Stack>
         </Panel>
 
         <PanelResizeHandle
@@ -183,34 +190,23 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
           <IconGripVertical size={16} />
         </PanelResizeHandle>
 
-        <Panel defaultSize={70} minSize={50}>
-          <Stack flex={'1 0 auto'} h={'100%'} w={'100%'} gap={0}>
-            <CMSHeader
-              courseDetails={courseDetails}
-              courses={mockCourseBasicDetails}
-              contentTitle={editorState.data?.title}
-              isTreeVisible={isTreeVisible && variant === 'full'}
-              onCourseChange={handleCourseChange}
-              onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
-              view={editorState.view}
-              variant={variant}
-              onViewChange={(view) => setView(view as EditorView)}
-              hasDetails={!!editorState.data}
-              hasContent={!!editorState.data && 'content' in editorState.data}
-              isItem={editorState.type === 'item'}
-            />
-
-            <Box
-              h="100%"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 0,
-              }}
-            >
-              <View />
-            </Box>
-          </Stack>
+        <Panel
+          hidden={!isTreeVisible || variant === 'editor'}
+          minSize={15}
+          defaultSize={20}
+        >
+          <SidePanel
+            courseDetails={courseDetails}
+            courses={mockCourseBasicDetails}
+            module={module}
+            isTreeVisible={isTreeVisible}
+            onCourseChange={handleCourseChange}
+            onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
+            onAddContent={handleAdd}
+            onNodeChange={(nodeData) => {
+              handleUpdate(editorState.type, nodeData, editorState.view)
+            }}
+          />
         </Panel>
       </PanelGroup>
 
@@ -219,15 +215,76 @@ export const CMS = ({ courseCode, itemId, variant = 'editor' }: CMSProps) => {
   )
 }
 
+function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
+  const { module, updateCourseData, updateCourseContent, getNode } =
+    useCourseData(courseCode)
+
+  const { editorState, handleUpdate } = useEditorState()
+
+  console.log('editorState', editorState)
+  switch (editorState.view) {
+    case 'detail': {
+      return (
+        <ContentDetailsEditor
+          opened={true}
+          type={editorState.type as ContentNodeType}
+          data={editorState.data}
+          onSave={(nodeData) => {
+            updateCourseData(nodeData)
+            handleUpdate(editorState.type, nodeData, editorState.view)
+          }}
+          p={'xl'}
+          mx={'xl'}
+          style={{
+            overflowY: 'auto',
+            scrollbarGutter: 'stable',
+          }}
+        />
+      )
+    }
+    case 'content':
+      return (
+        <RichTextEditor
+          content={
+            editorState.data && 'content' in editorState.data
+              ? editorState.data?.content || mockInitialContent
+              : null
+          }
+          onUpdate={(newContent) => {
+            updateCourseContent(newContent, editorState.data?.id)
+            if (editorState.data) {
+              const updatedNode = {
+                ...editorState.data,
+                content: newContent,
+              }
+              handleUpdate(editorState.type, updatedNode, editorState.view)
+            }
+          }}
+        />
+      )
+    case 'preview':
+      return (
+        <ModuleContentView
+          module={module}
+          moduleItem={editorState.data as ModuleItem}
+          parentSection={
+            getNode(editorState.data?.parentId as string)?.node as ModuleSection
+          }
+          isPreview={true}
+        />
+      )
+  }
+}
+
 interface TreeToggleButtonProps {
   isVisible: boolean
   onToggle: () => void
 }
 
-export const TreeToggleButton = ({
+export function TreeToggleButton({
   isVisible,
   onToggle,
-}: TreeToggleButtonProps) => {
+}: TreeToggleButtonProps) {
   return (
     <ActionIcon onClick={onToggle} bg={isVisible ? 'blue.3' : 'gray.3'}>
       <IconListTree size={18} color={isVisible ? 'white' : 'gray'} />
@@ -235,96 +292,7 @@ export const TreeToggleButton = ({
   )
 }
 
-interface CMSHeaderProps {
-  courseDetails?: CourseBasicDetails
-  courses: CourseBasicDetails[]
-  isTreeVisible: boolean
-  onCourseChange: (course: CourseBasicDetails | undefined) => void
-  onToggleTree: () => void
-  contentTitle?: string
-  view: string
-  variant: 'full' | 'editor'
-  onViewChange: (view: string) => void
-  isItem: boolean
-  hasDetails: boolean
-  hasContent: boolean
-}
-
-const CMSHeader = ({
-  courseDetails,
-  courses,
-  isTreeVisible,
-  onCourseChange,
-  onToggleTree,
-  contentTitle,
-  view,
-  variant,
-  onViewChange,
-  hasDetails,
-  hasContent,
-  isItem,
-}: CMSHeaderProps) => {
-  const theme = useMantineTheme()
-  console.log('variant', variant)
-  return (
-    <Group
-      justify="space-between"
-      align="center"
-      w={'100%'}
-      style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
-      p={'xs'}
-    >
-      <Group>
-        <Group
-          gap={'md'}
-          display={isTreeVisible || variant === 'editor' ? 'none' : 'flex'}
-          align={'center'}
-        >
-          <TreeToggleButton isVisible={isTreeVisible} onToggle={onToggleTree} />
-          <CourseSelector
-            courses={courses}
-            selectedCourse={courseDetails}
-            onCourseChange={onCourseChange}
-          />
-        </Group>
-        <ActionIcon
-          variant={'transparent'}
-          hidden={variant !== 'editor'}
-          onClick={() => window.history.back()}
-        >
-          <IconX />
-        </ActionIcon>
-
-        <SegmentedControl
-          value={view}
-          onChange={onViewChange}
-          data={[
-            { label: 'Details', value: 'detail' },
-            {
-              label: 'Content',
-              value: 'content',
-              disabled: !hasDetails && !isItem,
-            },
-            {
-              label: 'Preview',
-              value: 'preview',
-              disabled: !hasContent && !hasDetails && !isItem,
-            },
-          ]}
-        />
-      </Group>
-
-      <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
-        {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
-        {courseDetails?.courseName} {contentTitle && ` | ${contentTitle} `}
-      </Title>
-
-      <ActionMenu />
-    </Group>
-  )
-}
-
-export const ActionMenu = () => {
+export function ActionMenu() {
   const theme = useMantineTheme()
 
   return (
@@ -398,7 +366,7 @@ export const ActionMenu = () => {
 
 interface StatusBarProps {}
 
-export const StatusBar = ({}: StatusBarProps) => {
+export function StatusBar({}: StatusBarProps) {
   const theme = useMantineTheme()
 
   return (
@@ -437,7 +405,7 @@ interface SidePanelProps {
   onAddContent: (parentId?: string, newType?: ContentNodeType) => void
 }
 
-export const SidePanel = ({
+export function SidePanel({
   courseDetails,
   courses,
   module,
@@ -446,7 +414,7 @@ export const SidePanel = ({
   onNodeChange,
   onToggleTree,
   onAddContent,
-}: SidePanelProps) => {
+}: SidePanelProps) {
   return (
     <Box py={'md'} h={'100%'}>
       <Container flex={'1 0 auto'} h={'100%'} style={{ overflow: 'auto' }}>
