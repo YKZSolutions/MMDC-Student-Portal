@@ -14,11 +14,6 @@ export class AssignmentGradingDto {
     type: 'string',
     format: 'Decimal.js',
   })
-  maxScore: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
   weight: Prisma.Decimal;
   @ApiProperty({
     type: 'boolean',

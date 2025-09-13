@@ -10,14 +10,6 @@ export class UpdateAssignmentGradingDto {
   })
   @IsOptional()
   @IsDecimal()
-  maxScore?: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    required: false,
-  })
-  @IsOptional()
-  @IsDecimal()
   weight?: Prisma.Decimal;
   @ApiProperty({
     type: () => Object,

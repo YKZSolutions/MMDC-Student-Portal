@@ -19,15 +19,6 @@ export class UpdateQuizSubmissionDto {
   @IsDecimal()
   rawScore?: Prisma.Decimal | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDecimal()
-  maxScore?: Prisma.Decimal | null;
-  @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,

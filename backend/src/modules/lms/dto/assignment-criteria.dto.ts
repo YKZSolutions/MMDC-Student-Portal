@@ -1,4 +1,4 @@
-export class RubricDto {
+export class CriteriaDto {
   key: string;
   criteria: string;
   points: number;
@@ -9,4 +9,8 @@ export class RatingDto {
   weight: number;
   label: string;
   description: string;
+}
+
+export class RubricDto {
+  criteria: CriteriaDto[];
 }

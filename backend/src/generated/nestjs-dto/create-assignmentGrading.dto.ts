@@ -9,13 +9,6 @@ export class CreateAssignmentGradingDto {
   })
   @IsNotEmpty()
   @IsDecimal()
-  maxScore: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  @IsNotEmpty()
-  @IsDecimal()
   weight: Prisma.Decimal;
   @ApiProperty({
     type: () => Object,

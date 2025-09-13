@@ -31,12 +31,6 @@ export class QuizSubmission {
   })
   rawScore: Prisma.Decimal | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    nullable: true,
-  })
-  maxScore: Prisma.Decimal | null;
-  @ApiProperty({
     type: () => Object,
     nullable: true,
   })

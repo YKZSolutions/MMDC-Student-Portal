@@ -804,7 +804,6 @@ model QuizSubmission {
 
   answers  Json // Student's answers
   rawScore Decimal? @db.Decimal(5, 2)
-  maxScore Decimal? @db.Decimal(5, 2)
 
   questionResults Json? // [{questionId, points, score, feedback}]
 
@@ -976,7 +975,6 @@ model AssignmentGrading {
   // Grading schema definition
   /// @DtoReadOnly
   gradingSchema Json // Rubric structure, criteria, weights, check rubricDTO
-  maxScore      Decimal @db.Decimal(5, 2)
   weight        Decimal @db.Decimal(5, 2) // For final grade calculation
 
   // Grade processing metadata
@@ -995,7 +993,6 @@ model AssignmentGrading {
   /// @DtoApiHidden
   gradeRecords GradeRecord[]
 
-  @@index([maxScore])
   @@index([weight])
 }
 
