@@ -577,6 +577,12 @@ model ModuleSection {
   /// @DtoApiHidden
   subsections     ModuleSection[] @relation("ModuleSubsection")
 
+  prerequisiteSectionId String?         @db.Uuid
+  /// @DtoApiHidden
+  prerequisiteSection   ModuleSection?  @relation("ModulePrerequisite", fields: [prerequisiteSectionId], references: [id])
+  /// @DtoApiHidden
+  dependentSections     ModuleSection[] @relation("ModulePrerequisite")
+
   /// @DtoApiHidden
   moduleContents ModuleContent[]
 
