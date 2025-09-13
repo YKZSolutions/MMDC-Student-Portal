@@ -2,10 +2,7 @@
 import type { FilterType } from '@/components/multi-filter.tsx'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
-import {
-  CourseCard,
-  CourseListRow,
-} from '@/features/courses/dashboard/course-dashboard-item.tsx'
+import { CourseCard, CourseListRow } from '@/features/courses/dashboard/course-dashboard-item'
 import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
