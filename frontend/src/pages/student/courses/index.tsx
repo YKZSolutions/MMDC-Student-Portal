@@ -2,12 +2,15 @@
 import type { FilterType } from '@/components/multi-filter.tsx'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
-import { CourseCard, CourseListRow } from '@/features/courses/dashboard/course-dashboard-item'
+import {
+  CourseCard,
+  CourseListRow,
+} from '@/features/courses/dashboard/course-dashboard-item'
 import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
 import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
-import { Container, Group, Stack } from '@mantine/core'
+import { Box, Container, Group, Stack } from '@mantine/core'
 import { IconCalendarTime } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 
@@ -46,12 +49,9 @@ const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
 
   const defaultFilters: FilterType[] = [{ ...filters[0], value: 'current' }]
 
-  const [showFilters, setShowFilters] = useState(true)
-
   const {
     activeFilters,
     filteredData, // 👈 EnrolledCourse[]
-    activeFilterCount,
     handleAddFilter,
     handleRemoveFilter,
     handleFilterChange,
@@ -108,12 +108,12 @@ const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
                   />
                 ))}
           </Group>
-          <div
+          <Box
             className="self-end"
             style={{ flexGrow: 1, flexBasis: '20%', minWidth: 250 }}
           >
             <CourseTasksSummary courses={filteredData} />
-          </div>
+          </Box>
         </Group>
       </Stack>
     </Container>
