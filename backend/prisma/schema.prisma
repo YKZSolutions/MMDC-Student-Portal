@@ -708,19 +708,15 @@ model Assignment {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json?
+  content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
 
   mode   AssignmentMode   @default(INDIVIDUAL)
   status AssignmentStatus @default(DRAFT)
 
-  dueDate DateTime?
-  points  Int       @default(0) @db.SmallInt
-
-  maxAttempts         Int     @default(1) @db.SmallInt
-  allowLateSubmission Boolean @default(false)
-  latePenalty         Decimal @default(0.0) @db.Decimal(5, 2)
-
-  rubric Json?
+  maxAttempts         Int       @default(1) @db.SmallInt
+  allowLateSubmission Boolean   @default(false)
+  latePenalty         Decimal   @default(0.0) @db.Decimal(5, 2)
+  dueDate             DateTime?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -729,9 +725,10 @@ model Assignment {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  gradingId String?  @db.Uuid
-  grading   Grading? @relation(fields: [gradingId], references: [id])
+  gradingId String?            @db.Uuid
+  grading   AssignmentGrading? @relation(fields: [gradingId], references: [id], onDelete: Restrict)
 
+  /// @DtoApiHidden
   submissions AssignmentSubmission[]
 
   @@index([moduleContentId])
@@ -749,14 +746,13 @@ model AssignmentSubmission {
   student User @relation(fields: [studentId], references: [id])
 
   /// Text submission
-  content       String?   @db.Text
+  content       Json?
   submittedAt   DateTime?
   attemptNumber Int?      @db.SmallInt
 
   // Late submission tracking
   lateDays Int? @db.SmallInt
 
-  /// @DtoApiHidden
   attachments AssignmentAttachment[]
 
   /// @DtoReadOnly
@@ -794,18 +790,15 @@ model Quiz {
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
   title           String        @db.VarChar(255)
   subtitle        String?       @db.VarChar(500)
-  content         Json?
+  content         Json // Structured quiz content (eg. description, instructions, etc.)
 
   timeLimit   Int? // in minutes
   maxAttempts Int  @default(1)
-  points      Int  @default(100) @db.SmallInt
 
   questions Json // Store all questions in a structured format
 
+  /// @DtoApiHidden
   submissions QuizSubmission[]
-
-  gradingId String?  @db.Uuid
-  grading   Grading? @relation(fields: [gradingId], references: [id])
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -819,12 +812,19 @@ model Quiz {
 
 model QuizSubmission {
   id        String @id @default(uuid()) @db.Uuid
-  quizId    String @db.Uuid
+  /// @DtoApiHidden
   quiz      Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  studentId String @db.Uuid
+  quizId    String @db.Uuid
+  /// @DtoApiHidden
   student   User   @relation(fields: [studentId], references: [id])
+  studentId String @db.Uuid
 
-  answers       Json // flexible structure
+  answers  Json // Student's answers
+  rawScore Decimal? @db.Decimal(5, 2)
+  maxScore Decimal? @db.Decimal(5, 2)
+
+  questionResults Json? // [{questionId, points, score, feedback}]
+
   submittedAt   DateTime @default(now())
   timeSpent     Int? // in seconds
   attemptNumber Int      @default(1) @db.SmallInt
@@ -985,58 +985,54 @@ model ContentProgress {
   @@index([moduleId])
 }
 
-// Defines HOW something is graded
-model Grading {
-  id         String @id @default(uuid()) @db.Uuid
-  entityId   String @db.Uuid // assignmentId or quizId
-  entityType String // 'ASSIGNMENT' or 'QUIZ'
+// Defines HOW assignment is graded
+// Allows reusing the same grading model for multiple assignments
+model AssignmentGrading {
+  id String @id @default(uuid()) @db.Uuid
 
-  // Grading schema
-  gradingSchema Json // Rubric, points distribution, criteria
+  // Grading schema definition
+  /// @DtoReadOnly
+  gradingSchema Json // Rubric structure, criteria, weights, check rubricDTO
   maxScore      Decimal @db.Decimal(5, 2)
-  passingScore  Decimal @db.Decimal(5, 2)
   weight        Decimal @db.Decimal(5, 2) // For final grade calculation
 
   // Grade processing metadata
   isCurved      Boolean @default(false)
-  curveSettings Json?
+  curveSettings Json? // for adjusting grades (eg. adding points to all grades)
 
   /// @DtoReadOnly
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
 
+  /// @DtoApiHidden
+  assignments  Assignment[] //Many assignments can use the same grading schema
   /// @DtoApiHidden
   gradeRecords GradeRecord[]
-  /// @DtoApiHidden
-  assignments  Assignment[]
-  /// @DtoApiHidden
-  quizess      Quiz[]
 
-  @@index([entityId, entityType])
   @@index([maxScore])
   @@index([weight])
 }
 
 // defines WHAT was actually graded
 model GradeRecord {
-  id        String  @id @default(uuid()) @db.Uuid
-  gradingId String  @db.Uuid
-  grading   Grading @relation(fields: [gradingId], references: [id], onDelete: Cascade)
-  studentId String  @db.Uuid
+  id        String            @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  student   User    @relation("GradeRecordStudent", fields: [studentId], references: [id])
+  grading   AssignmentGrading @relation(fields: [gradingId], references: [id], onDelete: Cascade)
+  gradingId String            @db.Uuid
+  /// @DtoApiHidden
+  student   User              @relation("GradeRecordStudent", fields: [studentId], references: [id])
+  studentId String            @db.Uuid
 
-  // Actual grade data
-  rawScore   Decimal @db.Decimal(5, 2)
+  rawScore   Decimal @db.Decimal(5, 2) // Actual grade data
   finalScore Decimal @db.Decimal(5, 2)
-  grade      String  @db.VarChar(10) // A, B+, etc.
-  percentage Decimal @db.Decimal(5, 2)
+  grade      String  @db.VarChar(10) // A, B+, Pass, Fail etc.
+  feedback   String?
 
-  // Processing metadata
-  isExcused     Boolean @default(false)
-  isExtraCredit Boolean @default(false)
-  comments      String?
+  /// @DtoApiHidden
+  rubricScores RubricScore[] // Detailed scores for each criterion
 
   // Audit trail
   gradedById String   @db.Uuid
@@ -1051,6 +1047,21 @@ model GradeRecord {
   @@index([studentId, finalScore])
   @@index([gradedAt])
   @@index([finalScore, gradingId])
+}
+
+model RubricScore {
+  id            String      @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  gradeRecord   GradeRecord @relation(fields: [gradeRecordId], references: [id], onDelete: Cascade)
+  gradeRecordId String      @db.Uuid
+
+  criterionKey String
+  label        String?
+  maxPoints    Decimal @db.Decimal(5, 2)
+  score        Decimal @db.Decimal(5, 2)
+
+  @@index([gradeRecordId])
+  @@index([criterionKey])
 }
 
 model Notification {
