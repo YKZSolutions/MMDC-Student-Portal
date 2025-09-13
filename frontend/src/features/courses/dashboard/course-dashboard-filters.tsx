@@ -1,5 +1,4 @@
 import { type FilterType, MultiFilter } from '@/components/multi-filter.tsx'
-import { Group } from '@mantine/core'
 import { useMemo } from 'react'
 
 type CourseDashboardFiltersProps = {
@@ -28,13 +27,11 @@ const CourseDashboardFilters = ({
   )
 
   return (
-    <Group gap={'md'} align="start">
-      <MultiFilter
-        filters={filters}
-        activeFilters={transformedFilters}
-        onAddFilter={onAddFilter}
-      />
-    </Group>
+    <MultiFilter
+      filters={filters}
+      activeFilters={transformedFilters}
+      onAddFilter={onAddFilter}
+    />
   )
 }
 

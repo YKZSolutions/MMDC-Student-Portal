@@ -6,6 +6,7 @@ import {
   Button,
   Divider,
   Group,
+  rem,
   Stack,
   Title,
   Tooltip,
@@ -45,26 +46,24 @@ const CourseDashboardHeader = ({
       <Title c="dark.7" variant="hero" order={2} fw={700}>
         Courses
       </Title>
-      <Group justify="space-between" align="center">
+      <Group align="center" gap={rem(5)}>
         <SearchComponent
           data={coursesData}
           onFilter={onSearchFilter}
           identifiers={['courseName']}
           placeholder="Search courses"
         />
-        <Group>
-          <ViewSelectorButton
-            view={view}
-            onGridClick={() => onViewChange('grid')}
-            onListClick={() => onViewChange('list')}
-          />
-        </Group>
         <CourseDashboardFilters
           filters={filters}
           activeFilters={activeFilters}
           onAddFilter={handleAddFilter}
           onRemoveFilter={handleRemoveFilter}
           onFilterChange={handleFilterChange}
+        />
+        <ViewSelectorButton
+          view={view}
+          onGridClick={() => onViewChange('grid')}
+          onListClick={() => onViewChange('list')}
         />
       </Group>
     </Group>
