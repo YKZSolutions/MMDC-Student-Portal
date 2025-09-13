@@ -180,18 +180,21 @@ const FilterPill = ({
           onClick={() => setIsOpen(!isOpen)}
           leftSection={icon}
           rightSection={
-            <Box
-              color={'gray.6'}
-              className={`transition-opacity ${isOpen ? 'opacity-0' : 'opacity-0 hover:opacity-100'}`}
-            >
-              <IconX
+            <Group gap={rem(10)}>
+              <IconChevronDown
                 size={14}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onRemove!()
-                }}
+                className={`ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`}
               />
-            </Box>
+              <Box color={'gray.6'}>
+                <IconX
+                  size={14}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove!()
+                  }}
+                />
+              </Box>
+            </Group>
           }
         >
           <Group gap={4}>
@@ -211,10 +214,6 @@ const FilterPill = ({
                 </Text>
               </>
             )}
-            <IconChevronDown
-              size={14}
-              className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-            />
           </Group>
         </Button>
       </Menu.Target>
