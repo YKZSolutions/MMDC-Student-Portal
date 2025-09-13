@@ -7,13 +7,11 @@ import type {
 import {
   ActionIcon,
   Box,
-  Button,
   Card,
   Divider,
   Flex,
   Group,
   Image,
-  Progress,
   rem,
   RingProgress,
   Stack,
@@ -23,13 +21,12 @@ import {
 } from '@mantine/core'
 import {
   IconCalendar,
-  IconDeviceDesktop,
   IconDotsVertical,
+  IconEdit,
   IconVideo,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import CourseDashboardQuickActions from './course-dashboard-quick-actions'
 
 interface CourseDashboardItemProps {
   course: Course | EnrolledCourse
@@ -146,41 +143,10 @@ const CourseCard = ({
             </Group>
           </>
         )}
-        <Group ml={'auto'}>
-          <ActionIcon
-            variant="subtle"
-            color="primary"
-            radius={'lg'}
-            size={'lg'}
-            p={rem(5)}
-            onClick={(e) => {
-              e.stopPropagation()
-              navigate({
-                to: url,
-              })
-            }}
-          >
-            <IconVideo />
-          </ActionIcon>
-          <ActionIcon
-            variant="subtle"
-            radius={'lg'}
-            size={'lg'}
-            p={rem(5)}
-            c={'gray.6'}
-          >
-            <IconCalendar />
-          </ActionIcon>
-          <ActionIcon
-            variant="subtle"
-            radius={'lg'}
-            size={'lg'}
-            p={rem(5)}
-            c={'gray.6'}
-          >
-            <IconDotsVertical />
-          </ActionIcon>
-        </Group>
+        <CourseCardActionButton
+          courseCode={course.courseCode}
+          currentMeeting={currentMeeting}
+        />
       </Group>
     </Card>
   )
@@ -198,60 +164,57 @@ const CourseListRow = ({
   return (
     <Card
       radius="md"
-      p="0"
-      px={'md'}
-      className={'drop-shadow-sm hover:drop-shadow-lg'}
+      p={'lg'}
+      withBorder
+      className={'drop-shadow-xs hover:drop-shadow-sm'}
       w={'100%'}
-      style={{
-        borderLeft: `4px solid ${theme.colors.primary[0]}`,
-        cursor: 'pointer',
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       onClick={() => navigate({ to: url })}
     >
       <Group justify="space-between" wrap="nowrap">
-        <Stack w={'65%'} p={'xs'} justify={'space-between'}>
-          <Group gap={'xs'}>
-            <Title
-              order={3}
-              lineClamp={1}
-              c={'primary'}
-              style={{
-                textDecoration: hovered ? 'underline' : 'none',
-              }}
-            >
-              {course.courseName}
-            </Title>
-            <CourseDashboardQuickActions />
-          </Group>
-          <Text fw={400} size={'sm'} c={'dark.3'}>
-            {course.courseCode}{' '}
+        <Stack gap="xs" justify="center">
+          <Title order={4} lineClamp={1} c="dark.7">
+            {course.courseName}
+          </Title>
+          <Group gap={rem(5)} c="dark.3">
+            <Text size="sm">{course.courseCode}</Text>
             {'section' in course && (
               <>
-                • {course.section.sectionName} |{' '}
-                {course.section.sectionSchedule.day}{' '}
-                {course.section.sectionSchedule.time}
+                <Text size="sm">• {course.section.sectionName}</Text>
+                <Group gap={5}>
+                  <IconCalendar size={14} />
+                  <Text size="sm">
+                    {course.section.sectionSchedule.day}{' '}
+                    {course.section.sectionSchedule.time}
+                  </Text>
+                </Group>
               </>
             )}
-          </Text>
+          </Group>
         </Stack>
-        <Stack w={'30%'} p={'xs'} justify={'space-between'}>
+        <Stack align="end">
           <CourseCardActionButton
             currentMeeting={currentMeeting}
             courseCode={course.courseCode}
           />
-          <Group gap="xs">
-            <Text fw={500} size={'xs'} c={'dark.3'}>
-              Completed:
-            </Text>
-            <Progress color={'blue.5'} value={50} w={'50%'} />
-            {'courseProgress' in course && (
-              <Text fw={500} size={'xs'} c={'dark.3'}>
-                {course.courseProgress * 100}%
-              </Text>
-            )}
-          </Group>
+          {'courseProgress' in course && (
+            <>
+              <Group gap={rem(5)}>
+                <RingProgress
+                  size={30}
+                  thickness={3}
+                  sections={[
+                    {
+                      value: course.courseProgress * 100,
+                      color: theme.colors.blue[5],
+                    },
+                  ]}
+                />
+                <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                  {course.courseProgress * 100}%
+                </Text>
+              </Group>
+            </>
+          )}
         </Stack>
       </Group>
     </Card>
@@ -262,6 +225,7 @@ type CourseCardActionButtonProps = {
   currentMeeting?: ClassMeeting
   courseCode: string
 }
+
 const CourseCardActionButton = ({
   currentMeeting,
   courseCode,
@@ -269,35 +233,46 @@ const CourseCardActionButton = ({
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
   return (
-    <Button
-      leftSection={
-        authUser.role === 'student' ? (
-          <IconVideo size={16} />
-        ) : (
-          <IconDeviceDesktop size={16} />
-        )
-      }
-      size="xs"
-      radius="xl"
-      variant="filled"
-      disabled={authUser.role === 'student' ? !currentMeeting : false}
-      onClick={(e) => {
-        e.stopPropagation()
-        authUser.role === 'student'
-          ? window.open(currentMeeting?.meetingLink!, '_blank')
-          : navigate({
-              from: '/cms',
-              to: '/cms/$courseCode',
-              params: { courseCode },
-            })
-      }}
-    >
-      {authUser.role === 'student'
-        ? 'Join Meeting'
-        : authUser.role === 'mentor'
-          ? 'Start Meeting'
-          : 'Manage Content'}
-    </Button>
+    <Group ml={'auto'}>
+      <ActionIcon
+        variant="subtle"
+        color="primary"
+        radius={'lg'}
+        size={'lg'}
+        p={rem(5)}
+        disabled={authUser.role === 'student' ? !currentMeeting : false}
+        onClick={(e) => {
+          e.stopPropagation()
+          authUser.role === 'student'
+            ? window.open(currentMeeting?.meetingLink!, '_blank')
+            : navigate({
+                from: '/cms',
+                to: '/cms/$courseCode',
+                params: { courseCode },
+              })
+        }}
+      >
+        {authUser.role === 'student' ? <IconVideo /> : <IconEdit />}
+      </ActionIcon>
+      <ActionIcon
+        variant="subtle"
+        radius={'lg'}
+        size={'lg'}
+        p={rem(5)}
+        c={'gray.6'}
+      >
+        <IconCalendar />
+      </ActionIcon>
+      <ActionIcon
+        variant="subtle"
+        radius={'lg'}
+        size={'lg'}
+        p={rem(5)}
+        c={'gray.6'}
+      >
+        <IconDotsVertical />
+      </ActionIcon>
+    </Group>
   )
 }
 
