@@ -62,7 +62,7 @@ const CourseCard = ({
       style={{
         cursor: 'pointer',
       }}
-      className="shadow-xs"
+      className="drop-shadow-xs hover:drop-shadow-sm"
     >
       {/* Header block */}
       <Flex pos="relative">
@@ -166,7 +166,7 @@ const CourseListRow = ({
       radius="md"
       p={'lg'}
       withBorder
-      className={'drop-shadow-xs hover:drop-shadow-sm'}
+      className={'drop-shadow-xs hover:drop-shadow-sm cursor-pointer'}
       w={'100%'}
       onClick={() => navigate({ to: url })}
     >

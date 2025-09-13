@@ -95,9 +95,9 @@ function AssignmentPage() {
   return (
     <Stack gap={'md'} p={'md'}>
       {/*Header*/}
-      <Group justify="space-between" align="center">
-        <Title size={'h2'}>Assignments</Title>
-      </Group>
+      <Title c="dark.7" variant="hero" order={2} fw={700}>
+        Assignments
+      </Title>
 
       <Stack>
         <Tabs

@@ -1,20 +1,20 @@
-import type {
-  CourseGradebookForMentor,
-  StudentAssignmentGrade,
-} from '@/features/courses/grades/types.ts'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import React, { useEffect, useState } from 'react'
-import { Button, Group, rem, Stack, Tabs, Title } from '@mantine/core'
 import SearchComponent from '@/components/search-component.tsx'
+import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
   AdminGradesTable,
   MentorGradesTable,
   StudentGradesTable,
 } from '@/features/courses/grades/grades-table.tsx'
+import type {
+  CourseGradebookForMentor,
+  StudentAssignmentGrade,
+} from '@/features/courses/grades/types.ts'
 import {
   mockMentorGradebook,
   mockStudentGradebook,
 } from '@/features/courses/mocks.ts'
+import { Button, Group, rem, Stack, Tabs, Title } from '@mantine/core'
+import { useEffect, useState } from 'react'
 
 const CourseGrades = () => {
   const { authUser } = useAuth('protected')
@@ -78,7 +78,9 @@ const CourseGrades = () => {
     <Stack gap={'md'} p={'md'}>
       {/*Header*/}
       <Group justify="space-between" align="center">
-        <Title>Grades</Title>
+        <Title c="dark.7" variant="hero" order={2} fw={700}>
+          Grades
+        </Title>
         <Group align="start">
           <SearchComponent
             data={data as any}
