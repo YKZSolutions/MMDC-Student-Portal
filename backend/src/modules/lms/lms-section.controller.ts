@@ -46,33 +46,41 @@ export class LmsSectionController {
   @Get()
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAllModuleSections(@Param('moduleId', new ParseUUIDPipe()) moduleId: string) {
+  findAllModuleSections(
+    @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
+  ) {
     return this.lmsSectionService.findByModuleId(moduleId);
   }
 
   /**
    * Updates a module section
-   * 
+   *
    * @remarks
    * Requires `ADMIN` role
    */
   @Patch(':moduleSectionId')
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  update(@Param('moduleSectionId', new ParseUUIDPipe()) moduleSectionId: string, dto: UpdateModuleSectionDto) {
+  update(
+    @Param('moduleSectionId', new ParseUUIDPipe()) moduleSectionId: string,
+    @Body() dto: UpdateModuleSectionDto,
+  ) {
     return this.lmsSectionService.update(moduleSectionId, dto);
   }
 
   /**
    * Deletes a module section
-   * 
+   *
    * @remarks
    * Requires `ADMIN` role
    */
   @Delete(':moduleSectionId')
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  remove(@Param('moduleSectionId', new ParseUUIDPipe()) moduleSectionId: string, @Query() query?: DeleteQueryDto) {
+  remove(
+    @Param('moduleSectionId', new ParseUUIDPipe()) moduleSectionId: string,
+    @Query() query?: DeleteQueryDto,
+  ) {
     return this.lmsSectionService.remove(moduleSectionId, query?.directDelete);
   }
 }
