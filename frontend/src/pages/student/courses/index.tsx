@@ -1,18 +1,18 @@
 // Course-specific filter configuration
-import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
-import type { EnrolledCourse } from '@/features/courses/types.ts'
-import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
-import { useMemo, useState } from 'react'
 import type { FilterType } from '@/components/multi-filter.tsx'
-import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
-import { Container, Group, Stack } from '@mantine/core'
-import { IconCalendarTime } from '@tabler/icons-react'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
+import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
 import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item.tsx'
-import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
+import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
+import type { EnrolledCourse } from '@/features/courses/types.ts'
+import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
+import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
+import { Container, Group, Stack } from '@mantine/core'
+import { IconCalendarTime } from '@tabler/icons-react'
+import { useMemo, useState } from 'react'
 
 export const studentCourseFilterConfig: FilterConfig<EnrolledCourse> = {
   Term: (course, value) => {
@@ -27,7 +27,7 @@ type StudentDashboardProps = {
   coursesData: EnrolledCourse[]
 }
 
-const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
+const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [searchFilteredCourses, setSearchFilteredCourses] =
     useState<EnrolledCourse[]>(coursesData)
@@ -126,4 +126,4 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
   )
 }
 
-export default StudentCourseDashboard
+export default StudentCourseDashboardPage
