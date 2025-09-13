@@ -34,9 +34,9 @@ import {
   type AssignmentSubmission as AssignmentSubmissionAsType,
 } from './assignmentSubmission.entity';
 import {
-  GradeRecord,
-  type GradeRecord as GradeRecordAsType,
-} from './gradeRecord.entity';
+  AssignmentGradeRecord,
+  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
+} from './assignmentGradeRecord.entity';
 import {
   QuizSubmission,
   type QuizSubmission as QuizSubmissionAsType,
@@ -74,9 +74,9 @@ export class User {
   @ApiHideProperty()
   submittedAssignments?: AssignmentSubmissionAsType[];
   @ApiHideProperty()
-  grades?: GradeRecordAsType[];
+  grades?: AssignmentGradeRecordAsType[];
   @ApiHideProperty()
-  gradedSubmissions?: GradeRecordAsType[];
+  gradedSubmissions?: AssignmentGradeRecordAsType[];
   @ApiHideProperty()
   quizAttempts?: QuizSubmissionAsType[];
   @ApiHideProperty()

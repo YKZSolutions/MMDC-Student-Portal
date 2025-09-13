@@ -1,9 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
-  GradeRecord,
-  type GradeRecord as GradeRecordAsType,
-} from './gradeRecord.entity';
+  AssignmentGradeRecord,
+  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
+} from './assignmentGradeRecord.entity';
 
 export class RubricScore {
   @ApiProperty({
@@ -11,7 +11,7 @@ export class RubricScore {
   })
   id: string;
   @ApiHideProperty()
-  gradeRecord?: GradeRecordAsType;
+  gradeRecord?: AssignmentGradeRecordAsType;
   @ApiProperty({
     type: 'string',
   })

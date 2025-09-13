@@ -5,9 +5,9 @@ import {
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
 import {
-  GradeRecord,
-  type GradeRecord as GradeRecordAsType,
-} from './gradeRecord.entity';
+  AssignmentGradeRecord,
+  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
+} from './assignmentGradeRecord.entity';
 
 export class AssignmentGrading {
   @ApiProperty({
@@ -51,5 +51,5 @@ export class AssignmentGrading {
   @ApiHideProperty()
   assignments?: AssignmentAsType[];
   @ApiHideProperty()
-  gradeRecords?: GradeRecordAsType[];
+  gradeRecords?: AssignmentGradeRecordAsType[];
 }

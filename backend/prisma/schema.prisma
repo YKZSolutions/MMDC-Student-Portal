@@ -39,7 +39,7 @@ enum UserStatus {
 }
 
 model User {
-  id                   String                 @id @default(uuid()) @db.Uuid
+  id                   String                  @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
   userAccount          UserAccount?
   /// @DtoApiHidden
@@ -59,9 +59,9 @@ model User {
   /// @DtoApiHidden
   submittedAssignments AssignmentSubmission[]
   /// @DtoApiHidden
-  grades               GradeRecord[]          @relation("GradeRecordStudent")
+  grades               AssignmentGradeRecord[] @relation("GradeRecordStudent")
   /// @DtoApiHidden
-  gradedSubmissions    GradeRecord[]          @relation("GradeRecordGrader")
+  gradedSubmissions    AssignmentGradeRecord[] @relation("GradeRecordGrader")
   /// @DtoApiHidden
   quizAttempts         QuizSubmission[]
   /// @DtoApiHidden
@@ -991,13 +991,13 @@ model AssignmentGrading {
   /// @DtoApiHidden
   assignments  Assignment[] //Many assignments can use the same grading schema
   /// @DtoApiHidden
-  gradeRecords GradeRecord[]
+  gradeRecords AssignmentGradeRecord[]
 
   @@index([weight])
 }
 
 // defines WHAT was actually graded
-model GradeRecord {
+model AssignmentGradeRecord {
   id        String            @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
   grading   AssignmentGrading @relation(fields: [gradingId], references: [id], onDelete: Cascade)
@@ -1030,10 +1030,10 @@ model GradeRecord {
 }
 
 model RubricScore {
-  id            String      @id @default(uuid()) @db.Uuid
+  id            String                @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  gradeRecord   GradeRecord @relation(fields: [gradeRecordId], references: [id], onDelete: Cascade)
-  gradeRecordId String      @db.Uuid
+  gradeRecord   AssignmentGradeRecord @relation(fields: [gradeRecordId], references: [id], onDelete: Cascade)
+  gradeRecordId String                @db.Uuid
 
   criterionKey String
   label        String?
