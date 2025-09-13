@@ -16,9 +16,14 @@
 //     "maxLength": 500
 //   }
 
+export type QuizQuestionType =
+  | 'multiple_choice'
+  | 'short_answer'
+  | 'true_false';
+
 export class MultipleChoiceQuestionDto {
-  id: string;
-  type: string;
+  questionNumber: number;
+  type: QuizQuestionType;
   points: number;
   question: string;
   options: {
@@ -29,16 +34,16 @@ export class MultipleChoiceQuestionDto {
 }
 
 export class ShortAnswerQuestionDto {
-  id: string;
-  type: string;
+  questionNumber: number;
+  type: QuizQuestionType;
   points: number;
   question: string;
   maxLength: number;
 }
 
 export class TrueFalseQuestionDto {
-  id: string;
-  type: string;
+  questionNumber: number;
+  type: QuizQuestionType;
   points: number;
   question: string;
   options: {
@@ -47,7 +52,6 @@ export class TrueFalseQuestionDto {
     correct: boolean;
   }[];
 }
-
 export type QuizQuestionDto =
   | MultipleChoiceQuestionDto
   | ShortAnswerQuestionDto
