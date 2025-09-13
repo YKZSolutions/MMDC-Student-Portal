@@ -48,6 +48,21 @@ export class Quiz {
   })
   maxAttempts: number;
   @ApiProperty({
+    type: 'boolean',
+  })
+  allowLateSubmission: boolean;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+  })
+  latePenalty: Prisma.Decimal;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  dueDate: Date | null;
+  @ApiProperty({
     type: () => Object,
   })
   questions: Prisma.JsonValue;

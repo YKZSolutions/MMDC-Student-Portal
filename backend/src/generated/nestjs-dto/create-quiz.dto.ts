@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateQuizDto {
   @ApiProperty({
@@ -31,6 +37,15 @@ export class CreateQuizDto {
   @IsOptional()
   @IsInt()
   timeLimit?: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  dueDate?: Date | null;
   @ApiProperty({
     type: () => Object,
   })

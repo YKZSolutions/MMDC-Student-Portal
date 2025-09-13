@@ -1,4 +1,4 @@
-import { AssignmentMode, AssignmentStatus, Prisma } from '@prisma/client';
+import { AssignmentMode, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ModuleContent,
@@ -43,11 +43,6 @@ export class Assignment {
     enumName: 'AssignmentMode',
   })
   mode: AssignmentMode;
-  @ApiProperty({
-    enum: AssignmentStatus,
-    enumName: 'AssignmentStatus',
-  })
-  status: AssignmentStatus;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

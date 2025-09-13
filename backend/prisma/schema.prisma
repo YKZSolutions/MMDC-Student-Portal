@@ -693,12 +693,6 @@ enum AssignmentMode {
   GROUP
 }
 
-enum AssignmentStatus {
-  DRAFT
-  PUBLISHED
-  CLOSED
-}
-
 model Assignment {
   id String @id @default(uuid()) @db.Uuid
 
@@ -710,8 +704,7 @@ model Assignment {
   subtitle String? @db.VarChar(500)
   content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
 
-  mode   AssignmentMode   @default(INDIVIDUAL)
-  status AssignmentStatus @default(DRAFT)
+  mode AssignmentMode @default(INDIVIDUAL)
 
   maxAttempts         Int       @default(1) @db.SmallInt
   allowLateSubmission Boolean   @default(false)
@@ -733,7 +726,6 @@ model Assignment {
 
   @@index([moduleContentId])
   @@index([dueDate])
-  @@index([status])
 }
 
 model AssignmentSubmission {
@@ -792,8 +784,11 @@ model Quiz {
   subtitle        String?       @db.VarChar(500)
   content         Json // Structured quiz content (eg. description, instructions, etc.)
 
-  timeLimit   Int? // in minutes
-  maxAttempts Int  @default(1)
+  timeLimit           Int? // in minutes
+  maxAttempts         Int       @default(1) @db.SmallInt
+  allowLateSubmission Boolean   @default(false)
+  latePenalty         Decimal   @default(0.0) @db.Decimal(5, 2)
+  dueDate             DateTime?
 
   questions Json // Store all questions in a structured format
 
