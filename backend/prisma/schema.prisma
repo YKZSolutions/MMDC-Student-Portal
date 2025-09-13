@@ -39,37 +39,35 @@ enum UserStatus {
 }
 
 model User {
-  id                    String                  @id @default(uuid()) @db.Uuid
+  id                   String             @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  userAccount           UserAccount?
+  userAccount          UserAccount?
   /// @DtoApiHidden
-  userDetails           UserDetails?
+  userDetails          UserDetails?
   /// @DtoApiHidden
-  studentDetails        StudentDetails?
+  studentDetails       StudentDetails?
   /// @DtoApiHidden
-  staffDetails          StaffDetails?
+  staffDetails         StaffDetails?
   /// @DtoApiHidden
-  bills                 Bill[]
+  bills                Bill[]
   /// @DtoApiHidden
-  notifications         Notification[]
+  notifications        Notification[]
   /// @DtoApiHidden
-  courseEnrollment      CourseEnrollment[]
+  courseEnrollment     CourseEnrollment[]
   /// @DtoApiHidden
-  courseSections        CourseSection[]
+  courseSections       CourseSection[]
   /// @DtoApiHidden
-  submittedSubmissions  Submission[]            @relation("SubmissionStudent")
+  submittedSubmissions Submission[]       @relation("SubmissionStudent")
   /// @DtoApiHidden
-  gradedSubmissions     Submission[]            @relation("SubmissionGrader")
+  gradedSubmissions    Submission[]       @relation("SubmissionGrader")
   /// @DtoApiHidden
-  moduleProgress        ContentProgress[]
+  moduleProgress       ContentProgress[]
   /// @DtoApiHidden
-  publishedModules      Module[]
+  publishedModules     Module[]
   /// @DtoApiHidden
-  publishedSections     ModuleSection[]
+  publishedSections    ModuleSection[]
   /// @DtoApiHidden
-  publishedContents     ModuleContent[]
-  /// @DtoApiHidden
-  moduleSectionProgress ModuleSectionProgress[]
+  publishedContents    ModuleContent[]
 
   firstName  String
   middleName String?
@@ -599,38 +597,17 @@ model ModuleSection {
   publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
-  createdAt             DateTime                @default(now())
+  createdAt DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt             DateTime                @updatedAt
+  updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
-  deletedAt             DateTime?
-  ModuleSectionProgress ModuleSectionProgress[]
+  deletedAt DateTime?
 
   @@unique([moduleId, order]) // ensure unique order within module
   @@index([moduleId])
   @@index([parentSectionId])
   @@index([order])
   @@index([publishedAt])
-}
-
-model ModuleSectionProgress {
-  id String @id @default(uuid()) @db.Uuid
-
-  userId String @db.Uuid
-  user   User   @relation(fields: [userId], references: [id])
-
-  moduleSectionId String        @db.Uuid
-  moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id])
-
-  completedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, moduleSectionId])
-  @@index([userId])
-  @@index([moduleSectionId])
-  @@index([completedAt])
 }
 
 enum ContentType {

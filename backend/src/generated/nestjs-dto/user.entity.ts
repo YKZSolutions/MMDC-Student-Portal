@@ -46,10 +46,6 @@ import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
-import {
-  ModuleSectionProgress,
-  type ModuleSectionProgress as ModuleSectionProgressAsType,
-} from './moduleSectionProgress.entity';
 
 export class User {
   @ApiProperty({
@@ -84,8 +80,6 @@ export class User {
   publishedSections?: ModuleSectionAsType[];
   @ApiHideProperty()
   publishedContents?: ModuleContentAsType[];
-  @ApiHideProperty()
-  moduleSectionProgress?: ModuleSectionProgressAsType[];
   @ApiProperty({
     type: 'string',
   })
