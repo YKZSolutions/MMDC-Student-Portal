@@ -7,7 +7,7 @@ import {
   mockTerms,
 } from '@/features/courses/mocks.ts'
 import type { Course, EnrolledCourse } from '@/features/courses/types.ts'
-import MentorAdminDashboardPage from '@/pages/admin/courses/admin-course-dashboard.tsx'
+import MentorAdminDashboardPage from '@/pages/admin/courses'
 import StudentCourseDashboardPage from '@/pages/student/courses'
 import { createFileRoute } from '@tanstack/react-router'
 
