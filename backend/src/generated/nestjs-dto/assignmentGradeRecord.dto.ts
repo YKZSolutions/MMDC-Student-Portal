@@ -27,6 +27,10 @@ export class AssignmentGradeRecordDto {
   feedback: string | null;
   @ApiProperty({
     type: 'string',
+  })
+  gradedById: string;
+  @ApiProperty({
+    type: 'string',
     format: 'date-time',
   })
   gradedAt: Date;

@@ -31,4 +31,10 @@ export class CreateAssignmentGradeRecordDto {
   @IsOptional()
   @IsString()
   feedback?: string | null;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  gradedById: string;
 }

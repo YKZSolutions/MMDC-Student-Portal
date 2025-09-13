@@ -76,8 +76,6 @@ export class User {
   @ApiHideProperty()
   grades?: AssignmentGradeRecordAsType[];
   @ApiHideProperty()
-  gradedSubmissions?: AssignmentGradeRecordAsType[];
-  @ApiHideProperty()
   quizAttempts?: QuizSubmissionAsType[];
   @ApiHideProperty()
   postedDiscussions?: DiscussionPostAsType[];

@@ -59,9 +59,7 @@ model User {
   /// @DtoApiHidden
   submittedAssignments AssignmentSubmission[]
   /// @DtoApiHidden
-  grades               AssignmentGradeRecord[] @relation("GradeRecordStudent")
-  /// @DtoApiHidden
-  gradedSubmissions    AssignmentGradeRecord[] @relation("GradeRecordGrader")
+  grades               AssignmentGradeRecord[]
   /// @DtoApiHidden
   quizAttempts         QuizSubmission[]
   /// @DtoApiHidden
@@ -1003,7 +1001,7 @@ model AssignmentGradeRecord {
   grading   AssignmentGrading @relation(fields: [gradingId], references: [id], onDelete: Cascade)
   gradingId String            @db.Uuid
   /// @DtoApiHidden
-  student   User              @relation("GradeRecordStudent", fields: [studentId], references: [id])
+  student   User              @relation(fields: [studentId], references: [id])
   studentId String            @db.Uuid
 
   rawScore   Decimal @db.Decimal(5, 2) // Actual grade data
@@ -1016,8 +1014,6 @@ model AssignmentGradeRecord {
 
   // Audit trail
   gradedById String   @db.Uuid
-  /// @DtoApiHidden
-  gradedBy   User     @relation("GradeRecordGrader", fields: [gradedById], references: [id], onDelete: Restrict)
   /// @DtoReadOnly
   gradedAt   DateTime @default(now())
   /// @DtoReadOnly

@@ -52,8 +52,6 @@ export class AssignmentGradeRecord {
     type: 'string',
   })
   gradedById: string;
-  @ApiHideProperty()
-  gradedBy?: UserAsType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

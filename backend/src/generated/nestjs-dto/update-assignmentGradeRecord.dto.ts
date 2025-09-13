@@ -34,4 +34,11 @@ export class UpdateAssignmentGradeRecordDto {
   @IsOptional()
   @IsString()
   feedback?: string | null;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  gradedById?: string;
 }
