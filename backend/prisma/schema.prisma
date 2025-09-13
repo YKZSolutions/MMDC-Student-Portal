@@ -1012,12 +1012,10 @@ model AssignmentGradeRecord {
   /// @DtoApiHidden
   rubricScores RubricScore[] // Detailed scores for each criterion
 
-  // Audit trail
-  gradedById String   @db.Uuid
   /// @DtoReadOnly
-  gradedAt   DateTime @default(now())
+  gradedAt  DateTime @default(now())
   /// @DtoReadOnly
-  updatedAt  DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@index([gradingId, studentId])
   @@index([studentId, finalScore])

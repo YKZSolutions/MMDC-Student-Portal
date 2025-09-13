@@ -50,10 +50,6 @@ export class AssignmentGradeRecord {
   rubricScores?: RubricScoreAsType[];
   @ApiProperty({
     type: 'string',
-  })
-  gradedById: string;
-  @ApiProperty({
-    type: 'string',
     format: 'date-time',
   })
   gradedAt: Date;
