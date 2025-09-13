@@ -159,7 +159,6 @@ export class LmsContentService {
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
     @LogParam('userId') userId: string | null,
-    @LogParam('contentType') contentType: ContentType,
   ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
@@ -169,7 +168,7 @@ export class LmsContentService {
       where: { id },
       include: this.buildIncludeForRoleAndType(
         role,
-        contentType,
+        'ASSIGNMENT', //TODO: change to contentType
         userId ?? undefined,
       ),
       omit: this.buildOmitForRole(role),
@@ -366,25 +365,20 @@ export class LmsContentService {
   // }
 
   @Log({
-    logArgsMessage: ({ role, user_id, filters }) =>
-      `Fetching todo assignments for user ${user_id} role=${role}, filters=${JSON.stringify(filters)}`,
+    logArgsMessage: ({ userId }) =>
+      `Fetching todo assignments for user ${userId}`,
     logSuccessMessage: (assignments, { userId }) =>
       `Successfully fetched ${assignments.length} todo assignments for user ${userId}`,
-    logErrorMessage: (err, { id }) =>
-      `An error has occurred while fetching module content for id ${id} | Error: ${err.message}`,
+    logErrorMessage: (err, { userId }) =>
+      `An error has occurred while fetching todos for id ${userId} | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Assignment not found'),
   })
   async findAssignmentTodos(
-    @LogParam('id') id: string,
     @LogParam('userId') userId: string,
   ): Promise<StudentAssignmentsSubmissionsDto[]> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid module content ID format');
-    }
-
     return await this.prisma.client.studentAssignmentsSubmissions.findMany({
       where: {
         user_id: userId,
