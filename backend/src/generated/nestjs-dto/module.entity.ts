@@ -4,7 +4,6 @@ import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
-import { User, type User as UserAsType } from './user.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
@@ -52,13 +51,6 @@ export class Module {
     nullable: true,
   })
   toPublishAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  publishedBy: string | null;
-  @ApiHideProperty()
-  publishedByUser?: UserAsType | null;
   @ApiHideProperty()
   moduleSections?: ModuleSectionAsType[];
   @ApiHideProperty()

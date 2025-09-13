@@ -4,7 +4,6 @@ import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
-import { User, type User as UserAsType } from './user.entity';
 
 export class ModuleSection {
   @ApiProperty({
@@ -49,13 +48,6 @@ export class ModuleSection {
     nullable: true,
   })
   toPublishAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  publishedBy: string | null;
-  @ApiHideProperty()
-  publishedByUser?: UserAsType | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -68,10 +68,6 @@ model User {
   postedDiscussions    DiscussionPost[]
   /// @DtoApiHidden
   moduleProgress       ContentProgress[]
-  /// @DtoApiHidden
-  publishedModules     Module[]
-  /// @DtoApiHidden
-  publishedSections    ModuleSection[]
 
   firstName  String
   middleName String?
@@ -546,10 +542,6 @@ model Module {
   publishedAt DateTime?
   toPublishAt DateTime?
 
-  publishedBy     String? @db.Uuid
-  /// @DtoApiHidden
-  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
-
   /// @DtoApiHidden
   moduleSections ModuleSection[]
   /// @DtoApiHidden
@@ -589,10 +581,6 @@ model ModuleSection {
 
   publishedAt DateTime?
   toPublishAt DateTime?
-
-  publishedBy     String? @db.Uuid
-  /// @DtoApiHidden
-  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
