@@ -5,6 +5,10 @@ import {
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import { User, type User as UserAsType } from './user.entity';
+import {
+  ModuleSectionProgress,
+  type ModuleSectionProgress as ModuleSectionProgressAsType,
+} from './moduleSectionProgress.entity';
 
 export class ModuleSection {
   @ApiProperty({
@@ -26,6 +30,15 @@ export class ModuleSection {
   parentSection?: ModuleSection | null;
   @ApiHideProperty()
   subsections?: ModuleSection[];
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  prerequisiteSectionId: string | null;
+  @ApiHideProperty()
+  prerequisiteSection?: ModuleSection | null;
+  @ApiHideProperty()
+  dependentSections?: ModuleSection[];
   @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
   @ApiProperty({
@@ -72,4 +85,10 @@ export class ModuleSection {
     nullable: true,
   })
   deletedAt: Date | null;
+  @ApiProperty({
+    type: () => ModuleSectionProgress,
+    isArray: true,
+    required: false,
+  })
+  ModuleSectionProgress?: ModuleSectionProgressAsType[];
 }
