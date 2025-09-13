@@ -16,14 +16,14 @@ export class LmsSectionService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
-  ) { }
+  ) {}
 
   /**
    * Creates a new module section in the database.
    *
    * @async
    * @param {string} moduleId - The UUID of the module to which the section belongs.
-   * @param {CreateModuleSectionDto} dto - Data Transfer Object containing the details of the module section to create.   
+   * @param {CreateModuleSectionDto} dto - Data Transfer Object containing the details of the module section to create.
    * @returns {Promise<DetailedModuleSectionDto>} - The created course section record
    * @throws {NotFoundException} - If the specified module is not found.
    */
@@ -60,7 +60,7 @@ export class LmsSectionService {
     logArgsMessage: ({ moduleId }) =>
       `Fetching module sections for module ${moduleId}`,
     logSuccessMessage: (_, { moduleId }) =>
-      `Feteched module sections for module ${moduleId}`,
+      `Fetched module sections for module ${moduleId}`,
     logErrorMessage: (err, { moduleId }) =>
       `Fetching module section for module ${moduleId} | Error: ${err.message}`,
   })
@@ -93,10 +93,10 @@ export class LmsSectionService {
 
   /**
    * Updates the details of an existing module section.
-   * 
+   *
    * @async
    * @param {string} moduleSectionId - The UUID of the module section to update.
-   * @param {UpdateModuleSectionDto} dto - Data Transfer Object containing the updated module section details. 
+   * @param {UpdateModuleSectionDto} dto - Data Transfer Object containing the updated module section details.
    * @returns {Promise<DetailedModuleSectionDto>} - The updated module section
    * @throws {NotFoundException} - If the specified module section is not found.
    */
@@ -109,24 +109,29 @@ export class LmsSectionService {
       `Updating module section ${moduleSectionId} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { moduleSectionId }) => new NotFoundException(`Module section ${moduleSectionId} not found`)
+    [PrismaErrorCode.RecordNotFound]: (_, { moduleSectionId }) =>
+      new NotFoundException(`Module section ${moduleSectionId} not found`),
   })
-  async update(@LogParam('moduleSectionId') moduleSectionId: string, dto: UpdateModuleSectionDto): Promise<DetailedModuleSectionDto> {
+  async update(
+    @LogParam('moduleSectionId') moduleSectionId: string,
+    dto: UpdateModuleSectionDto,
+  ): Promise<DetailedModuleSectionDto> {
     return this.prisma.client.moduleSection.update({
       where: {
-        id: moduleSectionId
-      }, data: {
-        ...dto
-      }
-    })
+        id: moduleSectionId,
+      },
+      data: {
+        ...dto,
+      },
+    });
   }
 
   /**
-   * Delets a module section from the database.
-   * 
+   * Deletes a module section from the database.
+   *
    * - If `directDelete` is false (or omitted), the module section is soft-deleted (sets `deletedAt`).
    * - If `directDelete` is true, the module section is permanently deleted.
-   * 
+   *
    * @async
    * @param {string} moduleSectionId - The UUID of the module section to delete.
    * @param {boolean} [directDelete=false] - Whether to permanently delete the module.
@@ -142,12 +147,17 @@ export class LmsSectionService {
       `Deleting module section ${moduleSectionId} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, {moduleSectionId}) => new NotFoundException(`Module section ${moduleSectionId} not found`)
+    [PrismaErrorCode.RecordNotFound]: (_, { moduleSectionId }) =>
+      new NotFoundException(`Module section ${moduleSectionId} not found`),
   })
-  async remove(@LogParam('moduleSectionId') moduleSectionId: string, @LogParam('directDelete') directDelete?: boolean): Promise<{ message: string }> {
-    const moduleSection = await this.prisma.client.moduleSection.findUniqueOrThrow({
-      where: { id: moduleSectionId }
-    })
+  async remove(
+    @LogParam('moduleSectionId') moduleSectionId: string,
+    @LogParam('directDelete') directDelete?: boolean,
+  ): Promise<{ message: string }> {
+    const moduleSection =
+      await this.prisma.client.moduleSection.findUniqueOrThrow({
+        where: { id: moduleSectionId },
+      });
 
     const now = new Date();
 
@@ -156,24 +166,25 @@ export class LmsSectionService {
         this.prisma.client.moduleSection.update({
           where: { id: moduleSectionId },
           data: {
-            deletedAt: now
-          }
+            deletedAt: now,
+          },
         }),
         this.prisma.client.moduleContent.updateMany({
           where: { moduleSectionId: moduleSectionId },
           data: {
-            deletedAt: now
-          }
-        })
-      ])
+            deletedAt: now,
+          },
+        }),
+      ]);
 
       return {
         message: `Module section "${moduleSectionId}" and all associated contents were marked as deleted.`,
       };
-
     }
 
-    await this.prisma.client.moduleSection.delete({ where: { id: moduleSectionId } })
+    await this.prisma.client.moduleSection.delete({
+      where: { id: moduleSectionId },
+    });
     return {
       message: `Module section "${moduleSectionId}" and all associated contents were permanently deleted.`,
     };
