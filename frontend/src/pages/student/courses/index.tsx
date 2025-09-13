@@ -74,7 +74,7 @@ const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
   )
 
   return (
-    <Container size="lg" w="100%" pb="xl">
+    <Container size="md" w="100%" pb="xl">
       <Stack gap="lg">
         <CourseDashboardHeader
           coursesData={coursesData}

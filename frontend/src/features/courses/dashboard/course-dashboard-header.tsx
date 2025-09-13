@@ -8,6 +8,7 @@ import {
   Group,
   rem,
   Stack,
+  Text,
   Title,
   Tooltip,
 } from '@mantine/core'
@@ -41,31 +42,35 @@ const CourseDashboardHeader = ({
   view,
   onViewChange,
 }: DashboardHeaderProps) => (
-  <Stack gap="xs">
-    <Group justify="space-between" align="center">
+  <Stack gap="md">
+    <Box>
       <Title c="dark.7" variant="hero" order={2} fw={700}>
         Courses
       </Title>
-      <Group align="center" gap={rem(5)}>
-        <SearchComponent
-          data={coursesData}
-          onFilter={onSearchFilter}
-          identifiers={['courseName']}
-          placeholder="Search courses"
-        />
-        <CourseDashboardFilters
-          filters={filters}
-          activeFilters={activeFilters}
-          onAddFilter={handleAddFilter}
-          onRemoveFilter={handleRemoveFilter}
-          onFilterChange={handleFilterChange}
-        />
-        <ViewSelectorButton
-          view={view}
-          onGridClick={() => onViewChange('grid')}
-          onListClick={() => onViewChange('list')}
-        />
-      </Group>
+      <Text fw={500} c="dark.3" fz="md">
+        {/* Create a subtitle here */}
+        Browse and manage your courses
+      </Text>
+    </Box>
+    <Group align="center" justify="end" gap={rem(5)}>
+      <SearchComponent
+        data={coursesData}
+        onFilter={onSearchFilter}
+        identifiers={['courseName']}
+        placeholder="Search courses"
+      />
+      <CourseDashboardFilters
+        filters={filters}
+        activeFilters={activeFilters}
+        onAddFilter={handleAddFilter}
+        onRemoveFilter={handleRemoveFilter}
+        onFilterChange={handleFilterChange}
+      />
+      <ViewSelectorButton
+        view={view}
+        onGridClick={() => onViewChange('grid')}
+        onListClick={() => onViewChange('list')}
+      />
     </Group>
     <Divider />
   </Stack>
