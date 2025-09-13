@@ -57,9 +57,15 @@ model User {
   /// @DtoApiHidden
   courseSections       CourseSection[]
   /// @DtoApiHidden
-  submittedAssignments AssignmentSubmission[] @relation("SubmissionStudent")
+  submittedAssignments AssignmentSubmission[]
   /// @DtoApiHidden
-  gradedAssignments    AssignmentSubmission[] @relation("SubmissionGrader")
+  grades               GradeRecord[]          @relation("GradeRecordStudent")
+  /// @DtoApiHidden
+  gradedSubmissions    GradeRecord[]          @relation("GradeRecordGrader")
+  /// @DtoApiHidden
+  quizAttempts         QuizSubmission[]
+  /// @DtoApiHidden
+  postedDiscussions    DiscussionPost[]
   /// @DtoApiHidden
   moduleProgress       ContentProgress[]
   /// @DtoApiHidden
@@ -74,15 +80,13 @@ model User {
   role       Role
 
   /// @DtoReadOnly
-  createdAt      DateTime         @default(now())
+  createdAt  DateTime  @default(now())
   /// @DtoReadOnly
-  updatedAt      DateTime         @updatedAt
+  updatedAt  DateTime  @updatedAt
   /// @DtoReadOnly
-  disabledAt     DateTime?
+  disabledAt DateTime?
   /// @DtoReadOnly
-  deletedAt      DateTime?
-  QuizAttempt    QuizSubmission[]
-  DiscussionPost DiscussionPost[]
+  deletedAt  DateTime?
 }
 
 model UserAccount {
@@ -579,8 +583,6 @@ model ModuleSection {
 
   /// @DtoApiHidden
   moduleContents ModuleContent[]
-  /// @DtoApiHidden
-  progresses     ContentProgress[]
 
   title String @db.VarChar(255)
   order Int    @default(0)
@@ -646,20 +648,21 @@ model ModuleContent {
 
   // Relations to specific content types
   /// @DtoApiHidden
-  lesson          Lesson?
+  lesson       Lesson?
   /// @DtoApiHidden
-  assignment      Assignment?
+  assignment   Assignment?
   /// @DtoApiHidden
-  quiz            Quiz?
+  quiz         Quiz?
   /// @DtoApiHidden
-  discussion      Discussion?
+  discussion   Discussion?
   /// @DtoApiHidden
-  video           Video?
+  video        Video?
   /// @DtoApiHidden
-  externalUrl     ExternalUrl?
+  externalUrl  ExternalUrl?
   /// @DtoApiHidden
-  fileResource    FileResource?
-  ContentProgress ContentProgress[]
+  fileResource FileResource?
+
+  studentProgress ContentProgress[]
 
   @@unique([moduleSectionId, order])
   @@index([moduleId, contentType, publishedAt])
@@ -726,6 +729,9 @@ model Assignment {
   /// @DtoReadOnly
   deletedAt DateTime?
 
+  gradingId String?  @db.Uuid
+  grading   Grading? @relation(fields: [gradingId], references: [id])
+
   submissions AssignmentSubmission[]
 
   @@index([moduleContentId])
@@ -740,22 +746,12 @@ model AssignmentSubmission {
   studentId    String     @db.Uuid
 
   /// @DtoApiHidden
-  student User @relation("SubmissionStudent", fields: [studentId], references: [id])
+  student User @relation(fields: [studentId], references: [id])
 
   /// Text submission
   content       String?   @db.Text
   submittedAt   DateTime?
   attemptNumber Int?      @db.SmallInt
-
-  /// Grading information
-  score      Int?      @db.SmallInt
-  /// For non-numeric grading
-  grade      String?   @db.VarChar(10)
-  feedback   String?   @db.Text
-  gradedAt   DateTime?
-  gradedById String?   @db.Uuid
-  /// @DtoApiHidden
-  grader     User?     @relation("SubmissionGrader", fields: [gradedById], references: [id])
 
   // Late submission tracking
   lateDays Int? @db.SmallInt
@@ -773,7 +769,6 @@ model AssignmentSubmission {
   @@unique([assignmentId, studentId, attemptNumber])
   @@index([assignmentId, studentId])
   @@index([submittedAt])
-  @@index([gradedAt])
 }
 
 model AssignmentAttachment {
@@ -807,14 +802,17 @@ model Quiz {
 
   questions Json // Store all questions in a structured format
 
+  submissions QuizSubmission[]
+
+  gradingId String?  @db.Uuid
+  grading   Grading? @relation(fields: [gradingId], references: [id])
+
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
   /// @DtoReadOnly
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
-
-  submissions QuizSubmission[]
 
   @@index([timeLimit])
 }
@@ -827,7 +825,6 @@ model QuizSubmission {
   student   User   @relation(fields: [studentId], references: [id])
 
   answers       Json // flexible structure
-  score         Float?
   submittedAt   DateTime @default(now())
   timeSpent     Int? // in seconds
   attemptNumber Int      @default(1) @db.SmallInt
@@ -962,14 +959,14 @@ model ContentProgress {
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id])
 
-  moduleContentId String        @db.Uuid
-  /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
-
   // Denormalized for efficient queries
-  moduleId String @db.Uuid
   /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id])
+  moduleId String @db.Uuid
+
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+  moduleContentId String        @db.Uuid
 
   status         ProgressStatus @default(NOT_STARTED)
   completedAt    DateTime?
@@ -977,17 +974,83 @@ model ContentProgress {
   lastAccessedAt DateTime?
 
   /// @DtoReadOnly
-  createdAt       DateTime       @default(now())
+  createdAt DateTime @default(now())
   /// @DtoReadOnly
-  updatedAt       DateTime       @updatedAt
-  ModuleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id])
-  moduleSectionId String?        @db.Uuid
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, moduleContentId])
   @@index([userId, moduleId])
   @@index([moduleContentId])
   @@index([completedAt])
   @@index([moduleId])
+}
+
+// Defines HOW something is graded
+model Grading {
+  id         String @id @default(uuid()) @db.Uuid
+  entityId   String @db.Uuid // assignmentId or quizId
+  entityType String // 'ASSIGNMENT' or 'QUIZ'
+
+  // Grading schema
+  gradingSchema Json // Rubric, points distribution, criteria
+  maxScore      Decimal @db.Decimal(5, 2)
+  passingScore  Decimal @db.Decimal(5, 2)
+  weight        Decimal @db.Decimal(5, 2) // For final grade calculation
+
+  // Grade processing metadata
+  isCurved      Boolean @default(false)
+  curveSettings Json?
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime @updatedAt
+
+  /// @DtoApiHidden
+  gradeRecords GradeRecord[]
+  /// @DtoApiHidden
+  assignments  Assignment[]
+  /// @DtoApiHidden
+  quizess      Quiz[]
+
+  @@index([entityId, entityType])
+  @@index([maxScore])
+  @@index([weight])
+}
+
+// defines WHAT was actually graded
+model GradeRecord {
+  id        String  @id @default(uuid()) @db.Uuid
+  gradingId String  @db.Uuid
+  grading   Grading @relation(fields: [gradingId], references: [id], onDelete: Cascade)
+  studentId String  @db.Uuid
+  /// @DtoApiHidden
+  student   User    @relation("GradeRecordStudent", fields: [studentId], references: [id])
+
+  // Actual grade data
+  rawScore   Decimal @db.Decimal(5, 2)
+  finalScore Decimal @db.Decimal(5, 2)
+  grade      String  @db.VarChar(10) // A, B+, etc.
+  percentage Decimal @db.Decimal(5, 2)
+
+  // Processing metadata
+  isExcused     Boolean @default(false)
+  isExtraCredit Boolean @default(false)
+  comments      String?
+
+  // Audit trail
+  gradedById String   @db.Uuid
+  /// @DtoApiHidden
+  gradedBy   User     @relation("GradeRecordGrader", fields: [gradedById], references: [id], onDelete: Restrict)
+  /// @DtoReadOnly
+  gradedAt   DateTime @default(now())
+  /// @DtoReadOnly
+  updatedAt  DateTime @updatedAt
+
+  @@index([gradingId, studentId])
+  @@index([studentId, finalScore])
+  @@index([gradedAt])
+  @@index([finalScore, gradingId])
 }
 
 model Notification {
