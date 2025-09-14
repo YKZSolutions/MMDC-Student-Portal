@@ -1,14 +1,27 @@
-import { ContentProgress, CourseEnrollment, ModuleContent, PrismaClient, Submission, User, } from '@prisma/client';
-import { log, pickRandom } from '../utils/helpers';
+import {
+  Assignment,
+  AssignmentSubmission,
+  ContentProgress,
+  CourseEnrollment,
+  ModuleContent,
+  PrismaClient,
+  Quiz,
+  QuizSubmission,
+} from '@prisma/client';
+import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
-import { createContentProgressData, createSubmissionData, } from '../factories/submission.factory';
+import {
+  createAssignmentSubmissionData,
+  createContentProgressData,
+  createQuizSubmissionData,
+} from '../factories/submission.factory';
 
 export async function seedSubmissions(
   prisma: PrismaClient,
-  mentors: User[],
   enrollments: CourseEnrollment[],
   contents: ModuleContent[],
-  assignments: ModuleContent[],
+  assignments: Assignment[],
+  quizzes: Quiz[],
 ) {
   log('Seeding submissions and progress...');
 
@@ -18,6 +31,7 @@ export async function seedSubmissions(
       id: true,
       courseId: true,
       courseOfferingId: true,
+      moduleContents: true,
     },
   });
 
@@ -46,7 +60,8 @@ export async function seedSubmissions(
   // Seeding submissions & progress
   // ---------------------------------------------------
 
-  const submissions: Submission[] = [];
+  const assignmentSubmissions: AssignmentSubmission[] = [];
+  const quizSubmissions: QuizSubmission[] = [];
   const contentProgress: ContentProgress[] = [];
 
   for (const enrollment of enrollments) {
@@ -71,22 +86,34 @@ export async function seedSubmissions(
 
     // Assignments (submissions)
     for (const assignment of assignments) {
-      const mod = moduleMap.get(assignment.moduleId);
+      const mod = moduleMap.get(assignment.moduleContentId);
       if (!mod) continue;
 
       // Student only allowed if assignment's module is in enrolledModules
-      if (!enrolledModules.some((em) => em.id === assignment.moduleId))
+      if (!enrolledModules.some((em) => em.id === assignment.moduleContentId))
         continue;
 
       if (Math.random() < seedConfig.SUBMISSION_CHANCE) {
-        const submission = await prisma.submission.create({
-          data: createSubmissionData(
-            studentId,
-            assignment.id,
-            pickRandom(mentors).id,
-          ),
+        const submission = await prisma.assignmentSubmission.create({
+          data: createAssignmentSubmissionData(studentId, assignment.id),
         });
-        submissions.push(submission);
+        assignmentSubmissions.push(submission);
+      }
+    }
+
+    // Quiz (submissions)
+    for (const quiz of quizzes) {
+      const mod = moduleMap.get(quiz.moduleContentId);
+      if (!mod) continue;
+
+      if (!enrolledModules.some((em) => em.id === quiz.moduleContentId))
+        continue;
+
+      if (Math.random() < seedConfig.SUBMISSION_CHANCE) {
+        const submission = await prisma.quizSubmission.create({
+          data: createQuizSubmissionData(studentId, quiz.id),
+        });
+        quizSubmissions.push(submission);
       }
     }
 
@@ -114,8 +141,12 @@ export async function seedSubmissions(
     }
   }
 
-  log(`-> Created ${submissions.length} submissions.`);
+  log(`-> Created ${assignmentSubmissions.length} assignment submissions.`);
   log(`-> Created ${contentProgress.length} content progress records.`);
 
-  return { submissions, contentProgress };
+  return {
+    quizSubmissions,
+    contentProgress,
+    assignmentSubmissions,
+  };
 }

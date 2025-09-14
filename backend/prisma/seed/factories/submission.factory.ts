@@ -1,6 +1,7 @@
-// prisma/seed/factories/submission.factory.ts
 import { faker } from '@faker-js/faker';
 import { Prisma } from '@prisma/client';
+import { mockContent } from '../constants/mockBlockNoteContent';
+import { seedConfig } from '../seed.config';
 
 export function createContentProgressData(
   userId: string,
@@ -15,29 +16,75 @@ export function createContentProgressData(
   };
 }
 
-export function createSubmissionData(
+export function createAssignmentSubmissionData(
   studentId: string,
-  moduleContentId: string,
-  graderId: string,
-): Prisma.SubmissionCreateInput {
-  const isGraded = Math.random() > 0.3;
+  assignmentId: string,
+): Prisma.AssignmentSubmissionCreateInput {
+  const isLate = Math.random() < seedConfig.LATE_SUBMISSION_CHANCE;
   return {
-    title: `Submission for ${faker.lorem.words(2)}`,
-    submission: faker.lorem.paragraphs(2),
     student: { connect: { id: studentId } },
-    moduleContent: { connect: { id: moduleContentId } },
+    assignment: { connect: { id: assignmentId } },
+    content: mockContent,
     submittedAt: faker.date.past(),
-    ...(isGraded && {
-      score: faker.number.int({ min: 60, max: 100 }),
-      feedback: faker.lorem.sentence(),
-      gradedAt: faker.date.recent(),
-      grader: { connect: { id: graderId } },
-    }),
+    lateDays: isLate ? faker.number.int({ min: 0, max: 10 }) : null,
     attachments: {
       create: {
         name: 'document.pdf',
-        attachment: faker.internet.url(),
+        fileUrl: faker.internet.url(),
+        type: 'document',
+        size: faker.number.int({ min: 1000, max: 100000 }),
       },
     },
+  };
+}
+
+export function createAssignmentGradeRecordData(
+  gradingId: string,
+  studentId: string,
+): Prisma.AssignmentGradeRecordCreateInput {
+  return {
+    grading: { connect: { id: gradingId } },
+    student: { connect: { id: studentId } },
+    rawScore: faker.number.int({ min: 60, max: 100 }),
+    finalScore: faker.number.int({ min: 60, max: 100 }),
+    grade: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+    feedback: faker.lorem.sentence(),
+    rubricScores: {
+      create: Array.from({ length: 5 }, () => ({
+        criterionKey: faker.word.words(),
+        label: faker.lorem.sentence(),
+        maxPoints: faker.number.int({ min: 60, max: 100 }),
+        score: faker.number.int({ min: 60, max: 100 }),
+      })),
+    },
+  };
+}
+
+export function createQuizSubmissionData(
+  studentId: string,
+  quizId: string,
+): Prisma.QuizSubmissionCreateInput {
+  const isGraded = Math.random() < seedConfig.GRADING_CHANCE;
+  return {
+    student: { connect: { id: studentId } },
+    quiz: { connect: { id: quizId } },
+    answers: {
+      create: Array.from({ length: 5 }, () => ({
+        questionId: faker.string.uuid(),
+        answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+      })),
+    },
+    submittedAt: faker.date.past(),
+    ...(isGraded && {
+      rawScore: faker.number.int({ min: 60, max: 100 }),
+      questionResults: {
+        create: Array.from({ length: 5 }, () => ({
+          questionId: faker.string.uuid(),
+          answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+          score: faker.number.int({ min: 60, max: 100 }),
+          feedback: faker.lorem.sentence(),
+        })),
+      },
+    }),
   };
 }

@@ -28,6 +28,10 @@ export const seedConfig = {
   ASSIGNMENT_CHANCE: 0.45,
   // Likelihood of an enrolled student submitting their assignment
   SUBMISSION_CHANCE: 0.65,
+  // Likelihood of a student submitting their assignment late
+  LATE_SUBMISSION_CHANCE: 0.2,
+  // Likelihood of a student receiving a grade for their assignment and quiz
+  GRADING_CHANCE: 0.3,
   // Likelihood of a student having started/completed a module content
   PROGRESS_CHANCE: 0.6,
   // Number of installments for bills

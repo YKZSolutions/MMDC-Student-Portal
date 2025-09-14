@@ -3,7 +3,10 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
@@ -209,15 +212,16 @@ export class LmsService {
                   // Clone grading if it exists
                   let gradingId = '';
                   if (oldContent.assignment.grading) {
+                    const gradingSchema = oldContent.assignment.grading
+                      .gradingSchema as Prisma.JsonValue;
+                    const curveSettings = oldContent.assignment.grading
+                      .curveSettings as Prisma.JsonValue;
                     const newGrading = await tx.assignmentGrading.create({
                       data: {
-                        gradingSchema:
-                          oldContent.assignment.grading.gradingSchema,
-                        maxScore: oldContent.assignment.grading.maxScore,
+                        gradingSchema: gradingSchema || {},
                         weight: oldContent.assignment.grading.weight,
                         isCurved: oldContent.assignment.grading.isCurved,
-                        curveSettings:
-                          oldContent.assignment.grading.curveSettings,
+                        curveSettings: curveSettings || {},
                       },
                     });
                     gradingId = newGrading.id;
