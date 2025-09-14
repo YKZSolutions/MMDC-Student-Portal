@@ -130,31 +130,33 @@ export class LessonService {
   }
 
   /**
-   * Deletes a lesson
+   * Removes a lesson by module content ID (hard/soft delete)
    */
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Deleting lesson for module content ${moduleContentId}`,
-    logSuccessMessage: () => 'Lesson successfully deleted.',
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while deleting lesson for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: () =>
-      new NotFoundException('Lesson not found'),
+    logArgsMessage: ({ moduleContentId, directDelete }) =>
+      `Removing lesson for module content ${moduleContentId} with directDelete=${directDelete}`,
+    logSuccessMessage: (_, { moduleContentId, directDelete }) =>
+      directDelete
+        ? `Lesson for module content ${moduleContentId} hard deleted.`
+        : `Lesson for module content ${moduleContentId} soft deleted (deletedAt set).`,
+    logErrorMessage: (err, { moduleContentId, directDelete }) =>
+      `Error removing lesson for module content ${moduleContentId} with directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<{ message: string }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<void> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    await this.prisma.client.lesson.delete({
-      where: { moduleContentId },
-    });
-
-    return { message: 'Lesson successfully deleted' };
+    if (directDelete) {
+      await this.prisma.client.lesson.delete({ where: { moduleContentId } });
+    } else {
+      await this.prisma.client.lesson.update({
+        where: { moduleContentId },
+        data: { deletedAt: new Date() },
+      });
+    }
   }
 
   // /**

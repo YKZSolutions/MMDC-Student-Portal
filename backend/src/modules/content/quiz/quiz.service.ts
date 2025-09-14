@@ -133,31 +133,33 @@ export class QuizService {
   }
 
   /**
-   * Deletes a quiz
+   * Removes a quiz by module content ID (hard/soft delete)
    */
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Deleting quiz for module content ${moduleContentId}`,
-    logSuccessMessage: () => 'Quiz successfully deleted.',
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while deleting quiz for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: () =>
-      new NotFoundException('Quiz not found'),
+    logArgsMessage: ({ moduleContentId, directDelete }) =>
+      `Removing quiz for module content ${moduleContentId} with directDelete=${directDelete}`,
+    logSuccessMessage: (_, { moduleContentId, directDelete }) =>
+      directDelete
+        ? `Quiz for module content ${moduleContentId} hard deleted.`
+        : `Quiz for module content ${moduleContentId} soft deleted (deletedAt set).`,
+    logErrorMessage: (err, { moduleContentId, directDelete }) =>
+      `Error removing quiz for module content ${moduleContentId} with directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<{ message: string }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<void> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    await this.prisma.client.quiz.delete({
-      where: { moduleContentId },
-    });
-
-    return { message: 'Quiz successfully deleted' };
+    if (directDelete) {
+      await this.prisma.client.quiz.delete({ where: { moduleContentId } });
+    } else {
+      await this.prisma.client.quiz.update({
+        where: { moduleContentId },
+        data: { deletedAt: new Date() },
+      });
+    }
   }
 
   // /**

@@ -132,30 +132,34 @@ export class UrlService {
   }
 
   /**
-   * Deletes an external URL resource
+   * Removes an external URL resource by module content ID (hard/soft delete)
    */
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Deleting external URL for module content ${moduleContentId}`,
-    logSuccessMessage: () => 'External URL successfully deleted.',
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while deleting external URL for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: () =>
-      new NotFoundException('External URL not found'),
+    logArgsMessage: ({ moduleContentId, directDelete }) =>
+      `Removing external URL for module content ${moduleContentId} with directDelete=${directDelete}`,
+    logSuccessMessage: (_, { moduleContentId, directDelete }) =>
+      directDelete
+        ? `External URL for module content ${moduleContentId} hard deleted.`
+        : `External URL for module content ${moduleContentId} soft deleted (deletedAt set).`,
+    logErrorMessage: (err, { moduleContentId, directDelete }) =>
+      `Error removing external URL for module content ${moduleContentId} with directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<{ message: string }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<void> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    await this.prisma.client.externalUrl.delete({
-      where: { moduleContentId },
-    });
-
-    return { message: 'External URL successfully deleted' };
+    if (directDelete) {
+      await this.prisma.client.externalUrl.delete({
+        where: { moduleContentId },
+      });
+    } else {
+      await this.prisma.client.externalUrl.update({
+        where: { moduleContentId },
+        data: { deletedAt: new Date() },
+      });
+    }
   }
 }

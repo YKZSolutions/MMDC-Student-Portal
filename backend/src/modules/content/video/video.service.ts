@@ -130,30 +130,32 @@ export class VideoService {
   }
 
   /**
-   * Deletes a video resource
+   * Removes a video resource by module content ID (hard/soft delete)
    */
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Deleting video for module content ${moduleContentId}`,
-    logSuccessMessage: () => 'Video successfully deleted.',
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while deleting video for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: () =>
-      new NotFoundException('Video not found'),
+    logArgsMessage: ({ moduleContentId, directDelete }) =>
+      `Removing video for module content ${moduleContentId} with directDelete=${directDelete}`,
+    logSuccessMessage: (_, { moduleContentId, directDelete }) =>
+      directDelete
+        ? `Video for module content ${moduleContentId} hard deleted.`
+        : `Video for module content ${moduleContentId} soft deleted (deletedAt set).`,
+    logErrorMessage: (err, { moduleContentId, directDelete }) =>
+      `Error removing video for module content ${moduleContentId} with directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<{ message: string }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<void> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    await this.prisma.client.video.delete({
-      where: { moduleContentId },
-    });
-
-    return { message: 'Video successfully deleted' };
+    if (directDelete) {
+      await this.prisma.client.video.delete({ where: { moduleContentId } });
+    } else {
+      await this.prisma.client.video.update({
+        where: { moduleContentId },
+        data: { deletedAt: new Date() },
+      });
+    }
   }
 }

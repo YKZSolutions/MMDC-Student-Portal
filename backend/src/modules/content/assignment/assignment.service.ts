@@ -153,30 +153,34 @@ export class AssignmentService {
   }
 
   /**
-   * Deletes an assignment
+   * Removes an assignment by module content ID (hard/soft delete)
    */
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Deleting assignment for module content ${moduleContentId}`,
-    logSuccessMessage: () => 'Assignment successfully deleted.',
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while deleting assignment for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: () =>
-      new NotFoundException('Assignment not found'),
+    logArgsMessage: ({ moduleContentId, directDelete }) =>
+      `Removing assignment for module content ${moduleContentId} with directDelete=${directDelete}`,
+    logSuccessMessage: (_, { moduleContentId, directDelete }) =>
+      directDelete
+        ? `Assignment for module content ${moduleContentId} hard deleted.`
+        : `Assignment for module content ${moduleContentId} soft deleted (deletedAt set).`,
+    logErrorMessage: (err, { moduleContentId, directDelete }) =>
+      `Error removing assignment for module content ${moduleContentId} with directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<{ message: string }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<void> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    await this.prisma.client.assignment.delete({
-      where: { moduleContentId },
-    });
-
-    return { message: 'Assignment successfully deleted' };
+    if (directDelete) {
+      await this.prisma.client.assignment.delete({
+        where: { moduleContentId },
+      });
+    } else {
+      await this.prisma.client.assignment.update({
+        where: { moduleContentId },
+        data: { deletedAt: new Date() },
+      });
+    }
   }
 }

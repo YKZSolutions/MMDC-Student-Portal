@@ -162,31 +162,35 @@ export class DiscussionService {
   }
 
   /**
-   * Deletes a discussion
+   * Removes a discussion by module content ID (hard/soft delete)
    */
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Deleting discussion for module content ${moduleContentId}`,
-    logSuccessMessage: () => 'Discussion successfully deleted.',
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while deleting discussion for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: () =>
-      new NotFoundException('Discussion not found'),
+    logArgsMessage: ({ moduleContentId, directDelete }) =>
+      `Removing discussion for module content ${moduleContentId} with directDelete=${directDelete}`,
+    logSuccessMessage: (_, { moduleContentId, directDelete }) =>
+      directDelete
+        ? `Discussion for module content ${moduleContentId} hard deleted.`
+        : `Discussion for module content ${moduleContentId} soft deleted (deletedAt set).`,
+    logErrorMessage: (err, { moduleContentId, directDelete }) =>
+      `Error removing discussion for module content ${moduleContentId} with directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<{ message: string }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<void> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    await this.prisma.client.discussion.delete({
-      where: { moduleContentId },
-    });
-
-    return { message: 'Discussion successfully deleted' };
+    if (directDelete) {
+      await this.prisma.client.discussion.delete({
+        where: { moduleContentId },
+      });
+    } else {
+      await this.prisma.client.discussion.update({
+        where: { moduleContentId },
+        data: { deletedAt: new Date() },
+      });
+    }
   }
 
   /**
