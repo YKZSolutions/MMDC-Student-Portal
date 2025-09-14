@@ -560,9 +560,9 @@ model Module {
 model ModuleSection {
   id String @id @default(uuid()) @db.Uuid
 
-  moduleId String @db.Uuid
   /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String @db.Uuid
 
   // self reference subsections
   parentSectionId String?         @db.Uuid
@@ -658,8 +658,9 @@ model ModuleContent {
 
 model Lesson {
   id              String        @id @default(uuid()) @db.Uuid
-  moduleContentId String        @unique @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
@@ -681,9 +682,9 @@ enum AssignmentMode {
 model Assignment {
   id String @id @default(uuid()) @db.Uuid
 
-  moduleContentId String        @unique @db.Uuid
   /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
@@ -747,9 +748,9 @@ model AssignmentSubmission {
 model AssignmentAttachment {
   id String @id @default(uuid()) @db.Uuid
 
-  submissionId String               @db.Uuid
   /// @DtoApiHidden
   submission   AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String               @db.Uuid
 
   name String
 
@@ -763,8 +764,9 @@ model AssignmentAttachment {
 
 model Quiz {
   id              String        @id @default(uuid()) @db.Uuid
-  moduleContentId String        @unique @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
   title           String        @db.VarChar(255)
   subtitle        String?       @db.VarChar(500)
   content         Json // Structured quiz content (eg. description, instructions, etc.)
@@ -867,8 +869,9 @@ model DiscussionPost {
 
 model Video {
   id              String        @id @default(uuid()) @db.Uuid
-  moduleContentId String        @unique @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
@@ -888,8 +891,9 @@ model Video {
 
 model ExternalUrl {
   id              String        @id @default(uuid()) @db.Uuid
-  moduleContentId String        @unique @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
