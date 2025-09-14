@@ -1,21 +1,12 @@
 // url.service.ts
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { ExtendedPrismaClient, PrismaTransaction, } from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { CreateExternalUrlDto } from '@/generated/nestjs-dto/create-externalUrl.dto';
 import { ExternalUrlDto } from '@/generated/nestjs-dto/externalUrl.dto';
 import { UpdateExternalUrlDto } from '@/generated/nestjs-dto/update-externalUrl.dto';
@@ -47,12 +38,15 @@ export class UrlService {
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('urlData') urlData: CreateExternalUrlDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<ExternalUrlDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const url = await this.prisma.client.externalUrl.create({
+    const client = tx ?? this.prisma.client;
+    const url = await client.externalUrl.create({
       data: {
         ...urlData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -83,12 +77,15 @@ export class UrlService {
   async update(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('urlData') urlData: UpdateExternalUrlDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<ExternalUrlDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const url = await this.prisma.client.externalUrl.update({
+    const client = tx ?? this.prisma.client;
+    const url = await client.externalUrl.update({
       where: { moduleContentId },
       data: urlData,
     });
@@ -146,20 +143,24 @@ export class UrlService {
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    @LogParam('directDelete') directDelete = false,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.externalUrl.delete({
-        where: { moduleContentId },
-      });
+      await client.externalUrl.delete({ where: { moduleContentId } });
     } else {
-      await this.prisma.client.externalUrl.update({
+      await client.externalUrl.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'External URL successfully removed' };
   }
 }

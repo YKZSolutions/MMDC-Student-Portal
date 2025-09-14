@@ -6,7 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
@@ -45,14 +48,16 @@ export class FileService {
   })
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('fileData')
-    fileData: CreateFileResourceDto,
+    @LogParam('fileData') fileData: CreateFileResourceDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<FileResourceDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const file = await this.prisma.client.fileResource.create({
+    const client = tx ?? this.prisma.client;
+    const file = await client.fileResource.create({
       data: {
         ...fileData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -82,14 +87,16 @@ export class FileService {
   })
   async update(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('fileData')
-    fileData: UpdateFileResourceDto,
+    @LogParam('fileData') fileData: UpdateFileResourceDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<FileResourceDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const file = await this.prisma.client.fileResource.update({
+    const client = tx ?? this.prisma.client;
+    const file = await client.fileResource.update({
       where: { moduleContentId },
       data: fileData,
     });
@@ -147,20 +154,24 @@ export class FileService {
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    @LogParam('directDelete') directDelete = false,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.fileResource.delete({
-        where: { moduleContentId },
-      });
+      await client.fileResource.delete({ where: { moduleContentId } });
     } else {
-      await this.prisma.client.fileResource.update({
+      await client.fileResource.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'File resource successfully removed' };
   }
 }

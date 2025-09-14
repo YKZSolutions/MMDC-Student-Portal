@@ -7,7 +7,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
@@ -49,12 +52,15 @@ export class AssignmentService {
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('assignmentData')
     assignmentData: CreateAssignmentDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<AssignmentDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const assignment = await this.prisma.client.assignment.create({
+    const client = tx ?? this.prisma.client;
+    const assignment = await client.assignment.create({
       data: {
         ...assignmentData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -86,12 +92,15 @@ export class AssignmentService {
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('assignmentData')
     assignmentData: UpdateAssignmentDto,
+    @LogParam('transactionClient')
+    tx: PrismaTransaction,
   ): Promise<AssignmentDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const assignment = await this.prisma.client.assignment.update({
+    const client = tx ?? this.prisma.client;
+    const assignment = await client.assignment.update({
       where: { moduleContentId },
       data: {
         ...assignmentData,
@@ -168,19 +177,22 @@ export class AssignmentService {
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.assignment.delete({
-        where: { moduleContentId },
-      });
+      await client.assignment.delete({ where: { moduleContentId } });
     } else {
-      await this.prisma.client.assignment.update({
+      await client.assignment.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'Assignment successfully removed' };
   }
 }

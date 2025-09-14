@@ -6,7 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
@@ -49,14 +52,16 @@ export class DiscussionService {
   })
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('discussionData')
-    discussionData: CreateDiscussionDto,
+    @LogParam('discussionData') discussionData: CreateDiscussionDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<DiscussionDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const discussion = await this.prisma.client.discussion.create({
+    const client = tx ?? this.prisma.client;
+    const discussion = await client.discussion.create({
       data: {
         ...discussionData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -86,14 +91,16 @@ export class DiscussionService {
   })
   async update(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('discussionData')
-    discussionData: UpdateDiscussionDto,
+    @LogParam('discussionData') discussionData: UpdateDiscussionDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<DiscussionDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const discussion = await this.prisma.client.discussion.update({
+    const client = tx ?? this.prisma.client;
+    const discussion = await client.discussion.update({
       where: { moduleContentId },
       data: discussionData,
     });
@@ -175,21 +182,26 @@ export class DiscussionService {
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    @LogParam('directDelete') directDelete = false,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.discussion.delete({
+      await client.discussion.delete({
         where: { moduleContentId },
       });
     } else {
-      await this.prisma.client.discussion.update({
+      await client.discussion.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'Discussion successfully removed' };
   }
 
   /**

@@ -1,11 +1,23 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
 import { QuizDto } from '@/generated/nestjs-dto/quiz.dto';
 import { UpdateQuizDto } from '@/generated/nestjs-dto/update-quiz.dto';
@@ -34,12 +46,15 @@ export class QuizService {
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('quizData') quizData: CreateQuizDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<QuizDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const quiz = await this.prisma.client.quiz.create({
+    const client = tx ?? this.prisma.client;
+    const quiz = await client.quiz.create({
       data: {
         ...quizData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -70,12 +85,15 @@ export class QuizService {
   async update(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('quizData') quizData: UpdateQuizDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<QuizDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const quiz = await this.prisma.client.quiz.update({
+    const client = tx ?? this.prisma.client;
+    const quiz = await client.quiz.update({
       where: { moduleContentId },
       data: quizData,
     });
@@ -137,19 +155,25 @@ export class QuizService {
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    @LogParam('directDelete') directDelete = false,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.quiz.delete({ where: { moduleContentId } });
+      await client.quiz.delete({ where: { moduleContentId } });
     } else {
-      await this.prisma.client.quiz.update({
+      await client.quiz.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'Quiz successfully removed' };
   }
 
   // /**
