@@ -2,8 +2,10 @@ import type {
   ContentNode,
   ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import { useSearch } from '@tanstack/react-router'
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { convertModuleToTreeData } from '@/utils/helpers'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { createContext, useContext, type ReactNode } from 'react'
+import { mockModule } from '../mocks'
 
 export type EditorView = 'content' | 'preview'
 
@@ -24,7 +26,9 @@ export interface EditorState {
   view: EditorView
 }
 
-export interface EditorSearchParams extends Omit<EditorState, 'data'> {}
+export interface EditorSearchParams extends Omit<EditorState, 'data'> {
+  id: string | null
+}
 
 interface EditorContextValue {
   editorState: EditorState
@@ -40,17 +44,23 @@ interface EditorContextValue {
 const EditorContext = createContext<EditorContextValue | null>(null)
 
 export function EditorProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
   const searchParams: EditorSearchParams = useSearch({ strict: false })
 
   // TODO: Implement the real fetching of data here
+  const data =
+    convertModuleToTreeData(mockModule).find(
+      (node) => node.id === searchParams.id,
+    )?.data?.contentData || null
+
+  console.log(data)
 
   const editorState = {
     type: (searchParams.type as ContentNodeType) || 'section',
     parentId: (searchParams.parentId as string) || null,
     view: (searchParams.view as EditorView) || 'content',
+    id: (searchParams.id as string) || null,
   } satisfies EditorSearchParams
-
-  const [data, setData] = useState<ContentNode | null>(null)
 
   const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
     // TODO: Implement adding new nodes using mutation
@@ -74,7 +84,14 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     //   parentId: null,
     //   view,
     // })
-    setData(nodeData)
+
+    navigate({
+      to: '.',
+      search: (prev) => ({
+        ...prev,
+        id: nodeData.id,
+      }),
+    })
   }
 
   const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}

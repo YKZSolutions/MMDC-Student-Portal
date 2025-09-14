@@ -69,7 +69,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 type CMSProps = {
   courseCode?: string
   itemId?: string
-  variant?: 'editor' | 'full'
+  viewMode?: 'editor' | 'full'
 }
 
 export function CMS(props: CMSProps) {
@@ -80,11 +80,11 @@ export function CMS(props: CMSProps) {
   )
 }
 
-function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
+function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
   const navigate = useNavigate()
   const theme = useMantineTheme()
 
-  const [isTreeVisible, setIsTreeVisible] = useState(variant === 'full')
+  const [isTreeVisible, setIsTreeVisible] = useState(viewMode === 'full')
   const [isDragging, setIsDragging] = useState(false)
 
   const { courseDetails, setCourseDetails, module } = useCourseData(courseCode)
@@ -132,19 +132,19 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                 <Group
                   gap={'md'}
                   display={
-                    isTreeVisible || variant === 'editor' ? 'none' : 'flex'
-                  }
+                      isTreeVisible || viewMode === 'editor' ? 'none' : 'flex'
+                    }
                   align={'center'}
                 >
                   <CMSCourseSelector
                     courses={mockCourseBasicDetails}
                     selectedCourse={courseDetails}
-                    onCourseChange={handleCourseChange}
+                    handleCourseChange={handleCourseChange}
                   />
                 </Group>
                 <ActionIcon
                   variant={'transparent'}
-                  hidden={variant !== 'editor'}
+                  hidden={viewMode !== 'editor'}
                   onClick={() => window.history.back()}
                 >
                   <IconX />
@@ -268,13 +268,13 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          hidden={!isTreeVisible || variant === 'editor'}
+          hidden={!isTreeVisible || viewMode === 'editor'}
         >
           <IconGripVertical size={16} />
         </PanelResizeHandle>
 
         <Panel
-          hidden={!isTreeVisible || variant === 'editor'}
+          hidden={!isTreeVisible || viewMode === 'editor'}
           minSize={15}
           defaultSize={20}
         >
@@ -301,14 +301,14 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                 <CMSCourseSelector
                   courses={mockCourseBasicDetails}
                   selectedCourse={courseDetails}
-                  onCourseChange={handleCourseChange}
+                  handleCourseChange={handleCourseChange}
                 />
               </Stack>
 
               <CMSContentTree
-                onAddButtonClick={handleAdd}
+                handleAdd={handleAdd}
                 module={module}
-                onNodeChange={(nodeData) => {
+                handleNodeSelect={(nodeData) => {
                   handleUpdate(editorState.type, nodeData, editorState.view)
                 }}
               />
@@ -325,8 +325,7 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
 interface CourseSelectorProps {
   courses: CourseBasicDetails[]
   selectedCourse?: CourseBasicDetails
-  onCourseChange: (course: CourseBasicDetails | undefined) => void
-  onAddContent?: () => void
+  handleCourseChange: (course: CourseBasicDetails | undefined) => void
   showAddButton?: boolean
 }
 
@@ -374,7 +373,7 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
 function CMSCourseSelector({
   courses,
   selectedCourse,
-  onCourseChange,
+  handleCourseChange,
 }: CourseSelectorProps) {
   return (
     <Group align="center" wrap={'nowrap'}>
@@ -383,7 +382,7 @@ function CMSCourseSelector({
         value={selectedCourse?.courseName}
         onChange={(value) => {
           const course = courses.find((c) => c.courseName === value)
-          onCourseChange(course)
+          handleCourseChange(course)
         }}
         leftSection={<IconBook size={24} />}
         searchable={true}
@@ -425,21 +424,22 @@ function CMSStatusBar({}: StatusBarProps) {
 
 interface ContentTreeProps {
   module: Module
-  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
-  onNodeChange: (nodeData: ContentNode) => void
+  handleAdd: (parentId: string, nodeType: ContentNodeType) => void
+  handleNodeSelect: (nodeData: ContentNode) => void
 }
 
 function CMSContentTree({
   module,
-  onAddButtonClick,
-  onNodeChange,
+  handleAdd,
+  handleNodeSelect,
 }: ContentTreeProps) {
+  const { editorState } = useEditorState()
   // Handle node selection and trigger onChange
-  const handleNodeSelect = (node: CourseNodeModel) => {
+  const handleNodeRowSelect = (node: CourseNodeModel) => {
     if (node.data?.type === 'add-button') return
 
     if (node.data?.contentData) {
-      onNodeChange(node.data.contentData)
+      handleNodeSelect(node.data.contentData)
     }
   }
 
@@ -453,7 +453,7 @@ function CMSContentTree({
           insertDroppableFirst={false}
           enableAnimateExpand
           onDrop={() => {}}
-          canDrop={() => true}
+          canDrop={() => false}
           canDrag={(node) => node?.data?.type !== 'add-button'}
           dropTargetOffset={5}
           initialOpen={true}
@@ -463,10 +463,10 @@ function CMSContentTree({
               depth={depth}
               isOpen={isOpen}
               isDropTarget={isDropTarget}
-              isSelected={false}
+              isSelected={editorState.data?.id === node.id}
               onToggle={onToggle}
-              onAddButtonClick={onAddButtonClick}
-              onSelectNode={handleNodeSelect}
+              handleAdd={handleAdd}
+              handleNodeSelect={handleNodeRowSelect}
             />
           )}
         />
@@ -500,8 +500,8 @@ interface NodeRowProps {
   isDropTarget: boolean
   isSelected: boolean
   onToggle: () => void
-  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
-  onSelectNode: (node: CourseNodeModel) => void
+  handleAdd: (parentId: string, nodeType: ContentNodeType) => void
+  handleNodeSelect: (node: CourseNodeModel) => void
 }
 
 function CMSNodeRow({
@@ -511,8 +511,8 @@ function CMSNodeRow({
   isDropTarget,
   isSelected,
   onToggle,
-  onAddButtonClick,
-  onSelectNode,
+  handleAdd,
+  handleNodeSelect,
 }: NodeRowProps) {
   const theme = useMantineTheme()
 
@@ -527,7 +527,7 @@ function CMSNodeRow({
           size="xs"
           leftSection={<IconPlus size={14} />}
           onClick={() =>
-            onAddButtonClick(
+            handleAdd(
               node.parent as string,
               getTypeFromLevel(node.data?.level),
             )
@@ -566,10 +566,9 @@ function CMSNodeRow({
           ? `2px solid ${theme.colors.blue[4]}`
           : '2px solid transparent',
         cursor: 'pointer',
-        transition: 'all 0.15s ease',
         margin: '1px 0',
       }}
-      onClick={() => onSelectNode(node)}
+      onClick={() => handleNodeSelect(node)}
     >
       {/* Toggle button or spacer */}
       <Box
