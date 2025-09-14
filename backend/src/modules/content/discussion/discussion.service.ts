@@ -175,7 +175,7 @@ export class DiscussionService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Discussion not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {

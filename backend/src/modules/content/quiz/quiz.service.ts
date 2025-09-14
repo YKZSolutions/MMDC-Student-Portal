@@ -146,7 +146,7 @@ export class QuizService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Quiz not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {

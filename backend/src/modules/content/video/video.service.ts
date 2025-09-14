@@ -1,12 +1,21 @@
 // video.service.ts
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { CreateVideoDto } from '@/generated/nestjs-dto/create-video.dto';
 import { VideoDto } from '@/generated/nestjs-dto/video.dto';
 import { UpdateVideoDto } from '@/generated/nestjs-dto/update-video.dto';
@@ -134,7 +143,7 @@ export class VideoService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Video not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {

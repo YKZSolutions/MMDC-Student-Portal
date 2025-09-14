@@ -147,7 +147,7 @@ export class FileService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('File resource not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {

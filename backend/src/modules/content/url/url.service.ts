@@ -145,7 +145,7 @@ export class UrlService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('External URL not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {

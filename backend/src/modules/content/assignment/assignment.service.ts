@@ -166,7 +166,7 @@ export class AssignmentService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Assignment not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {

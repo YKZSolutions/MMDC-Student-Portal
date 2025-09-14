@@ -143,7 +143,7 @@ export class LessonService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Lesson not found'),
   })
-  async delete(
+  async remove(
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
