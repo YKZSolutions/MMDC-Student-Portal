@@ -1,11 +1,10 @@
 import RichTextEditor from '@/components/rich-text-editor.tsx'
-import ContentDetailsEditor from '@/features/courses/cms/content-details-editor.tsx'
-import ContentTree from '@/features/courses/cms/content-tree.tsx'
 import CourseSelector from '@/features/courses/cms/course-selector.tsx'
 import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
 import {
   EditorProvider,
   type EditorView,
+  editorViewOptions,
   useEditorState,
 } from '@/features/courses/hooks/useEditorState.tsx'
 import {
@@ -16,12 +15,14 @@ import ModuleContentView from '@/features/courses/modules/content/module-content
 import type {
   ContentNode,
   ContentNodeType,
+  CourseNodeModel,
   Module,
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import { getTypeFromLevel } from '@/utils/helpers.ts'
+import { capitalizeFirstLetter } from '@/utils/formatters'
+import { convertModuleToTreeData, getTypeFromLevel } from '@/utils/helpers'
 import {
   ActionIcon,
   Box,
@@ -37,16 +38,29 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import {
+  DndProvider,
+  type DropOptions,
+  getBackendOptions,
+  getDescendants,
+  MultiBackend,
+  Tree,
+} from '@minoru/react-dnd-treeview'
+import {
   IconCalendar,
   IconChevronDown,
+  IconChevronRight,
+  IconDotsVertical,
+  IconFile,
   IconGripVertical,
+  IconList,
   IconListTree,
+  IconPlus,
   IconRubberStamp,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
 type CMSProps = {
@@ -64,26 +78,39 @@ export function CMS(props: CMSProps) {
 }
 
 function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
+  const navigate = useNavigate()
   const theme = useMantineTheme()
+
   const [isTreeVisible, setIsTreeVisible] = useState(variant === 'full')
   const [isDragging, setIsDragging] = useState(false)
 
-  const { courseDetails, setCourseDetails, module, getNode } =
-    useCourseData(courseCode)
+  const { courseDetails, setCourseDetails, module } = useCourseData(courseCode)
 
-  const { editorState, handleAdd, handleUpdate, setView } = useEditorState()
-
-  useEffect(() => {
-    if (itemId) {
-      const node = getNode(itemId)
-      if (node.node)
-        handleUpdate(getTypeFromLevel(node.level), node.node, 'detail')
-    }
-  }, [itemId])
+  const { editorState, handleAdd, handleUpdate } = useEditorState()
 
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {
     setCourseDetails(course)
     setIsTreeVisible(true)
+  }
+
+  const handleSegmentedControl = (value: EditorView) => {
+    if (value === editorViewOptions[1].value) {
+      return navigate({
+        to: '.',
+        search: (prev) => ({
+          ...prev,
+          view: 'preview',
+        }),
+      })
+    }
+
+    navigate({
+      to: '.',
+      search: (prev) => ({
+        ...prev,
+        view: undefined,
+      }),
+    })
   }
 
   return (
@@ -125,23 +152,12 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                 </ActionIcon>
 
                 <SegmentedControl
+                  defaultValue={editorState.view}
                   value={editorState.view}
-                  onChange={(view) => setView(view as EditorView)}
-                  data={[
-                    { label: 'Details', value: 'detail' },
-                    {
-                      label: 'Content',
-                      value: 'content',
-                      disabled:
-                        !!editorState.data && editorState.type === 'item',
-                    },
-                    {
-                      label: 'Preview',
-                      value: 'preview',
-                      disabled:
-                        !!editorState.data && 'content' in editorState.data,
-                    },
-                  ]}
+                  onChange={(view) =>
+                    handleSegmentedControl(view as EditorView)
+                  }
+                  data={editorViewOptions}
                 />
               </Group>
 
@@ -150,7 +166,7 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                   ? `[${courseDetails?.courseCode}]`
                   : ''}{' '}
                 {courseDetails?.courseName}{' '}
-                {editorState.data?.title && ` | ${editorState.data.title} `}
+                {/* {editorState.data?.title && ` | ${editorState.data.title} `} */}
               </Title>
 
               <ActionMenu />
@@ -195,18 +211,37 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
           minSize={15}
           defaultSize={20}
         >
-          <SidePanel
-            courseDetails={courseDetails}
-            courses={mockCourseBasicDetails}
-            module={module}
-            isTreeVisible={isTreeVisible}
-            onCourseChange={handleCourseChange}
-            onToggleTree={() => setIsTreeVisible(!isTreeVisible)}
-            onAddContent={handleAdd}
-            onNodeChange={(nodeData) => {
-              handleUpdate(editorState.type, nodeData, editorState.view)
-            }}
-          />
+          <Box py={'md'} h={'100%'}>
+            <Container
+              flex={'1 0 auto'}
+              h={'100%'}
+              style={{ overflow: 'auto' }}
+            >
+              <Stack gap={'xs'} mb={'xs'}>
+                <Group align="center" gap={'xs'}>
+                  <TreeToggleButton
+                    isVisible={isTreeVisible}
+                    onToggle={() => setIsTreeVisible(!isTreeVisible)}
+                  />
+                  <Text fw={500}>Course Structure</Text>
+                </Group>
+
+                <CourseSelector
+                  courses={mockCourseBasicDetails}
+                  selectedCourse={courseDetails}
+                  onCourseChange={handleCourseChange}
+                />
+              </Stack>
+
+              <ContentTree
+                onAddButtonClick={handleAdd}
+                module={module}
+                onNodeChange={(nodeData) => {
+                  handleUpdate(editorState.type, nodeData, editorState.view)
+                }}
+              />
+            </Container>
+          </Box>
         </Panel>
       </PanelGroup>
 
@@ -216,32 +251,12 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
 }
 
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
-  const { module, updateCourseData, updateCourseContent, getNode } =
-    useCourseData(courseCode)
+  const { module, updateCourseContent, getNode } = useCourseData(courseCode)
 
   const { editorState, handleUpdate } = useEditorState()
 
   console.log('editorState', editorState)
   switch (editorState.view) {
-    case 'detail': {
-      return (
-        <ContentDetailsEditor
-          opened={true}
-          type={editorState.type as ContentNodeType}
-          data={editorState.data}
-          onSave={(nodeData) => {
-            updateCourseData(nodeData)
-            handleUpdate(editorState.type, nodeData, editorState.view)
-          }}
-          p={'xl'}
-          mx={'xl'}
-          style={{
-            overflowY: 'auto',
-            scrollbarGutter: 'stable',
-          }}
-        />
-      )
-    }
     case 'content':
       return (
         <RichTextEditor
@@ -395,9 +410,7 @@ export function StatusBar({}: StatusBarProps) {
 }
 
 interface SidePanelProps {
-  courseDetails?: CourseBasicDetails
-  courses: CourseBasicDetails[]
-  module: Module
+  courseCode?: string
   isTreeVisible: boolean
   onCourseChange: (course: CourseBasicDetails | undefined) => void
   onNodeChange: (nodeData: ContentNode) => void
@@ -406,15 +419,15 @@ interface SidePanelProps {
 }
 
 export function SidePanel({
-  courseDetails,
-  courses,
-  module,
+  courseCode,
   isTreeVisible,
   onCourseChange,
   onNodeChange,
   onToggleTree,
   onAddContent,
 }: SidePanelProps) {
+  const { courseDetails, module } = useCourseData(courseCode)
+
   return (
     <Box py={'md'} h={'100%'}>
       <Container flex={'1 0 auto'} h={'100%'} style={{ overflow: 'auto' }}>
@@ -428,7 +441,7 @@ export function SidePanel({
           </Group>
 
           <CourseSelector
-            courses={courses}
+            courses={mockCourseBasicDetails}
             selectedCourse={courseDetails}
             onCourseChange={onCourseChange}
           />
@@ -441,5 +454,331 @@ export function SidePanel({
         />
       </Container>
     </Box>
+  )
+}
+
+const reorderArray = (
+  array: CourseNodeModel[],
+  sourceIndex: number,
+  targetIndex: number,
+) => {
+  const newArray = [...array]
+  const element = newArray.splice(sourceIndex, 1)[0]
+  newArray.splice(targetIndex, 0, element)
+  return newArray
+}
+
+function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
+  const augmented: CourseNodeModel[] = [...nodes]
+
+  function inject(nodeParent: string, level: number) {
+    augmented.push({
+      id: `${nodeParent}-add`,
+      parent: nodeParent,
+      text: 'Add',
+      droppable: false,
+      data: {
+        level: level,
+        type: 'add-button',
+      },
+    })
+  }
+
+  // Add "Add" buttons after the last child of each section
+  for (const node of nodes) {
+    if (node.data && node.data.level !== 3) {
+      const level = node.data.level + 1
+      inject(node.id as string, level)
+    }
+  }
+
+  inject('root', 1)
+
+  return augmented
+}
+
+// Get appropriate icon for node type
+const getNodeIcon = (type: ContentNodeType | 'add-button', size = 16) => {
+  switch (type) {
+    case 'section':
+      return <IconList size={size} />
+    case 'item':
+      return <IconFile size={size} />
+    default:
+      return <IconFile size={size} />
+  }
+}
+
+interface ContentTreeProps {
+  module: Module
+  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
+  onNodeChange: (nodeData: ContentNode) => void
+}
+
+function ContentTree({
+  module,
+  onAddButtonClick,
+  onNodeChange,
+}: ContentTreeProps) {
+  const [treeData, setTreeData] = useState<CourseNodeModel[]>(
+    injectAddButtons(convertModuleToTreeData(module)),
+  )
+  const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(
+    null,
+  )
+
+  const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
+    const { dragSourceId, dropTargetId, destinationIndex } = e
+    if (!dragSourceId || !dropTargetId) return
+
+    const dragNode = treeData.find((v) => v.id === dragSourceId)
+    const dropNode = treeData.find((v) => v.id === dropTargetId)
+
+    if (!dragNode || typeof destinationIndex !== 'number') return
+
+    // Prevent invalid drops
+    if (
+      getDescendants(treeData, dragSourceId).find(
+        (el) => el.id === dropTargetId,
+      ) ||
+      dropTargetId === dragSourceId ||
+      (dropNode && !dropNode.droppable)
+    )
+      return
+
+    // Update tree data
+    setTreeData((prevTree) => {
+      const newTree = reorderArray(
+        prevTree,
+        prevTree.indexOf(dragNode),
+        destinationIndex,
+      )
+      const movedElement = newTree.find((el) => el.id === dragSourceId)
+      if (movedElement) {
+        movedElement.parent = dropTargetId
+      }
+      return newTree
+    })
+  }
+
+  // Handle node selection and trigger onChange
+  const handleNodeSelect = (node: CourseNodeModel) => {
+    if (node.data?.type === 'add-button') return
+
+    setSelectedNodeId(node.id)
+
+    if (node.data?.contentData) {
+      onNodeChange(node.data.contentData)
+    }
+  }
+
+  const handleDelete = (nodeId: string | number) => {
+    setTreeData((prev) => prev.filter((node) => node.id !== nodeId))
+    if (selectedNodeId === nodeId) {
+      setSelectedNodeId(null)
+    }
+  }
+
+  return (
+    <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+      <Stack gap={0} h="100%">
+        <Tree
+          tree={treeData}
+          sort={false}
+          rootId={'root'}
+          insertDroppableFirst={false}
+          enableAnimateExpand
+          onDrop={handleDrop}
+          canDrop={() => true}
+          canDrag={(node) => node?.data?.type !== 'add-button'}
+          dropTargetOffset={5}
+          initialOpen={true}
+          render={(node, { depth, isOpen, isDropTarget, onToggle }) => {
+            console.log('Rendering node:', node)
+            return (
+              <NodeRow
+                node={node}
+                depth={depth}
+                isOpen={isOpen}
+                isDropTarget={isDropTarget}
+                isSelected={selectedNodeId === node.id}
+                onToggle={onToggle}
+                onAddButtonClick={onAddButtonClick}
+                onSelectNode={handleNodeSelect}
+                onDelete={handleDelete}
+              />
+            )
+          }}
+        />
+      </Stack>
+    </DndProvider>
+  )
+}
+
+interface NodeRowProps {
+  node: CourseNodeModel
+  depth: number
+  isOpen: boolean
+  isDropTarget: boolean
+  isSelected: boolean
+  onToggle: () => void
+  onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
+  onSelectNode: (node: CourseNodeModel) => void
+  onDelete: (nodeId: string | number) => void
+}
+
+function NodeRow({
+  node,
+  depth,
+  isOpen,
+  isDropTarget,
+  isSelected,
+  onToggle,
+  onAddButtonClick,
+  onSelectNode,
+  onDelete,
+}: NodeRowProps) {
+  const theme = useMantineTheme()
+
+  // Calculate proper indentation (20px per level)
+  const indentSize = depth * 20
+
+  if (node.data?.type === 'add-button') {
+    return (
+      <Box pl={indentSize + 24} py={2}>
+        <Button
+          variant="transparent"
+          size="xs"
+          leftSection={<IconPlus size={14} />}
+          onClick={() =>
+            onAddButtonClick(
+              node.parent as string,
+              getTypeFromLevel(node.data?.level),
+            )
+          }
+          style={{
+            color: theme.colors.blue[6],
+            fontStyle: 'italic',
+            height: 'auto',
+            padding: '4px 8px',
+          }}
+        >
+          <Text size="sm" fw={500}>
+            Add {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
+          </Text>
+        </Button>
+      </Box>
+    )
+  }
+
+  return (
+    <Group
+      gap={0}
+      wrap="nowrap"
+      style={{
+        paddingLeft: indentSize,
+        paddingRight: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        backgroundColor: isSelected
+          ? theme.colors.blue[0]
+          : isDropTarget
+            ? theme.colors.gray[1]
+            : 'transparent',
+        borderRadius: 4,
+        border: isDropTarget
+          ? `2px solid ${theme.colors.blue[4]}`
+          : '2px solid transparent',
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        margin: '1px 0',
+      }}
+      onClick={() => onSelectNode(node)}
+    >
+      {/* Toggle button or spacer */}
+      <Box
+        w={24}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        {node.droppable ? (
+          <ActionIcon
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle()
+            }}
+            variant="subtle"
+            size="sm"
+            style={{ minWidth: 20, minHeight: 20 }}
+          >
+            <IconChevronRight
+              size={14}
+              style={{
+                transition: 'transform 0.2s ease',
+                transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              }}
+            />
+          </ActionIcon>
+        ) : null}
+      </Box>
+
+      {/* Node icon */}
+      <Box mr="xs" style={{ display: 'flex', alignItems: 'center' }}>
+        {getNodeIcon(node.data?.type || 'item', 16)}
+      </Box>
+
+      {/* Node text */}
+      <Text
+        fw={400}
+        size="sm"
+        lh="sm"
+        truncate
+        style={{
+          flex: 1,
+          color: isSelected ? theme.colors.blue[7] : 'inherit',
+        }}
+      >
+        {node.text}
+      </Text>
+
+      {/* Node type badge */}
+      <Text
+        size="xs"
+        c="dimmed"
+        mr="xs"
+        style={{ textTransform: 'capitalize' }}
+      >
+        {node.data?.type}
+      </Text>
+
+      {/* Actions menu */}
+      <Menu withinPortal shadow="md" width={150}>
+        <Menu.Target>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              opacity: isSelected ? 1 : 0.7,
+              transition: 'opacity 0.15s ease',
+            }}
+          >
+            <IconDotsVertical size={14} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            color="red"
+            leftSection={<IconTrash size={14} />}
+            onClick={() => onDelete(node.id)}
+          >
+            Delete
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
   )
 }

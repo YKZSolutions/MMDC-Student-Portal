@@ -2,9 +2,20 @@ import type {
   ContentNode,
   ContentNodeType,
 } from '@/features/courses/modules/types.ts'
+import { useSearch } from '@tanstack/react-router'
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
-export type EditorView = 'detail' | 'content' | 'preview'
+export type EditorView = 'content' | 'preview'
+
+type EditorViewOption = {
+  value: EditorView
+  label: Capitalize<EditorView>
+}
+
+export const editorViewOptions: EditorViewOption[] = [
+  { value: 'content', label: 'Content' },
+  { value: 'preview', label: 'Preview' },
+]
 
 export interface EditorState {
   type: ContentNodeType
@@ -12,6 +23,8 @@ export interface EditorState {
   parentId: string | null
   view: EditorView
 }
+
+export interface EditorSearchParams extends Omit<EditorState, 'data'> {}
 
 interface EditorContextValue {
   editorState: EditorState
@@ -22,26 +35,31 @@ interface EditorContextValue {
     view: EditorView,
   ) => void
   handlePreview: (nodeType: ContentNodeType, nodeData: ContentNode) => void
-  setView: (view: EditorView) => void
 }
 
 const EditorContext = createContext<EditorContextValue | null>(null)
 
 export function EditorProvider({ children }: { children: ReactNode }) {
-  const [editorState, setEditorState] = useState<EditorState>({
-    type: 'section',
-    data: null,
-    parentId: null,
-    view: 'detail',
-  })
+  const searchParams: EditorSearchParams = useSearch({ strict: false })
+
+  // TODO: Implement the real fetching of data here
+
+  const editorState = {
+    type: (searchParams.type as ContentNodeType) || 'section',
+    parentId: (searchParams.parentId as string) || null,
+    view: (searchParams.view as EditorView) || 'content',
+  } satisfies EditorSearchParams
+
+  const [data, setData] = useState<ContentNode | null>(null)
 
   const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
-    setEditorState({
-      type: newType || 'section',
-      data: null,
-      parentId,
-      view: 'detail',
-    })
+    // TODO: Implement adding new nodes using mutation
+    // setEditorState({
+    //   type: newType || 'section',
+    //   data: null,
+    //   parentId,
+    //   view: 'content',
+    // })
   }
 
   const handleUpdate = (
@@ -49,35 +67,25 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     nodeData: ContentNode,
     view: EditorView,
   ) => {
-    setEditorState({
-      type: nodeType,
-      data: nodeData,
-      parentId: null,
-      view,
-    })
+    // TODO: Implement updating nodes using mutation
+    // setEditorState({
+    //   type: nodeType,
+    //   data: nodeData,
+    //   parentId: null,
+    //   view,
+    // })
+    setData(nodeData)
   }
 
-  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {
-    setEditorState({
-      type: nodeType,
-      data: nodeData,
-      parentId: null,
-      view: 'preview',
-    })
-  }
-
-  const setView = (view: EditorView) => {
-    setEditorState((prev) => ({ ...prev, view }))
-  }
+  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}
 
   return (
     <EditorContext.Provider
       value={{
-        editorState,
+        editorState: { ...editorState, data } as EditorState,
         handleAdd,
         handleUpdate,
         handlePreview,
-        setView,
       }}
     >
       {children}
