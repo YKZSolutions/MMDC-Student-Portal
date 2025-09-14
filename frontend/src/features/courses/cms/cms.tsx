@@ -39,9 +39,7 @@ import {
 } from '@mantine/core'
 import {
   DndProvider,
-  type DropOptions,
   getBackendOptions,
-  getDescendants,
   MultiBackend,
   Tree,
 } from '@minoru/react-dnd-treeview'
@@ -488,62 +486,12 @@ function ContentTree({
   onAddButtonClick,
   onNodeChange,
 }: ContentTreeProps) {
-  const [treeData, setTreeData] = useState<CourseNodeModel[]>(
-    injectAddButtons(convertModuleToTreeData(module)),
-  )
-  const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(
-    null,
-  )
-
-  const handleDrop = (newTree: CourseNodeModel[], e: DropOptions) => {
-    const { dragSourceId, dropTargetId, destinationIndex } = e
-    if (!dragSourceId || !dropTargetId) return
-
-    const dragNode = treeData.find((v) => v.id === dragSourceId)
-    const dropNode = treeData.find((v) => v.id === dropTargetId)
-
-    if (!dragNode || typeof destinationIndex !== 'number') return
-
-    // Prevent invalid drops
-    if (
-      getDescendants(treeData, dragSourceId).find(
-        (el) => el.id === dropTargetId,
-      ) ||
-      dropTargetId === dragSourceId ||
-      (dropNode && !dropNode.droppable)
-    )
-      return
-
-    // Update tree data
-    setTreeData((prevTree) => {
-      const newTree = reorderArray(
-        prevTree,
-        prevTree.indexOf(dragNode),
-        destinationIndex,
-      )
-      const movedElement = newTree.find((el) => el.id === dragSourceId)
-      if (movedElement) {
-        movedElement.parent = dropTargetId
-      }
-      return newTree
-    })
-  }
-
   // Handle node selection and trigger onChange
   const handleNodeSelect = (node: CourseNodeModel) => {
     if (node.data?.type === 'add-button') return
 
-    setSelectedNodeId(node.id)
-
     if (node.data?.contentData) {
       onNodeChange(node.data.contentData)
-    }
-  }
-
-  const handleDelete = (nodeId: string | number) => {
-    setTreeData((prev) => prev.filter((node) => node.id !== nodeId))
-    if (selectedNodeId === nodeId) {
-      setSelectedNodeId(null)
     }
   }
 
@@ -551,32 +499,28 @@ function ContentTree({
     <DndProvider backend={MultiBackend} options={getBackendOptions()}>
       <Stack gap={0} h="100%">
         <Tree
-          tree={treeData}
+          tree={injectAddButtons(convertModuleToTreeData(module))}
           sort={false}
           rootId={'root'}
           insertDroppableFirst={false}
           enableAnimateExpand
-          onDrop={handleDrop}
+          onDrop={() => {}}
           canDrop={() => true}
           canDrag={(node) => node?.data?.type !== 'add-button'}
           dropTargetOffset={5}
           initialOpen={true}
-          render={(node, { depth, isOpen, isDropTarget, onToggle }) => {
-            console.log('Rendering node:', node)
-            return (
-              <NodeRow
-                node={node}
-                depth={depth}
-                isOpen={isOpen}
-                isDropTarget={isDropTarget}
-                isSelected={selectedNodeId === node.id}
-                onToggle={onToggle}
-                onAddButtonClick={onAddButtonClick}
-                onSelectNode={handleNodeSelect}
-                onDelete={handleDelete}
-              />
-            )
-          }}
+          render={(node, { depth, isOpen, isDropTarget, onToggle }) => (
+            <NodeRow
+              node={node}
+              depth={depth}
+              isOpen={isOpen}
+              isDropTarget={isDropTarget}
+              isSelected={false}
+              onToggle={onToggle}
+              onAddButtonClick={onAddButtonClick}
+              onSelectNode={handleNodeSelect}
+            />
+          )}
         />
       </Stack>
     </DndProvider>
@@ -592,7 +536,6 @@ interface NodeRowProps {
   onToggle: () => void
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
   onSelectNode: (node: CourseNodeModel) => void
-  onDelete: (nodeId: string | number) => void
 }
 
 function NodeRow({
@@ -604,7 +547,6 @@ function NodeRow({
   onToggle,
   onAddButtonClick,
   onSelectNode,
-  onDelete,
 }: NodeRowProps) {
   const theme = useMantineTheme()
 
@@ -738,11 +680,7 @@ function NodeRow({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item
-            color="red"
-            leftSection={<IconTrash size={14} />}
-            onClick={() => onDelete(node.id)}
-          >
+          <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
             Delete
           </Menu.Item>
         </Menu.Dropdown>
