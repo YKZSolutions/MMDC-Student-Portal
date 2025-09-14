@@ -18,6 +18,7 @@ import { UpdateAssignmentSubmissionDto } from '@/generated/nestjs-dto/update-ass
 import { AssignmentSubmissionDto } from '@/generated/nestjs-dto/assignmentSubmission.dto';
 import { AssignmentSubmission } from '@/generated/nestjs-dto/assignmentSubmission.entity';
 import { isUUID } from 'class-validator';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AssignmentSubmissionService {
@@ -53,9 +54,13 @@ export class AssignmentSubmissionService {
         ...dto,
         assignmentId,
         studentId,
+        content: dto.content as Prisma.JsonValue,
       },
     });
-    return submission;
+    return {
+      ...submission,
+      content: submission.content as Prisma.JsonValue,
+    };
   }
 
   @Log({
@@ -78,9 +83,15 @@ export class AssignmentSubmissionService {
     }
     const submission = await this.prisma.client.assignmentSubmission.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        content: dto.content as Prisma.JsonValue,
+      },
     });
-    return submission;
+    return {
+      ...submission,
+      content: submission.content as Prisma.JsonValue,
+    };
   }
 
   @Log({
@@ -98,9 +109,14 @@ export class AssignmentSubmissionService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid submission ID format');
     }
-    return await this.prisma.client.assignmentSubmission.findUniqueOrThrow({
-      where: { id },
-    });
+    const result =
+      await this.prisma.client.assignmentSubmission.findUniqueOrThrow({
+        where: { id },
+      });
+    return {
+      ...result,
+      content: result.content as Prisma.JsonValue,
+    };
   }
 
   @Log({
@@ -118,10 +134,14 @@ export class AssignmentSubmissionService {
     if (!isUUID(assignmentId) || !isUUID(studentId)) {
       throw new BadRequestException('Invalid assignment or student ID format');
     }
-    return await this.prisma.client.assignmentSubmission.findMany({
+    const results = await this.prisma.client.assignmentSubmission.findMany({
       where: { assignmentId, studentId },
       orderBy: { submittedAt: 'desc' },
     });
+    return results.map((r) => ({
+      ...r,
+      content: r.content as Prisma.JsonValue,
+    }));
   }
 
   @Log({
@@ -138,10 +158,14 @@ export class AssignmentSubmissionService {
     if (!isUUID(assignmentId)) {
       throw new BadRequestException('Invalid assignment ID format');
     }
-    return await this.prisma.client.assignmentSubmission.findMany({
+    const results = await this.prisma.client.assignmentSubmission.findMany({
       where: { assignmentId },
       orderBy: { submittedAt: 'desc' },
     });
+    return results.map((r) => ({
+      ...r,
+      content: r.content as Prisma.JsonValue,
+    }));
   }
 
   @Log({
@@ -158,10 +182,14 @@ export class AssignmentSubmissionService {
     if (!isUUID(studentId)) {
       throw new BadRequestException('Invalid student ID format');
     }
-    return await this.prisma.client.assignmentSubmission.findMany({
+    const results = await this.prisma.client.assignmentSubmission.findMany({
       where: { studentId },
       orderBy: { submittedAt: 'desc' },
     });
+    return results.map((r) => ({
+      ...r,
+      content: r.content as Prisma.JsonValue,
+    }));
   }
 
   @Log({

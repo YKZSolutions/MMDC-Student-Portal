@@ -18,6 +18,7 @@ import { UpdateQuizSubmissionDto } from '@/generated/nestjs-dto/update-quizSubmi
 import { QuizSubmissionDto } from '@/generated/nestjs-dto/quizSubmission.dto';
 import { QuizSubmission } from '@/generated/nestjs-dto/quizSubmission.entity';
 import { isUUID } from 'class-validator';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class QuizSubmissionService {
@@ -53,9 +54,15 @@ export class QuizSubmissionService {
         ...dto,
         quizId,
         studentId,
+        answers: dto.answers as Prisma.JsonValue,
+        questionResults: dto.questionResults as Prisma.JsonValue,
       },
     });
-    return submission;
+    return {
+      ...submission,
+      answers: submission.answers as Prisma.JsonValue,
+      questionResults: submission.questionResults as Prisma.JsonValue,
+    };
   }
 
   @Log({
@@ -78,9 +85,17 @@ export class QuizSubmissionService {
     }
     const submission = await this.prisma.client.quizSubmission.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        answers: dto.answers as Prisma.JsonValue,
+        questionResults: dto.questionResults as Prisma.JsonValue,
+      },
     });
-    return submission;
+    return {
+      ...submission,
+      answers: submission.answers as Prisma.JsonValue,
+      questionResults: submission.questionResults as Prisma.JsonValue,
+    };
   }
 
   @Log({
@@ -98,9 +113,14 @@ export class QuizSubmissionService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid submission ID format');
     }
-    return await this.prisma.client.quizSubmission.findUniqueOrThrow({
+    const result = await this.prisma.client.quizSubmission.findUniqueOrThrow({
       where: { id },
     });
+    return {
+      ...result,
+      answers: result.answers as Prisma.JsonValue,
+      questionResults: result.questionResults as Prisma.JsonValue,
+    };
   }
 
   @Log({
@@ -118,10 +138,15 @@ export class QuizSubmissionService {
     if (!isUUID(quizId) || !isUUID(studentId)) {
       throw new BadRequestException('Invalid quiz or student ID format');
     }
-    return await this.prisma.client.quizSubmission.findMany({
+    const results = await this.prisma.client.quizSubmission.findMany({
       where: { quizId, studentId },
       orderBy: { submittedAt: 'desc' },
     });
+    return results.map((r) => ({
+      ...r,
+      answers: r.answers as Prisma.JsonValue,
+      questionResults: r.questionResults as Prisma.JsonValue,
+    }));
   }
 
   @Log({
@@ -138,10 +163,15 @@ export class QuizSubmissionService {
     if (!isUUID(quizId)) {
       throw new BadRequestException('Invalid quiz ID format');
     }
-    return await this.prisma.client.quizSubmission.findMany({
+    const results = await this.prisma.client.quizSubmission.findMany({
       where: { quizId },
       orderBy: { submittedAt: 'desc' },
     });
+    return results.map((r) => ({
+      ...r,
+      answers: r.answers as Prisma.JsonValue,
+      questionResults: r.questionResults as Prisma.JsonValue,
+    }));
   }
 
   @Log({
@@ -158,36 +188,29 @@ export class QuizSubmissionService {
     if (!isUUID(studentId)) {
       throw new BadRequestException('Invalid student ID format');
     }
-    return await this.prisma.client.quizSubmission.findMany({
+    const results = await this.prisma.client.quizSubmission.findMany({
       where: { studentId },
       orderBy: { submittedAt: 'desc' },
     });
+    return results.map((r) => ({
+      ...r,
+      answers: r.answers as Prisma.JsonValue,
+      questionResults: r.questionResults as Prisma.JsonValue,
+    }));
   }
 
   @Log({
     logArgsMessage: ({ id, directDelete }) =>
       `Removing quiz submission ${id} with directDelete=${directDelete}`,
-    logSuccessMessage: (_, { id, directDelete }) =>
-      directDelete
-        ? `Quiz submission ${id} hard deleted.`
-        : `Quiz submission ${id} soft deleted (deletedAt set).`,
+    logSuccessMessage: (_, { id }) => `Quiz submission ${id} hard deleted.`,
     logErrorMessage: (err, { id, directDelete }) =>
       `Error removing quiz submission ${id} with directDelete=${directDelete}: ${err.message}`,
   })
-  async remove(
-    @LogParam('id') id: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+  async remove(@LogParam('id') id: string): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid submission ID format');
     }
-    if (directDelete) {
-      await this.prisma.client.quizSubmission.delete({ where: { id } });
-    } else {
-      await this.prisma.client.quizSubmission.update({
-        where: { id },
-        data: { deletedAt: new Date() },
-      });
-    }
+    // Only allow hard delete since deletedAt does not exist
+    await this.prisma.client.quizSubmission.delete({ where: { id } });
   }
 }
