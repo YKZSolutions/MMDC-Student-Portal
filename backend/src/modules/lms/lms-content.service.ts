@@ -16,12 +16,14 @@ import { DiscussionService } from '@/modules/lms/content/discussion/discussion.s
 import { FileService } from '@/modules/lms/content/file/file.service';
 import { UrlService } from '@/modules/lms/content/url/url.service';
 import { VideoService } from '@/modules/lms/content/video/video.service';
+import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
 
 @Injectable()
 export class LmsContentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private lessonService: LessonService,
     private assignmentService: AssignmentService,
     private quizService: QuizService,
     private discussionService: DiscussionService,
@@ -61,8 +63,16 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const { assignment, quiz, discussion, file, externalUrl, video, ...rest } =
-      createModuleContentDto;
+    const {
+      assignment,
+      quiz,
+      discussion,
+      file,
+      externalUrl,
+      video,
+      lesson,
+      ...rest
+    } = createModuleContentDto;
 
     const data: Prisma.ModuleContentCreateInput = {
       ...rest,
@@ -87,6 +97,8 @@ export class LmsContentService {
       await this.urlService.create(content.id, externalUrl);
     } else if (rest.contentType === ContentType.VIDEO && video) {
       await this.videoService.create(content.id, video);
+    } else if (rest.contentType === ContentType.LESSON && lesson) {
+      await this.lessonService.create(content.id, lesson);
     }
 
     return this.findOne(content.id, Role.admin, null, rest.contentType);
