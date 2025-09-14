@@ -631,6 +631,7 @@ function CMSNodeRow({
     >
       {/* Toggle button or spacer */}
       <Box
+        w={15}
         style={{
           display: 'flex',
           justifyContent: 'center',
