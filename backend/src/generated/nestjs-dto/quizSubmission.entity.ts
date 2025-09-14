@@ -1,0 +1,59 @@
+import { Prisma } from '@prisma/client';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Quiz, type Quiz as QuizAsType } from './quiz.entity';
+import { User, type User as UserAsType } from './user.entity';
+
+export class QuizSubmission {
+  @ApiProperty({
+    type: 'string',
+  })
+  id: string;
+  @ApiHideProperty()
+  quiz?: QuizAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  quizId: string;
+  @ApiHideProperty()
+  student?: UserAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  studentId: string;
+  @ApiProperty({
+    type: () => Object,
+  })
+  answers: Prisma.JsonValue;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    nullable: true,
+  })
+  rawScore: Prisma.Decimal | null;
+  @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  questionResults: Prisma.JsonValue | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  submittedAt: Date;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  timeSpent: number | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  attemptNumber: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  createdAt: Date;
+}
