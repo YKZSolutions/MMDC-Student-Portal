@@ -1,9 +1,4 @@
-import {
-  AssignmentMode,
-  AssignmentStatus,
-  AssignmentType,
-  Prisma,
-} from '@prisma/client';
+import { AssignmentMode, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AssignmentDto {
@@ -16,46 +11,25 @@ export class AssignmentDto {
   })
   title: string;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
+    nullable: true,
   })
-  rubric: Prisma.JsonValue;
+  subtitle: string | null;
   @ApiProperty({
-    enum: AssignmentType,
-    enumName: 'AssignmentType',
+    type: () => Object,
+    nullable: true,
   })
-  type: AssignmentType;
+  content: Prisma.JsonValue | null;
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
   })
   mode: AssignmentMode;
   @ApiProperty({
-    enum: AssignmentStatus,
-    enumName: 'AssignmentStatus',
-  })
-  status: AssignmentStatus;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  dueDate: Date | null;
-  @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  points: number | null;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  allowResubmission: boolean;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  maxAttempts: number | null;
+  maxAttempts: number;
   @ApiProperty({
     type: 'boolean',
   })
@@ -63,9 +37,14 @@ export class AssignmentDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
+  })
+  latePenalty: Prisma.Decimal;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
     nullable: true,
   })
-  latePenalty: Prisma.Decimal | null;
+  dueDate: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

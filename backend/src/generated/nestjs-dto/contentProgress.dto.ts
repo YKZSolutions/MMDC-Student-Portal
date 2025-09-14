@@ -1,3 +1,4 @@
+import { ProgressStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ContentProgressDto {
@@ -6,11 +7,28 @@ export class ContentProgressDto {
   })
   id: string;
   @ApiProperty({
+    enum: ProgressStatus,
+    enumName: 'ProgressStatus',
+  })
+  status: ProgressStatus;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,
   })
   completedAt: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  timeSpent: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  lastAccessedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
