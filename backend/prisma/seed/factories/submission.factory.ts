@@ -75,14 +75,12 @@ export function createQuizSubmissionData(
     submittedAt: faker.date.past(),
     ...(isGraded && {
       rawScore: faker.number.int({ min: 60, max: 100 }),
-      questionResults: {
-        create: Array.from({ length: 5 }, () => ({
-          questionId: faker.string.uuid(),
-          answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-          score: faker.number.int({ min: 60, max: 100 }),
-          feedback: faker.lorem.sentence(),
-        })),
-      },
+      questionResults: Array.from({ length: 5 }, () => ({
+        questionId: faker.string.uuid(),
+        answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+        score: faker.number.int({ min: 60, max: 100 }),
+        feedback: faker.lorem.sentence(),
+      })),
     }),
   };
 }
