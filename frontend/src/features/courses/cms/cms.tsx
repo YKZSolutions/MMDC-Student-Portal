@@ -32,8 +32,10 @@ import {
   Button,
   Container,
   Divider,
+  Drawer,
   Group,
   Menu,
+  rem,
   SegmentedControl,
   Select,
   Stack,
@@ -41,6 +43,7 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
+import { useDisclosure, useMediaQuery } from '@mantine/hooks'
 import {
   DndProvider,
   getBackendOptions,
@@ -51,19 +54,19 @@ import {
   IconBook,
   IconCalendar,
   IconChevronDown,
+  IconChevronLeft,
   IconChevronRight,
   IconDotsVertical,
   IconFile,
   IconGripVertical,
   IconList,
-  IconListTree,
   IconPlus,
   IconRubberStamp,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
 type CMSProps = {
@@ -83,13 +86,24 @@ export function CMS(props: CMSProps) {
 function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
   const navigate = useNavigate()
   const theme = useMantineTheme()
+  const isMobile = useMediaQuery('(max-width: 992px)')
+  const [isTreeOpened, { open: openTree, close: closeTree }] =
+    useDisclosure(false)
 
-  const [isTreeVisible, setIsTreeVisible] = useState(viewMode === 'full')
+  const [isTreeVisible, setIsTreeVisible] = useState(
+    !isMobile && viewMode === 'full',
+  )
   const [isDragging, setIsDragging] = useState(false)
 
-  const { courseDetails, setCourseDetails, module } = useCourseData(courseCode)
+  const isEditMode = !isTreeVisible || viewMode === 'editor'
 
-  const { editorState, handleAdd, handleUpdate } = useEditorState()
+  const { courseDetails, setCourseDetails } = useCourseData(courseCode)
+
+  const { editorState } = useEditorState()
+
+  const _isTreeVisible = useMemo(() => {
+    return setIsTreeVisible(!isMobile && viewMode === 'full')
+  }, [isMobile, viewMode])
 
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {
     setCourseDetails(course)
@@ -129,19 +143,6 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
               p={'xs'}
             >
               <Group>
-                <Group
-                  gap={'md'}
-                  display={
-                      isTreeVisible || viewMode === 'editor' ? 'none' : 'flex'
-                    }
-                  align={'center'}
-                >
-                  <CMSCourseSelector
-                    courses={mockCourseBasicDetails}
-                    selectedCourse={courseDetails}
-                    handleCourseChange={handleCourseChange}
-                  />
-                </Group>
                 <ActionIcon
                   variant={'transparent'}
                   hidden={viewMode !== 'editor'}
@@ -168,74 +169,102 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
                 {/* {editorState.data?.title && ` | ${editorState.data.title} `} */}
               </Title>
 
-              <Group wrap="nowrap" gap={0}>
-                <Button
-                  radius={0}
-                  style={{
-                    borderStartStartRadius: '4px',
-                    borderEndStartRadius: '4px',
-                  }}
+              <Group>
+                <Group wrap="nowrap" gap={0}>
+                  <Button
+                    radius={0}
+                    style={{
+                      borderStartStartRadius: '4px',
+                      borderEndStartRadius: '4px',
+                    }}
+                  >
+                    Save
+                  </Button>
+                  <Divider orientation="vertical" />
+                  <Menu
+                    transitionProps={{ transition: 'pop' }}
+                    position="bottom-end"
+                    withinPortal
+                  >
+                    <Menu.Target>
+                      <ActionIcon
+                        variant="filled"
+                        color={theme.primaryColor}
+                        size={36}
+                        radius={0}
+                        style={{
+                          borderStartEndRadius: '4px',
+                          borderEndEndRadius: '4px',
+                        }}
+                      >
+                        <IconChevronDown size={16} stroke={1.5} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={
+                          <IconRubberStamp
+                            size={16}
+                            stroke={1.5}
+                            color={theme.colors.blue[5]}
+                          />
+                        }
+                        component={Link}
+                        to={`../publish`}
+                      >
+                        Publish
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={
+                          <IconCalendar
+                            size={16}
+                            stroke={1.5}
+                            color={theme.colors.blue[5]}
+                          />
+                        }
+                      >
+                        Schedule publishing
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={
+                          <IconTrash
+                            size={16}
+                            stroke={1.5}
+                            color={theme.colors.red[5]}
+                          />
+                        }
+                      >
+                        Delete
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
+
+                <Group
+                  gap={'md'}
+                  display={
+                    isTreeVisible || viewMode === 'editor' ? 'none' : 'flex'
+                  }
+                  align={'center'}
                 >
-                  Save
-                </Button>
-                <Divider orientation="vertical" />
-                <Menu
-                  transitionProps={{ transition: 'pop' }}
-                  position="bottom-end"
-                  withinPortal
+                  <CMSCourseSelector
+                    courses={mockCourseBasicDetails}
+                    selectedCourse={courseDetails}
+                    handleCourseChange={handleCourseChange}
+                  />
+                </Group>
+
+                <ActionIcon
+                  hidden={isTreeVisible}
+                  onClick={() =>
+                    isMobile ? openTree() : setIsTreeVisible(true)
+                  }
+                  radius={'xl'}
+                  variant="subtle"
+                  c={'dark'}
                 >
-                  <Menu.Target>
-                    <ActionIcon
-                      variant="filled"
-                      color={theme.primaryColor}
-                      size={36}
-                      radius={0}
-                      style={{
-                        borderStartEndRadius: '4px',
-                        borderEndEndRadius: '4px',
-                      }}
-                    >
-                      <IconChevronDown size={16} stroke={1.5} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={
-                        <IconRubberStamp
-                          size={16}
-                          stroke={1.5}
-                          color={theme.colors.blue[5]}
-                        />
-                      }
-                      component={Link}
-                      to={`../publish`}
-                    >
-                      Publish
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconCalendar
-                          size={16}
-                          stroke={1.5}
-                          color={theme.colors.blue[5]}
-                        />
-                      }
-                    >
-                      Schedule publishing
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconTrash
-                          size={16}
-                          stroke={1.5}
-                          color={theme.colors.red[5]}
-                        />
-                      }
-                    >
-                      Delete
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
+                  <IconChevronLeft />
+                </ActionIcon>
               </Group>
             </Group>
 
@@ -268,54 +297,38 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          hidden={!isTreeVisible || viewMode === 'editor'}
+          hidden={isEditMode}
         >
           <IconGripVertical size={16} />
         </PanelResizeHandle>
 
-        <Panel
-          hidden={!isTreeVisible || viewMode === 'editor'}
-          minSize={15}
-          defaultSize={20}
-        >
-          <Box py={'md'} h={'100%'}>
-            <Container
-              flex={'1 0 auto'}
-              h={'100%'}
-              style={{ overflow: 'auto' }}
-            >
-              <Stack gap={'xs'} mb={'xs'}>
-                <Group align="center" gap={'xs'}>
-                  <ActionIcon
-                    onClick={() => setIsTreeVisible(!isTreeVisible)}
-                    bg={isTreeVisible ? 'blue.3' : 'gray.3'}
-                  >
-                    <IconListTree
-                      size={18}
-                      color={isTreeVisible ? 'white' : 'gray'}
-                    />
-                  </ActionIcon>
-                  <Text fw={500}>Course Structure</Text>
-                </Group>
-
-                <CMSCourseSelector
-                  courses={mockCourseBasicDetails}
-                  selectedCourse={courseDetails}
-                  handleCourseChange={handleCourseChange}
-                />
-              </Stack>
-
-              <CMSContentTree
-                handleAdd={handleAdd}
-                module={module}
-                handleNodeSelect={(nodeData) => {
-                  handleUpdate(editorState.type, nodeData, editorState.view)
-                }}
-              />
-            </Container>
-          </Box>
+        <Panel hidden={isEditMode} minSize={30} defaultSize={20}>
+          {/* Course Structure Drawer */}
+          {/* Appears ONLY on Desktop */}
+          <CMSCourseStructure
+            courseCode={courseCode}
+            handleCourseChange={handleCourseChange}
+            isTreeVisible={isTreeVisible}
+            setIsTreeVisible={setIsTreeVisible}
+          />
         </Panel>
       </PanelGroup>
+
+      {/* Course Structure Drawer */}
+      {/* Appears ONLY on mobile */}
+      <Drawer
+        keepMounted={false}
+        position="right"
+        opened={isTreeOpened}
+        onClose={closeTree}
+      >
+        <CMSCourseStructure
+          courseCode={courseCode}
+          handleCourseChange={handleCourseChange}
+          isTreeVisible={isTreeVisible}
+          setIsTreeVisible={setIsTreeVisible}
+        />
+      </Drawer>
 
       <CMSStatusBar />
     </Box>
@@ -334,7 +347,6 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
 
   const { editorState, handleUpdate } = useEditorState()
 
-  console.log('editorState', editorState)
   switch (editorState.view) {
     case 'content':
       return (
@@ -368,6 +380,57 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
         />
       )
   }
+}
+
+function CMSCourseStructure({
+  courseCode,
+  handleCourseChange,
+  isTreeVisible,
+  setIsTreeVisible,
+}: {
+  courseCode?: string
+  handleCourseChange: (course: CourseBasicDetails | undefined) => void
+  isTreeVisible: boolean
+  setIsTreeVisible: React.Dispatch<React.SetStateAction<boolean>>
+}) {
+  const { courseDetails, module } = useCourseData(courseCode)
+
+  const { editorState, handleAdd, handleUpdate } = useEditorState()
+
+  return (
+    <Box py={'md'} h={'100%'}>
+      <Container flex={'1 0 auto'} h={'100%'} style={{ overflow: 'auto' }}>
+        <Stack gap={'xs'} mb={'xs'}>
+          <Group align="center" gap={'xs'}>
+            <ActionIcon
+              hidden={!isTreeVisible}
+              onClick={() => setIsTreeVisible((prev) => !prev)}
+              variant="subtle"
+              c={'dark'}
+              radius={'xl'}
+            >
+              <IconChevronRight />
+            </ActionIcon>
+            <Text fw={500}>Course Structure</Text>
+          </Group>
+
+          <CMSCourseSelector
+            courses={mockCourseBasicDetails}
+            selectedCourse={courseDetails}
+            handleCourseChange={handleCourseChange}
+          />
+        </Stack>
+
+        <CMSContentTree
+          handleAdd={handleAdd}
+          module={module}
+          handleNodeSelect={(nodeData) => {
+            handleUpdate(editorState.type, nodeData, editorState.view)
+          }}
+        />
+      </Container>
+    </Box>
+  )
 }
 
 function CMSCourseSelector({
@@ -527,14 +590,10 @@ function CMSNodeRow({
           size="xs"
           leftSection={<IconPlus size={14} />}
           onClick={() =>
-            handleAdd(
-              node.parent as string,
-              getTypeFromLevel(node.data?.level),
-            )
+            handleAdd(node.parent as string, getTypeFromLevel(node.data?.level))
           }
           style={{
-            color: theme.colors.blue[6],
-            fontStyle: 'italic',
+            color: theme.colors.blue[8],
             height: 'auto',
             padding: '4px 8px',
           }}
@@ -549,7 +608,7 @@ function CMSNodeRow({
 
   return (
     <Group
-      gap={0}
+      gap={rem(5)}
       wrap="nowrap"
       style={{
         paddingLeft: indentSize,
@@ -572,7 +631,7 @@ function CMSNodeRow({
     >
       {/* Toggle button or spacer */}
       <Box
-        w={24}
+        w={10}
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -601,14 +660,14 @@ function CMSNodeRow({
       </Box>
 
       {/* Node icon */}
-      <Box mr="xs" style={{ display: 'flex', alignItems: 'center' }}>
-        <CMSNodeIcon type={node.data?.type || 'item'} size={16} />
+      <Box style={{ display: 'flex', alignItems: 'center' }}>
+        <CMSNodeIcon type={node.data?.type || 'item'} size={14} />
       </Box>
 
       {/* Node text */}
       <Text
         fw={400}
-        size="sm"
+        size="xs"
         lh="sm"
         truncate
         style={{
