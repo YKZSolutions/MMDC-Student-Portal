@@ -5,7 +5,7 @@ import {
   PickType,
 } from '@nestjs/swagger';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
-import { StudentAssignmentDto } from '@/modules/assignment/dto/student-assignment.dto';
+import { StudentAssignmentDto } from '@/modules/content/assignment/dto/student-assignment.dto';
 import { IsOptional, ValidateNested } from 'class-validator';
 import { StudentSubmissionDto } from '@/modules/lms/dto/student-submission.dto';
 import { Type } from 'class-transformer';

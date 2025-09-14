@@ -618,8 +618,8 @@ model ModuleContent {
   /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  order       Int         @default(0)
-  contentType ContentType @default(LESSON)
+  order       Int
+  contentType ContentType
 
   publishedAt   DateTime?
   toPublishAt   DateTime?
@@ -819,8 +819,9 @@ model QuizSubmission {
 
 model Discussion {
   id              String        @id @default(uuid()) @db.Uuid
-  moduleContentId String        @unique @db.Uuid
+  /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
