@@ -7,7 +7,7 @@ import {
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { StudentAssignmentDto } from '@/modules/content/assignment/dto/student-assignment.dto';
 import { IsOptional, ValidateNested } from 'class-validator';
-import { StudentSubmissionDto } from '@/modules/lms/dto/student-submission.dto';
+import { StudentAssignmentSubmissionDto } from '@/modules/content/assignment/dto/student-assignment-submission.dto';
 import { Type } from 'class-transformer';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
@@ -33,13 +33,13 @@ export class StudentSubmittableContentDto extends StudentContentWithProgressDto 
   @Type(() => StudentAssignmentDto)
   assignment?: StudentAssignmentDto;
   @ApiProperty({
-    type: StudentSubmissionDto,
+    type: StudentAssignmentSubmissionDto,
     required: false,
   })
   @ValidateNested()
   @IsOptional()
-  @Type(() => StudentSubmissionDto)
-  submission?: StudentSubmissionDto;
+  @Type(() => StudentAssignmentSubmissionDto)
+  submission?: StudentAssignmentSubmissionDto;
 }
 
 export type StudentContentDto =
