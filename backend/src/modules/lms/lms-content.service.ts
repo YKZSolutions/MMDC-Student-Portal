@@ -1,17 +1,8 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { Log } from '@/common/decorators/log.decorator';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { ContentType, Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
@@ -110,7 +101,7 @@ export class LmsContentService {
       await this.lessonService.create(content.id, lesson);
     }
 
-    return this.findOne(content.id, Role.admin, null, rest.contentType);
+    return this.findOne(content.id, Role.admin, null);
   }
 
   @Log({
@@ -128,7 +119,6 @@ export class LmsContentService {
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
     @LogParam('userId') userId: string | null,
-    @LogParam('contentType') contentType: ContentType,
   ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
@@ -142,6 +132,15 @@ export class LmsContentService {
         where: { userId },
       };
     }
+
+    // Fetch contentType from the database first
+    const contentRecord =
+      await this.prisma.client.moduleContent.findUniqueOrThrow({
+        where: { id },
+        select: { contentType: true },
+      });
+
+    const contentType = contentRecord.contentType; // Use the fetched contentType
 
     // Add content-type specific includes
     if (contentType === ContentType.ASSIGNMENT) {
@@ -327,7 +326,7 @@ export class LmsContentService {
       await this.lessonService.update(id, lesson);
     }
 
-    return this.findOne(id, Role.admin, null, currentContent.contentType);
+    return this.findOne(id, Role.admin, null);
   }
 
   /**
