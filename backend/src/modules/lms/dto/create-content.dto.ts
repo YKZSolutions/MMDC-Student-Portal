@@ -8,6 +8,7 @@ import { CreateExternalUrlDto } from '@/generated/nestjs-dto/create-externalUrl.
 import { CreateFileResourceDto } from '@/generated/nestjs-dto/create-fileResource.dto';
 import { CreateVideoDto } from '@/generated/nestjs-dto/create-video.dto';
 import { Type } from 'class-transformer';
+import { CreateDiscussionDto } from '@/generated/nestjs-dto/create-discussion.dto';
 
 export class CreateContentDto extends CreateModuleContentDto {
   // @ApiProperty({
@@ -17,6 +18,14 @@ export class CreateContentDto extends CreateModuleContentDto {
   // @ValidateNested()
   // @IsOptional()
   // newContent: NewContentDto;
+
+  @ApiProperty({
+    type: CreateAssignmentDto,
+    required: false,
+  })
+  @ValidateNested()
+  @IsOptional()
+  sectionId?: string;
 
   @ApiProperty({
     type: CreateAssignmentDto,
@@ -46,13 +55,22 @@ export class CreateContentDto extends CreateModuleContentDto {
   lesson?: CreateLessonDto;
 
   @ApiProperty({
+    type: CreateDiscussionDto,
+    required: false,
+  })
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => CreateDiscussionDto)
+  discussion?: CreateDiscussionDto;
+
+  @ApiProperty({
     type: CreateExternalUrlDto,
     required: false,
   })
   @ValidateNested()
   @IsOptional()
   @Type(() => CreateExternalUrlDto)
-  url?: CreateExternalUrlDto;
+  externalUrl?: CreateExternalUrlDto;
 
   @ApiProperty({
     type: CreateFileResourceDto,
