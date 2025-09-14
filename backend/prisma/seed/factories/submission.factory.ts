@@ -66,12 +66,10 @@ export function createQuizSubmissionData(
   return {
     student: { connect: { id: studentId } },
     quiz: { connect: { id: quizId } },
-    answers: {
-      create: Array.from({ length: 5 }, () => ({
-        questionId: faker.string.uuid(),
-        answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-      })),
-    },
+    answers: Array.from({ length: 5 }, () => ({
+      questionId: faker.string.uuid(),
+      answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+    })),
     submittedAt: faker.date.past(),
     ...(isGraded && {
       rawScore: faker.number.int({ min: 60, max: 100 }),
