@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { Log } from '@/common/decorators/log.decorator';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class LmsPublishService {
