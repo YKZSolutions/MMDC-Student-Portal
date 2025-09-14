@@ -1,8 +1,17 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { Log } from '@/common/decorators/log.decorator';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { ContentType, Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
@@ -74,34 +83,63 @@ export class LmsContentService {
       ...rest
     } = createModuleContentDto;
 
-    const data: Prisma.ModuleContentCreateInput = {
-      ...rest,
-      module: { connect: { id: moduleId } },
-    };
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Create the base module content
+      const content = await tx.moduleContent.create({
+        data: {
+          ...rest,
+          module: { connect: { id: moduleId } },
+        },
+      });
 
-    // Create the module content first
-    const content = await this.prisma.client.moduleContent.create({
-      data,
+      // 2. Delegate to specialized services OR inline nested creation
+      switch (rest.contentType) {
+        case ContentType.ASSIGNMENT:
+          if (assignment) {
+            await this.assignmentService.create(content.id, assignment, tx);
+          }
+          break;
+
+        case ContentType.QUIZ:
+          if (quiz) {
+            await this.quizService.create(content.id, quiz, tx);
+          }
+          break;
+
+        case ContentType.DISCUSSION:
+          if (discussion) {
+            await this.discussionService.create(content.id, discussion, tx);
+          }
+          break;
+
+        case ContentType.FILE:
+          if (file) {
+            await this.fileService.create(content.id, file, tx);
+          }
+          break;
+
+        case ContentType.URL:
+          if (externalUrl) {
+            await this.urlService.create(content.id, externalUrl, tx);
+          }
+          break;
+
+        case ContentType.VIDEO:
+          if (video) {
+            await this.videoService.create(content.id, video, tx);
+          }
+          break;
+
+        case ContentType.LESSON:
+          if (lesson) {
+            await this.lessonService.create(content.id, lesson, tx);
+          }
+          break;
+      }
+
+      // 3. Always return fresh with relations
+      return this.findOne(content.id, Role.admin, null);
     });
-
-    // Delegate to specialized services based on content type
-    if (rest.contentType === ContentType.ASSIGNMENT && assignment) {
-      await this.assignmentService.create(content.id, assignment);
-    } else if (rest.contentType === ContentType.QUIZ && quiz) {
-      await this.quizService.create(content.id, quiz);
-    } else if (rest.contentType === ContentType.DISCUSSION && discussion) {
-      await this.discussionService.create(content.id, discussion);
-    } else if (rest.contentType === ContentType.FILE && file) {
-      await this.fileService.create(content.id, file);
-    } else if (rest.contentType === ContentType.URL && externalUrl) {
-      await this.urlService.create(content.id, externalUrl);
-    } else if (rest.contentType === ContentType.VIDEO && video) {
-      await this.videoService.create(content.id, video);
-    } else if (rest.contentType === ContentType.LESSON && lesson) {
-      await this.lessonService.create(content.id, lesson);
-    }
-
-    return this.findOne(content.id, Role.admin, null);
   }
 
   @Log({
@@ -263,70 +301,92 @@ export class LmsContentService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    // First get the current content to know its type
-    const currentContent = await this.prisma.client.moduleContent.findUnique({
-      where: { id },
-      select: { contentType: true },
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Get current content type inside the transaction
+      const currentContent = await tx.moduleContent.findUnique({
+        where: { id },
+        select: { contentType: true },
+      });
+
+      if (!currentContent) {
+        throw new NotFoundException(`Module content with ID ${id} not found`);
+      }
+
+      const {
+        sectionId,
+        assignment,
+        quiz,
+        discussion,
+        file,
+        externalUrl,
+        video,
+        lesson,
+        contentType: newContentType, // prevent changing contentType
+        ...contentData
+      } = updateContentDto;
+
+      if (newContentType && newContentType !== currentContent.contentType) {
+        throw new BadRequestException(
+          'Changing contentType is not allowed. Please remove and recreate the content.',
+        );
+      }
+
+      const data: Prisma.ModuleContentUpdateInput = {
+        ...contentData,
+      };
+
+      if (sectionId) {
+        data.moduleSection = { connect: { id: sectionId } };
+      }
+
+      // 2. Update the base module content
+      await tx.moduleContent.update({
+        where: { id },
+        data,
+      });
+
+      // 3. Delegate to specialized services (pass `tx`)
+      switch (currentContent.contentType) {
+        case ContentType.ASSIGNMENT:
+          if (assignment) {
+            await this.assignmentService.update(id, assignment, tx);
+          }
+          break;
+        case ContentType.QUIZ:
+          if (quiz) {
+            await this.quizService.update(id, quiz, tx);
+          }
+          break;
+        case ContentType.DISCUSSION:
+          if (discussion) {
+            await this.discussionService.update(id, discussion, tx);
+          }
+          break;
+        case ContentType.FILE:
+          if (file) {
+            await this.fileService.update(id, file, tx);
+          }
+          break;
+        case ContentType.URL:
+          if (externalUrl) {
+            await this.urlService.update(id, externalUrl, tx);
+          }
+          break;
+        case ContentType.VIDEO:
+          if (video) {
+            await this.videoService.update(id, video, tx);
+          }
+          break;
+        case ContentType.LESSON:
+          if (lesson) {
+            await this.lessonService.update(id, lesson, tx);
+          }
+          break;
+      }
+
+      // 4. Return the refreshed entity
+      return this.findOne(id, Role.admin, null);
     });
-
-    if (!currentContent) {
-      throw new NotFoundException(`Module content with ID ${id} not found`);
-    }
-
-    const {
-      sectionId,
-      assignment,
-      quiz,
-      discussion,
-      file,
-      externalUrl,
-      video,
-      lesson,
-      contentType: newContentType, // prevent changing contentType
-      ...contentData
-    } = updateContentDto;
-
-    if (newContentType && newContentType !== currentContent.contentType) {
-      throw new BadRequestException(
-        'Changing contentType is not allowed. Please remove and recreate the content.',
-      );
-    }
-
-    const data: Prisma.ModuleContentUpdateInput = {
-      ...contentData,
-    };
-
-    if (sectionId) {
-      data.moduleSection = { connect: { id: sectionId } };
-    }
-
-    // Update the module content
-    await this.prisma.client.moduleContent.update({
-      where: { id },
-      data,
-    });
-
-    // Delegate to specialized services based on content type
-    if (currentContent.contentType === ContentType.ASSIGNMENT && assignment) {
-      await this.assignmentService.update(id, assignment);
-    } else if (currentContent.contentType === ContentType.QUIZ && quiz) {
-      await this.quizService.update(id, quiz);
-    } else if (
-      currentContent.contentType === ContentType.DISCUSSION &&
-      discussion
-    ) {
-      await this.discussionService.update(id, discussion);
-    } else if (currentContent.contentType === ContentType.FILE && file) {
-      await this.fileService.update(id, file);
-    } else if (currentContent.contentType === ContentType.URL && externalUrl) {
-      await this.urlService.update(id, externalUrl);
-    } else if (currentContent.contentType === ContentType.VIDEO && video) {
-      await this.videoService.update(id, video);
-    } else if (currentContent.contentType === ContentType.LESSON && lesson) {
-      await this.lessonService.update(id, lesson);
-    }
-
-    return this.findOne(id, Role.admin, null);
   }
 
   /**
@@ -334,8 +394,7 @@ export class LmsContentService {
    */
   @Log({
     logArgsMessage: ({ id }) => `Removing module content for id ${id}`,
-    logSuccessMessage: ({ id }) =>
-      `Successfully removed module content for id ${id}`,
+    logSuccessMessage: (result) => result.message,
     logErrorMessage: (err, { id }) =>
       `An error has occurred while removing module content for id ${id} | Error: ${err.message}`,
   })
@@ -345,45 +404,58 @@ export class LmsContentService {
   })
   async remove(
     @LogParam('id') id: string,
-    directDelete: boolean = false,
-  ): Promise<{ id: string; deleted: boolean }> {
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<{ message: string }> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-    const currentContent = await this.prisma.client.moduleContent.findUnique({
-      where: { id },
-      select: { contentType: true },
-    });
-    if (!currentContent) {
-      throw new NotFoundException(`Module content with ID ${id} not found`);
-    }
-    // Use transaction for atomicity
-    await this.prisma.client.$transaction(async (tx) => {
+
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Get current content inside transaction
+      const currentContent = await tx.moduleContent.findUnique({
+        where: { id },
+        select: { contentType: true },
+      });
+
+      if (!currentContent) {
+        throw new NotFoundException(`Module content with ID ${id} not found`);
+      }
+
+      let message = 'Module content successfully removed.';
+
+      // 2. Delegate child deletion/soft-delete (pass tx)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
-          await this.assignmentService.remove(id, directDelete);
+          message = (await this.assignmentService.remove(id, directDelete, tx))
+            .message;
           break;
         case ContentType.LESSON:
-          await this.lessonService.remove(id, directDelete);
+          message = (await this.lessonService.remove(id, directDelete, tx))
+            .message;
           break;
         case ContentType.QUIZ:
-          await this.quizService.remove(id, directDelete);
+          message = (await this.quizService.remove(id, directDelete, tx))
+            .message;
           break;
         case ContentType.DISCUSSION:
-          await this.discussionService.remove(id, directDelete);
+          message = (await this.discussionService.remove(id, directDelete, tx))
+            .message;
           break;
         case ContentType.FILE:
-          await this.fileService.remove(id, directDelete);
+          message = (await this.fileService.remove(id, directDelete, tx))
+            .message;
           break;
         case ContentType.URL:
-          await this.urlService.remove(id, directDelete);
+          message = (await this.urlService.remove(id, directDelete, tx))
+            .message;
           break;
         case ContentType.VIDEO:
-          await this.videoService.remove(id, directDelete);
-          break;
-        default:
+          message = (await this.videoService.remove(id, directDelete, tx))
+            .message;
           break;
       }
+
+      // 3. Delete or soft-delete the moduleContent itself
       if (directDelete) {
         await tx.moduleContent.delete({ where: { id } });
       } else {
@@ -391,8 +463,11 @@ export class LmsContentService {
           where: { id },
           data: { deletedAt: new Date() },
         });
+
+        message = 'Module content successfully soft-deleted.';
       }
+
+      return { message: message };
     });
-    return { id, deleted: true };
   }
 }

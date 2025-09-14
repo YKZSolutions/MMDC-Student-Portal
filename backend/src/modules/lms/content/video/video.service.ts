@@ -6,7 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
@@ -44,12 +47,15 @@ export class VideoService {
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('videoData') videoData: CreateVideoDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<VideoDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const video = await this.prisma.client.video.create({
+    const client = tx ?? this.prisma.client;
+    const video = await client.video.create({
       data: {
         ...videoData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -79,14 +85,16 @@ export class VideoService {
   })
   async update(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('videoData')
-    videoData: UpdateVideoDto,
+    @LogParam('videoData') videoData: UpdateVideoDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<VideoDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const video = await this.prisma.client.video.update({
+    const client = tx ?? this.prisma.client;
+    const video = await client.video.update({
       where: { moduleContentId },
       data: videoData,
     });
@@ -143,18 +151,24 @@ export class VideoService {
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    @LogParam('directDelete') directDelete = false,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.video.delete({ where: { moduleContentId } });
+      await client.video.delete({ where: { moduleContentId } });
     } else {
-      await this.prisma.client.video.update({
+      await client.video.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'Video successfully removed' };
   }
 }

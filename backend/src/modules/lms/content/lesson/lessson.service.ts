@@ -6,8 +6,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { Lesson, Prisma } from '@prisma/client';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
+import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
@@ -43,14 +46,16 @@ export class LessonService {
   })
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('lessonData')
-    lessonData: CreateLessonDto,
+    @LogParam('lessonData') lessonData: CreateLessonDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<LessonDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const lesson = await this.prisma.client.lesson.create({
+    const client = tx ?? this.prisma.client;
+    const lesson = await client.lesson.create({
       data: {
         ...lessonData,
         moduleContent: { connect: { id: moduleContentId } },
@@ -80,14 +85,16 @@ export class LessonService {
   })
   async update(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('lessonData')
-    lessonData: UpdateLessonDto,
+    @LogParam('lessonData') lessonData: UpdateLessonDto,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
   ): Promise<LessonDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const lesson = await this.prisma.client.lesson.update({
+    const client = tx ?? this.prisma.client;
+    const lesson = await client.lesson.update({
       where: { moduleContentId },
       data: {
         ...lessonData,
@@ -118,14 +125,19 @@ export class LessonService {
   })
   async findByModuleContentId(
     @LogParam('moduleContentId') moduleContentId: string,
-  ): Promise<Lesson> {
+  ): Promise<LessonDto> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    return await this.prisma.client.lesson.findUniqueOrThrow({
+    const lesson = await this.prisma.client.lesson.findUniqueOrThrow({
       where: { moduleContentId },
     });
+
+    return {
+      ...lesson,
+      content: lesson.content as Prisma.JsonValue,
+    };
   }
 
   /**
@@ -143,19 +155,25 @@ export class LessonService {
   })
   async remove(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('directDelete') directDelete: boolean = false,
-  ): Promise<void> {
+    @LogParam('directDelete') directDelete = false,
+    @LogParam('transactionClient')
+    tx?: PrismaTransaction,
+  ): Promise<{ message: string }> {
     if (!isUUID(moduleContentId)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const client = tx ?? this.prisma.client;
     if (directDelete) {
-      await this.prisma.client.lesson.delete({ where: { moduleContentId } });
+      await client.lesson.delete({ where: { moduleContentId } });
     } else {
-      await this.prisma.client.lesson.update({
+      await client.lesson.update({
         where: { moduleContentId },
         data: { deletedAt: new Date() },
       });
     }
+
+    return { message: 'Lesson successfully removed' };
   }
 
   // /**
