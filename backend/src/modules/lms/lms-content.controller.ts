@@ -25,7 +25,7 @@ import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
-@Controller('lms/:lmsId/contents')
+@Controller('modules/:moduleId/contents')
 export class LmsContentController {
   constructor(
     private readonly lmsContentService: LmsContentService,
