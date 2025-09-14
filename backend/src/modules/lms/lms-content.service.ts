@@ -1,8 +1,17 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { Log } from '@/common/decorators/log.decorator';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { ContentType, Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
