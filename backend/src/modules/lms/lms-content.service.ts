@@ -345,12 +345,11 @@ export class LmsContentService {
   })
   async remove(
     @LogParam('id') id: string,
+    directDelete: boolean = false,
   ): Promise<{ id: string; deleted: boolean }> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
-
-    // Get the current content type
     const currentContent = await this.prisma.client.moduleContent.findUnique({
       where: { id },
       select: { contentType: true },
@@ -358,33 +357,42 @@ export class LmsContentService {
     if (!currentContent) {
       throw new NotFoundException(`Module content with ID ${id} not found`);
     }
-
-    // Remove associated sub-content
-    switch (currentContent.contentType) {
-      case ContentType.ASSIGNMENT:
-        await this.assignmentService.remove(id);
-        break;
-      case ContentType.QUIZ:
-        await this.quizService.remove(id);
-        break;
-      case ContentType.DISCUSSION:
-        await this.discussionService.remove(id);
-        break;
-      case ContentType.FILE:
-        await this.fileService.remove(id);
-        break;
-      case ContentType.URL:
-        await this.urlService.remove(id);
-        break;
-      case ContentType.VIDEO:
-        await this.videoService.remove(id);
-        break;
-      default:
-        break;
-    }
-
-    // Remove the main module content
-    await this.prisma.client.moduleContent.delete({ where: { id } });
+    // Use transaction for atomicity
+    await this.prisma.client.$transaction(async (tx) => {
+      switch (currentContent.contentType) {
+        case ContentType.ASSIGNMENT:
+          await this.assignmentService.remove(id, directDelete);
+          break;
+        case ContentType.LESSON:
+          await this.lessonService.remove(id, directDelete);
+          break;
+        case ContentType.QUIZ:
+          await this.quizService.remove(id, directDelete);
+          break;
+        case ContentType.DISCUSSION:
+          await this.discussionService.remove(id, directDelete);
+          break;
+        case ContentType.FILE:
+          await this.fileService.remove(id, directDelete);
+          break;
+        case ContentType.URL:
+          await this.urlService.remove(id, directDelete);
+          break;
+        case ContentType.VIDEO:
+          await this.videoService.remove(id, directDelete);
+          break;
+        default:
+          break;
+      }
+      if (directDelete) {
+        await tx.moduleContent.delete({ where: { id } });
+      } else {
+        await tx.moduleContent.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+      }
+    });
     return { id, deleted: true };
   }
 }
