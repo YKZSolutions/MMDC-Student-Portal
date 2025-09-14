@@ -112,12 +112,16 @@ export class LmsContentService {
     user: AuthUser,
   ): Promise<DetailedContentProgressDto[]> {
     const userId =
-      user.user_metadata.role === 'mentor'
+      user.user_metadata.role !== 'student'
         ? studentId
         : user.user_metadata.user_id;
 
     if (!userId) {
-      throw new BadRequestException('Invalid userId');
+      throw new BadRequestException(
+        user.user_metadata.role === 'student'
+          ? 'Invalid userId'
+          : 'Mentors and admins must provide a studentId',
+      );
     }
 
     return await this.prisma.client.contentProgress.findMany({
