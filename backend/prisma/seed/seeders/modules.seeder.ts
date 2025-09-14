@@ -56,7 +56,11 @@ export async function seedModules(prisma: PrismaClient, courses: Course[]) {
           const contentType =
             Math.random() < seedConfig.ASSIGNMENT_CHANCE
               ? ContentType.ASSIGNMENT
-              : pickRandomEnum(ContentType);
+              : pickRandomEnum(
+                  Object.values(ContentType).filter(
+                    (type) => type !== ContentType.ASSIGNMENT
+                  )
+                );
 
           const content = await prisma.moduleContent.create({
             data: createModuleContentData(
