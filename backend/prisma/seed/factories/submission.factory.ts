@@ -49,14 +49,12 @@ export function createAssignmentGradeRecordData(
     finalScore: faker.number.int({ min: 60, max: 100 }),
     grade: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
     feedback: faker.lorem.sentence(),
-    rubricScores: {
-      create: Array.from({ length: 5 }, () => ({
-        criterionKey: faker.word.words(),
-        label: faker.lorem.sentence(),
-        maxPoints: faker.number.int({ min: 60, max: 100 }),
-        score: faker.number.int({ min: 60, max: 100 }),
-      })),
-    },
+    rubricScores: Array.from({ length: 5 }, () => ({
+      criterionKey: faker.word.words(),
+      label: faker.lorem.sentence(),
+      maxPoints: faker.number.int({ min: 60, max: 100 }),
+      score: faker.number.int({ min: 60, max: 100 }),
+    })),
   };
 }
 
