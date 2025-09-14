@@ -633,19 +633,12 @@ model ModuleContent {
   deletedAt DateTime?
 
   // Relations to specific content types
-  /// @DtoApiHidden
   lesson       Lesson?
-  /// @DtoApiHidden
   assignment   Assignment?
-  /// @DtoApiHidden
   quiz         Quiz?
-  /// @DtoApiHidden
   discussion   Discussion?
-  /// @DtoApiHidden
   video        Video?
-  /// @DtoApiHidden
   externalUrl  ExternalUrl?
-  /// @DtoApiHidden
   fileResource FileResource?
 
   studentProgress ContentProgress[]
