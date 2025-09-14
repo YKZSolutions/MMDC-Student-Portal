@@ -1,19 +1,29 @@
-import { ContentType, Prisma } from '@prisma/client';
+import { ContentType } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
-import { User, type User as UserAsType } from './user.entity';
+import { Lesson, type Lesson as LessonAsType } from './lesson.entity';
 import {
   Assignment,
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
+import { Quiz, type Quiz as QuizAsType } from './quiz.entity';
 import {
-  Submission,
-  type Submission as SubmissionAsType,
-} from './submission.entity';
+  Discussion,
+  type Discussion as DiscussionAsType,
+} from './discussion.entity';
+import { Video, type Video as VideoAsType } from './video.entity';
+import {
+  ExternalUrl,
+  type ExternalUrl as ExternalUrlAsType,
+} from './externalUrl.entity';
+import {
+  FileResource,
+  type FileResource as FileResourceAsType,
+} from './fileResource.entity';
 import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
@@ -43,27 +53,10 @@ export class ModuleContent {
   })
   order: number;
   @ApiProperty({
-    type: 'string',
-  })
-  title: string;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  subtitle: string | null;
-  @ApiProperty({
-    type: () => Object,
-  })
-  content: Prisma.JsonValue;
-  @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
   })
   contentType: ContentType;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -78,17 +71,10 @@ export class ModuleContent {
   toPublishAt: Date | null;
   @ApiProperty({
     type: 'string',
+    format: 'date-time',
     nullable: true,
   })
-  publishedBy: string | null;
-  @ApiHideProperty()
-  publishedByUser?: UserAsType | null;
-  @ApiHideProperty()
-  assignment?: AssignmentAsType | null;
-  @ApiHideProperty()
-  submissions?: SubmissionAsType[];
-  @ApiHideProperty()
-  studentProgress?: ContentProgressAsType[];
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -105,4 +91,24 @@ export class ModuleContent {
     nullable: true,
   })
   deletedAt: Date | null;
+  @ApiHideProperty()
+  lesson?: LessonAsType | null;
+  @ApiHideProperty()
+  assignment?: AssignmentAsType | null;
+  @ApiHideProperty()
+  quiz?: QuizAsType | null;
+  @ApiHideProperty()
+  discussion?: DiscussionAsType | null;
+  @ApiHideProperty()
+  video?: VideoAsType | null;
+  @ApiHideProperty()
+  externalUrl?: ExternalUrlAsType | null;
+  @ApiHideProperty()
+  fileResource?: FileResourceAsType | null;
+  @ApiProperty({
+    type: () => ContentProgress,
+    isArray: true,
+    required: false,
+  })
+  studentProgress?: ContentProgressAsType[];
 }
