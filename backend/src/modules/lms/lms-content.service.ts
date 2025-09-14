@@ -77,7 +77,6 @@ export class LmsContentService {
         moduleContent: {
           select: {
             id: true,
-            title: true,
             contentType: true,
             order: true,
             moduleSectionId: true,
@@ -130,7 +129,6 @@ export class LmsContentService {
         moduleContent: {
           select: {
             id: true,
-            title: true,
             contentType: true,
             order: true,
             moduleSectionId: true,

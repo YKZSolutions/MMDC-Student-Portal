@@ -3,7 +3,6 @@ import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class ModuleContentInfoDto extends PickType(ModuleContentDto, [
   'id',
-  'title',
   'contentType',
   'order',
 ] as const) {
