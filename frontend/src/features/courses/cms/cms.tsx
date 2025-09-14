@@ -21,7 +21,11 @@ import type {
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import { capitalizeFirstLetter } from '@/utils/formatters'
-import { convertModuleToTreeData, getTypeFromLevel } from '@/utils/helpers'
+import {
+  convertModuleToTreeData,
+  getTypeFromLevel,
+  injectAddButtons,
+} from '@/utils/helpers'
 import {
   ActionIcon,
   Box,
@@ -132,7 +136,7 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                   }
                   align={'center'}
                 >
-                  <CourseSelector
+                  <CMSCourseSelector
                     courses={mockCourseBasicDetails}
                     selectedCourse={courseDetails}
                     onCourseChange={handleCourseChange}
@@ -164,7 +168,75 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                 {/* {editorState.data?.title && ` | ${editorState.data.title} `} */}
               </Title>
 
-              <ActionMenu />
+              <Group wrap="nowrap" gap={0}>
+                <Button
+                  radius={0}
+                  style={{
+                    borderStartStartRadius: '4px',
+                    borderEndStartRadius: '4px',
+                  }}
+                >
+                  Save
+                </Button>
+                <Divider orientation="vertical" />
+                <Menu
+                  transitionProps={{ transition: 'pop' }}
+                  position="bottom-end"
+                  withinPortal
+                >
+                  <Menu.Target>
+                    <ActionIcon
+                      variant="filled"
+                      color={theme.primaryColor}
+                      size={36}
+                      radius={0}
+                      style={{
+                        borderStartEndRadius: '4px',
+                        borderEndEndRadius: '4px',
+                      }}
+                    >
+                      <IconChevronDown size={16} stroke={1.5} />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={
+                        <IconRubberStamp
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.blue[5]}
+                        />
+                      }
+                      component={Link}
+                      to={`../publish`}
+                    >
+                      Publish
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <IconCalendar
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.blue[5]}
+                        />
+                      }
+                    >
+                      Schedule publishing
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <IconTrash
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.red[5]}
+                        />
+                      }
+                    >
+                      Delete
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
             </Group>
 
             <Box
@@ -226,14 +298,14 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                   <Text fw={500}>Course Structure</Text>
                 </Group>
 
-                <CourseSelector
+                <CMSCourseSelector
                   courses={mockCourseBasicDetails}
                   selectedCourse={courseDetails}
                   onCourseChange={handleCourseChange}
                 />
               </Stack>
 
-              <ContentTree
+              <CMSContentTree
                 onAddButtonClick={handleAdd}
                 module={module}
                 onNodeChange={(nodeData) => {
@@ -245,7 +317,7 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
         </Panel>
       </PanelGroup>
 
-      <StatusBar />
+      <CMSStatusBar />
     </Box>
   )
 }
@@ -256,28 +328,6 @@ interface CourseSelectorProps {
   onCourseChange: (course: CourseBasicDetails | undefined) => void
   onAddContent?: () => void
   showAddButton?: boolean
-}
-
-const CourseSelector = ({
-  courses,
-  selectedCourse,
-  onCourseChange,
-}: CourseSelectorProps) => {
-  return (
-    <Group align="center" wrap={'nowrap'}>
-      <Select
-        data={courses.map((course) => course.courseName)}
-        value={selectedCourse?.courseName}
-        onChange={(value) => {
-          const course = courses.find((c) => c.courseName === value)
-          onCourseChange(course)
-        }}
-        leftSection={<IconBook size={24} />}
-        searchable={true}
-        flex={1}
-      />
-    </Group>
-  )
 }
 
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
@@ -321,81 +371,31 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
   }
 }
 
-export function ActionMenu() {
-  const theme = useMantineTheme()
-
+function CMSCourseSelector({
+  courses,
+  selectedCourse,
+  onCourseChange,
+}: CourseSelectorProps) {
   return (
-    <Group wrap="nowrap" gap={0}>
-      <Button
-        radius={0}
-        style={{
-          borderStartStartRadius: '4px',
-          borderEndStartRadius: '4px',
+    <Group align="center" wrap={'nowrap'}>
+      <Select
+        data={courses.map((course) => course.courseName)}
+        value={selectedCourse?.courseName}
+        onChange={(value) => {
+          const course = courses.find((c) => c.courseName === value)
+          onCourseChange(course)
         }}
-      >
-        Save
-      </Button>
-      <Divider orientation="vertical" />
-      <Menu
-        transitionProps={{ transition: 'pop' }}
-        position="bottom-end"
-        withinPortal
-      >
-        <Menu.Target>
-          <ActionIcon
-            variant="filled"
-            color={theme.primaryColor}
-            size={36}
-            radius={0}
-            style={{
-              borderStartEndRadius: '4px',
-              borderEndEndRadius: '4px',
-            }}
-          >
-            <IconChevronDown size={16} stroke={1.5} />
-          </ActionIcon>
-        </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Item
-            leftSection={
-              <IconRubberStamp
-                size={16}
-                stroke={1.5}
-                color={theme.colors.blue[5]}
-              />
-            }
-            component={Link}
-            to={`../publish`}
-          >
-            Publish
-          </Menu.Item>
-          <Menu.Item
-            leftSection={
-              <IconCalendar
-                size={16}
-                stroke={1.5}
-                color={theme.colors.blue[5]}
-              />
-            }
-          >
-            Schedule publishing
-          </Menu.Item>
-          <Menu.Item
-            leftSection={
-              <IconTrash size={16} stroke={1.5} color={theme.colors.red[5]} />
-            }
-          >
-            Delete
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
+        leftSection={<IconBook size={24} />}
+        searchable={true}
+        flex={1}
+      />
     </Group>
   )
 }
 
 interface StatusBarProps {}
 
-export function StatusBar({}: StatusBarProps) {
+function CMSStatusBar({}: StatusBarProps) {
   const theme = useMantineTheme()
 
   return (
@@ -423,65 +423,13 @@ export function StatusBar({}: StatusBarProps) {
   )
 }
 
-const reorderArray = (
-  array: CourseNodeModel[],
-  sourceIndex: number,
-  targetIndex: number,
-) => {
-  const newArray = [...array]
-  const element = newArray.splice(sourceIndex, 1)[0]
-  newArray.splice(targetIndex, 0, element)
-  return newArray
-}
-
-function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
-  const augmented: CourseNodeModel[] = [...nodes]
-
-  function inject(nodeParent: string, level: number) {
-    augmented.push({
-      id: `${nodeParent}-add`,
-      parent: nodeParent,
-      text: 'Add',
-      droppable: false,
-      data: {
-        level: level,
-        type: 'add-button',
-      },
-    })
-  }
-
-  // Add "Add" buttons after the last child of each section
-  for (const node of nodes) {
-    if (node.data && node.data.level !== 3) {
-      const level = node.data.level + 1
-      inject(node.id as string, level)
-    }
-  }
-
-  inject('root', 1)
-
-  return augmented
-}
-
-// Get appropriate icon for node type
-const getNodeIcon = (type: ContentNodeType | 'add-button', size = 16) => {
-  switch (type) {
-    case 'section':
-      return <IconList size={size} />
-    case 'item':
-      return <IconFile size={size} />
-    default:
-      return <IconFile size={size} />
-  }
-}
-
 interface ContentTreeProps {
   module: Module
   onAddButtonClick: (parentId: string, nodeType: ContentNodeType) => void
   onNodeChange: (nodeData: ContentNode) => void
 }
 
-function ContentTree({
+function CMSContentTree({
   module,
   onAddButtonClick,
   onNodeChange,
@@ -510,7 +458,7 @@ function ContentTree({
           dropTargetOffset={5}
           initialOpen={true}
           render={(node, { depth, isOpen, isDropTarget, onToggle }) => (
-            <NodeRow
+            <CMSNodeRow
               node={node}
               depth={depth}
               isOpen={isOpen}
@@ -527,6 +475,24 @@ function ContentTree({
   )
 }
 
+// Get appropriate icon for node type
+function CMSNodeIcon({
+  type,
+  size = 16,
+}: {
+  type: ContentNodeType | 'add-button'
+  size?: number
+}) {
+  switch (type) {
+    case 'section':
+      return <IconList size={size} />
+    case 'item':
+      return <IconFile size={size} />
+    default:
+      return <IconFile size={size} />
+  }
+}
+
 interface NodeRowProps {
   node: CourseNodeModel
   depth: number
@@ -538,7 +504,7 @@ interface NodeRowProps {
   onSelectNode: (node: CourseNodeModel) => void
 }
 
-function NodeRow({
+function CMSNodeRow({
   node,
   depth,
   isOpen,
@@ -637,7 +603,7 @@ function NodeRow({
 
       {/* Node icon */}
       <Box mr="xs" style={{ display: 'flex', alignItems: 'center' }}>
-        {getNodeIcon(node.data?.type || 'item', 16)}
+        <CMSNodeIcon type={node.data?.type || 'item'} size={16} />
       </Box>
 
       {/* Node text */}
