@@ -1,21 +1,11 @@
-// quiz.service.ts
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
 import { QuizDto } from '@/generated/nestjs-dto/quiz.dto';
 import { UpdateQuizDto } from '@/generated/nestjs-dto/update-quiz.dto';
