@@ -25,6 +25,15 @@ export class ModuleSection {
   parentSection?: ModuleSection | null;
   @ApiHideProperty()
   subsections?: ModuleSection[];
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  prerequisiteSectionId: string | null;
+  @ApiHideProperty()
+  prerequisiteSection?: ModuleSection | null;
+  @ApiHideProperty()
+  dependentSections?: ModuleSection[];
   @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
   @ApiProperty({
