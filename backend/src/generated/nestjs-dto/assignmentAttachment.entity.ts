@@ -9,12 +9,12 @@ export class AssignmentAttachment {
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  submission?: AssignmentSubmissionAsType;
   @ApiProperty({
     type: 'string',
   })
   submissionId: string;
-  @ApiHideProperty()
-  submission?: AssignmentSubmissionAsType;
   @ApiProperty({
     type: 'string',
   })

@@ -18,12 +18,12 @@ export class Assignment {
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleContentId: string;
-  @ApiHideProperty()
-  moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
