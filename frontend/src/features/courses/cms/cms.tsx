@@ -1,5 +1,4 @@
 import RichTextEditor from '@/components/rich-text-editor.tsx'
-import CourseSelector from '@/features/courses/cms/course-selector.tsx'
 import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
 import {
   EditorProvider,
@@ -32,6 +31,7 @@ import {
   Group,
   Menu,
   SegmentedControl,
+  Select,
   Stack,
   Text,
   Title,
@@ -46,6 +46,7 @@ import {
   Tree,
 } from '@minoru/react-dnd-treeview'
 import {
+  IconBook,
   IconCalendar,
   IconChevronDown,
   IconChevronRight,
@@ -133,10 +134,6 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
                   }
                   align={'center'}
                 >
-                  <TreeToggleButton
-                    isVisible={isTreeVisible}
-                    onToggle={() => setIsTreeVisible(!isTreeVisible)}
-                  />
                   <CourseSelector
                     courses={mockCourseBasicDetails}
                     selectedCourse={courseDetails}
@@ -219,10 +216,15 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
             >
               <Stack gap={'xs'} mb={'xs'}>
                 <Group align="center" gap={'xs'}>
-                  <TreeToggleButton
-                    isVisible={isTreeVisible}
-                    onToggle={() => setIsTreeVisible(!isTreeVisible)}
-                  />
+                  <ActionIcon
+                    onClick={() => setIsTreeVisible(!isTreeVisible)}
+                    bg={isTreeVisible ? 'blue.3' : 'gray.3'}
+                  >
+                    <IconListTree
+                      size={18}
+                      color={isTreeVisible ? 'white' : 'gray'}
+                    />
+                  </ActionIcon>
                   <Text fw={500}>Course Structure</Text>
                 </Group>
 
@@ -247,6 +249,36 @@ function CMSWrapper({ courseCode, itemId, variant = 'editor' }: CMSProps) {
 
       <StatusBar />
     </Box>
+  )
+}
+
+interface CourseSelectorProps {
+  courses: CourseBasicDetails[]
+  selectedCourse?: CourseBasicDetails
+  onCourseChange: (course: CourseBasicDetails | undefined) => void
+  onAddContent?: () => void
+  showAddButton?: boolean
+}
+
+const CourseSelector = ({
+  courses,
+  selectedCourse,
+  onCourseChange,
+}: CourseSelectorProps) => {
+  return (
+    <Group align="center" wrap={'nowrap'}>
+      <Select
+        data={courses.map((course) => course.courseName)}
+        value={selectedCourse?.courseName}
+        onChange={(value) => {
+          const course = courses.find((c) => c.courseName === value)
+          onCourseChange(course)
+        }}
+        leftSection={<IconBook size={24} />}
+        searchable={true}
+        flex={1}
+      />
+    </Group>
   )
 }
 
@@ -289,22 +321,6 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
         />
       )
   }
-}
-
-interface TreeToggleButtonProps {
-  isVisible: boolean
-  onToggle: () => void
-}
-
-export function TreeToggleButton({
-  isVisible,
-  onToggle,
-}: TreeToggleButtonProps) {
-  return (
-    <ActionIcon onClick={onToggle} bg={isVisible ? 'blue.3' : 'gray.3'}>
-      <IconListTree size={18} color={isVisible ? 'white' : 'gray'} />
-    </ActionIcon>
-  )
 }
 
 export function ActionMenu() {
@@ -406,54 +422,6 @@ export function StatusBar({}: StatusBarProps) {
         </Text>
       </Group>
     </Group>
-  )
-}
-
-interface SidePanelProps {
-  courseCode?: string
-  isTreeVisible: boolean
-  onCourseChange: (course: CourseBasicDetails | undefined) => void
-  onNodeChange: (nodeData: ContentNode) => void
-  onToggleTree: () => void
-  onAddContent: (parentId?: string, newType?: ContentNodeType) => void
-}
-
-export function SidePanel({
-  courseCode,
-  isTreeVisible,
-  onCourseChange,
-  onNodeChange,
-  onToggleTree,
-  onAddContent,
-}: SidePanelProps) {
-  const { courseDetails, module } = useCourseData(courseCode)
-
-  return (
-    <Box py={'md'} h={'100%'}>
-      <Container flex={'1 0 auto'} h={'100%'} style={{ overflow: 'auto' }}>
-        <Stack gap={'xs'} mb={'xs'}>
-          <Group align="center" gap={'xs'}>
-            <TreeToggleButton
-              isVisible={isTreeVisible}
-              onToggle={onToggleTree}
-            />
-            <Text fw={500}>Course Structure</Text>
-          </Group>
-
-          <CourseSelector
-            courses={mockCourseBasicDetails}
-            selectedCourse={courseDetails}
-            onCourseChange={onCourseChange}
-          />
-        </Stack>
-
-        <ContentTree
-          onAddButtonClick={onAddContent}
-          module={module}
-          onNodeChange={onNodeChange}
-        />
-      </Container>
-    </Box>
   )
 }
 
