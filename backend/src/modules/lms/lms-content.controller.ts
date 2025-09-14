@@ -141,13 +141,8 @@ export class LmsContentController {
   ])
   @Roles(Role.ADMIN)
   @Patch(':id/publish')
-  publish(
-    @Param('id') id: string,
-    @Body() updatePublishDto: UpdatePublishDto,
-    @CurrentUser() user: CurrentAuthUser,
-  ) {
-    const { user_id } = user.user_metadata;
-    return this.lmsPublishService.publishContent(id, updatePublishDto, user_id);
+  publish(@Param('id') id: string, @Body() updatePublishDto: UpdatePublishDto) {
+    return this.lmsPublishService.publishContent(id, updatePublishDto);
   }
 
   /**

@@ -15,7 +15,6 @@ export class LmsPublishService {
    * @async
    * @param {string} id - The UUID of the module content to publish.
    * @param {UpdatePublishDto} updatePublishDto - Data Transfer Object containing the publish details.
-   * @param {string} userId - The UUID of the user publishing the content.
    * @returns {Promise<{ message: string; data: ModuleContent }>} Publish confirmation message and the updated module content record.
    *
    * @throws {NotFoundException} If no module content is found with the given ID.
