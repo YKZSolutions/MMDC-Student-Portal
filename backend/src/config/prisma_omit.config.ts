@@ -7,5 +7,4 @@ export const omitAuditDates = {
 export const omitPublishFields = {
   publishedAt: true,
   toPublishAt: true,
-  publishedBy: true,
 } as const;

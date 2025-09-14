@@ -1,10 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
 
@@ -38,13 +35,8 @@ export class LmsPublishService {
   async publishContent(
     id: string,
     updatePublishDto: UpdatePublishDto,
-    userId: string,
   ): Promise<{ message: string; data: ModuleContent }> {
-    const updated = await this.lmsContentService.update(
-      id,
-      updatePublishDto,
-      userId,
-    );
+    const updated = await this.lmsContentService.update(id, updatePublishDto);
 
     if (updatePublishDto.toPublishAt) {
       return {
