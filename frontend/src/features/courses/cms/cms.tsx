@@ -611,18 +611,18 @@ function CMSNodeRow({
       gap={rem(5)}
       wrap="nowrap"
       style={{
-        paddingLeft: indentSize,
+        paddingLeft: indentSize + 5,
         paddingRight: 8,
         paddingTop: 4,
         paddingBottom: 4,
         backgroundColor: isSelected
-          ? theme.colors.blue[0]
+          ? theme.colors.gray[3]
           : isDropTarget
             ? theme.colors.gray[1]
             : 'transparent',
         borderRadius: 4,
         border: isDropTarget
-          ? `2px solid ${theme.colors.blue[4]}`
+          ? `2px solid ${theme.colors.gray[4]}`
           : '2px solid transparent',
         cursor: 'pointer',
         margin: '1px 0',
@@ -631,7 +631,6 @@ function CMSNodeRow({
     >
       {/* Toggle button or spacer */}
       <Box
-        w={10}
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -672,7 +671,6 @@ function CMSNodeRow({
         truncate
         style={{
           flex: 1,
-          color: isSelected ? theme.colors.blue[7] : 'inherit',
         }}
       >
         {node.text}
