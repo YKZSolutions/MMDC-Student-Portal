@@ -40,7 +40,7 @@ export class LmsContentController {
    *
    */
   @ApiCreatedResponse({
-    type: OmitType(ModuleContent, ['submissions', 'studentProgress'] as const),
+    type: OmitType(ModuleContent, ['studentProgress'] as const),
   })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
@@ -48,7 +48,7 @@ export class LmsContentController {
   create(
     @Body() createModuleContentDto: CreateContentDto,
     @Param('lmsId') lmsId: string,
-  ): Omit<ModuleContent, 'submissions' | 'studentProgress'> {
+  ): Promise<Omit<ModuleContent, 'studentProgress'>> {
     return this.lmsContentService.create(createModuleContentDto, lmsId);
   }
 
@@ -82,7 +82,9 @@ export class LmsContentController {
    * This operation updates the details of an existing module content.
    * Requires `ADMIN` role.
    */
-  @ApiOkResponse({ type: ModuleContent })
+  @ApiOkResponse({
+    type: OmitType(ModuleContent, ['studentProgress'] as const),
+  })
   @ApiException(() => [
     NotFoundException,
     ConflictException,
@@ -93,10 +95,8 @@ export class LmsContentController {
   update(
     @Param('id') id: string,
     @Body() updateContentDto: UpdateContentDto,
-    @CurrentUser() user: CurrentAuthUser,
-  ) {
-    const { user_id } = user.user_metadata;
-    return this.lmsContentService.update(id, updateContentDto, user_id);
+  ): Promise<Omit<ModuleContent, 'studentProgress'>> {
+    return this.lmsContentService.update(id, updateContentDto);
   }
 
   /**
