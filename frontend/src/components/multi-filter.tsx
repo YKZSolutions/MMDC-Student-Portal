@@ -1,13 +1,5 @@
-import {
-  Box,
-  Button,
-  Group,
-  Menu,
-  rem,
-  Stack,
-  Text,
-  TextInput,
-} from '@mantine/core'
+import React, { type ReactNode, useEffect, useState } from 'react'
+import { Button, Group, Menu, Stack, Text, TextInput } from '@mantine/core'
 import {
   IconCalendar,
   IconChevronDown,
@@ -18,7 +10,6 @@ import {
   IconUser,
   IconX,
 } from '@tabler/icons-react'
-import { type ReactNode, useEffect, useState } from 'react'
 
 // Main filter container component
 
@@ -34,7 +25,7 @@ const MultiFilter = ({
   onAddFilter,
 }: MultiFiltersProps) => {
   return (
-    <Group align={'center'} gap={rem(5)}>
+    <Group align={'center'} gap={2} p={'sm'}>
       {activeFilters.map((filter: FilterPillProps) => (
         <FilterPill key={filter.id} {...filter} />
       ))}
@@ -162,9 +153,9 @@ const FilterPill = ({
 
       default:
         return (
-          <Box className="p-3 text-sm text-gray-500">
+          <div className="p-3 text-sm text-gray-500">
             Configure filter options
-          </Box>
+          </div>
         )
     }
   }
@@ -180,21 +171,18 @@ const FilterPill = ({
           onClick={() => setIsOpen(!isOpen)}
           leftSection={icon}
           rightSection={
-            <Group gap={rem(10)}>
-              <IconChevronDown
+            <div
+              color={'gray.6'}
+              className={`transition-opacity ${isOpen ? 'opacity-0' : 'opacity-0 hover:opacity-100'}`}
+            >
+              <IconX
                 size={14}
-                className={`ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRemove!()
+                }}
               />
-              <Box color={'gray.6'}>
-                <IconX
-                  size={14}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRemove!()
-                  }}
-                />
-              </Box>
-            </Group>
+            </div>
           }
         >
           <Group gap={4}>
@@ -214,6 +202,10 @@ const FilterPill = ({
                 </Text>
               </>
             )}
+            <IconChevronDown
+              size={14}
+              className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            />
           </Group>
         </Button>
       </Menu.Target>
@@ -339,10 +331,9 @@ const AddFilterButton = ({ filters, onAddFilter }: AddFilterButtonProps) => {
 }
 
 export {
-  FilterPill,
   MultiFilter,
-  type FilterInputType,
+  FilterPill,
+  type FilterType,
   type FilterPillProps,
-  type FilterType
+  type FilterInputType,
 }
-

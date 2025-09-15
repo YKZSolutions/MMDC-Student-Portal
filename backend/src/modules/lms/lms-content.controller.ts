@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -8,7 +7,6 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -21,10 +19,7 @@ import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import {
-  AuthUser,
-  CurrentAuthUser,
-} from '@/common/interfaces/auth.user-metadata';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
@@ -166,58 +161,5 @@ export class LmsContentController {
   @Patch(':id/unpublish')
   unpublish(@Param('id') id: string) {
     return this.lmsPublishService.unpublishContent(id);
-  }
-
-  /**
-   * Creates or updates a content progress
-   *
-   * @remarks
-   * Requires `STUDENT` role
-   *
-   */
-  @Post(':moduleContentId')
-  @Roles(Role.STUDENT)
-  @ApiException(() => [
-    BadRequestException,
-    NotFoundException,
-    InternalServerErrorException,
-  ])
-  createContentProgress(
-    @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
-    @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.lmsContentService.createContentProgress(
-      moduleId,
-      moduleContentId,
-      user,
-    );
-  }
-
-  /**
-   * Retrieves all content progress records for a specific module and user.
-   *
-   * @remarks
-   * - Mentors can fetch progress for a specific student (provide `studentId` query param).
-   * - Students can fetch their own progress.
-   */
-  @Get()
-  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
-  @ApiException(() => [
-    BadRequestException,
-    NotFoundException,
-    InternalServerErrorException,
-  ])
-  findAllContentProgress(
-    @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
-    @Query('studentId', new ParseUUIDPipe({ optional: true }))
-    studentId: string | undefined,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.lmsContentService.findAllContentProgress(
-      moduleId,
-      studentId,
-      user,
-    );
   }
 }

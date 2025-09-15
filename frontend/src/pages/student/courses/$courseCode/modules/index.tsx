@@ -7,10 +7,8 @@ import {
   Button,
   Group,
   Progress,
-  rem,
   Stack,
   Text,
-  Title,
   useMantineTheme,
 } from '@mantine/core'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
@@ -36,10 +34,10 @@ function ModulesStudentPage() {
       {/* Progress Overview */}
       <Box mb="lg">
         <Group align="start" justify="space-between" mb="xs">
-          <Stack gap={rem(5)}>
-            <Title c="dark.7" variant="hero" order={2} fw={700}>
-              Modules
-            </Title>
+          <Stack gap="xs">
+            <Text size="sm" fw={500}>
+              My Progress
+            </Text>
             <Text size="sm" c="dimmed">
               {studentProgress.completedItems}/{studentProgress.totalItems}{' '}
               completed

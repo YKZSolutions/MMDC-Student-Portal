@@ -2,7 +2,7 @@ import { useAuth } from '@/features/auth/auth.hook'
 import { getMockModuleByRole } from '@/features/courses/mocks'
 import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
-import { Box, Button, Group, Title } from '@mantine/core'
+import { Box, Button, Group } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -32,20 +32,12 @@ function ModulesAdminPage() {
   return (
     <Box>
       {/* Admin Actions Header */}
-
-      <Group align={'center'} mb="lg" justify="space-between">
-        <Title c="dark.7" variant="hero" order={2} fw={700}>
-          Modules
-        </Title>
-        <Group justify="end">
-          <Button radius={'md'} onClick={toggleExpandAll} variant="default">
+      <Group align={'center'} justify="end" mb="lg">
+        <Group>
+          <Button radius={"md"} onClick={toggleExpandAll} variant="default">
             {allExpanded ? 'Collapse All' : 'Expand All'}
           </Button>
-          <Button
-            radius={'md'}
-            leftSection={<IconPlus />}
-            onClick={handleAddContent}
-          >
+          <Button radius={"md"} leftSection={<IconPlus />} onClick={handleAddContent}>
             Add New Content
           </Button>
         </Group>

@@ -504,8 +504,8 @@ function AdminActions({ item }: AdminActionsProps) {
             e.stopPropagation()
             navigate({
               from: '/courses/$courseCode/modules',
-              to: `create`,
-              search: { id: item.id },
+              to: `$itemId/create`,
+              params: { itemId: item.id },
             })
           }}
         >
@@ -543,8 +543,8 @@ function AdminActions({ item }: AdminActionsProps) {
               e.stopPropagation()
               navigate({
                 from: '/courses/$courseCode/modules',
-                to: `edit`,
-                search: { id: item.id },
+                to: `$itemId/edit`,
+                params: { itemId: item.id },
               })
             }}
           >

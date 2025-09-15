@@ -1,4 +1,4 @@
-import RoleComponentManager from '@/components/role-component-manager.tsx'
+import { createFileRoute } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
   mockAcademicPrograms,
@@ -6,10 +6,10 @@ import {
   mockEnrolledCourse,
   mockTerms,
 } from '@/features/courses/mocks.ts'
+import StudentCourseDashboard from '@/pages/student/courses/student-course-dashboard.tsx'
+import RoleComponentManager from '@/components/role-component-manager.tsx'
+import MentorAdminDashboardPage from '@/pages/admin/courses/admin-course-dashboard.tsx'
 import type { Course, EnrolledCourse } from '@/features/courses/types.ts'
-import MentorAdminDashboardPage from '@/pages/admin/courses'
-import StudentCourseDashboardPage from '@/pages/student/courses'
-import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(protected)/courses/')({
   component: RouteComponent,
@@ -39,7 +39,7 @@ function RouteComponent() {
       currentRole={authUser.role}
       roleRender={{
         student: (
-          <StudentCourseDashboardPage
+          <StudentCourseDashboard
             coursesData={coursesData as EnrolledCourse[]}
           />
         ),

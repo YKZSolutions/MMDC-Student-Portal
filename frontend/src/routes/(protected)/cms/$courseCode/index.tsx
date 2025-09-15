@@ -1,7 +1,7 @@
-import RoleComponentManager from '@/components/role-component-manager.tsx'
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import { CMS } from '@/features/courses/cms/cms.tsx'
 import { createFileRoute, useParams } from '@tanstack/react-router'
+import { useAuth } from '@/features/auth/auth.hook.ts'
+import RoleComponentManager from '@/components/role-component-manager.tsx'
+import { CMS } from '@/features/courses/cms/cms.tsx'
 
 export const Route = createFileRoute('/(protected)/cms/$courseCode/')({
   component: RouteComponent,
@@ -14,7 +14,7 @@ function RouteComponent() {
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        admin: <CMS viewMode={'full'} courseCode={courseCode} />,
+        admin: <CMS variant={'full'} courseCode={courseCode} />,
       }}
     />
   )
