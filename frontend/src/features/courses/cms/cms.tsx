@@ -6,10 +6,7 @@ import {
   editorViewOptions,
   useEditorState,
 } from '@/features/courses/hooks/useEditorState.tsx'
-import {
-  mockCourseBasicDetails,
-  mockInitialContent,
-} from '@/features/courses/mocks.ts'
+import { mockInitialContent } from '@/features/courses/mocks.ts'
 import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
 import type {
   ContentNode,
@@ -54,7 +51,6 @@ import {
   IconBook,
   IconCalendar,
   IconChevronDown,
-  IconChevronLeft,
   IconChevronRight,
   IconDotsVertical,
   IconFile,
@@ -128,12 +124,10 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
           <Group>
             <ActionIcon
               variant={'transparent'}
-              hidden={viewMode !== 'editor'}
-              onClick={() => window.history.back()}
+              onClick={() => navigate({ to: '..' })}
             >
               <IconX />
             </ActionIcon>
-
             <SegmentedControl
               defaultValue={editorState.view}
               value={editorState.view}
@@ -143,12 +137,11 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
           </Group>
 
           <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
-            {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
+            {courseDetails?.courseCode ? `${courseDetails?.courseCode}` : ''}{' '}
             {courseDetails?.courseName}{' '}
-            {/* {editorState.data?.title && ` | ${editorState.data.title} `} */}
           </Title>
 
-          <Group>
+          <Group gap={'xs'}>
             <Group wrap="nowrap" gap={0}>
               <Button
                 radius={0}
@@ -219,14 +212,9 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
               </Menu>
             </Group>
 
-            <ActionIcon
-              onClick={() => openTree()}
-              radius={'xl'}
-              variant="subtle"
-              c={'dark'}
-            >
-              <IconChevronLeft />
-            </ActionIcon>
+            <Button leftSection={<IconList size={20} />} onClick={openTree}>
+              Course Structure
+            </Button>
           </Group>
         </Group>
 
@@ -326,7 +314,7 @@ function CMSCourseStructure({
   return (
     <Box py={'md'} h={'100%'}>
       <Container flex={'1 0 auto'} h={'100%'} style={{ overflow: 'auto' }}>
-        <Stack gap={'xs'} mb={'xs'}>
+        <Stack gap={'md'} mb={'xs'}>
           <Group align="center" gap={'xs'}>
             <ActionIcon
               onClick={() => closeTree()}
@@ -339,11 +327,12 @@ function CMSCourseStructure({
             <Text fw={500}>Course Structure</Text>
           </Group>
 
-          <CMSCourseSelector
+          {/* <CMSCourseSelector
             courses={mockCourseBasicDetails}
             selectedCourse={courseDetails}
             handleCourseChange={handleCourseChange}
-          />
+          /> */}
+          <Divider />
         </Stack>
 
         <CMSContentTree
