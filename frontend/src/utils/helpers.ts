@@ -54,6 +54,35 @@ export function getSubmissionStatus(
   return undefined
 }
 
+export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
+  const augmented: CourseNodeModel[] = [...nodes]
+
+  function inject(nodeParent: string, level: number) {
+    augmented.push({
+      id: `${nodeParent}-add`,
+      parent: nodeParent,
+      text: 'Add',
+      droppable: false,
+      data: {
+        level: level,
+        type: 'add-button',
+      },
+    })
+  }
+
+  // Add "Add" buttons after the last child of each section
+  for (const node of nodes) {
+    if (node.data && node.data.level !== 3) {
+      const level = node.data.level + 1
+      inject(node.id as string, level)
+    }
+  }
+
+  inject('root', 1)
+
+  return augmented
+}
+
 export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 

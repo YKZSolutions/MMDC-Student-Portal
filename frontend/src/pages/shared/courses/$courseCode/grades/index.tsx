@@ -131,7 +131,9 @@ function CourseGrades() {
   return (
     <Stack gap={'md'} p={'md'}>
       <Group justify="space-between" align="center">
-        <Title size={'h2'}>Grades</Title>
+        <Title c="dark.7" variant="hero" order={2} fw={700}>
+          Grades
+        </Title>
         <Group align="start">
           {(authUser.role === 'mentor' || authUser.role === 'admin') && (
             <SegmentedControl

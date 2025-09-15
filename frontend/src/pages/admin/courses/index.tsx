@@ -1,19 +1,19 @@
-import { useState } from 'react'
 import type { FilterType } from '@/components/multi-filter.tsx'
-import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
-import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
-import type {
-  AcademicProgram,
-  AcademicTerm,
-  Course,
-} from '@/features/courses/types.ts'
-import { IconCalendarTime, IconUserCode } from '@tabler/icons-react'
-import { Container, Group, Stack } from '@mantine/core'
 import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
 import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item.tsx'
+import type {
+  AcademicProgram,
+  AcademicTerm,
+  Course,
+} from '@/features/courses/types.ts'
+import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
+import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
+import { Container, Group, Stack } from '@mantine/core'
+import { IconCalendarTime, IconUserCode } from '@tabler/icons-react'
+import { useState } from 'react'
 
 type MentorAdminDashboardProps = {
   academicTerms: AcademicTerm[]
@@ -88,7 +88,7 @@ const MentorAdminDashboardPage = ({
   )
 
   return (
-    <Container size="lg" w="100%" pb="xl">
+    <Container size="md" w="100%" pb="xl">
       <Stack gap="lg">
         <CourseDashboardHeader
           coursesData={coursesData}
@@ -98,9 +98,6 @@ const MentorAdminDashboardPage = ({
           handleAddFilter={handleAddFilter}
           handleRemoveFilter={handleRemoveFilter}
           handleFilterChange={handleFilterChange}
-          showFilters={showFilters}
-          onToggleShowFilter={setShowFilters}
-          activeFilterCount={activeFilterCount}
           view={view}
           onViewChange={setView}
         />

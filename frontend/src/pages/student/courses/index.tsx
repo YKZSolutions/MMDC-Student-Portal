@@ -1,18 +1,18 @@
 // Course-specific filter configuration
-import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
-import type { EnrolledCourse } from '@/features/courses/types.ts'
-import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
-import { useMemo, useState } from 'react'
 import type { FilterType } from '@/components/multi-filter.tsx'
-import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
-import { Container, Group, Stack } from '@mantine/core'
-import { IconCalendarTime } from '@tabler/icons-react'
 import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
+import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
 import {
   CourseCard,
   CourseListRow,
-} from '@/features/courses/dashboard/course-dashboard-item.tsx'
-import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
+} from '@/features/courses/dashboard/course-dashboard-item'
+import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
+import type { EnrolledCourse } from '@/features/courses/types.ts'
+import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
+import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
+import { Box, Container, Group, Stack } from '@mantine/core'
+import { IconCalendarTime } from '@tabler/icons-react'
+import { useMemo, useState } from 'react'
 
 export const studentCourseFilterConfig: FilterConfig<EnrolledCourse> = {
   Term: (course, value) => {
@@ -27,7 +27,7 @@ type StudentDashboardProps = {
   coursesData: EnrolledCourse[]
 }
 
-const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
+const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [searchFilteredCourses, setSearchFilteredCourses] =
     useState<EnrolledCourse[]>(coursesData)
@@ -49,12 +49,9 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
 
   const defaultFilters: FilterType[] = [{ ...filters[0], value: 'current' }]
 
-  const [showFilters, setShowFilters] = useState(true)
-
   const {
     activeFilters,
     filteredData, // 👈 EnrolledCourse[]
-    activeFilterCount,
     handleAddFilter,
     handleRemoveFilter,
     handleFilterChange,
@@ -74,7 +71,7 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
   )
 
   return (
-    <Container size="lg" w="100%" pb="xl">
+    <Container size="md" w="100%" pb="xl">
       <Stack gap="lg">
         <CourseDashboardHeader
           coursesData={coursesData}
@@ -84,9 +81,6 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
           handleAddFilter={handleAddFilter}
           handleRemoveFilter={handleRemoveFilter}
           handleFilterChange={handleFilterChange}
-          showFilters={showFilters}
-          onToggleShowFilter={setShowFilters}
-          activeFilterCount={activeFilterCount}
           view={view}
           onViewChange={setView}
         />
@@ -114,16 +108,16 @@ const StudentCourseDashboard = ({ coursesData }: StudentDashboardProps) => {
                   />
                 ))}
           </Group>
-          <div
+          <Box
             className="self-end"
             style={{ flexGrow: 1, flexBasis: '20%', minWidth: 250 }}
           >
             <CourseTasksSummary courses={filteredData} />
-          </div>
+          </Box>
         </Group>
       </Stack>
     </Container>
   )
 }
 
-export default StudentCourseDashboard
+export default StudentCourseDashboardPage
