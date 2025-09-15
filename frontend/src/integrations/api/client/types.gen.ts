@@ -878,6 +878,69 @@ export type UpdateCurriculumWithCourseDto = {
     courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
+export type ModuleDto = {
+    id: string;
+    title: string;
+    publishedAt: string | null;
+    toPublishAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedModulesDto = {
+    meta: PaginationMetaDto;
+    modules: Array<ModuleDto>;
+};
+
+export type UpdateModuleDto = {
+    title?: string;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+};
+
+export type CreateModuleSectionDto = {
+    title: string;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    parentSectionId?: string | null;
+    prerequisiteSectionId?: string | null;
+};
+
+export type DetailedModuleSectionDto = {
+    id: string;
+    title: string;
+    order: number;
+    publishedAt: string | null;
+    toPublishAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    prerequisiteSectionId?: string | null;
+    parentSectionId?: string | null;
+};
+
+export type UpdateModuleSectionDto = {
+    [key: string]: unknown;
+};
+
+export type ContentType = 'LESSON' | 'ASSIGNMENT' | 'QUIZ' | 'DISCUSSION' | 'VIDEO' | 'URL' | 'FILE';
+
+export type ModuleContentInfoDto = {
+    id: string;
+    order: number;
+    contentType: ContentType;
+    moduleSectionId: string | null;
+    moduleId: string;
+};
+
+export type DetailedContentProgressDto = {
+    id: string;
+    completedAt: string | null;
+    userId: string;
+    moduleContent: ModuleContentInfoDto;
+};
+
 export type TestControllerTestStudentData = {
     body?: never;
     path?: never;
@@ -3101,6 +3164,301 @@ export type CurriculumControllerUpdateResponses = {
 };
 
 export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
+
+export type LmsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+    };
+    url: '/modules';
+};
+
+export type LmsControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerFindAllError = LmsControllerFindAllErrors[keyof LmsControllerFindAllErrors];
+
+export type LmsControllerFindAllResponses = {
+    200: PaginatedModulesDto;
+};
+
+export type LmsControllerFindAllResponse = LmsControllerFindAllResponses[keyof LmsControllerFindAllResponses];
+
+export type LmsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/modules/{id}';
+};
+
+export type LmsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerRemoveError = LmsControllerRemoveErrors[keyof LmsControllerRemoveErrors];
+
+export type LmsControllerRemoveResponses = {
+    /**
+     * Module deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type LmsControllerRemoveResponse = LmsControllerRemoveResponses[keyof LmsControllerRemoveResponses];
+
+export type LmsControllerUpdateData = {
+    body: UpdateModuleDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{id}';
+};
+
+export type LmsControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerUpdateError = LmsControllerUpdateErrors[keyof LmsControllerUpdateErrors];
+
+export type LmsControllerUpdateResponses = {
+    200: ModuleDto;
+};
+
+export type LmsControllerUpdateResponse = LmsControllerUpdateResponses[keyof LmsControllerUpdateResponses];
+
+export type LmsSectionControllerFindAllModuleSectionsData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections';
+};
+
+export type LmsSectionControllerFindAllModuleSectionsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerFindAllModuleSectionsError = LmsSectionControllerFindAllModuleSectionsErrors[keyof LmsSectionControllerFindAllModuleSectionsErrors];
+
+export type LmsSectionControllerFindAllModuleSectionsResponses = {
+    200: Array<DetailedModuleSectionDto>;
+};
+
+export type LmsSectionControllerFindAllModuleSectionsResponse = LmsSectionControllerFindAllModuleSectionsResponses[keyof LmsSectionControllerFindAllModuleSectionsResponses];
+
+export type LmsSectionControllerCreateData = {
+    body: CreateModuleSectionDto;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections';
+};
+
+export type LmsSectionControllerCreateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerCreateError = LmsSectionControllerCreateErrors[keyof LmsSectionControllerCreateErrors];
+
+export type LmsSectionControllerCreateResponses = {
+    201: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerCreateResponse = LmsSectionControllerCreateResponses[keyof LmsSectionControllerCreateResponses];
+
+export type LmsSectionControllerRemoveData = {
+    body?: never;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerRemoveErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerRemoveError = LmsSectionControllerRemoveErrors[keyof LmsSectionControllerRemoveErrors];
+
+export type LmsSectionControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type LmsSectionControllerUpdateData = {
+    body: UpdateModuleSectionDto;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerUpdateError = LmsSectionControllerUpdateErrors[keyof LmsSectionControllerUpdateErrors];
+
+export type LmsSectionControllerUpdateResponses = {
+    200: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerUpdateResponse = LmsSectionControllerUpdateResponses[keyof LmsSectionControllerUpdateResponses];
+
+export type LmsContentControllerCreateContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerCreateContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerCreateContentProgressError = LmsContentControllerCreateContentProgressErrors[keyof LmsContentControllerCreateContentProgressErrors];
+
+export type LmsContentControllerCreateContentProgressResponses = {
+    201: DetailedContentProgressDto;
+};
+
+export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
+
+export type LmsContentControllerFindAllContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerFindAllContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
+
+export type LmsContentControllerFindAllContentProgressResponses = {
+    200: Array<DetailedContentProgressDto>;
+};
+
+export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
 
 export type SwaggerControllerDownloadAllSpecsData = {
     body?: never;
