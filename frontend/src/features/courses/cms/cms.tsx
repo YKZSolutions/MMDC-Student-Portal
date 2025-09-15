@@ -43,7 +43,7 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { useDisclosure } from '@mantine/hooks'
 import {
   DndProvider,
   getBackendOptions,
@@ -58,7 +58,6 @@ import {
   IconChevronRight,
   IconDotsVertical,
   IconFile,
-  IconGripVertical,
   IconList,
   IconPlus,
   IconRubberStamp,
@@ -66,8 +65,6 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import React, { useMemo, useState } from 'react'
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
 type CMSProps = {
   courseCode?: string
@@ -86,28 +83,16 @@ export function CMS(props: CMSProps) {
 function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
   const navigate = useNavigate()
   const theme = useMantineTheme()
-  const isMobile = useMediaQuery('(max-width: 992px)')
+
   const [isTreeOpened, { open: openTree, close: closeTree }] =
     useDisclosure(false)
-
-  const [isTreeVisible, setIsTreeVisible] = useState(
-    !isMobile && viewMode === 'full',
-  )
-  const [isDragging, setIsDragging] = useState(false)
-
-  const isEditMode = !isTreeVisible || viewMode === 'editor'
 
   const { courseDetails, setCourseDetails } = useCourseData(courseCode)
 
   const { editorState } = useEditorState()
 
-  const _isTreeVisible = useMemo(() => {
-    return setIsTreeVisible(!isMobile && viewMode === 'full')
-  }, [isMobile, viewMode])
-
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {
     setCourseDetails(course)
-    setIsTreeVisible(true)
   }
 
   const handleSegmentedControl = (value: EditorView) => {
@@ -132,191 +117,135 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
 
   return (
     <Box h={'100%'} w={'100%'} style={{ overflow: 'hidden' }}>
-      <PanelGroup direction="horizontal">
-        <Panel defaultSize={70} minSize={50}>
-          <Stack flex={'1 0 auto'} h={'100%'} w={'100%'} gap={0}>
-            <Group
-              justify="space-between"
-              align="center"
-              w={'100%'}
-              style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
-              p={'xs'}
+      <Stack flex={'1 0 auto'} h={'100%'} w={'100%'} gap={0}>
+        <Group
+          justify="space-between"
+          align="center"
+          w={'100%'}
+          style={{ borderBottom: `2px solid ${theme.colors.gray[3]}` }}
+          p={'xs'}
+        >
+          <Group>
+            <ActionIcon
+              variant={'transparent'}
+              hidden={viewMode !== 'editor'}
+              onClick={() => window.history.back()}
             >
-              <Group>
-                <ActionIcon
-                  variant={'transparent'}
-                  hidden={viewMode !== 'editor'}
-                  onClick={() => window.history.back()}
-                >
-                  <IconX />
-                </ActionIcon>
+              <IconX />
+            </ActionIcon>
 
-                <SegmentedControl
-                  defaultValue={editorState.view}
-                  value={editorState.view}
-                  onChange={(view) =>
-                    handleSegmentedControl(view as EditorView)
-                  }
-                  data={editorViewOptions}
-                />
-              </Group>
+            <SegmentedControl
+              defaultValue={editorState.view}
+              value={editorState.view}
+              onChange={(view) => handleSegmentedControl(view as EditorView)}
+              data={editorViewOptions}
+            />
+          </Group>
 
-              <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
-                {courseDetails?.courseCode
-                  ? `[${courseDetails?.courseCode}]`
-                  : ''}{' '}
-                {courseDetails?.courseName}{' '}
-                {/* {editorState.data?.title && ` | ${editorState.data.title} `} */}
-              </Title>
+          <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
+            {courseDetails?.courseCode ? `[${courseDetails?.courseCode}]` : ''}{' '}
+            {courseDetails?.courseName}{' '}
+            {/* {editorState.data?.title && ` | ${editorState.data.title} `} */}
+          </Title>
 
-              <Group>
-                <Group wrap="nowrap" gap={0}>
-                  <Button
+          <Group>
+            <Group wrap="nowrap" gap={0}>
+              <Button
+                radius={0}
+                style={{
+                  borderStartStartRadius: '4px',
+                  borderEndStartRadius: '4px',
+                }}
+              >
+                Save
+              </Button>
+              <Divider orientation="vertical" />
+              <Menu
+                transitionProps={{ transition: 'pop' }}
+                position="bottom-end"
+                withinPortal
+              >
+                <Menu.Target>
+                  <ActionIcon
+                    variant="filled"
+                    color={theme.primaryColor}
+                    size={36}
                     radius={0}
                     style={{
-                      borderStartStartRadius: '4px',
-                      borderEndStartRadius: '4px',
+                      borderStartEndRadius: '4px',
+                      borderEndEndRadius: '4px',
                     }}
                   >
-                    Save
-                  </Button>
-                  <Divider orientation="vertical" />
-                  <Menu
-                    transitionProps={{ transition: 'pop' }}
-                    position="bottom-end"
-                    withinPortal
+                    <IconChevronDown size={16} stroke={1.5} />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={
+                      <IconRubberStamp
+                        size={16}
+                        stroke={1.5}
+                        color={theme.colors.blue[5]}
+                      />
+                    }
+                    component={Link}
+                    to={`../publish`}
                   >
-                    <Menu.Target>
-                      <ActionIcon
-                        variant="filled"
-                        color={theme.primaryColor}
-                        size={36}
-                        radius={0}
-                        style={{
-                          borderStartEndRadius: '4px',
-                          borderEndEndRadius: '4px',
-                        }}
-                      >
-                        <IconChevronDown size={16} stroke={1.5} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item
-                        leftSection={
-                          <IconRubberStamp
-                            size={16}
-                            stroke={1.5}
-                            color={theme.colors.blue[5]}
-                          />
-                        }
-                        component={Link}
-                        to={`../publish`}
-                      >
-                        Publish
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={
-                          <IconCalendar
-                            size={16}
-                            stroke={1.5}
-                            color={theme.colors.blue[5]}
-                          />
-                        }
-                      >
-                        Schedule publishing
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={
-                          <IconTrash
-                            size={16}
-                            stroke={1.5}
-                            color={theme.colors.red[5]}
-                          />
-                        }
-                      >
-                        Delete
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-
-                <Group
-                  gap={'md'}
-                  display={
-                    isTreeVisible || viewMode === 'editor' ? 'none' : 'flex'
-                  }
-                  align={'center'}
-                >
-                  <CMSCourseSelector
-                    courses={mockCourseBasicDetails}
-                    selectedCourse={courseDetails}
-                    handleCourseChange={handleCourseChange}
-                  />
-                </Group>
-
-                <ActionIcon
-                  hidden={isTreeVisible}
-                  onClick={() =>
-                    isMobile ? openTree() : setIsTreeVisible(true)
-                  }
-                  radius={'xl'}
-                  variant="subtle"
-                  c={'dark'}
-                >
-                  <IconChevronLeft />
-                </ActionIcon>
-              </Group>
+                    Publish
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={
+                      <IconCalendar
+                        size={16}
+                        stroke={1.5}
+                        color={theme.colors.blue[5]}
+                      />
+                    }
+                  >
+                    Schedule publishing
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={
+                      <IconTrash
+                        size={16}
+                        stroke={1.5}
+                        color={theme.colors.red[5]}
+                      />
+                    }
+                  >
+                    Delete
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             </Group>
 
-            <Box
-              h="100%"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 0,
-              }}
+            <ActionIcon
+              onClick={() => openTree()}
+              radius={'xl'}
+              variant="subtle"
+              c={'dark'}
             >
-              <CMSView courseCode={courseCode} />
-            </Box>
-          </Stack>
-        </Panel>
+              <IconChevronLeft />
+            </ActionIcon>
+          </Group>
+        </Group>
 
-        <PanelResizeHandle
-          onDragging={setIsDragging}
+        <Box
+          h="100%"
           style={{
-            backgroundColor: isDragging
-              ? theme.colors.blue[2]
-              : theme.colors.gray[0],
-            borderRight: `1px solid ${theme.colors.gray[3]}`,
-            borderLeft: `1px solid ${theme.colors.gray[3]}`,
-            cursor: 'col-resize',
-            transition: 'background-color 0.3s ease',
-            width: '10px',
-            height: '100%',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            minHeight: 0,
           }}
-          hidden={isEditMode}
         >
-          <IconGripVertical size={16} />
-        </PanelResizeHandle>
-
-        <Panel hidden={isEditMode} minSize={30} defaultSize={20}>
-          {/* Course Structure Drawer */}
-          {/* Appears ONLY on Desktop */}
-          <CMSCourseStructure
-            courseCode={courseCode}
-            handleCourseChange={handleCourseChange}
-            isTreeVisible={isTreeVisible}
-            setIsTreeVisible={setIsTreeVisible}
-          />
-        </Panel>
-      </PanelGroup>
+          <CMSView courseCode={courseCode} />
+        </Box>
+      </Stack>
 
       {/* Course Structure Drawer */}
       {/* Appears ONLY on mobile */}
       <Drawer
+        withCloseButton={false}
         keepMounted={false}
         position="right"
         opened={isTreeOpened}
@@ -325,8 +254,7 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
         <CMSCourseStructure
           courseCode={courseCode}
           handleCourseChange={handleCourseChange}
-          isTreeVisible={isTreeVisible}
-          setIsTreeVisible={setIsTreeVisible}
+          closeTree={closeTree}
         />
       </Drawer>
 
@@ -385,13 +313,11 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
 function CMSCourseStructure({
   courseCode,
   handleCourseChange,
-  isTreeVisible,
-  setIsTreeVisible,
+  closeTree,
 }: {
   courseCode?: string
   handleCourseChange: (course: CourseBasicDetails | undefined) => void
-  isTreeVisible: boolean
-  setIsTreeVisible: React.Dispatch<React.SetStateAction<boolean>>
+  closeTree: () => void
 }) {
   const { courseDetails, module } = useCourseData(courseCode)
 
@@ -403,8 +329,7 @@ function CMSCourseStructure({
         <Stack gap={'xs'} mb={'xs'}>
           <Group align="center" gap={'xs'}>
             <ActionIcon
-              hidden={!isTreeVisible}
-              onClick={() => setIsTreeVisible((prev) => !prev)}
+              onClick={() => closeTree()}
               variant="subtle"
               c={'dark'}
               radius={'xl'}
