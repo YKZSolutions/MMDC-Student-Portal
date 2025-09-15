@@ -5,20 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { Log } from '@/common/decorators/log.decorator';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
 import { ContentType, Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
@@ -499,7 +487,7 @@ export class LmsContentService {
   @Log({
     logArgsMessage: ({ moduleContentId }) =>
       `Inserting content progress for content ${moduleContentId}`,
-    logSuccessMessage: (result, _) =>
+    logSuccessMessage: (result) =>
       `Inserted content progress ${result.id} content ${result.moduleContent.id}`,
     logErrorMessage: (err, { moduleContentId }) =>
       `Inserting content progress for content ${moduleContentId} | Error: ${err.message}`,
@@ -563,7 +551,7 @@ export class LmsContentService {
   @Log({
     logArgsMessage: ({ moduleId, studentId }) =>
       `Fetching content progress for module ${moduleId} student ${studentId ?? 'self'}`,
-    logSuccessMessage: (result, _) =>
+    logSuccessMessage: (result) =>
       `Fetched ${result.length} content progress records`,
     logErrorMessage: (err, { moduleId, studentId }) =>
       `Fetching content progress for module ${moduleId} student ${studentId ?? 'self'} | Error: ${err.message}`,

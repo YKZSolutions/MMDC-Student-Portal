@@ -1,45 +1,31 @@
 import {
-  Body,
-  ConflictException,
-  Controller,
-  Delete,
-  Get,
-  InternalServerErrorException,
-  NotFoundException,
-  Param,
-  Patch,
-  Post,
-  Query,
+    BadRequestException,
+    Body,
+    ConflictException,
+    Controller,
+    Delete,
+    Get,
+    InternalServerErrorException,
+    NotFoundException,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
 } from '@nestjs/common';
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  InternalServerErrorException,
-  NotFoundException,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { ApiCreatedResponse, ApiOkResponse, OmitType } from '@nestjs/swagger';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { Role } from '@/common/enums/roles.enum';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import {LmsContentService} from '@/modules/lms/lms-content.service';
+import {ApiCreatedResponse, ApiOkResponse, OmitType} from '@nestjs/swagger';
+import {ApiException} from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import {Roles} from '@/common/decorators/roles.decorator';
+import {DeleteQueryDto} from '@/common/dto/delete-query.dto';
+import {Role} from '@/common/enums/roles.enum';
+import {UpdateContentDto} from '@/modules/lms/dto/update-content.dto';
+import {CurrentUser} from '@/common/decorators/auth-user.decorator';
+import {AuthUser, CurrentAuthUser,} from '@/common/interfaces/auth.user-metadata';
+import {CreateContentDto} from '@/modules/lms/dto/create-content.dto';
+import {LmsPublishService} from '@/modules/lms/lms-publish.service';
+import {UpdatePublishDto} from '@/modules/lms/dto/update-publish.dto';
+import {ModuleContent} from '@/generated/nestjs-dto/moduleContent.entity';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -63,9 +49,9 @@ export class LmsContentController {
   @Post()
   create(
     @Body() createModuleContentDto: CreateContentDto,
-    @Param('lmsId') lmsId: string,
+    @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
   ): Promise<Omit<ModuleContent, 'studentProgress'>> {
-    return this.lmsContentService.create(createModuleContentDto, lmsId);
+    return this.lmsContentService.create(createModuleContentDto, moduleId);
   }
 
   /**
@@ -82,13 +68,13 @@ export class LmsContentController {
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
-  @Get(':id')
+  @Get(':moduleContentId')
   findOne(
-    @Param('id') id: string,
+    @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
     @CurrentUser() user: CurrentAuthUser,
   ): Promise<ModuleContent> {
     const { role, user_id } = user.user_metadata;
-    return this.lmsContentService.findOne(id, role, user_id);
+    return this.lmsContentService.findOne(moduleContentId, role, user_id);
   }
 
   /**
@@ -107,12 +93,12 @@ export class LmsContentController {
     InternalServerErrorException,
   ])
   @Roles(Role.ADMIN)
-  @Patch(':id')
+  @Patch(':moduleContentId')
   update(
-    @Param('id') id: string,
+    @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
     @Body() updateContentDto: UpdateContentDto,
   ): Promise<Omit<ModuleContent, 'studentProgress'>> {
-    return this.lmsContentService.update(id, updateContentDto);
+    return this.lmsContentService.update(moduleContentId, updateContentDto);
   }
 
   /**
@@ -138,9 +124,12 @@ export class LmsContentController {
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
-  @Delete(':id')
-  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
-    return this.lmsContentService.remove(id, query?.directDelete);
+  @Delete(':moduleContentId')
+  remove(
+    @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
+    @Query() query?: DeleteQueryDto,
+  ) {
+    return this.lmsContentService.remove(moduleContentId, query?.directDelete);
   }
 
   /**
@@ -156,9 +145,15 @@ export class LmsContentController {
     InternalServerErrorException,
   ])
   @Roles(Role.ADMIN)
-  @Patch(':id/publish')
-  publish(@Param('id') id: string, @Body() updatePublishDto: UpdatePublishDto) {
-    return this.lmsPublishService.publishContent(id, updatePublishDto);
+  @Patch(':moduleContentId/publish')
+  publish(
+    @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
+    @Body() updatePublishDto: UpdatePublishDto,
+  ) {
+    return this.lmsPublishService.publishContent(
+      moduleContentId,
+      updatePublishDto,
+    );
   }
 
   /**
@@ -174,11 +169,12 @@ export class LmsContentController {
     InternalServerErrorException,
   ])
   @Roles(Role.ADMIN)
-  @Patch(':id/unpublish')
-  unpublish(@Param('id') id: string) {
-    return this.lmsPublishService.unpublishContent(id);
+  @Patch(':moduleContentId/unpublish')
+  unpublish(
+    @Param(':moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
+  ) {
+    return this.lmsPublishService.unpublishContent(moduleContentId);
   }
-  constructor(private readonly lmsContentService: LmsContentService) {}
 
   /**
    * Creates or updates a content progress
