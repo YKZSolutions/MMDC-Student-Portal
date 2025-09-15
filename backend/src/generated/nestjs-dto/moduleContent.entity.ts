@@ -91,19 +91,47 @@ export class ModuleContent {
     nullable: true,
   })
   deletedAt: Date | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Lesson,
+    required: false,
+    nullable: true,
+  })
   lesson?: LessonAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Assignment,
+    required: false,
+    nullable: true,
+  })
   assignment?: AssignmentAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Quiz,
+    required: false,
+    nullable: true,
+  })
   quiz?: QuizAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Discussion,
+    required: false,
+    nullable: true,
+  })
   discussion?: DiscussionAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => Video,
+    required: false,
+    nullable: true,
+  })
   video?: VideoAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => ExternalUrl,
+    required: false,
+    nullable: true,
+  })
   externalUrl?: ExternalUrlAsType | null;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => FileResource,
+    required: false,
+    nullable: true,
+  })
   fileResource?: FileResourceAsType | null;
   @ApiProperty({
     type: () => ContentProgress,

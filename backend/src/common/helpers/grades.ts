@@ -1,4 +1,4 @@
-import { RubricDto } from '@/modules/lms/dto/assignment-criteria.dto';
+import { RubricDto } from '@/modules/lms/content/assignment/dto/assignment-criteria.dto';
 
 export const calculateMaxScoreFromRubric = (rubric: RubricDto) => {
   let maxScore = 0;

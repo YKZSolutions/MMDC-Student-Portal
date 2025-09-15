@@ -2,7 +2,7 @@ import {
   CriteriaDto,
   RatingDto,
   RubricDto,
-} from '../../../src/modules/lms/dto/assignment-criteria.dto';
+} from '../../../src/modules/content/assignment/dto/assignment-criteria.dto';
 
 const mockRatings: RatingDto[] = [
   {

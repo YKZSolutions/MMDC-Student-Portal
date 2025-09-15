@@ -1,7 +1,28 @@
+import { ContentType } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateModuleContentDto {
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  @IsNotEmpty()
+  @IsInt()
+  order: number;
+  @ApiProperty({
+    enum: ContentType,
+    enumName: 'ContentType',
+  })
+  @IsNotEmpty()
+  @IsEnum(ContentType)
+  contentType: ContentType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

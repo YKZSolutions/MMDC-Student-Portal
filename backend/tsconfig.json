@@ -27,6 +27,7 @@
   "include": [
     "src",
     "src/common/types/request.d.ts",
-    "src/common/types/prisma.d.ts"
+    "src/common/types/prisma.d.ts",
+    "prisma/seed.ts"
   ]
 }

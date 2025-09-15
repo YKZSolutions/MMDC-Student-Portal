@@ -1,10 +1,15 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { ContentType, Prisma, Role } from '@prisma/client';
+import { isUUID } from 'class-validator';
+import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
@@ -14,13 +19,459 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
+import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
+import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
+import { FileService } from '@/modules/lms/content/file/file.service';
+import { UrlService } from '@/modules/lms/content/url/url.service';
+import { VideoService } from '@/modules/lms/content/video/video.service';
+import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
 
 @Injectable()
 export class LmsContentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private lessonService: LessonService,
+    private assignmentService: AssignmentService,
+    private quizService: QuizService,
+    private discussionService: DiscussionService,
+    private fileService: FileService,
+    private urlService: UrlService,
+    private videoService: VideoService,
   ) {}
+
+  @Log({
+    logArgsMessage: ({
+      moduleId,
+      content,
+    }: {
+      moduleId: string;
+      content: CreateContentDto;
+    }) =>
+      `Creating module content in module ${moduleId} and section ${content.sectionId}`,
+    logSuccessMessage: (content) =>
+      `Module content [${content.id}] with type ${content.contentType} successfully created.`,
+    logErrorMessage: (
+      err,
+      {
+        moduleId,
+      }: {
+        moduleId: string;
+      },
+    ) =>
+      `An error has occurred while creating module content [${moduleId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException(
+        'Module content title already exists in this section.',
+      ),
+  })
+  async create(
+    @LogParam('content') createModuleContentDto: CreateContentDto,
+    @LogParam('moduleId') moduleId: string,
+  ): Promise<ModuleContent> {
+    const {
+      assignment,
+      quiz,
+      discussion,
+      file,
+      externalUrl,
+      video,
+      lesson,
+      ...rest
+    } = createModuleContentDto;
+
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Create the base module content
+      const content = await tx.moduleContent.create({
+        data: {
+          ...rest,
+          module: { connect: { id: moduleId } },
+        },
+      });
+
+      // 2. Delegate to specialized services OR inline nested creation
+      switch (rest.contentType) {
+        case ContentType.ASSIGNMENT:
+          if (assignment) {
+            await this.assignmentService.create(content.id, assignment, tx);
+          }
+          break;
+
+        case ContentType.QUIZ:
+          if (quiz) {
+            await this.quizService.create(content.id, quiz, tx);
+          }
+          break;
+
+        case ContentType.DISCUSSION:
+          if (discussion) {
+            await this.discussionService.create(content.id, discussion, tx);
+          }
+          break;
+
+        case ContentType.FILE:
+          if (file) {
+            await this.fileService.create(content.id, file, tx);
+          }
+          break;
+
+        case ContentType.URL:
+          if (externalUrl) {
+            await this.urlService.create(content.id, externalUrl, tx);
+          }
+          break;
+
+        case ContentType.VIDEO:
+          if (video) {
+            await this.videoService.create(content.id, video, tx);
+          }
+          break;
+
+        case ContentType.LESSON:
+          if (lesson) {
+            await this.lessonService.create(content.id, lesson, tx);
+          }
+          break;
+      }
+
+      // 3. Always return fresh with relations
+      return this.findOne(content.id, Role.admin, null);
+    });
+  }
+
+  @Log({
+    logArgsMessage: ({ id }) => `Fetching module content record for id ${id}`,
+    logSuccessMessage: ({ id }) =>
+      `Successfully fetched module content for id ${id}`,
+    logErrorMessage: (err, { id }) =>
+      `An error has occurred while fetching module content for id ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('Module content not found'),
+  })
+  async findOne(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string | null,
+  ): Promise<ModuleContent> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid module content ID format');
+    }
+
+    // Explicitly type baseInclude to allow dynamic properties
+    const baseInclude = {} as Prisma.ModuleContentInclude;
+
+    if (userId) {
+      baseInclude.studentProgress = {
+        where: { userId },
+      };
+    }
+
+    // Fetch contentType from the database first
+    const contentRecord =
+      await this.prisma.client.moduleContent.findUniqueOrThrow({
+        where: { id },
+        select: { contentType: true },
+      });
+
+    const contentType = contentRecord.contentType; // Use the fetched contentType
+
+    // Add content-type specific includes
+    if (contentType === ContentType.ASSIGNMENT) {
+      if (role === Role.student && userId) {
+        baseInclude.assignment = {
+          include: {
+            submissions: {
+              where: { studentId: userId },
+            },
+          },
+        };
+      } else {
+        baseInclude.assignment = true;
+      }
+    } else if (contentType === ContentType.QUIZ) {
+      if (role === Role.student && userId) {
+        baseInclude.quiz = {
+          include: {
+            submissions: {
+              where: { studentId: userId },
+            },
+          },
+        };
+      } else {
+        baseInclude.quiz = true;
+      }
+    } else if (contentType === ContentType.DISCUSSION) {
+      const postsWhereConditions: Prisma.DiscussionPostWhereInput[] = [
+        { parentId: null },
+      ];
+      if (userId) {
+        postsWhereConditions.push({ authorId: userId });
+      }
+
+      baseInclude.discussion = {
+        include: {
+          posts:
+            role !== Role.student
+              ? true
+              : {
+                  where: {
+                    OR: postsWhereConditions,
+                  },
+                  include: {
+                    author: {
+                      select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                      },
+                    },
+                    replies:
+                      role !== Role.student
+                        ? true
+                        : {
+                            where: {
+                              authorId: userId || undefined, // Use undefined if userId is null
+                            },
+                            include: {
+                              author: {
+                                select: {
+                                  id: true,
+                                  firstName: true,
+                                  lastName: true,
+                                },
+                              },
+                            },
+                          },
+                  },
+                  orderBy: {
+                    createdAt: 'desc',
+                  },
+                },
+        },
+      };
+    } else if (contentType === ContentType.FILE) {
+      baseInclude.fileResource = true;
+    } else if (contentType === ContentType.URL) {
+      baseInclude.externalUrl = true;
+    } else if (contentType === ContentType.VIDEO) {
+      baseInclude.video = true;
+    }
+
+    // Apply security filters based on role
+    const queryOptions: Prisma.ModuleContentFindUniqueOrThrowArgs = {
+      where: { id },
+      include: baseInclude,
+    };
+
+    if (role === Role.student) {
+      queryOptions.omit = { ...omitAuditDates, ...omitPublishFields };
+    }
+
+    return await this.prisma.client.moduleContent.findUniqueOrThrow(
+      queryOptions,
+    );
+  }
+
+  @Log({
+    logArgsMessage: ({ id }: { id: string }) =>
+      `Updating module content for id ${id}`,
+    logSuccessMessage: (moduleContent) =>
+      `Successfully updated module content for id ${moduleContent.id}`,
+    logErrorMessage: (err, { id }) =>
+      `An error has occurred while updating module content for id ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Module content not found for Id ${id}`),
+    [PrismaErrorCode.UniqueConstraint]: (_, { id }: { id: string }) =>
+      new ConflictException(
+        `Module content ${id} already exists in this section`,
+      ),
+  })
+  async update(
+    @LogParam('id') id: string,
+    @LogParam('content') updateContentDto: UpdateContentDto,
+  ): Promise<ModuleContent> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid module content ID format');
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Get current content type inside the transaction
+      const currentContent = await tx.moduleContent.findUnique({
+        where: { id },
+        select: { contentType: true },
+      });
+
+      if (!currentContent) {
+        throw new NotFoundException(`Module content with ID ${id} not found`);
+      }
+
+      const {
+        sectionId,
+        assignment,
+        quiz,
+        discussion,
+        file,
+        externalUrl,
+        video,
+        lesson,
+        contentType: newContentType, // prevent changing contentType
+        ...contentData
+      } = updateContentDto;
+
+      if (newContentType && newContentType !== currentContent.contentType) {
+        throw new BadRequestException(
+          'Changing contentType is not allowed. Please remove and recreate the content.',
+        );
+      }
+
+      const data: Prisma.ModuleContentUpdateInput = {
+        ...contentData,
+      };
+
+      if (sectionId) {
+        data.moduleSection = { connect: { id: sectionId } };
+      }
+
+      // 2. Update the base module content
+      await tx.moduleContent.update({
+        where: { id },
+        data,
+      });
+
+      // 3. Delegate to specialized services (pass `tx`)
+      switch (currentContent.contentType) {
+        case ContentType.ASSIGNMENT:
+          if (assignment) {
+            await this.assignmentService.update(id, assignment, tx);
+          }
+          break;
+        case ContentType.QUIZ:
+          if (quiz) {
+            await this.quizService.update(id, quiz, tx);
+          }
+          break;
+        case ContentType.DISCUSSION:
+          if (discussion) {
+            await this.discussionService.update(id, discussion, tx);
+          }
+          break;
+        case ContentType.FILE:
+          if (file) {
+            await this.fileService.update(id, file, tx);
+          }
+          break;
+        case ContentType.URL:
+          if (externalUrl) {
+            await this.urlService.update(id, externalUrl, tx);
+          }
+          break;
+        case ContentType.VIDEO:
+          if (video) {
+            await this.videoService.update(id, video, tx);
+          }
+          break;
+        case ContentType.LESSON:
+          if (lesson) {
+            await this.lessonService.update(id, lesson, tx);
+          }
+          break;
+      }
+
+      // 4. Return the refreshed entity
+      return this.findOne(id, Role.admin, null);
+    });
+  }
+
+  /**
+   * Remove module content and its associated sub-content
+   */
+  @Log({
+    logArgsMessage: ({ id }) => `Removing module content for id ${id}`,
+    logSuccessMessage: (result) => result.message,
+    logErrorMessage: (err, { id }) =>
+      `An error has occurred while removing module content for id ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('Module content not found'),
+  })
+  async remove(
+    @LogParam('id') id: string,
+    @LogParam('directDelete') directDelete: boolean = false,
+  ): Promise<{ message: string }> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid module content ID format');
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Get current content inside transaction
+      const currentContent = await tx.moduleContent.findUnique({
+        where: { id },
+        select: { contentType: true },
+      });
+
+      if (!currentContent) {
+        throw new NotFoundException(`Module content with ID ${id} not found`);
+      }
+
+      let message = 'Module content successfully removed.';
+
+      // 2. Delegate child deletion/soft-delete (pass tx)
+      switch (currentContent.contentType) {
+        case ContentType.ASSIGNMENT:
+          message = (await this.assignmentService.remove(id, directDelete, tx))
+            .message;
+          break;
+        case ContentType.LESSON:
+          message = (await this.lessonService.remove(id, directDelete, tx))
+            .message;
+          break;
+        case ContentType.QUIZ:
+          message = (await this.quizService.remove(id, directDelete, tx))
+            .message;
+          break;
+        case ContentType.DISCUSSION:
+          message = (await this.discussionService.remove(id, directDelete, tx))
+            .message;
+          break;
+        case ContentType.FILE:
+          message = (await this.fileService.remove(id, directDelete, tx))
+            .message;
+          break;
+        case ContentType.URL:
+          message = (await this.urlService.remove(id, directDelete, tx))
+            .message;
+          break;
+        case ContentType.VIDEO:
+          message = (await this.videoService.remove(id, directDelete, tx))
+            .message;
+          break;
+      }
+
+      // 3. Delete or soft-delete the moduleContent itself
+      if (directDelete) {
+        await tx.moduleContent.delete({ where: { id } });
+      } else {
+        await tx.moduleContent.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+
+        message = 'Module content successfully soft-deleted.';
+      }
+
+      return { message: message };
+    });
+  }
 
   /**
    * Creates or updates a content progress record for a given user and module content.
@@ -36,7 +487,7 @@ export class LmsContentService {
   @Log({
     logArgsMessage: ({ moduleContentId }) =>
       `Inserting content progress for content ${moduleContentId}`,
-    logSuccessMessage: (result, _) =>
+    logSuccessMessage: (result) =>
       `Inserted content progress ${result.id} content ${result.moduleContent.id}`,
     logErrorMessage: (err, { moduleContentId }) =>
       `Inserting content progress for content ${moduleContentId} | Error: ${err.message}`,
@@ -100,7 +551,7 @@ export class LmsContentService {
   @Log({
     logArgsMessage: ({ moduleId, studentId }) =>
       `Fetching content progress for module ${moduleId} student ${studentId ?? 'self'}`,
-    logSuccessMessage: (result, _) =>
+    logSuccessMessage: (result) =>
       `Fetched ${result.length} content progress records`,
     logErrorMessage: (err, { moduleId, studentId }) =>
       `Fetching content progress for module ${moduleId} student ${studentId ?? 'self'} | Error: ${err.message}`,
