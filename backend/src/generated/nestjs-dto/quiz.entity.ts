@@ -14,15 +14,12 @@ export class Quiz {
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleContentId: string;
-  @ApiProperty({
-    type: () => ModuleContent,
-    required: false,
-  })
-  moduleContent?: ModuleContentAsType;
   @ApiProperty({
     type: 'string',
   })

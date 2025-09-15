@@ -2,7 +2,8 @@ import {
   MultipleChoiceQuestionDto,
   ShortAnswerQuestionDto,
   TrueFalseQuestionDto,
-} from '../../../src/modules/lms/dto/quiz-questions.dto';
+} from '../../../src/modules/lms/content/quiz/dto/quiz-questions.dto';
+
 
 export const mockMultipleChoiceQuestionDto: MultipleChoiceQuestionDto = {
   questionNumber: 1,

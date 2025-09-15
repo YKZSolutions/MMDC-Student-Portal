@@ -22,7 +22,7 @@ import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
 
-@Controller('modules')
+@Controller('lms')
 export class LmsController {
   constructor(private readonly lmsService: LmsService) {}
 

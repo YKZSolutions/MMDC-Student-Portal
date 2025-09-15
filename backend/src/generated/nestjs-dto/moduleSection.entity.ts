@@ -10,12 +10,12 @@ export class ModuleSection {
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  module?: ModuleAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleId: string;
-  @ApiHideProperty()
-  module?: ModuleAsType;
   @ApiProperty({
     type: 'string',
     nullable: true,
