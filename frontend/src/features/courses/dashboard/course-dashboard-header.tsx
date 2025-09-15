@@ -1,5 +1,4 @@
 import { MultiFilter, type FilterType } from '@/components/multi-filter.tsx'
-import SearchComponent from '@/components/search-component.tsx'
 import {
   Box,
   Button,
@@ -8,6 +7,7 @@ import {
   rem,
   Stack,
   Text,
+  TextInput,
   Title,
   Tooltip,
 } from '@mantine/core'
@@ -15,32 +15,16 @@ import {
   IconFilter2,
   IconLayoutGridFilled,
   IconList,
+  IconSearch,
 } from '@tabler/icons-react'
 import { useMemo, type ReactNode } from 'react'
 
 type DashboardHeaderProps = {
-  coursesData: any
-  filters: FilterType[]
-  activeFilters: FilterType[]
-  onSearchFilter: (courses: any) => void
-  handleAddFilter: (filterType: FilterType) => void
-  handleRemoveFilter: (id: string) => void
-  handleFilterChange: (id: string, value: string) => void
   view: 'grid' | 'list'
   onViewChange: (view: 'grid' | 'list') => void
 }
 
-function CourseDashboardHeader({
-  coursesData,
-  filters,
-  activeFilters,
-  onSearchFilter,
-  handleAddFilter,
-  handleRemoveFilter,
-  handleFilterChange,
-  view,
-  onViewChange,
-}: DashboardHeaderProps) {
+function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
   return (
     <Stack gap="md">
       <Box>
@@ -53,19 +37,23 @@ function CourseDashboardHeader({
         </Text>
       </Box>
       <Group align="center" justify="end" gap={rem(5)}>
-        <SearchComponent
-          data={coursesData}
-          onFilter={onSearchFilter}
-          identifiers={['courseName']}
-          placeholder="Search courses"
+        <TextInput
+          placeholder="Search name/email"
+          radius={'md'}
+          leftSection={<IconSearch size={18} stroke={1} />}
+          w={{
+            base: '100%',
+            xs: rem(250),
+          }}
         />
-        <CourseDashboardFilters
+        {/* Implement this at a later time */}
+        {/* <CourseDashboardFilters
           filters={filters}
           activeFilters={activeFilters}
           onAddFilter={handleAddFilter}
           onRemoveFilter={handleRemoveFilter}
           onFilterChange={handleFilterChange}
-        />
+        /> */}
         <ViewSelectorButton
           view={view}
           onGridClick={() => onViewChange('grid')}

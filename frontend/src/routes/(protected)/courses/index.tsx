@@ -6,8 +6,8 @@ import {
   mockEnrolledCourse,
   mockTerms,
 } from '@/features/courses/mocks.ts'
-import type { Course, EnrolledCourse } from '@/features/courses/types.ts'
-import MentorAdminDashboardPage from '@/pages/admin/courses'
+import AdminCourseDashboardPage from '@/pages/admin/courses'
+import MentorCourseDashboardPage from '@/pages/mentor/courses'
 import StudentCourseDashboardPage from '@/pages/student/courses'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -26,39 +26,24 @@ export const Route = createFileRoute('/(protected)/courses/')({
 })
 
 function RouteComponent() {
-  const { authUser } = useAuth('protected') //TODO: use this later for fetching enrolled terms
-  const academicTerms = Route.useLoaderData().terms //TODO: replace with suspense query
-  const academicPrograms = Route.useLoaderData().academicPrograms
-  const coursesData = Route.useLoaderData().courses
-
-  if (!authUser) {
-  }
+  const { authUser } = useAuth('protected')
 
   return (
     <RoleComponentManager
       currentRole={authUser.role}
       roleRender={{
-        student: (
-          <StudentCourseDashboardPage
-            coursesData={coursesData as EnrolledCourse[]}
-          />
-        ),
+        student: <StudentCourseDashboardPage />,
         mentor: (
           //TODO: might need to separate this later
           // since mentors should only see courses they've been assigned
-          <MentorAdminDashboardPage
-            academicTerms={academicTerms}
-            academicPrograms={academicPrograms}
-            coursesData={coursesData as Course[]}
-          />
+          // <MentorAdminDashboardPage
+          //   academicTerms={academicTerms}
+          //   academicPrograms={academicPrograms}
+          //   coursesData={coursesData as Course[]}
+          // />
+          <MentorCourseDashboardPage />
         ),
-        admin: (
-          <MentorAdminDashboardPage
-            academicTerms={academicTerms}
-            academicPrograms={academicPrograms}
-            coursesData={coursesData as Course[]}
-          />
-        ),
+        admin: <AdminCourseDashboardPage />,
       }}
     />
   )

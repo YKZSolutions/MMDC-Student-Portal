@@ -1,18 +1,17 @@
 // Course-specific filter configuration
-import type { FilterType } from '@/components/multi-filter.tsx'
-import CourseTasksSummary from '@/features/courses/course-task-summary.tsx'
 import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
 import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item'
-import { useCurrentMeeting } from '@/features/courses/hooks/useCurrentMeeting.ts'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
-import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
-import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
-import { Box, Container, Group, Stack } from '@mantine/core'
-import { IconCalendarTime } from '@tabler/icons-react'
-import { useMemo, useState } from 'react'
+import { type FilterConfig } from '@/hooks/useFilter.ts'
+import type { DetailedCourseEnrollmentDto } from '@/integrations/api/client'
+import { courseEnrollmentControllerGetCourseEnrollmentsOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatPaginationMessage } from '@/utils/formatters'
+import { Container, Group, Stack } from '@mantine/core'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useState, type ReactNode } from 'react'
 
 export const studentCourseFilterConfig: FilterConfig<EnrolledCourse> = {
   Term: (course, value) => {
@@ -23,97 +22,99 @@ export const studentCourseFilterConfig: FilterConfig<EnrolledCourse> = {
   },
 }
 
-type StudentDashboardProps = {
-  coursesData: EnrolledCourse[]
+function StudentCourseDashboardProvider({
+  children,
+  props = {
+    search: '',
+    page: 1,
+  },
+}: {
+  children: (props: {
+    courseOfferings: DetailedCourseEnrollmentDto[]
+    message: string
+    totalPages: number
+  }) => ReactNode
+  props?: {
+    search?: string
+    page: number
+  }
+}) {
+  const { search, page } = props
+
+  const { data: courseData } = useSuspenseQuery(
+    courseEnrollmentControllerGetCourseEnrollmentsOptions(),
+  )
+
+  const courseOfferings = courseData
+
+  const limit = 10
+  const total = courseOfferings.length
+  const totalPages = 1
+
+  const message = formatPaginationMessage({
+    page,
+    total,
+    limit,
+  })
+
+  return children({
+    courseOfferings,
+    message,
+    totalPages,
+  })
 }
 
-const StudentCourseDashboardPage = ({ coursesData }: StudentDashboardProps) => {
+const StudentCourseDashboardPage = () => {
   const [view, setView] = useState<'grid' | 'list'>('grid')
-  const [searchFilteredCourses, setSearchFilteredCourses] =
-    useState<EnrolledCourse[]>(coursesData)
-
-  const academicTermOptions = Array.from(
-    new Set(coursesData.map((course) => formatTerm(course.academicTerm))),
-  ).map((term) => createFilterOption(term))
-
-  const filters: FilterType[] = [
-    {
-      id: '',
-      label: 'Term',
-      icon: <IconCalendarTime size={16} />,
-      type: 'select',
-      value: '',
-      options: [{ label: 'Current', value: 'current' }, ...academicTermOptions],
-    },
-  ]
-
-  const defaultFilters: FilterType[] = [{ ...filters[0], value: 'current' }]
-
-  const {
-    activeFilters,
-    filteredData, // 👈 EnrolledCourse[]
-    handleAddFilter,
-    handleRemoveFilter,
-    handleFilterChange,
-  } = useFilter<EnrolledCourse>(
-    defaultFilters,
-    searchFilteredCourses,
-    studentCourseFilterConfig,
-  )
-
-  const currentMeetings = useMemo(
-    () =>
-      filteredData.map((course) => ({
-        course,
-        currentMeeting: useCurrentMeeting(course).currentMeeting,
-      })),
-    [filteredData],
-  )
 
   return (
     <Container size="md" w="100%" pb="xl">
       <Stack gap="lg">
-        <CourseDashboardHeader
-          coursesData={coursesData}
-          filters={filters}
-          activeFilters={activeFilters}
-          onSearchFilter={setSearchFilteredCourses}
-          handleAddFilter={handleAddFilter}
-          handleRemoveFilter={handleRemoveFilter}
-          handleFilterChange={handleFilterChange}
-          view={view}
-          onViewChange={setView}
-        />
+        <CourseDashboardHeader view={view} onViewChange={setView} />
         <Group wrap="wrap-reverse" align="start" gap="md" w="100%">
           <Group
             wrap="wrap"
             gap="md"
             style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
           >
-            {view === 'grid'
-              ? filteredData.map((course, index) => (
-                  <CourseCard
-                    key={index}
-                    url={`/courses/${course.courseCode}`}
-                    course={course}
-                    currentMeeting={currentMeetings[index].currentMeeting}
-                  />
-                ))
-              : filteredData.map((course, index) => (
-                  <CourseListRow
-                    key={index}
-                    url={`/courses/${course.courseCode}`}
-                    course={course}
-                    currentMeeting={currentMeetings[index].currentMeeting}
-                  />
-                ))}
+            <StudentCourseDashboardProvider>
+              {({ courseOfferings }) =>
+                courseOfferings.map((course, index) =>
+                  view === 'grid' ? (
+                    <CourseCard
+                      key={index}
+                      url={`/courses/${course.courseSection!.id}`}
+                      section={course.courseSection!}
+                      course={course.courseOffering?.course!}
+                      currentMeeting={{
+                        endTime: '2024-12-31T23:59:00Z',
+                        meetingLink: 'https://example.com/meeting',
+                        startTime: '2024-12-31T22:59:00Z',
+                      }}
+                    />
+                  ) : (
+                    <CourseListRow
+                      key={index}
+                      url={`/courses/${course.courseSection!.id}`}
+                      section={course.courseSection!}
+                      course={course.courseOffering?.course!}
+                      currentMeeting={{
+                        endTime: '2024-12-31T23:59:00Z',
+                        meetingLink: 'https://example.com/meeting',
+                        startTime: '2024-12-31T22:59:00Z',
+                      }}
+                    />
+                  ),
+                )
+              }
+            </StudentCourseDashboardProvider>
           </Group>
-          <Box
+          {/* <Box
             className="self-end"
             style={{ flexGrow: 1, flexBasis: '20%', minWidth: 250 }}
           >
-            <CourseTasksSummary courses={filteredData} />
-          </Box>
+            <CourseTasksSummary courses={} />
+          </Box> */}
         </Group>
       </Stack>
     </Container>

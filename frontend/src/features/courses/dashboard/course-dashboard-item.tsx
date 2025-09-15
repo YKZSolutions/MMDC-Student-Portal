@@ -1,9 +1,10 @@
 import { useAuth } from '@/features/auth/auth.hook.ts'
+import type { ClassMeeting } from '@/features/courses/types.ts'
 import type {
-  ClassMeeting,
-  Course,
-  EnrolledCourse,
-} from '@/features/courses/types.ts'
+  CourseDto,
+  DetailedCourseSectionDto,
+} from '@/integrations/api/client'
+import { formatDaysAbbrev } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
@@ -26,23 +27,23 @@ import {
   IconVideo,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
 
 interface CourseDashboardItemProps {
-  course: Course | EnrolledCourse
+  course: CourseDto
+  section: DetailedCourseSectionDto
   currentMeeting?: ClassMeeting
   url: string
 }
 
 const CourseCard = ({
   course,
+  section,
   currentMeeting,
   url,
 }: CourseDashboardItemProps) => {
   const theme = useMantineTheme()
   const navigate = useNavigate()
-  const sectionName =
-    'section' in course ? course.section.sectionName : 'No Section'
+  const sectionName = section.name
   const sectionInitial = sectionName.charAt(0)
 
   return (
@@ -56,7 +57,7 @@ const CourseCard = ({
       role="button"
       onClick={() =>
         navigate({
-          to: `/courses/${course.courseCode}`,
+          to: `/courses/${section.id}`,
         })
       }
       style={{
@@ -88,7 +89,7 @@ const CourseCard = ({
           }}
         >
           <Flex justify="center" align="center" w="100%" h="100%">
-            <Text fw={700} fz={'xl'} c={'white'}>
+            <Text fw={700} fz={'xl'} c={'white'} tt={'capitalize'}>
               {sectionInitial}
             </Text>
           </Flex>
@@ -98,51 +99,45 @@ const CourseCard = ({
       {/* Main content area */}
       <Box p="md" style={{ minHeight: rem(120) }} c={'dark.6'}>
         <Title order={4} lineClamp={1} style={{ fontWeight: 700 }}>
-          {course.courseName}
+          {course.name}
         </Title>
         <Group gap={rem(5)}>
-          <Text size="sm" style={{ fontWeight: 500 }}>
+          <Text size="sm" fw={500}>
             {course.courseCode}
           </Text>
-          {'section' in course && (
-            <>
-              <Text c={'gray.7'}>•</Text>
-              <Text size="sm" style={{ fontWeight: 500 }}>
-                {sectionName}
-              </Text>
-            </>
-          )}
-        </Group>
-        {'section' in course && (
-          <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
-            {course.section.sectionSchedule.day}{' '}
-            {course.section.sectionSchedule.time}
+          <Text c={'gray.7'}>•</Text>
+          <Text size="sm" fw={500}>
+            {sectionName}
           </Text>
-        )}
+        </Group>
+
+        <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
+          {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
+          {section.endSched}
+        </Text>
       </Box>
 
       {/* Actions row */}
       <Divider />
       <Group justify="space-between" p={'xs'} align="center">
-        {'courseProgress' in course && (
-          <>
-            <Group gap={rem(5)}>
-              <RingProgress
-                size={30}
-                thickness={3}
-                sections={[
-                  {
-                    value: course.courseProgress * 100,
-                    color: theme.colors.blue[5],
-                  },
-                ]}
-              />
-              <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                {course.courseProgress * 100}%
-              </Text>
-            </Group>
-          </>
-        )}
+        <Group gap={rem(5)}>
+          <RingProgress
+            size={30}
+            thickness={3}
+            sections={[
+              {
+                // value: course.courseProgress * 100,
+                value: 60,
+                color: theme.colors.blue[5],
+              },
+            ]}
+          />
+          <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+            {/* {course.courseProgress * 100}% */}
+            60%
+          </Text>
+        </Group>
+
         <CourseCardActionButton
           courseCode={course.courseCode}
           currentMeeting={currentMeeting}
@@ -154,11 +149,11 @@ const CourseCard = ({
 
 const CourseListRow = ({
   course,
+  section,
   currentMeeting,
   url,
 }: CourseDashboardItemProps) => {
   const theme = useMantineTheme()
-  const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
 
   return (
@@ -173,22 +168,18 @@ const CourseListRow = ({
       <Group justify="space-between" wrap="nowrap">
         <Stack gap="xs" justify="center">
           <Title order={4} lineClamp={1} c="dark.7">
-            {course.courseName}
+            {course.name}
           </Title>
           <Group gap={rem(5)} c="dark.3">
             <Text size="sm">{course.courseCode}</Text>
-            {'section' in course && (
-              <>
-                <Text size="sm">• {course.section.sectionName}</Text>
-                <Group gap={5}>
-                  <IconCalendar size={14} />
-                  <Text size="sm">
-                    {course.section.sectionSchedule.day}{' '}
-                    {course.section.sectionSchedule.time}
-                  </Text>
-                </Group>
-              </>
-            )}
+            <Text size="sm">• {section.name}</Text>
+            <Group gap={5}>
+              <IconCalendar size={14} />
+              <Text size="sm">
+                {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
+                {section.endSched}
+              </Text>
+            </Group>
           </Group>
         </Stack>
         <Stack align="end">
@@ -196,25 +187,23 @@ const CourseListRow = ({
             currentMeeting={currentMeeting}
             courseCode={course.courseCode}
           />
-          {'courseProgress' in course && (
-            <>
-              <Group gap={rem(5)}>
-                <RingProgress
-                  size={30}
-                  thickness={3}
-                  sections={[
-                    {
-                      value: course.courseProgress * 100,
-                      color: theme.colors.blue[5],
-                    },
-                  ]}
-                />
-                <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                  {course.courseProgress * 100}%
-                </Text>
-              </Group>
-            </>
-          )}
+          <Group gap={rem(5)}>
+            <RingProgress
+              size={30}
+              thickness={3}
+              sections={[
+                {
+                  // value: course.courseProgress * 100,
+                  value: 60,
+                  color: theme.colors.blue[5],
+                },
+              ]}
+            />
+            <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+              {/* {course.courseProgress * 100}% */}
+              60%
+            </Text>
+          </Group>
         </Stack>
       </Group>
     </Card>

@@ -1,25 +1,22 @@
-import type { FilterType } from '@/components/multi-filter.tsx'
-import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
+import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header'
 import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item.tsx'
+import type { Course } from '@/features/courses/types.ts'
+import { type FilterConfig } from '@/hooks/useFilter.ts'
 import type {
-  AcademicProgram,
-  AcademicTerm,
-  Course,
-} from '@/features/courses/types.ts'
-import { type FilterConfig, useFilter } from '@/hooks/useFilter.ts'
-import { createFilterOption, formatTerm } from '@/utils/helpers.ts'
+  DetailedCourseOfferingDto,
+  EnrollmentPeriodDto,
+} from '@/integrations/api/client'
+import {
+  courseOfferingControllerFindCourseOfferingsByPeriodOptions,
+  enrollmentControllerFindActiveEnrollmentOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
-import { IconCalendarTime, IconUserCode } from '@tabler/icons-react'
-import { useState } from 'react'
-
-type MentorAdminDashboardProps = {
-  academicTerms: AcademicTerm[]
-  academicPrograms: AcademicProgram[]
-  coursesData: Course[]
-}
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useState, type ReactNode } from 'react'
 
 export const adminCourseFilterConfig: FilterConfig<Course> = {
   Term: (course, value) => {
@@ -35,96 +32,103 @@ export const adminCourseFilterConfig: FilterConfig<Course> = {
   },
 }
 
-const MentorAdminDashboardPage = ({
-  academicTerms,
-  academicPrograms,
-  coursesData,
-}: MentorAdminDashboardProps) => {
-  const [view, setView] = useState<'grid' | 'list'>('grid')
-  const [searchFilteredCourses, setSearchFilteredCourses] =
-    useState<Course[]>(coursesData)
+function AdminCourseDashboardProvider({
+  children,
+  props = {
+    search: '',
+    page: 1,
+  },
+}: {
+  children: (props: {
+    enrollmentPeriodData: EnrollmentPeriodDto
+    courseOfferings: DetailedCourseOfferingDto[]
+    message: string
+    totalPages: number
+  }) => ReactNode
+  props?: {
+    search?: string
+    page: number
+  }
+}) {
+  const { search, page } = props
 
-  const filters: FilterType[] = [
-    {
-      id: '',
-      label: 'Term',
-      icon: <IconCalendarTime size={16} />,
-      type: 'select',
-      value: '',
-      options: [
-        { label: 'Current', value: 'current' },
-        ...academicTerms.map((term) => createFilterOption(formatTerm(term))),
-      ],
-    },
-    {
-      id: '',
-      label: 'Program',
-      icon: <IconUserCode size={16} />,
-      type: 'select',
-      value: '',
-      options: [
-        ...academicPrograms.map((program) =>
-          createFilterOption(program.programCode),
-        ),
-      ],
-    },
-  ]
-
-  const defaultFilters: FilterType[] = [{ ...filters[0], value: 'current' }]
-
-  const [showFilters, setShowFilters] = useState(true)
-
-  const {
-    activeFilters,
-    filteredData, // 👈 Course[]
-    activeFilterCount,
-    handleAddFilter,
-    handleRemoveFilter,
-    handleFilterChange,
-  } = useFilter<Course>(
-    defaultFilters,
-    searchFilteredCourses,
-    adminCourseFilterConfig,
+  const { data: enrollmentPeriodData } = useSuspenseQuery(
+    enrollmentControllerFindActiveEnrollmentOptions(),
   )
+
+  const { data: courseData } = useSuspenseQuery(
+    courseOfferingControllerFindCourseOfferingsByPeriodOptions({
+      query: {
+        page: page,
+        search: search || undefined,
+      },
+      path: {
+        enrollmentId: enrollmentPeriodData.id,
+      },
+    }),
+  )
+
+  const courseOfferings = courseData.courseOfferings
+
+  const limit = 10
+  const total = courseOfferings.length
+  const totalPages = 1
+
+  const message = formatPaginationMessage({
+    page,
+    total,
+    limit,
+  })
+
+  console.log(courseOfferings)
+
+  return children({
+    enrollmentPeriodData,
+    courseOfferings,
+    message,
+    totalPages,
+  })
+}
+
+function AdminCourseDashboardPage() {
+  const [view, setView] = useState<'grid' | 'list'>('grid')
 
   return (
     <Container size="md" w="100%" pb="xl">
       <Stack gap="lg">
-        <CourseDashboardHeader
-          coursesData={coursesData}
-          filters={filters}
-          activeFilters={activeFilters}
-          onSearchFilter={setSearchFilteredCourses}
-          handleAddFilter={handleAddFilter}
-          handleRemoveFilter={handleRemoveFilter}
-          handleFilterChange={handleFilterChange}
-          view={view}
-          onViewChange={setView}
-        />
+        <CourseDashboardHeader view={view} onViewChange={setView} />
         <Group
           wrap="wrap"
           gap="md"
           style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
         >
-          {filteredData.map((course, index) =>
-            view === 'grid' ? (
-              <CourseCard
-                key={index}
-                url={`/courses/${course.courseCode}`}
-                course={course}
-              />
-            ) : (
-              <CourseListRow
-                key={index}
-                url={`/courses/${course.courseCode}`}
-                course={course}
-              />
-            ),
-          )}
+          <AdminCourseDashboardProvider>
+            {({ courseOfferings }) =>
+              courseOfferings.map((course, index) =>
+                course.courseSections.map((section) =>
+                  view === 'grid' ? (
+                    <CourseCard
+                      key={index}
+                      url={`/courses/${section.id}`}
+                      course={course.course}
+                      section={section}
+                    />
+                  ) : (
+                    <CourseListRow
+                      key={index}
+                      url={`/courses/${section.id}`}
+                      section={section}
+                      course={course.course}
+                    />
+                  ),
+                ),
+              )
+            }
+          </AdminCourseDashboardProvider>
         </Group>
       </Stack>
     </Container>
   )
 }
 
-export default MentorAdminDashboardPage
+export default AdminCourseDashboardPage
