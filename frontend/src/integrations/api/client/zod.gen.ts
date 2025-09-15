@@ -1260,6 +1260,37 @@ export const zDetailedModuleSectionDto = z.object({
 
 export const zUpdateModuleSectionDto = z.object({});
 
+export const zContentType = z.enum([
+    'LESSON',
+    'ASSIGNMENT',
+    'QUIZ',
+    'DISCUSSION',
+    'VIDEO',
+    'URL',
+    'FILE'
+]);
+
+export const zModuleContentInfoDto = z.object({
+    id: z.string(),
+    order: z.int(),
+    contentType: zContentType,
+    moduleSectionId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    moduleId: z.string()
+});
+
+export const zDetailedContentProgressDto = z.object({
+    id: z.string(),
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    userId: z.string(),
+    moduleContent: zModuleContentInfoDto
+});
+
 export const zTestControllerTestStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -2157,6 +2188,27 @@ export const zLmsSectionControllerUpdateData = z.object({
 });
 
 export const zLmsSectionControllerUpdateResponse = zDetailedModuleSectionDto;
+
+export const zLmsContentControllerCreateContentProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string(),
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerCreateContentProgressResponse = zDetailedContentProgressDto;
+
+export const zLmsContentControllerFindAllContentProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
 
 export const zSwaggerControllerDownloadAllSpecsData = z.object({
     body: z.optional(z.never()),
