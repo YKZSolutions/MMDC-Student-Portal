@@ -16,6 +16,7 @@ import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
+import { Group, type Group as GroupAsType } from './group.entity';
 
 export class Module {
   @ApiProperty({
@@ -57,6 +58,8 @@ export class Module {
   moduleContents?: ModuleContentAsType[];
   @ApiHideProperty()
   progresses?: ContentProgressAsType[];
+  @ApiHideProperty()
+  groups?: GroupAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

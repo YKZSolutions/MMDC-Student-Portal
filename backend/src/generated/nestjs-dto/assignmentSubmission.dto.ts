@@ -10,6 +10,11 @@ export class AssignmentSubmissionDto {
     type: () => Object,
     nullable: true,
   })
+  groupSnapshot: Prisma.JsonValue | null;
+  @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
