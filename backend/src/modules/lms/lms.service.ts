@@ -50,19 +50,28 @@ export class LmsService {
   })
   async initializeCourseModule(
     @LogParam('courseId') courseId: string,
+    @LogParam('sectionIds') sectionIds: string[],
   ): Promise<ModuleDto> {
     const course = await this.prisma.client.course.findUniqueOrThrow({
       where: { id: courseId },
       select: { id: true, name: true },
     });
-
-    return await this.prisma.client.module.create({
+    // Create the module
+    const module = await this.prisma.client.module.create({
       data: {
-        courseId: course.id,
         title: course.name,
-        courseOfferingId: null,
       },
     });
+    // For each section, create a SectionModule link
+    for (const sectionId of sectionIds) {
+      await this.prisma.client.sectionModule.create({
+        data: {
+          courseSectionId: sectionId,
+          moduleId: module.id,
+        },
+      });
+    }
+    return module;
   }
 
   /**
