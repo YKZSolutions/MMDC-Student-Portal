@@ -236,8 +236,6 @@ model Course {
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings
-  /// @DtoApiHidden
-  modules         Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -342,8 +340,6 @@ model CourseOffering {
   courseEnrollments CourseEnrollment[] // Each offering can have multiple enrollments
   /// @DtoApiHidden
   courseSections    CourseSection[] // Each offering can have multiple sections
-  /// @DtoApiHidden
-  modules           Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -367,13 +363,13 @@ model CourseSection {
 
   name String
 
-  mentorId String? @db.Uuid // make mentor optional
   /// @DtoApiHidden
   user     User?   @relation(fields: [mentorId], references: [id], onDelete: SetNull)
+  mentorId String? @db.Uuid // make mentor optional
 
-  courseOfferingId String         @db.Uuid // Each section belong to one offering
   /// @DtoApiHidden
   courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String         @db.Uuid // Each section belong to one offering
 
   courseEnrollments CourseEnrollment[] // Each course section has multiple student enrolled
 
@@ -390,6 +386,9 @@ model CourseSection {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  /// @DtoApiHidden
+  sectionModules SectionModule[]
 }
 
 enum CourseEnrollmentStatus {
@@ -405,17 +404,17 @@ enum CourseEnrollmentStatus {
 model CourseEnrollment {
   id String @id @default(uuid()) @db.Uuid
 
-  courseOfferingId String         @db.Uuid // Each enrolled courses belong to one offering
   /// @DtoApiHidden
   courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String         @db.Uuid // Each enrolled courses belong to one offering
 
-  courseSectionId String        @db.Uuid // Each student enrollment belong to one section
   /// @DtoApiHidden
   courseSection   CourseSection @relation(fields: [courseSectionId], references: [id])
+  courseSectionId String        @db.Uuid // Each student enrollment belong to one section
 
-  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
   user      User   @relation(fields: [studentId], references: [id])
+  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
 
   status      CourseEnrollmentStatus
   startedAt   DateTime
@@ -531,17 +530,8 @@ model Module {
   id    String @id @default(uuid()) @db.Uuid
   title String
 
-  courseId String @db.Uuid
   /// @DtoApiHidden
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  courseOfferingId String?         @db.Uuid
-  /// @DtoApiHidden
-  courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
-
-  publishedAt DateTime?
-  toPublishAt DateTime?
-
+  sectionModules SectionModule[]
   /// @DtoApiHidden
   moduleSections ModuleSection[]
   /// @DtoApiHidden
@@ -549,14 +539,35 @@ model Module {
   /// @DtoApiHidden
   progresses     ContentProgress[]
 
+  publishedAt DateTime?
+  toPublishAt DateTime?
+  unpublishedAt DateTime?
+
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
   /// @DtoReadOnly
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+}
 
-  @@index([courseId])
+model SectionModule {
+  id             String       @id @default(uuid()) @db.Uuid
+  courseSection  CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String      @db.Uuid
+
+  module         Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId       String        @db.Uuid
+
+  order          Int           @default(0)
+  publishedAt    DateTime?
+  toPublishAt    DateTime?
+
+  classMeetings Json?
+
+  @@unique([courseSectionId, moduleId])
+  @@index([courseSectionId])
+  @@index([moduleId])
 }
 
 model ModuleSection {

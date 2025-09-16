@@ -9,6 +9,10 @@ import {
   CourseEnrollment,
   type CourseEnrollment as CourseEnrollmentAsType,
 } from './courseEnrollment.entity';
+import {
+  SectionModule,
+  type SectionModule as SectionModuleAsType,
+} from './sectionModule.entity';
 
 export class CourseSection {
   @ApiProperty({
@@ -73,4 +77,6 @@ export class CourseSection {
     nullable: true,
   })
   deletedAt: Date | null;
+  @ApiHideProperty()
+  sectionModules?: SectionModuleAsType[];
 }

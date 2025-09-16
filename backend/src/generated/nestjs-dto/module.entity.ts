@@ -1,9 +1,8 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Course, type Course as CourseAsType } from './course.entity';
 import {
-  CourseOffering,
-  type CourseOffering as CourseOfferingAsType,
-} from './courseOffering.entity';
+  SectionModule,
+  type SectionModule as SectionModuleAsType,
+} from './sectionModule.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
@@ -26,19 +25,14 @@ export class Module {
     type: 'string',
   })
   title: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  courseId: string;
   @ApiHideProperty()
-  course?: CourseAsType;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  courseOfferingId: string | null;
+  sectionModules?: SectionModuleAsType[];
   @ApiHideProperty()
-  courseOffering?: CourseOfferingAsType | null;
+  moduleSections?: ModuleSectionAsType[];
+  @ApiHideProperty()
+  moduleContents?: ModuleContentAsType[];
+  @ApiHideProperty()
+  progresses?: ContentProgressAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -51,12 +45,12 @@ export class Module {
     nullable: true,
   })
   toPublishAt: Date | null;
-  @ApiHideProperty()
-  moduleSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
-  @ApiHideProperty()
-  progresses?: ContentProgressAsType[];
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

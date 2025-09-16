@@ -501,9 +501,7 @@ export class LmsContentService {
     // ----- Base filters -----
     if (filters.contentFilter) {
       console.log('setting contentFilter');
-      const { contentType, ...contentFilterWithoutType } =
-        filters.contentFilter;
-      Object.assign(whereCondition, contentFilterWithoutType);
+      Object.assign(whereCondition, filters.contentFilter);
     }
 
     console.log('step 1');
@@ -609,19 +607,7 @@ export class LmsContentService {
         some: {
           ...(role === Role.student && { user: { id: userId } }),
           ...(filters.progressFilter && { status: filters.progressFilter }),
-          ...(role === Role.admin &&
-            filters.search && {
-              user: {
-                studentDetails: {
-                  is: {
-                    studentNumber: {
-                      contains: filters.search,
-                      mode: Prisma.QueryMode.insensitive,
-                    },
-                  },
-                },
-              },
-            }),
+          // Removed invalid studentDetails.studentNumber filter
         },
       };
     }
@@ -799,6 +785,26 @@ export class LmsContentService {
 
     console.log('step 6');
     console.dir(whereCondition, { depth: null });
+
+    // ----- Mentor filtering -----
+    if (role === Role.mentor && userId) {
+      // 1. Find all CourseSection IDs where mentorId = userId
+      const mentorSections = await this.prisma.client.courseSection.findMany({
+        where: { mentorId: userId },
+        select: { id: true },
+      });
+      const mentorSectionIds = mentorSections.map((s) => s.id);
+
+      // 2. Find all SectionModule records for those section IDs
+      const sectionModules = await this.prisma.client.sectionModule.findMany({
+        where: { courseSectionId: { in: mentorSectionIds } },
+        select: { moduleId: true },
+      });
+      const allowedModuleIds = sectionModules.map((sm) => sm.moduleId);
+
+      // 3. Filter ModuleContent by those module IDs
+      whereCondition.moduleId = { in: allowedModuleIds };
+    }
 
     // ----- Final Query -----
     const [items, meta] = await this.prisma.client.moduleContent
