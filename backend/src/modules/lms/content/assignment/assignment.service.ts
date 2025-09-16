@@ -157,6 +157,7 @@ export class AssignmentService {
       submissions: assignment.submissions.map((submission) => ({
         ...submission,
         content: submission.content as Prisma.JsonValue,
+        groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
       })),
     };
   }

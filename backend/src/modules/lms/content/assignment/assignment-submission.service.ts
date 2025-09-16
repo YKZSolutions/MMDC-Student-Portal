@@ -60,6 +60,7 @@ export class AssignmentSubmissionService {
     return {
       ...submission,
       content: submission.content as Prisma.JsonValue,
+      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
     };
   }
 
@@ -91,6 +92,7 @@ export class AssignmentSubmissionService {
     return {
       ...submission,
       content: submission.content as Prisma.JsonValue,
+      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
     };
   }
 
@@ -116,6 +118,7 @@ export class AssignmentSubmissionService {
     return {
       ...result,
       content: result.content as Prisma.JsonValue,
+      groupSnapshot: result.groupSnapshot as Prisma.JsonValue,
     };
   }
 
@@ -141,6 +144,7 @@ export class AssignmentSubmissionService {
     return results.map((r) => ({
       ...r,
       content: r.content as Prisma.JsonValue,
+      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
     }));
   }
 
@@ -165,6 +169,7 @@ export class AssignmentSubmissionService {
     return results.map((r) => ({
       ...r,
       content: r.content as Prisma.JsonValue,
+      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
     }));
   }
 
@@ -189,6 +194,7 @@ export class AssignmentSubmissionService {
     return results.map((r) => ({
       ...r,
       content: r.content as Prisma.JsonValue,
+      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
     }));
   }
 
