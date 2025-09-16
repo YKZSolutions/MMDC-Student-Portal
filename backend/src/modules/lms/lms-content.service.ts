@@ -1,40 +1,26 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import {
-  ContentType,
-  CourseEnrollmentStatus,
-  Prisma,
-  Role,
-} from '@prisma/client';
-import { isUUID } from 'class-validator';
-import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
-import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
-import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
-import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
-import { FileService } from '@/modules/lms/content/file/file.service';
-import { UrlService } from '@/modules/lms/content/url/url.service';
-import { VideoService } from '@/modules/lms/content/video/video.service';
-import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import {BadRequestException, ConflictException, Inject, Injectable, NotFoundException,} from '@nestjs/common';
+import {CustomPrismaService} from 'nestjs-prisma';
+import {CreateContentDto} from '@/modules/lms/dto/create-content.dto';
+import {ContentType, CourseEnrollmentStatus, Prisma, Role,} from '@prisma/client';
+import {isUUID} from 'class-validator';
+import {omitAuditDates, omitPublishFields} from '@/config/prisma_omit.config';
+import {ExtendedPrismaClient} from '@/lib/prisma/prisma.extension';
+import {AuthUser} from '@/common/interfaces/auth.user-metadata';
+import {DetailedContentProgressDto} from './dto/detailed-content-progress.dto';
+import {LogParam} from '@/common/decorators/log-param.decorator';
+import {Log} from '@/common/decorators/log.decorator';
+import {PrismaError, PrismaErrorCode,} from '@/common/decorators/prisma-error.decorator';
+import {UpdateContentDto} from '@/modules/lms/dto/update-content.dto';
+import {ModuleContent} from '@/generated/nestjs-dto/moduleContent.entity';
+import {AssignmentService} from '@/modules/lms/content/assignment/assignment.service';
+import {QuizService} from '@/modules/lms/content/quiz/quiz.service';
+import {DiscussionService} from '@/modules/lms/content/discussion/discussion.service';
+import {FileService} from '@/modules/lms/content/file/file.service';
+import {UrlService} from '@/modules/lms/content/url/url.service';
+import {VideoService} from '@/modules/lms/content/video/video.service';
+import {LessonService} from '@/modules/lms/content/lesson/lessson.service';
+import {PaginatedModuleContentDto} from '@/modules/lms/dto/paginated-module-content.dto';
+import {FilterModuleContentsDto} from '@/modules/lms/dto/filter-module-contents.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -500,7 +486,7 @@ export class LmsContentService {
         ...filters.moduleFilter,
         courseOffering: {
           enrollmentPeriod: filters.enrollmentFilter,
-          ...(role === 'student' && {
+          ...(role === Role.student && {
             courseEnrollments: {
               some: {
                 studentId: userId,
@@ -508,6 +494,9 @@ export class LmsContentService {
                   in: [
                     CourseEnrollmentStatus.enrolled,
                     CourseEnrollmentStatus.completed,
+                    CourseEnrollmentStatus.incomplete,
+                    CourseEnrollmentStatus.failed,
+                    CourseEnrollmentStatus.dropped,
                   ],
                 },
               },
@@ -515,10 +504,10 @@ export class LmsContentService {
           }),
         },
       },
-      ...(role === 'student' && {
+      ...(role === Role.student && {
         publishedAt: { not: null, lte: new Date() },
       }),
-      ...(role !== 'student' && {
+      ...(role !== Role.student && {
         createdAt: {
           gte: filters.contentFilter?.createdAtFrom,
           lte: filters.contentFilter?.createdAtTo,
@@ -534,10 +523,10 @@ export class LmsContentService {
       }),
       studentProgress: {
         some: {
-          user: { id: role === 'student' ? userId : undefined },
+          ...(role === Role.student && { user: { id: userId } }),
           // TODO: Add mentor filter where they only see their own students
           status: filters.progressFilter,
-          ...(role === 'admin' && {
+          ...(role === Role.admin && {
             user: {
               studentDetails: {
                 is: {
@@ -669,7 +658,12 @@ export class LmsContentService {
           video: {
             omit: { content: true },
           },
-          studentProgress: true,
+          studentProgress:
+            role === Role.student
+              ? {
+                  where: { userId },
+                }
+              : true,
         },
         orderBy: [
           {

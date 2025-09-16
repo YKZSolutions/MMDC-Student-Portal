@@ -10,7 +10,7 @@ import {
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
-import { Prisma } from '@prisma/client';
+import { EnrollmentStatus, Prisma } from '@prisma/client';
 import { PaginatedModulesDto } from './dto/paginated-module.dto';
 import { FilterModulesDto } from './dto/filter-modules.dto';
 import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
@@ -559,9 +559,7 @@ export class LmsService {
     // First, get the active enrollment period
     const activeTerm = await this.prisma.client.enrollmentPeriod.findFirst({
       where: {
-        status: 'active',
-        startDate: { lte: new Date() },
-        endDate: { gte: new Date() },
+        status: EnrollmentStatus.active,
       },
     });
 
