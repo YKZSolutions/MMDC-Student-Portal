@@ -5,7 +5,7 @@ import { AuditFilterDto } from '@/common/dto/audit-filter.dto';
 import { QuizDto } from '@/generated/nestjs-dto/quiz.dto';
 
 export class FilterQuizzesDto extends IntersectionType(
-  OmitType(QuizDto, ['content'] as const),
+  OmitType(QuizDto, ['content', 'questions'] as const),
   DueFilterDto,
 ) {}
 
