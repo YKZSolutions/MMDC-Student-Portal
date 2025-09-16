@@ -13,7 +13,10 @@ import {
 } from '@nestjs/common';
 import { LmsService } from '@/modules/lms/lms.service';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import {
+  AuthUser,
+  CurrentAuthUser,
+} from '@/common/interfaces/auth.user-metadata';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -21,8 +24,10 @@ import { Role } from '@/common/enums/roles.enum';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
-@Controller('lms')
+@Controller('modules')
 export class LmsController {
   constructor(private readonly lmsService: LmsService) {}
 
@@ -84,5 +89,25 @@ export class LmsController {
     @Query() query?: DeleteQueryDto,
   ) {
     return this.lmsService.remove(id, query?.directDelete);
+  }
+
+  /**
+   * Retrieve multiple module contents based on filters
+   *
+   * @remarks Requires `ADMIN` or `MENTOR` role.
+   *
+   * @returns ModuleContent if role is `ADMIN` or `MENTOR`
+   * @returns StudentContentDto if role is `STUDENT`
+   *
+   */
+  @ApiOkResponse({
+    type: ModuleContent,
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  @Roles(Role.STUDENT)
+  @Get('/todo')
+  findTodos(@CurrentUser() user: CurrentAuthUser): Promise<PaginatedTodosDto> {
+    const { user_id } = user.user_metadata;
+    return this.lmsService.findTodos(user_id);
   }
 }

@@ -3,16 +3,14 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { Prisma } from '@prisma/client';
 import { PaginatedModulesDto } from './dto/paginated-module.dto';
 import { FilterModulesDto } from './dto/filter-modules.dto';
+import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
 
 @Injectable()
 export class LmsService {
@@ -541,5 +539,148 @@ export class LmsService {
     return {
       message: `Module "${module.title}" and all related sections and contents were permanently deleted.`,
     };
+  }
+
+  @Log({
+    logArgsMessage: ({ userId, page, limit }) =>
+      `Fetching todos for user ${userId} in active term (page: ${page}, limit: ${limit})`,
+    logSuccessMessage: (result) =>
+      `Successfully fetched ${result.todos.length} todos`,
+    logErrorMessage: (err, { userId }) =>
+      `Error fetching todos for user ${userId}: ${err.message}`,
+  })
+  async findTodos(
+    @LogParam('userId') userId: string,
+    @LogParam('page') page: number = 1,
+  ): Promise<PaginatedTodosDto> {
+    // First, get the active enrollment period
+    const activeTerm = await this.prisma.client.enrollmentPeriod.findFirst({
+      where: {
+        status: 'active',
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() },
+      },
+    });
+
+    if (!activeTerm) {
+      return {
+        todos: [],
+        meta: {
+          isFirstPage: true,
+          isLastPage: true,
+          currentPage: page,
+          previousPage: page,
+          nextPage: page,
+          pageCount: 1,
+          totalCount: 0,
+        },
+      };
+    }
+
+    // Get user's enrolled courses in active term
+    const userEnrollments = await this.prisma.client.courseEnrollment.findMany({
+      where: {
+        studentId: userId,
+        status: 'enrolled',
+        courseOffering: {
+          periodId: activeTerm.id,
+        },
+      },
+      include: {
+        courseOffering: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    const courseOfferingIds = userEnrollments.map(
+      (enrollment) => enrollment.courseOfferingId,
+    );
+
+    // Get todos (assignments and quizzes with due dates)
+    const whereCondition: Prisma.ModuleContentWhereInput = {
+      module: {
+        courseOfferingId: { in: courseOfferingIds },
+      },
+      OR: [
+        {
+          contentType: 'ASSIGNMENT',
+          assignment: {
+            dueDate: { gte: new Date() },
+          },
+        },
+        {
+          contentType: 'QUIZ',
+          quiz: {
+            dueDate: { gte: new Date() },
+          },
+        },
+      ],
+      publishedAt: { lte: new Date() },
+    };
+
+    const [todos, meta] = await this.prisma.client.moduleContent
+      .paginate({
+        where: whereCondition,
+        include: {
+          assignment: true,
+          quiz: true,
+          module: {
+            include: {
+              courseOffering: {
+                include: {
+                  course: true,
+                  enrollmentPeriod: true,
+                },
+              },
+            },
+          },
+          studentProgress: {
+            where: { userId },
+          },
+        },
+        orderBy: [
+          {
+            assignment: {
+              dueDate: 'asc',
+            },
+          },
+          {
+            quiz: {
+              dueDate: 'asc',
+            },
+          },
+        ],
+      })
+      .withPages({
+        limit: 10,
+        page,
+        includePageCount: true,
+      });
+
+    // Transform the results to include progress status
+    const items = todos.map((todo) => {
+      const title = todo.assignment?.title || todo.quiz?.title;
+      const dueDate = todo.assignment?.dueDate || todo.quiz?.dueDate;
+
+      if (!title) {
+        throw new Error(`Content ${todo.id} is missing a title`);
+      }
+      if (!dueDate) {
+        throw new Error(`Content ${todo.id} is missing a due date`);
+      }
+
+      return {
+        id: todo.id,
+        type: todo.contentType,
+        title,
+        dueDate,
+        moduleName: todo.module.title,
+      };
+    });
+
+    return { todos: items, meta };
   }
 }
