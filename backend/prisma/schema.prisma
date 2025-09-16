@@ -66,6 +66,8 @@ model User {
   postedDiscussions    DiscussionPost[]
   /// @DtoApiHidden
   moduleProgress       ContentProgress[]
+  /// @DtoApiHidden
+  groups               GroupMember[]
 
   firstName  String
   middleName String?
@@ -546,6 +548,8 @@ model Module {
   moduleContents ModuleContent[]
   /// @DtoApiHidden
   progresses     ContentProgress[]
+  /// @DtoApiHidden
+  groups         Group[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -722,6 +726,11 @@ model AssignmentSubmission {
 
   /// @DtoApiHidden
   student User @relation(fields: [studentId], references: [id])
+
+  // Group submissions
+  groupId       String? @db.Uuid
+  group         Group?  @relation(fields: [groupId], references: [id])
+  groupSnapshot Json?
 
   /// Text submission
   content       Json?
@@ -1024,6 +1033,40 @@ model AssignmentGradeRecord {
   @@index([studentId, finalScore])
   @@index([gradedAt])
   @@index([finalScore, gradingId])
+}
+
+model Group {
+  id String @id @default(uuid()) @db.Uuid
+
+  moduleId String @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  groupNumber Int
+  groupName   String?
+  /// @DtoApiHidden
+  members     GroupMember[]
+  /// @DtoApiHidden
+  submissions AssignmentSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([moduleId, groupNumber])
+}
+
+model GroupMember {
+  id String @id @default(uuid()) @db.Uuid
+
+  groupId String @db.Uuid
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  studentId String @db.Uuid
+  user      User   @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([groupId, studentId])
 }
 
 model Notification {
