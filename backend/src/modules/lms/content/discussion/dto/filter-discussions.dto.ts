@@ -1,43 +1,15 @@
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IntersectionType, OmitType } from '@nestjs/swagger';
+import { DueFilterDto } from '@/common/dto/due-filter.dto';
+import { AuditFilterDto } from '@/common/dto/audit-filter.dto';
+import { DiscussionDto } from '@/generated/nestjs-dto/discussion.dto';
 
-export class FilterDiscussionsDto extends BaseFilterDto {
-  @ApiPropertyOptional({ type: 'string' })
-  id?: string;
+export class FilterDiscussionsDto extends IntersectionType(
+  OmitType(DiscussionDto, ['content'] as const),
+  DueFilterDto,
+) {}
 
-  @ApiPropertyOptional({ type: 'string' })
-  title?: string;
-
-  @ApiPropertyOptional({ type: 'string' })
-  titleContains?: string;
-
-  @ApiPropertyOptional({ type: 'string' })
-  subtitle?: string;
-
-  @ApiPropertyOptional({ type: 'string' })
-  subtitleContains?: string;
-
-  @ApiPropertyOptional({ type: 'boolean' })
-  isThreaded?: boolean;
-
-  @ApiPropertyOptional({ type: 'boolean' })
-  requirePost?: boolean;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
-  createdAtFrom?: Date;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
-  createdAtTo?: Date;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
-  updatedAtFrom?: Date;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
-  updatedAtTo?: Date;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
-  deletedAtFrom?: Date;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
-  deletedAtTo?: Date;
-}
+export class ExtendedFilterDiscussionsDto extends IntersectionType(
+  BaseFilterDto,
+  AuditFilterDto,
+) {}
