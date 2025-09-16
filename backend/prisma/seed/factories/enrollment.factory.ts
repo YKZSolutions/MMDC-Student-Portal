@@ -1,5 +1,10 @@
 import { faker } from '@faker-js/faker';
-import { CourseEnrollmentStatus, Days, EnrollmentStatus, Prisma, } from '@prisma/client';
+import {
+  CourseEnrollmentStatus,
+  Days,
+  EnrollmentStatus,
+  Prisma,
+} from '@prisma/client';
 import { pickRandomEnum } from '../utils/helpers';
 
 export function createEnrollmentPeriodData(
