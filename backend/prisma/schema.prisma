@@ -135,7 +135,7 @@ model StudentDetails {
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  studentNumber String
+  studentNumber String      @unique
   studentType   StudentType
   admissionDate DateTime
   otherDetails  Json
@@ -146,6 +146,8 @@ model StudentDetails {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@index(studentNumber)
 }
 
 model StaffDetails {
