@@ -1,26 +1,40 @@
-import {BadRequestException, ConflictException, Inject, Injectable, NotFoundException,} from '@nestjs/common';
-import {CustomPrismaService} from 'nestjs-prisma';
-import {CreateContentDto} from '@/modules/lms/dto/create-content.dto';
-import {ContentType, CourseEnrollmentStatus, Prisma, Role,} from '@prisma/client';
-import {isUUID} from 'class-validator';
-import {omitAuditDates, omitPublishFields} from '@/config/prisma_omit.config';
-import {ExtendedPrismaClient} from '@/lib/prisma/prisma.extension';
-import {AuthUser} from '@/common/interfaces/auth.user-metadata';
-import {DetailedContentProgressDto} from './dto/detailed-content-progress.dto';
-import {LogParam} from '@/common/decorators/log-param.decorator';
-import {Log} from '@/common/decorators/log.decorator';
-import {PrismaError, PrismaErrorCode,} from '@/common/decorators/prisma-error.decorator';
-import {UpdateContentDto} from '@/modules/lms/dto/update-content.dto';
-import {ModuleContent} from '@/generated/nestjs-dto/moduleContent.entity';
-import {AssignmentService} from '@/modules/lms/content/assignment/assignment.service';
-import {QuizService} from '@/modules/lms/content/quiz/quiz.service';
-import {DiscussionService} from '@/modules/lms/content/discussion/discussion.service';
-import {FileService} from '@/modules/lms/content/file/file.service';
-import {UrlService} from '@/modules/lms/content/url/url.service';
-import {VideoService} from '@/modules/lms/content/video/video.service';
-import {LessonService} from '@/modules/lms/content/lesson/lessson.service';
-import {PaginatedModuleContentDto} from '@/modules/lms/dto/paginated-module-content.dto';
-import {FilterModuleContentsDto} from '@/modules/lms/dto/filter-module-contents.dto';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import {
+  ContentType,
+  CourseEnrollmentStatus,
+  Prisma,
+  Role,
+} from '@prisma/client';
+import { isUUID } from 'class-validator';
+import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
+import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
+import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
+import { FileService } from '@/modules/lms/content/file/file.service';
+import { UrlService } from '@/modules/lms/content/url/url.service';
+import { VideoService } from '@/modules/lms/content/video/video.service';
+import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -479,203 +493,330 @@ export class LmsContentService {
     @LogParam('role') role: Role,
     @LogParam('userId') userId?: string,
   ): Promise<PaginatedModuleContentDto> {
-    const whereCondition: Prisma.ModuleContentWhereInput = {
-      ...filters.contentFilter,
-      moduleSection: filters.sectionFilter,
-      module: {
-        ...filters.moduleFilter,
-        courseOffering: {
-          enrollmentPeriod: filters.enrollmentFilter,
-          ...(role === Role.student && {
-            courseEnrollments: {
-              some: {
-                studentId: userId,
-                status: {
-                  in: [
-                    CourseEnrollmentStatus.enrolled,
-                    CourseEnrollmentStatus.completed,
-                    CourseEnrollmentStatus.incomplete,
-                    CourseEnrollmentStatus.failed,
-                    CourseEnrollmentStatus.dropped,
-                  ],
-                },
+    const whereCondition: Prisma.ModuleContentWhereInput = {};
+    const now = new Date();
+
+    console.log('filters', filters);
+
+    // ----- Base filters -----
+    if (filters.contentFilter) {
+      console.log('setting contentFilter');
+      const { contentType, ...contentFilterWithoutType } =
+        filters.contentFilter;
+      Object.assign(whereCondition, contentFilterWithoutType);
+    }
+
+    console.log('step 1');
+    console.dir(whereCondition, { depth: null });
+
+    // Section filter
+    if (filters.sectionFilter) {
+      console.log('setting moduleSection');
+      whereCondition.moduleSection = filters.sectionFilter;
+    }
+
+    console.log('step 2');
+    console.dir(whereCondition, { depth: null });
+
+    // Module filter (with enrollment & student constraints)
+    if (
+      filters.moduleFilter ||
+      filters.enrollmentFilter ||
+      role === Role.student
+    ) {
+      console.log('setting module');
+      whereCondition.module = {
+        ...(filters.moduleFilter ?? {}),
+        ...(filters.enrollmentFilter || role === Role.student
+          ? {
+              courseOffering: {
+                ...(filters.enrollmentFilter
+                  ? { enrollmentPeriod: filters.enrollmentFilter }
+                  : {}),
+                ...(role === Role.student && {
+                  courseEnrollments: {
+                    some: {
+                      studentId: userId,
+                      status: {
+                        in: [
+                          CourseEnrollmentStatus.enrolled,
+                          CourseEnrollmentStatus.completed,
+                          CourseEnrollmentStatus.incomplete,
+                          CourseEnrollmentStatus.failed,
+                          CourseEnrollmentStatus.dropped,
+                        ],
+                      },
+                    },
+                  },
+                }),
               },
-            },
-          }),
-        },
-      },
-      ...(role === Role.student && {
-        publishedAt: { not: null, lte: new Date() },
-      }),
-      ...(role !== Role.student && {
-        createdAt: {
-          gte: filters.contentFilter?.createdAtFrom,
-          lte: filters.contentFilter?.createdAtTo,
-        },
-        updatedAt: {
-          gte: filters.contentFilter?.updatedAtFrom,
-          lte: filters.contentFilter?.updatedAtTo,
-        },
-        deletedAt: {
-          gte: filters.contentFilter?.deletedAtFrom,
-          lte: filters.contentFilter?.deletedAtTo,
-        },
-      }),
-      studentProgress: {
+            }
+          : {}),
+      };
+    }
+
+    console.log('step 3');
+    console.dir(whereCondition, { depth: null });
+
+    // Role-specific filters
+    if (role === Role.student) {
+      console.log('setting publishedAt to not null and lte now');
+      whereCondition.publishedAt = { not: null, lte: now };
+    } else {
+      if (
+        filters.contentFilter?.createdAtFrom ||
+        filters.contentFilter?.createdAtTo
+      ) {
+        console.log('filtering by createdAt');
+        whereCondition.createdAt = {
+          gte: filters.contentFilter.createdAtFrom,
+          lte: filters.contentFilter.createdAtTo,
+        };
+      }
+      if (
+        filters.contentFilter?.updatedAtFrom ||
+        filters.contentFilter?.updatedAtTo
+      ) {
+        console.log('filtering by updatedAt');
+        whereCondition.updatedAt = {
+          gte: filters.contentFilter.updatedAtFrom,
+          lte: filters.contentFilter.updatedAtTo,
+        };
+      }
+      if (
+        filters.contentFilter?.deletedAtFrom ||
+        filters.contentFilter?.deletedAtTo
+      ) {
+        console.log('filtering by deletedAt');
+        whereCondition.deletedAt = {
+          gte: filters.contentFilter.deletedAtFrom,
+          lte: filters.contentFilter.deletedAtTo,
+        };
+      }
+    }
+
+    console.log('step 4');
+    console.dir(whereCondition, { depth: null });
+
+    // Student progress filter
+    if (
+      filters.progressFilter ||
+      role === Role.student ||
+      role === Role.admin
+    ) {
+      console.log('setting studentProgress');
+      whereCondition.studentProgress = {
         some: {
           ...(role === Role.student && { user: { id: userId } }),
-          // TODO: Add mentor filter where they only see their own students
-          status: filters.progressFilter,
-          ...(role === Role.admin && {
-            user: {
-              studentDetails: {
-                is: {
-                  studentNumber: {
-                    contains: filters.search,
-                    mode: Prisma.QueryMode.insensitive,
+          ...(filters.progressFilter && { status: filters.progressFilter }),
+          ...(role === Role.admin &&
+            filters.search && {
+              user: {
+                studentDetails: {
+                  is: {
+                    studentNumber: {
+                      contains: filters.search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
                   },
                 },
               },
-            },
-          }),
+            }),
         },
-      },
-    };
-
-    switch (filters.contentFilter?.contentType) {
-      case ContentType.ASSIGNMENT:
-        whereCondition.contentType = ContentType.ASSIGNMENT;
-        whereCondition.assignment = {
-          ...filters.assignmentFilter,
-          dueDate: {
-            gte: filters.assignmentFilter?.dueDateFrom,
-            lte: filters.assignmentFilter?.dueDateTo,
-          },
-          title: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          subtitle: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        };
-        break;
-      case ContentType.QUIZ:
-        whereCondition.contentType = ContentType.QUIZ;
-        whereCondition.quiz = {
-          ...filters.quizFilter,
-          dueDate: {
-            gte: filters.quizFilter?.dueDateFrom,
-            lte: filters.quizFilter?.dueDateTo,
-          },
-          title: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          subtitle: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        };
-        break;
-      case ContentType.DISCUSSION:
-        whereCondition.contentType = ContentType.DISCUSSION;
-        whereCondition.discussion = {
-          title: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          subtitle: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        };
-        break;
-      case ContentType.FILE:
-        whereCondition.contentType = ContentType.FILE;
-        whereCondition.fileResource = {
-          title: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          subtitle: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        };
-        break;
-      case ContentType.URL:
-        whereCondition.contentType = ContentType.URL;
-        whereCondition.externalUrl = {
-          title: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          subtitle: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        };
-        break;
-      case ContentType.VIDEO:
-        whereCondition.contentType = ContentType.VIDEO;
-        whereCondition.video = {
-          title: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-          subtitle: {
-            contains: filters.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        };
-        break;
+      };
     }
 
+    console.log('step 5');
+    console.dir(whereCondition, { depth: null });
+
+    // ----- Content-type specific filters -----
+    if (filters.contentFilter?.contentType) {
+      console.log('setting contentType');
+      whereCondition.contentType = filters.contentFilter.contentType;
+
+      switch (filters.contentFilter.contentType) {
+        case ContentType.ASSIGNMENT:
+          console.log('setting assignment');
+          whereCondition.assignment = {
+            ...(filters.assignmentFilter ?? {}),
+            ...(filters.assignmentFilter?.dueDateFrom ||
+            filters.assignmentFilter?.dueDateTo
+              ? {
+                  dueDate: {
+                    gte: filters.assignmentFilter?.dueDateFrom,
+                    lte: filters.assignmentFilter?.dueDateTo,
+                  },
+                }
+              : {}),
+            ...(filters.search && {
+              OR: [
+                { title: { contains: filters.search, mode: 'insensitive' } },
+                { subtitle: { contains: filters.search, mode: 'insensitive' } },
+              ],
+            }),
+          };
+          break;
+
+        case ContentType.QUIZ:
+          console.log('setting quiz');
+          whereCondition.quiz = {
+            ...(filters.quizFilter ?? {}),
+            ...(filters.quizFilter?.dueDateFrom || filters.quizFilter?.dueDateTo
+              ? {
+                  dueDate: {
+                    gte: filters.quizFilter?.dueDateFrom,
+                    lte: filters.quizFilter?.dueDateTo,
+                  },
+                }
+              : {}),
+            ...(filters.search && {
+              OR: [
+                { title: { contains: filters.search, mode: 'insensitive' } },
+                { subtitle: { contains: filters.search, mode: 'insensitive' } },
+              ],
+            }),
+          };
+          break;
+
+        case ContentType.DISCUSSION:
+          console.log('setting discussion');
+          whereCondition.discussion = filters.search
+            ? {
+                OR: [
+                  { title: { contains: filters.search, mode: 'insensitive' } },
+                  {
+                    subtitle: { contains: filters.search, mode: 'insensitive' },
+                  },
+                ],
+              }
+            : {};
+          break;
+
+        case ContentType.FILE:
+          console.log('setting file');
+          whereCondition.fileResource = filters.search
+            ? {
+                OR: [
+                  { title: { contains: filters.search, mode: 'insensitive' } },
+                  {
+                    subtitle: { contains: filters.search, mode: 'insensitive' },
+                  },
+                ],
+              }
+            : {};
+          break;
+
+        case ContentType.URL:
+          console.log('setting externalUrl');
+          whereCondition.externalUrl = filters.search
+            ? {
+                OR: [
+                  { title: { contains: filters.search, mode: 'insensitive' } },
+                  {
+                    subtitle: { contains: filters.search, mode: 'insensitive' },
+                  },
+                ],
+              }
+            : {};
+          break;
+
+        case ContentType.VIDEO:
+          console.log('setting video');
+          whereCondition.video = filters.search
+            ? {
+                OR: [
+                  { title: { contains: filters.search, mode: 'insensitive' } },
+                  {
+                    subtitle: { contains: filters.search, mode: 'insensitive' },
+                  },
+                ],
+              }
+            : {};
+          break;
+
+        case ContentType.LESSON:
+          console.log('setting lesson');
+          whereCondition.lesson = filters.search
+            ? {
+                OR: [
+                  { title: { contains: filters.search, mode: 'insensitive' } },
+                  {
+                    subtitle: { contains: filters.search, mode: 'insensitive' },
+                  },
+                ],
+              }
+            : {};
+          break;
+      }
+    } else if (filters.search) {
+      console.log('setting global search');
+      whereCondition.OR = [
+        {
+          lesson: { title: { contains: filters.search, mode: 'insensitive' } },
+        },
+        {
+          lesson: {
+            subtitle: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        {
+          assignment: {
+            title: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        {
+          assignment: {
+            subtitle: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        { quiz: { title: { contains: filters.search, mode: 'insensitive' } } },
+        {
+          quiz: { subtitle: { contains: filters.search, mode: 'insensitive' } },
+        },
+        {
+          discussion: {
+            title: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        {
+          discussion: {
+            subtitle: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        {
+          fileResource: {
+            title: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        {
+          externalUrl: {
+            title: { contains: filters.search, mode: 'insensitive' },
+          },
+        },
+        { video: { title: { contains: filters.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    console.log('step 6');
+    console.dir(whereCondition, { depth: null });
+
+    // ----- Final Query -----
     const [items, meta] = await this.prisma.client.moduleContent
       .paginate({
         where: whereCondition,
         include: {
-          assignment: {
-            omit: { content: true },
-          },
-          quiz: {
-            omit: { content: true, questions: true },
-          },
-          lesson: {
-            omit: { content: true },
-          },
-          discussion: {
-            omit: { content: true },
-          },
-          fileResource: {
-            omit: { content: true },
-          },
-          externalUrl: {
-            omit: { content: true },
-          },
-          video: {
-            omit: { content: true },
-          },
-          studentProgress:
-            role === Role.student
-              ? {
-                  where: { userId },
-                }
-              : true,
+          assignment: { omit: { content: true } },
+          quiz: { omit: { content: true, questions: true } },
+          lesson: { omit: { content: true } },
+          discussion: { omit: { content: true } },
+          fileResource: { omit: { content: true } },
+          externalUrl: { omit: { content: true } },
+          video: { omit: { content: true } },
+          studentProgress: role === Role.student ? { where: { userId } } : true,
         },
         orderBy: [
-          {
-            assignment: {
-              dueDate: 'asc',
-            },
-          },
-          {
-            quiz: {
-              dueDate: 'asc',
-            },
-          },
+          { assignment: { dueDate: 'asc' } },
+          { quiz: { dueDate: 'asc' } },
         ],
       })
       .withPages({
