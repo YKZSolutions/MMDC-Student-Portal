@@ -135,7 +135,7 @@ model StudentDetails {
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  studentNumber Int
+  studentNumber String
   studentType   StudentType
   admissionDate DateTime
   otherDetails  Json
