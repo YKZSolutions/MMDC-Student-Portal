@@ -11,13 +11,15 @@ const supabase = new SupabaseService(new ConfigService<EnvVars>());
 export async function seedUsers(prisma: PrismaClient) {
   log('Seeding users...');
   const { TOTAL, ADMINS, MENTORS } = seedConfig.USERS;
-  const userPromises: Promise<User>[] = [];
 
-  const roleCounts: Record<Role, number> = {
-    admin: 0,
-    mentor: 0,
-    student: 0,
+  // Track whether we've already created an auth account for each role
+  const authCreated: Record<Role, boolean> = {
+    admin: false,
+    mentor: false,
+    student: false,
   };
+
+  const users: User[] = [];
 
   for (let i = 0; i < TOTAL; i++) {
     let role: Role;
@@ -25,13 +27,10 @@ export async function seedUsers(prisma: PrismaClient) {
     else if (i < ADMINS + MENTORS) role = Role.mentor;
     else role = Role.student;
 
-    roleCounts[role]++;
-
-    // default base user data
     const baseUserData = createUserData(role, i);
 
-    // if this is within the first 3 of that role, also create Supabase auth account
-    if (roleCounts[role] <= 3) {
+    if (!authCreated[role]) {
+      // First time we hit this role → create auth account
       const email = `${role}@tester.com`;
       const password = 'password';
 
@@ -51,38 +50,42 @@ export async function seedUsers(prisma: PrismaClient) {
 
       const authUser = account.data.user;
 
-      // attach authUid + email into userAccount relation
-      userPromises.push(
-        prisma.user.create({
-          data: {
-            ...baseUserData,
-            role,
-            userAccount: {
-              create: {
-                authUid: authUser.id,
-                email: authUser.email!,
-              },
+      const user = await prisma.user.create({
+        data: {
+          ...baseUserData,
+          role,
+          userAccount: {
+            create: {
+              authUid: authUser.id,
+              email: authUser.email!,
             },
           },
-        }),
-      );
+        },
+      });
+
+      await supabase.auth.admin.updateUserById(account.data.user.id, {
+        user_metadata: {
+          user_id: user.id,
+        },
+      });
+
+      users.push(user);
+      authCreated[role] = true; // mark as done
     } else {
-      // normal user creation (no auth account)
-      userPromises.push(
-        prisma.user.create({
-          data: {
-            ...baseUserData,
-            role,
-          },
-        }),
-      );
+      // Normal DB user (no auth)
+      const user = await prisma.user.create({
+        data: {
+          ...baseUserData,
+          role,
+        },
+      });
+      users.push(user);
     }
   }
 
-  const users = await Promise.all(userPromises);
-  const admins = users.filter((u) => u.role === 'admin');
-  const mentors = users.filter((u) => u.role === 'mentor');
-  const students = users.filter((u) => u.role === 'student');
+  const admins = users.filter((u) => u.role === Role.admin);
+  const mentors = users.filter((u) => u.role === Role.mentor);
+  const students = users.filter((u) => u.role === Role.student);
 
   log(`-> Created ${users.length} users.`);
   log(`   - ${admins.length} Admins`);
