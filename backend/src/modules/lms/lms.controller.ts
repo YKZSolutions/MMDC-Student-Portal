@@ -92,12 +92,10 @@ export class LmsController {
   }
 
   /**
-   * Retrieve multiple module contents based on filters
+   * Retrieve multiple todos
    *
-   * @remarks Requires `ADMIN` or `MENTOR` role.
+   * @remarks Requires `STUDENT` role.
    *
-   * @returns ModuleContent if role is `ADMIN` or `MENTOR`
-   * @returns StudentContentDto if role is `STUDENT`
    *
    */
   @ApiOkResponse({

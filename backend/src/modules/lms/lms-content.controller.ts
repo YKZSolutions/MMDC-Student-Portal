@@ -142,7 +142,7 @@ export class LmsContentController {
    *
    */
   @ApiOkResponse({
-    type: ModuleContent,
+    type: PaginatedModuleContentDto,
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
@@ -206,7 +206,7 @@ export class LmsContentController {
    * Requires `STUDENT` role
    *
    */
-  @Post(':moduleContentId')
+  @Post(':moduleContentId/progress')
   @Roles(Role.STUDENT)
   @ApiException(() => [
     BadRequestException,
@@ -232,7 +232,7 @@ export class LmsContentController {
    * - Mentors can fetch progress for a specific student (provide `studentId` query param).
    * - Students can fetch their own progress.
    */
-  @Get()
+  @Get('/progress')
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiException(() => [
     BadRequestException,
