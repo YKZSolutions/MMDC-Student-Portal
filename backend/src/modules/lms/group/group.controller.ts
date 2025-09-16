@@ -62,7 +62,10 @@ export class GroupController {
   @Patch(':id')
   @Roles(Role.ADMIN, Role.MENTOR)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateGroupDto: UpdateGroupDto,
+  ) {
     return this.groupService.update(id, updateGroupDto);
   }
 
@@ -76,7 +79,7 @@ export class GroupController {
   @Delete(':id')
   @Roles(Role.ADMIN, Role.MENTOR)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.groupService.remove(id);
   }
 }
