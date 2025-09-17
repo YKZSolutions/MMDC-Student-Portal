@@ -1,4 +1,9 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Course, type Course as CourseAsType } from './course.entity';
+import {
+  CourseOffering,
+  type CourseOffering as CourseOfferingAsType,
+} from './courseOffering.entity';
 import {
   SectionModule,
   type SectionModule as SectionModuleAsType,
@@ -25,6 +30,18 @@ export class Module {
     type: 'string',
   })
   title: string;
+  @ApiHideProperty()
+  course?: CourseAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  courseId: string;
+  @ApiHideProperty()
+  courseOffering?: CourseOfferingAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  courseOfferingId: string;
   @ApiHideProperty()
   sectionModules?: SectionModuleAsType[];
   @ApiHideProperty()

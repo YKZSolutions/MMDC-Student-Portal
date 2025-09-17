@@ -12,6 +12,7 @@ import {
   CourseSection,
   type CourseSection as CourseSectionAsType,
 } from './courseSection.entity';
+import { Module, type Module as ModuleAsType } from './module.entity';
 
 export class CourseOffering {
   @ApiProperty({
@@ -34,6 +35,8 @@ export class CourseOffering {
   courseEnrollments?: CourseEnrollmentAsType[];
   @ApiHideProperty()
   courseSections?: CourseSectionAsType[];
+  @ApiHideProperty()
+  modules?: ModuleAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

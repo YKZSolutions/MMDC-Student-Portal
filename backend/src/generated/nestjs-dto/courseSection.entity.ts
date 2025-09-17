@@ -23,19 +23,19 @@ export class CourseSection {
     type: 'string',
   })
   name: string;
+  @ApiHideProperty()
+  user?: UserAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   mentorId: string | null;
   @ApiHideProperty()
-  user?: UserAsType | null;
+  courseOffering?: CourseOfferingAsType;
   @ApiProperty({
     type: 'string',
   })
   courseOfferingId: string;
-  @ApiHideProperty()
-  courseOffering?: CourseOfferingAsType;
   @ApiProperty({
     type: () => CourseEnrollment,
     isArray: true,

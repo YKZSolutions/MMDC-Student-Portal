@@ -225,6 +225,9 @@ model Course {
   coreqs   Course[] @relation("CourseCoreq")
   coreqFor Course[] @relation("CourseCoreq")
 
+  /// @DtoApiHidden
+  modules         Module[]
+
   curriculumCourses CurriculumCourse[]
 
   courseCode  String  @unique
@@ -340,6 +343,8 @@ model CourseOffering {
   courseEnrollments CourseEnrollment[] // Each offering can have multiple enrollments
   /// @DtoApiHidden
   courseSections    CourseSection[] // Each offering can have multiple sections
+  /// @DtoApiHidden
+  modules Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -529,6 +534,14 @@ model BillPayment {
 model Module {
   id    String @id @default(uuid()) @db.Uuid
   title String
+
+  /// @DtoApiHidden
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String @db.Uuid
+
+  /// @DtoApiHidden
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String @db.Uuid
 
   /// @DtoApiHidden
   sectionModules SectionModule[]
