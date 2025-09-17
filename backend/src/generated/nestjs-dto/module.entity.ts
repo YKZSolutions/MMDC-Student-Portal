@@ -53,6 +53,8 @@ export class Module {
   moduleContents?: ModuleContentAsType[];
   @ApiHideProperty()
   progresses?: ContentProgressAsType[];
+  @ApiHideProperty()
+  groups?: GroupAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -65,14 +67,6 @@ export class Module {
     nullable: true,
   })
   toPublishAt: Date | null;
-  @ApiHideProperty()
-  moduleSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
-  @ApiHideProperty()
-  progresses?: ContentProgressAsType[];
-  @ApiHideProperty()
-  groups?: GroupAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
