@@ -27,7 +27,7 @@ import {
 } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { UpdatePublishDto } from '@/modules/lms/dto/update-publish.dto';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
@@ -171,11 +171,11 @@ export class LmsContentController {
   @Patch(':moduleContentId/publish')
   publish(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @Body() updatePublishDto: UpdatePublishDto,
+    @Query() query?: ToPublishAtDto,
   ) {
     return this.lmsPublishService.publishContent(
       moduleContentId,
-      updatePublishDto,
+      query?.toPublishAt,
     );
   }
 
