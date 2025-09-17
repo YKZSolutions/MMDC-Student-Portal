@@ -31,17 +31,19 @@ export class Module {
   })
   title: string;
   @ApiHideProperty()
-  course?: CourseAsType;
+  course?: CourseAsType | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  courseId: string;
+  courseId: string | null;
   @ApiHideProperty()
-  courseOffering?: CourseOfferingAsType;
+  courseOffering?: CourseOfferingAsType | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  courseOfferingId: string;
+  courseOfferingId: string | null;
   @ApiHideProperty()
   sectionModules?: SectionModuleAsType[];
   @ApiHideProperty()

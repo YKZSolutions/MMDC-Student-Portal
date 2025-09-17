@@ -536,12 +536,12 @@ model Module {
   title String
 
   /// @DtoApiHidden
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  courseId String @db.Uuid
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String? @db.Uuid
 
   /// @DtoApiHidden
-  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
-  courseOfferingId String @db.Uuid
+  courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String? @db.Uuid
 
   /// @DtoApiHidden
   sectionModules SectionModule[]
