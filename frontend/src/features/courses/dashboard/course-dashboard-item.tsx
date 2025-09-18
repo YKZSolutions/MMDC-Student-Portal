@@ -139,7 +139,7 @@ function CourseCard({
         </Group>
 
         <CourseCardActionButton
-          courseCode={section.id}
+          sectionId={section.id}
           currentMeeting={currentMeeting}
         />
       </Group>
@@ -185,7 +185,7 @@ function CourseListRow({
         <Stack align="end">
           <CourseCardActionButton
             currentMeeting={currentMeeting}
-            courseCode={course.courseCode}
+            sectionId={section.id}
           />
           <Group gap={rem(5)}>
             <RingProgress
@@ -212,12 +212,12 @@ function CourseListRow({
 
 type CourseCardActionButtonProps = {
   currentMeeting?: ClassMeeting
-  courseCode: string
+  sectionId: string
 }
 
 function CourseCardActionButton({
   currentMeeting,
-  courseCode,
+  sectionId,
 }: CourseCardActionButtonProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
@@ -235,7 +235,7 @@ function CourseCardActionButton({
           authUser.role === 'student'
             ? window.open(currentMeeting?.meetingLink!, '_blank')
             : navigate({
-                to: `/courses/${courseCode}/modules`,
+                to: `/courses/${sectionId}/modules`,
               })
         }}
       >
