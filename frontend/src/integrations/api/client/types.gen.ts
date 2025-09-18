@@ -1882,6 +1882,36 @@ export type CoursesControllerUpdateResponses = {
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
 
+export type CoursesControllerFindBySectionData = {
+    body?: never;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/courses/{sectionId}';
+};
+
+export type CoursesControllerFindBySectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CoursesControllerFindBySectionError = CoursesControllerFindBySectionErrors[keyof CoursesControllerFindBySectionErrors];
+
+export type CoursesControllerFindBySectionResponses = {
+    200: Array<CourseDto>;
+};
+
+export type CoursesControllerFindBySectionResponse = CoursesControllerFindBySectionResponses[keyof CoursesControllerFindBySectionResponses];
+
 export type AuthControllerGetMetadataData = {
     body?: never;
     path: {

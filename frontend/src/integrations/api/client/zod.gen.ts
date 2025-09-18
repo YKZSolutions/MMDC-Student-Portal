@@ -2103,6 +2103,16 @@ export const zCoursesControllerUpdateData = z.object({
 
 export const zCoursesControllerUpdateResponse = zCourseDto;
 
+export const zCoursesControllerFindBySectionData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        sectionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zCoursesControllerFindBySectionResponse = z.array(zCourseDto);
+
 export const zAuthControllerGetMetadataData = z.object({
     body: z.optional(z.never()),
     path: z.object({
