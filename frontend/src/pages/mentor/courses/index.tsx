@@ -58,7 +58,6 @@ function MentorCourseDashboardProvider({
     limit,
   })
 
-  console.log(courseOfferings)
 
   return children({
     courseOfferings,
