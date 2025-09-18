@@ -784,6 +784,28 @@ export type CreateCourseSectionFullDto = {
     mentorId?: string;
 };
 
+export type CourseOfferingWithCourseAndPeriod = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+    enrollmentPeriod: EnrollmentPeriodDto;
+};
+
+export type CourseSectionWithCourseOfferingDto = {
+    id: string;
+    name: string;
+    maxSlot: number;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    courseOffering: CourseOfferingWithCourseAndPeriod;
+};
+
 export type UpdateCourseSectionDto = {
     [key: string]: unknown;
 };
@@ -1881,36 +1903,6 @@ export type CoursesControllerUpdateResponses = {
 };
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
-
-export type CoursesControllerFindOneBySectionData = {
-    body?: never;
-    path: {
-        sectionId: string;
-    };
-    query?: never;
-    url: '/courses/by-section/{sectionId}';
-};
-
-export type CoursesControllerFindOneBySectionErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CoursesControllerFindOneBySectionError = CoursesControllerFindOneBySectionErrors[keyof CoursesControllerFindOneBySectionErrors];
-
-export type CoursesControllerFindOneBySectionResponses = {
-    200: CourseDto;
-};
-
-export type CoursesControllerFindOneBySectionResponse = CoursesControllerFindOneBySectionResponses[keyof CoursesControllerFindOneBySectionResponses];
 
 export type AuthControllerGetMetadataData = {
     body?: never;
@@ -3275,6 +3267,36 @@ export type CourseSectionControllerUpdateCourseSectionResponses = {
 };
 
 export type CourseSectionControllerUpdateCourseSectionResponse = CourseSectionControllerUpdateCourseSectionResponses[keyof CourseSectionControllerUpdateCourseSectionResponses];
+
+export type CourseSectionControllerFindOneCourseSectionByIdData = {
+    body?: never;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/sections/{sectionId}/course';
+};
+
+export type CourseSectionControllerFindOneCourseSectionByIdErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindOneCourseSectionByIdError = CourseSectionControllerFindOneCourseSectionByIdErrors[keyof CourseSectionControllerFindOneCourseSectionByIdErrors];
+
+export type CourseSectionControllerFindOneCourseSectionByIdResponses = {
+    200: CourseSectionWithCourseOfferingDto;
+};
+
+export type CourseSectionControllerFindOneCourseSectionByIdResponse = CourseSectionControllerFindOneCourseSectionByIdResponses[keyof CourseSectionControllerFindOneCourseSectionByIdResponses];
 
 export type CourseEnrollmentControllerGetCourseEnrollmentsData = {
     body?: never;

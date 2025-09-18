@@ -1031,6 +1031,34 @@ export const zCreateCourseSectionFullDto = z.object({
     mentorId: z.optional(z.uuid())
 });
 
+export const zCourseOfferingWithCourseAndPeriod = z.object({
+    id: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zCourseDto,
+    enrollmentPeriod: zEnrollmentPeriodDto
+});
+
+export const zCourseSectionWithCourseOfferingDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSlot: z.int(),
+    startSched: z.string(),
+    endSched: z.string(),
+    days: z.array(zDays),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    courseOffering: zCourseOfferingWithCourseAndPeriod
+});
+
 export const zUpdateCourseSectionDto = z.object({});
 
 export const zStudentIdentifierDto = z.object({
@@ -2103,16 +2131,6 @@ export const zCoursesControllerUpdateData = z.object({
 
 export const zCoursesControllerUpdateResponse = zCourseDto;
 
-export const zCoursesControllerFindOneBySectionData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        sectionId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zCoursesControllerFindOneBySectionResponse = zCourseDto;
-
 export const zAuthControllerGetMetadataData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -2625,6 +2643,16 @@ export const zCourseSectionControllerUpdateCourseSectionData = z.object({
 });
 
 export const zCourseSectionControllerUpdateCourseSectionResponse = zCourseSectionDto;
+
+export const zCourseSectionControllerFindOneCourseSectionByIdData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        sectionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zCourseSectionControllerFindOneCourseSectionByIdResponse = zCourseSectionWithCourseOfferingDto;
 
 export const zCourseEnrollmentControllerGetCourseEnrollmentsData = z.object({
     body: z.optional(z.never()),
