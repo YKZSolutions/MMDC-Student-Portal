@@ -1270,6 +1270,563 @@ export const zContentType = z.enum([
     'FILE'
 ]);
 
+export const zCreateAssignmentDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    dueDate: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ]))
+});
+
+export const zCreateQuizDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.object({}),
+    timeLimit: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    dueDate: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    questions: z.object({})
+});
+
+export const zCreateLessonDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ]))
+});
+
+export const zCreateDiscussionDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ]))
+});
+
+export const zCreateExternalUrlDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    url: z.string()
+});
+
+export const zCreateFileResourceDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    name: z.string(),
+    path: z.string(),
+    size: z.int(),
+    mimeType: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zCreateVideoDto = z.object({
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    url: z.string(),
+    duration: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    transcript: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zCreateContentDto = z.object({
+    order: z.int(),
+    contentType: zContentType,
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    sectionId: z.optional(zCreateAssignmentDto),
+    assignment: z.optional(zCreateAssignmentDto),
+    quiz: z.optional(zCreateQuizDto),
+    lesson: z.optional(zCreateLessonDto),
+    discussion: z.optional(zCreateDiscussionDto),
+    externalUrl: z.optional(zCreateExternalUrlDto),
+    file: z.optional(zCreateFileResourceDto),
+    video: z.optional(zCreateVideoDto)
+});
+
+export const zLesson = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zAssignmentMode = z.enum([
+    'INDIVIDUAL',
+    'GROUP'
+]);
+
+export const zAssignmentGrading = z.object({
+    id: z.string(),
+    gradingSchema: z.object({}),
+    weight: z.string(),
+    isCurved: z.boolean(),
+    curveSettings: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zAssignment = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    mode: zAssignmentMode,
+    maxAttempts: z.int(),
+    allowLateSubmission: z.boolean(),
+    latePenalty: z.string(),
+    dueDate: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    gradingId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    grading: z.optional(z.union([
+        zAssignmentGrading,
+        z.null()
+    ]))
+});
+
+export const zQuiz = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.object({}),
+    timeLimit: z.union([
+        z.int(),
+        z.null()
+    ]),
+    maxAttempts: z.int(),
+    allowLateSubmission: z.boolean(),
+    latePenalty: z.string(),
+    dueDate: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    questions: z.object({}),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zDiscussion = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    isThreaded: z.boolean(),
+    requirePost: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    get posts(): z.ZodOptional {
+        return z.optional(z.array(zDiscussionPost));
+    }
+});
+
+export const zDiscussionPost = z.object({
+    id: z.string(),
+    discussionId: z.string(),
+    discussion: z.optional(zDiscussion),
+    authorId: z.string(),
+    author: z.optional(zUser),
+    content: z.object({}),
+    parentId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    parent: z.optional(z.union([
+        z.lazy((): any => {
+            return zDiscussionPost;
+        }),
+        z.null()
+    ])),
+    get replies(): z.ZodOptional {
+        return z.optional(z.array(z.lazy((): any => {
+            return zDiscussionPost;
+        })));
+    },
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zVideo = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    url: z.string(),
+    duration: z.union([
+        z.int(),
+        z.null()
+    ]),
+    transcript: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zExternalUrl = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    url: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zProgressStatus = z.enum([
+    'NOT_STARTED',
+    'IN_PROGRESS',
+    'COMPLETED'
+]);
+
+export const zContentProgress = z.object({
+    id: z.string(),
+    userId: z.string(),
+    moduleId: z.string(),
+    moduleContentId: z.string(),
+    status: zProgressStatus,
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    timeSpent: z.union([
+        z.int(),
+        z.null()
+    ]),
+    lastAccessedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime()
+});
+
+export const zFileResource = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    get moduleContent(): z.ZodOptional {
+        return z.optional(zModuleContent);
+    },
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    name: z.string(),
+    path: z.string(),
+    size: z.int(),
+    mimeType: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zModuleContent = z.object({
+    id: z.string(),
+    moduleId: z.string(),
+    moduleSectionId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    order: z.int(),
+    contentType: zContentType,
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    toPublishAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    lesson: z.optional(z.union([
+        zLesson,
+        z.null()
+    ])),
+    assignment: z.optional(z.union([
+        zAssignment,
+        z.null()
+    ])),
+    quiz: z.optional(z.union([
+        zQuiz,
+        z.null()
+    ])),
+    discussion: z.optional(z.union([
+        zDiscussion,
+        z.null()
+    ])),
+    video: z.optional(z.union([
+        zVideo,
+        z.null()
+    ])),
+    externalUrl: z.optional(z.union([
+        zExternalUrl,
+        z.null()
+    ])),
+    fileResource: z.optional(z.union([
+        zFileResource,
+        z.null()
+    ])),
+    studentProgress: z.optional(z.array(zContentProgress))
+});
+
+export const zOmitTypeClass = z.object({
+    id: z.string(),
+    moduleId: z.string(),
+    moduleSectionId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    order: z.int(),
+    contentType: zContentType,
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    toPublishAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    lesson: z.optional(z.union([
+        zLesson,
+        z.null()
+    ])),
+    assignment: z.optional(z.union([
+        zAssignment,
+        z.null()
+    ])),
+    quiz: z.optional(z.union([
+        zQuiz,
+        z.null()
+    ])),
+    discussion: z.optional(z.union([
+        zDiscussion,
+        z.null()
+    ])),
+    video: z.optional(z.union([
+        zVideo,
+        z.null()
+    ])),
+    externalUrl: z.optional(z.union([
+        zExternalUrl,
+        z.null()
+    ])),
+    fileResource: z.optional(z.union([
+        zFileResource,
+        z.null()
+    ]))
+});
+
+export const zUpdateContentDto = z.object({
+    order: z.optional(z.int()),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    sectionId: z.optional(zCreateAssignmentDto),
+    assignment: z.optional(zCreateAssignmentDto),
+    quiz: z.optional(zCreateQuizDto),
+    lesson: z.optional(zCreateLessonDto),
+    discussion: z.optional(zCreateDiscussionDto),
+    externalUrl: z.optional(zCreateExternalUrlDto),
+    file: z.optional(zCreateFileResourceDto),
+    video: z.optional(zCreateVideoDto)
+});
+
+export const zUpdatePublishDto = z.object({
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ]))
+});
+
 export const zModuleContentInfoDto = z.object({
     id: z.string(),
     order: z.int(),
@@ -1289,6 +1846,44 @@ export const zDetailedContentProgressDto = z.object({
     ]),
     userId: z.string(),
     moduleContent: zModuleContentInfoDto
+});
+
+export const zCreateDetailedGroupDto = z.object({
+    groupNumber: z.int(),
+    groupName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    members: z.array(z.uuid())
+});
+
+export const zStudentInfoDto = z.object({
+    firstName: z.string(),
+    lastName: z.string()
+});
+
+export const zGroupMemberDto = z.object({
+    studentId: z.uuid(),
+    user: zStudentInfoDto
+});
+
+export const zDetailedGroupDto = z.object({
+    id: z.string(),
+    groupNumber: z.int(),
+    groupName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    members: z.array(zGroupMemberDto)
+});
+
+export const zUpdateGroupDto = z.object({
+    groupNumber: z.optional(z.int()),
+    groupName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    members: z.optional(z.array(z.uuid()))
 });
 
 export const zTestControllerTestStudentData = z.object({
@@ -2189,6 +2784,60 @@ export const zLmsSectionControllerUpdateData = z.object({
 
 export const zLmsSectionControllerUpdateResponse = zDetailedModuleSectionDto;
 
+export const zLmsContentControllerFindAllContentProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
+
+export const zLmsContentControllerCreateData = z.object({
+    body: zCreateContentDto,
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerCreateResponse = zOmitTypeClass;
+
+export const zLmsContentControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zLmsContentControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
+
+export const zLmsContentControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerFindOneResponse = zModuleContent;
+
+export const zLmsContentControllerUpdateData = z.object({
+    body: zUpdateContentDto,
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerUpdateResponse = zOmitTypeClass;
+
 export const zLmsContentControllerCreateContentProgressData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -2200,7 +2849,23 @@ export const zLmsContentControllerCreateContentProgressData = z.object({
 
 export const zLmsContentControllerCreateContentProgressResponse = zDetailedContentProgressDto;
 
-export const zLmsContentControllerFindAllContentProgressData = z.object({
+export const zLmsContentControllerPublishData = z.object({
+    body: zUpdatePublishDto,
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerUnpublishData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        ':moduleContentId': z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zGroupControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.object({
         moduleId: z.string()
@@ -2208,7 +2873,35 @@ export const zLmsContentControllerFindAllContentProgressData = z.object({
     query: z.optional(z.never())
 });
 
-export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
+export const zGroupControllerFindAllResponse = z.array(zDetailedGroupDto);
+
+export const zGroupControllerCreateData = z.object({
+    body: zCreateDetailedGroupDto,
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zGroupControllerCreateResponse = zDetailedGroupDto;
+
+export const zGroupControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zGroupControllerUpdateData = z.object({
+    body: zUpdateGroupDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zGroupControllerUpdateResponse = zDetailedGroupDto;
 
 export const zSwaggerControllerDownloadAllSpecsData = z.object({
     body: z.optional(z.never()),

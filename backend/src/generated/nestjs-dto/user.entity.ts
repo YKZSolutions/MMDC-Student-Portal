@@ -49,6 +49,10 @@ import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
+import {
+  GroupMember,
+  type GroupMember as GroupMemberAsType,
+} from './groupMember.entity';
 
 export class User {
   @ApiProperty({
@@ -81,6 +85,8 @@ export class User {
   postedDiscussions?: DiscussionPostAsType[];
   @ApiHideProperty()
   moduleProgress?: ContentProgressAsType[];
+  @ApiHideProperty()
+  groups?: GroupMemberAsType[];
   @ApiProperty({
     type: 'string',
   })

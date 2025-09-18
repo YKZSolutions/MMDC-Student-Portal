@@ -5,6 +5,7 @@ import {
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
 import { User, type User as UserAsType } from './user.entity';
+import { Group, type Group as GroupAsType } from './group.entity';
 import {
   AssignmentAttachment,
   type AssignmentAttachment as AssignmentAttachmentAsType,
@@ -30,6 +31,22 @@ export class AssignmentSubmission {
   studentId: string;
   @ApiHideProperty()
   student?: UserAsType;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  groupId: string | null;
+  @ApiProperty({
+    type: () => Group,
+    required: false,
+    nullable: true,
+  })
+  group?: GroupAsType | null;
+  @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  groupSnapshot: Prisma.JsonValue | null;
   @ApiProperty({
     type: () => Object,
     nullable: true,

@@ -926,6 +926,323 @@ export type UpdateModuleSectionDto = {
 
 export type ContentType = 'LESSON' | 'ASSIGNMENT' | 'QUIZ' | 'DISCUSSION' | 'VIDEO' | 'URL' | 'FILE';
 
+export type CreateAssignmentDto = {
+    title: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    dueDate?: string | null;
+};
+
+export type CreateQuizDto = {
+    title: string;
+    subtitle?: string | null;
+    content: {
+        [key: string]: unknown;
+    };
+    timeLimit?: number | null;
+    dueDate?: string | null;
+    questions: {
+        [key: string]: unknown;
+    };
+};
+
+export type CreateLessonDto = {
+    title: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+export type CreateDiscussionDto = {
+    title: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+export type CreateExternalUrlDto = {
+    title: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    url: string;
+};
+
+export type CreateFileResourceDto = {
+    title: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    name: string;
+    path: string;
+    size: number;
+    mimeType?: string | null;
+};
+
+export type CreateVideoDto = {
+    title: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    url: string;
+    duration?: number | null;
+    transcript?: string | null;
+};
+
+export type CreateContentDto = {
+    order: number;
+    contentType: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    sectionId?: CreateAssignmentDto;
+    assignment?: CreateAssignmentDto;
+    quiz?: CreateQuizDto;
+    lesson?: CreateLessonDto;
+    discussion?: CreateDiscussionDto;
+    externalUrl?: CreateExternalUrlDto;
+    file?: CreateFileResourceDto;
+    video?: CreateVideoDto;
+};
+
+export type Lesson = {
+    id: string;
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type AssignmentMode = 'INDIVIDUAL' | 'GROUP';
+
+export type AssignmentGrading = {
+    id: string;
+    gradingSchema: {
+        [key: string]: unknown;
+    };
+    weight: string;
+    isCurved: boolean;
+    curveSettings: {
+        [key: string]: unknown;
+    } | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type Assignment = {
+    id: string;
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    mode: AssignmentMode;
+    maxAttempts: number;
+    allowLateSubmission: boolean;
+    latePenalty: string;
+    dueDate: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    gradingId: string | null;
+    grading?: AssignmentGrading | null;
+};
+
+export type Quiz = {
+    id: string;
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    };
+    timeLimit: number | null;
+    maxAttempts: number;
+    allowLateSubmission: boolean;
+    latePenalty: string;
+    dueDate: string | null;
+    questions: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type DiscussionPost = {
+    id: string;
+    discussionId: string;
+    discussion?: Discussion;
+    authorId: string;
+    author?: User;
+    content: {
+        [key: string]: unknown;
+    };
+    parentId: string | null;
+    parent?: DiscussionPost | null;
+    replies?: Array<DiscussionPost>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type Discussion = {
+    id: string;
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    isThreaded: boolean;
+    requirePost: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    posts?: Array<DiscussionPost>;
+};
+
+export type Video = {
+    id: string;
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    url: string;
+    duration: number | null;
+    transcript: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ExternalUrl = {
+    id: string;
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    url: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+
+export type ContentProgress = {
+    id: string;
+    userId: string;
+    moduleId: string;
+    moduleContentId: string;
+    status: ProgressStatus;
+    completedAt: string | null;
+    timeSpent: number | null;
+    lastAccessedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ModuleContent = {
+    id: string;
+    moduleId: string;
+    moduleSectionId: string | null;
+    order: number;
+    contentType: ContentType;
+    publishedAt: string | null;
+    toPublishAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    lesson?: Lesson | null;
+    assignment?: Assignment | null;
+    quiz?: Quiz | null;
+    discussion?: Discussion | null;
+    video?: Video | null;
+    externalUrl?: ExternalUrl | null;
+    fileResource?: FileResource | null;
+    studentProgress?: Array<ContentProgress>;
+};
+
+export type FileResource = {
+    id: string;
+    moduleContentId: string;
+    moduleContent?: ModuleContent;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    name: string;
+    path: string;
+    size: number;
+    mimeType: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type OmitTypeClass = {
+    id: string;
+    moduleId: string;
+    moduleSectionId: string | null;
+    order: number;
+    contentType: ContentType;
+    publishedAt: string | null;
+    toPublishAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    lesson?: Lesson | null;
+    assignment?: Assignment | null;
+    quiz?: Quiz | null;
+    discussion?: Discussion | null;
+    video?: Video | null;
+    externalUrl?: ExternalUrl | null;
+    fileResource?: FileResource | null;
+};
+
+export type UpdateContentDto = {
+    order?: number;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    sectionId?: CreateAssignmentDto;
+    assignment?: CreateAssignmentDto;
+    quiz?: CreateQuizDto;
+    lesson?: CreateLessonDto;
+    discussion?: CreateDiscussionDto;
+    externalUrl?: CreateExternalUrlDto;
+    file?: CreateFileResourceDto;
+    video?: CreateVideoDto;
+};
+
+export type UpdatePublishDto = {
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+};
+
 export type ModuleContentInfoDto = {
     id: string;
     order: number;
@@ -939,6 +1256,41 @@ export type DetailedContentProgressDto = {
     completedAt: string | null;
     userId: string;
     moduleContent: ModuleContentInfoDto;
+};
+
+export type CreateDetailedGroupDto = {
+    groupNumber: number;
+    groupName?: string | null;
+    /**
+     * List of student IDs to assign as member
+     */
+    members: Array<string>;
+};
+
+export type StudentInfoDto = {
+    firstName: string;
+    lastName: string;
+};
+
+export type GroupMemberDto = {
+    studentId: string;
+    user: StudentInfoDto;
+};
+
+export type DetailedGroupDto = {
+    id: string;
+    groupNumber: number;
+    groupName: string | null;
+    members: Array<GroupMemberDto>;
+};
+
+export type UpdateGroupDto = {
+    groupNumber?: number;
+    groupName?: string | null;
+    /**
+     * List of student IDs to assign as member
+     */
+    members?: Array<string>;
 };
 
 export type TestControllerTestStudentData = {
@@ -3172,7 +3524,7 @@ export type LmsControllerFindAllData = {
         search?: string;
         page?: number;
     };
-    url: '/modules';
+    url: '/lms';
 };
 
 export type LmsControllerFindAllErrors = {
@@ -3207,7 +3559,7 @@ export type LmsControllerRemoveData = {
          */
         directDelete?: boolean;
     };
-    url: '/modules/{id}';
+    url: '/lms/{id}';
 };
 
 export type LmsControllerRemoveErrors = {
@@ -3242,7 +3594,7 @@ export type LmsControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/modules/{id}';
+    url: '/lms/{id}';
 };
 
 export type LmsControllerUpdateErrors = {
@@ -3389,6 +3741,173 @@ export type LmsSectionControllerUpdateResponses = {
 
 export type LmsSectionControllerUpdateResponse = LmsSectionControllerUpdateResponses[keyof LmsSectionControllerUpdateResponses];
 
+export type LmsContentControllerFindAllContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerFindAllContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
+
+export type LmsContentControllerFindAllContentProgressResponses = {
+    200: Array<DetailedContentProgressDto>;
+};
+
+export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
+
+export type LmsContentControllerCreateData = {
+    body: CreateContentDto;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerCreateErrors = {
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerCreateError = LmsContentControllerCreateErrors[keyof LmsContentControllerCreateErrors];
+
+export type LmsContentControllerCreateResponses = {
+    201: OmitTypeClass;
+};
+
+export type LmsContentControllerCreateResponse = LmsContentControllerCreateResponses[keyof LmsContentControllerCreateResponses];
+
+export type LmsContentControllerRemoveData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerRemoveError = LmsContentControllerRemoveErrors[keyof LmsContentControllerRemoveErrors];
+
+export type LmsContentControllerRemoveResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type LmsContentControllerRemoveResponse = LmsContentControllerRemoveResponses[keyof LmsContentControllerRemoveResponses];
+
+export type LmsContentControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindOneError = LmsContentControllerFindOneErrors[keyof LmsContentControllerFindOneErrors];
+
+export type LmsContentControllerFindOneResponses = {
+    200: ModuleContent;
+};
+
+export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
+
+export type LmsContentControllerUpdateData = {
+    body: UpdateContentDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerUpdateError = LmsContentControllerUpdateErrors[keyof LmsContentControllerUpdateErrors];
+
+export type LmsContentControllerUpdateResponses = {
+    200: OmitTypeClass;
+};
+
+export type LmsContentControllerUpdateResponse = LmsContentControllerUpdateResponses[keyof LmsContentControllerUpdateResponses];
+
 export type LmsContentControllerCreateContentProgressData = {
     body?: never;
     path: {
@@ -3425,21 +3944,82 @@ export type LmsContentControllerCreateContentProgressResponses = {
 
 export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
 
-export type LmsContentControllerFindAllContentProgressData = {
+export type LmsContentControllerPublishData = {
+    body: UpdatePublishDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
+};
+
+export type LmsContentControllerPublishErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerPublishError = LmsContentControllerPublishErrors[keyof LmsContentControllerPublishErrors];
+
+export type LmsContentControllerPublishResponses = {
+    200: unknown;
+};
+
+export type LmsContentControllerUnpublishData = {
+    body?: never;
+    path: {
+        ':moduleContentId': string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
+};
+
+export type LmsContentControllerUnpublishErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerUnpublishError = LmsContentControllerUnpublishErrors[keyof LmsContentControllerUnpublishErrors];
+
+export type LmsContentControllerUnpublishResponses = {
+    200: unknown;
+};
+
+export type GroupControllerFindAllData = {
     body?: never;
     path: {
         moduleId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents';
+    url: '/modules/{moduleId}/groups';
 };
 
-export type LmsContentControllerFindAllContentProgressErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
+export type GroupControllerFindAllErrors = {
     404: {
         statusCode: number;
         message: string;
@@ -3452,13 +4032,101 @@ export type LmsContentControllerFindAllContentProgressErrors = {
     };
 };
 
-export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
+export type GroupControllerFindAllError = GroupControllerFindAllErrors[keyof GroupControllerFindAllErrors];
 
-export type LmsContentControllerFindAllContentProgressResponses = {
-    200: Array<DetailedContentProgressDto>;
+export type GroupControllerFindAllResponses = {
+    200: Array<DetailedGroupDto>;
 };
 
-export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
+export type GroupControllerFindAllResponse = GroupControllerFindAllResponses[keyof GroupControllerFindAllResponses];
+
+export type GroupControllerCreateData = {
+    body: CreateDetailedGroupDto;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/groups';
+};
+
+export type GroupControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GroupControllerCreateError = GroupControllerCreateErrors[keyof GroupControllerCreateErrors];
+
+export type GroupControllerCreateResponses = {
+    201: DetailedGroupDto;
+};
+
+export type GroupControllerCreateResponse = GroupControllerCreateResponses[keyof GroupControllerCreateResponses];
+
+export type GroupControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/groups/{id}';
+};
+
+export type GroupControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GroupControllerRemoveError = GroupControllerRemoveErrors[keyof GroupControllerRemoveErrors];
+
+export type GroupControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type GroupControllerUpdateData = {
+    body: UpdateGroupDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/groups/{id}';
+};
+
+export type GroupControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GroupControllerUpdateError = GroupControllerUpdateErrors[keyof GroupControllerUpdateErrors];
+
+export type GroupControllerUpdateResponses = {
+    200: DetailedGroupDto;
+};
+
+export type GroupControllerUpdateResponse = GroupControllerUpdateResponses[keyof GroupControllerUpdateResponses];
 
 export type SwaggerControllerDownloadAllSpecsData = {
     body?: never;

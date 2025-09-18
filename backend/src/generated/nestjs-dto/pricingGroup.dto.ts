@@ -1,39 +1,24 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AssignmentSubmissionDto {
+export class PricingGroupDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: () => Object,
-    nullable: true,
+    type: 'string',
   })
-  groupSnapshot: Prisma.JsonValue | null;
-  @ApiProperty({
-    type: () => Object,
-    nullable: true,
-  })
-  content: Prisma.JsonValue | null;
+  name: string;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
-    nullable: true,
+    format: 'Decimal.js',
   })
-  submittedAt: Date | null;
+  amount: Prisma.Decimal;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
+    type: 'boolean',
   })
-  attemptNumber: number | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  lateDays: number | null;
+  enabled: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

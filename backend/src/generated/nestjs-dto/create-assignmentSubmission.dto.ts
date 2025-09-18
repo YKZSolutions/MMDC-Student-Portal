@@ -9,6 +9,13 @@ export class CreateAssignmentSubmissionDto {
     nullable: true,
   })
   @IsOptional()
+  groupSnapshot?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @ApiProperty({
+    type: () => Object,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',

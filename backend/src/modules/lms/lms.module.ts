@@ -15,6 +15,7 @@ import { FileService } from '@/modules/lms/content/file/file.service';
 import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
 import { UrlService } from '@/modules/lms/content/url/url.service';
 import { VideoService } from '@/modules/lms/content/video/video.service';
+import { GroupModule } from './group/group.module';
 
 @Module({
   controllers: [LmsController, LmsSectionController, LmsContentController],
@@ -48,5 +49,6 @@ import { VideoService } from '@/modules/lms/content/video/video.service';
     UrlService,
     VideoService,
   ],
+  imports: [GroupModule],
 })
 export class LmsModule {}
