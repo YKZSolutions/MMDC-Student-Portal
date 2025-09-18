@@ -4,7 +4,7 @@ import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item'
-import CourseListSuspense from '@/features/courses/suspense'
+import { CourseListSuspense } from '@/features/courses/suspense'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
 import type { DetailedCourseEnrollmentDto } from '@/integrations/api/client'
