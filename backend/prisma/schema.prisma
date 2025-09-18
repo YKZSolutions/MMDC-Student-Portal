@@ -595,15 +595,16 @@ model ModuleSection {
   moduleId String @db.Uuid
 
   // self reference subsections
-  parentSectionId String?         @db.Uuid
   /// @DtoApiHidden
   parentSection   ModuleSection?  @relation("ModuleSubsection", fields: [parentSectionId], references: [id], onDelete: Cascade)
+  parentSectionId String?         @db.Uuid
   /// @DtoApiHidden
   subsections     ModuleSection[] @relation("ModuleSubsection")
 
-  prerequisiteSectionId String?         @db.Uuid
   /// @DtoApiHidden
   prerequisiteSection   ModuleSection?  @relation("ModulePrerequisite", fields: [prerequisiteSectionId], references: [id])
+  prerequisiteSectionId String?         @db.Uuid
+
   /// @DtoApiHidden
   dependentSections     ModuleSection[] @relation("ModulePrerequisite")
 
@@ -615,6 +616,7 @@ model ModuleSection {
 
   publishedAt DateTime?
   toPublishAt DateTime?
+  unpublishedAt DateTime?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

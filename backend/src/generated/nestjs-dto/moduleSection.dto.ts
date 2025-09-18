@@ -29,6 +29,12 @@ export class ModuleSectionDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',
+    nullable: true,
+  })
+  unpublishedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
   })
   createdAt: Date;
   @ApiProperty({
