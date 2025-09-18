@@ -21,12 +21,13 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { ModuleTreeDto } from '@/modules/lms/dto/module-tree.dto';
 
 @Controller('modules')
 export class LmsController {
@@ -156,5 +157,41 @@ export class LmsController {
   findTodos(@CurrentUser() user: CurrentAuthUser): Promise<PaginatedTodosDto> {
     const { user_id } = user.user_metadata;
     return this.lmsContentService.findTodos(user_id);
+  }
+
+  /**
+   * Retrieves the complete module tree structure
+   *
+   * @remarks
+   * Fetches a module with its complete hierarchical structure including sections, subsections,
+   * and all associated content items (lessons, assignments, quizzes, etc.).
+   * For students, it also includes their progress on each content item.
+   *
+   * @param id - The UUID of the module to retrieve
+   * @param user - The authenticated user making the request
+   * @returns A Promise that resolves to the complete module tree structure
+   */
+  @Get(':id/tree')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @ApiOperation({
+    summary: 'Get module tree structure',
+    description:
+      'Retrieves the complete hierarchical structure of a module including all sections and content items',
+  })
+  @ApiOkResponse({
+    description: 'Module tree retrieved successfully',
+    type: ModuleTreeDto,
+  })
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
+  async findModuleTree(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<ModuleTreeDto> {
+    const { role, user_id } = user.user_metadata;
+    return this.lmsContentService.findModuleTree(id, role, user_id);
   }
 }

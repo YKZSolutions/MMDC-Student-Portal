@@ -163,6 +163,7 @@ export class LmsService {
             courseOfferingId: courseOffering.id,
             publishedAt: null,
             toPublishAt: null,
+            unpublishedAt: null,
           },
         });
 
@@ -174,6 +175,7 @@ export class LmsService {
               order: oldSection.order,
               publishedAt: null, // Reset publication status
               toPublishAt: null,
+              unpublishedAt: null,
             },
           });
 
@@ -209,7 +211,7 @@ export class LmsService {
               case 'ASSIGNMENT':
                 if (oldContent.assignment) {
                   // Clone grading if it exists
-                  let gradingId = '';
+                  let gradingId: string | null = null;
                   if (oldContent.assignment.grading) {
                     const gradingSchema = oldContent.assignment.grading
                       .gradingSchema as Prisma.JsonValue;
@@ -217,10 +219,10 @@ export class LmsService {
                       .curveSettings as Prisma.JsonValue;
                     const newGrading = await tx.assignmentGrading.create({
                       data: {
-                        gradingSchema: gradingSchema || {},
+                        gradingSchema: gradingSchema ?? {},
                         weight: oldContent.assignment.grading.weight,
                         isCurved: oldContent.assignment.grading.isCurved,
-                        curveSettings: curveSettings || {},
+                        curveSettings: curveSettings ?? {},
                       },
                     });
                     gradingId = newGrading.id;

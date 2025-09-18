@@ -11,6 +11,7 @@ import {
   ContentType,
   CourseEnrollmentStatus,
   EnrollmentStatus,
+  Module,
   Prisma,
   Role,
 } from '@prisma/client';
@@ -26,6 +27,8 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import type { Module as ModuleAsType } from '@/generated/nestjs-dto/module.entity';
+import type { ModuleSection as ModuleSectionAsType } from '@/generated/nestjs-dto/moduleSection.entity';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
 import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
@@ -37,6 +40,10 @@ import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
 import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
+import {
+  ModuleTreeDto,
+  ModuleTreeSectionDto,
+} from '@/modules/lms/dto/module-tree.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -797,6 +804,144 @@ export class LmsContentService {
       });
 
     return { moduleContents: items, meta };
+  }
+
+  /**
+   * Finds ModuleContent tree for a given Module.
+   *
+   * @param moduleId The ID of the Module.
+   * @param role The role of the user.
+   * @param userId The ID of the user. Used for students to filter by their progress.
+   * @param filters The filter criteria.
+   * @returns An object containing the ModuleContent records and pagination metadata.
+   */
+  @Log({
+    logArgsMessage: ({ moduleId, role, userId }) =>
+      `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
+    logSuccessMessage: (_, { userId }) =>
+      `Successfully fetched module content tree for user ${userId}`,
+    logErrorMessage: (err: any, { moduleId, role, userId }) =>
+      `Error fetching module contents tree for module ${moduleId} of user ${userId}: ${err.message}`,
+  })
+  async findModuleTree(
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId?: string,
+  ): Promise<ModuleTreeDto> {
+    if (!isUUID(moduleId)) {
+      throw new BadRequestException('Invalid module ID format');
+    }
+
+    // 1. Fetch everything flat
+    const module: ModuleTreeDto =
+      await this.prisma.client.module.findUniqueOrThrow({
+        where: {
+          id: moduleId,
+          ...(role !== Role.admin && { publishedAt: { not: null } }),
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          courseId: true,
+          title: true,
+          publishedAt: role === Role.student ? true : false,
+          toPublishAt: role === Role.student ? true : false,
+          unpublishedAt: role === Role.student ? true : false,
+          createdAt: role === Role.student ? true : false,
+          updatedAt: role === Role.student ? true : false,
+          ...(role === Role.student &&
+            userId && {
+              progresses: {
+                where: { userId },
+                select: {
+                  id: true,
+                  moduleContentId: true,
+                  status: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+            }),
+          moduleSections: {
+            where: {
+              ...(role !== Role.admin && { publishedAt: { not: null } }),
+              deletedAt: null,
+            },
+            select: {
+              id: true,
+              moduleId: true,
+              parentSectionId: true,
+              prerequisiteSectionId: true,
+              title: true,
+              order: true,
+              publishedAt: role === Role.student ? true : false,
+              toPublishAt: role === Role.student ? true : false,
+              unpublishedAt: role === Role.student ? true : false,
+              createdAt: role === Role.student ? true : false,
+              updatedAt: role === Role.student ? true : false,
+              moduleContents: {
+                where: {
+                  ...(role !== Role.admin && { publishedAt: { not: null } }),
+                  deletedAt: null,
+                },
+                select: {
+                  id: true,
+                  order: true,
+                  contentType: true,
+                  publishedAt: role === Role.student ? true : false,
+                  toPublishAt: role === Role.student ? true : false,
+                  unpublishedAt: role === Role.student ? true : false,
+                  createdAt: role === Role.student ? true : false,
+                  updatedAt: role === Role.student ? true : false,
+                  lesson: { omit: { content: true } },
+                  assignment: {
+                    include: { grading: { omit: { gradingSchema: true } } },
+                    omit: { content: true },
+                  },
+                  quiz: { omit: { content: true, questions: true } },
+                  discussion: { omit: { content: true } },
+                  video: { omit: { content: true } },
+                  externalUrl: { omit: { content: true } },
+                  fileResource: { omit: { content: true } },
+                  ...(role === Role.student && userId
+                    ? { studentProgress: { where: { userId } } }
+                    : { studentProgress: true }),
+                },
+                orderBy: { order: 'asc' },
+              },
+            },
+            orderBy: { order: 'asc' },
+          },
+        },
+      });
+
+    // 2. Build tree of sections recursively
+    const sectionMap = new Map<string, ModuleTreeSectionDto>();
+
+    if (!module.moduleSections) {
+      module.moduleSections = [];
+    }
+    for (const section of module.moduleSections) {
+      section.subsections = [];
+      sectionMap.set(section.id, section);
+    }
+
+    const rootSections: ModuleTreeSectionDto[] = [];
+    for (const section of module.moduleSections) {
+      if (section.parentSectionId) {
+        const parent = sectionMap.get(section.parentSectionId);
+        if (parent) {
+          parent.subsections?.push(section);
+        }
+      } else {
+        rootSections.push(section);
+      }
+    }
+
+    return {
+      ...module,
+      moduleSections: rootSections,
+    };
   }
 
   /**
