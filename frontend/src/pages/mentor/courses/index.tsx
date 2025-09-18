@@ -1,8 +1,8 @@
 // Course-specific filter configuration
 import CourseDashboardHeader from '@/features/courses/dashboard/course-dashboard-header.tsx'
 import {
-    CourseCard,
-    CourseListRow,
+  CourseCard,
+  CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
@@ -83,7 +83,7 @@ const MentorCourseDashboardPage = () => {
               courseOfferings.map((course, index) =>
                 view === 'grid' ? (
                   <CourseCard
-                    key={index}
+                    key={course.id}
                     url={`/courses/${course.courseSection!.id}`}
                     section={course.courseSection!}
                     course={course.courseOffering?.course!}
@@ -95,7 +95,7 @@ const MentorCourseDashboardPage = () => {
                   />
                 ) : (
                   <CourseListRow
-                    key={index}
+                    key={course.id}
                     url={`/courses/${course.courseSection!.id}`}
                     section={course.courseSection!}
                     course={course.courseOffering?.course!}

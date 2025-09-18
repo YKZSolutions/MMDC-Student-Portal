@@ -82,7 +82,7 @@ const StudentCourseDashboardPage = () => {
                 courseOfferings.map((course, index) =>
                   view === 'grid' ? (
                     <CourseCard
-                      key={index}
+                      key={course.id}
                       url={`/courses/${course.courseSection!.id}`}
                       section={course.courseSection!}
                       course={course.courseOffering?.course!}
@@ -94,7 +94,7 @@ const StudentCourseDashboardPage = () => {
                     />
                   ) : (
                     <CourseListRow
-                      key={index}
+                      key={course.id}
                       url={`/courses/${course.courseSection!.id}`}
                       section={course.courseSection!}
                       course={course.courseOffering?.course!}

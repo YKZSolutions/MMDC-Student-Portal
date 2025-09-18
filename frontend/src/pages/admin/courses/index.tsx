@@ -108,14 +108,14 @@ function AdminCourseDashboardPage() {
                 course.courseSections.map((section) =>
                   view === 'grid' ? (
                     <CourseCard
-                      key={index}
+                      key={section.id}
                       url={`/courses/${section.id}`}
                       course={course.course}
                       section={section}
                     />
                   ) : (
                     <CourseListRow
-                      key={index}
+                      key={section.id}
                       url={`/courses/${section.id}`}
                       section={section}
                       course={course.course}
