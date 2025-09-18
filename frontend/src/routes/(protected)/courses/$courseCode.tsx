@@ -16,10 +16,11 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 // The courseCode here is actually the sectionId
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
@@ -30,13 +31,23 @@ function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
   const { courseCode } = Route.useParams()
-
-  const { data } = useSuspenseQuery(
-    courseSectionControllerFindOneCourseSectionByIdOptions({
+  const [enrollmentPeriodId, setEnrollmentPeriodId] = useLocalStorage<
+    string | null
+  >({
+    key: 'enrollmentPeriodId',
+  })
+  const { data } = useSuspenseQuery({
+    ...courseSectionControllerFindOneCourseSectionByIdOptions({
       path: {
         sectionId: courseCode,
       },
     }),
+  })
+
+  const _enrollmentPeriodId = useMemo(
+    () =>
+      setEnrollmentPeriodId(data?.courseOffering.enrollmentPeriod.id ?? null),
+    [data],
   )
 
   const course = data?.courseOffering.course
