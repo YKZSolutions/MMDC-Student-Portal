@@ -35,12 +35,12 @@ interface CourseDashboardItemProps {
   url: string
 }
 
-const CourseCard = ({
+function CourseCard({
   course,
   section,
   currentMeeting,
   url,
-}: CourseDashboardItemProps) => {
+}: CourseDashboardItemProps) {
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const sectionName = section.name
@@ -139,7 +139,7 @@ const CourseCard = ({
         </Group>
 
         <CourseCardActionButton
-          courseCode={course.courseCode}
+          courseCode={section.id}
           currentMeeting={currentMeeting}
         />
       </Group>
@@ -147,12 +147,12 @@ const CourseCard = ({
   )
 }
 
-const CourseListRow = ({
+function CourseListRow({
   course,
   section,
   currentMeeting,
   url,
-}: CourseDashboardItemProps) => {
+}: CourseDashboardItemProps) {
   const theme = useMantineTheme()
   const navigate = useNavigate()
 
@@ -215,10 +215,10 @@ type CourseCardActionButtonProps = {
   courseCode: string
 }
 
-const CourseCardActionButton = ({
+function CourseCardActionButton({
   currentMeeting,
   courseCode,
-}: CourseCardActionButtonProps) => {
+}: CourseCardActionButtonProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
   return (
@@ -235,9 +235,7 @@ const CourseCardActionButton = ({
           authUser.role === 'student'
             ? window.open(currentMeeting?.meetingLink!, '_blank')
             : navigate({
-                from: '/cms',
-                to: '/cms/$courseCode',
-                params: { courseCode },
+                to: `/courses/${courseCode}/modules`,
               })
         }}
       >

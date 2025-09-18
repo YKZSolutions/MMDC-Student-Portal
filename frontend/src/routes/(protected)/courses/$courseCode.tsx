@@ -14,7 +14,7 @@ import {
   Text,
   ThemeIcon,
   Title,
-  useMantineTheme
+  useMantineTheme,
 } from '@mantine/core'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -41,8 +41,6 @@ function RouteComponent() {
 
   const course = data?.courseOffering.course
   const enrollmentPeriod = data?.courseOffering.enrollmentPeriod
-
-  console.log(data)
 
   const studentNavItems: CourseNavItem[] = [
     {
@@ -102,7 +100,7 @@ function RouteComponent() {
           </ThemeIcon>
           <Box>
             <Title order={3}>{course.name}</Title>
-            <Group gap={"xs"} className="">
+            <Group gap={'xs'} className="">
               <Text size="sm" c="dimmed">
                 {course.courseCode}
               </Text>
