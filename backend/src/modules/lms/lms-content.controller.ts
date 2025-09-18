@@ -148,7 +148,7 @@ export class LmsContentController {
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get()
   findAll(
-    @Body() filters: FilterModuleContentsDto,
+    @Query() filters: FilterModuleContentsDto,
     @CurrentUser() user: CurrentAuthUser,
   ): Promise<PaginatedModuleContentDto> {
     const { role, user_id } = user.user_metadata;
@@ -232,7 +232,7 @@ export class LmsContentController {
    * - Mentors can fetch progress for a specific student (provide `studentId` query param).
    * - Students can fetch their own progress.
    */
-  @Get('/progress')
+  @Get(':moduleContentId/progress')
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiException(() => [
     BadRequestException,

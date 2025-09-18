@@ -470,38 +470,38 @@ export class LmsContentService {
     //TODO: do not remove the console logs yet since this function is complex
     console.log('filters', filters);
 
-    // ----- Base filters -----
-    if (filters.contentFilter) {
-      console.log('setting contentFilter');
-      Object.assign(whereCondition, filters.contentFilter);
-    }
-
-    console.log('step 1');
-    console.dir(whereCondition, { depth: null });
-
-    // Section filter
-    if (filters.sectionFilter) {
-      console.log('setting moduleSection');
-      whereCondition.moduleSection = filters.sectionFilter;
-    }
-
-    console.log('step 2');
-    console.dir(whereCondition, { depth: null });
+    // // ----- Base filters -----
+    // if (filters.contentFilter) {
+    //   console.log('setting contentFilter');
+    //   Object.assign(whereCondition, filters.contentFilter);
+    // }
+    //
+    // console.log('step 1');
+    // console.dir(whereCondition, { depth: null });
+    //
+    // // Section filter
+    // if (filters.sectionFilter) {
+    //   console.log('setting moduleSection');
+    //   whereCondition.moduleSection = filters.sectionFilter;
+    // }
+    //
+    // console.log('step 2');
+    // console.dir(whereCondition, { depth: null });
 
     // Module filter (with enrollment & student constraints)
     if (
-      filters.moduleFilter ||
-      filters.enrollmentFilter ||
+      // filters.moduleFilter ||
+      filters.enrollmentPeriod ||
       role === Role.student
     ) {
       console.log('setting module');
       whereCondition.module = {
-        ...(filters.moduleFilter ?? {}),
-        ...(filters.enrollmentFilter || role === Role.student
+        // ...(filters.moduleFilter ?? {}),
+        ...(filters.enrollmentPeriod || role === Role.student
           ? {
               courseOffering: {
-                ...(filters.enrollmentFilter
-                  ? { enrollmentPeriod: filters.enrollmentFilter }
+                ...(filters.enrollmentPeriod
+                  ? { enrollmentPeriod: filters.enrollmentPeriod }
                   : {}),
                 ...(role === Role.student && {
                   courseEnrollments: {
@@ -533,36 +533,36 @@ export class LmsContentService {
       console.log('setting publishedAt to not null and lte now');
       whereCondition.publishedAt = { not: null, lte: now };
     } else {
-      if (
-        filters.contentFilter?.createdAtFrom ||
-        filters.contentFilter?.createdAtTo
-      ) {
-        console.log('filtering by createdAt');
-        whereCondition.createdAt = {
-          gte: filters.contentFilter.createdAtFrom,
-          lte: filters.contentFilter.createdAtTo,
-        };
-      }
-      if (
-        filters.contentFilter?.updatedAtFrom ||
-        filters.contentFilter?.updatedAtTo
-      ) {
-        console.log('filtering by updatedAt');
-        whereCondition.updatedAt = {
-          gte: filters.contentFilter.updatedAtFrom,
-          lte: filters.contentFilter.updatedAtTo,
-        };
-      }
-      if (
-        filters.contentFilter?.deletedAtFrom ||
-        filters.contentFilter?.deletedAtTo
-      ) {
-        console.log('filtering by deletedAt');
-        whereCondition.deletedAt = {
-          gte: filters.contentFilter.deletedAtFrom,
-          lte: filters.contentFilter.deletedAtTo,
-        };
-      }
+      // if (
+      //   filters.contentFilter?.createdAtFrom ||
+      //   filters.contentFilter?.createdAtTo
+      // ) {
+      //   console.log('filtering by createdAt');
+      //   whereCondition.createdAt = {
+      //     gte: filters.contentFilter.createdAtFrom,
+      //     lte: filters.contentFilter.createdAtTo,
+      //   };
+      // }
+      // if (
+      //   filters.contentFilter?.updatedAtFrom ||
+      //   filters.contentFilter?.updatedAtTo
+      // ) {
+      //   console.log('filtering by updatedAt');
+      //   whereCondition.updatedAt = {
+      //     gte: filters.contentFilter.updatedAtFrom,
+      //     lte: filters.contentFilter.updatedAtTo,
+      //   };
+      // }
+      // if (
+      //   filters.contentFilter?.deletedAtFrom ||
+      //   filters.contentFilter?.deletedAtTo
+      // ) {
+      //   console.log('filtering by deletedAt');
+      //   whereCondition.deletedAt = {
+      //     gte: filters.contentFilter.deletedAtFrom,
+      //     lte: filters.contentFilter.deletedAtTo,
+      //   };
+      // }
     }
 
     console.log('step 4');
@@ -570,7 +570,7 @@ export class LmsContentService {
 
     // Student progress filter
     if (
-      filters.progressFilter ||
+      // filters.progressFilter ||
       role === Role.student ||
       role === Role.admin
     ) {
@@ -578,7 +578,7 @@ export class LmsContentService {
       whereCondition.studentProgress = {
         some: {
           ...(role === Role.student && { user: { id: userId } }),
-          ...(filters.progressFilter && { status: filters.progressFilter }),
+          ...(filters.progress && { status: filters.progress }),
           // Removed invalid studentDetails.studentNumber filter
         },
       };
@@ -588,24 +588,24 @@ export class LmsContentService {
     console.dir(whereCondition, { depth: null });
 
     // ----- Content-type specific filters -----
-    if (filters.contentFilter?.contentType) {
+    if (filters.contentType) {
       console.log('setting contentType');
-      whereCondition.contentType = filters.contentFilter.contentType;
+      whereCondition.contentType = filters.contentType;
 
-      switch (filters.contentFilter.contentType) {
+      switch (filters.contentType) {
         case ContentType.ASSIGNMENT:
           console.log('setting assignment');
           whereCondition.assignment = {
-            ...(filters.assignmentFilter ?? {}),
-            ...(filters.assignmentFilter?.dueDateFrom ||
-            filters.assignmentFilter?.dueDateTo
-              ? {
-                  dueDate: {
-                    gte: filters.assignmentFilter?.dueDateFrom,
-                    lte: filters.assignmentFilter?.dueDateTo,
-                  },
-                }
-              : {}),
+            // ...(filters.assignmentFilter ?? {}),
+            // ...(filters.assignmentFilter?.dueDateFrom ||
+            // filters.assignmentFilter?.dueDateTo
+            //   ? {
+            //       dueDate: {
+            //         gte: filters.assignmentFilter?.dueDateFrom,
+            //         lte: filters.assignmentFilter?.dueDateTo,
+            //       },
+            //     }
+            //   : {}),
             ...(filters.search && {
               OR: [
                 { title: { contains: filters.search, mode: 'insensitive' } },
@@ -618,15 +618,15 @@ export class LmsContentService {
         case ContentType.QUIZ:
           console.log('setting quiz');
           whereCondition.quiz = {
-            ...(filters.quizFilter ?? {}),
-            ...(filters.quizFilter?.dueDateFrom || filters.quizFilter?.dueDateTo
-              ? {
-                  dueDate: {
-                    gte: filters.quizFilter?.dueDateFrom,
-                    lte: filters.quizFilter?.dueDateTo,
-                  },
-                }
-              : {}),
+            // ...(filters.quizFilter ?? {}),
+            // ...(filters.quizFilter?.dueDateFrom || filters.quizFilter?.dueDateTo
+            //   ? {
+            //       dueDate: {
+            //         gte: filters.quizFilter?.dueDateFrom,
+            //         lte: filters.quizFilter?.dueDateTo,
+            //       },
+            //     }
+            //   : {}),
             ...(filters.search && {
               OR: [
                 { title: { contains: filters.search, mode: 'insensitive' } },
@@ -1100,7 +1100,7 @@ export class LmsContentService {
     const userEnrollments = await this.prisma.client.courseEnrollment.findMany({
       where: {
         studentId: userId,
-        status: 'enrolled',
+        status: CourseEnrollmentStatus.enrolled,
         courseOffering: {
           periodId: activeTerm.id,
         },
@@ -1125,13 +1125,13 @@ export class LmsContentService {
       },
       OR: [
         {
-          contentType: 'ASSIGNMENT',
+          contentType: ContentType.ASSIGNMENT,
           assignment: {
             dueDate: { gte: new Date() },
           },
         },
         {
-          contentType: 'QUIZ',
+          contentType: ContentType.QUIZ,
           quiz: {
             dueDate: { gte: new Date() },
           },
