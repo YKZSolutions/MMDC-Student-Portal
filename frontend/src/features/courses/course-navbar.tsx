@@ -1,7 +1,5 @@
-import { useAuth } from '@/features/auth/auth.hook.ts'
-import { Link, useMatchRoute, useNavigate } from '@tanstack/react-router'
-import { Button, Select, Stack } from '@mantine/core'
-import type { CourseBasicDetails } from '@/features/courses/types.ts'
+import { Button, Stack } from '@mantine/core'
+import { Link, useMatchRoute } from '@tanstack/react-router'
 
 export interface CourseNavItem {
   link: string
@@ -9,7 +7,7 @@ export interface CourseNavItem {
   fuzzy?: boolean
 }
 
-const CourseNavButton = ({ item }: { item: CourseNavItem }) => {
+function CourseNavButton({ item }: { item: CourseNavItem }) {
   const matchRoute = useMatchRoute()
   const isActive = matchRoute({ to: item.link, fuzzy: item.fuzzy })
 
@@ -27,25 +25,13 @@ const CourseNavButton = ({ item }: { item: CourseNavItem }) => {
   )
 }
 
-const CourseNavBar = ({
+function CourseNavBar({
   navItems,
-  courses,
   courseCode,
 }: {
   navItems: CourseNavItem[]
-  courses: CourseBasicDetails[]
   courseCode: string
-}) => {
-  const { authUser } = useAuth('protected')
-  const currentCourse = courses.find(
-    (course) => course.courseCode === courseCode,
-  )!
-  const getCourseCode = (courseName: string) => {
-    return courses.find((course) => course.courseName === courseName)!
-      .courseCode
-  }
-  const navigate = useNavigate()
-
+}) {
   return (
     <Stack
       gap={'sm'}
@@ -54,18 +40,18 @@ const CourseNavBar = ({
       h={'100vh'}
       style={{ position: 'sticky', top: 0 }}
     >
-      {/*TODO: this might be different for different admin roles*/}
-      <Select
-        data={courses.map((course) => course.courseName)}
-        defaultValue={currentCourse.courseName}
+      {/* TODO: Implement this later on. For now, this is a nice-to-have */}
+      {/* <Select
+        data={data.courses.map((course) => course.name)}
+        defaultValue={sectionId}
         onChange={async (value) => {
           if (value) {
             const newCourseCode = getCourseCode(value)
-            const newPath = location.pathname.replace(courseCode, newCourseCode)
+            const newPath = location.pathname.replace(sectionId, newCourseCode)
             await navigate({ to: newPath })
           }
         }}
-      />
+      /> */}
       {navItems.map((item, index) => (
         <CourseNavButton key={index} item={item} />
       ))}
