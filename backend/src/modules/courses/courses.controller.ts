@@ -1,28 +1,27 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ValidationPipe,
-  ConflictException,
-  InternalServerErrorException,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
-import { CoursesService } from './courses.service';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Query
+} from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { CoursesService } from './courses.service';
 import { CourseDto } from './dto/course.dto';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
 
 /**
  * @remarks
@@ -73,6 +72,19 @@ export class CoursesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.coursesService.findOne(id);
+  }
+
+  /**
+   * Retrieve a course by providing a course section id
+   *
+   * @remarks Requires `ADMIN`, `STUDENT`, or `MENTOR` role.
+   */
+  @ApiOkResponse({ type: CourseDto })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  @Roles(Role.ADMIN, Role.STUDENT, Role.MENTOR)
+  @Get('by-section/:sectionId')
+  findOneBySection(@Param('sectionId') sectionId: string) {
+    return this.coursesService.findOneBySectionId(sectionId);
   }
 
   /**

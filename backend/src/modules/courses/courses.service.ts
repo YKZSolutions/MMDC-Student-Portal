@@ -1,3 +1,10 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
@@ -6,20 +13,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
-import { PaginatedCoursesDto } from './dto/paginated-course.dto';
-import { Log } from '@/common/decorators/log.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { CustomPrismaService } from 'nestjs-prisma';
 import { CourseDto } from './dto/course.dto';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { PaginatedCoursesDto } from './dto/paginated-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
 
 @Injectable()
 export class CoursesService {
@@ -172,6 +172,50 @@ export class CoursesService {
         },
       },
     })) as CourseDto;
+  }
+
+  /**
+   * Retrieves a course by providing a course section id.
+   *
+   * This will resolve the course via CourseSection -> CourseOffering -> Course.
+   *
+   * @param sectionId - The UUID of the course section
+   */
+  @Log({
+    logArgsMessage: ({ sectionId }) =>
+      `Fetching course for section id ${sectionId}`,
+    logSuccessMessage: (course) => `Successfully fetched course for section`,
+    logErrorMessage: (err, { sectionId }) =>
+      `Error fetching course for section ${sectionId} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { sectionId }) =>
+      new NotFoundException(
+        `No course found for the provided section ID ${sectionId}`,
+      ),
+  })
+  async findOneBySectionId(@LogParam('sectionId') sectionId: string) {
+    if (!isUUID(sectionId)) {
+      throw new BadRequestException('Invalid section ID format');
+    }
+
+    const result = await this.prisma.client.courseSection.findUniqueOrThrow({
+      where: { id: sectionId },
+      include: {
+        courseOffering: {
+          include: {
+            course: {
+              include: {
+                coreqs: { select: { id: true, courseCode: true, name: true } },
+                prereqs: { select: { id: true, courseCode: true, name: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return result.courseOffering.course as CourseDto;
   }
 
   /**
