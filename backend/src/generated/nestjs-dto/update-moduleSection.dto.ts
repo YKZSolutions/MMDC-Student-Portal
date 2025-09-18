@@ -27,4 +27,13 @@ export class UpdateModuleSectionDto {
   @IsOptional()
   @IsDateString()
   toPublishAt?: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  unpublishedAt?: Date | null;
 }
