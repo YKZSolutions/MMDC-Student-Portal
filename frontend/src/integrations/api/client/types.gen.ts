@@ -1882,17 +1882,17 @@ export type CoursesControllerUpdateResponses = {
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
 
-export type CoursesControllerFindBySectionData = {
+export type CoursesControllerFindOneBySectionData = {
     body?: never;
     path: {
         sectionId: string;
     };
     query?: never;
-    url: '/courses/{sectionId}';
+    url: '/courses/by-section/{sectionId}';
 };
 
-export type CoursesControllerFindBySectionErrors = {
-    400: {
+export type CoursesControllerFindOneBySectionErrors = {
+    404: {
         statusCode: number;
         message: string;
         error?: string;
@@ -1904,13 +1904,13 @@ export type CoursesControllerFindBySectionErrors = {
     };
 };
 
-export type CoursesControllerFindBySectionError = CoursesControllerFindBySectionErrors[keyof CoursesControllerFindBySectionErrors];
+export type CoursesControllerFindOneBySectionError = CoursesControllerFindOneBySectionErrors[keyof CoursesControllerFindOneBySectionErrors];
 
-export type CoursesControllerFindBySectionResponses = {
-    200: Array<CourseDto>;
+export type CoursesControllerFindOneBySectionResponses = {
+    200: CourseDto;
 };
 
-export type CoursesControllerFindBySectionResponse = CoursesControllerFindBySectionResponses[keyof CoursesControllerFindBySectionResponses];
+export type CoursesControllerFindOneBySectionResponse = CoursesControllerFindOneBySectionResponses[keyof CoursesControllerFindOneBySectionResponses];
 
 export type AuthControllerGetMetadataData = {
     body?: never;

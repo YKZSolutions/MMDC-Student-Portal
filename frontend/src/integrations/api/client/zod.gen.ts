@@ -2103,7 +2103,7 @@ export const zCoursesControllerUpdateData = z.object({
 
 export const zCoursesControllerUpdateResponse = zCourseDto;
 
-export const zCoursesControllerFindBySectionData = z.object({
+export const zCoursesControllerFindOneBySectionData = z.object({
     body: z.optional(z.never()),
     path: z.object({
         sectionId: z.string()
@@ -2111,7 +2111,7 @@ export const zCoursesControllerFindBySectionData = z.object({
     query: z.optional(z.never())
 });
 
-export const zCoursesControllerFindBySectionResponse = z.array(zCourseDto);
+export const zCoursesControllerFindOneBySectionResponse = zCourseDto;
 
 export const zAuthControllerGetMetadataData = z.object({
     body: z.optional(z.never()),

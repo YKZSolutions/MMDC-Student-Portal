@@ -2223,9 +2223,10 @@
         ]
       }
     },
-    "/courses/{sectionId}": {
+    "/courses/by-section/{sectionId}": {
       "get": {
-        "operationId": "CoursesController_findBySection",
+        "description": "Requires `ADMIN`, `STUDENT`, or `MENTOR` role.",
+        "operationId": "CoursesController_findOneBySection",
         "parameters": [
           {
             "name": "sectionId",
@@ -2242,24 +2243,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CourseDto"
-                  }
+                  "$ref": "#/components/schemas/CourseDto"
                 }
               }
             }
           },
-          "400": {
+          "404": {
             "content": {
               "application/json": {
                 "examples": {
-                  "BadRequestException": {
-                    "description": "Bad Request",
+                  "NotFoundException": {
+                    "description": "Not Found",
                     "value": {
-                      "statusCode": 400,
-                      "message": "Bad Request",
-                      "error": "Bad Request"
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
                     }
                   }
                 },
@@ -2268,15 +2266,15 @@
                   "properties": {
                     "statusCode": {
                       "type": "number",
-                      "example": 400
+                      "example": 404
                     },
                     "message": {
                       "type": "string",
-                      "example": "Bad Request"
+                      "example": "Not Found"
                     },
                     "error": {
                       "type": "string",
-                      "example": "Bad Request"
+                      "example": "Not Found"
                     }
                   },
                   "required": [
@@ -2327,6 +2325,7 @@
             "description": ""
           }
         },
+        "summary": "Retrieve a course by providing a course section id",
         "tags": [
           "Courses"
         ]
