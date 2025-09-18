@@ -4,6 +4,7 @@ import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item'
+import CourseListSuspense from '@/features/courses/suspense'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
 import type { DetailedCourseEnrollmentDto } from '@/integrations/api/client'
@@ -11,7 +12,7 @@ import { courseEnrollmentControllerGetCourseEnrollmentsOptions } from '@/integra
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
+import { Suspense, useState, type ReactNode } from 'react'
 
 export const studentCourseFilterConfig: FilterConfig<EnrolledCourse> = {
   Term: (course, value) => {
@@ -77,37 +78,39 @@ const StudentCourseDashboardPage = () => {
             gap="md"
             style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
           >
-            <StudentCourseDashboardProvider>
-              {({ courseOfferings }) =>
-                courseOfferings.map((course, index) =>
-                  view === 'grid' ? (
-                    <CourseCard
-                      key={course.id}
-                      url={`/courses/${course.courseSection!.id}`}
-                      section={course.courseSection!}
-                      course={course.courseOffering?.course!}
-                      currentMeeting={{
-                        endTime: '2024-12-31T23:59:00Z',
-                        meetingLink: 'https://example.com/meeting',
-                        startTime: '2024-12-31T22:59:00Z',
-                      }}
-                    />
-                  ) : (
-                    <CourseListRow
-                      key={course.id}
-                      url={`/courses/${course.courseSection!.id}`}
-                      section={course.courseSection!}
-                      course={course.courseOffering?.course!}
-                      currentMeeting={{
-                        endTime: '2024-12-31T23:59:00Z',
-                        meetingLink: 'https://example.com/meeting',
-                        startTime: '2024-12-31T22:59:00Z',
-                      }}
-                    />
-                  ),
-                )
-              }
-            </StudentCourseDashboardProvider>
+            <Suspense fallback={<CourseListSuspense />}>
+              <StudentCourseDashboardProvider>
+                {({ courseOfferings }) =>
+                  courseOfferings.map((course, index) =>
+                    view === 'grid' ? (
+                      <CourseCard
+                        key={course.id}
+                        url={`/courses/${course.courseSection!.id}`}
+                        section={course.courseSection!}
+                        course={course.courseOffering?.course!}
+                        currentMeeting={{
+                          endTime: '2024-12-31T23:59:00Z',
+                          meetingLink: 'https://example.com/meeting',
+                          startTime: '2024-12-31T22:59:00Z',
+                        }}
+                      />
+                    ) : (
+                      <CourseListRow
+                        key={course.id}
+                        url={`/courses/${course.courseSection!.id}`}
+                        section={course.courseSection!}
+                        course={course.courseOffering?.course!}
+                        currentMeeting={{
+                          endTime: '2024-12-31T23:59:00Z',
+                          meetingLink: 'https://example.com/meeting',
+                          startTime: '2024-12-31T22:59:00Z',
+                        }}
+                      />
+                    ),
+                  )
+                }
+              </StudentCourseDashboardProvider>
+            </Suspense>
           </Group>
           {/* <Box
             className="self-end"

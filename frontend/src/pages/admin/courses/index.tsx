@@ -3,6 +3,7 @@ import {
   CourseCard,
   CourseListRow,
 } from '@/features/courses/dashboard/course-dashboard-item.tsx'
+import CourseListSuspense from '@/features/courses/suspense'
 import type { Course } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
 import type {
@@ -16,7 +17,7 @@ import {
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
+import { Suspense, useState, type ReactNode } from 'react'
 
 export const adminCourseFilterConfig: FilterConfig<Course> = {
   Term: (course, value) => {
@@ -102,29 +103,31 @@ function AdminCourseDashboardPage() {
           gap="md"
           style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
         >
-          <AdminCourseDashboardProvider>
-            {({ courseOfferings }) =>
-              courseOfferings.map((course, index) =>
-                course.courseSections.map((section) =>
-                  view === 'grid' ? (
-                    <CourseCard
-                      key={section.id}
-                      url={`/courses/${section.id}`}
-                      course={course.course}
-                      section={section}
-                    />
-                  ) : (
-                    <CourseListRow
-                      key={section.id}
-                      url={`/courses/${section.id}`}
-                      section={section}
-                      course={course.course}
-                    />
+          <Suspense fallback={<CourseListSuspense />}>
+            <AdminCourseDashboardProvider>
+              {({ courseOfferings }) =>
+                courseOfferings.map((course, index) =>
+                  course.courseSections.map((section) =>
+                    view === 'grid' ? (
+                      <CourseCard
+                        key={section.id}
+                        url={`/courses/${section.id}`}
+                        course={course.course}
+                        section={section}
+                      />
+                    ) : (
+                      <CourseListRow
+                        key={section.id}
+                        url={`/courses/${section.id}`}
+                        section={section}
+                        course={course.course}
+                      />
+                    ),
                   ),
-                ),
-              )
-            }
-          </AdminCourseDashboardProvider>
+                )
+              }
+            </AdminCourseDashboardProvider>
+          </Suspense>
         </Group>
       </Stack>
     </Container>
