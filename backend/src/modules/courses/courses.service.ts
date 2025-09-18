@@ -175,50 +175,6 @@ export class CoursesService {
   }
 
   /**
-   * Retrieves a course by providing a course section id.
-   *
-   * This will resolve the course via CourseSection -> CourseOffering -> Course.
-   *
-   * @param sectionId - The UUID of the course section
-   */
-  @Log({
-    logArgsMessage: ({ sectionId }) =>
-      `Fetching course for section id ${sectionId}`,
-    logSuccessMessage: (course) => `Successfully fetched course for section`,
-    logErrorMessage: (err, { sectionId }) =>
-      `Error fetching course for section ${sectionId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { sectionId }) =>
-      new NotFoundException(
-        `No course found for the provided section ID ${sectionId}`,
-      ),
-  })
-  async findOneBySectionId(@LogParam('sectionId') sectionId: string) {
-    if (!isUUID(sectionId)) {
-      throw new BadRequestException('Invalid section ID format');
-    }
-
-    const result = await this.prisma.client.courseSection.findUniqueOrThrow({
-      where: { id: sectionId },
-      include: {
-        courseOffering: {
-          include: {
-            course: {
-              include: {
-                coreqs: { select: { id: true, courseCode: true, name: true } },
-                prereqs: { select: { id: true, courseCode: true, name: true } },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return result.courseOffering.course as CourseDto;
-  }
-
-  /**
    * Updates the details of an existing course.
    *
    * @async

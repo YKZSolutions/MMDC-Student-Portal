@@ -75,19 +75,6 @@ export class CoursesController {
   }
 
   /**
-   * Retrieve a course by providing a course section id
-   *
-   * @remarks Requires `ADMIN`, `STUDENT`, or `MENTOR` role.
-   */
-  @ApiOkResponse({ type: CourseDto })
-  @ApiException(() => [NotFoundException, InternalServerErrorException])
-  @Roles(Role.ADMIN, Role.STUDENT, Role.MENTOR)
-  @Get('by-section/:sectionId')
-  findOneBySection(@Param('sectionId') sectionId: string) {
-    return this.coursesService.findOneBySectionId(sectionId);
-  }
-
-  /**
    * Update a course
    *
    * @remarks
