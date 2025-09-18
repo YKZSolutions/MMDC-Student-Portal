@@ -1,5 +1,9 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { useAuth } from '@/features/auth/auth.hook.ts'
+import CourseNavBar, {
+  type CourseNavItem,
+} from '@/features/courses/course-navbar.tsx'
+import { courseSectionControllerFindOneCourseSectionByIdOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatToSchoolYear } from '@/utils/formatters'
 import {
   Box,
   Button,
@@ -10,16 +14,14 @@ import {
   Text,
   ThemeIcon,
   Title,
-  useMantineTheme,
+  useMantineTheme
 } from '@mantine/core'
-import { type EnrolledCourse } from '@/features/courses/types.ts'
-import CourseNavBar, {
-  type CourseNavItem,
-} from '@/features/courses/course-navbar.tsx'
-import { mockEnrolledCourse } from '@/features/courses/mocks.ts'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
-import React, { useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { useState } from 'react'
 
+// The courseCode here is actually the sectionId
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
@@ -27,10 +29,20 @@ export const Route = createFileRoute('/(protected)/courses/$courseCode')({
 function RouteComponent() {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
-
-  const courses: EnrolledCourse[] = mockEnrolledCourse
   const { courseCode } = Route.useParams()
-  const course = courses.find((c) => c.courseCode === courseCode)
+
+  const { data } = useSuspenseQuery(
+    courseSectionControllerFindOneCourseSectionByIdOptions({
+      path: {
+        sectionId: courseCode,
+      },
+    }),
+  )
+
+  const course = data?.courseOffering.course
+  const enrollmentPeriod = data?.courseOffering.enrollmentPeriod
+
+  console.log(data)
 
   const studentNavItems: CourseNavItem[] = [
     {
@@ -88,13 +100,35 @@ function RouteComponent() {
           <ThemeIcon size="lg" variant="light" color="blue">
             <IconBookmark size={20} />
           </ThemeIcon>
-          <div>
-            <Title order={3}>{course?.courseName}</Title>
-            <Text size="sm" c="dimmed">
-              {course?.courseCode} • {course?.program.program} •{' '}
-              {course?.section.sectionName}
-            </Text>
-          </div>
+          <Box>
+            <Title order={3}>{course.name}</Title>
+            <Group gap={"xs"} className="">
+              <Text size="sm" c="dimmed">
+                {course.courseCode}
+              </Text>
+              <Text size="sm" c="dimmed">
+                •
+              </Text>
+              <Text size="sm" c="dimmed">
+                {formatToSchoolYear(
+                  enrollmentPeriod.startYear,
+                  enrollmentPeriod.endYear,
+                )}
+              </Text>
+              <Text size="sm" c="dimmed">
+                •
+              </Text>
+              <Text size="sm" c="dimmed">
+                Term {enrollmentPeriod.term}
+              </Text>
+              <Text size="sm" c="dimmed">
+                •
+              </Text>
+              <Text size="sm" c="dimmed">
+                {data?.name}
+              </Text>
+            </Group>
+          </Box>
         </Group>
         {authUser.role === 'admin' && (
           <Button
@@ -131,7 +165,6 @@ function RouteComponent() {
             navItems={
               authUser.role === 'student' ? studentNavItems : adminNavItems
             }
-            courses={courses} //TODO: use all courses for admin
             courseCode={courseCode}
           />
         </Box>
