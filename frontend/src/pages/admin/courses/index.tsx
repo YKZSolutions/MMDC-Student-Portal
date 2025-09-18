@@ -81,7 +81,6 @@ function AdminCourseDashboardProvider({
     limit,
   })
 
-  console.log(courseOfferings)
 
   return children({
     enrollmentPeriodData,
