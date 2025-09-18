@@ -2,6 +2,12 @@ import { useAuth } from '@/features/auth/auth.hook.ts'
 import CourseNavBar, {
   type CourseNavItem,
 } from '@/features/courses/course-navbar.tsx'
+import { CourseHeaderSkeleton } from '@/features/courses/suspense'
+import type {
+  CourseDto,
+  CourseSectionWithCourseOfferingDto,
+  EnrollmentPeriodDto,
+} from '@/integrations/api/client'
 import { courseSectionControllerFindOneCourseSectionByIdOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatToSchoolYear } from '@/utils/formatters'
 import {
@@ -20,28 +26,36 @@ import { useLocalStorage } from '@mantine/hooks'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { Suspense, useMemo, useState, type ReactNode } from 'react'
 
 // The courseCode here is actually the sectionId
 export const Route = createFileRoute('/(protected)/courses/$courseCode')({
   component: RouteComponent,
 })
 
-function RouteComponent() {
-  const { authUser } = useAuth('protected')
-  const theme = useMantineTheme()
+function RouteComponentQueryProvider({
+  children,
+}: {
+  children: (props: {
+    data: CourseSectionWithCourseOfferingDto
+    course: CourseDto
+    enrollmentPeriod: EnrollmentPeriodDto
+  }) => ReactNode
+}) {
   const { courseCode } = Route.useParams()
-  const [enrollmentPeriodId, setEnrollmentPeriodId] = useLocalStorage<
-    string | null
-  >({
-    key: 'enrollmentPeriodId',
-  })
+
   const { data } = useSuspenseQuery({
     ...courseSectionControllerFindOneCourseSectionByIdOptions({
       path: {
         sectionId: courseCode,
       },
     }),
+  })
+
+  const [enrollmentPeriodId, setEnrollmentPeriodId] = useLocalStorage<
+    string | null
+  >({
+    key: 'enrollmentPeriodId',
   })
 
   const _enrollmentPeriodId = useMemo(
@@ -52,6 +66,18 @@ function RouteComponent() {
 
   const course = data?.courseOffering.course
   const enrollmentPeriod = data?.courseOffering.enrollmentPeriod
+
+  return children({
+    data,
+    course,
+    enrollmentPeriod,
+  })
+}
+
+function RouteComponent() {
+  const { authUser } = useAuth('protected')
+  const theme = useMantineTheme()
+  const { courseCode } = Route.useParams()
 
   const studentNavItems: CourseNavItem[] = [
     {
@@ -109,35 +135,41 @@ function RouteComponent() {
           <ThemeIcon size="lg" variant="light" color="blue">
             <IconBookmark size={20} />
           </ThemeIcon>
-          <Box>
-            <Title order={3}>{course.name}</Title>
-            <Group gap={'xs'} className="">
-              <Text size="sm" c="dimmed">
-                {course.courseCode}
-              </Text>
-              <Text size="sm" c="dimmed">
-                •
-              </Text>
-              <Text size="sm" c="dimmed">
-                {formatToSchoolYear(
-                  enrollmentPeriod.startYear,
-                  enrollmentPeriod.endYear,
-                )}
-              </Text>
-              <Text size="sm" c="dimmed">
-                •
-              </Text>
-              <Text size="sm" c="dimmed">
-                Term {enrollmentPeriod.term}
-              </Text>
-              <Text size="sm" c="dimmed">
-                •
-              </Text>
-              <Text size="sm" c="dimmed">
-                {data?.name}
-              </Text>
-            </Group>
-          </Box>
+          <Suspense fallback={<CourseHeaderSkeleton />}>
+            <RouteComponentQueryProvider>
+              {({ data, course, enrollmentPeriod }) => (
+                <Box>
+                  <Title order={3}>{course.name}</Title>
+                  <Group gap={'xs'} className="">
+                    <Text size="sm" c="dimmed">
+                      {course.courseCode}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      •
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {formatToSchoolYear(
+                        enrollmentPeriod.startYear,
+                        enrollmentPeriod.endYear,
+                      )}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      •
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      Term {enrollmentPeriod.term}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      •
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {data?.name}
+                    </Text>
+                  </Group>
+                </Box>
+              )}
+            </RouteComponentQueryProvider>
+          </Suspense>
         </Group>
         {authUser.role === 'admin' && (
           <Button

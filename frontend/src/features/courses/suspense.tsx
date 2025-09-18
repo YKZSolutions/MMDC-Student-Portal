@@ -112,7 +112,7 @@ function RowSkeleton() {
   )
 }
 
-function CourseListSuspense({
+export function CourseListSuspense({
   variant = 'card',
   count = 3,
 }: CourseListSuspenseProps) {
@@ -140,4 +140,21 @@ function CourseListSuspense({
   )
 }
 
-export default CourseListSuspense
+export function CourseHeaderSkeleton() {
+  return (
+    <Box>
+      <Title order={3}>
+        <Skeleton height={31} width={420} />
+      </Title>
+      <Group gap={'xs'} mt={6}>
+        <Skeleton height={14} width={80} />
+        <Skeleton height={14} width={8} />
+        <Skeleton height={14} width={120} />
+        <Skeleton height={14} width={8} />
+        <Skeleton height={14} width={64} />
+        <Skeleton height={14} width={8} />
+        <Skeleton height={14} width={140} />
+      </Group>
+    </Box>
+  )
+}
