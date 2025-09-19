@@ -12,8 +12,11 @@ services:
       - "traefik.http.routers.nestjs.entrypoints=websecure"
       - "traefik.http.routers.nestjs.tls.certresolver=tlsresolver"
       - "traefik.http.services.nestjs.loadbalancer.server.port=3001"
-      # Reference middleware(s) from dynamic.yml
-      - "traefik.http.routers.nestjs.middlewares=default-chain,cors-portal"
+      
+      # Middlewares (defined in dynamic.yml via the File provider).
+      # IMPORTANT: we must qualify them with @file, otherwise Traefik looks in the Docker provider
+      # and silently drops the router if it can't find them → leads to 404s.
+      - "traefik.http.routers.nestjs.middlewares=default-chain@file,cors-portal@file"
 
 networks:
   proxy:
