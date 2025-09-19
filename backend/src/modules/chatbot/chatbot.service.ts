@@ -85,15 +85,15 @@ export class ChatbotService {
   }
 
   @Log({
-    logArgsMessage: ({ userId, role, prompt }) =>
-      `Handle chatbot question userId=${userId}, role=${role}, question="${prompt.question}"`,
-    logSuccessMessage: (_, { userId, role }) =>
-      `Successfully handled chatbot question userId=${userId}, role=${role}`,
-    logErrorMessage: (err, { userId, role }) =>
-      `Failed to handle chatbot question userId=${userId}, role=${role} | Error=${err.message}`,
+    logArgsMessage: ({ authId, role, prompt }) =>
+      `Handle chatbot question authId=${authId}, role=${role}, question="${prompt.question}"`,
+    logSuccessMessage: (_, { authId, role }) =>
+      `Successfully handled chatbot question userId=${authId}, role=${role}`,
+    logErrorMessage: (err, { authId, role }) =>
+      `Failed to handle chatbot question userId=${authId}, role=${role} | Error=${err.message}`,
   })
   async handleQuestion(
-    @LogParam('userId') userId: string,
+    @LogParam('authId') authId: string,
     @LogParam('role') role: string,
     @LogParam('prompt') prompt: PromptDto,
   ): Promise<ChatbotResponseDto> {
@@ -102,7 +102,7 @@ export class ChatbotService {
     };
 
     const userContext: UserBaseContext | UserStudentContext | UserStaffContext =
-      this.mapUserToContext(role, await this.usersService.getMe(userId));
+      this.mapUserToContext(role, await this.usersService.getMe(authId));
 
     const {
       call,
@@ -110,8 +110,8 @@ export class ChatbotService {
     }: { call: FunctionCall[] | null; text: string | undefined } =
       await this.gemini.askWithFunctionCalling(
         prompt.question,
-        prompt.sessionHistory,
         userContext,
+        prompt.sessionHistory,
       );
 
     if (!call) {

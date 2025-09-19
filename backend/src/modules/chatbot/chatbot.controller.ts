@@ -13,6 +13,7 @@ import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@supabase/supabase-js';
 import { Role } from '@/common/enums/roles.enum';
 import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 
 @ApiBearerAuth()
 @Controller('chatbot')
@@ -32,12 +33,12 @@ export class ChatbotController {
   @ApiCreatedResponse({ type: ChatbotResponseDto })
   @ApiException(() => BadRequestException)
   @ApiException(() => InternalServerErrorException)
-  async prompt(@CurrentUser() user: AuthUser, @Body() prompt: PromptDto) {
-    console.log(JSON.stringify(prompt));
-    return this.chatbotService.handleQuestion(
-      user.id,
-      user.user_metadata.role as Role,
-      prompt,
-    );
+  async prompt(
+    @CurrentUser() user: CurrentAuthUser,
+    @Body() prompt: PromptDto,
+  ) {
+    const { role } = user.user_metadata;
+    const authId = user.id;
+    return this.chatbotService.handleQuestion(authId, role, prompt);
   }
 }

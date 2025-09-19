@@ -36,9 +36,9 @@ export class GeminiService {
   })
   async askWithFunctionCalling(
     @LogParam('question') question: string,
-    @LogParam('sessionHistory') sessionHistory: Turn[],
     @LogParam('currentUser')
     currentUser: UserBaseContext | UserStudentContext | UserStaffContext,
+    @LogParam('sessionHistory') sessionHistory?: Turn[],
   ) {
     const role = currentUser.role ?? 'user';
     const allowedTools = getToolsForRole(role);
@@ -61,6 +61,11 @@ export class GeminiService {
     }
 
     conversation.push({ role: 'user', parts: [{ text: question }] });
+
+    console.log('Conversation:', conversation);
+    console.log('Allowed Tools:', allowedTools);
+    console.log('Model:', this.model);
+    console.log('Proceeding to call Gemini API with function calling...');
 
     try {
       const result = await this.gemini.models.generateContent({

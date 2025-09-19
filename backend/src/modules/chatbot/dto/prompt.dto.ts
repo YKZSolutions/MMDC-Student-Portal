@@ -1,5 +1,11 @@
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 enum ChatbotRole {
@@ -8,8 +14,8 @@ enum ChatbotRole {
 }
 
 export class Turn {
-  @IsNotEmpty()
   @ApiProperty({ enum: ChatbotRole })
+  @IsNotEmpty()
   role: ChatbotRole;
 
   @IsString()
@@ -18,12 +24,30 @@ export class Turn {
 }
 
 export class PromptDto {
+  @ApiProperty({
+    type: String,
+    example: 'What is the current semester?',
+  })
   @IsNotEmpty()
   @IsString()
   question: string;
 
-  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
+    type: [Turn],
+    example: [
+      {
+        role: 'user',
+        content: 'What is the current semester?',
+      },
+      {
+        role: 'model',
+        content: 'The current semester is 2024-2025.',
+      },
+    ],
+    required: false,
+  })
+  @ValidateNested()
   @IsArray()
   @Type(() => Turn)
-  sessionHistory: Turn[];
+  sessionHistory?: Turn[];
 }
