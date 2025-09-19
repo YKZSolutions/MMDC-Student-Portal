@@ -26,7 +26,9 @@ export class BasicFileResourceDto extends OmitType(FileResourceDto, [
   'content',
 ]) {}
 
-export class BasicModuleItemDto extends ModuleContentDto {
+export class BasicModuleItemDto extends OmitType(ModuleContentDto, [
+  'deletedAt',
+]) {
   @ApiProperty({
     type: () => BasicLessonDto,
     required: false,
