@@ -1,5 +1,6 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Major, type Major as MajorAsType } from './major.entity';
+import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   CurriculumCourse,
   type CurriculumCourse as CurriculumCourseAsType,
@@ -8,7 +9,6 @@ import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
-import { Module, type Module as ModuleAsType } from './module.entity';
 
 export class Course {
   @ApiProperty({
@@ -41,6 +41,8 @@ export class Course {
     required: false,
   })
   coreqFor?: Course[];
+  @ApiHideProperty()
+  modules?: ModuleAsType[];
   @ApiProperty({
     type: () => CurriculumCourse,
     isArray: true,
@@ -74,8 +76,6 @@ export class Course {
   isActive: boolean;
   @ApiHideProperty()
   courseOfferings?: CourseOfferingAsType[];
-  @ApiHideProperty()
-  modules?: ModuleAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

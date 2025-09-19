@@ -30,7 +30,7 @@ export function createUserData(
     ...(isStudent && {
       studentDetails: {
         create: {
-          studentNumber: 20240000 + index,
+          studentNumber: (20240000 + index).toString(),
           studentType: pickRandomEnum(StudentType),
           admissionDate: faker.date.past({ years: 1 }),
           otherDetails: {

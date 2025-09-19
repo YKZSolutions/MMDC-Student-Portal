@@ -1,18 +1,8 @@
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDateString, IsOptional } from 'class-validator';
 
-export class CreateModuleDto {
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  title: string;
+export class CreateSectionModuleDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -32,12 +22,10 @@ export class CreateModuleDto {
   @IsDateString()
   toPublishAt?: Date | null;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
+    type: () => Object,
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  unpublishedAt?: Date | null;
+  classMeetings?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }

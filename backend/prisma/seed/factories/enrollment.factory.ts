@@ -10,6 +10,7 @@ import { pickRandomEnum } from '../utils/helpers';
 export function createEnrollmentPeriodData(
   year: number,
   term: number,
+  status: EnrollmentStatus = pickRandomEnum(EnrollmentStatus),
 ): Prisma.EnrollmentPeriodCreateInput {
   const startDate = new Date(year, (term - 1) * 6); // Simple date logic
   const endDate = new Date(year, term * 6 - 1);
@@ -19,7 +20,7 @@ export function createEnrollmentPeriodData(
     term,
     startDate,
     endDate,
-    status: pickRandomEnum(EnrollmentStatus),
+    status,
   };
 }
 

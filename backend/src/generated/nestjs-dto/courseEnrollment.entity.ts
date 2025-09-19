@@ -15,24 +15,24 @@ export class CourseEnrollment {
     type: 'string',
   })
   id: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  courseOfferingId: string;
   @ApiHideProperty()
   courseOffering?: CourseOfferingAsType;
   @ApiProperty({
     type: 'string',
   })
-  courseSectionId: string;
+  courseOfferingId: string;
   @ApiHideProperty()
   courseSection?: CourseSectionAsType;
   @ApiProperty({
     type: 'string',
   })
-  studentId: string;
+  courseSectionId: string;
   @ApiHideProperty()
   user?: UserAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  studentId: string;
   @ApiProperty({
     enum: CourseEnrollmentStatus,
     enumName: 'CourseEnrollmentStatus',

@@ -16,4 +16,11 @@ export class ConnectStudentDetailsDto {
   @IsOptional()
   @IsString()
   userId?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  studentNumber?: string;
 }

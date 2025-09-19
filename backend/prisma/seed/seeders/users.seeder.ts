@@ -2,13 +2,24 @@ import { PrismaClient, Role, User } from '@prisma/client';
 import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import { createUserData } from '../factories/user.factory';
+import { SupabaseService } from '../../../src/lib/supabase/supabase.service';
+import { ConfigService } from '@nestjs/config';
+import { EnvVars } from '../../../src/config/env.schema';
+
+const supabase = new SupabaseService(new ConfigService<EnvVars>());
 
 export async function seedUsers(prisma: PrismaClient) {
   log('Seeding users...');
   const { TOTAL, ADMINS, MENTORS } = seedConfig.USERS;
-  const studentCount = TOTAL - ADMINS - MENTORS;
 
-  const userPromises: Promise<User>[] = [];
+  // Track whether we've already created an auth account for each role
+  const authCreated: Record<Role, boolean> = {
+    admin: false,
+    mentor: false,
+    student: false,
+  };
+
+  const users: User[] = [];
 
   for (let i = 0; i < TOTAL; i++) {
     let role: Role;
@@ -16,17 +27,65 @@ export async function seedUsers(prisma: PrismaClient) {
     else if (i < ADMINS + MENTORS) role = Role.mentor;
     else role = Role.student;
 
-    userPromises.push(
-      prisma.user.create({
-        data: createUserData(role, i),
-      }),
-    );
+    const baseUserData = createUserData(role, i);
+
+    if (!authCreated[role]) {
+      // First time we hit this role → create auth account
+      const email = `${role}@tester.com`;
+      const password = 'password';
+
+      const account = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          role,
+          status: 'active',
+        },
+      });
+
+      if (account.error) {
+        throw account.error;
+      }
+
+      const authUser = account.data.user;
+
+      const user = await prisma.user.create({
+        data: {
+          ...baseUserData,
+          role,
+          userAccount: {
+            create: {
+              authUid: authUser.id,
+              email: authUser.email!,
+            },
+          },
+        },
+      });
+
+      await supabase.auth.admin.updateUserById(account.data.user.id, {
+        user_metadata: {
+          user_id: user.id,
+        },
+      });
+
+      users.push(user);
+      authCreated[role] = true; // mark as done
+    } else {
+      // Normal DB user (no auth)
+      const user = await prisma.user.create({
+        data: {
+          ...baseUserData,
+          role,
+        },
+      });
+      users.push(user);
+    }
   }
 
-  const users = await Promise.all(userPromises);
-  const admins = users.filter((u) => u.role === 'admin');
-  const mentors = users.filter((u) => u.role === 'mentor');
-  const students = users.filter((u) => u.role === 'student');
+  const admins = users.filter((u) => u.role === Role.admin);
+  const mentors = users.filter((u) => u.role === Role.mentor);
+  const students = users.filter((u) => u.role === Role.student);
 
   log(`-> Created ${users.length} users.`);
   log(`   - ${admins.length} Admins`);

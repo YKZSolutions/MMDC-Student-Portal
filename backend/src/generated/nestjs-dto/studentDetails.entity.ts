@@ -14,10 +14,9 @@ export class StudentDetails {
   @ApiHideProperty()
   user?: UserAsType;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  studentNumber: number;
+  studentNumber: string;
   @ApiProperty({
     enum: StudentType,
     enumName: 'StudentType',
