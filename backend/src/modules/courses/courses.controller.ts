@@ -10,14 +10,12 @@ import {
   Controller,
   Delete,
   Query,
-  ConflictException,
   Get,
   InternalServerErrorException,
   NotFoundException,
   Param,
   Patch,
   Post,
-  Query
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
