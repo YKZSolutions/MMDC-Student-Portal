@@ -1,0 +1,20 @@
+services:
+  nestjs:
+    image: ghcr.io/ykzsolutions/mmdc-student-portal
+    container_name: mmdc-student-portal
+    networks:
+      - proxy
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nestjs.rule=Host(`api.portal.mcube.uk`)"
+      - "traefik.http.routers.nestjs.entrypoints=websecure"
+      - "traefik.http.routers.nestjs.tls.certresolver=tlsresolver"
+      - "traefik.http.services.nestjs.loadbalancer.server.port=3001"
+      # Reference middleware(s) from dynamic.yml
+      - "traefik.http.routers.nestjs.middlewares=default-chain,cors-portal"
+
+networks:
+  proxy:
+    external: true
