@@ -709,6 +709,7 @@ export class LmsContentService {
     } else if (filters.search) {
       console.log('setting global search');
       whereCondition.OR = [
+        // ----- Content titles/subtitles -----
         {
           lesson: { title: { contains: filters.search, mode: 'insensitive' } },
         },
@@ -752,6 +753,50 @@ export class LmsContentService {
           },
         },
         { video: { title: { contains: filters.search, mode: 'insensitive' } } },
+
+        // ----- Student name / student number -----
+        {
+          module: {
+            courseOffering: {
+              courseEnrollments: {
+                some: {
+                  user: {
+                    OR: [
+                      // search by full or partial student name
+                      {
+                        firstName: {
+                          contains: filters.search,
+                          mode: 'insensitive',
+                        },
+                      },
+                      {
+                        lastName: {
+                          contains: filters.search,
+                          mode: 'insensitive',
+                        },
+                      },
+                      {
+                        middleName: {
+                          contains: filters.search,
+                          mode: 'insensitive',
+                        },
+                      },
+                      // search by student number
+                      {
+                        studentDetails: {
+                          studentNumber: {
+                            contains: filters.search,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
       ];
     }
 
