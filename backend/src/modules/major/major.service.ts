@@ -64,7 +64,7 @@ export class MajorService {
   }
 
   /**
-   * Retrives all majors under the specified programId matching the provided filters, with pagination support.
+   * Retrieves all majors under the specified programId matching the provided filters, with pagination support.
    *
    * @async
    * @param {FilterMajorDto} filters - Filter and pagination options (e.g., search keyword, page number).
