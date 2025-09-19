@@ -18,6 +18,7 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { MajorItemDto } from './dto/major-item.dto';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class MajorService {
@@ -49,7 +50,7 @@ export class MajorService {
       new ConflictException(`Major name already exists: ${dto.major.name}`),
   })
   async create(
-    createProgramMajorDto: CreateProgramMajorDto,
+    @LogParam('dto') createProgramMajorDto: CreateProgramMajorDto,
   ): Promise<MajorDto> {
     const major = await this.prisma.client.major.create({
       data: {
@@ -63,7 +64,7 @@ export class MajorService {
   }
 
   /**
-   * Retrives all majors matching the provided filters, with pagination support. Can optionally filter by programId
+   * Retrieves all majors under the specified programId matching the provided filters, with pagination support.
    *
    * @async
    * @param {FilterMajorDto} filters - Filter and pagination options (e.g., search keyword, page number).
@@ -85,7 +86,7 @@ export class MajorService {
       new NotFoundException('No majors found'),
   })
   async findAll(
-    filters: BaseFilterDto,
+    @LogParam('filters') filters: BaseFilterDto,
     programId?: string,
   ): Promise<PaginatedMajorsDto> {
     const where: Prisma.MajorWhereInput = {};
@@ -142,7 +143,7 @@ export class MajorService {
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Major with ID ${id} not found`),
   })
-  async findOne(id: string): Promise<MajorItemDto> {
+  async findOne(@LogParam('id') id: string): Promise<MajorItemDto> {
     const major = await this.prisma.client.major.findUniqueOrThrow({
       where: { id },
     });
@@ -164,7 +165,7 @@ export class MajorService {
    */
   @Log({
     logArgsMessage: ({ id, dto }) => `Update major id=${id} name=${dto.name}`,
-    logSuccessMessage: (result, { id }) => `Updated major id=${id}`,
+    logSuccessMessage: (_, { id }) => `Updated major id=${id}`,
     logErrorMessage: (err, { id }) =>
       `Failed to update major id=${id} | Error=${err.message}`,
   })
@@ -174,7 +175,10 @@ export class MajorService {
     [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
       new ConflictException(`Major name already exists: ${dto.name}`),
   })
-  async update(id: string, updateMajorDto: UpdateMajorDto): Promise<MajorDto> {
+  async update(
+    @LogParam('id') id: string,
+    @LogParam('dto') updateMajorDto: UpdateMajorDto,
+  ): Promise<MajorDto> {
     const major = await this.prisma.client.major.update({
       where: { id },
       data: { ...updateMajorDto },
@@ -210,8 +214,8 @@ export class MajorService {
       new NotFoundException(`Major with ID ${id} not found`),
   })
   async remove(
-    id: string,
-    directDelete?: boolean,
+    @LogParam('id') id: string,
+    @LogParam('directDelete') directDelete?: boolean,
   ): Promise<{ message: string }> {
     const major = await this.prisma.client.major.findFirstOrThrow({
       where: { id },
