@@ -72,7 +72,7 @@ export class EnrollmentService {
 
     const [enrollments, meta] = await this.prisma.client.enrollmentPeriod
       .paginate()
-      .withPages({ limit: 10, page, includePageCount: true });
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { enrollments, meta };
   }
