@@ -1945,7 +1945,7 @@
         ]
       },
       "patch": {
-        "description": "Requires `ADMIN`, `STUDENT`, or `MENTOR` role.",
+        "description": "This operation updates the details of an existing course.\nRequires `ADMIN` role.",
         "operationId": "CoursesController_update",
         "parameters": [
           {
@@ -1982,15 +1982,7 @@
             "content": {
               "application/json": {
                 "examples": {
-                  "NotFoundException #1": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  },
-                  "NotFoundException #2": {
+                  "NotFoundException": {
                     "description": "Not Found",
                     "value": {
                       "statusCode": 404,
@@ -2066,15 +2058,7 @@
             "content": {
               "application/json": {
                 "examples": {
-                  "InternalServerErrorException #1": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  },
-                  "InternalServerErrorException #2": {
+                  "InternalServerErrorException": {
                     "description": "Internal Server Error",
                     "value": {
                       "statusCode": 500,
@@ -2109,7 +2093,7 @@
             "description": ""
           }
         },
-        "summary": "Retrieve a course by providing a course section id",
+        "summary": "Update a course",
         "tags": [
           "Courses"
         ]

@@ -671,8 +671,9 @@ export const coursesControllerFindOneOptions = (options: Options<CoursesControll
 };
 
 /**
- * Retrieve a course by providing a course section id
- * Requires `ADMIN`, `STUDENT`, or `MENTOR` role.
+ * Update a course
+ * This operation updates the details of an existing course.
+ * Requires `ADMIN` role.
  */
 export const coursesControllerUpdateMutation = (options?: Partial<Options<CoursesControllerUpdateData>>): UseMutationOptions<CoursesControllerUpdateResponse, CoursesControllerUpdateError, Options<CoursesControllerUpdateData>> => {
     const mutationOptions: UseMutationOptions<CoursesControllerUpdateResponse, CoursesControllerUpdateError, Options<CoursesControllerUpdateData>> = {

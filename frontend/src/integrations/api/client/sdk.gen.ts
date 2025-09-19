@@ -354,8 +354,9 @@ export const coursesControllerFindOne = <ThrowOnError extends boolean = false>(o
 };
 
 /**
- * Retrieve a course by providing a course section id
- * Requires `ADMIN`, `STUDENT`, or `MENTOR` role.
+ * Update a course
+ * This operation updates the details of an existing course.
+ * Requires `ADMIN` role.
  */
 export const coursesControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<CoursesControllerUpdateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).patch<CoursesControllerUpdateResponses, CoursesControllerUpdateErrors, ThrowOnError>({
