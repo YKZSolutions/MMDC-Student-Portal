@@ -1,12 +1,13 @@
 import {
   ContentType,
   Course,
+  CourseOffering,
   Module,
   ModuleContent,
   ModuleSection,
   PrismaClient,
 } from '@prisma/client';
-import { log, pickRandomEnum } from '../utils/helpers';
+import { log, pickRandom, pickRandomEnum } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import {
   createAssignmentData,
@@ -21,7 +22,11 @@ import {
   createVideoData,
 } from '../factories/module.factory';
 
-export async function seedModules(prisma: PrismaClient, courses: Course[]) {
+export async function seedModules(
+  prisma: PrismaClient,
+  courses: Course[],
+  courseOfferings: CourseOffering[],
+) {
   log('Seeding modules...');
   const allModules: Module[] = [];
   const allSections: ModuleSection[] = [];
@@ -34,9 +39,14 @@ export async function seedModules(prisma: PrismaClient, courses: Course[]) {
   for (const course of courses) {
     const courseModules: Module[] = [];
     for (let i = 0; i < seedConfig.MODULES_PER_COURSE; i++) {
+      const courseOfferingIds = courseOfferings
+        .filter((offering) => offering.courseId === course.id)
+        .map((offering) => offering.id);
+
       const module = await prisma.module.create({
-        data: createModuleData(course.id),
+        data: createModuleData(course.id, pickRandom(courseOfferingIds)),
       });
+
       courseModules.push(module);
     }
     allModules.push(...courseModules);
@@ -58,8 +68,8 @@ export async function seedModules(prisma: PrismaClient, courses: Course[]) {
               ? ContentType.ASSIGNMENT
               : pickRandomEnum(
                   Object.values(ContentType).filter(
-                    (type) => type !== ContentType.ASSIGNMENT
-                  )
+                    (type) => type !== ContentType.ASSIGNMENT,
+                  ),
                 );
 
           const content = await prisma.moduleContent.create({

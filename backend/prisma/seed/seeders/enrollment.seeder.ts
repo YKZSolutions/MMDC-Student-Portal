@@ -19,7 +19,11 @@ export async function seedEnrollments(
   const enrollmentPeriods = await Promise.all(
     Array.from({ length: seedConfig.ENROLLMENT_PERIODS }, (_, i) =>
       prisma.enrollmentPeriod.create({
-        data: createEnrollmentPeriodData(2023 + Math.floor(i / 2), (i % 2) + 1),
+        data: createEnrollmentPeriodData(
+          2023 + Math.floor(i / 2),
+          (i % 2) + 1,
+          i === 0 ? 'active' : undefined,
+        ),
       }),
     ),
   );

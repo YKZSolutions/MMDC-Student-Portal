@@ -1,16 +1,7 @@
 import { IsDateString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdatePublishDto {
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  publishedAt?: Date | null;
+export class ToPublishAtDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',

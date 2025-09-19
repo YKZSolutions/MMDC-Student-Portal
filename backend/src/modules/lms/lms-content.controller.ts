@@ -1,31 +1,36 @@
 import {
-    BadRequestException,
-    Body,
-    ConflictException,
-    Controller,
-    Delete,
-    Get,
-    InternalServerErrorException,
-    NotFoundException,
-    Param,
-    ParseUUIDPipe,
-    Patch,
-    Post,
-    Query,
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
-import {LmsContentService} from '@/modules/lms/lms-content.service';
-import {ApiCreatedResponse, ApiOkResponse, OmitType} from '@nestjs/swagger';
-import {ApiException} from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import {Roles} from '@/common/decorators/roles.decorator';
-import {DeleteQueryDto} from '@/common/dto/delete-query.dto';
-import {Role} from '@/common/enums/roles.enum';
-import {UpdateContentDto} from '@/modules/lms/dto/update-content.dto';
-import {CurrentUser} from '@/common/decorators/auth-user.decorator';
-import {AuthUser, CurrentAuthUser,} from '@/common/interfaces/auth.user-metadata';
-import {CreateContentDto} from '@/modules/lms/dto/create-content.dto';
-import {LmsPublishService} from '@/modules/lms/lms-publish.service';
-import {UpdatePublishDto} from '@/modules/lms/dto/update-publish.dto';
-import {ModuleContent} from '@/generated/nestjs-dto/moduleContent.entity';
+import { LmsContentService } from '@/modules/lms/lms-content.service';
+import { ApiCreatedResponse, ApiOkResponse, OmitType } from '@nestjs/swagger';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import {
+  AuthUser,
+  CurrentAuthUser,
+} from '@/common/interfaces/auth.user-metadata';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -133,6 +138,24 @@ export class LmsContentController {
   }
 
   /**
+   * Retrieve multiple module contents based on filters
+   *
+   */
+  @ApiOkResponse({
+    type: PaginatedModuleContentDto,
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @Get()
+  findAll(
+    @Query() filters: FilterModuleContentsDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<PaginatedModuleContentDto> {
+    const { role, user_id } = user.user_metadata;
+    return this.lmsContentService.findAll(filters, role, user_id);
+  }
+
+  /**
    * Publish a module content
    *
    * @remarks
@@ -148,11 +171,11 @@ export class LmsContentController {
   @Patch(':moduleContentId/publish')
   publish(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @Body() updatePublishDto: UpdatePublishDto,
+    @Query() query?: ToPublishAtDto,
   ) {
     return this.lmsPublishService.publishContent(
       moduleContentId,
-      updatePublishDto,
+      query?.toPublishAt,
     );
   }
 
@@ -183,7 +206,7 @@ export class LmsContentController {
    * Requires `STUDENT` role
    *
    */
-  @Post(':moduleContentId')
+  @Post(':moduleContentId/progress')
   @Roles(Role.STUDENT)
   @ApiException(() => [
     BadRequestException,
@@ -209,7 +232,7 @@ export class LmsContentController {
    * - Mentors can fetch progress for a specific student (provide `studentId` query param).
    * - Students can fetch their own progress.
    */
-  @Get()
+  @Get(':moduleContentId/progress')
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiException(() => [
     BadRequestException,
