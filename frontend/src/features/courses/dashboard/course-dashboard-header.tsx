@@ -1,4 +1,6 @@
 import { MultiFilter, type FilterType } from '@/components/multi-filter.tsx'
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
 import {
   Box,
   Button,
@@ -26,6 +28,7 @@ type DashboardHeaderProps = {
 }
 
 function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
+  const { authUser } = useAuth('protected')
   return (
     <Stack gap="md">
       <Box>
@@ -55,7 +58,12 @@ function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
           onRemoveFilter={handleRemoveFilter}
           onFilterChange={handleFilterChange}
         /> */}
-        <AsyncTermCombobox />
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            admin: <AsyncTermCombobox />,
+          }}
+        />
         <ViewSelectorButton
           view={view}
           onGridClick={() => onViewChange('grid')}
