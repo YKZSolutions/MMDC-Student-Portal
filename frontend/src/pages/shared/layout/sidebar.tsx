@@ -1,5 +1,10 @@
 import RoleComponentManager from '@/components/role-component-manager'
+import SupabaseAvatar from '@/components/supabase-avatar'
 import { useAuth } from '@/features/auth/auth.hook'
+import NavButton from '@/features/navigation/nav-button'
+import { adminLinks, mentorLinks, studentLinks } from '@/features/navigation/navLinks'
+import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
   ActionIcon,
   Button,
@@ -10,6 +15,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
+import type { User } from '@supabase/supabase-js'
 import {
   IconChevronsLeft,
   IconLogout,
@@ -17,14 +23,8 @@ import {
   IconSettings,
   IconUser,
 } from '@tabler/icons-react'
-import NavButton from '@/features/navigation/nav-button'
-import type { User } from '@supabase/supabase-js'
-import { useLocation, useNavigate } from '@tanstack/react-router'
-import { adminLinks, studentLinks } from '@/features/navigation/navLinks'
-import SupabaseAvatar from '@/components/supabase-avatar'
-import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import { useQuery } from '@tanstack/react-query'
-import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 function Sidebar() {
@@ -75,6 +75,14 @@ function Sidebar() {
               currentRole={authUser.role}
               roleRender={{
                 student: studentLinks.map((item) => (
+                  <NavButton
+                    key={item.link}
+                    item={item}
+                    fuzzy={item.fuzzy}
+                    collapsed={!isExpanded}
+                  />
+                )),
+                mentor: mentorLinks.map((item) => (
                   <NavButton
                     key={item.link}
                     item={item}

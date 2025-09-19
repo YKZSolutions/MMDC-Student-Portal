@@ -43,16 +43,24 @@ export class CourseEnrollmentService {
   async getCourseEnrollments(
     @LogParam('user') user: CurrentAuthUser,
   ): Promise<DetailedCourseEnrollmentDto[]> {
-    const studentId = user.user_metadata.user_id;
+    const isStudent = user.user_metadata.role === Role.STUDENT;
+    const userId = user.user_metadata.user_id;
 
     const enrollments = await this.prisma.client.courseEnrollment.findMany({
       where: {
         status: { in: ['enlisted', 'finalized'] },
-        studentId: studentId,
+        ...(isStudent && { studentId: userId }),
         courseOffering: {
           enrollmentPeriod: {
             status: 'active',
           },
+          ...(!isStudent && {
+            courseSections: {
+              some: {
+                mentorId: userId,
+              },
+            },
+          }),
         },
       },
       include: {
