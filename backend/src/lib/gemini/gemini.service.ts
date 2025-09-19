@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
+import { FunctionCall, GoogleGenAI } from '@google/genai';
 import { getToolsForRole } from '@/lib/gemini/function-declarations';
 import {
   UserBaseContext,
@@ -74,14 +74,22 @@ export class GeminiService {
         config: { tools: allowedTools },
       });
 
-      // Extract the response text
-      const responseText = result.text;
+      let responseText = '';
+      const functionCalls: FunctionCall[] = [];
 
-      // Extract function calls if any
-      const functionCalls = result.functionCalls;
+      for (const candidate of result.candidates ?? []) {
+        for (const part of candidate.content?.parts ?? []) {
+          if ('text' in part) {
+            responseText += part.text;
+          }
+          if ('functionCall' in part && part.functionCall) {
+            functionCalls.push(part.functionCall);
+          }
+        }
+      }
 
       return {
-        text: responseText,
+        text: responseText.trim() || undefined,
         call: functionCalls?.length ? functionCalls : null,
       };
     } catch (error) {
