@@ -18,6 +18,21 @@ services:
       # and silently drops the router if it can't find them → leads to 404s.
       - "traefik.http.routers.nestjs.middlewares=default-chain@file,cors-portal@file"
 
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    command:
+    - "--label-enable"
+    - "--interval"
+    - "30"
+    - "--rolling-restart"
+    environment:
+      WATCHTOWER_CLEANUP: true
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
 networks:
   proxy:
     external: true
