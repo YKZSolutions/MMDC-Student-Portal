@@ -18,6 +18,7 @@ import {
   IconSearch,
 } from '@tabler/icons-react'
 import { useMemo, type ReactNode } from 'react'
+import AsyncTermCombobox from '../async-term-combobox'
 
 type DashboardHeaderProps = {
   view: 'grid' | 'list'
@@ -38,7 +39,7 @@ function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
       </Box>
       <Group align="center" justify="end" gap={rem(5)}>
         <TextInput
-          placeholder="Search name/email"
+          placeholder="Search courses"
           radius={'md'}
           leftSection={<IconSearch size={18} stroke={1} />}
           w={{
@@ -54,6 +55,7 @@ function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
           onRemoveFilter={handleRemoveFilter}
           onFilterChange={handleFilterChange}
         /> */}
+        <AsyncTermCombobox />
         <ViewSelectorButton
           view={view}
           onGridClick={() => onViewChange('grid')}

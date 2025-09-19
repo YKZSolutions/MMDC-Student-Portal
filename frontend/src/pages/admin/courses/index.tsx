@@ -17,6 +17,7 @@ import {
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { useSearch } from '@tanstack/react-router'
 import { Suspense, useState, type ReactNode } from 'react'
 
 export const adminCourseFilterConfig: FilterConfig<Course> = {
@@ -37,6 +38,7 @@ function AdminCourseDashboardProvider({
   children,
   props = {
     search: '',
+    term: '',
     page: 1,
   },
 }: {
@@ -48,10 +50,11 @@ function AdminCourseDashboardProvider({
   }) => ReactNode
   props?: {
     search?: string
+    term?: string
     page: number
   }
 }) {
-  const { search, page } = props
+  const { search, term, page } = props
 
   const { data: enrollmentPeriodData } = useSuspenseQuery(
     enrollmentControllerFindActiveEnrollmentOptions(),
@@ -64,7 +67,7 @@ function AdminCourseDashboardProvider({
         search: search || undefined,
       },
       path: {
-        enrollmentId: enrollmentPeriodData.id,
+        enrollmentId: term || enrollmentPeriodData.id,
       },
     }),
   )
@@ -81,7 +84,6 @@ function AdminCourseDashboardProvider({
     limit,
   })
 
-
   return children({
     enrollmentPeriodData,
     courseOfferings,
@@ -91,7 +93,18 @@ function AdminCourseDashboardProvider({
 }
 
 function AdminCourseDashboardPage() {
+  const searchParam: {
+    search: string
+    term: EnrollmentPeriodDto['id']
+    page: number
+  } = useSearch({ strict: false })
   const [view, setView] = useState<'grid' | 'list'>('grid')
+
+  const queryDefaultValues = {
+    search: searchParam.search || '',
+    term: searchParam.term || '',
+    page: 1,
+  }
 
   return (
     <Container size="md" w="100%" pb="xl">
@@ -103,7 +116,7 @@ function AdminCourseDashboardPage() {
           style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
         >
           <Suspense fallback={<CourseListSuspense />}>
-            <AdminCourseDashboardProvider>
+            <AdminCourseDashboardProvider props={queryDefaultValues}>
               {({ courseOfferings }) =>
                 courseOfferings.map((course, index) =>
                   course.courseSections.map((section) =>
