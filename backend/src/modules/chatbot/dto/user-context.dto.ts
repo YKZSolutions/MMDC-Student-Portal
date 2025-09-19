@@ -12,8 +12,8 @@ export class UserBaseContext {
 }
 
 export class UserStudentContext extends UserBaseContext {
-  @IsNumber()
-  studentNumber: number;
+  @IsString()
+  studentNumber: string;
 }
 
 export class UserStaffContext extends UserBaseContext {

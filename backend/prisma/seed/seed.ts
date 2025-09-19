@@ -25,7 +25,7 @@ async function main() {
   console.timeEnd('Seeded Academics');
 
   console.time('Seeded Enrollments');
-  const { courseEnrollments } = await seedEnrollments(
+  const { courseEnrollments, courseOfferings } = await seedEnrollments(
     prisma,
     courses,
     mentors,
@@ -34,7 +34,11 @@ async function main() {
   console.timeEnd('Seeded Enrollments');
 
   console.time('Seeded Modules');
-  const { contents, assignments, quizzes } = await seedModules(prisma, courses);
+  const { contents, assignments, quizzes } = await seedModules(
+    prisma,
+    courses,
+    courseOfferings,
+  );
   console.timeEnd('Seeded Modules');
 
   console.time('Seeded Submissions & Progress');

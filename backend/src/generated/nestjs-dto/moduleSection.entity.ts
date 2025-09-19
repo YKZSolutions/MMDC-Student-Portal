@@ -16,22 +16,22 @@ export class ModuleSection {
     type: 'string',
   })
   moduleId: string;
+  @ApiHideProperty()
+  parentSection?: ModuleSection | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   parentSectionId: string | null;
   @ApiHideProperty()
-  parentSection?: ModuleSection | null;
-  @ApiHideProperty()
   subsections?: ModuleSection[];
+  @ApiHideProperty()
+  prerequisiteSection?: ModuleSection | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   prerequisiteSectionId: string | null;
-  @ApiHideProperty()
-  prerequisiteSection?: ModuleSection | null;
   @ApiHideProperty()
   dependentSections?: ModuleSection[];
   @ApiHideProperty()
@@ -57,6 +57,12 @@ export class ModuleSection {
     nullable: true,
   })
   toPublishAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

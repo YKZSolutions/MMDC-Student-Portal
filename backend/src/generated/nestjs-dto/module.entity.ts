@@ -5,6 +5,10 @@ import {
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
 import {
+  SectionModule,
+  type SectionModule as SectionModuleAsType,
+} from './sectionModule.entity';
+import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
@@ -27,19 +31,30 @@ export class Module {
     type: 'string',
   })
   title: string;
+  @ApiHideProperty()
+  course?: CourseAsType | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  courseId: string;
+  courseId: string | null;
   @ApiHideProperty()
-  course?: CourseAsType;
+  courseOffering?: CourseOfferingAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   courseOfferingId: string | null;
   @ApiHideProperty()
-  courseOffering?: CourseOfferingAsType | null;
+  sectionModules?: SectionModuleAsType[];
+  @ApiHideProperty()
+  moduleSections?: ModuleSectionAsType[];
+  @ApiHideProperty()
+  moduleContents?: ModuleContentAsType[];
+  @ApiHideProperty()
+  progresses?: ContentProgressAsType[];
+  @ApiHideProperty()
+  groups?: GroupAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -52,14 +67,12 @@ export class Module {
     nullable: true,
   })
   toPublishAt: Date | null;
-  @ApiHideProperty()
-  moduleSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
-  @ApiHideProperty()
-  progresses?: ContentProgressAsType[];
-  @ApiHideProperty()
-  groups?: GroupAsType[];
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

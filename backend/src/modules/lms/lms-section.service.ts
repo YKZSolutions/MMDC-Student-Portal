@@ -10,6 +10,7 @@ import {
 import { CreateModuleSectionDto } from './dto/create-module-section.dto';
 import { UpdateModuleSectionDto } from './dto/update-module-section.dto';
 import { DetailedModuleSectionDto } from './dto/detailed-module-section.dto';
+import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
 
 @Injectable()
 export class LmsSectionService {
@@ -188,5 +189,29 @@ export class LmsSectionService {
     return {
       message: `Module section "${moduleSectionId}" and all associated contents were permanently deleted.`,
     };
+  }
+
+  /**
+   * Retrieves a section and all its nested subsections.
+   * @param {string} id - The UUID of the section.
+   * @returns {Promise<DetailedModuleSectionDto>} - The section with nested subsections.
+   */
+  @Log({
+    logArgsMessage: ({ id }) => `Fetching module section ${id}`,
+    logSuccessMessage: (_, { id }) => `Fetched module section ${id}`,
+    logErrorMessage: (err, { id }) =>
+      `Fetching module section ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Module section ${id} not found`),
+  })
+  async findByIdWithSubsections(
+    @LogParam('id') id: string,
+  ): Promise<ModuleSection | null> {
+    return this.prisma.client.moduleSection.findUnique({
+      where: { id },
+      include: { subsections: true },
+    });
   }
 }

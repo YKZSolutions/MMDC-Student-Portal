@@ -5,10 +5,14 @@ import { mockContent } from '../constants/mockBlockNoteContent';
 import { mockRubrics } from '../constants/mockRubrics';
 import { mockQuizQuestions } from '../constants/mockQuizQuestions';
 
-export function createModuleData(courseId: string): Prisma.ModuleCreateInput {
+export function createModuleData(
+  courseId: string,
+  courseOfferingId: string,
+): Prisma.ModuleCreateInput {
   return {
     title: `Module: ${faker.lorem.words(3)}`,
     course: { connect: { id: courseId } },
+    courseOffering: { connect: { id: courseOfferingId } },
     publishedAt: faker.date.past(),
   };
 }
