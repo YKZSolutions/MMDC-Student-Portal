@@ -37,7 +37,7 @@ export class CourseEnrollmentController {
    * @throws NotFoundException - If requested enrollment records or active period cannot be found.
    */
   @ApiException(() => [BadRequestException, NotFoundException])
-  @Roles(Role.STUDENT, Role.ADMIN)
+  @Roles(Role.MENTOR, Role.STUDENT, Role.ADMIN)
   @Post('/sections')
   getCourseEnrollments(@CurrentUser() user: CurrentAuthUser) {
     return this.courseEnrollmentService.getCourseEnrollments(user);

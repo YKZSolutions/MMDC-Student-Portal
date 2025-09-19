@@ -16,7 +16,7 @@ import {
   IconSchool,
   IconUser,
   IconUserCog,
-  IconUserFilled
+  IconUserFilled,
 } from '@tabler/icons-react'
 
 export const studentLinks: NavItem[] = [
@@ -46,6 +46,37 @@ export const studentLinks: NavItem[] = [
     label: 'Billing',
     Icon: IconCashBanknoteFilled,
     IconInactive: IconCashBanknote,
+    fuzzy: true,
+  },
+  {
+    link: '/notifications',
+    label: 'Notifications',
+    Icon: IconBellFilled,
+    IconInactive: IconBell,
+    fuzzy: true,
+  },
+  {
+    link: '/profile',
+    label: 'Profile',
+    Icon: IconUserFilled,
+    IconInactive: IconUser,
+    fuzzy: true,
+  },
+]
+
+export const mentorLinks: NavItem[] = [
+  {
+    link: '/dashboard',
+    label: 'Dashboard',
+    Icon: IconHomeFilled,
+    IconInactive: IconHome,
+    fuzzy: true,
+  },
+  {
+    link: '/courses',
+    label: 'Courses',
+    Icon: IconBookFilled,
+    IconInactive: IconBook,
     fuzzy: true,
   },
   {

@@ -1945,7 +1945,7 @@
         ]
       },
       "patch": {
-        "description": "This operation updates the details of an existing course.\nRequires `ADMIN` role.",
+        "description": "Requires `ADMIN`, `STUDENT`, or `MENTOR` role.",
         "operationId": "CoursesController_update",
         "parameters": [
           {
@@ -1982,7 +1982,15 @@
             "content": {
               "application/json": {
                 "examples": {
-                  "NotFoundException": {
+                  "NotFoundException #1": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  },
+                  "NotFoundException #2": {
                     "description": "Not Found",
                     "value": {
                       "statusCode": 404,
@@ -2058,7 +2066,15 @@
             "content": {
               "application/json": {
                 "examples": {
-                  "InternalServerErrorException": {
+                  "InternalServerErrorException #1": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "InternalServerErrorException #2": {
                     "description": "Internal Server Error",
                     "value": {
                       "statusCode": 500,
@@ -2093,7 +2109,7 @@
             "description": ""
           }
         },
-        "summary": "Update a course",
+        "summary": "Retrieve a course by providing a course section id",
         "tags": [
           "Courses"
         ]
@@ -7155,6 +7171,114 @@
           }
         },
         "summary": "Removes a course section from a specific course offering",
+        "tags": [
+          "CourseSection"
+        ]
+      }
+    },
+    "/enrollments/sections/{sectionId}/course": {
+      "get": {
+        "description": "Accessible by ADMIN, STUDENT, MENTOR",
+        "operationId": "CourseSectionController_findOneCourseSectionById",
+        "parameters": [
+          {
+            "name": "sectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseSectionWithCourseOfferingDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieve full course section record by section id (includes course and enrollmentPeriod)",
         "tags": [
           "CourseSection"
         ]
@@ -13573,6 +13697,96 @@
           "days",
           "startSched",
           "endSched"
+        ]
+      },
+      "CourseOfferingWithCourseAndPeriod": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "course": {
+            "$ref": "#/components/schemas/CourseDto"
+          },
+          "enrollmentPeriod": {
+            "$ref": "#/components/schemas/EnrollmentPeriodDto"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "course",
+          "enrollmentPeriod"
+        ]
+      },
+      "CourseSectionWithCourseOfferingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "maxSlot": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startSched": {
+            "type": "string"
+          },
+          "endSched": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Days"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "courseOffering": {
+            "$ref": "#/components/schemas/CourseOfferingWithCourseAndPeriod"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "maxSlot",
+          "startSched",
+          "endSched",
+          "days",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "courseOffering"
         ]
       },
       "UpdateCourseSectionDto": {
