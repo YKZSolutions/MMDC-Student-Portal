@@ -11,54 +11,99 @@ import { DiscussionDto } from '@/generated/nestjs-dto/discussion.dto';
 import { VideoDto } from '@/generated/nestjs-dto/video.dto';
 import { ExternalUrlDto } from '@/generated/nestjs-dto/externalUrl.dto';
 import { FileResourceDto } from '@/generated/nestjs-dto/fileResource.dto';
+import { IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class BasicLessonDto extends OmitType(LessonDto, ['content']) {}
+export class BasicAssignmentDto extends OmitType(AssignmentDto, ['content']) {}
+export class BasicQuizDto extends OmitType(QuizDto, ['content', 'questions']) {}
+export class BasicDiscussionDto extends OmitType(DiscussionDto, ['content']) {}
+export class BasicVideoDto extends OmitType(VideoDto, ['content']) {}
+export class BasicExternalUrlDto extends OmitType(ExternalUrlDto, [
+  'content',
+]) {}
+export class BasicFileResourceDto extends OmitType(FileResourceDto, [
+  'content',
+]) {}
 
 export class BasicModuleItemDto extends ModuleContentDto {
   @ApiProperty({
-    type: () => OmitType<LessonDto, 'content'>,
+    type: () => BasicLessonDto,
     required: false,
     nullable: true,
   })
-  lesson?: Omit<LessonDto, 'content'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicLessonDto)
+  lesson?: BasicLessonDto | null;
+
   @ApiProperty({
-    type: () => OmitType<AssignmentDto, 'content'>,
+    type: () => BasicAssignmentDto,
     required: false,
     nullable: true,
   })
-  assignment?: Omit<AssignmentDto, 'content'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicAssignmentDto)
+  assignment?: BasicAssignmentDto | null;
+
   @ApiProperty({
-    type: () => OmitType<QuizDto, 'content' | 'questions'>,
+    type: () => BasicQuizDto,
     required: false,
     nullable: true,
   })
-  quiz?: Omit<QuizDto, 'content' | 'questions'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicQuizDto)
+  quiz?: BasicQuizDto | null;
+
   @ApiProperty({
-    type: () => OmitType<DiscussionDto, 'content'>,
+    type: () => BasicDiscussionDto,
     required: false,
     nullable: true,
   })
-  discussion?: Omit<DiscussionDto, 'content'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicDiscussionDto)
+  discussion?: BasicDiscussionDto | null;
+
   @ApiProperty({
-    type: () => OmitType<VideoDto, 'content'>,
+    type: () => BasicVideoDto,
     required: false,
     nullable: true,
   })
-  video?: Omit<VideoDto, 'content'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicVideoDto)
+  video?: BasicVideoDto | null;
+
   @ApiProperty({
-    type: () => OmitType<ExternalUrlDto, 'content'>,
+    type: () => BasicExternalUrlDto,
     required: false,
     nullable: true,
   })
-  externalUrl?: Omit<ExternalUrlDto, 'content'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicExternalUrlDto)
+  externalUrl?: BasicExternalUrlDto | null;
+
   @ApiProperty({
-    type: () => OmitType<FileResourceDto, 'content'>,
+    type: () => BasicFileResourceDto,
     required: false,
     nullable: true,
   })
-  fileResource?: Omit<FileResourceDto, 'content'> | null;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BasicFileResourceDto)
+  fileResource?: BasicFileResourceDto | null;
+
   @ApiProperty({
     type: () => ContentProgress,
     isArray: true,
     required: false,
   })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ContentProgress)
   studentProgress?: ContentProgressAsType[];
 }

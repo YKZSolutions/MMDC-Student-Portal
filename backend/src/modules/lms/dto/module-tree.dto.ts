@@ -46,12 +46,12 @@ export class ModuleTreeSectionDto extends PickType(ModuleSection, [
   subsections?: ModuleTreeSectionDto[];
 
   @ApiProperty({
-    type: () => [OmitType(BasicModuleItemDto, ['deletedAt'])],
+    type: () => [BasicModuleItemDto],
     required: false,
     nullable: true,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => OmitType(BasicModuleItemDto, ['deletedAt']))
-  moduleContents?: Omit<BasicModuleItemDto, 'deletedAt'>[];
+  @Type(() => BasicModuleItemDto)
+  moduleContents?: BasicModuleItemDto[];
 }
