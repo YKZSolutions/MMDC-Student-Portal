@@ -1,27 +1,29 @@
+import { Roles } from '@/common/decorators/roles.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
-  Controller,
-  Get,
-  Post,
+  BadRequestException,
   Body,
-  Patch,
-  Param,
+  ConflictException,
+  Controller,
   Delete,
   Query,
   ConflictException,
+  Get,
   InternalServerErrorException,
-  BadRequestException,
   NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Query
 } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
+import { CourseDto } from './dto/course.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { CourseDto } from './dto/course.dto';
 
 /**
  * @remarks
