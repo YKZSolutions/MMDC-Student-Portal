@@ -1,0 +1,38 @@
+services:
+  nestjs:
+    image: ghcr.io/ykzsolutions/mmdc-student-portal
+    container_name: mmdc-student-portal
+    networks:
+      - proxy
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nestjs.rule=Host(`${FQDN}`)"
+      - "traefik.http.routers.nestjs.entrypoints=websecure"
+      - "traefik.http.routers.nestjs.tls.certresolver=tlsresolver"
+      - "traefik.http.services.nestjs.loadbalancer.server.port=3001"
+
+      # Middlewares (defined in dynamic.yml via the File provider).
+      # IMPORTANT: we must qualify them with @file, otherwise Traefik looks in the Docker provider
+      # and silently drops the router if it can't find them → leads to 404s.
+      - "traefik.http.routers.nestjs.middlewares=default-chain@file,cors-portal@file"
+
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    command:
+    - "--label-enable"
+    - "--interval"
+    - "30"
+    - "--rolling-restart"
+    environment:
+      WATCHTOWER_CLEANUP: true
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+networks:
+  proxy:
+    external: true
