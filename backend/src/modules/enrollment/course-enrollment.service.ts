@@ -35,7 +35,7 @@ export class CourseEnrollmentService {
    */
   @Log({
     logArgsMessage: ({ userId, role }) =>
-      `Fetching course enrollments for student [${userId}] | role: ${role}]`,
+      `Fetching course enrollments for student [${userId}] | role: ${role}`,
     logSuccessMessage: (result, { userId }) =>
       `Fetched ${result.length} course enrollment(s) for student [${userId}]`,
     logErrorMessage: (err, { userId }) =>
