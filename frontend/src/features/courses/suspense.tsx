@@ -1,15 +1,14 @@
 import {
-    Box,
-    Card,
-    Divider,
-    Flex,
-    Group,
-    rem,
-    Skeleton,
-    Stack,
-    Text,
-    Title,
-    useMantineTheme,
+  Box,
+  Card,
+  Divider,
+  Flex,
+  Group,
+  rem,
+  Skeleton,
+  Stack,
+  Title,
+  useMantineTheme
 } from '@mantine/core'
 
 type CourseListSuspenseProps = {
@@ -53,9 +52,7 @@ function CardSkeleton() {
           <Skeleton height={12} width={80} />
         </Group>
 
-        <Text size={'sm'} mt={8} c={theme.colors.dark[3]}>
-          <Skeleton height={12} width="50%" />
-        </Text>
+        <Skeleton mt={8} height={12} width="50%" />
       </Box>
 
       <Divider />
