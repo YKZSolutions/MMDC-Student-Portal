@@ -11,7 +11,6 @@ import { ChatbotService } from '@/modules/chatbot/chatbot.service';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@supabase/supabase-js';
-import { Role } from '@/common/enums/roles.enum';
 import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 
