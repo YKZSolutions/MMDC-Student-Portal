@@ -440,7 +440,7 @@ export class LmsService {
           },
         },
       })
-      .withPages({ limit: 10, page, includePageCount: true });
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { modules, meta };
   }

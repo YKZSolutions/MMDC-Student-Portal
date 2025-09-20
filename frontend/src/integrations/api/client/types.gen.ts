@@ -572,51 +572,11 @@ export type Turn = {
 
 export type PromptDto = {
     question: string;
-    sessionHistory: Array<Turn>;
+    sessionHistory?: Array<Turn>;
 };
 
 export type ChatbotResponseDto = {
     response: string;
-};
-
-export type CreateMajorDto = {
-    majorCode: string;
-    name: string;
-    description: string;
-};
-
-export type CreateProgramMajorDto = {
-    major: CreateMajorDto;
-    programId: string;
-};
-
-export type MajorDto = {
-    id: string;
-    majorCode: string;
-    name: string;
-    description: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type UpdateMajorDto = {
-    majorCode?: string;
-    name?: string;
-    description?: string;
-};
-
-export type Major = {
-    id: string;
-    programId: string;
-    majorCode: string;
-    name: string;
-    description: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
 };
 
 export type EnrollmentStatus = 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
@@ -822,82 +782,6 @@ export type CourseEnrollmentDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-};
-
-export type CreateCurriculumDto = {
-    icon?: string | null;
-    name?: string | null;
-    description?: string | null;
-};
-
-export type CreateCurriculumCourseItemDto = {
-    courseId: string;
-    order: number;
-    year: number;
-    semester: number;
-};
-
-export type CreateCurriculumWithCoursesDto = {
-    majorId: string;
-    curriculum: CreateCurriculumDto;
-    courses: Array<CreateCurriculumCourseItemDto>;
-};
-
-export type CurriculumDto = {
-    id: string;
-    icon: string | null;
-    name: string | null;
-    description: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type CurriculumItemDto = {
-    id: string;
-    icon: string | null;
-    name: string | null;
-    description: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    program: ProgramDto;
-    major: MajorDto;
-};
-
-export type CurriculumCourseItemDto = {
-    id: string;
-    order: number;
-    year: number;
-    semester: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    course: CourseDto;
-};
-
-export type CurriculumWithCoursesDto = {
-    curriculum: CurriculumItemDto;
-    courses: Array<CurriculumCourseItemDto>;
-};
-
-export type UpdateCurriculumDto = {
-    icon?: string | null;
-    name?: string | null;
-    description?: string | null;
-};
-
-export type UpdateCurriculumCourseItemDto = {
-    courseId: string;
-    order: number;
-    year: number;
-    semester: number;
-};
-
-export type UpdateCurriculumWithCourseDto = {
-    majorId?: string;
-    curriculum: UpdateCurriculumDto;
-    courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
 export type ModuleDto = {
@@ -1452,6 +1336,122 @@ export type UpdateGroupDto = {
     members?: Array<string>;
 };
 
+export type CreateMajorDto = {
+    majorCode: string;
+    name: string;
+    description: string;
+};
+
+export type CreateProgramMajorDto = {
+    major: CreateMajorDto;
+    programId: string;
+};
+
+export type MajorDto = {
+    id: string;
+    majorCode: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UpdateMajorDto = {
+    majorCode?: string;
+    name?: string;
+    description?: string;
+};
+
+export type Major = {
+    id: string;
+    programId: string;
+    majorCode: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CreateCurriculumDto = {
+    icon?: string | null;
+    name?: string | null;
+    description?: string | null;
+};
+
+export type CreateCurriculumCourseItemDto = {
+    courseId: string;
+    order: number;
+    year: number;
+    semester: number;
+};
+
+export type CreateCurriculumWithCoursesDto = {
+    majorId: string;
+    curriculum: CreateCurriculumDto;
+    courses: Array<CreateCurriculumCourseItemDto>;
+};
+
+export type CurriculumDto = {
+    id: string;
+    icon: string | null;
+    name: string | null;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CurriculumItemDto = {
+    id: string;
+    icon: string | null;
+    name: string | null;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    program: ProgramDto;
+    major: MajorDto;
+};
+
+export type CurriculumCourseItemDto = {
+    id: string;
+    order: number;
+    year: number;
+    semester: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+};
+
+export type CurriculumWithCoursesDto = {
+    curriculum: CurriculumItemDto;
+    courses: Array<CurriculumCourseItemDto>;
+};
+
+export type UpdateCurriculumDto = {
+    icon?: string | null;
+    name?: string | null;
+    description?: string | null;
+};
+
+export type UpdateCurriculumCourseItemDto = {
+    courseId: string;
+    order: number;
+    year: number;
+    semester: number;
+};
+
+export type UpdateCurriculumWithCourseDto = {
+    majorId?: string;
+    curriculum: UpdateCurriculumDto;
+    courses: Array<UpdateCurriculumCourseItemDto>;
+};
+
 export type TestControllerTestStudentData = {
     body?: never;
     path?: never;
@@ -1501,6 +1501,7 @@ export type UsersControllerFindAllData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
         role?: 'student' | 'mentor' | 'admin';
     };
     url: '/users';
@@ -1886,6 +1887,7 @@ export type CoursesControllerFindAllData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/courses';
 };
@@ -2109,12 +2111,13 @@ export type BillingControllerFindAllData = {
     body?: never;
     path?: never;
     query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
         sortOrder?: 'asc' | 'desc';
         scheme?: PaymentScheme;
         type?: BillType;
-        page?: number;
         isDeleted?: boolean;
-        search?: string;
         sort?: 'amountToPay' | 'totalPaid' | 'createdAt';
         status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
     };
@@ -2482,6 +2485,7 @@ export type ProgramControllerFindAllData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/programs';
 };
@@ -2546,6 +2550,7 @@ export type ProgramControllerFindAllMajorsData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/programs/{programId}/majors';
 };
@@ -2715,178 +2720,13 @@ export type ChatbotControllerPromptResponses = {
 
 export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
 
-export type MajorControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-    };
-    url: '/majors';
-};
-
-export type MajorControllerFindAllErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type MajorControllerFindAllError = MajorControllerFindAllErrors[keyof MajorControllerFindAllErrors];
-
-export type MajorControllerFindAllResponses = {
-    200: PaginatedMajorsDto;
-};
-
-export type MajorControllerFindAllResponse = MajorControllerFindAllResponses[keyof MajorControllerFindAllResponses];
-
-export type MajorControllerCreateData = {
-    body: CreateProgramMajorDto;
-    path?: never;
-    query?: never;
-    url: '/majors';
-};
-
-export type MajorControllerCreateErrors = {
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type MajorControllerCreateError = MajorControllerCreateErrors[keyof MajorControllerCreateErrors];
-
-export type MajorControllerCreateResponses = {
-    201: MajorDto;
-};
-
-export type MajorControllerCreateResponse = MajorControllerCreateResponses[keyof MajorControllerCreateResponses];
-
-export type MajorControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/majors/{id}';
-};
-
-export type MajorControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type MajorControllerRemoveError = MajorControllerRemoveErrors[keyof MajorControllerRemoveErrors];
-
-export type MajorControllerRemoveResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type MajorControllerRemoveResponse = MajorControllerRemoveResponses[keyof MajorControllerRemoveResponses];
-
-export type MajorControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/majors/{id}';
-};
-
-export type MajorControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type MajorControllerFindOneError = MajorControllerFindOneErrors[keyof MajorControllerFindOneErrors];
-
-export type MajorControllerFindOneResponses = {
-    200: MajorItemDto;
-};
-
-export type MajorControllerFindOneResponse = MajorControllerFindOneResponses[keyof MajorControllerFindOneResponses];
-
-export type MajorControllerUpdateData = {
-    body: UpdateMajorDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/majors/{id}';
-};
-
-export type MajorControllerUpdateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type MajorControllerUpdateError = MajorControllerUpdateErrors[keyof MajorControllerUpdateErrors];
-
-export type MajorControllerUpdateResponses = {
-    200: Major;
-};
-
-export type MajorControllerUpdateResponse = MajorControllerUpdateResponses[keyof MajorControllerUpdateResponses];
-
 export type EnrollmentControllerFindAllEnrollmentsData = {
     body?: never;
     path?: never;
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/enrollments';
 };
@@ -3083,6 +2923,7 @@ export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
         periodId?: string;
         status?: 'not enrolled' | 'enrolled';
     };
@@ -3227,6 +3068,7 @@ export type CourseSectionControllerFindAllCourseSectionsData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/enrollments/{enrollmentId}/sections';
 };
@@ -3256,6 +3098,7 @@ export type CourseSectionControllerFindAllCourseSectionsForOfferingData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
 };
@@ -3552,166 +3395,13 @@ export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
 
-export type CurriculumControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/curriculum';
-};
-
-export type CurriculumControllerFindAllErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CurriculumControllerFindAllError = CurriculumControllerFindAllErrors[keyof CurriculumControllerFindAllErrors];
-
-export type CurriculumControllerFindAllResponses = {
-    200: Array<CurriculumItemDto>;
-};
-
-export type CurriculumControllerFindAllResponse = CurriculumControllerFindAllResponses[keyof CurriculumControllerFindAllResponses];
-
-export type CurriculumControllerCreateData = {
-    body: CreateCurriculumWithCoursesDto;
-    path?: never;
-    query?: never;
-    url: '/curriculum';
-};
-
-export type CurriculumControllerCreateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CurriculumControllerCreateError = CurriculumControllerCreateErrors[keyof CurriculumControllerCreateErrors];
-
-export type CurriculumControllerCreateResponses = {
-    201: CurriculumDto;
-};
-
-export type CurriculumControllerCreateResponse = CurriculumControllerCreateResponses[keyof CurriculumControllerCreateResponses];
-
-export type CurriculumControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/curriculum/{id}';
-};
-
-export type CurriculumControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CurriculumControllerRemoveError = CurriculumControllerRemoveErrors[keyof CurriculumControllerRemoveErrors];
-
-export type CurriculumControllerRemoveResponses = {
-    200: unknown;
-};
-
-export type CurriculumControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/curriculum/{id}';
-};
-
-export type CurriculumControllerFindOneErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CurriculumControllerFindOneError = CurriculumControllerFindOneErrors[keyof CurriculumControllerFindOneErrors];
-
-export type CurriculumControllerFindOneResponses = {
-    200: CurriculumWithCoursesDto;
-};
-
-export type CurriculumControllerFindOneResponse = CurriculumControllerFindOneResponses[keyof CurriculumControllerFindOneResponses];
-
-export type CurriculumControllerUpdateData = {
-    body: UpdateCurriculumWithCourseDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/curriculum/{id}';
-};
-
-export type CurriculumControllerUpdateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CurriculumControllerUpdateError = CurriculumControllerUpdateErrors[keyof CurriculumControllerUpdateErrors];
-
-export type CurriculumControllerUpdateResponses = {
-    200: CurriculumDto;
-};
-
-export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
-
 export type LmsControllerFindAllData = {
     body?: never;
     path?: never;
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
     };
     url: '/modules';
 };
@@ -3868,7 +3558,13 @@ export type LmsControllerUnpublishResponses = {
 export type LmsControllerFindTodosData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        dueDateFrom?: string;
+        dueDateTo?: string;
+    };
     url: '/modules/todo';
 };
 
@@ -4118,6 +3814,7 @@ export type LmsContentControllerFindAllData = {
     query?: {
         search?: string;
         page?: number;
+        limit?: number;
         enrollmentPeriod?: EnrollmentPeriodFilterDto;
         contentType?: ContentType;
         progress?: ProgressStatus;
@@ -4534,6 +4231,327 @@ export type GroupControllerUpdateResponses = {
 };
 
 export type GroupControllerUpdateResponse = GroupControllerUpdateResponses[keyof GroupControllerUpdateResponses];
+
+export type MajorControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/majors';
+};
+
+export type MajorControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerFindAllError = MajorControllerFindAllErrors[keyof MajorControllerFindAllErrors];
+
+export type MajorControllerFindAllResponses = {
+    200: PaginatedMajorsDto;
+};
+
+export type MajorControllerFindAllResponse = MajorControllerFindAllResponses[keyof MajorControllerFindAllResponses];
+
+export type MajorControllerCreateData = {
+    body: CreateProgramMajorDto;
+    path?: never;
+    query?: never;
+    url: '/majors';
+};
+
+export type MajorControllerCreateErrors = {
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerCreateError = MajorControllerCreateErrors[keyof MajorControllerCreateErrors];
+
+export type MajorControllerCreateResponses = {
+    201: MajorDto;
+};
+
+export type MajorControllerCreateResponse = MajorControllerCreateResponses[keyof MajorControllerCreateResponses];
+
+export type MajorControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/majors/{id}';
+};
+
+export type MajorControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerRemoveError = MajorControllerRemoveErrors[keyof MajorControllerRemoveErrors];
+
+export type MajorControllerRemoveResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type MajorControllerRemoveResponse = MajorControllerRemoveResponses[keyof MajorControllerRemoveResponses];
+
+export type MajorControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/majors/{id}';
+};
+
+export type MajorControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerFindOneError = MajorControllerFindOneErrors[keyof MajorControllerFindOneErrors];
+
+export type MajorControllerFindOneResponses = {
+    200: MajorItemDto;
+};
+
+export type MajorControllerFindOneResponse = MajorControllerFindOneResponses[keyof MajorControllerFindOneResponses];
+
+export type MajorControllerUpdateData = {
+    body: UpdateMajorDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/majors/{id}';
+};
+
+export type MajorControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type MajorControllerUpdateError = MajorControllerUpdateErrors[keyof MajorControllerUpdateErrors];
+
+export type MajorControllerUpdateResponses = {
+    200: Major;
+};
+
+export type MajorControllerUpdateResponse = MajorControllerUpdateResponses[keyof MajorControllerUpdateResponses];
+
+export type CurriculumControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/curriculum';
+};
+
+export type CurriculumControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerFindAllError = CurriculumControllerFindAllErrors[keyof CurriculumControllerFindAllErrors];
+
+export type CurriculumControllerFindAllResponses = {
+    200: Array<CurriculumItemDto>;
+};
+
+export type CurriculumControllerFindAllResponse = CurriculumControllerFindAllResponses[keyof CurriculumControllerFindAllResponses];
+
+export type CurriculumControllerCreateData = {
+    body: CreateCurriculumWithCoursesDto;
+    path?: never;
+    query?: never;
+    url: '/curriculum';
+};
+
+export type CurriculumControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerCreateError = CurriculumControllerCreateErrors[keyof CurriculumControllerCreateErrors];
+
+export type CurriculumControllerCreateResponses = {
+    201: CurriculumDto;
+};
+
+export type CurriculumControllerCreateResponse = CurriculumControllerCreateResponses[keyof CurriculumControllerCreateResponses];
+
+export type CurriculumControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerRemoveError = CurriculumControllerRemoveErrors[keyof CurriculumControllerRemoveErrors];
+
+export type CurriculumControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type CurriculumControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerFindOneError = CurriculumControllerFindOneErrors[keyof CurriculumControllerFindOneErrors];
+
+export type CurriculumControllerFindOneResponses = {
+    200: CurriculumWithCoursesDto;
+};
+
+export type CurriculumControllerFindOneResponse = CurriculumControllerFindOneResponses[keyof CurriculumControllerFindOneResponses];
+
+export type CurriculumControllerUpdateData = {
+    body: UpdateCurriculumWithCourseDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/curriculum/{id}';
+};
+
+export type CurriculumControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CurriculumControllerUpdateError = CurriculumControllerUpdateErrors[keyof CurriculumControllerUpdateErrors];
+
+export type CurriculumControllerUpdateResponses = {
+    200: CurriculumDto;
+};
+
+export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
 
 export type SwaggerControllerDownloadAllSpecsData = {
     body?: never;

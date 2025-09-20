@@ -1,6 +1,5 @@
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
-import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
@@ -14,6 +13,7 @@ import {
 import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class CourseEnrollmentService {
@@ -29,22 +29,23 @@ export class CourseEnrollmentService {
    * This returns detailed enrollment records including the associated
    * course offering and course section (with mentor/user data).
    *
-   * @param user - Current authenticated user (injected via @CurrentUser)
+   * @param userId - The ID of the user
+   * @param role - The role of the authenticated user
    * @returns A list of {@link DetailedCourseEnrollmentDto} for the student
    */
   @Log({
-    logArgsMessage: ({ user }) =>
-      `Fetching course enrollments for student [${user.user_metadata.user_id}]`,
-    logSuccessMessage: (result, { user }) =>
-      `Fetched ${result.length} course enrollment(s) for student [${user.user_metadata.user_id}]`,
-    logErrorMessage: (err, { user }) =>
-      `Error fetching course enrollments for student [${user.user_metadata.user_id}] | Error: ${err.message}`,
+    logArgsMessage: ({ userId, role }) =>
+      `Fetching course enrollments for student [${userId}] | role: ${role}`,
+    logSuccessMessage: (result, { userId }) =>
+      `Fetched ${result.length} course enrollment(s) for student [${userId}]`,
+    logErrorMessage: (err, { userId }) =>
+      `Error fetching course enrollments for student [${userId}] | Error: ${err.message}`,
   })
   async getCourseEnrollments(
-    @LogParam('user') user: CurrentAuthUser,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
   ): Promise<DetailedCourseEnrollmentDto[]> {
-    const isStudent = user.user_metadata.role === Role.STUDENT;
-    const userId = user.user_metadata.user_id;
+    const isStudent = role === Role.student;
 
     const enrollments = await this.prisma.client.courseEnrollment.findMany({
       where: {
@@ -106,7 +107,7 @@ export class CourseEnrollmentService {
   ): Promise<CourseEnrollmentDto> {
     let studentId: string;
 
-    if (user.user_metadata.role === Role.STUDENT) {
+    if (user.user_metadata.role === Role.student) {
       studentId = user.user_metadata.user_id;
     } else {
       if (!dto.studentId) {
@@ -115,7 +116,7 @@ export class CourseEnrollmentService {
       studentId = dto.studentId;
     }
 
-    if (user.user_metadata.role === Role.ADMIN && !studentId) {
+    if (user.user_metadata.role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
     // Retrieve course section, offering, and enrollment period
@@ -212,11 +213,11 @@ export class CourseEnrollmentService {
     @LogParam('user') user: CurrentAuthUser,
   ) {
     const studentId =
-      user.user_metadata.role === Role.STUDENT
+      user.user_metadata.role === Role.student
         ? user.user_metadata.user_id
         : dto.studentId;
 
-    if (user.user_metadata.role === Role.ADMIN && !studentId) {
+    if (user.user_metadata.role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
 
@@ -256,11 +257,11 @@ export class CourseEnrollmentService {
    */
   async finalizeEnrollment(user: CurrentAuthUser, dto?: StudentIdentifierDto) {
     const studentId =
-      user.user_metadata.role === Role.STUDENT
+      user.user_metadata.role === Role.student
         ? user.user_metadata.user_id
         : dto?.studentId;
 
-    if (user.user_metadata.role === Role.ADMIN && !studentId) {
+    if (user.user_metadata.role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
 

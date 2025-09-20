@@ -130,7 +130,7 @@ export class CoursesService {
           coreqs: { select: { courseCode: true, name: true } },
         },
       })
-      .withPages({ limit: 10, page, includePageCount: true });
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { courses, meta };
   }

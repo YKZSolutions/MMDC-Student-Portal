@@ -1,16 +1,25 @@
 import { Module } from '@nestjs/common';
-import { ChatbotController } from '@/modules/chatbot/chatbot.controller';
-import { ChatbotService } from '@/modules/chatbot/chatbot.service';
+import { ChatbotController } from './chatbot.controller';
+import { ChatbotService } from './chatbot.service';
 import { GeminiService } from '@/lib/gemini/gemini.service';
-import { UsersModule } from '@/modules/users/users.module';
-import { BillingModule } from '@/modules/billing/billing.module';
-import { CoursesModule } from '@/modules/courses/courses.module';
+import { UsersModule } from '../users/users.module';
+import { BillingModule } from '../billing/billing.module';
+import { CoursesModule } from '../courses/courses.module';
+import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { LmsModule } from '../lms/lms.module';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
 import { N8nService } from '@/lib/n8n/n8n.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [UsersModule, BillingModule, CoursesModule, HttpModule],
+  imports: [
+    UsersModule,
+    BillingModule,
+    CoursesModule,
+    EnrollmentModule,
+    LmsModule,
+    HttpModule,
+  ],
   controllers: [ChatbotController],
   providers: [ChatbotService, GeminiService, SupabaseService, N8nService],
 })

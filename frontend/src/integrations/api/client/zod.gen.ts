@@ -760,57 +760,11 @@ export const zTurn = z.object({
 
 export const zPromptDto = z.object({
     question: z.string(),
-    sessionHistory: z.array(zTurn)
+    sessionHistory: z.optional(z.array(zTurn))
 });
 
 export const zChatbotResponseDto = z.object({
     response: z.string()
-});
-
-export const zCreateMajorDto = z.object({
-    majorCode: z.string(),
-    name: z.string(),
-    description: z.string()
-});
-
-export const zCreateProgramMajorDto = z.object({
-    major: zCreateMajorDto,
-    programId: z.uuid()
-});
-
-export const zMajorDto = z.object({
-    id: z.string(),
-    majorCode: z.string(),
-    name: z.string(),
-    description: z.string(),
-    isActive: z.boolean(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zUpdateMajorDto = z.object({
-    majorCode: z.optional(z.string()),
-    name: z.optional(z.string()),
-    description: z.optional(z.string())
-});
-
-export const zMajor = z.object({
-    id: z.string(),
-    programId: z.string(),
-    majorCode: z.string(),
-    name: z.string(),
-    description: z.string(),
-    isActive: z.boolean(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
 });
 
 export const zEnrollmentStatus = z.enum([
@@ -1079,127 +1033,6 @@ export const zCourseEnrollmentDto = z.object({
         z.iso.datetime(),
         z.null()
     ])
-});
-
-export const zCreateCurriculumDto = z.object({
-    icon: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    name: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    description: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zCreateCurriculumCourseItemDto = z.object({
-    courseId: z.uuid(),
-    order: z.number(),
-    year: z.number().gte(1),
-    semester: z.number().gte(1)
-});
-
-export const zCreateCurriculumWithCoursesDto = z.object({
-    majorId: z.uuid(),
-    curriculum: zCreateCurriculumDto,
-    courses: z.array(zCreateCurriculumCourseItemDto)
-});
-
-export const zCurriculumDto = z.object({
-    id: z.string(),
-    icon: z.union([
-        z.string(),
-        z.null()
-    ]),
-    name: z.union([
-        z.string(),
-        z.null()
-    ]),
-    description: z.union([
-        z.string(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zCurriculumItemDto = z.object({
-    id: z.string(),
-    icon: z.union([
-        z.string(),
-        z.null()
-    ]),
-    name: z.union([
-        z.string(),
-        z.null()
-    ]),
-    description: z.union([
-        z.string(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    program: zProgramDto,
-    major: zMajorDto
-});
-
-export const zCurriculumCourseItemDto = z.object({
-    id: z.string(),
-    order: z.int(),
-    year: z.int(),
-    semester: z.int(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    course: zCourseDto
-});
-
-export const zCurriculumWithCoursesDto = z.object({
-    curriculum: zCurriculumItemDto,
-    courses: z.array(zCurriculumCourseItemDto)
-});
-
-export const zUpdateCurriculumDto = z.object({
-    icon: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    name: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    description: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zUpdateCurriculumCourseItemDto = z.object({
-    courseId: z.uuid(),
-    order: z.number(),
-    year: z.number().gte(1),
-    semester: z.number().gte(1)
-});
-
-export const zUpdateCurriculumWithCourseDto = z.object({
-    majorId: z.optional(z.uuid()),
-    curriculum: zUpdateCurriculumDto,
-    courses: z.array(zUpdateCurriculumCourseItemDto)
 });
 
 export const zModuleDto = z.object({
@@ -2185,6 +2018,173 @@ export const zUpdateGroupDto = z.object({
     members: z.optional(z.array(z.uuid()))
 });
 
+export const zCreateMajorDto = z.object({
+    majorCode: z.string(),
+    name: z.string(),
+    description: z.string()
+});
+
+export const zCreateProgramMajorDto = z.object({
+    major: zCreateMajorDto,
+    programId: z.uuid()
+});
+
+export const zMajorDto = z.object({
+    id: z.string(),
+    majorCode: z.string(),
+    name: z.string(),
+    description: z.string(),
+    isActive: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zUpdateMajorDto = z.object({
+    majorCode: z.optional(z.string()),
+    name: z.optional(z.string()),
+    description: z.optional(z.string())
+});
+
+export const zMajor = z.object({
+    id: z.string(),
+    programId: z.string(),
+    majorCode: z.string(),
+    name: z.string(),
+    description: z.string(),
+    isActive: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zCreateCurriculumDto = z.object({
+    icon: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    name: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zCreateCurriculumCourseItemDto = z.object({
+    courseId: z.uuid(),
+    order: z.number(),
+    year: z.number().gte(1),
+    semester: z.number().gte(1)
+});
+
+export const zCreateCurriculumWithCoursesDto = z.object({
+    majorId: z.uuid(),
+    curriculum: zCreateCurriculumDto,
+    courses: z.array(zCreateCurriculumCourseItemDto)
+});
+
+export const zCurriculumDto = z.object({
+    id: z.string(),
+    icon: z.union([
+        z.string(),
+        z.null()
+    ]),
+    name: z.union([
+        z.string(),
+        z.null()
+    ]),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zCurriculumItemDto = z.object({
+    id: z.string(),
+    icon: z.union([
+        z.string(),
+        z.null()
+    ]),
+    name: z.union([
+        z.string(),
+        z.null()
+    ]),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    program: zProgramDto,
+    major: zMajorDto
+});
+
+export const zCurriculumCourseItemDto = z.object({
+    id: z.string(),
+    order: z.int(),
+    year: z.int(),
+    semester: z.int(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zCourseDto
+});
+
+export const zCurriculumWithCoursesDto = z.object({
+    curriculum: zCurriculumItemDto,
+    courses: z.array(zCurriculumCourseItemDto)
+});
+
+export const zUpdateCurriculumDto = z.object({
+    icon: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    name: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zUpdateCurriculumCourseItemDto = z.object({
+    courseId: z.uuid(),
+    order: z.number(),
+    year: z.number().gte(1),
+    semester: z.number().gte(1)
+});
+
+export const zUpdateCurriculumWithCourseDto = z.object({
+    majorId: z.optional(z.uuid()),
+    curriculum: zUpdateCurriculumDto,
+    courses: z.array(zUpdateCurriculumCourseItemDto)
+});
+
 export const zTestControllerTestStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -2219,6 +2219,7 @@ export const zUsersControllerFindAllData = z.object({
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
         role: z.optional(z.enum([
             'student',
             'mentor',
@@ -2354,7 +2355,8 @@ export const zCoursesControllerFindAllData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -2424,15 +2426,16 @@ export const zBillingControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
         sortOrder: z.optional(z.enum([
             'asc',
             'desc'
         ])),
         scheme: z.optional(zPaymentScheme),
         type: z.optional(zBillType),
-        page: z.optional(z.number()).default(1),
         isDeleted: z.optional(z.boolean()).default(false),
-        search: z.optional(z.string()),
         sort: z.optional(z.enum([
             'amountToPay',
             'totalPaid',
@@ -2572,7 +2575,8 @@ export const zProgramControllerFindAllData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -2596,7 +2600,8 @@ export const zProgramControllerFindAllMajorsData = z.object({
     }),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -2653,65 +2658,13 @@ export const zChatbotControllerPromptData = z.object({
 
 export const zChatbotControllerPromptResponse = zChatbotResponseDto;
 
-export const zMajorControllerFindAllData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
-    }))
-});
-
-export const zMajorControllerFindAllResponse = zPaginatedMajorsDto;
-
-export const zMajorControllerCreateData = z.object({
-    body: zCreateProgramMajorDto,
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zMajorControllerCreateResponse = zMajorDto;
-
-export const zMajorControllerRemoveData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.object({
-        directDelete: z.optional(z.boolean())
-    }))
-});
-
-export const zMajorControllerRemoveResponse = z.object({
-    message: z.optional(z.string())
-});
-
-export const zMajorControllerFindOneData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zMajorControllerFindOneResponse = zMajorItemDto;
-
-export const zMajorControllerUpdateData = z.object({
-    body: zUpdateMajorDto,
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zMajorControllerUpdateResponse = zMajor;
-
 export const zEnrollmentControllerFindAllEnrollmentsData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -2785,6 +2738,7 @@ export const zCourseOfferingControllerFindCourseOfferingsByPeriodData = z.object
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
         periodId: z.optional(z.uuid()),
         status: z.optional(z.enum([
             'not enrolled',
@@ -2846,7 +2800,8 @@ export const zCourseSectionControllerFindAllCourseSectionsData = z.object({
     }),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -2860,7 +2815,8 @@ export const zCourseSectionControllerFindAllCourseSectionsForOfferingData = z.ob
     }),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -2969,58 +2925,13 @@ export const zCourseEnrollmentControllerFinalizeCourseEnrollmentResponse = z.uni
     z.unknown()
 ]);
 
-export const zCurriculumControllerFindAllData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zCurriculumControllerFindAllResponse = z.array(zCurriculumItemDto);
-
-export const zCurriculumControllerCreateData = z.object({
-    body: zCreateCurriculumWithCoursesDto,
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zCurriculumControllerCreateResponse = zCurriculumDto;
-
-export const zCurriculumControllerRemoveData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.object({
-        directDelete: z.optional(z.boolean())
-    }))
-});
-
-export const zCurriculumControllerFindOneData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zCurriculumControllerFindOneResponse = zCurriculumWithCoursesDto;
-
-export const zCurriculumControllerUpdateData = z.object({
-    body: zUpdateCurriculumWithCourseDto,
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zCurriculumControllerUpdateResponse = zCurriculumDto;
-
 export const zLmsControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.object({
         search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1)
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
     }))
 });
 
@@ -3077,7 +2988,13 @@ export const zLmsControllerUnpublishData = z.object({
 export const zLmsControllerFindTodosData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        dueDateFrom: z.optional(z.iso.datetime()),
+        dueDateTo: z.optional(z.iso.datetime())
+    }))
 });
 
 export const zLmsControllerFindTodosResponse = zModuleContent;
@@ -3162,6 +3079,7 @@ export const zLmsContentControllerFindAllData = z.object({
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
         enrollmentPeriod: z.optional(zEnrollmentPeriodFilterDto),
         contentType: z.optional(zContentType),
         progress: z.optional(zProgressStatus)
@@ -3293,6 +3211,106 @@ export const zGroupControllerUpdateData = z.object({
 });
 
 export const zGroupControllerUpdateResponse = zDetailedGroupDto;
+
+export const zMajorControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zMajorControllerFindAllResponse = zPaginatedMajorsDto;
+
+export const zMajorControllerCreateData = z.object({
+    body: zCreateProgramMajorDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zMajorControllerCreateResponse = zMajorDto;
+
+export const zMajorControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zMajorControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
+
+export const zMajorControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zMajorControllerFindOneResponse = zMajorItemDto;
+
+export const zMajorControllerUpdateData = z.object({
+    body: zUpdateMajorDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zMajorControllerUpdateResponse = zMajor;
+
+export const zCurriculumControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zCurriculumControllerFindAllResponse = z.array(zCurriculumItemDto);
+
+export const zCurriculumControllerCreateData = z.object({
+    body: zCreateCurriculumWithCoursesDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zCurriculumControllerCreateResponse = zCurriculumDto;
+
+export const zCurriculumControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zCurriculumControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zCurriculumControllerFindOneResponse = zCurriculumWithCoursesDto;
+
+export const zCurriculumControllerUpdateData = z.object({
+    body: zUpdateCurriculumWithCourseDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zCurriculumControllerUpdateResponse = zCurriculumDto;
 
 export const zSwaggerControllerDownloadAllSpecsData = z.object({
     body: z.optional(z.never()),

@@ -21,5 +21,6 @@ import { CourseEnrollmentController } from './course-enrollment.controller';
     CourseSectionService,
     CourseEnrollmentService,
   ],
+  exports: [EnrollmentService, CourseEnrollmentService],
 })
 export class EnrollmentModule {}
