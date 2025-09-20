@@ -229,6 +229,16 @@
             }
           },
           {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
             "name": "role",
             "required": false,
             "in": "query",
@@ -1741,6 +1751,16 @@
               "default": 1,
               "type": "number"
             }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -2560,6 +2580,34 @@
         "operationId": "BillingController_findAll",
         "parameters": [
           {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
             "name": "sortOrder",
             "required": false,
             "in": "query",
@@ -2589,29 +2637,12 @@
             }
           },
           {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
             "name": "isDeleted",
             "required": false,
             "in": "query",
             "schema": {
               "default": false,
               "type": "boolean"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -3885,6 +3916,16 @@
               "default": 1,
               "type": "number"
             }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4009,6 +4050,16 @@
             "schema": {
               "minimum": 1,
               "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
               "type": "number"
             }
           }
@@ -4639,659 +4690,6 @@
         ]
       }
     },
-    "/majors": {
-      "post": {
-        "description": "This operation creates a new academic major.\nRequries `ADMIN` role.",
-        "operationId": "MajorController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProgramMajorDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MajorDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "ConflictException #1": {
-                    "description": "Conflict",
-                    "value": {
-                      "statusCode": 409,
-                      "message": "Conflict",
-                      "error": "Conflict"
-                    }
-                  },
-                  "ConflictException #2": {
-                    "description": "Conflict",
-                    "value": {
-                      "statusCode": 409,
-                      "message": "Conflict",
-                      "error": "Conflict"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 409
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Conflict"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Conflict"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Creates a major.",
-        "tags": [
-          "Major"
-        ]
-      },
-      "get": {
-        "description": "Retrives a paginated list of majors based on the provided filters.\nRequires `ADMIN` role.",
-        "operationId": "MajorController_findAll",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedMajorsDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "BadRequestException": {
-                    "description": "Bad Request",
-                    "value": {
-                      "statusCode": 400,
-                      "message": "Bad Request",
-                      "error": "Bad Request"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 400
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Retrive all majors",
-        "tags": [
-          "Major"
-        ]
-      }
-    },
-    "/majors/{id}": {
-      "get": {
-        "description": "Requires `ADMIN` role.",
-        "operationId": "MajorController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MajorItemDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Retrieve a specific major by ID",
-        "tags": [
-          "Major"
-        ]
-      },
-      "patch": {
-        "description": "This operation updates the details of an existing major.\nRequires `ADMIN` role.",
-        "operationId": "MajorController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMajorDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Major"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "ConflictException": {
-                    "description": "Conflict",
-                    "value": {
-                      "statusCode": 409,
-                      "message": "Conflict",
-                      "error": "Conflict"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 409
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Conflict"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Conflict"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Update a major",
-        "tags": [
-          "Major"
-        ]
-      },
-      "delete": {
-        "description": "This operation permanently deletes a major from the system.\nRequires `ADMIN` role.",
-        "operationId": "MajorController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "directDelete",
-            "required": false,
-            "in": "query",
-            "description": "If set to true, will skip the soft delete process",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Major has been permanently deleted."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Delete a major",
-        "tags": [
-          "Major"
-        ]
-      }
-    },
     "/enrollments": {
       "post": {
         "description": "This operation creates a new enrollment period for managing course registrations.\nRequires `ADMIN` role.",
@@ -5381,6 +4779,16 @@
             "schema": {
               "minimum": 1,
               "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
               "type": "number"
             }
           }
@@ -6074,6 +5482,16 @@
             }
           },
           {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
             "name": "periodId",
             "required": false,
             "in": "query",
@@ -6499,6 +5917,16 @@
               "default": 1,
               "type": "number"
             }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -6593,6 +6021,16 @@
             "schema": {
               "minimum": 1,
               "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
               "type": "number"
             }
           }
@@ -7692,610 +7130,6 @@
         ]
       }
     },
-    "/curriculum": {
-      "post": {
-        "description": "Creates a new curriculum with attached course plan",
-        "operationId": "CurriculumController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCurriculumWithCoursesDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurriculumDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create a new curriculum",
-        "tags": [
-          "Curriculum"
-        ]
-      },
-      "get": {
-        "description": "Fetches all of the curriculums\nReturns a list",
-        "operationId": "CurriculumController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CurriculumItemDto"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch curriculums",
-        "tags": [
-          "Curriculum"
-        ]
-      }
-    },
-    "/curriculum/{id}": {
-      "get": {
-        "description": "Fetch the curriculum details and the courses attached to it.\nCan find by id or find by code with a format of (programCode-majorCode)",
-        "operationId": "CurriculumController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurriculumWithCoursesDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "BadRequestException": {
-                    "description": "Bad Request",
-                    "value": {
-                      "statusCode": 400,
-                      "message": "Bad Request",
-                      "error": "Bad Request"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 400
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch a single curriculum",
-        "tags": [
-          "Curriculum"
-        ]
-      },
-      "patch": {
-        "description": "Updates an existing curriculum and course plan",
-        "operationId": "CurriculumController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCurriculumWithCourseDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurriculumDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update curriculum",
-        "tags": [
-          "Curriculum"
-        ]
-      },
-      "delete": {
-        "description": "This endpoint performs either a soft delete or a permanent deletion of a curriculum depending on the current state of the nill or the query parameter provided:\n\n- If `directDelete` is true, the curriculum is **permanently deleted** without checking if they are already softly deleted.\n- If `directDelete` is not provided or false:\n  - If the curriculum is not yet softly deleted (`deletedAt` is null), a **soft delete** is performed by setting the `deletedAt` timestamp.\n  - If the curriculum is already softly deleted, a **permanent delete** is executed.",
-        "operationId": "CurriculumController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "directDelete",
-            "required": false,
-            "in": "query",
-            "description": "If set to true, will skip the soft delete process",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Deletes a curriculum (temporary or permanent)",
-        "tags": [
-          "Curriculum"
-        ]
-      }
-    },
     "/modules": {
       "get": {
         "description": "Retrieves a paginated list of modules based on the user role and provided filters.",
@@ -8316,6 +7150,16 @@
             "schema": {
               "minimum": 1,
               "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
               "type": "number"
             }
           }
@@ -8867,7 +7711,54 @@
       "get": {
         "description": "Requires `STUDENT` role.",
         "operationId": "LmsController_findTodos",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "dueDateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dueDateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -9907,6 +8798,16 @@
             "schema": {
               "minimum": 1,
               "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
               "type": "number"
             }
           },
@@ -11445,6 +10346,1273 @@
         "summary": "Deletes a group",
         "tags": [
           "Group"
+        ]
+      }
+    },
+    "/majors": {
+      "post": {
+        "description": "This operation creates a new academic major.\nRequries `ADMIN` role.",
+        "operationId": "MajorController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProgramMajorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException #1": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  },
+                  "ConflictException #2": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Creates a major.",
+        "tags": [
+          "Major"
+        ]
+      },
+      "get": {
+        "description": "Retrives a paginated list of majors based on the provided filters.\nRequires `ADMIN` role.",
+        "operationId": "MajorController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMajorsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrive all majors",
+        "tags": [
+          "Major"
+        ]
+      }
+    },
+    "/majors/{id}": {
+      "get": {
+        "description": "Requires `ADMIN` role.",
+        "operationId": "MajorController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieve a specific major by ID",
+        "tags": [
+          "Major"
+        ]
+      },
+      "patch": {
+        "description": "This operation updates the details of an existing major.\nRequires `ADMIN` role.",
+        "operationId": "MajorController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMajorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Major"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Update a major",
+        "tags": [
+          "Major"
+        ]
+      },
+      "delete": {
+        "description": "This operation permanently deletes a major from the system.\nRequires `ADMIN` role.",
+        "operationId": "MajorController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "directDelete",
+            "required": false,
+            "in": "query",
+            "description": "If set to true, will skip the soft delete process",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Major has been permanently deleted."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Delete a major",
+        "tags": [
+          "Major"
+        ]
+      }
+    },
+    "/curriculum": {
+      "post": {
+        "description": "Creates a new curriculum with attached course plan",
+        "operationId": "CurriculumController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCurriculumWithCoursesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurriculumDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new curriculum",
+        "tags": [
+          "Curriculum"
+        ]
+      },
+      "get": {
+        "description": "Fetches all of the curriculums\nReturns a list",
+        "operationId": "CurriculumController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CurriculumItemDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch curriculums",
+        "tags": [
+          "Curriculum"
+        ]
+      }
+    },
+    "/curriculum/{id}": {
+      "get": {
+        "description": "Fetch the curriculum details and the courses attached to it.\nCan find by id or find by code with a format of (programCode-majorCode)",
+        "operationId": "CurriculumController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurriculumWithCoursesDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch a single curriculum",
+        "tags": [
+          "Curriculum"
+        ]
+      },
+      "patch": {
+        "description": "Updates an existing curriculum and course plan",
+        "operationId": "CurriculumController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCurriculumWithCourseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurriculumDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update curriculum",
+        "tags": [
+          "Curriculum"
+        ]
+      },
+      "delete": {
+        "description": "This endpoint performs either a soft delete or a permanent deletion of a curriculum depending on the current state of the nill or the query parameter provided:\n\n- If `directDelete` is true, the curriculum is **permanently deleted** without checking if they are already softly deleted.\n- If `directDelete` is not provided or false:\n  - If the curriculum is not yet softly deleted (`deletedAt` is null), a **soft delete** is performed by setting the `deletedAt` timestamp.\n  - If the curriculum is already softly deleted, a **permanent delete** is executed.",
+        "operationId": "CurriculumController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "directDelete",
+            "required": false,
+            "in": "query",
+            "description": "If set to true, will skip the soft delete process",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deletes a curriculum (temporary or permanent)",
+        "tags": [
+          "Curriculum"
         ]
       }
     },
@@ -13655,9 +13823,20 @@
         "type": "object",
         "properties": {
           "question": {
-            "type": "string"
+            "type": "string",
+            "example": "What is the current semester?"
           },
           "sessionHistory": {
+            "example": [
+              {
+                "role": "user",
+                "content": "What is the current semester?"
+              },
+              {
+                "role": "model",
+                "content": "The current semester is 2024-2025."
+              }
+            ],
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Turn"
@@ -13665,8 +13844,7 @@
           }
         },
         "required": [
-          "question",
-          "sessionHistory"
+          "question"
         ]
       },
       "ChatbotResponseDto": {
@@ -13678,145 +13856,6 @@
         },
         "required": [
           "response"
-        ]
-      },
-      "CreateMajorDto": {
-        "type": "object",
-        "properties": {
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "majorCode",
-          "name",
-          "description"
-        ]
-      },
-      "CreateProgramMajorDto": {
-        "type": "object",
-        "properties": {
-          "major": {
-            "$ref": "#/components/schemas/CreateMajorDto"
-          },
-          "programId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "major",
-          "programId"
-        ]
-      },
-      "MajorDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "majorCode",
-          "name",
-          "description",
-          "isActive",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "UpdateMajorDto": {
-        "type": "object",
-        "properties": {
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "Major": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "programId": {
-            "type": "string"
-          },
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "programId",
-          "majorCode",
-          "name",
-          "description",
-          "isActive",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
         ]
       },
       "EnrollmentStatus": {
@@ -14637,293 +14676,6 @@
           "createdAt",
           "updatedAt",
           "deletedAt"
-        ]
-      },
-      "CreateCurriculumDto": {
-        "type": "object",
-        "properties": {
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "CreateCurriculumCourseItemDto": {
-        "type": "object",
-        "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "order": {
-            "type": "number"
-          },
-          "year": {
-            "type": "number",
-            "minimum": 1
-          },
-          "semester": {
-            "type": "number",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "courseId",
-          "order",
-          "year",
-          "semester"
-        ]
-      },
-      "CreateCurriculumWithCoursesDto": {
-        "type": "object",
-        "properties": {
-          "majorId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "curriculum": {
-            "$ref": "#/components/schemas/CreateCurriculumDto"
-          },
-          "courses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateCurriculumCourseItemDto"
-            }
-          }
-        },
-        "required": [
-          "majorId",
-          "curriculum",
-          "courses"
-        ]
-      },
-      "CurriculumDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "icon",
-          "name",
-          "description",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "CurriculumItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "program": {
-            "$ref": "#/components/schemas/ProgramDto"
-          },
-          "major": {
-            "$ref": "#/components/schemas/MajorDto"
-          }
-        },
-        "required": [
-          "id",
-          "icon",
-          "name",
-          "description",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
-          "program",
-          "major"
-        ]
-      },
-      "CurriculumCourseItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "semester": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "course": {
-            "$ref": "#/components/schemas/CourseDto"
-          }
-        },
-        "required": [
-          "id",
-          "order",
-          "year",
-          "semester",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
-          "course"
-        ]
-      },
-      "CurriculumWithCoursesDto": {
-        "type": "object",
-        "properties": {
-          "curriculum": {
-            "$ref": "#/components/schemas/CurriculumItemDto"
-          },
-          "courses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CurriculumCourseItemDto"
-            }
-          }
-        },
-        "required": [
-          "curriculum",
-          "courses"
-        ]
-      },
-      "UpdateCurriculumDto": {
-        "type": "object",
-        "properties": {
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "UpdateCurriculumCourseItemDto": {
-        "type": "object",
-        "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "order": {
-            "type": "number"
-          },
-          "year": {
-            "type": "number",
-            "minimum": 1
-          },
-          "semester": {
-            "type": "number",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "courseId",
-          "order",
-          "year",
-          "semester"
-        ]
-      },
-      "UpdateCurriculumWithCourseDto": {
-        "type": "object",
-        "properties": {
-          "majorId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "curriculum": {
-            "$ref": "#/components/schemas/UpdateCurriculumDto"
-          },
-          "courses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpdateCurriculumCourseItemDto"
-            }
-          }
-        },
-        "required": [
-          "curriculum",
-          "courses"
         ]
       },
       "ModuleDto": {
@@ -17098,6 +16850,432 @@
             "description": "List of student IDs to assign as member"
           }
         }
+      },
+      "CreateMajorDto": {
+        "type": "object",
+        "properties": {
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "majorCode",
+          "name",
+          "description"
+        ]
+      },
+      "CreateProgramMajorDto": {
+        "type": "object",
+        "properties": {
+          "major": {
+            "$ref": "#/components/schemas/CreateMajorDto"
+          },
+          "programId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "major",
+          "programId"
+        ]
+      },
+      "MajorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "majorCode",
+          "name",
+          "description",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "UpdateMajorDto": {
+        "type": "object",
+        "properties": {
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "Major": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "programId": {
+            "type": "string"
+          },
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "programId",
+          "majorCode",
+          "name",
+          "description",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "CreateCurriculumDto": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateCurriculumCourseItemDto": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "number"
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1
+          },
+          "semester": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "courseId",
+          "order",
+          "year",
+          "semester"
+        ]
+      },
+      "CreateCurriculumWithCoursesDto": {
+        "type": "object",
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "curriculum": {
+            "$ref": "#/components/schemas/CreateCurriculumDto"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateCurriculumCourseItemDto"
+            }
+          }
+        },
+        "required": [
+          "majorId",
+          "curriculum",
+          "courses"
+        ]
+      },
+      "CurriculumDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "icon",
+          "name",
+          "description",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "CurriculumItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "program": {
+            "$ref": "#/components/schemas/ProgramDto"
+          },
+          "major": {
+            "$ref": "#/components/schemas/MajorDto"
+          }
+        },
+        "required": [
+          "id",
+          "icon",
+          "name",
+          "description",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "program",
+          "major"
+        ]
+      },
+      "CurriculumCourseItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "semester": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "course": {
+            "$ref": "#/components/schemas/CourseDto"
+          }
+        },
+        "required": [
+          "id",
+          "order",
+          "year",
+          "semester",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "course"
+        ]
+      },
+      "CurriculumWithCoursesDto": {
+        "type": "object",
+        "properties": {
+          "curriculum": {
+            "$ref": "#/components/schemas/CurriculumItemDto"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurriculumCourseItemDto"
+            }
+          }
+        },
+        "required": [
+          "curriculum",
+          "courses"
+        ]
+      },
+      "UpdateCurriculumDto": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateCurriculumCourseItemDto": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "number"
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1
+          },
+          "semester": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "courseId",
+          "order",
+          "year",
+          "semester"
+        ]
+      },
+      "UpdateCurriculumWithCourseDto": {
+        "type": "object",
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "curriculum": {
+            "$ref": "#/components/schemas/UpdateCurriculumDto"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateCurriculumCourseItemDto"
+            }
+          }
+        },
+        "required": [
+          "curriculum",
+          "courses"
+        ]
       }
     }
   }
