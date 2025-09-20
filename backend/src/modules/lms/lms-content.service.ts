@@ -1222,7 +1222,7 @@ export class LmsContentService {
       })
       .withPages({
         limit: filters.limit ?? 10,
-        page: filters.page,
+        page: filters.page ?? 1,
         includePageCount: true,
       });
 
