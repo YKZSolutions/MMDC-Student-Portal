@@ -1,27 +1,27 @@
 import type { EnrollmentPeriodDto } from '@/integrations/api/client'
 import {
-    enrollmentControllerFindActiveEnrollmentOptions,
-    enrollmentControllerFindAllEnrollmentsOptions,
-    enrollmentControllerFindOneEnrollmentOptions,
+  enrollmentControllerFindActiveEnrollmentOptions,
+  enrollmentControllerFindAllEnrollmentsOptions,
+  enrollmentControllerFindOneEnrollmentOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatToSchoolYear } from '@/utils/formatters'
 import {
-    Box,
-    Combobox,
-    Group,
-    InputBase,
-    Loader,
-    rem,
-    Text,
-    TextInput,
-    useCombobox,
+  Box,
+  Combobox,
+  Group,
+  InputBase,
+  Loader,
+  rem,
+  Text,
+  TextInput,
+  useCombobox,
 } from '@mantine/core'
 import {
-    useSuspenseQuery,
-    type UseSuspenseQueryOptions,
+  useSuspenseQuery,
+  type UseSuspenseQueryOptions,
 } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Suspense, useMemo, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useState, type ReactNode } from 'react'
 
 function AsyncTermComboboxQueryProvider({
   setSelected,
@@ -51,9 +51,9 @@ function AsyncTermComboboxQueryProvider({
 
   const enrollmentPeriods = data.enrollments
 
-  const _ = useMemo(() => {
+  useEffect(() => {
     setSelected(activeEnrollmentPeriod)
-  }, [data])
+  }, [data, setSelected])
 
   return children({
     enrollmentPeriods,
