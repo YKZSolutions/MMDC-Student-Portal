@@ -32,6 +32,12 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { FilterModulesDto } from '@/modules/lms/dto/filter-modules.dto';
 import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
+import {
+  parseRelativeDateRange,
+  RelativeDateRange,
+} from '@/common/utils/date-range.util';
+import { DueFilterDto } from '@/common/dto/due-filter.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -97,22 +103,16 @@ export class ChatbotService {
     @LogParam('role') role: string,
     @LogParam('prompt') prompt: PromptDto,
   ): Promise<ChatbotResponseDto> {
-    const result: ChatbotResponseDto = {
-      response: '',
-    };
+    const result: ChatbotResponseDto = { response: '' };
 
     const userContext: UserBaseContext | UserStudentContext | UserStaffContext =
       this.mapUserToContext(role, await this.usersService.getMe(authId));
 
-    const {
-      call,
-      text,
-    }: { call: FunctionCall[] | null; text: string | undefined } =
-      await this.gemini.askWithFunctionCalling(
-        prompt.question,
-        userContext,
-        prompt.sessionHistory,
-      );
+    const { call, text } = await this.gemini.askWithFunctionCalling(
+      prompt.question,
+      userContext,
+      prompt.sessionHistory,
+    );
 
     if (!call) {
       if (!text) {
@@ -123,148 +123,148 @@ export class ChatbotService {
       return result;
     }
 
-    const functionCallResult: string[] = [];
+    const functionCallResults = await Promise.all(
+      call.map(async (functionCall) => {
+        switch (functionCall.name) {
+          case 'users_count_all': {
+            const args = functionCall.args as FilterUserDto;
+            const count = await this.usersService.countAll(args);
+            return `Found ${count} users${args.role ? ` with role '${args.role}'` : ''}${args.search ? ` matching '${args.search}'` : ''}.`;
+          }
 
-    for (const functionCall of call) {
-      switch (functionCall.name) {
-        case 'users_count_all': {
-          const args = functionCall.args as FilterUserDto;
-          const count = await this.usersService.countAll(args);
-          functionCallResult.push(
-            `Found ${count} users${args.role ? ` with role '${args.role}'` : ''}${args.search ? ` matching '${args.search}'` : ''}`,
-          );
-          break;
-        }
+          case 'users_find_one': {
+            const { id } = functionCall.args as { id: string };
+            const user = await this.usersService.findOne(id);
+            return `User details: ${JSON.stringify(user)}`;
+          }
 
-        case 'users_find_one': {
-          const { id } = functionCall.args as { id: string };
-          const user = await this.usersService.findOne(id);
-          functionCallResult.push(
-            `${text}: User details: ${JSON.stringify(user)}`,
-          );
-          break;
-        }
+          case 'courses_find_all': {
+            const args = functionCall.args as BaseFilterDto;
+            const courses = await this.coursesService.findAll(args);
+            return `Courses${args.search ? ` matching '${args.search}'` : ''}: ${JSON.stringify(courses.courses)}`;
+          }
 
-        case 'courses_find_all': {
-          const args = functionCall.args as BaseFilterDto;
-          const courses = await this.coursesService.findAll(args);
-          functionCallResult.push(
-            `Courses${args.search ? ` matching '${args.search}'` : ''}: ${JSON.stringify(courses.courses)}`,
-          );
-          break;
-        }
+          case 'courses_find_one': {
+            const { id } = functionCall.args as { id: string };
+            const course = await this.coursesService.findOne(id);
+            return `Course: ${JSON.stringify(course)}`;
+          }
 
-        case 'courses_find_one': {
-          const { id } = functionCall.args as { id: string };
-          const course = await this.coursesService.findOne(id);
-          functionCallResult.push(`${text}: Course: ${JSON.stringify(course)}`);
-          break;
-        }
+          case 'enrollment_find_active': {
+            const enrollment =
+              await this.enrollmentsService.findActiveEnrollment();
+            return `Active enrollment: ${JSON.stringify(enrollment)}`;
+          }
 
-        case 'enrollment_find_active': {
-          const enrollment =
-            await this.enrollmentsService.findActiveEnrollment();
-          functionCallResult.push(
-            `${text}: Active enrollment: ${JSON.stringify(enrollment)}`,
-          );
-          break;
-        }
+          case 'enrollment_find_all': {
+            const args = functionCall.args as BaseFilterDto;
+            const enrollments =
+              await this.enrollmentsService.findAllEnrollments(args);
+            return `Enrollment periods: ${JSON.stringify(enrollments)}`;
+          }
 
-        case 'enrollment_find_all': {
-          const args = functionCall.args as BaseFilterDto;
-          const enrollments =
-            await this.enrollmentsService.findAllEnrollments(args);
-          functionCallResult.push(
-            `${text}: Enrollment periods: ${JSON.stringify(enrollments)}`,
-          );
-          break;
-        }
+          case 'enrollment_my_courses': {
+            const courses =
+              await this.courseEnrollmentService.getCourseEnrollments(
+                userContext.id,
+                userContext.role as Role,
+              );
+            return `Active enrolled courses: ${JSON.stringify(courses)}`;
+          }
 
-        case 'enrollment_my_courses': {
-          const courses =
-            await this.courseEnrollmentService.getCourseEnrollments(
+          case 'lms_my_modules': {
+            const args = functionCall.args as FilterModulesDto;
+            const modules = await this.lmsService.findAll(
               userContext.id,
               userContext.role as Role,
+              args,
             );
-          functionCallResult.push(
-            `${text}: Active enrolled courses: ${JSON.stringify(courses)}`,
-          );
-          break;
-        }
+            return `My modules: ${JSON.stringify(modules)}`;
+          }
 
-        case 'lms_my_modules': {
-          const args = functionCall.args as FilterModulesDto;
-          const modules = await this.lmsService.findAll(
-            userContext.id,
-            userContext.role as Role,
-            args,
-          );
-          functionCallResult.push(
-            `${text}: My modules: ${JSON.stringify(modules)}`,
-          );
-          break;
-        }
+          case 'lms_module_contents': {
+            const args = functionCall.args as FilterModuleContentsDto;
+            const contents = await this.lmsContentService.findAll(
+              args,
+              userContext.role as Role,
+              userContext.id,
+            );
+            return `Module contents: ${JSON.stringify(contents)}`;
+          }
 
-        case 'lms_module_contents': {
-          const args = functionCall.args as FilterModuleContentsDto;
-          const contents = await this.lmsContentService.findAll(
-            args,
-            userContext.role as Role,
-            userContext.id,
-          );
-          functionCallResult.push(
-            `${text}: Module contents: ${JSON.stringify(contents)}`,
-          );
-          break;
-        }
+          case 'billing_my_invoices': {
+            const args = functionCall.args as FilterBillDto;
+            const invoices = await this.billingService.findAll(
+              args,
+              userContext.role as Role,
+              userContext.id,
+            );
+            return `My invoices: ${JSON.stringify(invoices)}`;
+          }
 
-        case 'billing_my_invoices': {
-          const args = functionCall.args as FilterBillDto;
-          const invoices = await this.billingService.findAll(
-            args,
-            userContext.role as Role,
-            userContext.id,
-          );
-          functionCallResult.push(
-            `${text}: My invoices: ${JSON.stringify(invoices)}`,
-          );
-          break;
-        }
+          case 'billing_invoice_details': {
+            const { id } = functionCall.args as { id: string };
+            const invoice = await this.billingService.findOne(
+              id,
+              userContext.role as Role,
+              userContext.id,
+            );
+            return `Invoice: ${JSON.stringify(invoice)}`;
+          }
 
-        case 'billing_invoice_details': {
-          const { id } = functionCall.args as { id: string };
-          const invoice = await this.billingService.findOne(
-            id,
-            userContext.role as Role,
-            userContext.id,
-          );
-          functionCallResult.push(
-            `${text}: Invoice: ${JSON.stringify(invoice)}`,
-          );
-          break;
-        }
+          case 'lms_my_todos': {
+            const args = functionCall.args as {
+              relativeDate?: string;
+              page?: number;
+              limit?: number;
+            };
 
-        case 'search_vector': {
-          const args = functionCall.args as { query: string; limit: number };
-          const vector = await this.handleVectorSearch(args.query);
-          functionCallResult.push(
-            `${text}: Vector search for "${args.query}": ${vector}`,
-          );
-          break;
-        }
+            const baseFiler: BaseFilterDto = {
+              ...(args.page && { page: args.page }),
+              ...(args.limit && { limit: args.limit }),
+            };
+            const dueFilter: DueFilterDto = {};
 
-        default:
-          throw new NotImplementedException(
-            `Unhandled function call: ${functionCall.name}`,
-          );
-      }
-    }
+            if (typeof args.relativeDate === 'string') {
+              const parsed = parseRelativeDateRange(
+                args.relativeDate as RelativeDateRange,
+              );
+              if (parsed) {
+                dueFilter.dueDateFrom = new Date(parsed.from);
+                dueFilter.dueDateTo = new Date(parsed.to);
+              }
+            }
+
+            const todos = await this.lmsContentService.findTodos(
+              userContext.id,
+              {
+                ...baseFiler,
+                ...dueFilter,
+              },
+            );
+            return `Todos: ${JSON.stringify(todos)}`;
+          }
+
+          case 'search_vector': {
+            const args = functionCall.args as { query: string; limit: number };
+            const vector = await this.handleVectorSearch(args.query);
+            return `Vector search for "${args.query}": ${vector}`;
+          }
+
+          default:
+            throw new NotImplementedException(
+              `Unhandled function call: ${functionCall.name}`,
+            );
+        }
+      }),
+    );
 
     // Send results back to Gemini
-    const finalAnswer = await this.gemini.generateFinalAnswer(
-      prompt.question,
-      functionCallResult,
-    );
+    const finalAnswer = await this.gemini.generateFinalAnswer(prompt.question, {
+      narrative: text,
+      results: functionCallResults,
+    });
+
     if (!finalAnswer) {
       throw new ServiceUnavailableException('No response from Gemini');
     }

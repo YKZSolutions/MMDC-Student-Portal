@@ -44,6 +44,8 @@ import {
   ModuleTreeDto,
   ModuleTreeSectionDto,
 } from '@/modules/lms/dto/module-tree.dto';
+import { DueFilterDto } from '@/common/dto/due-filter.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -1108,8 +1110,8 @@ export class LmsContentService {
   }
 
   @Log({
-    logArgsMessage: ({ userId, page, limit }) =>
-      `Fetching todos for user ${userId} in active term (page: ${page}, limit: ${limit})`,
+    logArgsMessage: ({ userId, filters }) =>
+      `Fetching todos for user ${userId} in active term with filters ${JSON.stringify(filters)}`,
     logSuccessMessage: (result) =>
       `Successfully fetched ${result.todos.length} todos`,
     logErrorMessage: (err, { userId }) =>
@@ -1117,7 +1119,7 @@ export class LmsContentService {
   })
   async findTodos(
     @LogParam('userId') userId: string,
-    @LogParam('page') page: number = 1,
+    @LogParam('filters') filters: FilterTodosDto,
   ): Promise<PaginatedTodosDto> {
     // First, get the active enrollment period
     const activeTerm = await this.prisma.client.enrollmentPeriod.findFirst({
@@ -1132,9 +1134,9 @@ export class LmsContentService {
         meta: {
           isFirstPage: true,
           isLastPage: true,
-          currentPage: page,
-          previousPage: page,
-          nextPage: page,
+          currentPage: 1,
+          previousPage: 0,
+          nextPage: 0,
           pageCount: 1,
           totalCount: 0,
         },
@@ -1219,8 +1221,8 @@ export class LmsContentService {
         ],
       })
       .withPages({
-        limit: 10,
-        page,
+        limit: filters.limit ?? 10,
+        page: filters.page,
         includePageCount: true,
       });
 

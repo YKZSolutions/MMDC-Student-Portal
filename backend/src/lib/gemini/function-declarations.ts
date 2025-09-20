@@ -13,6 +13,7 @@ import {
   ProgressStatus,
   Role,
 } from '@prisma/client';
+import { RelativeDateRange } from '@/common/utils/date-range.util';
 
 // Common enums/refs
 const RoleEnum = Object.values(Role) as string[];
@@ -24,6 +25,7 @@ const FilterBillSortEnum = Object.values(FilterBillSort) as string[];
 const BillStatusEnum = Object.values(BillStatus) as string[];
 const PaymentSchemeEnum = Object.values(PaymentScheme) as string[];
 const BillTypeEnum = Object.values(BillType) as string[];
+const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
 
 // -------------------------
 // General knowledge search
@@ -188,6 +190,32 @@ export const enrollmentMyCoursesFn: FunctionDeclaration = {
 // -------------------------
 // LMS function declarations
 // -------------------------
+export const lmsMyTodosFn: FunctionDeclaration = {
+  name: 'lms_my_todos',
+  description:
+    'Get all pending todos (assignments and quizzes with due dates) for the current student.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      relativeDate: {
+        type: Type.STRING,
+        enum: RelativeDateRangeEnum,
+        description: 'Filter todos by relative date.',
+      },
+      page: {
+        type: Type.INTEGER,
+        default: 1,
+        description: 'Page number for pagination (default 1).',
+      },
+      limit: {
+        type: Type.INTEGER,
+        default: 10,
+        description: 'Number of todos per page (default 10).',
+      },
+    },
+  },
+};
+
 export const lmsMyModulesFn: FunctionDeclaration = {
   name: 'lms_my_modules',
   description: 'List all modules for the current user with optional filtering.',
@@ -371,6 +399,7 @@ export const enrollmentFunctions: FunctionDeclaration[] = [
 export const lmsFunctions: FunctionDeclaration[] = [
   lmsMyModulesFn,
   lmsModuleContentsFn,
+  lmsMyTodosFn,
 ];
 
 export const billingFunctions: FunctionDeclaration[] = [

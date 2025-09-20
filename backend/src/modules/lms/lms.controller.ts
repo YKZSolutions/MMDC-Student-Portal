@@ -28,6 +28,7 @@ import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
 import { ModuleTreeDto } from '@/modules/lms/dto/module-tree.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
 
 @Controller('modules')
 export class LmsController {
@@ -154,9 +155,12 @@ export class LmsController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.STUDENT)
   @Get('/todo')
-  findTodos(@CurrentUser() user: CurrentAuthUser): Promise<PaginatedTodosDto> {
+  findTodos(
+    @CurrentUser() user: CurrentAuthUser,
+    @Query() filters: FilterTodosDto,
+  ): Promise<PaginatedTodosDto> {
     const { user_id } = user.user_metadata;
-    return this.lmsContentService.findTodos(user_id);
+    return this.lmsContentService.findTodos(user_id, filters);
   }
 
   /**
