@@ -91,7 +91,7 @@ export class GeminiService {
         call: functionCalls?.length ? functionCalls : null,
       };
     } catch (error) {
-      throw new Error('Failed to get response from Gemini API', error);
+      throw new Error('Failed to get response from Gemini API', { cause: error });
     }
   }
 
