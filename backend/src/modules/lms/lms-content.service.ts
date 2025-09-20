@@ -44,7 +44,6 @@ import {
   ModuleTreeDto,
   ModuleTreeSectionDto,
 } from '@/modules/lms/dto/module-tree.dto';
-import { DueFilterDto } from '@/common/dto/due-filter.dto';
 import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
 
 @Injectable()
