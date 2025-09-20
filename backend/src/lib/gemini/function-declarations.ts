@@ -279,32 +279,32 @@ export const lmsModuleContentsFn: FunctionDeclaration = {
             type: Type.INTEGER,
             description: 'Filter content by term number.',
           },
-          contentType: {
-            type: Type.STRING,
-            enum: ContentTypeEnum,
-            description: 'Filter content by content type.',
-          },
-          progress: {
-            type: Type.STRING,
-            enum: ProgressStatusEnum,
-            description: 'Filter content by progress status.',
-          },
-          search: {
-            type: Type.STRING,
-            description:
-              'Search term for filtering content by student name or student number, content title and/or subtitle',
-          },
-          page: {
-            type: Type.INTEGER,
-            default: 1,
-            description: 'Page number for pagination (default 1).',
-          },
-          limit: {
-            type: Type.INTEGER,
-            default: 10,
-            description: 'Number of content items per page (default 10).',
-          },
         },
+      },
+      contentType: {
+        type: Type.STRING,
+        enum: ContentTypeEnum,
+        description: 'Filter content by content type.',
+      },
+      progress: {
+        type: Type.STRING,
+        enum: ProgressStatusEnum,
+        description: 'Filter content by progress status.',
+      },
+      search: {
+        type: Type.STRING,
+        description:
+          'Search term for filtering content by student name or student number, content title and/or subtitle',
+      },
+      page: {
+        type: Type.INTEGER,
+        default: 1,
+        description: 'Page number for pagination (default 1).',
+      },
+      limit: {
+        type: Type.INTEGER,
+        default: 10,
+        description: 'Number of content items per page (default 10).',
       },
     },
   },
