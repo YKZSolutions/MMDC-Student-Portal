@@ -46,7 +46,7 @@ export class PromptDto {
     ],
     required: false,
   })
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => Turn)
   sessionHistory?: Turn[];
