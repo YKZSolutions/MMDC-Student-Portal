@@ -60,18 +60,6 @@ function AdminCourseDashboardProvider({
     enrollmentControllerFindActiveEnrollmentOptions(),
   )
 
-  // const { data: courseData } = useSuspenseQuery(
-  //   courseOfferingControllerFindCourseOfferingsByPeriodOptions({
-  //     query: {
-  //       page: page,
-  //       search: search || undefined,
-  //     },
-  //     path: {
-  //       enrollmentId: term || enrollmentPeriodData.id,
-  //     },
-  //   }),
-  // )
-
   const { data: moduleData } = useSuspenseQuery(
     lmsControllerFindAllForAdminOptions({
       query: {
@@ -80,8 +68,6 @@ function AdminCourseDashboardProvider({
       },
     }),
   )
-
-  console.log(moduleData)
 
   const modules = moduleData.modules
 
