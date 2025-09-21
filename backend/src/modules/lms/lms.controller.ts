@@ -56,7 +56,7 @@ export class LmsController {
     @CurrentUser() user: CurrentAuthUser,
   ) {
     const { role, user_id } = user.user_metadata;
-    return this.lmsService.findOne(id, role as any, user_id);
+    return this.lmsService.findOne(id, role, user_id);
   }
 
   /**
