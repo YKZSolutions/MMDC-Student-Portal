@@ -47,7 +47,6 @@ function CourseCard({
   const navigate = useNavigate()
   const sectionName = section?.name
   const sectionInitial = sectionName?.charAt(0)
-  const hasSection = Boolean(sectionName)
   const scheduleText = section
     ? `${formatDaysAbbrev(section.days)} | ${section.startSched} - ${section.endSched}`
     : undefined
@@ -81,25 +80,30 @@ function CourseCard({
         />
 
         {/* Avatar/Initial badge (section initial) */}
-        {hasSection && (
-          <Box
-            pos={'absolute'}
-            right={rem(16)}
-            bottom={rem(-24)}
-            w={rem(48)}
-            h={rem(48)}
-            bg={theme.colors.orange[7]}
-            bd={'2px solid white'}
-            bdrs={'50%'}
-            style={{ zIndex: 2 }}
-          >
-            <Flex justify="center" align="center" w="100%" h="100%">
-              <Text fw={700} fz={'xl'} c={'white'} tt={'capitalize'}>
-                {sectionInitial}
-              </Text>
-            </Flex>
-          </Box>
-        )}
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <Box
+                pos={'absolute'}
+                right={rem(16)}
+                bottom={rem(-24)}
+                w={rem(48)}
+                h={rem(48)}
+                bg={theme.colors.orange[7]}
+                bd={'2px solid white'}
+                bdrs={'50%'}
+                style={{ zIndex: 2 }}
+              >
+                <Flex justify="center" align="center" w="100%" h="100%">
+                  <Text fw={700} fz={'xl'} c={'white'} tt={'capitalize'}>
+                    {sectionInitial}
+                  </Text>
+                </Flex>
+              </Box>
+            ),
+          }}
+        />
       </Flex>
 
       {/* Main content area */}
@@ -111,14 +115,19 @@ function CourseCard({
           <Text size="sm" fw={500}>
             {course?.courseCode}
           </Text>
-          {hasSection ? (
-            <>
-              <Text c={'gray.7'}>•</Text>
-              <Text size="sm" fw={500}>
-                {sectionName}
-              </Text>
-            </>
-          ) : null}
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              student: (
+                <>
+                  <Text c={'gray.7'}>•</Text>
+                  <Text size="sm" fw={500}>
+                    {sectionName}
+                  </Text>
+                </>
+              ),
+            }}
+          />
         </Group>
 
         <RoleComponentManager
@@ -136,23 +145,30 @@ function CourseCard({
       {/* Actions row */}
       <Divider />
       <Group justify="space-between" p={'xs'} align="center">
-        <Group gap={rem(5)}>
-          <RingProgress
-            size={30}
-            thickness={3}
-            sections={[
-              {
-                // value: course.courseProgress * 100,
-                value: 60,
-                color: theme.colors.blue[5],
-              },
-            ]}
-          />
-          <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-            {/* {course.courseProgress * 100}% */}
-            60%
-          </Text>
-        </Group>
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <Group gap={rem(5)}>
+                <RingProgress
+                  size={30}
+                  thickness={3}
+                  sections={[
+                    {
+                      // value: course.courseProgress * 100,
+                      value: 60,
+                      color: theme.colors.blue[5],
+                    },
+                  ]}
+                />
+                <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                  {/* {course.courseProgress * 100}% */}
+                  60%
+                </Text>
+              </Group>
+            ),
+          }}
+        />
 
         <CourseCardActionButton url={url} currentMeeting={currentMeeting} />
       </Group>
@@ -207,23 +223,31 @@ function CourseListRow({
         </Stack>
         <Stack align="end">
           <CourseCardActionButton currentMeeting={currentMeeting} url={url} />
-          <Group gap={rem(5)}>
-            <RingProgress
-              size={30}
-              thickness={3}
-              sections={[
-                {
-                  // value: course.courseProgress * 100,
-                  value: 60,
-                  color: theme.colors.blue[5],
-                },
-              ]}
-            />
-            <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-              {/* {course.courseProgress * 100}% */}
-              60%
-            </Text>
-          </Group>
+
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              student: (
+                <Group gap={rem(5)}>
+                  <RingProgress
+                    size={30}
+                    thickness={3}
+                    sections={[
+                      {
+                        // value: course.courseProgress * 100,
+                        value: 60,
+                        color: theme.colors.blue[5],
+                      },
+                    ]}
+                  />
+                  <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                    {/* {course.courseProgress * 100}% */}
+                    60%
+                  </Text>
+                </Group>
+              ),
+            }}
+          />
         </Stack>
       </Group>
     </Card>
