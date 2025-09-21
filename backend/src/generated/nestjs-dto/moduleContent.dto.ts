@@ -1,4 +1,4 @@
-import { ContentType, Prisma } from '@prisma/client';
+import { ContentType } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ModuleContentDto {
@@ -12,27 +12,10 @@ export class ModuleContentDto {
   })
   order: number;
   @ApiProperty({
-    type: 'string',
-  })
-  title: string;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  subtitle: string | null;
-  @ApiProperty({
-    type: () => Object,
-  })
-  content: Prisma.JsonValue;
-  @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
   })
   contentType: ContentType;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -45,6 +28,12 @@ export class ModuleContentDto {
     nullable: true,
   })
   toPublishAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

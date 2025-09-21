@@ -9,8 +9,7 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { PaginatedModulesDto } from './dto/paginated-module.dto';
 import { FilterModulesDto } from './dto/filter-modules.dto';
 
@@ -118,7 +117,34 @@ export class LmsService {
       orderBy: { createdAt: 'desc' },
       distinct: ['courseId'],
       include: {
-        moduleSections: { include: { moduleContents: true } },
+        moduleSections: {
+          include: {
+            moduleContents: {
+              include: {
+                lesson: true,
+                assignment: {
+                  include: {
+                    grading: true,
+                    submissions: false,
+                  },
+                },
+                quiz: {
+                  include: {
+                    submissions: false,
+                  },
+                },
+                discussion: {
+                  include: {
+                    posts: false,
+                  },
+                },
+                video: true,
+                externalUrl: true,
+                fileResource: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -135,33 +161,170 @@ export class LmsService {
             title: latestModule.title,
             courseId: latestModule.courseId,
             courseOfferingId: courseOffering.id,
+            publishedAt: null,
+            toPublishAt: null,
+            unpublishedAt: null,
           },
         });
 
-        // Batch create sections and return the created sections
-        const newSections = await tx.moduleSection.createManyAndReturn({
-          data: latestModule.moduleSections.map((s) => ({
-            moduleId: newModule.id,
-            title: s.title,
-          })),
-        });
-
-        // Flatten contents for batch creation
-        const allContents = latestModule.moduleSections.flatMap(
-          (oldSection, index) =>
-            oldSection.moduleContents.map((c) => ({
+        for (const oldSection of latestModule.moduleSections) {
+          const newSection = await tx.moduleSection.create({
+            data: {
               moduleId: newModule.id,
-              moduleSectionId: newSections[index].id,
-              order: c.order,
-              title: c.title,
-              subtitle: c.subtitle,
-              content: c.content,
-              contentType: c.contentType,
-            })),
-        );
+              title: oldSection.title,
+              order: oldSection.order,
+              publishedAt: null, // Reset publication status
+              toPublishAt: null,
+              unpublishedAt: null,
+            },
+          });
 
-        if (allContents.length > 0) {
-          await tx.moduleContent.createMany({ data: allContents });
+          for (const oldContent of oldSection.moduleContents) {
+            // Create the base module content
+            const newContent = await tx.moduleContent.create({
+              data: {
+                moduleId: newModule.id,
+                moduleSectionId: newSection.id,
+                order: oldContent.order,
+                contentType: oldContent.contentType,
+                publishedAt: null, // Reset publication status
+                toPublishAt: null,
+                unpublishedAt: null,
+              },
+            });
+
+            // Clone content-specific data based on type
+            switch (oldContent.contentType) {
+              case 'LESSON':
+                if (oldContent.lesson) {
+                  await tx.lesson.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.lesson.title,
+                      subtitle: oldContent.lesson.subtitle,
+                      content: oldContent.lesson.content,
+                    },
+                  });
+                }
+                break;
+
+              case 'ASSIGNMENT':
+                if (oldContent.assignment) {
+                  // Clone grading if it exists
+                  let gradingId: string | null = null;
+                  if (oldContent.assignment.grading) {
+                    const gradingSchema = oldContent.assignment.grading
+                      .gradingSchema as Prisma.JsonValue;
+                    const curveSettings = oldContent.assignment.grading
+                      .curveSettings as Prisma.JsonValue;
+                    const newGrading = await tx.assignmentGrading.create({
+                      data: {
+                        gradingSchema: gradingSchema ?? {},
+                        weight: oldContent.assignment.grading.weight,
+                        isCurved: oldContent.assignment.grading.isCurved,
+                        curveSettings: curveSettings ?? {},
+                      },
+                    });
+                    gradingId = newGrading.id;
+                  }
+
+                  await tx.assignment.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.assignment.title,
+                      subtitle: oldContent.assignment.subtitle,
+                      content: oldContent.assignment.content,
+                      mode: oldContent.assignment.mode,
+                      dueDate: oldContent.assignment.dueDate,
+                      maxAttempts: oldContent.assignment.maxAttempts,
+                      allowLateSubmission:
+                        oldContent.assignment.allowLateSubmission,
+                      latePenalty: oldContent.assignment.latePenalty,
+                      gradingId,
+                    },
+                  });
+                }
+                break;
+
+              case 'QUIZ':
+                if (oldContent.quiz) {
+                  await tx.quiz.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.quiz.title,
+                      subtitle: oldContent.quiz.subtitle,
+                      content: oldContent.quiz.content,
+                      timeLimit: oldContent.quiz.timeLimit,
+                      maxAttempts: oldContent.quiz.maxAttempts,
+                      questions: oldContent.quiz.questions,
+                    },
+                  });
+                }
+                break;
+
+              case 'DISCUSSION':
+                if (oldContent.discussion) {
+                  await tx.discussion.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.discussion.title,
+                      subtitle: oldContent.discussion.subtitle,
+                      content: oldContent.discussion.content,
+                      isThreaded: oldContent.discussion.isThreaded,
+                      requirePost: oldContent.discussion.requirePost,
+                    },
+                  });
+                }
+                break;
+
+              case 'VIDEO':
+                if (oldContent.video) {
+                  await tx.video.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.video.title,
+                      subtitle: oldContent.video.subtitle,
+                      content: oldContent.video.content,
+                      url: oldContent.video.url,
+                      duration: oldContent.video.duration,
+                      transcript: oldContent.video.transcript,
+                    },
+                  });
+                }
+                break;
+
+              case 'URL':
+                if (oldContent.externalUrl) {
+                  await tx.externalUrl.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.externalUrl.title,
+                      subtitle: oldContent.externalUrl.subtitle,
+                      content: oldContent.externalUrl.content,
+                      url: oldContent.externalUrl.url,
+                    },
+                  });
+                }
+                break;
+
+              case 'FILE':
+                if (oldContent.fileResource) {
+                  await tx.fileResource.create({
+                    data: {
+                      moduleContentId: newContent.id,
+                      title: oldContent.fileResource.title,
+                      subtitle: oldContent.fileResource.subtitle,
+                      content: oldContent.fileResource.content,
+                      name: oldContent.fileResource.name,
+                      path: oldContent.fileResource.path,
+                      size: oldContent.fileResource.size,
+                      mimeType: oldContent.fileResource.mimeType,
+                    },
+                  });
+                }
+                break;
+            }
+          }
         }
       }
     });
@@ -178,7 +341,8 @@ export class LmsService {
    * Results are sorted by the most recent enrollment period (`startDate` descending).
    *
    * @async
-   * @param {AuthUser} user - The authenticated user making the request.
+   * @param {string} userId - The user ID making the request.
+   * @param {Role} role - The user's role.
    * @param {BaseFilterDto} filters - Filters for search, pagination, and other options.
    *
    * @returns {Promise<PaginatedModulesDto>} A list of matching modules and pagination metadata.
@@ -186,19 +350,20 @@ export class LmsService {
    * @throws {NotFoundException} If no modules are found (Prisma `RecordNotFound`).
    */
   @Log({
-    logArgsMessage: ({ user, filters }) =>
-      `Fetching modules for user ${user.user_metadata.user_id} role=${user.user_metadata.role}, filters=${JSON.stringify(filters)}`,
-    logSuccessMessage: (result, { user }) =>
-      `Fetched ${result.modules.length} modules for user ${user.user_metadata.user_id}`,
-    logErrorMessage: (err, { user }) =>
-      `Fetching modules for user ${user.user_metadata.user_id} | Error: ${err.message}`,
+    logArgsMessage: ({ userId, role, filters }) =>
+      `Fetching modules for user ${userId} role=${role}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { userId }) =>
+      `Fetched ${result.modules.length} modules for user ${userId}`,
+    logErrorMessage: (err, { userId }) =>
+      `Fetching modules for user ${userId} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { user }) =>
-      new NotFoundException(`No modules found for user ${user.id}`),
+    [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
+      new NotFoundException(`No modules found for user ${userId}`),
   })
   async findAll(
-    @LogParam('user') user: AuthUser,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     @LogParam('filters') filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
@@ -232,12 +397,12 @@ export class LmsService {
     }
 
     // If student retrieve all modules based on course enrollment and course section
-    if (user.user_metadata.role === 'student') {
+    if (role === Role.student) {
       where.courseOffering = {
         is: {
           courseEnrollments: {
             some: {
-              studentId: user.user_metadata.user_id,
+              studentId: userId,
             },
           },
         },
@@ -245,10 +410,10 @@ export class LmsService {
     }
 
     // If mentor retrieve all modules based on assigned course section
-    if (user.user_metadata.role === 'mentor') {
+    if (role === Role.mentor) {
       where.courseOffering = {
         is: {
-          courseSections: { some: { mentorId: user.user_metadata.user_id } },
+          courseSections: { some: { mentorId: userId } },
         },
       };
     }
@@ -275,7 +440,7 @@ export class LmsService {
           },
         },
       })
-      .withPages({ limit: 10, page, includePageCount: true });
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { modules, meta };
   }

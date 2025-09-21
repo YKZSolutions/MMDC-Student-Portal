@@ -1,3 +1,7 @@
+import { Roles } from '@/common/decorators/roles.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -11,14 +15,11 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CourseSectionService } from './course-section.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { ApiOkResponse } from '@nestjs/swagger';
+import { CourseSectionService } from './course-section.service';
+import { CourseSectionWithCourseOfferingDto } from './dto/course-section-with-course-offering.dto';
 import { CreateCourseSectionFullDto } from './dto/create-course-section.dto';
 import { UpdateCourseSectionDto } from './dto/update-course-section.dto';
-import { Role } from '@/common/enums/roles.enum';
 
 @Controller('enrollments')
 export class CourseSectionController {
@@ -112,6 +113,19 @@ export class CourseSectionController {
       offeringId,
       sectionId,
     );
+  }
+
+  /**
+   * Retrieve full course section record by section id (includes course and enrollmentPeriod)
+   *
+   * @remarks Accessible by ADMIN, STUDENT, MENTOR
+   */
+  @ApiException(() => [BadRequestException, NotFoundException])
+  @Roles(Role.ADMIN, Role.STUDENT, Role.MENTOR)
+  @ApiOkResponse({ type: CourseSectionWithCourseOfferingDto })
+  @Get('sections/:sectionId/course')
+  findOneCourseSectionById(@Param('sectionId', new ParseUUIDPipe()) sectionId: string) {
+    return this.courseSectionService.findOneCourseSectionById(sectionId);
   }
 
   /**

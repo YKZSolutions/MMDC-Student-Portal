@@ -1,3 +1,10 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
@@ -6,20 +13,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
-import { PaginatedCoursesDto } from './dto/paginated-course.dto';
-import { Log } from '@/common/decorators/log.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
+import { CustomPrismaService } from 'nestjs-prisma';
 import { CourseDto } from './dto/course.dto';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { PaginatedCoursesDto } from './dto/paginated-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
 
 @Injectable()
 export class CoursesService {
@@ -130,7 +130,7 @@ export class CoursesService {
           coreqs: { select: { courseCode: true, name: true } },
         },
       })
-      .withPages({ limit: 10, page, includePageCount: true });
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { courses, meta };
   }

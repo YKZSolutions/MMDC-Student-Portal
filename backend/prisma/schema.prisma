@@ -39,7 +39,7 @@ enum UserStatus {
 }
 
 model User {
-  id                   String             @id @default(uuid()) @db.Uuid
+  id                   String                  @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
   userAccount          UserAccount?
   /// @DtoApiHidden
@@ -57,17 +57,17 @@ model User {
   /// @DtoApiHidden
   courseSections       CourseSection[]
   /// @DtoApiHidden
-  submittedSubmissions Submission[]       @relation("SubmissionStudent")
+  submittedAssignments AssignmentSubmission[]
   /// @DtoApiHidden
-  gradedSubmissions    Submission[]       @relation("SubmissionGrader")
+  grades               AssignmentGradeRecord[]
+  /// @DtoApiHidden
+  quizAttempts         QuizSubmission[]
+  /// @DtoApiHidden
+  postedDiscussions    DiscussionPost[]
   /// @DtoApiHidden
   moduleProgress       ContentProgress[]
   /// @DtoApiHidden
-  publishedModules     Module[]
-  /// @DtoApiHidden
-  publishedSections    ModuleSection[]
-  /// @DtoApiHidden
-  publishedContents    ModuleContent[]
+  groups               GroupMember[]
 
   firstName  String
   middleName String?
@@ -137,7 +137,7 @@ model StudentDetails {
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  studentNumber Int
+  studentNumber String      @unique
   studentType   StudentType
   admissionDate DateTime
   otherDetails  Json
@@ -148,6 +148,8 @@ model StudentDetails {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@index(studentNumber)
 }
 
 model StaffDetails {
@@ -225,6 +227,9 @@ model Course {
   coreqs   Course[] @relation("CourseCoreq")
   coreqFor Course[] @relation("CourseCoreq")
 
+  /// @DtoApiHidden
+  modules         Module[]
+
   curriculumCourses CurriculumCourse[]
 
   courseCode  String  @unique
@@ -236,8 +241,6 @@ model Course {
 
   /// @DtoApiHidden
   courseOfferings CourseOffering[] // A course can have multiple offerings
-  /// @DtoApiHidden
-  modules         Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -343,7 +346,7 @@ model CourseOffering {
   /// @DtoApiHidden
   courseSections    CourseSection[] // Each offering can have multiple sections
   /// @DtoApiHidden
-  modules           Module[]
+  modules Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -367,13 +370,13 @@ model CourseSection {
 
   name String
 
-  mentorId String? @db.Uuid // make mentor optional
   /// @DtoApiHidden
   user     User?   @relation(fields: [mentorId], references: [id], onDelete: SetNull)
+  mentorId String? @db.Uuid // make mentor optional
 
-  courseOfferingId String         @db.Uuid // Each section belong to one offering
   /// @DtoApiHidden
   courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String         @db.Uuid // Each section belong to one offering
 
   courseEnrollments CourseEnrollment[] // Each course section has multiple student enrolled
 
@@ -390,6 +393,9 @@ model CourseSection {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  /// @DtoApiHidden
+  sectionModules SectionModule[]
 }
 
 enum CourseEnrollmentStatus {
@@ -405,17 +411,17 @@ enum CourseEnrollmentStatus {
 model CourseEnrollment {
   id String @id @default(uuid()) @db.Uuid
 
-  courseOfferingId String         @db.Uuid // Each enrolled courses belong to one offering
   /// @DtoApiHidden
   courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String         @db.Uuid // Each enrolled courses belong to one offering
 
-  courseSectionId String        @db.Uuid // Each student enrollment belong to one section
   /// @DtoApiHidden
   courseSection   CourseSection @relation(fields: [courseSectionId], references: [id])
+  courseSectionId String        @db.Uuid // Each student enrollment belong to one section
 
-  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
   /// @DtoApiHidden
   user      User   @relation(fields: [studentId], references: [id])
+  studentId String @db.Uuid // Each enrolled course belong to one user i.e student
 
   status      CourseEnrollmentStatus
   startedAt   DateTime
@@ -527,31 +533,22 @@ model BillPayment {
   deletedAt DateTime?
 }
 
-model Module {
-  id    String @id @default(uuid()) @db.Uuid
-  title String
+enum PricingType {
+  tuition
+  lab
+  misc
+  other
+}
 
-  courseId String @db.Uuid
+model Pricing {
+  id            String           @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  priceGroups PricingGroup[]
 
-  courseOfferingId String?         @db.Uuid
-  /// @DtoApiHidden
-  courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
-
-  publishedAt DateTime?
-  toPublishAt DateTime?
-
-  publishedBy     String? @db.Uuid
-  /// @DtoApiHidden
-  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
-
-  /// @DtoApiHidden
-  moduleSections ModuleSection[]
-  /// @DtoApiHidden
-  moduleContents ModuleContent[]
-  /// @DtoApiHidden
-  progresses     ContentProgress[]
+  type    PricingType
+  name String @unique
+  amount       Decimal     @db.Decimal(10, 2)
+  enabled Boolean @default(true)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -559,23 +556,100 @@ model Module {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+}
 
-  @@index([courseId])
+model PricingGroup {
+  id            String           @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  prices Pricing[]
+
+  name String
+  amount       Decimal     @db.Decimal(10, 2)
+  enabled Boolean @default(true)
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+
+model Module {
+  id    String @id @default(uuid()) @db.Uuid
+  title String
+
+  /// @DtoApiHidden
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String? @db.Uuid
+
+  /// @DtoApiHidden
+  courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String? @db.Uuid
+
+  /// @DtoApiHidden
+  sectionModules SectionModule[]
+  /// @DtoApiHidden
+  moduleSections ModuleSection[]
+  /// @DtoApiHidden
+  moduleContents ModuleContent[]
+  /// @DtoApiHidden
+  progresses     ContentProgress[]
+  /// @DtoApiHidden
+  groups         Group[]
+
+  publishedAt DateTime?
+  toPublishAt DateTime?
+  unpublishedAt DateTime?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model SectionModule {
+  id             String       @id @default(uuid()) @db.Uuid
+  courseSection  CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String      @db.Uuid
+
+  module         Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId       String        @db.Uuid
+
+  order          Int           @default(0)
+  publishedAt    DateTime?
+  toPublishAt    DateTime?
+
+  classMeetings Json?
+
+  @@unique([courseSectionId, moduleId])
+  @@index([courseSectionId])
+  @@index([moduleId])
 }
 
 model ModuleSection {
   id String @id @default(uuid()) @db.Uuid
 
-  moduleId String @db.Uuid
   /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String @db.Uuid
 
   // self reference subsections
-  parentSectionId String?         @db.Uuid
   /// @DtoApiHidden
   parentSection   ModuleSection?  @relation("ModuleSubsection", fields: [parentSectionId], references: [id], onDelete: Cascade)
+  parentSectionId String?         @db.Uuid
   /// @DtoApiHidden
   subsections     ModuleSection[] @relation("ModuleSubsection")
+
+  /// @DtoApiHidden
+  prerequisiteSection   ModuleSection?  @relation("ModulePrerequisite", fields: [prerequisiteSectionId], references: [id])
+  prerequisiteSectionId String?         @db.Uuid
+
+  /// @DtoApiHidden
+  dependentSections     ModuleSection[] @relation("ModulePrerequisite")
 
   /// @DtoApiHidden
   moduleContents ModuleContent[]
@@ -585,10 +659,7 @@ model ModuleSection {
 
   publishedAt DateTime?
   toPublishAt DateTime?
-
-  publishedBy     String? @db.Uuid
-  /// @DtoApiHidden
-  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
+  unpublishedAt DateTime?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -605,10 +676,11 @@ model ModuleSection {
 }
 
 enum ContentType {
-  OVERVIEW
-  DISCUSSION
+  LESSON
   ASSIGNMENT
-  REFLECTION
+  QUIZ
+  DISCUSSION
+  VIDEO
   URL
   FILE
 }
@@ -627,63 +699,47 @@ model ModuleContent {
   /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  order    Int     @default(0)
-  title    String  @db.VarChar(255)
-  subtitle String? @db.VarChar(500)
-  content  Json
+  order       Int
+  contentType ContentType
 
-  contentType ContentType @default(OVERVIEW)
-  isActive    Boolean     @default(true)
+  publishedAt   DateTime?
+  toPublishAt   DateTime?
+  unpublishedAt DateTime?
 
-  publishedAt DateTime?
-  toPublishAt DateTime?
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
 
-  publishedBy     String? @db.Uuid
-  /// @DtoApiHidden
-  publishedByUser User?   @relation(fields: [publishedBy], references: [id])
+  // Relations to specific content types
+  lesson       Lesson?
+  assignment   Assignment?
+  quiz         Quiz?
+  discussion   Discussion?
+  video        Video?
+  externalUrl  ExternalUrl?
+  fileResource FileResource?
 
-  /// @DtoApiHidden
-  assignment      Assignment?
-  /// @DtoApiHidden
-  submissions     Submission[]
-  /// @DtoApiHidden
   studentProgress ContentProgress[]
 
-  /// @DtoReadOnly
-  createdAt DateTime  @default(now())
-  /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt
-  /// @DtoReadOnly
-  deletedAt DateTime?
-
-  @@unique([moduleSectionId, order]) // unique order within a section
+  @@unique([moduleSectionId, order])
+  @@index([moduleId, contentType, publishedAt])
   @@index([moduleSectionId])
-  @@index([contentType])
-  @@index([order])
   @@index([publishedAt])
+  @@index([contentType, publishedAt])
 }
 
-model Assignment {
-  id String @id @default(uuid()) @db.Uuid
-
-  moduleContentId String        @unique @db.Uuid
+model Lesson {
+  id              String        @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
-  title  String @db.VarChar(255)
-  rubric Json
-
-  type   AssignmentType   @default(ASSIGNMENT)
-  mode   AssignmentMode   @default(INDIVIDUAL)
-  status AssignmentStatus @default(OPEN)
-
-  dueDate DateTime?
-  points  Int?      @default(100) @db.SmallInt
-
-  allowResubmission   Boolean  @default(false)
-  maxAttempts         Int?     @default(1) @db.SmallInt
-  allowLateSubmission Boolean  @default(false)
-  latePenalty         Decimal? @default(0.0) @db.Decimal(5, 2)
+  title    String  @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json? // Structured lesson content
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -691,10 +747,6 @@ model Assignment {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
-
-  @@index([moduleContentId])
-  @@index([status])
-  @@index([dueDate])
 }
 
 enum AssignmentMode {
@@ -702,35 +754,288 @@ enum AssignmentMode {
   GROUP
 }
 
-enum AssignmentStatus {
-  OPEN
-  CLOSED
+model Assignment {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
+
+  title    String  @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
+
+  mode AssignmentMode @default(INDIVIDUAL)
+
+  maxAttempts         Int       @default(1) @db.SmallInt
+  allowLateSubmission Boolean   @default(false)
+  latePenalty         Decimal   @default(0.0) @db.Decimal(5, 2)
+  dueDate             DateTime?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+  gradingId String?            @db.Uuid
+  grading   AssignmentGrading? @relation(fields: [gradingId], references: [id], onDelete: Restrict)
+
+  /// @DtoApiHidden
+  submissions AssignmentSubmission[]
+
+  @@index([moduleContentId])
+  @@index([dueDate])
 }
 
-enum AssignmentType {
-  ASSIGNMENT
-  MILESTONE
-  QUIZ
-  TERMINAL_ASSESSMENT
-  PRESENTATION
+model AssignmentSubmission {
+  id           String     @id @default(uuid()) @db.Uuid
+  assignmentId String     @db.Uuid
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String     @db.Uuid
+
+  /// @DtoApiHidden
+  student User @relation(fields: [studentId], references: [id])
+
+  // Group submissions
+  groupId       String? @db.Uuid
+  group         Group?  @relation(fields: [groupId], references: [id])
+  groupSnapshot Json?
+
+  /// Text submission
+  content       Json?
+  submittedAt   DateTime?
+  attemptNumber Int?      @db.SmallInt
+
+  // Late submission tracking
+  lateDays Int? @db.SmallInt
+
+  attachments AssignmentAttachment[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+  @@unique([assignmentId, studentId, attemptNumber])
+  @@index([assignmentId, studentId])
+  @@index([submittedAt])
+}
+
+model AssignmentAttachment {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// @DtoApiHidden
+  submission   AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String               @db.Uuid
+
+  name String
+
+  fileUrl String // Files, links, Images, etc.
+  type    String // e.g., "document", "image", "code"
+  size    Int // in bytes
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+}
+
+model Quiz {
+  id              String        @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
+  title           String        @db.VarChar(255)
+  subtitle        String?       @db.VarChar(500)
+  content         Json // Structured quiz content (eg. description, instructions, etc.)
+
+  timeLimit           Int? // in minutes
+  maxAttempts         Int       @default(1) @db.SmallInt
+  allowLateSubmission Boolean   @default(false)
+  latePenalty         Decimal   @default(0.0) @db.Decimal(5, 2)
+  dueDate             DateTime?
+
+  questions Json // Store all questions in a structured format
+
+  /// @DtoApiHidden
+  submissions QuizSubmission[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+  @@index([timeLimit])
+}
+
+model QuizSubmission {
+  id        String @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  quiz      Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId    String @db.Uuid
+  /// @DtoApiHidden
+  student   User   @relation(fields: [studentId], references: [id])
+  studentId String @db.Uuid
+
+  answers  Json // Student's answers
+  rawScore Decimal? @db.Decimal(5, 2)
+
+  questionResults Json? // [{questionId, points, score, feedback}]
+
+  submittedAt   DateTime @default(now())
+  timeSpent     Int? // in seconds
+  attemptNumber Int      @default(1) @db.SmallInt
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+
+  @@unique([quizId, studentId, attemptNumber])
+  @@index([quizId, studentId])
+  @@index([submittedAt])
+}
+
+model Discussion {
+  id              String        @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
+
+  title    String  @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json? // Discussion prompt/question
+
+  isThreaded  Boolean @default(true)
+  requirePost Boolean @default(false)
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+  posts DiscussionPost[]
+
+  @@index([moduleContentId])
+}
+
+model DiscussionPost {
+  id           String     @id @default(uuid()) @db.Uuid
+  discussionId String     @db.Uuid
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  authorId     String     @db.Uuid
+  author       User       @relation(fields: [authorId], references: [id])
+
+  content Json
+
+  parentId String?          @db.Uuid
+  parent   DiscussionPost?  @relation("DiscussionPostReplies", fields: [parentId], references: [id])
+  replies  DiscussionPost[] @relation("DiscussionPostReplies")
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+
+  @@index([discussionId, parentId])
+  @@index([createdAt])
+}
+
+model Video {
+  id              String        @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
+
+  title    String  @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json?
+
+  url        String
+  duration   Int? // in seconds
+  transcript String?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model ExternalUrl {
+  id              String        @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
+
+  title    String  @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json?
+
+  url String
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model FileResource {
+  id              String        @id @default(uuid()) @db.Uuid
+  moduleContentId String        @unique @db.Uuid
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+
+  title    String  @db.VarChar(255)
+  subtitle String? @db.VarChar(500)
+  content  Json?
+
+  name     String
+  path     String
+  size     Int // in bytes
+  mimeType String?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
 }
 
 model ContentProgress {
-  id          String    @id @default(uuid()) @db.Uuid
-  completedAt DateTime?
-
+  id     String @id @default(uuid()) @db.Uuid
   userId String @db.Uuid
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id])
 
-  moduleContentId String        @db.Uuid
-  /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
-
-  // denormalized for easier queries by module
-  moduleId String @db.Uuid
+  // Denormalized for efficient queries
   /// @DtoApiHidden
   module   Module @relation(fields: [moduleId], references: [id])
+  moduleId String @db.Uuid
+
+  /// @DtoApiHidden
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+  moduleContentId String        @db.Uuid
+
+  status         ProgressStatus @default(NOT_STARTED)
+  completedAt    DateTime?
+  timeSpent      Int? // in seconds
+  lastAccessedAt DateTime?
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
@@ -738,71 +1043,25 @@ model ContentProgress {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, moduleContentId])
-  @@index([userId])
-  @@index([moduleContentId, moduleId])
+  @@index([userId, moduleId])
+  @@index([moduleContentId])
   @@index([completedAt])
   @@index([moduleId])
 }
 
-model Submission {
-  id    String @id @default(uuid()) @db.Uuid
-  title String @db.VarChar(255)
-
-  /// Text submission or additional notes
-  submission String? @db.Text
-
-  /// Grading information
-  score Int? @db.SmallInt
-
-  /// For non-numeric grading
-  grade    String? @db.VarChar(10)
-  feedback String? @db.Text
-
-  /// Submission metadata
-  attemptNumber Int?      @db.SmallInt
-  lateDays      Int?      @db.SmallInt
-  submittedAt   DateTime?
-  gradedAt      DateTime?
-
-  /// Relations
-  moduleContentId String        @db.Uuid
-  /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
-
-  studentId String @db.Uuid
-  /// @DtoApiHidden
-  student   User   @relation("SubmissionStudent", fields: [studentId], references: [id])
-
-  gradedBy String? @db.Uuid
-  /// @DtoApiHidden
-  grader   User?   @relation("SubmissionGrader", fields: [gradedBy], references: [id])
-
-  /// @DtoApiHidden
-  attachments SubmissionAttachment[]
-
-  /// @DtoReadOnly
-  createdAt DateTime  @default(now())
-  /// @DtoReadOnly
-  updatedAt DateTime  @updatedAt
-  /// @DtoReadOnly
-  deletedAt DateTime?
-
-  @@index([moduleContentId])
-  @@index([studentId])
-  @@index([submittedAt])
-  @@index([gradedAt])
-}
-
-model SubmissionAttachment {
+// Defines HOW assignment is graded
+// Allows reusing the same grading model for multiple assignments
+model AssignmentGrading {
   id String @id @default(uuid()) @db.Uuid
 
-  submissionId String     @db.Uuid
-  /// @DtoApiHidden
-  submission   Submission @relation(fields: [submissionId], references: [id])
+  // Grading schema definition
+  /// @DtoReadOnly
+  gradingSchema Json // Rubric structure, criteria, weights, check rubricDTO
+  weight        Decimal @db.Decimal(5, 2) // For final grade calculation
 
-  name String
-
-  attachment String // Files, links, Images, etc.
+  // Grade processing metadata
+  isCurved      Boolean @default(false)
+  curveSettings Json? // for adjusting grades (eg. adding points to all grades)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -810,6 +1069,75 @@ model SubmissionAttachment {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  /// @DtoApiHidden
+  assignments  Assignment[] //Many assignments can use the same grading schema
+  /// @DtoApiHidden
+  gradeRecords AssignmentGradeRecord[]
+
+  @@index([weight])
+}
+
+// defines WHAT was actually graded
+model AssignmentGradeRecord {
+  id        String            @id @default(uuid()) @db.Uuid
+  /// @DtoApiHidden
+  grading   AssignmentGrading @relation(fields: [gradingId], references: [id], onDelete: Cascade)
+  gradingId String            @db.Uuid
+  /// @DtoApiHidden
+  student   User              @relation(fields: [studentId], references: [id])
+  studentId String            @db.Uuid
+
+  rawScore   Decimal @db.Decimal(5, 2) // Actual grade data
+  finalScore Decimal @db.Decimal(5, 2)
+  grade      String  @db.VarChar(10) // A, B+, Pass, Fail etc.
+  feedback   String?
+
+  rubricScores Json // Detailed scores for each criterion
+
+  /// @DtoReadOnly
+  gradedAt  DateTime @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime @updatedAt
+
+  @@index([gradingId, studentId])
+  @@index([studentId, finalScore])
+  @@index([gradedAt])
+  @@index([finalScore, gradingId])
+}
+
+model Group {
+  id String @id @default(uuid()) @db.Uuid
+
+  moduleId String @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  groupNumber Int
+  groupName   String?
+  /// @DtoApiHidden
+  members     GroupMember[]
+  /// @DtoApiHidden
+  submissions AssignmentSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([moduleId, groupNumber])
+}
+
+model GroupMember {
+  id String @id @default(uuid()) @db.Uuid
+
+  groupId String @db.Uuid
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  studentId String @db.Uuid
+  user      User   @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([groupId, studentId])
 }
 
 model Notification {

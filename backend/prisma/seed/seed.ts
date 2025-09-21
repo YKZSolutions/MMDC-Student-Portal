@@ -6,6 +6,7 @@ import { seedModules } from './seeders/modules.seeder';
 import { seedSubmissions } from './seeders/submissions.seeder';
 import { seedBilling } from './seeders/billing.seeder';
 import { seedNotifications } from './seeders/notifications.seeder';
+import { seedGrades } from './seeders/grades.seeder';
 
 const prisma = new PrismaClient();
 
@@ -24,7 +25,7 @@ async function main() {
   console.timeEnd('Seeded Academics');
 
   console.time('Seeded Enrollments');
-  const { courseEnrollments } = await seedEnrollments(
+  const { courseEnrollments, courseOfferings } = await seedEnrollments(
     prisma,
     courses,
     mentors,
@@ -33,18 +34,26 @@ async function main() {
   console.timeEnd('Seeded Enrollments');
 
   console.time('Seeded Modules');
-  const { contents, assignments } = await seedModules(prisma, courses, mentors);
+  const { contents, assignments, quizzes } = await seedModules(
+    prisma,
+    courses,
+    courseOfferings,
+  );
   console.timeEnd('Seeded Modules');
 
   console.time('Seeded Submissions & Progress');
-  await seedSubmissions(
+  const { assignmentSubmissions } = await seedSubmissions(
     prisma,
-    mentors,
     courseEnrollments,
     contents,
     assignments,
+    quizzes,
   );
   console.timeEnd('Seeded Submissions & Progress');
+
+  console.time('Seeded Grades');
+  await seedGrades(prisma, assignmentSubmissions);
+  console.timeEnd('Seeded Grades');
 
   console.time('Seeded Billing');
   await seedBilling(prisma, students);

@@ -1,29 +1,24 @@
-import { Prisma } from '@prisma/client';
+import { ContentType } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional } from 'class-validator';
 
 export class UpdateModuleContentDto {
   @ApiProperty({
-    type: 'string',
+    type: 'integer',
+    format: 'int32',
     required: false,
   })
   @IsOptional()
-  @IsString()
-  title?: string;
+  @IsInt()
+  order?: number;
   @ApiProperty({
-    type: 'string',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsString()
-  subtitle?: string | null;
-  @ApiProperty({
-    type: () => Object,
+    enum: ContentType,
+    enumName: 'ContentType',
     required: false,
   })
   @IsOptional()
-  content?: Prisma.InputJsonValue;
+  @IsEnum(ContentType)
+  contentType?: ContentType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -42,4 +37,13 @@ export class UpdateModuleContentDto {
   @IsOptional()
   @IsDateString()
   toPublishAt?: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  unpublishedAt?: Date | null;
 }

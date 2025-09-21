@@ -1,7 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInstallmentDto } from './dto/create-installment.dto';
 import { UpdateInstallmentDto } from './dto/update-installment.dto';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { PaymentScheme, Prisma, Role } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
@@ -11,13 +14,8 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { BillInstallmentDto } from '@/generated/nestjs-dto/billInstallment.dto';
 import { BillStatus } from '../billing/dto/filter-bill.dto';
 import { BillInstallmentItemDto } from './dto/list-installment.dto';
-
-type PrismaTransaction = Parameters<
-  Parameters<ExtendedPrismaClient['$transaction']>[0]
->[0];
 
 @Injectable()
 export class InstallmentService {

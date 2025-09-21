@@ -14,4 +14,10 @@ export class BaseFilterDto {
   @Min(1, { message: 'Page number must be greater or equal to 1' })
   @Type(() => Number)
   page?: number;
+
+  @ApiProperty({ type: 'number', required: false, default: 10 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1, { message: 'Page limit must be greater or equal to 1' })
+  limit?: number;
 }

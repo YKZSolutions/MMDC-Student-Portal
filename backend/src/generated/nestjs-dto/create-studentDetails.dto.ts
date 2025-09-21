@@ -1,15 +1,14 @@
 import { Prisma, StudentType } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsInt, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateStudentDetailsDto {
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
   @IsNotEmpty()
-  @IsInt()
-  studentNumber: number;
+  @IsString()
+  studentNumber: string;
   @ApiProperty({
     enum: StudentType,
     enumName: 'StudentType',

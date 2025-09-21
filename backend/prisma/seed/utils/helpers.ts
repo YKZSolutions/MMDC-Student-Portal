@@ -8,13 +8,17 @@ export function pickRandom<T>(arr: T[]): T {
 }
 
 /**
- * Picks a random value from a TypeScript enum.
- * @param anEnum The enum to pick from.
+ * Picks a random value from a TypeScript enum or an array of enum values.
+ * @param source The enum object or array of enum values to pick from.
  * @returns A random value from the enum.
  */
-export function pickRandomEnum<T>(anEnum: T): T[keyof T] {
-  const enumValues = Object.values(anEnum as any) as T[keyof T][];
-  return pickRandom(enumValues);
+export function pickRandomEnum<T>(source: Record<string, T> | ReadonlyArray<T>): T {
+  const values = Array.isArray(source) 
+    ? source 
+    : Object.values(source).filter((value): value is T => 
+        typeof value === 'string' || typeof value === 'number'
+      );
+  return pickRandom(values);
 }
 
 /**

@@ -152,6 +152,38 @@ export class CourseSectionService {
   }
 
   /**
+   * Retrieves the full course section record by section id.
+   *
+   * This returns the `CourseSection` including `courseOffering` with nested
+   * `course` and `enrollmentPeriod` so callers can access course details
+   * using only the section id.
+   */
+  @Log({
+    logArgsMessage: ({ sectionId }) => `Fetching course section for id ${sectionId}`,
+    logSuccessMessage: (section) => `Successfully fetched course section ${section.id}`,
+    logErrorMessage: (err, { sectionId }) =>
+      `Error fetching course section ${sectionId} | Error: ${err.message}`,
+  })
+  async findOneCourseSectionById(@LogParam('sectionId') sectionId: string) {
+    return await this.prisma.client.courseSection.findUniqueOrThrow({
+      where: { id: sectionId },
+      include: {
+        courseOffering: {
+          include: {
+            course: {
+              include: {
+                coreqs: { select: { id: true, courseCode: true, name: true } },
+                prereqs: { select: { id: true, courseCode: true, name: true } },
+              },
+            },
+            enrollmentPeriod: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Updates a course section under a specific offering.
    *
    * @param offeringId - The course offering ID

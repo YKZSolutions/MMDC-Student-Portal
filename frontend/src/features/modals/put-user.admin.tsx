@@ -290,7 +290,11 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
               >
                 Finish
               </Button>
-              <Button onClick={nextStep} disabled={isPending} data-cy="next-step-button">
+              <Button
+                onClick={nextStep}
+                disabled={isPending}
+                data-cy="next-step-button"
+              >
                 Next step
               </Button>
             </Group>
@@ -381,9 +385,13 @@ function StudentForm(props: NextFormProps) {
 
   return (
     <Stack>
-      <Text data-cy="student-details-title" className="font-semibold">Student Details</Text>
+      <Text data-cy="student-details-title" className="font-semibold">
+        Student Details
+      </Text>
       <TextInput
         type="number"
+        inputMode="numeric"
+        pattern="[0-9]*"
         className="flex-1"
         data-cy="new-user-studentnumber-input"
         label="Student Number"
@@ -391,11 +399,10 @@ function StudentForm(props: NextFormProps) {
         withAsterisk
         key={form.key('studentNumber')}
         {...form.getInputProps('studentNumber')}
-        onChange={(val) =>
-          form
-            .getInputProps('studentNumber')
-            .onChange(val.target.value !== '' ? Number(val.target.value) : null)
-        }
+        onChange={(val) => {
+          const digitsOnly = val.currentTarget.value.replace(/\D/g, '')
+          form.getInputProps('studentNumber').onChange(digitsOnly)
+        }}
       />
       <Select
         label="Student Type"
@@ -425,8 +432,11 @@ function StudentForm(props: NextFormProps) {
         key={form.key('admissionDate')}
         {...form.getInputProps('admissionDate')}
         value={form.getInputProps('admissionDate').value}
-        onChange={(val) =>
-          form.getInputProps('admissionDate').onChange(val ? `${val}T00:00:00Z` : null)
+        onChange={
+          (val) =>
+            form
+              .getInputProps('admissionDate')
+              .onChange(val ? `${val}T00:00:00Z` : null)
           //form.getInputProps('admissionDate').onChange(`${val}T00:00:00Z`)
         }
       />

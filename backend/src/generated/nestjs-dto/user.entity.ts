@@ -30,22 +30,29 @@ import {
   type CourseSection as CourseSectionAsType,
 } from './courseSection.entity';
 import {
-  Submission,
-  type Submission as SubmissionAsType,
-} from './submission.entity';
+  AssignmentSubmission,
+  type AssignmentSubmission as AssignmentSubmissionAsType,
+} from './assignmentSubmission.entity';
+import {
+  AssignmentGradeRecord,
+  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
+} from './assignmentGradeRecord.entity';
+import {
+  QuizSubmission,
+  type QuizSubmission as QuizSubmissionAsType,
+} from './quizSubmission.entity';
+import {
+  DiscussionPost,
+  type DiscussionPost as DiscussionPostAsType,
+} from './discussionPost.entity';
 import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
-import { Module, type Module as ModuleAsType } from './module.entity';
 import {
-  ModuleSection,
-  type ModuleSection as ModuleSectionAsType,
-} from './moduleSection.entity';
-import {
-  ModuleContent,
-  type ModuleContent as ModuleContentAsType,
-} from './moduleContent.entity';
+  GroupMember,
+  type GroupMember as GroupMemberAsType,
+} from './groupMember.entity';
 
 export class User {
   @ApiProperty({
@@ -69,17 +76,17 @@ export class User {
   @ApiHideProperty()
   courseSections?: CourseSectionAsType[];
   @ApiHideProperty()
-  submittedSubmissions?: SubmissionAsType[];
+  submittedAssignments?: AssignmentSubmissionAsType[];
   @ApiHideProperty()
-  gradedSubmissions?: SubmissionAsType[];
+  grades?: AssignmentGradeRecordAsType[];
+  @ApiHideProperty()
+  quizAttempts?: QuizSubmissionAsType[];
+  @ApiHideProperty()
+  postedDiscussions?: DiscussionPostAsType[];
   @ApiHideProperty()
   moduleProgress?: ContentProgressAsType[];
   @ApiHideProperty()
-  publishedModules?: ModuleAsType[];
-  @ApiHideProperty()
-  publishedSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  publishedContents?: ModuleContentAsType[];
+  groups?: GroupMemberAsType[];
   @ApiProperty({
     type: 'string',
   })

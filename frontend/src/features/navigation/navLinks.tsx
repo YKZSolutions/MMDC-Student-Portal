@@ -7,7 +7,6 @@ import {
   IconBooks,
   IconCashBanknote,
   IconCashBanknoteFilled,
-  IconCategoryPlus,
   IconClipboardList,
   IconClipboardListFilled,
   IconGraph,
@@ -15,11 +14,9 @@ import {
   IconHome,
   IconHomeFilled,
   IconSchool,
-  IconPencil,
   IconUser,
   IconUserCog,
   IconUserFilled,
-  IconWriting,
 } from '@tabler/icons-react'
 
 export const studentLinks: NavItem[] = [
@@ -49,6 +46,37 @@ export const studentLinks: NavItem[] = [
     label: 'Billing',
     Icon: IconCashBanknoteFilled,
     IconInactive: IconCashBanknote,
+    fuzzy: true,
+  },
+  {
+    link: '/notifications',
+    label: 'Notifications',
+    Icon: IconBellFilled,
+    IconInactive: IconBell,
+    fuzzy: true,
+  },
+  {
+    link: '/profile',
+    label: 'Profile',
+    Icon: IconUserFilled,
+    IconInactive: IconUser,
+    fuzzy: true,
+  },
+]
+
+export const mentorLinks: NavItem[] = [
+  {
+    link: '/dashboard',
+    label: 'Dashboard',
+    Icon: IconHomeFilled,
+    IconInactive: IconHome,
+    fuzzy: true,
+  },
+  {
+    link: '/courses',
+    label: 'Courses',
+    Icon: IconBookFilled,
+    IconInactive: IconBook,
     fuzzy: true,
   },
   {
@@ -131,13 +159,6 @@ export const adminLinks: NavItem[] = [
     label: 'Profile',
     Icon: IconUserFilled,
     IconInactive: IconUser,
-    fuzzy: true,
-  },
-  {
-    link: '/cms',
-    label: 'CMS',
-    Icon: IconWriting,
-    IconInactive: IconPencil,
     fuzzy: true,
   },
 ]

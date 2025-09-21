@@ -8,8 +8,9 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 
-enum FilterBillSort {
+export enum FilterBillSort {
   amountToPay = 'amountToPay',
   totalPaid = 'totalPaid',
   createdAt = 'createdAt',
@@ -27,11 +28,7 @@ export enum BillStatus {
   overpaid = 'overpaid',
 }
 
-export class FilterBillDto {
-  @IsOptional()
-  @IsString()
-  search?: string;
-
+export class FilterBillDto extends BaseFilterDto {
   @IsOptional()
   @IsEnum(FilterBillSort)
   sort?: FilterBillSort;
@@ -60,12 +57,6 @@ export class FilterBillDto {
   @IsOptional()
   @IsEnum(BillType)
   type?: BillType;
-
-  @ApiPropertyOptional({ default: 1 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  page?: number;
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()

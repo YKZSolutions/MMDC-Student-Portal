@@ -4,7 +4,10 @@ import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
-import { User, type User as UserAsType } from './user.entity';
+import {
+  SectionModule,
+  type SectionModule as SectionModuleAsType,
+} from './sectionModule.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
@@ -17,6 +20,7 @@ import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
+import { Group, type Group as GroupAsType } from './group.entity';
 
 export class Module {
   @ApiProperty({
@@ -27,19 +31,30 @@ export class Module {
     type: 'string',
   })
   title: string;
+  @ApiHideProperty()
+  course?: CourseAsType | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  courseId: string;
+  courseId: string | null;
   @ApiHideProperty()
-  course?: CourseAsType;
+  courseOffering?: CourseOfferingAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   courseOfferingId: string | null;
   @ApiHideProperty()
-  courseOffering?: CourseOfferingAsType | null;
+  sectionModules?: SectionModuleAsType[];
+  @ApiHideProperty()
+  moduleSections?: ModuleSectionAsType[];
+  @ApiHideProperty()
+  moduleContents?: ModuleContentAsType[];
+  @ApiHideProperty()
+  progresses?: ContentProgressAsType[];
+  @ApiHideProperty()
+  groups?: GroupAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -54,17 +69,10 @@ export class Module {
   toPublishAt: Date | null;
   @ApiProperty({
     type: 'string',
+    format: 'date-time',
     nullable: true,
   })
-  publishedBy: string | null;
-  @ApiHideProperty()
-  publishedByUser?: UserAsType | null;
-  @ApiHideProperty()
-  moduleSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
-  @ApiHideProperty()
-  progresses?: ContentProgressAsType[];
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

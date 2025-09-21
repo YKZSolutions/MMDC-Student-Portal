@@ -4,28 +4,36 @@ import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
-import { User, type User as UserAsType } from './user.entity';
 
 export class ModuleSection {
   @ApiProperty({
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  module?: ModuleAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleId: string;
   @ApiHideProperty()
-  module?: ModuleAsType;
+  parentSection?: ModuleSection | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
   parentSectionId: string | null;
   @ApiHideProperty()
-  parentSection?: ModuleSection | null;
-  @ApiHideProperty()
   subsections?: ModuleSection[];
+  @ApiHideProperty()
+  prerequisiteSection?: ModuleSection | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  prerequisiteSectionId: string | null;
+  @ApiHideProperty()
+  dependentSections?: ModuleSection[];
   @ApiHideProperty()
   moduleContents?: ModuleContentAsType[];
   @ApiProperty({
@@ -51,11 +59,10 @@ export class ModuleSection {
   toPublishAt: Date | null;
   @ApiProperty({
     type: 'string',
+    format: 'date-time',
     nullable: true,
   })
-  publishedBy: string | null;
-  @ApiHideProperty()
-  publishedByUser?: UserAsType | null;
+  unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

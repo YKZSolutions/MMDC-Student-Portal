@@ -1,10 +1,15 @@
-import { type ReactNode } from 'react'
+import { MultiFilter, type FilterType } from '@/components/multi-filter.tsx'
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
 import {
   Box,
   Button,
   Divider,
   Group,
+  rem,
   Stack,
+  Text,
+  TextInput,
   Title,
   Tooltip,
 } from '@mantine/core'
@@ -12,78 +17,97 @@ import {
   IconFilter2,
   IconLayoutGridFilled,
   IconList,
+  IconSearch,
 } from '@tabler/icons-react'
-import type { FilterType } from '@/components/multi-filter.tsx'
-import CourseDashboardFilters from '@/features/courses/dashboard/course-dashboard-filters.tsx'
-import SearchComponent from '@/components/search-component.tsx'
+import { useMemo, type ReactNode } from 'react'
+import AsyncTermCombobox from '../async-term-combobox'
 
 type DashboardHeaderProps = {
-  coursesData: any
-  filters: FilterType[]
-  activeFilters: FilterType[]
-  onSearchFilter: (courses: any) => void
-  handleAddFilter: (filterType: FilterType) => void
-  handleRemoveFilter: (id: string) => void
-  handleFilterChange: (id: string, value: string) => void
-  showFilters: boolean
-  onToggleShowFilter: (show: boolean) => void
-  activeFilterCount: number
   view: 'grid' | 'list'
   onViewChange: (view: 'grid' | 'list') => void
 }
 
-const CourseDashboardHeader = ({
-  coursesData,
+function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
+  const { authUser } = useAuth('protected')
+  return (
+    <Stack gap="md">
+      <Box>
+        <Title c="dark.7" variant="hero" order={2} fw={700}>
+          Courses
+        </Title>
+        <Text fw={500} c="dark.3" fz="md">
+          {/* Create a subtitle here */}
+          Browse and manage your courses
+        </Text>
+      </Box>
+      <Group align="center" justify="end" gap={rem(5)}>
+        <TextInput
+          placeholder="Search courses"
+          radius={'md'}
+          leftSection={<IconSearch size={18} stroke={1} />}
+          w={{
+            base: '100%',
+            xs: rem(250),
+          }}
+        />
+        {/* Implement this at a later time */}
+        {/* <CourseDashboardFilters
+          filters={filters}
+          activeFilters={activeFilters}
+          onAddFilter={handleAddFilter}
+          onRemoveFilter={handleRemoveFilter}
+          onFilterChange={handleFilterChange}
+        /> */}
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            admin: <AsyncTermCombobox />,
+          }}
+        />
+        <ViewSelectorButton
+          view={view}
+          onGridClick={() => onViewChange('grid')}
+          onListClick={() => onViewChange('list')}
+        />
+      </Group>
+      <Divider />
+    </Stack>
+  )
+}
+
+type CourseDashboardFiltersProps = {
+  filters: FilterType[]
+  activeFilters: FilterType[]
+  onAddFilter: (filterType: FilterType) => void
+  onRemoveFilter: (id: string) => void
+  onFilterChange: (id: string, value: string) => void
+}
+
+function CourseDashboardFilters({
   filters,
   activeFilters,
-  onSearchFilter,
-  handleAddFilter,
-  handleRemoveFilter,
-  handleFilterChange,
-  showFilters,
-  onToggleShowFilter,
-  activeFilterCount,
-  view,
-  onViewChange,
-}: DashboardHeaderProps) => (
-  <Stack gap="xs">
-    <Group justify="space-between" align="center">
-      <Title c="dark.7" variant="hero" order={2} fw={700}>
-        Courses
-      </Title>
-      <Group justify="space-between" align="center">
-        <SearchComponent
-          data={coursesData}
-          onFilter={onSearchFilter}
-          identifiers={['courseName']}
-          placeholder="Search courses"
-        />
-        <Group>
-          <ViewSelectorButton
-            view={view}
-            onGridClick={() => onViewChange('grid')}
-            onListClick={() => onViewChange('list')}
-          />
-          <FilterButton
-            showFilters={showFilters}
-            filterCount={activeFilterCount}
-            onClick={() => onToggleShowFilter(!showFilters)}
-          />
-        </Group>
-      </Group>
-    </Group>
-    <Box hidden={!showFilters}>
-      <CourseDashboardFilters
-        filters={filters}
-        activeFilters={activeFilters}
-        onAddFilter={handleAddFilter}
-        onRemoveFilter={handleRemoveFilter}
-        onFilterChange={handleFilterChange}
-      />
-    </Box>
-    <Divider />
-  </Stack>
-)
+  onAddFilter,
+  onRemoveFilter,
+  onFilterChange,
+}: CourseDashboardFiltersProps) {
+  const transformedFilters = useMemo(
+    () =>
+      activeFilters.map((filter) => ({
+        ...filter,
+        onChange: (value: string) => onFilterChange(filter.id, value),
+        onRemove: () => onRemoveFilter(filter.id),
+      })),
+    [activeFilters, onAddFilter, onFilterChange, onRemoveFilter],
+  )
+
+  return (
+    <MultiFilter
+      filters={filters}
+      activeFilters={transformedFilters}
+      onAddFilter={onAddFilter}
+    />
+  )
+}
 
 type FilterButtonProps = {
   showFilters: boolean
@@ -91,39 +115,43 @@ type FilterButtonProps = {
   onClick: () => void
 }
 
-const FilterButton = ({
+function FilterButton({
   showFilters,
   filterCount,
   onClick,
-}: FilterButtonProps) => (
-  <Tooltip label={showFilters ? 'Hide Filters' : 'Show Filters'}>
-    <Button
-      variant={'subtle'}
-      c={filterCount !== 0 || showFilters ? 'blue.6' : 'gray.6'}
-      onClick={onClick}
-      leftSection={<IconFilter2 size={20} />}
-    >
-      Filters
-    </Button>
-  </Tooltip>
-)
+}: FilterButtonProps) {
+  return (
+    <Tooltip label={showFilters ? 'Hide Filters' : 'Show Filters'}>
+      <Button
+        variant={'subtle'}
+        c={filterCount !== 0 || showFilters ? 'blue.6' : 'gray.6'}
+        onClick={onClick}
+        leftSection={<IconFilter2 size={20} />}
+      >
+        Filters
+      </Button>
+    </Tooltip>
+  )
+}
 
 type SelectorButtonProps = {
   active: boolean
   icon: ReactNode
   onClick: () => void
 }
-const SelectorButton = ({ active, icon, onClick }: SelectorButtonProps) => (
-  <Button
-    variant="default"
-    radius={'md'}
-    bg={active ? 'gray.3' : 'gray.0'}
-    size={'xs'}
-    onClick={onClick}
-  >
-    <div color={active ? 'black' : 'dark.2'}>{icon}</div>
-  </Button>
-)
+
+function SelectorButton({ active, icon, onClick }: SelectorButtonProps) {
+  return (
+    <Button
+      variant="default"
+      radius={'md'}
+      bg={active ? 'gray.3' : 'gray.0'}
+      onClick={onClick}
+    >
+      <Box color={active ? 'black' : 'dark.2'}>{icon}</Box>
+    </Button>
+  )
+}
 
 type ViewSelectorButtonProps = {
   view: 'grid' | 'list'
@@ -131,23 +159,25 @@ type ViewSelectorButtonProps = {
   onListClick: () => void
 }
 
-const ViewSelectorButton = ({
+function ViewSelectorButton({
   view,
   onGridClick,
   onListClick,
-}: ViewSelectorButtonProps) => (
-  <Button.Group>
-    <SelectorButton
-      active={view === 'grid'}
-      onClick={onGridClick}
-      icon={<IconLayoutGridFilled size={20} />}
-    />
-    <SelectorButton
-      active={view === 'list'}
-      onClick={onListClick}
-      icon={<IconList size={20} />}
-    />
-  </Button.Group>
-)
+}: ViewSelectorButtonProps) {
+  return (
+    <Button.Group>
+      <SelectorButton
+        active={view === 'grid'}
+        onClick={onGridClick}
+        icon={<IconLayoutGridFilled size={20} />}
+      />
+      <SelectorButton
+        active={view === 'list'}
+        onClick={onListClick}
+        icon={<IconList size={20} />}
+      />
+    </Button.Group>
+  )
+}
 
 export default CourseDashboardHeader

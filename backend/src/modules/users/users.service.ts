@@ -137,7 +137,7 @@ export class UsersService {
       userDetails: userDetailsDto,
     } = createUserDto;
 
-    const user = await this.accountCreationHandler(
+    return await this.accountCreationHandler(
       credentials,
       role,
       async (account) => {
@@ -175,8 +175,6 @@ export class UsersService {
         });
       },
     );
-
-    return user;
   }
 
   /**
