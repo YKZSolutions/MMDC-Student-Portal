@@ -7,8 +7,8 @@ import {
 import { CourseListSuspense } from '@/features/courses/suspense'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
-import type { DetailedCourseEnrollmentDto } from '@/integrations/api/client'
-import { courseEnrollmentControllerGetCourseEnrollmentsOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import type { DetailedModulesDto } from '@/integrations/api/client'
+import { lmsControllerFindAllForStudentOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -31,7 +31,7 @@ function StudentCourseDashboardProvider({
   },
 }: {
   children: (props: {
-    courseOfferings: DetailedCourseEnrollmentDto[]
+    modules: DetailedModulesDto[]
     message: string
     totalPages: number
   }) => ReactNode
@@ -42,14 +42,21 @@ function StudentCourseDashboardProvider({
 }) {
   const { search, page } = props
 
-  const { data: courseData } = useSuspenseQuery(
-    courseEnrollmentControllerGetCourseEnrollmentsOptions(),
+  const { data: moduleData } = useSuspenseQuery(
+    lmsControllerFindAllForStudentOptions({
+      query: {
+        search: search || undefined,
+        page: page,
+      },
+    }),
   )
 
-  const courseOfferings = courseData
+  const modules = moduleData.modules
+
+  console.log(modules)
 
   const limit = 10
-  const total = courseOfferings.length
+  const total = modules.length
   const totalPages = 1
 
   const message = formatPaginationMessage({
@@ -59,7 +66,7 @@ function StudentCourseDashboardProvider({
   })
 
   return children({
-    courseOfferings,
+    modules,
     message,
     totalPages,
   })
@@ -80,14 +87,14 @@ const StudentCourseDashboardPage = () => {
           >
             <Suspense fallback={<CourseListSuspense />}>
               <StudentCourseDashboardProvider>
-                {({ courseOfferings }) =>
-                  courseOfferings.map((course, index) =>
+                {({ modules }) =>
+                  modules.map((moduleData, index) =>
                     view === 'grid' ? (
                       <CourseCard
-                        key={course.id}
-                        url={`/courses/${course.courseSection!.id}`}
-                        section={course.courseSection!}
-                        course={course.courseOffering?.course!}
+                        key={moduleData.id}
+                        url={`/courses/${moduleData.id}`}
+                        course={moduleData.courseOffering?.course!}
+                        section={moduleData.courseOffering?.courseSections?.[0]}
                         currentMeeting={{
                           endTime: '2024-12-31T23:59:00Z',
                           meetingLink: 'https://example.com/meeting',
@@ -96,10 +103,10 @@ const StudentCourseDashboardPage = () => {
                       />
                     ) : (
                       <CourseListRow
-                        key={course.id}
-                        url={`/courses/${course.courseSection!.id}`}
-                        section={course.courseSection!}
-                        course={course.courseOffering?.course!}
+                        key={moduleData.id}
+                        url={`/courses/${moduleData.id}`}
+                        course={moduleData.courseOffering?.course!}
+                        section={moduleData.courseOffering?.courseSections?.[0]}
                         currentMeeting={{
                           endTime: '2024-12-31T23:59:00Z',
                           meetingLink: 'https://example.com/meeting',
