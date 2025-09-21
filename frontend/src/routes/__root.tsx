@@ -3,8 +3,8 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 import TanStackQueryLayout from '@/integrations/tanstack-query/layout.tsx'
 
-import type { QueryClient } from '@tanstack/react-query'
 import { client } from '@/integrations/api/client/client.gen'
+import type { QueryClient } from '@tanstack/react-query'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -20,7 +20,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   ),
   beforeLoad: () => {
     client.setConfig({
-      baseUrl: 'http://localhost:3001',
+      baseUrl: import.meta.env.VITE_API_URL,
     })
   },
 })
