@@ -91,7 +91,7 @@ const MentorCourseDashboardPage = () => {
                   view === 'grid' ? (
                     <CourseCard
                       key={moduleData.id}
-                      url={`/courses/${moduleData.id}`}
+                      url={`/lms/${moduleData.id}`}
                       course={moduleData.courseOffering?.course}
                       currentMeeting={{
                         endTime: '2024-12-31T23:59:00Z',
@@ -102,7 +102,7 @@ const MentorCourseDashboardPage = () => {
                   ) : (
                     <CourseListRow
                       key={moduleData.id}
-                      url={`/courses/${moduleData.id}`}
+                      url={`/lms/${moduleData.id}`}
                       course={moduleData.courseOffering?.course!}
                       currentMeeting={{
                         endTime: '2024-12-31T23:59:00Z',

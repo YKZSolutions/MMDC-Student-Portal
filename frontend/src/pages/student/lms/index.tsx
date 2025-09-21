@@ -92,7 +92,7 @@ const StudentCourseDashboardPage = () => {
                     view === 'grid' ? (
                       <CourseCard
                         key={moduleData.id}
-                        url={`/courses/${moduleData.id}`}
+                        url={`/lms/${moduleData.id}`}
                         course={moduleData.courseOffering?.course!}
                         section={moduleData.courseOffering?.courseSections?.[0]}
                         currentMeeting={{
@@ -104,7 +104,7 @@ const StudentCourseDashboardPage = () => {
                     ) : (
                       <CourseListRow
                         key={moduleData.id}
-                        url={`/courses/${moduleData.id}`}
+                        url={`/lms/${moduleData.id}`}
                         course={moduleData.courseOffering?.course!}
                         section={moduleData.courseOffering?.courseSections?.[0]}
                         currentMeeting={{

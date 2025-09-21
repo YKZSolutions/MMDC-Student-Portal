@@ -80,22 +80,22 @@ function RouteComponent() {
 
   const studentNavItems: CourseNavItem[] = [
     {
-      link: `/courses/${lmsCode}`,
+      link: `/lms/${lmsCode}`,
       label: 'Overview',
       fuzzy: false,
     },
     {
-      link: `/courses/${lmsCode}/modules`,
+      link: `/lms/${lmsCode}/modules`,
       label: 'Modules',
       fuzzy: true,
     },
     {
-      link: `/courses/${lmsCode}/assignments`,
+      link: `/lms/${lmsCode}/assignments`,
       label: 'Assignments',
       fuzzy: true,
     },
     {
-      link: `/courses/${lmsCode}/grades`,
+      link: `/lms/${lmsCode}/grades`,
       label: 'Grades',
       fuzzy: true,
     },
@@ -104,22 +104,22 @@ function RouteComponent() {
   const adminNavItems: CourseNavItem[] = [
     ...studentNavItems,
     {
-      link: `/courses/${lmsCode}/files`,
+      link: `/lms/${lmsCode}/files`,
       label: 'Files',
       fuzzy: true,
     },
     {
-      link: `/courses/${lmsCode}/students`,
+      link: `/lms/${lmsCode}/students`,
       label: 'Students',
       fuzzy: true,
     },
     {
-      link: `/courses/${lmsCode}/progress`,
+      link: `/lms/${lmsCode}/progress`,
       label: 'Progress Report',
       fuzzy: true,
     },
     {
-      link: `/courses/${lmsCode}/settings`,
+      link: `/lms/${lmsCode}/settings`,
       label: 'Settings',
       fuzzy: true,
     },

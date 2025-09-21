@@ -120,13 +120,13 @@ function AdminCourseDashboardPage() {
                   view === 'grid' ? (
                     <CourseCard
                       key={moduleData.id}
-                      url={`/courses/${moduleData.id}`}
+                      url={`/lms/${moduleData.id}`}
                       course={moduleData.courseOffering?.course}
                     />
                   ) : (
                     <CourseListRow
                       key={moduleData.id}
-                      url={`/courses/${moduleData.id}`}
+                      url={`/lms/${moduleData.id}`}
                       course={moduleData.courseOffering?.course}
                     />
                   ),
