@@ -1043,6 +1043,10 @@ export const zCustomDetailedCourseOfferingDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
+    enrollmentPeriod: z.optional(z.union([
+        zEnrollmentPeriodDto,
+        z.null()
+    ])),
     course: zCourseDto,
     courseSections: z.array(zDetailedCourseSectionDto),
     periodId: z.string()
@@ -2965,45 +2969,6 @@ export const zCourseEnrollmentControllerFinalizeCourseEnrollmentResponse = z.uni
     z.unknown()
 ]);
 
-export const zLmsControllerFindAllForStudentData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10),
-        enrollmentPeriodId: z.optional(z.uuid())
-    }))
-});
-
-export const zLmsControllerFindAllForStudentResponse = zPaginatedModulesDto;
-
-export const zLmsControllerFindAllForMentorData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10),
-        enrollmentPeriodId: z.optional(z.uuid())
-    }))
-});
-
-export const zLmsControllerFindAllForMentorResponse = zPaginatedModulesDto;
-
-export const zLmsControllerFindAllForAdminData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10),
-        enrollmentPeriodId: z.optional(z.uuid())
-    }))
-});
-
-export const zLmsControllerFindAllForAdminResponse = zPaginatedModulesDto;
-
 export const zLmsControllerRemoveData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3021,6 +2986,16 @@ export const zLmsControllerRemoveResponse = z.object({
     message: z.optional(z.string())
 });
 
+export const zLmsControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsControllerFindOneResponse = zDetailedModulesDto;
+
 export const zLmsControllerUpdateData = z.object({
     body: zUpdateModuleDto,
     path: z.object({
@@ -3030,6 +3005,45 @@ export const zLmsControllerUpdateData = z.object({
 });
 
 export const zLmsControllerUpdateResponse = zModuleDto;
+
+export const zLmsControllerFindAllForStudentData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        enrollmentPeriodId: z.optional(z.string())
+    }))
+});
+
+export const zLmsControllerFindAllForStudentResponse = zPaginatedModulesDto;
+
+export const zLmsControllerFindAllForMentorData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        enrollmentPeriodId: z.optional(z.string())
+    }))
+});
+
+export const zLmsControllerFindAllForMentorResponse = zPaginatedModulesDto;
+
+export const zLmsControllerFindAllForAdminData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        enrollmentPeriodId: z.optional(z.string())
+    }))
+});
+
+export const zLmsControllerFindAllForAdminResponse = zPaginatedModulesDto;
 
 export const zLmsControllerPublishData = z.object({
     body: z.optional(z.never()),
