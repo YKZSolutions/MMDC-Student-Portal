@@ -420,8 +420,21 @@ export class LmsService {
         orderBy: {
           courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              courseSections: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
       })
       .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
+
     return { modules, meta };
   }
 
@@ -515,8 +528,21 @@ export class LmsService {
         orderBy: {
           courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              courseSections: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
       })
       .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
+
     return { modules, meta };
   }
 
@@ -590,8 +616,21 @@ export class LmsService {
         orderBy: {
           courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              courseSections: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
       })
       .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
+
     return { modules, meta };
   }
 

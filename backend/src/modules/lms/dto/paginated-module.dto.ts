@@ -1,11 +1,24 @@
 import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
-import { ApiProperty } from '@nestjs/swagger';
+import { DetailedCourseOfferingDto } from '@/modules/enrollment/dto/paginated-course-offering.dto';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
+// Omit courseEnrollments for a lighter course offering representation in modules
+export class CustomDetailedCourseOfferingDto extends OmitType(
+  DetailedCourseOfferingDto,
+  ['courseEnrollments'],
+) {}
+
+// Module DTO with optional course offering details
+export class DetailedModulesDto extends ModuleDto {
+  courseOffering: CustomDetailedCourseOfferingDto | null;
+}
+
+// Paginated response for modules
 export class PaginatedModulesDto extends PaginatedDto {
   @ApiProperty({
-    type: () => ModuleDto,
+    type: () => DetailedModulesDto,
     isArray: true,
   })
-  modules: ModuleDto[];
+  modules: DetailedModulesDto[];
 }
