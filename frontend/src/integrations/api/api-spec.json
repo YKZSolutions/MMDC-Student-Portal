@@ -7130,10 +7130,10 @@
         ]
       }
     },
-    "/modules": {
+    "/modules/student": {
       "get": {
         "description": "Retrieves a paginated list of modules based on the user role and provided filters.",
-        "operationId": "LmsController_findAll",
+        "operationId": "LmsController_findAllForStudent",
         "parameters": [
           {
             "name": "search",
@@ -7253,6 +7253,262 @@
           }
         },
         "summary": "Retrieve all modules",
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
+    "/modules/mentor": {
+      "get": {
+        "description": "Returns a paginated list of modules for the current mentor user.\nOnly modules from courses the mentor is assigned to are included.\nRequires `MENTOR` role.",
+        "operationId": "LmsController_findAllForMentor",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedModulesDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieve all modules for mentors",
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
+    "/modules/admin": {
+      "get": {
+        "description": "Returns a paginated list of all modules across all courses.\nRequires `ADMIN` role.",
+        "operationId": "LmsController_findAllForAdmin",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedModulesDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieve all modules for admins",
         "tags": [
           "Lms"
         ]
@@ -14678,6 +14934,153 @@
           "deletedAt"
         ]
       },
+      "CustomDetailedCourseOfferingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "course": {
+            "$ref": "#/components/schemas/CourseDto"
+          },
+          "courseSections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetailedCourseSectionDto"
+            }
+          },
+          "periodId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "course",
+          "courseSections",
+          "periodId"
+        ]
+      },
+      "DetailedModulesDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "courseOffering": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomDetailedCourseOfferingDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publishedAt",
+          "toPublishAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "courseOffering"
+        ]
+      },
+      "PaginatedModulesDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetailedModulesDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "modules"
+        ]
+      },
+      "UpdateModuleDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        }
+      },
       "ModuleDto": {
         "type": "object",
         "properties": {
@@ -14726,53 +15129,6 @@
           "updatedAt",
           "deletedAt"
         ]
-      },
-      "PaginatedModulesDto": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "additionalProperties": true,
-            "nullable": false,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationMetaDto"
-              }
-            ]
-          },
-          "modules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ModuleDto"
-            }
-          }
-        },
-        "required": [
-          "meta",
-          "modules"
-        ]
-      },
-      "UpdateModuleDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "toPublishAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        }
       },
       "ContentType": {
         "type": "string",

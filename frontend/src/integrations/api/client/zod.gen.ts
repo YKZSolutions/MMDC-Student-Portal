@@ -1035,6 +1035,67 @@ export const zCourseEnrollmentDto = z.object({
     ])
 });
 
+export const zCustomDetailedCourseOfferingDto = z.object({
+    id: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zCourseDto,
+    courseSections: z.array(zDetailedCourseSectionDto),
+    periodId: z.string()
+});
+
+export const zDetailedModulesDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    toPublishAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    courseOffering: z.union([
+        zCustomDetailedCourseOfferingDto,
+        z.null()
+    ])
+});
+
+export const zPaginatedModulesDto = z.object({
+    meta: zPaginationMetaDto,
+    modules: z.array(zDetailedModulesDto)
+});
+
+export const zUpdateModuleDto = z.object({
+    title: z.optional(z.string()),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ]))
+});
+
 export const zModuleDto = z.object({
     id: z.string(),
     title: z.string(),
@@ -1056,27 +1117,6 @@ export const zModuleDto = z.object({
         z.iso.datetime(),
         z.null()
     ])
-});
-
-export const zPaginatedModulesDto = z.object({
-    meta: zPaginationMetaDto,
-    modules: z.array(zModuleDto)
-});
-
-export const zUpdateModuleDto = z.object({
-    title: z.optional(z.string()),
-    publishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    toPublishAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    unpublishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ]))
 });
 
 export const zContentType = z.enum([
@@ -2925,7 +2965,7 @@ export const zCourseEnrollmentControllerFinalizeCourseEnrollmentResponse = z.uni
     z.unknown()
 ]);
 
-export const zLmsControllerFindAllData = z.object({
+export const zLmsControllerFindAllForStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.object({
@@ -2935,7 +2975,31 @@ export const zLmsControllerFindAllData = z.object({
     }))
 });
 
-export const zLmsControllerFindAllResponse = zPaginatedModulesDto;
+export const zLmsControllerFindAllForStudentResponse = zPaginatedModulesDto;
+
+export const zLmsControllerFindAllForMentorData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zLmsControllerFindAllForMentorResponse = zPaginatedModulesDto;
+
+export const zLmsControllerFindAllForAdminData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zLmsControllerFindAllForAdminResponse = zPaginatedModulesDto;
 
 export const zLmsControllerRemoveData = z.object({
     body: z.optional(z.never()),
