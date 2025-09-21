@@ -17,7 +17,10 @@ import { Prisma, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterModulesDto } from './dto/filter-modules.dto';
-import { PaginatedModulesDto } from './dto/paginated-module.dto';
+import {
+  DetailedModulesDto,
+  PaginatedModulesDto,
+} from './dto/paginated-module.dto';
 
 @Injectable()
 export class LmsService {
@@ -368,7 +371,7 @@ export class LmsService {
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
     @LogParam('userId') userId: string | null,
-  ): Promise<ModuleDto> {
+  ): Promise<DetailedModulesDto> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module ID format');
     }
@@ -408,6 +411,7 @@ export class LmsService {
                 user: true,
               },
             },
+            enrollmentPeriod: true,
           },
         },
       },
