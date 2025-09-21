@@ -432,6 +432,8 @@ export class LmsService {
             include: {
               course: true,
               courseSections: {
+                // Only include course sections that are relevant to the student
+                where: { courseEnrollments: { some: { studentId: userId } } },
                 include: {
                   user: true,
                 },
@@ -503,7 +505,7 @@ export class LmsService {
       }));
     }
 
-    // 
+    //
     where.courseOffering = {
       is: {
         courseSections: { some: { mentorId: userId } },
