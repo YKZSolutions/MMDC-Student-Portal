@@ -28,8 +28,8 @@ export const studentLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/courses',
-    label: 'Courses',
+    link: '/lms',
+    label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
@@ -73,8 +73,8 @@ export const mentorLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/courses',
-    label: 'Courses',
+    link: '/lms',
+    label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
@@ -104,8 +104,8 @@ export const adminLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/courses',
-    label: 'Courses',
+    link: '/lms',
+    label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,

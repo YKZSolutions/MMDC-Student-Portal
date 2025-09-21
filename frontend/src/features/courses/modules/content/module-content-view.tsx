@@ -134,7 +134,7 @@ function ModuleContentView({
           </Grid.Col>
         </Grid>
 
-        <Divider my={"lg"} mb={"md"} />
+        <Divider my={'lg'} mb={'md'} />
 
         {/* Continue Button */}
         <Navigation previousItem={previousItem} nextItem={nextItem} />
@@ -249,7 +249,7 @@ function Navigation({
         <Group justify="space-between">
           {previousItem && (
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId`}
               params={{ itemId: previousItem?.id || '' }}
             >
@@ -267,7 +267,7 @@ function Navigation({
           )}
           {nextItem && (
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId`}
               params={{ itemId: nextItem?.id || '' }}
               className="ml-auto"
@@ -402,7 +402,7 @@ function EmbeddedSubmissionBox({
           // Submitted State
           <Group justify="flex-end">
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId/submit`}
               params={{ itemId: assignmentItem.id }}
             >

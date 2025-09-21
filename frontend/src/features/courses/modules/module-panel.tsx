@@ -194,7 +194,7 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
 
   const navigateToItem = () => {
     navigate({
-      from: '/courses/$courseCode/modules',
+      from: '/lms/$lmsCode/modules',
       to: `$itemId`,
       params: { itemId: item.id },
     })
@@ -426,7 +426,7 @@ function AdminActions({ item }: AdminActionsProps) {
                 e.stopPropagation()
                 if (item.published.isPublished) {
                   navigate({
-                    from: '/courses/$courseCode/modules',
+                    from: '/lms/$lmsCode/modules',
                     to: `$itemId/publish`,
                     params: { itemId: item.id },
                     search: { scheduled: false, unpublish: true },
@@ -451,7 +451,7 @@ function AdminActions({ item }: AdminActionsProps) {
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({
-                  from: '/courses/$courseCode/modules',
+                  from: '/lms/$lmsCode/modules',
                   to: `$itemId/publish`,
                   params: { itemId: item.id },
                   search: { scheduled: false, unpublish: false },
@@ -473,7 +473,7 @@ function AdminActions({ item }: AdminActionsProps) {
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({
-                  from: '/courses/$courseCode/modules',
+                  from: '/lms/$lmsCode/modules',
                   to: `$itemId/publish`,
                   params: { itemId: item.id },
                   search: { scheduled: true, unpublish: false },
@@ -503,7 +503,7 @@ function AdminActions({ item }: AdminActionsProps) {
           onClick={(e) => {
             e.stopPropagation()
             navigate({
-              from: '/courses/$courseCode/modules',
+              from: '/lms/$lmsCode/modules',
               to: `create`,
               search: { id: item.id },
             })
@@ -542,7 +542,7 @@ function AdminActions({ item }: AdminActionsProps) {
             onClick={(e) => {
               e.stopPropagation()
               navigate({
-                from: '/courses/$courseCode/modules',
+                from: '/lms/$lmsCode/modules',
                 to: `edit`,
                 search: { id: item.id },
               })
