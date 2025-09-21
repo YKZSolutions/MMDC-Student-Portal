@@ -3424,6 +3424,10 @@ export type LmsControllerFindAllForStudentData = {
         search?: string;
         page?: number;
         limit?: number;
+        /**
+         * Filter modules by enrollment period ID
+         */
+        enrollmentPeriodId?: string;
     };
     url: '/modules/student';
 };
@@ -3456,6 +3460,10 @@ export type LmsControllerFindAllForMentorData = {
         search?: string;
         page?: number;
         limit?: number;
+        /**
+         * Filter modules by enrollment period ID
+         */
+        enrollmentPeriodId?: string;
     };
     url: '/modules/mentor';
 };
@@ -3488,6 +3496,10 @@ export type LmsControllerFindAllForAdminData = {
         search?: string;
         page?: number;
         limit?: number;
+        /**
+         * Filter modules by enrollment period ID
+         */
+        enrollmentPeriodId?: string;
     };
     url: '/modules/admin';
 };

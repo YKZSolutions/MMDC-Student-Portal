@@ -2971,7 +2971,8 @@ export const zLmsControllerFindAllForStudentData = z.object({
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10)
+        limit: z.optional(z.number().gte(1)).default(10),
+        enrollmentPeriodId: z.optional(z.uuid())
     }))
 });
 
@@ -2983,7 +2984,8 @@ export const zLmsControllerFindAllForMentorData = z.object({
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10)
+        limit: z.optional(z.number().gte(1)).default(10),
+        enrollmentPeriodId: z.optional(z.uuid())
     }))
 });
 
@@ -2995,7 +2997,8 @@ export const zLmsControllerFindAllForAdminData = z.object({
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10)
+        limit: z.optional(z.number().gte(1)).default(10),
+        enrollmentPeriodId: z.optional(z.uuid())
     }))
 });
 

@@ -7162,6 +7162,16 @@
               "default": 10,
               "type": "number"
             }
+          },
+          {
+            "name": "enrollmentPeriodId",
+            "required": false,
+            "in": "query",
+            "description": "Filter modules by enrollment period ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7290,6 +7300,16 @@
               "default": 10,
               "type": "number"
             }
+          },
+          {
+            "name": "enrollmentPeriodId",
+            "required": false,
+            "in": "query",
+            "description": "Filter modules by enrollment period ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7417,6 +7437,16 @@
               "minimum": 1,
               "default": 10,
               "type": "number"
+            }
+          },
+          {
+            "name": "enrollmentPeriodId",
+            "required": false,
+            "in": "query",
+            "description": "Filter modules by enrollment period ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
             }
           }
         ],
