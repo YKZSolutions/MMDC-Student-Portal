@@ -46,7 +46,7 @@ function CourseCard({
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const sectionName = section?.name
-  const sectionInitial = sectionName?.charAt(0)
+  const moduleInitial = course?.name.charAt(0)
   const scheduleText = section
     ? `${formatDaysAbbrev(section.days)} | ${section.startSched} - ${section.endSched}`
     : undefined
@@ -80,30 +80,29 @@ function CourseCard({
         />
 
         {/* Avatar/Initial badge (section initial) */}
-        <RoleComponentManager
-          currentRole={authUser.role}
-          roleRender={{
-            student: (
-              <Box
-                pos={'absolute'}
-                right={rem(16)}
-                bottom={rem(-24)}
-                w={rem(48)}
-                h={rem(48)}
-                bg={theme.colors.orange[7]}
-                bd={'2px solid white'}
-                bdrs={'50%'}
-                style={{ zIndex: 2 }}
-              >
-                <Flex justify="center" align="center" w="100%" h="100%">
-                  <Text fw={700} fz={'xl'} c={'white'} tt={'capitalize'}>
-                    {sectionInitial}
-                  </Text>
-                </Flex>
-              </Box>
-            ),
-          }}
-        />
+        <Box
+          pos={'absolute'}
+          right={rem(16)}
+          bottom={rem(-24)}
+          w={rem(48)}
+          h={rem(48)}
+          bg={theme.colors.orange[7]}
+          bd={'2px solid white'}
+          bdrs={'50%'}
+          style={{ zIndex: 2 }}
+        >
+          <Flex justify="center" align="center" w="100%" h="100%">
+            <Text
+              fw={700}
+              fz={'xl'}
+              ta={'center'}
+              c={'white'}
+              tt={'capitalize'}
+            >
+              {moduleInitial}
+            </Text>
+          </Flex>
+        </Box>
       </Flex>
 
       {/* Main content area */}
