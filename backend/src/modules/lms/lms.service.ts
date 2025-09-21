@@ -396,7 +396,7 @@ export class LmsService {
     };
 
     // Apply year/term filters if provided
-    if (filters.startYear || filters.endYear || filters.term) {
+    if (filters.enrollmentPeriodId) {
       if (
         where.courseOffering &&
         'is' in where.courseOffering &&
@@ -405,17 +405,13 @@ export class LmsService {
         where.courseOffering.is = {
           ...where.courseOffering.is,
           enrollmentPeriod: {
-            startYear: filters.startYear,
-            endYear: filters.endYear,
-            term: filters.term,
+            id: filters.enrollmentPeriodId,
           },
         };
       } else {
         where.courseOffering = {
           enrollmentPeriod: {
-            startYear: filters.startYear,
-            endYear: filters.endYear,
-            term: filters.term,
+            id: filters.enrollmentPeriodId,
           },
         };
       }
@@ -513,7 +509,7 @@ export class LmsService {
     };
 
     // Apply year/term filters if provided
-    if (filters.startYear || filters.endYear || filters.term) {
+    if (filters.enrollmentPeriodId) {
       if (
         where.courseOffering &&
         'is' in where.courseOffering &&
@@ -522,17 +518,13 @@ export class LmsService {
         where.courseOffering.is = {
           ...where.courseOffering.is,
           enrollmentPeriod: {
-            startYear: filters.startYear,
-            endYear: filters.endYear,
-            term: filters.term,
+            id: filters.enrollmentPeriodId,
           },
         };
       } else {
         where.courseOffering = {
           enrollmentPeriod: {
-            startYear: filters.startYear,
-            endYear: filters.endYear,
-            term: filters.term,
+            id: filters.enrollmentPeriodId,
           },
         };
       }
@@ -621,12 +613,10 @@ export class LmsService {
     }
 
     // Apply year/term filters if provided
-    if (filters.startYear || filters.endYear || filters.term) {
+    if (filters.enrollmentPeriodId) {
       where.courseOffering = {
         enrollmentPeriod: {
-          startYear: filters.startYear,
-          endYear: filters.endYear,
-          term: filters.term,
+          id: filters.enrollmentPeriodId,
         },
       };
     }

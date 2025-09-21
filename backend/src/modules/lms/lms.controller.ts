@@ -1,6 +1,5 @@
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
@@ -29,6 +28,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { FilterModulesDto } from './dto/filter-modules.dto';
 
 @Controller('modules')
 export class LmsController {
@@ -63,7 +63,7 @@ export class LmsController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   findAllForStudent(
     @CurrentUser() user: CurrentAuthUser,
-    @Query() filters: BaseFilterDto,
+    @Query() filters: FilterModulesDto,
   ) {
     const { user_id } = user.user_metadata;
     return this.lmsService.findAllForStudent(user_id, filters);
@@ -86,7 +86,7 @@ export class LmsController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   findAllForMentor(
     @CurrentUser() user: CurrentAuthUser,
-    @Query() filters: BaseFilterDto,
+    @Query() filters: FilterModulesDto,
   ) {
     const { user_id } = user.user_metadata;
     return this.lmsService.findAllForMentor(user_id, filters);
@@ -108,7 +108,7 @@ export class LmsController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   findAllForAdmin(
     @CurrentUser() user: CurrentAuthUser,
-    @Query() filters: BaseFilterDto,
+    @Query() filters: FilterModulesDto,
   ) {
     const { user_id } = user.user_metadata;
     return this.lmsService.findAllForAdmin(user_id, filters);
