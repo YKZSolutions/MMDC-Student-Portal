@@ -39,27 +39,6 @@ export class LmsController {
   ) {}
 
   /**
-   * Retrieve a single module by id
-   *
-   * - Admins, Mentors, and Students may access this endpoint.
-   * - Response includes the module with its course offering and filtered course sections
-   *   appropriate for the requesting user.
-   *
-   * @param id - Module UUID
-   * @param user - Authenticated user metadata
-   */
-  @Get(':id')
-  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
-  @ApiOkResponse({ description: 'Module retrieved successfully' })
-  findOne(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @CurrentUser() user: CurrentAuthUser,
-  ) {
-    const { role, user_id } = user.user_metadata;
-    return this.lmsService.findOne(id, role, user_id);
-  }
-
-  /**
    * Retrieve all modules for students
    *
    * @remarks
@@ -117,11 +96,36 @@ export class LmsController {
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   findAllForAdmin(
-    @CurrentUser() user: CurrentAuthUser,
     @Query() filters: FilterModulesDto,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     const { user_id } = user.user_metadata;
     return this.lmsService.findAllForAdmin(user_id, filters);
+  }
+
+  /**
+   * Retrieve a single module by id
+   *
+   * @remarks
+   * Response includes the module with its course offering and filtered course sections
+   * appropriate for the requesting user. Requires `STUDENT`, `MENTOR`, or `ADMIN` role.
+   *
+   * @param id - Module UUID
+   * @param user - Authenticated user metadata
+   */
+  @Get(':id')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: CurrentAuthUser,
+  ) {
+    const { role, user_id } = user.user_metadata;
+    return this.lmsService.findOne(id, role, user_id);
   }
 
   /**
