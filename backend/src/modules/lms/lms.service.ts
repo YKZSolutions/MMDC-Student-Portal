@@ -361,6 +361,8 @@ export class LmsService {
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
+
+    // Build search conditions
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
       where.AND = searchTerms.map((term) => ({
@@ -385,11 +387,15 @@ export class LmsService {
         ],
       }));
     }
+
+    // Only include modules from courses the student is enrolled in
     where.courseOffering = {
       is: {
         courseEnrollments: { some: { studentId: userId } },
       },
     };
+
+    // Apply year/term filters if provided
     if (filters.startYear || filters.endYear || filters.term) {
       if (
         where.courseOffering &&
@@ -414,6 +420,7 @@ export class LmsService {
         };
       }
     }
+
     const [modules, meta] = await this.prisma.client.module
       .paginate({
         where,
@@ -469,6 +476,8 @@ export class LmsService {
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
+
+    // Build search conditions
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
       where.AND = searchTerms.map((term) => ({
@@ -493,11 +502,15 @@ export class LmsService {
         ],
       }));
     }
+
+    // 
     where.courseOffering = {
       is: {
         courseSections: { some: { mentorId: userId } },
       },
     };
+
+    // Apply year/term filters if provided
     if (filters.startYear || filters.endYear || filters.term) {
       if (
         where.courseOffering &&
@@ -522,6 +535,7 @@ export class LmsService {
         };
       }
     }
+
     const [modules, meta] = await this.prisma.client.module
       .paginate({
         where,
@@ -577,6 +591,8 @@ export class LmsService {
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
+
+    // Build search conditions
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
       where.AND = searchTerms.map((term) => ({
@@ -601,6 +617,8 @@ export class LmsService {
         ],
       }));
     }
+
+    // Apply year/term filters if provided
     if (filters.startYear || filters.endYear || filters.term) {
       where.courseOffering = {
         enrollmentPeriod: {
@@ -610,6 +628,7 @@ export class LmsService {
         },
       };
     }
+
     const [modules, meta] = await this.prisma.client.module
       .paginate({
         where,
