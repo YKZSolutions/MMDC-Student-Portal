@@ -7,12 +7,12 @@ import { CourseListSuspense } from '@/features/courses/suspense'
 import type { Course } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
 import type {
-  DetailedCourseOfferingDto,
+  DetailedModulesDto,
   EnrollmentPeriodDto,
 } from '@/integrations/api/client'
 import {
-  courseOfferingControllerFindCourseOfferingsByPeriodOptions,
   enrollmentControllerFindActiveEnrollmentOptions,
+  lmsControllerFindAllForAdminOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
@@ -44,7 +44,7 @@ function AdminCourseDashboardProvider({
 }: {
   children: (props: {
     enrollmentPeriodData: EnrollmentPeriodDto
-    courseOfferings: DetailedCourseOfferingDto[]
+    modules: DetailedModulesDto[]
     message: string
     totalPages: number
   }) => ReactNode
@@ -60,22 +60,33 @@ function AdminCourseDashboardProvider({
     enrollmentControllerFindActiveEnrollmentOptions(),
   )
 
-  const { data: courseData } = useSuspenseQuery(
-    courseOfferingControllerFindCourseOfferingsByPeriodOptions({
+  // const { data: courseData } = useSuspenseQuery(
+  //   courseOfferingControllerFindCourseOfferingsByPeriodOptions({
+  //     query: {
+  //       page: page,
+  //       search: search || undefined,
+  //     },
+  //     path: {
+  //       enrollmentId: term || enrollmentPeriodData.id,
+  //     },
+  //   }),
+  // )
+
+  const { data: moduleData } = useSuspenseQuery(
+    lmsControllerFindAllForAdminOptions({
       query: {
-        page: page,
         search: search || undefined,
-      },
-      path: {
-        enrollmentId: term || enrollmentPeriodData.id,
+        page: page,
       },
     }),
   )
 
-  const courseOfferings = courseData.courseOfferings
+  console.log(moduleData)
+
+  const modules = moduleData.modules
 
   const limit = 10
-  const total = courseOfferings.length
+  const total = modules.length
   const totalPages = 1
 
   const message = formatPaginationMessage({
@@ -86,7 +97,7 @@ function AdminCourseDashboardProvider({
 
   return children({
     enrollmentPeriodData,
-    courseOfferings,
+    modules,
     message,
     totalPages,
   })
@@ -117,24 +128,20 @@ function AdminCourseDashboardPage() {
         >
           <Suspense fallback={<CourseListSuspense />}>
             <AdminCourseDashboardProvider props={queryDefaultValues}>
-              {({ courseOfferings }) =>
-                courseOfferings.map((course, index) =>
-                  course.courseSections.map((section) =>
-                    view === 'grid' ? (
-                      <CourseCard
-                        key={section.id}
-                        url={`/courses/${section.id}`}
-                        course={course.course}
-                        section={section}
-                      />
-                    ) : (
-                      <CourseListRow
-                        key={section.id}
-                        url={`/courses/${section.id}`}
-                        section={section}
-                        course={course.course}
-                      />
-                    ),
+              {({ modules }) =>
+                modules.map((moduleData, index) =>
+                  view === 'grid' ? (
+                    <CourseCard
+                      key={moduleData.id}
+                      url={`/courses/${moduleData.id}`}
+                      course={moduleData.courseOffering?.course}
+                    />
+                  ) : (
+                    <CourseListRow
+                      key={moduleData.id}
+                      url={`/courses/${moduleData.id}`}
+                      course={moduleData.courseOffering?.course}
+                    />
                   ),
                 )
               }
