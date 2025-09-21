@@ -39,13 +39,25 @@ export class LmsController {
   ) {}
 
   /**
-   * Retrieve all modules
+   * Retrieve a single module by id
    *
-   * @remarks
-   * Retrieves a paginated list of modules based on the user role and provided filters.
+   * - Admins, Mentors, and Students may access this endpoint.
+   * - Response includes the module with its course offering and filtered course sections
+   *   appropriate for the requesting user.
    *
+   * @param id - Module UUID
+   * @param user - Authenticated user metadata
    */
-
+  @Get(':id')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @ApiOkResponse({ description: 'Module retrieved successfully' })
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: CurrentAuthUser,
+  ) {
+    const { role, user_id } = user.user_metadata;
+    return this.lmsService.findOne(id, role as any, user_id);
+  }
 
   /**
    * Retrieve all modules for students
@@ -69,7 +81,6 @@ export class LmsController {
     return this.lmsService.findAllForStudent(user_id, filters);
   }
 
-
   /**
    * Retrieve all modules for mentors
    *
@@ -91,7 +102,6 @@ export class LmsController {
     const { user_id } = user.user_metadata;
     return this.lmsService.findAllForMentor(user_id, filters);
   }
-
 
   /**
    * Retrieve all modules for admins

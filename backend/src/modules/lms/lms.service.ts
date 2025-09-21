@@ -7,8 +7,14 @@ import {
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
+import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterModulesDto } from './dto/filter-modules.dto';
 import { PaginatedModulesDto } from './dto/paginated-module.dto';
@@ -328,6 +334,86 @@ export class LmsService {
         }
       }
     });
+  }
+
+  /**
+   * Retrieves a single module by ID with role-based access control.
+   *
+   * - Admins can access any module.
+   * - Mentors can access modules for course sections they are assigned to.
+   * - Students can access modules for course sections they are enrolled in.
+   *
+   * The returned module includes `courseOffering` (with `course`, `enrollmentPeriod`,
+   * and `courseSections`) and `moduleSections` (without contents).
+   *
+   * @param id - Module UUID
+   * @param role - Role of the requesting user
+   * @param userId - ID of the requesting user (nullable for admins)
+   * @returns The module DTO with related offering and sections
+   * @throws BadRequestException when the id is not a valid UUID
+   * @throws NotFoundException when the module is not accessible/does not exist
+   */
+  @Log({
+    logArgsMessage: ({ id, role, userId }) =>
+      `Fetching module ${id} for role=${role} user=${userId}`,
+    logSuccessMessage: (res, { id }) => `Fetched module ${id}`,
+    logErrorMessage: (err, { id }) =>
+      `Fetching module ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Module ${id} not found`),
+  })
+  async findOne(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string | null,
+  ): Promise<ModuleDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid module ID format');
+    }
+
+    // Build role-based where clause
+    const where: Prisma.ModuleWhereInput = { id };
+
+    if (role === Role.student && userId) {
+      where.courseOffering = {
+        is: {
+          courseSections: {
+            some: { courseEnrollments: { some: { studentId: userId } } },
+          },
+        },
+      };
+    } else if (role === Role.mentor && userId) {
+      where.courseOffering = {
+        is: {
+          courseSections: { some: { mentorId: userId } },
+        },
+      };
+    }
+
+    // Always include course sections and their enrollments, then filter in JS
+    const moduleData = await this.prisma.client.module.findFirstOrThrow({
+      where,
+      include: {
+        courseOffering: {
+          include: {
+            course: true,
+            courseSections: {
+              where:
+                role == Role.student && userId
+                  ? { courseEnrollments: { some: { studentId: userId } } }
+                  : undefined,
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return moduleData;
   }
 
   /**
