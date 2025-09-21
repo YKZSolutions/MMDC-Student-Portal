@@ -5,10 +5,10 @@ import CourseNavBar, {
 import { CourseHeaderSkeleton } from '@/features/courses/suspense'
 import type {
   CourseDto,
-  CourseSectionWithCourseOfferingDto,
+  DetailedModulesDto,
   EnrollmentPeriodDto,
 } from '@/integrations/api/client'
-import { courseSectionControllerFindOneCourseSectionByIdOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { lmsControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatToSchoolYear } from '@/utils/formatters'
 import {
   Box,
@@ -22,11 +22,10 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
-import { useLocalStorage } from '@mantine/hooks'
 import { IconBookmark, IconTool } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
-import { Suspense, useMemo, useState, type ReactNode } from 'react'
+import { Suspense, useState, type ReactNode } from 'react'
 
 export const Route = createFileRoute('/(protected)/lms/$lmsCode')({
   component: RouteComponent,
@@ -36,35 +35,23 @@ function RouteComponentQueryProvider({
   children,
 }: {
   children: (props: {
-    data: CourseSectionWithCourseOfferingDto
-    course: CourseDto
-    enrollmentPeriod: EnrollmentPeriodDto
+    data: DetailedModulesDto
+    course: CourseDto | undefined
+    enrollmentPeriod: EnrollmentPeriodDto | null | undefined
   }) => ReactNode
 }) {
   const { lmsCode } = Route.useParams()
 
-  const { data } = useSuspenseQuery({
-    ...courseSectionControllerFindOneCourseSectionByIdOptions({
+  const { data } = useSuspenseQuery(
+    lmsControllerFindOneOptions({
       path: {
-        sectionId: lmsCode,
+        id: lmsCode,
       },
     }),
-  })
-
-  const [enrollmentPeriodId, setEnrollmentPeriodId] = useLocalStorage<
-    string | null
-  >({
-    key: 'enrollmentPeriodId',
-  })
-
-  const _enrollmentPeriodId = useMemo(
-    () =>
-      setEnrollmentPeriodId(data?.courseOffering.enrollmentPeriod.id ?? null),
-    [data],
   )
 
-  const course = data?.courseOffering.course
-  const enrollmentPeriod = data?.courseOffering.enrollmentPeriod
+  const course = data?.courseOffering?.course
+  const enrollmentPeriod = data?.courseOffering?.enrollmentPeriod
 
   return children({
     data,
@@ -138,31 +125,31 @@ function RouteComponent() {
             <RouteComponentQueryProvider>
               {({ data, course, enrollmentPeriod }) => (
                 <Box>
-                  <Title order={3}>{course.name}</Title>
+                  <Title order={3}>{course?.name}</Title>
                   <Group gap={'xs'} className="">
                     <Text size="sm" c="dimmed">
-                      {course.courseCode}
+                      {course?.courseCode}
                     </Text>
                     <Text size="sm" c="dimmed">
                       •
                     </Text>
                     <Text size="sm" c="dimmed">
                       {formatToSchoolYear(
-                        enrollmentPeriod.startYear,
-                        enrollmentPeriod.endYear,
+                        enrollmentPeriod?.startYear || 0,
+                        enrollmentPeriod?.endYear || 0,
                       )}
                     </Text>
                     <Text size="sm" c="dimmed">
                       •
                     </Text>
                     <Text size="sm" c="dimmed">
-                      Term {enrollmentPeriod.term}
+                      Term {enrollmentPeriod?.term}
                     </Text>
                     <Text size="sm" c="dimmed">
                       •
                     </Text>
                     <Text size="sm" c="dimmed">
-                      {data?.name}
+                      {data?.title}
                     </Text>
                   </Group>
                 </Box>
