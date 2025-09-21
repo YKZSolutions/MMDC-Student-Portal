@@ -1,43 +1,41 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { DueFilterDto } from '@/common/dto/due-filter.dto';
 import {
-  Injectable,
-  NotImplementedException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+  parseRelativeDateRange,
+  RelativeDateRange,
+} from '@/common/utils/date-range.util';
 import { GeminiService } from '@/lib/gemini/gemini.service';
-import { UsersService } from '@/modules/users/users.service';
+import { N8nService } from '@/lib/n8n/n8n.service';
 import { BillingService } from '@/modules/billing/billing.service';
-import { CoursesService } from '@/modules/courses/courses.service';
-import { FunctionCall } from '@google/genai';
+import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
+import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
-import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
-import {
-  UserStaffDetailsDto,
-  UserStudentDetailsDto,
-} from '@/modules/users/dto/user-details.dto';
 import {
   UserBaseContext,
   UserStaffContext,
   UserStudentContext,
 } from '@/modules/chatbot/dto/user-context.dto';
-import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
-import { N8nService } from '@/lib/n8n/n8n.service';
-import { Log } from '@/common/decorators/log.decorator';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import { LmsService } from '@/modules/lms/lms.service';
-import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
+import { CoursesService } from '@/modules/courses/courses.service';
 import { CourseEnrollmentService } from '@/modules/enrollment/course-enrollment.service';
-import { Role } from '@prisma/client';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { FilterModulesDto } from '@/modules/lms/dto/filter-modules.dto';
-import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
-import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
+import { LmsContentService } from '@/modules/lms/lms-content.service';
+import { LmsService } from '@/modules/lms/lms.service';
+import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
 import {
-  parseRelativeDateRange,
-  RelativeDateRange,
-} from '@/common/utils/date-range.util';
-import { DueFilterDto } from '@/common/dto/due-filter.dto';
+  UserStaffDetailsDto,
+  UserStudentDetailsDto,
+} from '@/modules/users/dto/user-details.dto';
+import { UsersService } from '@/modules/users/users.service';
+import {
+  Injectable,
+  NotImplementedException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class ChatbotService {
@@ -174,11 +172,16 @@ export class ChatbotService {
 
           case 'lms_my_modules': {
             const args = functionCall.args as FilterModulesDto;
-            const modules = await this.lmsService.findAll(
-              userContext.id,
-              userContext.role as Role,
-              args,
-            );
+            let modules;
+            if (userContext.role === 'student') {
+              modules = await this.lmsService.findAllForStudent(userContext.id, args);
+            } else if (userContext.role === 'mentor') {
+              modules = await this.lmsService.findAllForMentor(userContext.id, args);
+            } else if (userContext.role === 'admin') {
+              modules = await this.lmsService.findAllForAdmin(userContext.id, args);
+            } else {
+              throw new NotImplementedException(`Role not supported: ${userContext.role}`);
+            }
             return `My modules: ${JSON.stringify(modules)}`;
           }
 

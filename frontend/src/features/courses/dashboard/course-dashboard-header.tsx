@@ -33,11 +33,11 @@ function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
     <Stack gap="md">
       <Box>
         <Title c="dark.7" variant="hero" order={2} fw={700}>
-          Courses
+          Learning Management System
         </Title>
         <Text fw={500} c="dark.3" fz="md">
           {/* Create a subtitle here */}
-          Browse and manage your courses
+          Manage your modules and track your progress
         </Text>
       </Box>
       <Group align="center" justify="end" gap={rem(5)}>

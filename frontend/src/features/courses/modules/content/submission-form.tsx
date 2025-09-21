@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Button,
   FileInput,
@@ -9,6 +8,7 @@ import {
 } from '@mantine/core'
 import { IconExternalLink, IconLink, IconUpload } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
+import { useState } from 'react'
 
 export type SubmissionPayload = {
   file: File | null
@@ -77,7 +77,7 @@ export const SubmissionForm = ({
         {withSubmissionPageNavigation && (
           <Group justify="flex-end">
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId/submit`}
               params={{ itemId: assignmentId! }}
             >

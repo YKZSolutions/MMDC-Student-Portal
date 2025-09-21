@@ -1,3 +1,4 @@
+import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type { ClassMeeting } from '@/features/courses/types.ts'
 import type {
@@ -29,8 +30,8 @@ import {
 import { useNavigate } from '@tanstack/react-router'
 
 interface CourseDashboardItemProps {
-  course: CourseDto
-  section: DetailedCourseSectionDto
+  course: CourseDto | undefined
+  section?: DetailedCourseSectionDto
   currentMeeting?: ClassMeeting
   url: string
 }
@@ -41,10 +42,14 @@ function CourseCard({
   currentMeeting,
   url,
 }: CourseDashboardItemProps) {
+  const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
   const navigate = useNavigate()
-  const sectionName = section.name
-  const sectionInitial = sectionName.charAt(0)
+  const sectionName = section?.name
+  const moduleInitial = course?.name.charAt(0)
+  const scheduleText = section
+    ? `${formatDaysAbbrev(section.days)} | ${section.startSched} - ${section.endSched}`
+    : undefined
 
   return (
     <Card
@@ -57,7 +62,7 @@ function CourseCard({
       role="button"
       onClick={() =>
         navigate({
-          to: `/courses/${section.id}`,
+          to: url,
         })
       }
       style={{
@@ -84,13 +89,17 @@ function CourseCard({
           bg={theme.colors.orange[7]}
           bd={'2px solid white'}
           bdrs={'50%'}
-          style={{
-            zIndex: 2,
-          }}
+          style={{ zIndex: 2 }}
         >
           <Flex justify="center" align="center" w="100%" h="100%">
-            <Text fw={700} fz={'xl'} c={'white'} tt={'capitalize'}>
-              {sectionInitial}
+            <Text
+              fw={700}
+              fz={'xl'}
+              ta={'center'}
+              c={'white'}
+              tt={'capitalize'}
+            >
+              {moduleInitial}
             </Text>
           </Flex>
         </Box>
@@ -99,49 +108,68 @@ function CourseCard({
       {/* Main content area */}
       <Box p="md" style={{ minHeight: rem(120) }} c={'dark.6'}>
         <Title order={4} lineClamp={1} style={{ fontWeight: 700 }}>
-          {course.name}
+          {course?.name}
         </Title>
         <Group gap={rem(5)}>
           <Text size="sm" fw={500}>
-            {course.courseCode}
+            {course?.courseCode}
           </Text>
-          <Text c={'gray.7'}>•</Text>
-          <Text size="sm" fw={500}>
-            {sectionName}
-          </Text>
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              student: (
+                <>
+                  <Text c={'gray.7'}>•</Text>
+                  <Text size="sm" fw={500}>
+                    {sectionName}
+                  </Text>
+                </>
+              ),
+            }}
+          />
         </Group>
 
-        <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
-          {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
-          {section.endSched}
-        </Text>
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <Text fw={400} size={'sm'} c={theme.colors.dark[3]}>
+                {scheduleText}
+              </Text>
+            ),
+          }}
+        />
       </Box>
 
       {/* Actions row */}
       <Divider />
       <Group justify="space-between" p={'xs'} align="center">
-        <Group gap={rem(5)}>
-          <RingProgress
-            size={30}
-            thickness={3}
-            sections={[
-              {
-                // value: course.courseProgress * 100,
-                value: 60,
-                color: theme.colors.blue[5],
-              },
-            ]}
-          />
-          <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-            {/* {course.courseProgress * 100}% */}
-            60%
-          </Text>
-        </Group>
-
-        <CourseCardActionButton
-          sectionId={section.id}
-          currentMeeting={currentMeeting}
+        <RoleComponentManager
+          currentRole={authUser.role}
+          roleRender={{
+            student: (
+              <Group gap={rem(5)}>
+                <RingProgress
+                  size={30}
+                  thickness={3}
+                  sections={[
+                    {
+                      // value: course.courseProgress * 100,
+                      value: 60,
+                      color: theme.colors.blue[5],
+                    },
+                  ]}
+                />
+                <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                  {/* {course.courseProgress * 100}% */}
+                  60%
+                </Text>
+              </Group>
+            ),
+          }}
         />
+
+        <CourseCardActionButton url={url} currentMeeting={currentMeeting} />
       </Group>
     </Card>
   )
@@ -154,7 +182,11 @@ function CourseListRow({
   url,
 }: CourseDashboardItemProps) {
   const theme = useMantineTheme()
+  const { authUser } = useAuth('protected')
   const navigate = useNavigate()
+  const scheduleText = section
+    ? `${formatDaysAbbrev(section.days)} | ${section.startSched} - ${section.endSched}`
+    : undefined
 
   return (
     <Card
@@ -168,42 +200,53 @@ function CourseListRow({
       <Group justify="space-between" wrap="nowrap">
         <Stack gap="xs" justify="center">
           <Title order={4} lineClamp={1} c="dark.7">
-            {course.name}
+            {course?.name}
           </Title>
           <Group gap={rem(5)} c="dark.3">
-            <Text size="sm">{course.courseCode}</Text>
-            <Text size="sm">• {section.name}</Text>
-            <Group gap={5}>
-              <IconCalendar size={14} />
-              <Text size="sm">
-                {formatDaysAbbrev(section.days)} | {section.startSched} -{' '}
-                {section.endSched}
-              </Text>
-            </Group>
+            <Text size="sm">{course?.courseCode}</Text>
+            <RoleComponentManager
+              currentRole={authUser.role}
+              roleRender={{
+                student: (
+                  <>
+                    {section?.name && <Text size="sm">• {section.name}</Text>}
+                    <Group gap={5}>
+                      <IconCalendar size={14} />
+                      <Text size="sm">{scheduleText}</Text>
+                    </Group>
+                  </>
+                ),
+              }}
+            />
           </Group>
         </Stack>
         <Stack align="end">
-          <CourseCardActionButton
-            currentMeeting={currentMeeting}
-            sectionId={section.id}
+          <CourseCardActionButton currentMeeting={currentMeeting} url={url} />
+
+          <RoleComponentManager
+            currentRole={authUser.role}
+            roleRender={{
+              student: (
+                <Group gap={rem(5)}>
+                  <RingProgress
+                    size={30}
+                    thickness={3}
+                    sections={[
+                      {
+                        // value: course.courseProgress * 100,
+                        value: 60,
+                        color: theme.colors.blue[5],
+                      },
+                    ]}
+                  />
+                  <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
+                    {/* {course.courseProgress * 100}% */}
+                    60%
+                  </Text>
+                </Group>
+              ),
+            }}
           />
-          <Group gap={rem(5)}>
-            <RingProgress
-              size={30}
-              thickness={3}
-              sections={[
-                {
-                  // value: course.courseProgress * 100,
-                  value: 60,
-                  color: theme.colors.blue[5],
-                },
-              ]}
-            />
-            <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-              {/* {course.courseProgress * 100}% */}
-              60%
-            </Text>
-          </Group>
         </Stack>
       </Group>
     </Card>
@@ -212,15 +255,17 @@ function CourseListRow({
 
 type CourseCardActionButtonProps = {
   currentMeeting?: ClassMeeting
-  sectionId: string
+  url: string
 }
 
 function CourseCardActionButton({
   currentMeeting,
-  sectionId,
+  url,
 }: CourseCardActionButtonProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
+  const isStudent = authUser.role === 'student'
+
   return (
     <Group ml={'auto'}>
       <ActionIcon
@@ -229,17 +274,17 @@ function CourseCardActionButton({
         radius={'lg'}
         size={'lg'}
         p={rem(5)}
-        disabled={authUser.role === 'student' ? !currentMeeting : false}
+        disabled={isStudent && !currentMeeting}
         onClick={(e) => {
           e.stopPropagation()
-          authUser.role === 'student'
+          isStudent
             ? window.open(currentMeeting?.meetingLink!, '_blank')
             : navigate({
-                to: `/courses/${sectionId}/modules`,
+                to: `${url}/modules`,
               })
         }}
       >
-        {authUser.role === 'student' ? <IconVideo /> : <IconEdit />}
+        {isStudent ? <IconVideo /> : <IconEdit />}
       </ActionIcon>
       <ActionIcon
         variant="subtle"

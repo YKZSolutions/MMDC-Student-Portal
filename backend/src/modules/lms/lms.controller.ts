@@ -1,3 +1,18 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
+import { ModuleTreeDto } from '@/modules/lms/dto/module-tree.dto';
+import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { LmsContentService } from '@/modules/lms/lms-content.service';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { LmsService } from '@/modules/lms/lms.service';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -12,23 +27,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { LmsService } from '@/modules/lms/lms.service';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { ModuleTreeDto } from '@/modules/lms/dto/module-tree.dto';
-import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
+import { FilterModulesDto } from './dto/filter-modules.dto';
 
 @Controller('modules')
 export class LmsController {
@@ -39,21 +39,93 @@ export class LmsController {
   ) {}
 
   /**
-   * Retrieve all modules
+   * Retrieve all modules for students
    *
    * @remarks
-   * Retrieves a paginated list of modules based on the user role and provided filters.
+   * Returns a paginated list of modules for the current student user.
+   * Only modules from courses the student is enrolled in are included.
+   * Requires `STUDENT` role.
    *
+   * @param user - The authenticated user
+   * @param filters - Query filters for pagination and search
    */
-  @Get()
-  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @Get('student')
+  @Roles(Role.STUDENT)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAll(
+  findAllForStudent(
     @CurrentUser() user: CurrentAuthUser,
-    @Query() filters: BaseFilterDto,
+    @Query() filters: FilterModulesDto,
+  ) {
+    const { user_id } = user.user_metadata;
+    return this.lmsService.findAllForStudent(user_id, filters);
+  }
+
+  /**
+   * Retrieve all modules for mentors
+   *
+   * @remarks
+   * Returns a paginated list of modules for the current mentor user.
+   * Only modules from courses the mentor is assigned to are included.
+   * Requires `MENTOR` role.
+   *
+   * @param user - The authenticated user
+   * @param filters - Query filters for pagination and search
+   */
+  @Get('mentor')
+  @Roles(Role.MENTOR)
+  @ApiException(() => [BadRequestException, InternalServerErrorException])
+  findAllForMentor(
+    @CurrentUser() user: CurrentAuthUser,
+    @Query() filters: FilterModulesDto,
+  ) {
+    const { user_id } = user.user_metadata;
+    return this.lmsService.findAllForMentor(user_id, filters);
+  }
+
+  /**
+   * Retrieve all modules for admins
+   *
+   * @remarks
+   * Returns a paginated list of all modules across all courses.
+   * Requires `ADMIN` role.
+   *
+   * @param user - The authenticated user
+   * @param filters - Query filters for pagination and search
+   */
+  @Get('admin')
+  @Roles(Role.ADMIN)
+  @ApiException(() => [BadRequestException, InternalServerErrorException])
+  findAllForAdmin(
+    @Query() filters: FilterModulesDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ) {
+    const { user_id } = user.user_metadata;
+    return this.lmsService.findAllForAdmin(user_id, filters);
+  }
+
+  /**
+   * Retrieve a single module by id
+   *
+   * @remarks
+   * Response includes the module with its course offering and filtered course sections
+   * appropriate for the requesting user. Requires `STUDENT`, `MENTOR`, or `ADMIN` role.
+   *
+   * @param id - Module UUID
+   * @param user - Authenticated user metadata
+   */
+  @Get(':id')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
     const { role, user_id } = user.user_metadata;
-    return this.lmsService.findAll(user_id, role, filters);
+    return this.lmsService.findOne(id, role, user_id);
   }
 
   /**

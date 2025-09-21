@@ -1,34 +1,36 @@
 import type { EnrollmentPeriodDto } from '@/integrations/api/client'
 import {
-    enrollmentControllerFindActiveEnrollmentOptions,
-    enrollmentControllerFindAllEnrollmentsOptions,
-    enrollmentControllerFindOneEnrollmentOptions,
+  enrollmentControllerFindActiveEnrollmentOptions,
+  enrollmentControllerFindAllEnrollmentsOptions,
+  enrollmentControllerFindOneEnrollmentOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatToSchoolYear } from '@/utils/formatters'
 import {
-    Box,
-    Combobox,
-    Group,
-    InputBase,
-    Loader,
-    rem,
-    Text,
-    TextInput,
-    useCombobox,
+  Box,
+  Combobox,
+  Group,
+  InputBase,
+  Loader,
+  rem,
+  Text,
+  TextInput,
+  useCombobox,
 } from '@mantine/core'
 import {
-    useSuspenseQuery,
-    type UseSuspenseQueryOptions,
+  useSuspenseQuery,
+  type UseSuspenseQueryOptions,
 } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Suspense, useMemo, useState, type ReactNode } from 'react'
+
+import { Suspense, useState, type ReactNode } from 'react'
 
 function AsyncTermComboboxQueryProvider({
-  setSelected,
   children,
 }: {
-  setSelected: (term: EnrollmentPeriodDto | null) => void
-  children: (props: { enrollmentPeriods: EnrollmentPeriodDto[] }) => ReactNode
+  children: (props: {
+    enrollmentPeriods: EnrollmentPeriodDto[]
+    activeEnrollmentPeriod: EnrollmentPeriodDto | null
+  }) => ReactNode
 }) {
   const searchParam: {
     term: EnrollmentPeriodDto['id']
@@ -51,12 +53,9 @@ function AsyncTermComboboxQueryProvider({
 
   const enrollmentPeriods = data.enrollments
 
-  const _ = useMemo(() => {
-    setSelected(activeEnrollmentPeriod)
-  }, [data])
-
   return children({
     enrollmentPeriods,
+    activeEnrollmentPeriod,
   })
 }
 
@@ -87,46 +86,30 @@ export default function AsyncTermCombobox() {
       onOptionSubmit={(v) => handleSelect(v)}
       withinPortal={false}
     >
-      <Combobox.Target>
-        {selected ? (
-          <InputBase
-            w={{
-              base: '100%',
-              xs: rem(250),
-            }}
-            radius={'md'}
-            component="button"
-            type="button"
-            pointer
-            onClick={() => combobox.toggleDropdown()}
-            rightSection={<Combobox.Chevron />}
-          >
-            <Group gap={rem(5)} c={'dark.5'}>
-              <Text size="sm">
-                {formatToSchoolYear(selected.startYear, selected.endYear)},
-              </Text>
-              <Text size="sm" className="capitalize">
-                Term {selected.term}, {selected.status}
-              </Text>
-            </Group>
-          </InputBase>
-        ) : (
-          <TextInput
-            miw={rem(250)}
-            radius={'md'}
-            placeholder="Filter by term"
-            onClick={() => combobox.openDropdown()}
-            onBlur={() => combobox.closeDropdown()}
-            rightSection={
-              <Suspense fallback={<Loader size={18} />}>
-                <AsyncTermComboboxQueryProvider setSelected={setSelected}>
-                  {(props) => null}
-                </AsyncTermComboboxQueryProvider>
-              </Suspense>
-            }
-          />
-        )}
-      </Combobox.Target>
+      <Suspense
+        fallback={
+          <Box>
+            <TermComboboxTarget
+              activeEnrollmentPeriod={selected}
+              combobox={combobox}
+            />
+          </Box>
+        }
+      >
+        <AsyncTermComboboxQueryProvider>
+          {({ activeEnrollmentPeriod }) => (
+            <Combobox.Target>
+              {/* Box makes it ref-able */}
+              <Box>
+                <TermComboboxTarget
+                  activeEnrollmentPeriod={activeEnrollmentPeriod}
+                  combobox={combobox}
+                />
+              </Box>
+            </Combobox.Target>
+          )}
+        </AsyncTermComboboxQueryProvider>
+      </Suspense>
 
       <Combobox.Dropdown className="max-h-56 overflow-y-auto">
         <Combobox.Options>
@@ -137,7 +120,7 @@ export default function AsyncTermCombobox() {
               </Group>
             }
           >
-            <AsyncTermComboboxQueryProvider setSelected={setSelected}>
+            <AsyncTermComboboxQueryProvider>
               {({ enrollmentPeriods }) =>
                 enrollmentPeriods.map((period) => (
                   <Combobox.Option
@@ -162,5 +145,53 @@ export default function AsyncTermCombobox() {
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>
+  )
+}
+
+function TermComboboxTarget({
+  activeEnrollmentPeriod,
+  combobox,
+}: {
+  activeEnrollmentPeriod: EnrollmentPeriodDto | null
+  combobox: ReturnType<typeof useCombobox>
+}) {
+  return activeEnrollmentPeriod ? (
+    <InputBase
+      w={{ base: '100%', xs: rem(250) }}
+      radius={'md'}
+      component="button"
+      type="button"
+      pointer
+      onClick={() => combobox.toggleDropdown()}
+      rightSection={<Combobox.Chevron />}
+    >
+      <Group gap={rem(5)} c={'dark.5'}>
+        <Text size="sm">
+          {formatToSchoolYear(
+            activeEnrollmentPeriod.startYear,
+            activeEnrollmentPeriod.endYear,
+          )}
+          ,
+        </Text>
+        <Text size="sm" className="capitalize">
+          Term {activeEnrollmentPeriod.term}, {activeEnrollmentPeriod.status}
+        </Text>
+      </Group>
+    </InputBase>
+  ) : (
+    <TextInput
+      miw={rem(250)}
+      radius={'md'}
+      placeholder="Filter by term"
+      onClick={() => combobox.openDropdown()}
+      onBlur={() => combobox.closeDropdown()}
+      rightSection={
+        <Suspense fallback={<Loader size={18} />}>
+          <AsyncTermComboboxQueryProvider>
+            {(props) => null}
+          </AsyncTermComboboxQueryProvider>
+        </Suspense>
+      }
+    />
   )
 }
