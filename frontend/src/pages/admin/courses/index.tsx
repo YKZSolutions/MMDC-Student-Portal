@@ -65,6 +65,7 @@ function AdminCourseDashboardProvider({
       query: {
         search: search || undefined,
         page: page,
+        enrollmentPeriodId: term || undefined,
       },
     }),
   )
