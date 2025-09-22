@@ -8,6 +8,7 @@ import {
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { Box, Button, Group, Title } from '@mantine/core'
+import { randomId } from '@mantine/hooks'
 import { IconPlus } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -69,7 +70,7 @@ function ModulesAdminPage() {
         moduleId: lmsCode,
       },
       body: {
-        title: 'New Section',
+        title: randomId('new-module-section-'),
       },
     })
   }
