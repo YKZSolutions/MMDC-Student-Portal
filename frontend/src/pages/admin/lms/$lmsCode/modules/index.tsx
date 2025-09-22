@@ -64,11 +64,7 @@ function ModulesAdminPage() {
   )
 
   const handleAddContent = async () => {
-    // navigate({
-    //   to: './create',
-    // })
-
-    createSection({
+    await createSection({
       path: {
         moduleId: lmsCode,
       },
