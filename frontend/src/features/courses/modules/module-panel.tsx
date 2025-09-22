@@ -1,15 +1,7 @@
-import SubmitButton from '@/components/submit-button.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import type {
-  ModuleItem,
-  ModuleSection,
-} from '@/features/courses/modules/types.ts'
+import type { ModuleTreeSectionDto } from '@/integrations/api/client'
+import { lmsControllerFindModuleTreeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import {
-  getCompletedItemsCount,
-  getOverdueItemsCount,
-  getSubmissionStatus,
-} from '@/utils/helpers.ts'
 import {
   Accordion,
   ActionIcon,
@@ -19,11 +11,9 @@ import {
   Divider,
   Group,
   Menu,
-  Progress,
   rem,
   Stack,
   Text,
-  ThemeIcon,
   Title,
   Tooltip,
   useMantineTheme,
@@ -35,7 +25,6 @@ import {
   IconDotsVertical,
   IconEdit,
   IconExternalLink,
-  IconEye,
   IconFile,
   IconFileText,
   IconMessageCircle,
@@ -44,7 +33,8 @@ import {
   IconRubberStampOff,
   IconTrash,
 } from '@tabler/icons-react'
-import { useNavigate } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { Fragment, useState } from 'react'
 import { getMockModuleByRole } from '../mocks'
 
@@ -56,9 +46,27 @@ interface ModulePanelProps {
 function ModulePanelQueryProvider({
   children,
 }: {
-  children: () => React.ReactNode
+  children: (props: {
+    moduleSections: ModuleTreeSectionDto[] | null | undefined
+  }) => React.ReactNode
 }) {
-  return children()
+  const { lmsCode } = useParams({ strict: false })
+
+  const { data } = useSuspenseQuery(
+    lmsControllerFindModuleTreeOptions({
+      path: {
+        id: lmsCode || '',
+      },
+    }),
+  )
+
+  const moduleSections = data?.moduleSections
+
+  console.log('Module data:', moduleSections)
+
+  return children({
+    moduleSections,
+  })
 }
 
 function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
@@ -95,91 +103,95 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
       }}
     >
       <Divider />
-      {moduleData.sections.map((section) => (
-        <Fragment key={section.id}>
-          <Accordion.Item py={'sm'} value={section.id}>
-            <CustomAccordionControl
-              item={section}
-              title={section.title}
-              viewMode={viewMode}
-            />
-            <Accordion.Panel>
-              {/* Subsections */}
-              <Accordion
-                multiple
-                value={expandedItems}
-                onChange={setExpandedItems}
-                chevronPosition="left"
-                variant="separated"
-                radius={'md'}
-                styles={{
-                  chevron: {
-                    padding: theme.spacing.sm,
-                  },
-                  // item: {
-                  //   marginBottom: theme.spacing.sm,
-                  // },
-                }}
-              >
-                {section.subsections?.map((subsection) => (
-                  <Accordion.Item
-                    value={subsection.id}
-                    key={subsection.id}
-                    py={'sm'}
-                    bg={'white'}
-                    className="ring-1 ring-gray-200"
+      <ModulePanelQueryProvider>
+        {({ moduleSections }) =>
+          moduleSections?.map((section) => (
+            <Fragment key={section.id}>
+              <Accordion.Item py={'sm'} value={section.id}>
+                <CustomAccordionControl
+                  section={section}
+                  title={section.title}
+                  viewMode={viewMode}
+                />
+                <Accordion.Panel>
+                  {/* Subsections */}
+                  <Accordion
+                    multiple
+                    value={expandedItems}
+                    onChange={setExpandedItems}
+                    chevronPosition="left"
+                    variant="separated"
+                    radius={'md'}
+                    styles={{
+                      chevron: {
+                        padding: theme.spacing.sm,
+                      },
+                      // item: {
+                      //   marginBottom: theme.spacing.sm,
+                      // },
+                    }}
                   >
-                    <CustomAccordionControl
-                      item={subsection}
-                      title={subsection.title}
-                      viewMode={viewMode}
-                      isSubsection
-                    />
+                    {section.subsections?.map((subsection) => (
+                      <Accordion.Item
+                        value={subsection.id}
+                        key={subsection.id}
+                        py={'sm'}
+                        bg={'white'}
+                        className="ring-1 ring-gray-200"
+                      >
+                        <CustomAccordionControl
+                          section={subsection}
+                          title={subsection.title}
+                          viewMode={viewMode}
+                          isSubsection
+                        />
 
-                    <Accordion.Panel>
-                      <Stack gap="xs">
-                        {subsection.items.map((item) => (
-                          <ModuleItemCard
-                            key={item.id}
-                            item={item}
-                            viewMode={viewMode}
-                          />
-                        ))}
-                      </Stack>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                ))}
-              </Accordion>
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Divider />
-        </Fragment>
-      ))}
+                        <Accordion.Panel>
+                          <Stack gap="xs">
+                            {subsection?.subsections?.map((subsection_2) => (
+                              <ModuleItemCard
+                                key={subsection_2.id}
+                                section={subsection_2}
+                                viewMode={viewMode}
+                              />
+                            ))}
+                          </Stack>
+                        </Accordion.Panel>
+                      </Accordion.Item>
+                    ))}
+                  </Accordion>
+                </Accordion.Panel>
+              </Accordion.Item>
+              <Divider />
+            </Fragment>
+          ))
+        }
+      </ModulePanelQueryProvider>
     </Accordion>
   )
 }
 
 interface ModuleItemCardProps {
-  item: ModuleItem
+  section: ModuleTreeSectionDto
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
-function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
+function ModuleItemCard({ section, viewMode }: ModuleItemCardProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
-  const isOverdue =
-    item.type === 'assignment' && item.assignment?.dueDate
-      ? new Date(item.assignment.dueDate) < new Date() &&
-        getSubmissionStatus(item.assignment) === 'pending'
-      : false
+  // const isOverdue =
+  //   item.type === 'assignment' && item.assignment?.dueDate
+  //     ? new Date(item.assignment.dueDate) < new Date() &&
+  //       getSubmissionStatus(item.assignment) === 'pending'
+  //     : false
 
-  const isCompleted =
-    item.type === 'lesson'
-      ? item.progress?.isCompleted
-      : ['graded', 'ready-for-grading', 'submitted'].includes(
-          getSubmissionStatus(item.assignment) || '',
-        )
+  // const isCompleted =
+  //   item.type === 'lesson'
+  //     ? item.progress?.isCompleted
+  //     : ['graded', 'ready-for-grading', 'submitted'].includes(
+  //         getSubmissionStatus(item.assignment) || '',
+  //       )
 
   const getContentTypeIcon = (type: string) => {
     switch (type) {
@@ -202,7 +214,7 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
     navigate({
       from: '/lms/$lmsCode/modules',
       to: `$itemId`,
-      params: { itemId: item.id },
+      params: { itemId: section.id },
     })
   }
 
@@ -223,41 +235,41 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
       <Group align="center" justify="space-between" wrap="nowrap">
         {/* Icon + Title */}
         <Group align="center" gap="sm" wrap="nowrap" flex={1}>
-          <ThemeIcon
+          {/* <ThemeIcon
             size="md"
             variant="light"
             color={isOverdue ? 'red' : isCompleted ? 'green' : 'gray'}
           >
             {getContentTypeIcon(item.type)}
-          </ThemeIcon>
+          </ThemeIcon> */}
 
           <Box flex={1}>
             <Group gap="xs" mb={4}>
               <Text fw={500} size="sm" lineClamp={2}>
-                {item.title}
+                {section.title}
               </Text>
 
-              {item.type && (
+              {/* {item.type && (
                 <Badge size="xs" variant="light" color="gray">
                   {item.type}
                 </Badge>
-              )}
+              )} */}
 
-              {!item.published.isPublished && viewMode !== 'student' && (
+              {!section.publishedAt && viewMode !== 'student' && (
                 <Badge size="xs" variant="outline" color="orange">
                   Draft
                 </Badge>
               )}
 
-              {isOverdue && (
+              {/* {isOverdue && (
                 <Badge size="xs" variant="filled" color="red">
                   Overdue
                 </Badge>
-              )}
+              )} */}
             </Group>
 
             {/* Meta info */}
-            {item.type === 'lesson' && (
+            {/* {item.type === 'lesson' && (
               <Text size="xs" c="dimmed">
                 Reading Material
                 {item.progress?.completedAt && (
@@ -271,9 +283,9 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
                   </>
                 )}
               </Text>
-            )}
+            )} */}
 
-            {item.assignment && (
+            {/* {item.assignment && (
               <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
                 Due{' '}
                 {formatTimestampToDateTimeText(
@@ -282,13 +294,13 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
                 )}{' '}
                 • {item.assignment.points} pts
               </Text>
-            )}
+            )} */}
           </Box>
         </Group>
 
         {/* Right-side Actions */}
         <Box>
-          {viewMode === 'student' && item.type === 'assignment' && (
+          {/* {viewMode === 'student' && item.type === 'assignment' && (
             <SubmitButton
               submissionStatus={
                 getSubmissionStatus(item.assignment) || 'pending'
@@ -298,17 +310,17 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
               assignmentStatus={item.assignment?.status || 'open'}
               isPreview={authUser.role !== 'student'}
             />
-          )}
+          )} */}
 
-          {viewMode === 'mentor' && item.type === 'assignment' && (
+          {/* {viewMode === 'mentor' && item.type === 'assignment' && (
             <Tooltip label="View submissions">
               <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
                 <IconEye size={16} />
               </ActionIcon>
             </Tooltip>
-          )}
+          )} */}
 
-          {viewMode === 'admin' && <AdminActions item={item} />}
+          {viewMode === 'admin' && <AdminActions section={section} />}
         </Box>
       </Group>
     </Card>
@@ -316,7 +328,7 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
 }
 
 type CustomAccordionControlProps = {
-  item: ModuleSection
+  section: ModuleTreeSectionDto
   title: string
   isPreview?: boolean
   isSubsection?: boolean
@@ -325,7 +337,7 @@ type CustomAccordionControlProps = {
 }
 
 function CustomAccordionControl({
-  item,
+  section,
   title,
   isSubsection = false,
   viewMode,
@@ -333,18 +345,18 @@ function CustomAccordionControl({
   ...props
 }: CustomAccordionControlProps) {
   // Derive items for sections or subsections to avoid prop drilling
-  const items: ModuleItem[] =
-    (item.items as ModuleItem[]) ??
-    (item.subsections?.flatMap(
-      (s: ModuleSection) => s.items,
-    ) as ModuleItem[]) ??
-    []
+  // const items: ModuleItem[] =
+  //   (item.items as ModuleItem[]) ??
+  //   (item.subsections?.flatMap(
+  //     (s: ModuleSection) => s.items,
+  //   ) as ModuleItem[]) ??
+  //   []
 
-  const completedItemsCount = getCompletedItemsCount(items)
-  const overdueItemsCount = getOverdueItemsCount(items)
-  const totalItemsCount = items.length
-  const progressPercentage =
-    totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0
+  // const completedItemsCount = getCompletedItemsCount(items)
+  // const overdueItemsCount = getOverdueItemsCount(items)
+  // const totalItemsCount = items.length
+  // const progressPercentage =
+  //   totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0
 
   return (
     <Accordion.Control {...accordionControlProps}>
@@ -355,32 +367,32 @@ function CustomAccordionControl({
               {title}
             </Title>
 
-            {!item.published.isPublished && viewMode !== 'student' && (
+            {!section.publishedAt && viewMode !== 'student' && (
               <Badge size="xs" variant="outline" color="orange">
                 Draft
               </Badge>
             )}
 
-            {overdueItemsCount > 0 && viewMode === 'student' && (
+            {/* {overdueItemsCount > 0 && viewMode === 'student' && (
               <Badge size="xs" variant="filled" color="red">
                 {overdueItemsCount} Overdue
               </Badge>
-            )}
+            )} */}
           </Group>
 
-          {viewMode === 'student' && totalItemsCount > 0 && (
+          {/* {viewMode === 'student' && totalItemsCount > 0 && (
             <Progress
               value={progressPercentage}
               size="sm"
               radius="xl"
               color={progressPercentage === 100 ? 'green' : 'blue'}
             />
-          )}
+          )} */}
 
-          {viewMode !== 'student' && item.published.publishedAt && (
+          {viewMode !== 'student' && section.publishedAt && (
             <Text size="xs" c="dimmed">
               Published{' '}
-              {formatTimestampToDateTimeText(item.published.publishedAt, 'on')}
+              {formatTimestampToDateTimeText(section.publishedAt, 'on')}
             </Text>
           )}
         </Stack>
@@ -393,17 +405,17 @@ function CustomAccordionControl({
           </Tooltip>
         )}
 
-        {viewMode === 'admin' && <AdminActions item={item} />}
+        {viewMode === 'admin' && <AdminActions section={section} />}
       </Group>
     </Accordion.Control>
   )
 }
 
 type AdminActionsProps = {
-  item: ModuleItem | ModuleSection
+  section: ModuleTreeSectionDto
 }
 
-function AdminActions({ item }: AdminActionsProps) {
+function AdminActions({ section }: AdminActionsProps) {
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const handleDelete = () => {} //TODO: implement this
@@ -419,22 +431,20 @@ function AdminActions({ item }: AdminActionsProps) {
         onClose={() => setPublishMenuOpen(false)}
       >
         <Menu.Target>
-          <Tooltip
-            label={item.published.isPublished ? 'Published' : 'Not Published'}
-          >
+          <Tooltip label={section.publishedAt ? 'Published' : 'Not Published'}>
             <ActionIcon
               component="div"
               variant={'subtle'}
-              color={item.published.isPublished ? 'green' : 'gray'}
+              color={section.publishedAt ? 'green' : 'gray'}
               radius="xl"
               size="lg"
               onClick={(e) => {
                 e.stopPropagation()
-                if (item.published.isPublished) {
+                if (section.publishedAt) {
                   navigate({
                     from: '/lms/$lmsCode/modules',
                     to: `$itemId/publish`,
-                    params: { itemId: item.id },
+                    params: { itemId: section.id },
                     search: { scheduled: false, unpublish: true },
                   })
                 } else {
@@ -442,7 +452,7 @@ function AdminActions({ item }: AdminActionsProps) {
                 }
               }}
             >
-              {item.published.isPublished ? (
+              {section.publishedAt ? (
                 <IconRubberStamp size={16} />
               ) : (
                 <IconRubberStampOff size={16} />
@@ -452,14 +462,14 @@ function AdminActions({ item }: AdminActionsProps) {
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Label>Publish Actions</Menu.Label>
-          {!item.published.isPublished && (
+          {!section.publishedAt && (
             <Menu.Item
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({
                   from: '/lms/$lmsCode/modules',
                   to: `$itemId/publish`,
-                  params: { itemId: item.id },
+                  params: { itemId: section.id },
                   search: { scheduled: false, unpublish: false },
                 })
               }}
@@ -474,14 +484,14 @@ function AdminActions({ item }: AdminActionsProps) {
               Publish Now
             </Menu.Item>
           )}
-          {!item.published.isPublished && (
+          {!section.publishedAt && (
             <Menu.Item
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({
                   from: '/lms/$lmsCode/modules',
                   to: `$itemId/publish`,
-                  params: { itemId: item.id },
+                  params: { itemId: section.id },
                   search: { scheduled: true, unpublish: false },
                 })
               }}
@@ -511,7 +521,7 @@ function AdminActions({ item }: AdminActionsProps) {
             navigate({
               from: '/lms/$lmsCode/modules',
               to: `create`,
-              search: { id: item.id },
+              search: { id: section.id },
             })
           }}
         >
@@ -550,7 +560,7 @@ function AdminActions({ item }: AdminActionsProps) {
               navigate({
                 from: '/lms/$lmsCode/modules',
                 to: `edit`,
-                search: { id: item.id },
+                search: { id: section.id },
               })
             }}
           >
