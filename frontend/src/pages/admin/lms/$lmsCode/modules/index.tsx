@@ -1,13 +1,20 @@
 import { useAuth } from '@/features/auth/auth.hook'
-import { getMockModuleByRole } from '@/features/courses/mocks'
 import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
 import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import {
+  lmsControllerFindModuleTreeQueryKey,
+  lmsSectionControllerCreateMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { Box, Button, Group, Title } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 
 const route = getRouteApi('/(protected)/lms/$lmsCode/modules/')
+
+const { queryClient } = getContext()
 
 interface ModulesAdminPageProps {
   module: AdminModule
@@ -20,12 +27,54 @@ function ModulesAdminPage() {
   const { authUser } = useAuth('protected')
   const navigate = route.useNavigate()
   const [allExpanded, setAllExpanded] = useState(false)
-  const module = getMockModuleByRole(authUser.role) //TODO: replace with actual data
 
   const toggleExpandAll = () => setAllExpanded((prev) => !prev)
-  const handleAddContent = () => {
-    navigate({
-      to: './create',
+
+  const { lmsCode } = route.useParams()
+
+  const { mutateAsync: createSection } = useAppMutation(
+    lmsSectionControllerCreateMutation,
+    {
+      loading: {
+        title: 'Creating Section',
+        message: 'Creating new section',
+      },
+      success: {
+        title: 'Created Section',
+        message: 'Successfully created section',
+      },
+      error: {
+        title: 'Failed to Create Section',
+        message: 'There was an error creating the section',
+      },
+    },
+    {
+      // Clears the module tree cache to refetch the updated data
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode },
+        })
+
+        // cancel outgoing refetches
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const handleAddContent = async () => {
+    // navigate({
+    //   to: './create',
+    // })
+
+    createSection({
+      path: {
+        moduleId: lmsCode,
+      },
+      body: {
+        title: 'New Section',
+      },
     })
   }
 
