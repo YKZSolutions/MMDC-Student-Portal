@@ -1,7 +1,6 @@
 import SubmitButton from '@/components/submit-button.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type {
-  Module,
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
@@ -46,34 +45,41 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
+import { getMockModuleByRole } from '../mocks'
 
 interface ModulePanelProps {
-  module: Module
   viewMode: 'student' | 'mentor' | 'admin'
   allExpanded?: boolean
 }
 
-function ModulePanel({
-  module,
-  viewMode,
-  allExpanded = false,
-}: ModulePanelProps) {
+function ModulePanelQueryProvider({
+  children,
+}: {
+  children: () => React.ReactNode
+}) {
+  return children()
+}
+
+function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
+  const { authUser } = useAuth('protected')
+  const moduleData = getMockModuleByRole(authUser.role) //TODO: replace with actual data
+
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
 
   // Update expanded state when allExpanded prop changes
-  useEffect(() => {
-    if (allExpanded) {
-      const allSectionIds = module.sections.map((s) => s.id)
-      const allSubSectionIds = module.sections.flatMap((s) =>
-        s.subsections?.map((sub) => sub.id),
-      )
-      setExpandedItems([...allSectionIds, ...(allSubSectionIds as string[])])
-    } else {
-      setExpandedItems([])
-    }
-  }, [allExpanded])
+  // useEffect(() => {
+  //   if (allExpanded) {
+  //     const allSectionIds = moduleData.sections.map((s) => s.id)
+  //     const allSubSectionIds = moduleData.sections.flatMap((s) =>
+  //       s.subsections?.map((sub) => sub.id),
+  //     )
+  //     setExpandedItems([...allSectionIds, ...(allSubSectionIds as string[])])
+  //   } else {
+  //     setExpandedItems([])
+  //   }
+  // }, [allExpanded])
 
   return (
     <Accordion
@@ -89,7 +95,7 @@ function ModulePanel({
       }}
     >
       <Divider />
-      {module.sections.map((section) => (
+      {moduleData.sections.map((section) => (
         <Fragment key={section.id}>
           <Accordion.Item py={'sm'} value={section.id}>
             <CustomAccordionControl

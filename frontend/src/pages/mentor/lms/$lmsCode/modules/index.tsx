@@ -73,7 +73,6 @@ function ModulesMentorPage() {
 
       {/* Module Content with mentor-specific actions */}
       <ModulePanel
-        module={module}
         viewMode="mentor"
         allExpanded={allExpanded}
       />

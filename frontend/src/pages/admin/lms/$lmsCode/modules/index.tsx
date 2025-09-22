@@ -52,7 +52,7 @@ function ModulesAdminPage() {
       </Group>
 
       {/* Module Content with admin actions */}
-      <ModulePanel module={module} viewMode="admin" allExpanded={allExpanded} />
+      <ModulePanel viewMode="admin" allExpanded={allExpanded} />
     </Box>
   )
 }
