@@ -5,6 +5,8 @@ import {
   lmsControllerFindModuleTreeOptions,
   lmsControllerFindModuleTreeQueryKey,
   lmsSectionControllerCreateMutation,
+  lmsSectionControllerPublishSectionMutation,
+  lmsSectionControllerRemoveMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -26,6 +28,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { randomId } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   IconCalendarTime,
   IconChartBar,
@@ -496,7 +499,98 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
     },
   )
 
-  const handleDelete = () => {} //TODO: implement this
+  const { mutateAsync: deleteSubsection } = useAppMutation(
+    lmsSectionControllerRemoveMutation,
+    {
+      loading: {
+        title: 'Deleting Subsection',
+        message: 'Deleting subsection — please wait',
+      },
+      success: {
+        title: 'Subsection Deleted',
+        message: 'Subsection was deleted successfully',
+      },
+      error: {
+        title: 'Failed to Delete Subsection',
+        message:
+          'There was an error while deleting the subsection. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const { mutateAsync: publishSubsection } = useAppMutation(
+    lmsSectionControllerPublishSectionMutation,
+    {
+      loading: {
+        title: 'Publishing Section',
+        message: 'Publishing section — please wait',
+      },
+      success: {
+        title: 'Section Published',
+        message: 'Section was published successfully',
+      },
+      error: {
+        title: 'Failed to Publish Section',
+        message:
+          'There was an error while publishing the section. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Delete Module Section
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to delete this module section? This action
+          cannot be undone.
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Delete', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await deleteSubsection({
+          path: {
+            moduleSectionId: section.id,
+          },
+          query: {
+            directDelete: true,
+          },
+        })
+      },
+    })
+  }
 
   const handleNewItem = async (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -515,6 +609,41 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
       body: {
         title: randomId('subsection-'),
         parentSectionId: section.id,
+      },
+    })
+  }
+
+  const handlePublishNow = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+    // navigate({
+    //   from: '/lms/$lmsCode/modules',
+    //   to: `$itemId/publish`,
+    //   params: { itemId: section.id },
+    //   search: { scheduled: false, unpublish: false },
+    // })
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Publish Module Section
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to publish this module section?
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Publish', cancel: 'Cancel' },
+      confirmProps: { color: 'green.9' },
+      onConfirm: async () => {
+        await publishSubsection({
+          path: {
+            id: section.id,
+          },
+        })
       },
     })
   }
@@ -561,15 +690,7 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
           <Menu.Label>Publish Actions</Menu.Label>
           {!section.publishedAt && (
             <Menu.Item
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate({
-                  from: '/lms/$lmsCode/modules',
-                  to: `$itemId/publish`,
-                  params: { itemId: section.id },
-                  search: { scheduled: false, unpublish: false },
-                })
-              }}
+              onClick={(e) => handlePublishNow(e)}
               leftSection={
                 <IconRubberStamp
                   size={16}
@@ -661,10 +782,7 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
           <Menu.Item
             color="red"
             leftSection={<IconTrash size={16} stroke={1.5} />}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDelete()
-            }}
+            onClick={(e) => handleDelete(e)}
           >
             Delete
           </Menu.Item>
