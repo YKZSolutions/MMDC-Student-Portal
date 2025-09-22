@@ -1,6 +1,13 @@
+import NoItemFound from '@/components/no-item-found'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import type { ModuleTreeSectionDto } from '@/integrations/api/client'
-import { lmsControllerFindModuleTreeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  lmsControllerFindModuleTreeOptions,
+  lmsControllerFindModuleTreeQueryKey,
+  lmsSectionControllerCreateMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import {
   Accordion,
@@ -18,6 +25,7 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
+import { randomId } from '@mantine/hooks'
 import {
   IconCalendarTime,
   IconChartBar,
@@ -27,6 +35,7 @@ import {
   IconExternalLink,
   IconFile,
   IconFileText,
+  IconInbox,
   IconMessageCircle,
   IconPlus,
   IconRubberStamp,
@@ -37,6 +46,8 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Fragment, useState } from 'react'
 import { getMockModuleByRole } from '../mocks'
+
+const { queryClient } = getContext()
 
 interface ModulePanelProps {
   viewMode: 'student' | 'mentor' | 'admin'
@@ -105,66 +116,93 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
       <Divider />
       <ModulePanelQueryProvider>
         {({ moduleSections }) =>
-          moduleSections?.map((section) => (
-            <Fragment key={section.id}>
-              <Accordion.Item py={'sm'} value={section.id}>
-                <CustomAccordionControl
-                  section={section}
-                  title={section.title}
-                  viewMode={viewMode}
-                />
-                <Accordion.Panel>
-                  {/* Subsections */}
-                  <Accordion
-                    multiple
-                    value={expandedItems}
-                    onChange={setExpandedItems}
-                    chevronPosition="left"
-                    variant="separated"
-                    radius={'md'}
-                    styles={{
-                      chevron: {
-                        padding: theme.spacing.sm,
-                      },
-                      // item: {
-                      //   marginBottom: theme.spacing.sm,
-                      // },
-                    }}
-                  >
-                    {section.subsections?.map((subsection) => (
-                      <Accordion.Item
-                        value={subsection.id}
-                        key={subsection.id}
-                        py={'sm'}
-                        bg={'white'}
-                        className="ring-1 ring-gray-200"
-                      >
-                        <CustomAccordionControl
-                          section={subsection}
-                          title={subsection.title}
-                          viewMode={viewMode}
-                          isSubsection
+          moduleSections == null || moduleSections.length === 0 ? (
+            <NoItemFound
+              icon={<IconInbox size={36} stroke={1.5} />}
+              title="No content yet"
+              subtitle="This module currently has no content."
+            />
+          ) : (
+            moduleSections.map((section) => (
+              <Fragment key={section.id}>
+                <Accordion.Item value={section.id}>
+                  <CustomAccordionControl
+                    section={section}
+                    title={section.title}
+                    viewMode={viewMode}
+                  />
+                  <Accordion.Panel>
+                    {/* Subsections */}
+                    <Accordion
+                      multiple
+                      value={expandedItems}
+                      onChange={setExpandedItems}
+                      chevronPosition="left"
+                      variant="separated"
+                      radius={'md'}
+                      styles={{
+                        chevron: {
+                          padding: theme.spacing.sm,
+                        },
+                        // item: {
+                        //   marginBottom: theme.spacing.sm,
+                        // },
+                      }}
+                    >
+                      {section.subsections == null ||
+                      section.subsections.length === 0 ? (
+                        <NoItemFound
+                          icon={<IconInbox size={36} stroke={1.5} />}
+                          title="No content yet"
+                          subtitle="This module section currently has no content."
                         />
+                      ) : (
+                        section.subsections?.map((subsection) => (
+                          <Accordion.Item
+                            value={subsection.id}
+                            key={subsection.id}
+                            bg={'white'}
+                            className="ring-1 ring-gray-200"
+                          >
+                            <CustomAccordionControl
+                              section={subsection}
+                              title={subsection.title}
+                              viewMode={viewMode}
+                              isSubsection
+                            />
 
-                        <Accordion.Panel>
-                          <Stack gap="xs">
-                            {subsection?.subsections?.map((subsection_2) => (
-                              <ModuleItemCard
-                                key={subsection_2.id}
-                                section={subsection_2}
-                                viewMode={viewMode}
-                              />
-                            ))}
-                          </Stack>
-                        </Accordion.Panel>
-                      </Accordion.Item>
-                    ))}
-                  </Accordion>
-                </Accordion.Panel>
-              </Accordion.Item>
-              <Divider />
-            </Fragment>
-          ))
+                            <Accordion.Panel>
+                              <Stack gap="xs">
+                                {subsection?.subsections == null ||
+                                subsection?.subsections.length === 0 ? (
+                                  <NoItemFound
+                                    icon={<IconInbox size={36} stroke={1.5} />}
+                                    title="No content yet"
+                                    subtitle="This module section currently has no content."
+                                  />
+                                ) : (
+                                  subsection?.subsections?.map(
+                                    (subsection_2) => (
+                                      <ModuleItemCard
+                                        key={subsection_2.id}
+                                        section={subsection_2}
+                                        viewMode={viewMode}
+                                      />
+                                    ),
+                                  )
+                                )}
+                              </Stack>
+                            </Accordion.Panel>
+                          </Accordion.Item>
+                        ))
+                      )}
+                    </Accordion>
+                  </Accordion.Panel>
+                </Accordion.Item>
+                <Divider />
+              </Fragment>
+            ))
+          )
         }
       </ModulePanelQueryProvider>
     </Accordion>
@@ -320,7 +358,9 @@ function ModuleItemCard({ section, viewMode }: ModuleItemCardProps) {
             </Tooltip>
           )} */}
 
-          {viewMode === 'admin' && <AdminActions section={section} />}
+          {viewMode === 'admin' && (
+            <AdminActions isLastSubsection={true} section={section} />
+          )}
         </Box>
       </Group>
     </Card>
@@ -332,6 +372,7 @@ type CustomAccordionControlProps = {
   title: string
   isPreview?: boolean
   isSubsection?: boolean
+  isLastSubsection?: boolean
   viewMode: 'student' | 'mentor' | 'admin'
   accordionControlProps?: any
 }
@@ -340,6 +381,7 @@ function CustomAccordionControl({
   section,
   title,
   isSubsection = false,
+  isLastSubsection = false,
   viewMode,
   accordionControlProps,
   ...props
@@ -359,7 +401,7 @@ function CustomAccordionControl({
   //   totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0
 
   return (
-    <Accordion.Control {...accordionControlProps}>
+    <Accordion.Control py={'sm'} {...accordionControlProps}>
       <Group wrap="nowrap" flex={1}>
         <Stack gap={'xs'} flex={1}>
           <Group gap="xs" mb={4}>
@@ -412,15 +454,70 @@ function CustomAccordionControl({
 }
 
 type AdminActionsProps = {
+  isLastSubsection?: boolean
   section: ModuleTreeSectionDto
 }
 
-function AdminActions({ section }: AdminActionsProps) {
+function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
   const theme = useMantineTheme()
+  const { lmsCode } = useParams({ strict: false })
   const navigate = useNavigate()
-  const handleDelete = () => {} //TODO: implement this
+
   const [publishMenuOpen, setPublishMenuOpen] = useState(false)
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
+
+  const { mutateAsync: createSubsection } = useAppMutation(
+    lmsSectionControllerCreateMutation,
+    {
+      loading: {
+        title: 'Creating Subsection',
+        message: 'Creating new subsection — please wait',
+      },
+      success: {
+        title: 'Subsection Created',
+        message: 'Subsection was created successfully',
+      },
+      error: {
+        title: 'Failed to Create Subsection',
+        message:
+          'There was an error while creating the subsection. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const handleDelete = () => {} //TODO: implement this
+
+  const handleNewItem = async (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+    // navigate({
+    //   from: '/lms/$lmsCode/modules',
+    //   to: `create`,
+    //   search: { id: section.id },
+    // })
+
+    await createSubsection({
+      path: {
+        moduleId: lmsCode || '',
+      },
+      body: {
+        title: randomId('subsection-'),
+        parentSectionId: section.id,
+      },
+    })
+  }
 
   return (
     <Group gap={rem(5)}>
@@ -509,25 +606,20 @@ function AdminActions({ section }: AdminActionsProps) {
         </Menu.Dropdown>
       </Menu>
 
-      <Tooltip label="Add new item">
-        <ActionIcon
-          component="div"
-          variant={'subtle'}
-          color="blue"
-          radius="xl"
-          size="lg"
-          onClick={(e) => {
-            e.stopPropagation()
-            navigate({
-              from: '/lms/$lmsCode/modules',
-              to: `create`,
-              search: { id: section.id },
-            })
-          }}
-        >
-          <IconPlus size={16} />
-        </ActionIcon>
-      </Tooltip>
+      {!isLastSubsection && (
+        <Tooltip label="Add new item">
+          <ActionIcon
+            component="div"
+            variant={'subtle'}
+            color="blue"
+            radius="xl"
+            size="lg"
+            onClick={(e) => handleNewItem(e)}
+          >
+            <IconPlus size={16} />
+          </ActionIcon>
+        </Tooltip>
+      )}
 
       <Menu
         shadow="md"
