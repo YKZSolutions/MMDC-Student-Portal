@@ -1329,8 +1329,8 @@ export const groupControllerUpdate = <ThrowOnError extends boolean = false>(opti
 };
 
 /**
- * Retrieve all majors
- * Retrieves a paginated list of majors based on the provided filters.
+ * Retrive all majors
+ * Retrives a paginated list of majors based on the provided filters.
  * Requires `ADMIN` role.
  */
 export const majorControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<MajorControllerFindAllData, ThrowOnError>) => {
