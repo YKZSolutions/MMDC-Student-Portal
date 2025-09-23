@@ -36,6 +36,18 @@ export class QuizSubmission {
   })
   rawScore: Prisma.Decimal | null;
   @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  gradedAt: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    nullable: true,
+  })
+  grade: Prisma.Decimal | null;
+  @ApiProperty({
     type: () => Object,
     nullable: true,
   })

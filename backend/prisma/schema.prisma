@@ -921,6 +921,9 @@ model QuizSubmission {
   answers  Json // Student's answers
   rawScore Decimal? @db.Decimal(5, 2)
 
+  gradedAt DateTime?
+  grade    Decimal?  @db.Decimal(5, 2) //Final score with adjustments
+
   questionResults Json? // [{questionId, points, score, feedback}]
 
   submittedAt   DateTime @default(now())

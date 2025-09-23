@@ -1,6 +1,12 @@
 import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDecimal, IsEnum, IsInt, IsOptional } from 'class-validator';
+import {
+  IsDateString,
+  IsDecimal,
+  IsEnum,
+  IsInt,
+  IsOptional,
+} from 'class-validator';
 
 export class UpdateQuizSubmissionDto {
   @ApiProperty({
@@ -26,6 +32,24 @@ export class UpdateQuizSubmissionDto {
   @IsOptional()
   @IsDecimal()
   rawScore?: Prisma.Decimal | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  gradedAt?: Date | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDecimal()
+  grade?: Prisma.Decimal | null;
   @ApiProperty({
     type: () => Object,
     required: false,
