@@ -1,22 +1,6 @@
-import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
-export class AssignmentGradeRecordSubmissionIdUniqueInputDto {
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  submissionId: string;
-}
-
-@ApiExtraModels(AssignmentGradeRecordSubmissionIdUniqueInputDto)
 export class ConnectAssignmentGradeRecordDto {
   @ApiProperty({
     type: 'string',
@@ -32,12 +16,4 @@ export class ConnectAssignmentGradeRecordDto {
   @IsOptional()
   @IsString()
   submissionId?: string;
-  @ApiProperty({
-    type: AssignmentGradeRecordSubmissionIdUniqueInputDto,
-    required: false,
-  })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AssignmentGradeRecordSubmissionIdUniqueInputDto)
-  submissionId?: AssignmentGradeRecordSubmissionIdUniqueInputDto;
 }

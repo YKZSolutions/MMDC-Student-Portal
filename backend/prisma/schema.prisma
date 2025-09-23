@@ -1132,7 +1132,7 @@ model AssignmentGradeRecord {
 
   // @DtoApiHidden
   submission   AssignmentSubmission? @relation(fields: [submissionId], references: [id])
-  submissionId String?               @db.Uuid
+  submissionId String?               @unique @db.Uuid
 
   rawScore   Decimal @db.Decimal(5, 2) // Actual grade data
   finalScore Decimal @db.Decimal(5, 2)
@@ -1146,7 +1146,6 @@ model AssignmentGradeRecord {
   /// @DtoReadOnly
   updatedAt DateTime @updatedAt
 
-  @@unique([submissionId])
   @@index([gradingId, studentId])
   @@index([studentId, finalScore])
   @@index([gradedAt])
