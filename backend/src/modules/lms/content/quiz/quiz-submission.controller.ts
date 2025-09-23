@@ -21,7 +21,6 @@ import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator
 import { CreateQuizSubmissionDto } from '@/generated/nestjs-dto/create-quizSubmission.dto';
 import { QuizSubmissionService } from '@/modules/lms/content/quiz/quiz-submission.service';
 import { UpdateQuizSubmissionDto } from '@/generated/nestjs-dto/update-quizSubmission.dto';
-import { ReturnForRevisionDto } from '@/modules/lms/dto/resubmision.dto';
 
 @Controller('quizzes')
 @ApiException(() => [
@@ -123,12 +122,9 @@ export class QuizSubmissionController {
   ])
   async returnQuizSubmissionForRevision(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
-    @Body('feedback') feedback?: ReturnForRevisionDto,
+    @Body('feedback') feedback?: string,
   ) {
-    return this.quizSubmissionService.returnForRevision(
-      submissionId,
-      feedback?.feedback,
-    );
+    return this.quizSubmissionService.returnForRevision(submissionId, feedback);
   }
 
   @Patch(':quizId/submission/:submissionId/resubmit')

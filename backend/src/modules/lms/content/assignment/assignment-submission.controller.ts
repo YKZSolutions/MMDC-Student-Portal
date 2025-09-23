@@ -21,7 +21,6 @@ import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { SubmitAssignmentDto } from '@/modules/lms/dto/submit-assignment.dto';
 import { UpdateAssignmentSubmissionDto } from '@/generated/nestjs-dto/update-assignmentSubmission.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { ReturnForRevisionDto } from '@/modules/lms/dto/resubmision.dto';
 
 @Controller('assignments')
 @ApiException(() => [
@@ -128,11 +127,11 @@ export class AssignmentSubmissionController {
   ])
   async returnAssignmentSubmissionForRevision(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
-    @Body('feedback') feedback?: ReturnForRevisionDto,
+    @Body('feedback') feedback?: string,
   ) {
     return this.assignmentSubmissionService.returnForRevision(
       submissionId,
-      feedback?.feedback,
+      feedback,
     );
   }
 

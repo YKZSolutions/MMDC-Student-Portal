@@ -165,6 +165,96 @@ export class AssignmentSubmissionService {
   }
 
   @Log({
+    logArgsMessage: ({ id }) =>
+      `Returning assignment submission ${id} for revision`,
+    logSuccessMessage: (submission) =>
+      `Assignment submission [${submission.id}] returned for revision.`,
+    logErrorMessage: (err, { id }) =>
+      `Error returning assignment submission ${id} for revision: ${err.message}`,
+  })
+  async returnForRevision(
+    @LogParam('id') id: string,
+    @LogParam('feedback') feedback?: string,
+  ): Promise<AssignmentSubmissionDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid submission ID format');
+    }
+
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id },
+      include: { assignment: true, gradeRecord: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.state !== SubmissionState.GRADED) {
+      throw new ConflictException(
+        'Only graded submissions can be returned for revision',
+      );
+    }
+
+    const submission = await this.prisma.client.assignmentSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.RETURNED,
+        // Store feedback for the student
+        ...(feedback && { feedback }),
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
+    logArgsMessage: ({ id }) =>
+      `Starting resubmission for assignment submission ${id}`,
+    logSuccessMessage: (submission) =>
+      `Assignment submission [${submission.id}] ready for resubmission.`,
+    logErrorMessage: (err, { id }) =>
+      `Error starting resubmission for assignment submission ${id}: ${err.message}`,
+  })
+  async startResubmission(
+    @LogParam('id') id: string,
+  ): Promise<AssignmentSubmissionDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid submission ID format');
+    }
+
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id },
+      include: { assignment: true, gradeRecord: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.state !== SubmissionState.RETURNED) {
+      throw new ConflictException(
+        'Only returned submissions can be resubmitted',
+      );
+    }
+
+    // Validate that student hasn't exceeded max attempts
+    await this.validateAttemptLimit(existing.assignmentId, existing.studentId);
+
+    const submission = await this.prisma.client.assignmentSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.DRAFT,
+        // Reset submission timing for the resubmission
+        submittedAt: null,
+        lateDays: null,
+        // Keep the previous attempt number for tracking
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
     logArgsMessage: ({ id }) => `Updating assignment submission ${id}`,
     logSuccessMessage: (submission) =>
       `Assignment submission [${submission.id}] successfully updated.`,
@@ -357,6 +447,7 @@ export class AssignmentSubmissionService {
       });
 
     if (
+      assignment.maxAttempts !== null &&
       assignment.maxAttempts > 0 &&
       previousSubmissions >= assignment.maxAttempts
     ) {
@@ -369,21 +460,36 @@ export class AssignmentSubmissionService {
   private validateDeadline(
     assignment: PrismaAssignment,
     isFinalSubmission: boolean,
-  ): { isLate: boolean; lateDays?: number; penalty?: number } {
+  ): {
+    isLate: boolean;
+    inGrace: boolean;
+    lateDays?: number;
+    penalty?: number;
+  } {
     if (!isFinalSubmission) {
-      return { isLate: false };
+      return { isLate: false, inGrace: false };
     }
 
     const now = new Date();
 
     if (!assignment.dueDate) {
-      return { isLate: false };
+      return { isLate: false, inGrace: false };
     }
 
+    // Calculate grace period end
+    const gracePeriodMs = (assignment.gracePeriodMinutes || 0) * 60000;
+    const graceEnd = new Date(assignment.dueDate.getTime() + gracePeriodMs);
+
+    // Check submission timing
     if (now <= assignment.dueDate) {
-      return { isLate: false };
+      return { isLate: false, inGrace: false }; // On time
     }
 
+    if (now <= graceEnd) {
+      return { isLate: false, inGrace: true }; // Within grace period
+    }
+
+    // Late submission after grace period
     if (!assignment.allowLateSubmission) {
       throw new BadRequestException(
         'Late submissions are not allowed for this assignment',
@@ -397,7 +503,7 @@ export class AssignmentSubmissionService {
       ? lateDays * Number(assignment.latePenalty)
       : 0;
 
-    return { isLate: true, lateDays, penalty };
+    return { isLate: true, inGrace: false, lateDays, penalty };
   }
 
   private async calculateAttemptNumber(

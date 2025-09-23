@@ -205,6 +205,95 @@ export class QuizSubmissionService {
   }
 
   @Log({
+    logArgsMessage: ({ id }) => `Returning quiz submission ${id} for revision`,
+    logSuccessMessage: (submission) =>
+      `Quiz submission [${submission.id}] returned for revision.`,
+    logErrorMessage: (err, { id }) =>
+      `Error returning quiz submission ${id} for revision: ${err.message}`,
+  })
+  async returnForRevision(
+    @LogParam('id') id: string,
+    @LogParam('feedback') feedback?: string,
+  ): Promise<QuizSubmissionDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid submission ID format');
+    }
+
+    const existing = await this.prisma.client.quizSubmission.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Quiz submission not found');
+    }
+
+    if (existing.state !== SubmissionState.GRADED) {
+      throw new ConflictException(
+        'Only graded quiz submissions can be returned for revision',
+      );
+    }
+
+    const submission = await this.prisma.client.quizSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.RETURNED,
+        ...(feedback && { feedback }),
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
+    logArgsMessage: ({ id }) =>
+      `Starting resubmission for quiz submission ${id}`,
+    logSuccessMessage: (submission) =>
+      `Quiz submission [${submission.id}] ready for resubmission.`,
+    logErrorMessage: (err, { id }) =>
+      `Error starting resubmission for quiz submission ${id}: ${err.message}`,
+  })
+  async startResubmission(
+    @LogParam('id') id: string,
+  ): Promise<QuizSubmissionDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid submission ID format');
+    }
+
+    const existing = await this.prisma.client.quizSubmission.findUnique({
+      where: { id },
+      include: { quiz: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Quiz submission not found');
+    }
+
+    if (existing.state !== SubmissionState.RETURNED) {
+      throw new ConflictException(
+        'Only returned quiz submissions can be resubmitted',
+      );
+    }
+
+    await this.validateQuizAttemptLimit(existing.quizId, existing.studentId);
+
+    const submission = await this.prisma.client.quizSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.DRAFT,
+        submittedAt: null,
+        lateDays: null,
+        // Reset grading information
+        gradedAt: null,
+        grade: null,
+        rawScore: null,
+        questionResults: null,
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
     logArgsMessage: ({ id, role, userId }) =>
       `Fetching quiz submission ${id} for ${role} ${userId}`,
     logSuccessMessage: (submission) =>
@@ -316,7 +405,11 @@ export class QuizSubmissionService {
       },
     });
 
-    if (quiz.maxAttempts > 0 && previousSubmissions >= quiz.maxAttempts) {
+    if (
+      quiz.maxAttempts !== null &&
+      quiz.maxAttempts > 0 &&
+      previousSubmissions >= quiz.maxAttempts
+    ) {
       throw new ConflictException(
         `Maximum quiz attempts (${quiz.maxAttempts}) exceeded`,
       );
@@ -326,19 +419,32 @@ export class QuizSubmissionService {
   private validateQuizDeadline(
     quiz: Quiz,
     isFinalSubmission: boolean,
-  ): { isLate: boolean; lateDays?: number; penalty?: number } {
+  ): {
+    isLate: boolean;
+    inGrace: boolean;
+    lateDays?: number;
+    penalty?: number;
+  } {
     if (!isFinalSubmission) {
-      return { isLate: false };
+      return { isLate: false, inGrace: false };
     }
 
     const now = new Date();
 
     if (!quiz.dueDate) {
-      return { isLate: false };
+      return { isLate: false, inGrace: false };
     }
 
+    // Calculate grace period end
+    const gracePeriodMs = (quiz.gracePeriodMinutes || 0) * 60000;
+    const graceEnd = new Date(quiz.dueDate.getTime() + gracePeriodMs);
+
     if (now <= quiz.dueDate) {
-      return { isLate: false };
+      return { isLate: false, inGrace: false };
+    }
+
+    if (now <= graceEnd) {
+      return { isLate: false, inGrace: true };
     }
 
     if (!quiz.allowLateSubmission) {
@@ -352,7 +458,7 @@ export class QuizSubmissionService {
     );
     const penalty = quiz.latePenalty ? lateDays * Number(quiz.latePenalty) : 0;
 
-    return { isLate: true, lateDays, penalty };
+    return { isLate: true, inGrace: false, lateDays, penalty };
   }
 
   private async calculateQuizAttemptNumber(
