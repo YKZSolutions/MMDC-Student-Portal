@@ -1,8 +1,18 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsDateString, IsInt, IsOptional } from 'class-validator';
 
 export class UpdateSectionModuleDto {
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  order?: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

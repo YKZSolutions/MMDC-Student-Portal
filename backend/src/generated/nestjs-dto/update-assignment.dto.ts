@@ -1,6 +1,14 @@
-import { Prisma } from '@prisma/client';
+import { AssignmentMode, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsDecimal,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class UpdateAssignmentDto {
   @ApiProperty({
@@ -26,6 +34,45 @@ export class UpdateAssignmentDto {
   @IsOptional()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
+    enum: AssignmentMode,
+    enumName: 'AssignmentMode',
+    default: 'INDIVIDUAL',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsEnum(AssignmentMode)
+  mode?: AssignmentMode | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 1,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  maxAttempts?: number | null;
+  @ApiProperty({
+    type: 'boolean',
+    default: false,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowLateSubmission?: boolean | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDecimal()
+  latePenalty?: Prisma.Decimal | null;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
     required: false,
@@ -34,4 +81,14 @@ export class UpdateAssignmentDto {
   @IsOptional()
   @IsDateString()
   dueDate?: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  gracePeriodMinutes?: number | null;
 }

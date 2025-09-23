@@ -22,12 +22,14 @@ export class DiscussionDto {
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  isThreaded: boolean;
+  isThreaded: boolean | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  requirePost: boolean;
+  requirePost: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

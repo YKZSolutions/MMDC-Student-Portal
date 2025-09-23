@@ -72,8 +72,9 @@ export class QuizSubmission {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  attemptNumber: number;
+  attemptNumber: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -1,7 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsDateString,
+  IsDecimal,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -31,12 +33,42 @@ export class CreateQuizDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    default: 60,
     required: false,
     nullable: true,
   })
   @IsOptional()
   @IsInt()
   timeLimit?: number | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 1,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  maxAttempts?: number | null;
+  @ApiProperty({
+    type: 'boolean',
+    default: false,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowLateSubmission?: boolean | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDecimal()
+  latePenalty?: Prisma.Decimal | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -46,6 +78,16 @@ export class CreateQuizDto {
   @IsOptional()
   @IsDateString()
   dueDate?: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  gracePeriodMinutes?: number | null;
   @ApiProperty({
     type: () => Object,
   })
