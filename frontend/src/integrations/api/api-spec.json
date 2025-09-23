@@ -15653,8 +15653,7 @@
           "latePenalty": {
             "type": "string",
             "nullable": true,
-            "format": "Decimal.js",
-            "default": 0
+            "format": "Decimal.js"
           },
           "dueDate": {
             "type": "string",
@@ -15703,8 +15702,7 @@
           "latePenalty": {
             "type": "string",
             "nullable": true,
-            "format": "Decimal.js",
-            "default": 0
+            "format": "Decimal.js"
           },
           "dueDate": {
             "type": "string",

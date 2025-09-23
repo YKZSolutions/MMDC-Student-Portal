@@ -1499,9 +1499,9 @@ export const zCreateAssignmentDto = z.object({
     ])),
     allowLateSubmission: z.boolean(),
     latePenalty: z.optional(z.union([
-        z.string().default(0),
+        z.string(),
         z.null()
-    ])).default(0),
+    ])),
     dueDate: z.optional(z.union([
         z.iso.datetime(),
         z.null()
@@ -1529,9 +1529,9 @@ export const zCreateQuizDto = z.object({
     ])),
     allowLateSubmission: z.boolean(),
     latePenalty: z.optional(z.union([
-        z.string().default(0),
+        z.string(),
         z.null()
-    ])).default(0),
+    ])),
     dueDate: z.optional(z.union([
         z.iso.datetime(),
         z.null()
