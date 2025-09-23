@@ -48,8 +48,9 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { Fragment, useState } from 'react'
+import { Fragment, Suspense, useState } from 'react'
 import { getMockModuleByRole } from '../mocks'
+import { ModulePanelSuspense } from '../suspense'
 
 const { queryClient } = getContext()
 
@@ -118,97 +119,101 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
       }}
     >
       <Divider />
-      <ModulePanelQueryProvider>
-        {({ moduleSections }) =>
-          moduleSections == null || moduleSections.length === 0 ? (
-            <NoItemFound
-              icon={<IconInbox size={36} stroke={1.5} />}
-              title="No content yet"
-              subtitle="This module currently has no content."
-            />
-          ) : (
-            moduleSections.map((section) => (
-              <Fragment key={section.id}>
-                <Accordion.Item value={section.id}>
-                  <CustomAccordionControl
-                    section={section}
-                    title={section.title}
-                    viewMode={viewMode}
-                  />
-                  <Accordion.Panel>
-                    {/* Subsections */}
-                    <Accordion
-                      multiple
-                      value={expandedItems}
-                      onChange={setExpandedItems}
-                      chevronPosition="left"
-                      variant="separated"
-                      radius={'md'}
-                      styles={{
-                        chevron: {
-                          padding: theme.spacing.sm,
-                        },
-                        // item: {
-                        //   marginBottom: theme.spacing.sm,
-                        // },
-                      }}
-                    >
-                      {section.subsections == null ||
-                      section.subsections.length === 0 ? (
-                        <NoItemFound
-                          icon={<IconInbox size={36} stroke={1.5} />}
-                          title="No content yet"
-                          subtitle="This module section currently has no content."
-                        />
-                      ) : (
-                        section.subsections?.map((subsection) => (
-                          <Accordion.Item
-                            value={subsection.id}
-                            key={subsection.id}
-                            bg={'white'}
-                            className="ring-1 ring-gray-200"
-                          >
-                            <CustomAccordionControl
-                              section={subsection}
-                              title={subsection.title}
-                              viewMode={viewMode}
-                              isSubsection
-                            />
+      <Suspense fallback={<ModulePanelSuspense />}>
+        <ModulePanelQueryProvider>
+          {({ moduleSections }) =>
+            moduleSections == null || moduleSections.length === 0 ? (
+              <NoItemFound
+                icon={<IconInbox size={36} stroke={1.5} />}
+                title="No content yet"
+                subtitle="This module currently has no content."
+              />
+            ) : (
+              moduleSections.map((section) => (
+                <Fragment key={section.id}>
+                  <Accordion.Item value={section.id}>
+                    <CustomAccordionControl
+                      section={section}
+                      title={section.title}
+                      viewMode={viewMode}
+                    />
+                    <Accordion.Panel>
+                      {/* Subsections */}
+                      <Accordion
+                        multiple
+                        value={expandedItems}
+                        onChange={setExpandedItems}
+                        chevronPosition="left"
+                        variant="separated"
+                        radius={'md'}
+                        styles={{
+                          chevron: {
+                            padding: theme.spacing.sm,
+                          },
+                          // item: {
+                          //   marginBottom: theme.spacing.sm,
+                          // },
+                        }}
+                      >
+                        {section.subsections == null ||
+                        section.subsections.length === 0 ? (
+                          <NoItemFound
+                            icon={<IconInbox size={36} stroke={1.5} />}
+                            title="No content yet"
+                            subtitle="This module section currently has no content."
+                          />
+                        ) : (
+                          section.subsections?.map((subsection) => (
+                            <Accordion.Item
+                              value={subsection.id}
+                              key={subsection.id}
+                              bg={'white'}
+                              className="ring-1 ring-gray-200"
+                            >
+                              <CustomAccordionControl
+                                section={subsection}
+                                title={subsection.title}
+                                viewMode={viewMode}
+                                isSubsection
+                              />
 
-                            <Accordion.Panel>
-                              <Stack gap="xs">
-                                {subsection?.subsections == null ||
-                                subsection?.subsections.length === 0 ? (
-                                  <NoItemFound
-                                    icon={<IconInbox size={36} stroke={1.5} />}
-                                    title="No content yet"
-                                    subtitle="This module section currently has no content."
-                                  />
-                                ) : (
-                                  subsection?.subsections?.map(
-                                    (subsection_2) => (
-                                      <ModuleItemCard
-                                        key={subsection_2.id}
-                                        section={subsection_2}
-                                        viewMode={viewMode}
-                                      />
-                                    ),
-                                  )
-                                )}
-                              </Stack>
-                            </Accordion.Panel>
-                          </Accordion.Item>
-                        ))
-                      )}
-                    </Accordion>
-                  </Accordion.Panel>
-                </Accordion.Item>
-                <Divider />
-              </Fragment>
-            ))
-          )
-        }
-      </ModulePanelQueryProvider>
+                              <Accordion.Panel>
+                                <Stack gap="xs">
+                                  {subsection?.subsections == null ||
+                                  subsection?.subsections.length === 0 ? (
+                                    <NoItemFound
+                                      icon={
+                                        <IconInbox size={36} stroke={1.5} />
+                                      }
+                                      title="No content yet"
+                                      subtitle="This module section currently has no content."
+                                    />
+                                  ) : (
+                                    subsection?.subsections?.map(
+                                      (subsection_2) => (
+                                        <ModuleItemCard
+                                          key={subsection_2.id}
+                                          section={subsection_2}
+                                          viewMode={viewMode}
+                                        />
+                                      ),
+                                    )
+                                  )}
+                                </Stack>
+                              </Accordion.Panel>
+                            </Accordion.Item>
+                          ))
+                        )}
+                      </Accordion>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                  <Divider />
+                </Fragment>
+              ))
+            )
+          }
+        </ModulePanelQueryProvider>
+      </Suspense>
     </Accordion>
   )
 }
