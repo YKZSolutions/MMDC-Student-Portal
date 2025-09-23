@@ -76,9 +76,8 @@ export class AssignmentSubmission {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  attemptNumber: number | null;
+  attemptNumber: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

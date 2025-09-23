@@ -42,16 +42,6 @@ export class CreateAssignmentSubmissionDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    default: 1,
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsInt()
-  attemptNumber?: number | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
     required: false,
     nullable: true,
   })

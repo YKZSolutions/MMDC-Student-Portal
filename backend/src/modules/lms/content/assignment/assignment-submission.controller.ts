@@ -11,6 +11,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  Patch,
 } from '@nestjs/common';
 import { AssignmentSubmissionService } from '@/modules/lms/content/assignment/assignment-submission.service';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -20,6 +21,7 @@ import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { SubmitAssignmentDto } from '@/modules/lms/dto/submit-assignment.dto';
 import { UpdateAssignmentSubmissionDto } from '@/generated/nestjs-dto/update-assignmentSubmission.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import { ReturnForRevisionDto } from '@/modules/lms/dto/resubmision.dto';
 
 @Controller('assignments')
 @ApiException(() => [
@@ -114,5 +116,37 @@ export class AssignmentSubmissionController {
       role,
       user_id,
     );
+  }
+
+  @Patch(':assignmentId/submission/:submissionId/return')
+  @Roles(Role.MENTOR, Role.ADMIN)
+  @ApiException(() => [
+    NotFoundException,
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  async returnAssignmentSubmissionForRevision(
+    @Param('submissionId', ParseUUIDPipe) submissionId: string,
+    @Body('feedback') feedback?: ReturnForRevisionDto,
+  ) {
+    return this.assignmentSubmissionService.returnForRevision(
+      submissionId,
+      feedback?.feedback,
+    );
+  }
+
+  @Patch(':assignmentId/submission/:submissionId/resubmit')
+  @Roles(Role.STUDENT)
+  @ApiException(() => [
+    NotFoundException,
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  async startAssignmentResubmission(
+    @Param('submissionId', ParseUUIDPipe) submissionId: string,
+  ) {
+    return this.assignmentSubmissionService.startResubmission(submissionId);
   }
 }

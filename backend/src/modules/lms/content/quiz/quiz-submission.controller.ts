@@ -11,6 +11,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  Patch,
 } from '@nestjs/common';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
@@ -20,6 +21,7 @@ import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator
 import { CreateQuizSubmissionDto } from '@/generated/nestjs-dto/create-quizSubmission.dto';
 import { QuizSubmissionService } from '@/modules/lms/content/quiz/quiz-submission.service';
 import { UpdateQuizSubmissionDto } from '@/generated/nestjs-dto/update-quizSubmission.dto';
+import { ReturnForRevisionDto } from '@/modules/lms/dto/resubmision.dto';
 
 @Controller('quizzes')
 @ApiException(() => [
@@ -109,5 +111,37 @@ export class QuizSubmissionController {
   ) {
     const { role, user_id } = user.user_metadata;
     return this.quizSubmissionService.findByQuiz(quizId, role, user_id);
+  }
+
+  @Patch(':quizId/submission/:submissionId/return')
+  @Roles(Role.MENTOR, Role.ADMIN)
+  @ApiException(() => [
+    NotFoundException,
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  async returnQuizSubmissionForRevision(
+    @Param('submissionId', ParseUUIDPipe) submissionId: string,
+    @Body('feedback') feedback?: ReturnForRevisionDto,
+  ) {
+    return this.quizSubmissionService.returnForRevision(
+      submissionId,
+      feedback?.feedback,
+    );
+  }
+
+  @Patch(':quizId/submission/:submissionId/resubmit')
+  @Roles(Role.STUDENT)
+  @ApiException(() => [
+    NotFoundException,
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  async startQuizResubmission(
+    @Param('submissionId', ParseUUIDPipe) submissionId: string,
+  ) {
+    return this.quizSubmissionService.startResubmission(submissionId);
   }
 }

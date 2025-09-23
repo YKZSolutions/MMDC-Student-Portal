@@ -766,7 +766,7 @@ model Assignment {
 
   mode AssignmentMode? @default(INDIVIDUAL)
 
-  maxAttempts         Int?      @default(1) @db.SmallInt
+  maxAttempts         Int?      @db.SmallInt
   allowLateSubmission Boolean?  @default(false)
   latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
   dueDate             DateTime?
@@ -842,7 +842,7 @@ model AssignmentSubmission {
   /// Text submission
   content       Json?
   submittedAt   DateTime?
-  attemptNumber Int?      @default(1) @db.SmallInt
+  attemptNumber Int       @default(1) @db.SmallInt
 
   // Late submission tracking
   lateDays Int? @db.SmallInt
@@ -888,7 +888,7 @@ model Quiz {
   content         Json // Structured quiz content (eg. description, instructions, etc.)
 
   timeLimit           Int?      @default(0) // in minutes
-  maxAttempts         Int?      @default(1) @db.SmallInt
+  maxAttempts         Int?      @db.SmallInt
   allowLateSubmission Boolean?  @default(false)
   latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
   dueDate             DateTime?
@@ -932,7 +932,7 @@ model QuizSubmission {
 
   submittedAt   DateTime? @default(now())
   timeSpent     Int? // in seconds
-  attemptNumber Int?      @default(1) @db.SmallInt
+  attemptNumber Int       @default(1) @db.SmallInt
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
