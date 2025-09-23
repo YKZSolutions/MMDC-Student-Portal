@@ -7,6 +7,7 @@ import {
   lmsSectionControllerCreateMutation,
   lmsSectionControllerPublishSectionMutation,
   lmsSectionControllerRemoveMutation,
+  lmsSectionControllerUnpublishSectionMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -559,6 +560,36 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
     },
   )
 
+  const { mutateAsync: unpublishSubsection } = useAppMutation(
+    lmsSectionControllerUnpublishSectionMutation,
+    {
+      loading: {
+        title: 'Unpublishing Section',
+        message: 'Unpublishing section — please wait',
+      },
+      success: {
+        title: 'Section Unpublished',
+        message: 'Section was unpublished successfully',
+      },
+      error: {
+        title: 'Failed to Unpublish Section',
+        message:
+          'There was an error while unpublishing the section. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
   const handleDelete = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
@@ -648,35 +679,50 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
     })
   }
 
+  const handleUnpublish = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Unpublish Module Section
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to unpublish this module section? This will hide
+          the section from students.
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Unpublish', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await unpublishSubsection({
+          path: {
+            id: section.id,
+          },
+        })
+      },
+    })
+  }
+
   return (
     <Group gap={rem(5)}>
-      <Menu
-        shadow="md"
-        width={200}
-        opened={publishMenuOpen}
-        onClose={() => setPublishMenuOpen(false)}
-      >
+      <Menu shadow="md" width={200} withinPortal>
         <Menu.Target>
-          <Tooltip label={section.publishedAt ? 'Published' : 'Not Published'}>
+          <Tooltip
+            onClick={(e) => e.stopPropagation()}
+            label={section.publishedAt ? 'Published' : 'Not Published'}
+          >
             <ActionIcon
               component="div"
               variant={'subtle'}
               color={section.publishedAt ? 'green' : 'gray'}
               radius="xl"
               size="lg"
-              onClick={(e) => {
-                e.stopPropagation()
-                if (section.publishedAt) {
-                  navigate({
-                    from: '/lms/$lmsCode/modules',
-                    to: `$itemId/publish`,
-                    params: { itemId: section.id },
-                    search: { scheduled: false, unpublish: true },
-                  })
-                } else {
-                  setPublishMenuOpen(true)
-                }
-              }}
             >
               {section.publishedAt ? (
                 <IconRubberStamp size={16} />
@@ -702,6 +748,7 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
               Publish Now
             </Menu.Item>
           )}
+
           {!section.publishedAt && (
             <Menu.Item
               onClick={(e) => {
@@ -722,6 +769,21 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
               }
             >
               Schedule Publish
+            </Menu.Item>
+          )}
+
+          {section.publishedAt && (
+            <Menu.Item
+              onClick={(e) => handleUnpublish(e)}
+              leftSection={
+                <IconRubberStampOff
+                  size={16}
+                  stroke={1.5}
+                  color={theme.colors.blue[6]}
+                />
+              }
+            >
+              Unpublish
             </Menu.Item>
           )}
         </Menu.Dropdown>
