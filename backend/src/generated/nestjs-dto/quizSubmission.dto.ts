@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class QuizSubmissionDto {
@@ -6,6 +6,11 @@ export class QuizSubmissionDto {
     type: 'string',
   })
   id: string;
+  @ApiProperty({
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
+  })
+  state: SubmissionState;
   @ApiProperty({
     type: () => Object,
   })

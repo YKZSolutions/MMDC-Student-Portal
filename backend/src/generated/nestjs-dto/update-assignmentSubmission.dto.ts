@@ -1,8 +1,16 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsOptional } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional } from 'class-validator';
 
 export class UpdateAssignmentSubmissionDto {
+  @ApiProperty({
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(SubmissionState)
+  state?: SubmissionState;
   @ApiProperty({
     type: () => Object,
     required: false,
