@@ -22,6 +22,7 @@ import {
   Quiz,
   SubmissionState,
   QuizSubmission as PrismaQuizSubmission,
+  Role,
 } from '@prisma/client';
 import { CreateQuizSubmissionDto } from '@/generated/nestjs-dto/create-quizSubmission.dto';
 import { UpdateQuizSubmissionDto } from '@/generated/nestjs-dto/update-quizSubmission.dto';
@@ -85,7 +86,8 @@ export class QuizSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Updating quiz submission ${id}`,
+    logArgsMessage: ({ id, userId }) =>
+      `Updating quiz submission ${id} for user ${userId}`,
     logSuccessMessage: (submission) =>
       `Quiz submission [${submission.id}] successfully updated.`,
     logErrorMessage: (err, { id }) =>
@@ -97,15 +99,16 @@ export class QuizSubmissionService {
   })
   async update(
     @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
     @LogParam('dto') dto: UpdateQuizSubmissionDto,
   ): Promise<QuizSubmissionDto> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
 
     // Check if submission can be modified
     const existing = await this.prisma.client.quizSubmission.findUnique({
-      where: { id },
+      where: { id, studentId: userId },
       include: { quiz: true },
     });
 
@@ -134,7 +137,8 @@ export class QuizSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Finalizing quiz submission ${id}`,
+    logArgsMessage: ({ id, userId }) =>
+      `Finalizing quiz submission ${id} for user ${userId}`,
     logSuccessMessage: (submission) =>
       `Quiz submission [${submission.id}] successfully finalized.`,
     logErrorMessage: (err, { id }) =>
@@ -142,13 +146,14 @@ export class QuizSubmissionService {
   })
   async finalizeSubmission(
     @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
   ): Promise<QuizSubmissionDto> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
 
     const existing = await this.prisma.client.quizSubmission.findUnique({
-      where: { id },
+      where: { id, studentId: userId },
       include: { quiz: true },
     });
 
@@ -200,7 +205,8 @@ export class QuizSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Fetching quiz submission ${id}`,
+    logArgsMessage: ({ id, role, userId }) =>
+      `Fetching quiz submission ${id} for ${role} ${userId}`,
     logSuccessMessage: (submission) =>
       `Quiz submission [${submission.id}] successfully fetched.`,
     logErrorMessage: (err, { id }) =>
@@ -210,12 +216,16 @@ export class QuizSubmissionService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Quiz submission not found'),
   })
-  async findById(@LogParam('id') id: string): Promise<QuizSubmission> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+  async findById(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
+  ): Promise<QuizSubmission> {
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
     const result = await this.prisma.client.quizSubmission.findUniqueOrThrow({
-      where: { id },
+      where: { id, ...(role === Role.student && { studentId: userId }) },
     });
 
     return {
@@ -226,34 +236,8 @@ export class QuizSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ quizId, studentId }) =>
-      `Fetching quiz submissions for quiz ${quizId} and student ${studentId}`,
-    logSuccessMessage: (submissions) =>
-      `Fetched ${submissions.length} quiz submissions.`,
-    logErrorMessage: (err, { quizId, studentId }) =>
-      `Error fetching quiz submissions for quiz ${quizId} and student ${studentId}: ${err.message}`,
-  })
-  async findByQuizAndStudent(
-    @LogParam('quizId') quizId: string,
-    @LogParam('studentId') studentId: string,
-  ): Promise<QuizSubmission[]> {
-    if (!isUUID(quizId) || !isUUID(studentId)) {
-      throw new BadRequestException('Invalid quiz or student ID format');
-    }
-    const results = await this.prisma.client.quizSubmission.findMany({
-      where: { quizId, studentId },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return results.map((r) => ({
-      ...r,
-      answers: r.answers as Prisma.JsonValue,
-      questionResults: r.questionResults as Prisma.JsonValue,
-    }));
-  }
-
-  @Log({
-    logArgsMessage: ({ quizId }) =>
-      `Fetching all submissions for quiz ${quizId}`,
+    logArgsMessage: ({ quizId, role, userId }) =>
+      `Fetching all submissions for quiz ${quizId} for ${role} ${userId}`,
     logSuccessMessage: (submissions) =>
       `Fetched ${submissions.length} submissions for quiz.`,
     logErrorMessage: (err, { quizId }) =>
@@ -261,37 +245,14 @@ export class QuizSubmissionService {
   })
   async findByQuiz(
     @LogParam('quizId') quizId: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
   ): Promise<QuizSubmission[]> {
-    if (!isUUID(quizId)) {
-      throw new BadRequestException('Invalid quiz ID format');
+    if (!isUUID(quizId) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid quiz ID or user ID format');
     }
     const results = await this.prisma.client.quizSubmission.findMany({
-      where: { quizId },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return results.map((r) => ({
-      ...r,
-      answers: r.answers as Prisma.JsonValue,
-      questionResults: r.questionResults as Prisma.JsonValue,
-    }));
-  }
-
-  @Log({
-    logArgsMessage: ({ studentId }) =>
-      `Fetching all quiz submissions for student ${studentId}`,
-    logSuccessMessage: (submissions) =>
-      `Fetched ${submissions.length} quiz submissions for student.`,
-    logErrorMessage: (err, { studentId }) =>
-      `Error fetching quiz submissions for student ${studentId}: ${err.message}`,
-  })
-  async findByStudent(
-    @LogParam('studentId') studentId: string,
-  ): Promise<QuizSubmission[]> {
-    if (!isUUID(studentId)) {
-      throw new BadRequestException('Invalid student ID format');
-    }
-    const results = await this.prisma.client.quizSubmission.findMany({
-      where: { studentId },
+      where: { quizId, ...(role === Role.student && { studentId: userId }) },
       orderBy: { submittedAt: 'desc' },
     });
     return results.map((r) => ({

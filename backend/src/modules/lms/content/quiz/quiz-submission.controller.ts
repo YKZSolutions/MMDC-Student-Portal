@@ -58,8 +58,10 @@ export class QuizSubmissionController {
   async updateQuizSubmission(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
     @Body() dto: UpdateQuizSubmissionDto,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.quizSubmissionService.update(submissionId, dto);
+    const { user_id } = user.user_metadata;
+    return this.quizSubmissionService.update(submissionId, user_id, dto);
   }
 
   @Post(':quizId/submission/:submissionId/finalize')
@@ -73,8 +75,10 @@ export class QuizSubmissionController {
   ])
   async finalizeQuizSubmission(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.quizSubmissionService.finalizeSubmission(submissionId);
+    const { user_id } = user.user_metadata;
+    return this.quizSubmissionService.finalizeSubmission(submissionId, user_id);
   }
 
   @Get(':quizId/submission/:submissionId')
@@ -86,8 +90,10 @@ export class QuizSubmissionController {
   ])
   async getQuizSubmission(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.quizSubmissionService.findById(submissionId);
+    const { role, user_id } = user.user_metadata;
+    return this.quizSubmissionService.findById(submissionId, role, user_id);
   }
 
   @Get(':quizId/submission/')
@@ -99,12 +105,9 @@ export class QuizSubmissionController {
   ])
   async getQuizSubmissions(
     @Param('quizId', ParseUUIDPipe) quizId: string,
-    @CurrentUser() user?: CurrentAuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    if (user) {
-      const { user_id } = user.user_metadata;
-      return this.quizSubmissionService.findByQuizAndStudent(quizId, user_id);
-    }
-    return this.quizSubmissionService.findByQuiz(quizId);
+    const { role, user_id } = user.user_metadata;
+    return this.quizSubmissionService.findByQuiz(quizId, role, user_id);
   }
 }
