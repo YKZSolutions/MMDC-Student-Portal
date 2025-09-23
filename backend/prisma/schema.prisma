@@ -926,6 +926,8 @@ model QuizSubmission {
 
   questionResults Json? // [{questionId, points, score, feedback}]
 
+  lateDays Int? @db.SmallInt
+
   submittedAt   DateTime @default(now())
   timeSpent     Int? // in seconds
   attemptNumber Int      @default(1) @db.SmallInt

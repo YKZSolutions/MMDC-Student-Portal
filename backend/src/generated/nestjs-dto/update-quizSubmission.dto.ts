@@ -65,5 +65,14 @@ export class UpdateQuizSubmissionDto {
   })
   @IsOptional()
   @IsInt()
+  lateDays?: number | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
   timeSpent?: number | null;
 }

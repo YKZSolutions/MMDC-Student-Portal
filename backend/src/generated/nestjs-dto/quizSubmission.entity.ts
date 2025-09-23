@@ -53,6 +53,12 @@ export class QuizSubmission {
   })
   questionResults: Prisma.JsonValue | null;
   @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  lateDays: number | null;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
