@@ -7,8 +7,18 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { Box, Button, Group, Title } from '@mantine/core'
-import { randomId } from '@mantine/hooks'
+import {
+  Box,
+  Button,
+  Drawer,
+  Group,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { useDisclosure } from '@mantine/hooks'
 import { IconPlus } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -27,52 +37,62 @@ interface ModulesAdminPageProps {
 function ModulesAdminPage() {
   const { authUser } = useAuth('protected')
   const navigate = route.useNavigate()
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false)
+
   const [allExpanded, setAllExpanded] = useState(false)
+
+  const form = useForm({
+    mode: 'uncontrolled',
+    initialValues: { title: '' },
+    validate: { title: (v) => (v.trim() ? null : 'Title is required') },
+  })
 
   const toggleExpandAll = () => setAllExpanded((prev) => !prev)
 
   const { lmsCode } = route.useParams()
 
-  const { mutateAsync: createSection } = useAppMutation(
-    lmsSectionControllerCreateMutation,
-    {
-      loading: {
-        title: 'Creating Section',
-        message: 'Creating new section',
+  const { mutateAsync: createSection, isPending: creatingSection } =
+    useAppMutation(
+      lmsSectionControllerCreateMutation,
+      {
+        loading: {
+          title: 'Creating Section',
+          message: 'Creating new section',
+        },
+        success: {
+          title: 'Created Section',
+          message: 'Successfully created section',
+        },
+        error: {
+          title: 'Failed to Create Section',
+          message: 'There was an error creating the section',
+        },
       },
-      success: {
-        title: 'Created Section',
-        message: 'Successfully created section',
-      },
-      error: {
-        title: 'Failed to Create Section',
-        message: 'There was an error creating the section',
-      },
-    },
-    {
-      // Clears the module tree cache to refetch the updated data
-      onSuccess: async () => {
-        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
-          path: { id: lmsCode },
-        })
+      {
+        // Clears the module tree cache to refetch the updated data
+        onSuccess: async () => {
+          const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+            path: { id: lmsCode },
+          })
 
-        // cancel outgoing refetches
-        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+          // cancel outgoing refetches
+          await queryClient.cancelQueries({ queryKey: moduleTreeKey })
 
-        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+          await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+        },
       },
-    },
-  )
+    )
 
   const handleAddContent = async () => {
+    if (form.validate().hasErrors) return
+
     await createSection({
-      path: {
-        moduleId: lmsCode,
-      },
-      body: {
-        title: randomId('new-module-section-'),
-      },
+      path: { moduleId: lmsCode },
+      body: { title: form.getValues().title.trim() },
     })
+
+    closeDrawer()
   }
 
   return (
@@ -90,7 +110,7 @@ function ModulesAdminPage() {
           <Button
             radius={'md'}
             leftSection={<IconPlus />}
-            onClick={handleAddContent}
+            onClick={() => openDrawer()}
           >
             Add New Content
           </Button>
@@ -99,6 +119,48 @@ function ModulesAdminPage() {
 
       {/* Module Content with admin actions */}
       <ModulePanel viewMode="admin" allExpanded={allExpanded} />
+
+      <Drawer
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        title={
+          <Text c="dark.7" fw={600}>
+            Add New Section
+          </Text>
+        }
+        position="right"
+        keepMounted={false}
+      >
+        <Stack gap="md">
+          <Text c="dimmed">
+            Create a new module section by providing a title.
+          </Text>
+          <TextInput
+            radius={'md'}
+            placeholder="Section title"
+            required
+            {...form.getInputProps('title')}
+          />
+
+          <Group style={{ justifyContent: 'flex-end' }}>
+            <Button
+              variant="default"
+              onClick={closeDrawer}
+              disabled={creatingSection}
+            >
+              Cancel
+            </Button>
+            <Button
+              leftSection={<IconPlus />}
+              type="submit"
+              loading={creatingSection}
+              onClick={handleAddContent}
+            >
+              Create
+            </Button>
+          </Group>
+        </Stack>
+      </Drawer>
     </Box>
   )
 }
