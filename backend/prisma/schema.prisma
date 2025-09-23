@@ -618,7 +618,7 @@ model SectionModule {
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   moduleId String @db.Uuid
 
-  order       Int?      @default(0)
+  order       Int
   publishedAt DateTime?
   toPublishAt DateTime?
 
@@ -654,7 +654,7 @@ model ModuleSection {
   moduleContents ModuleContent[]
 
   title String @db.VarChar(255)
-  order Int?   @default(0)
+  order Int
 
   publishedAt   DateTime?
   toPublishAt   DateTime?
@@ -764,10 +764,10 @@ model Assignment {
   subtitle String? @db.VarChar(500)
   content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
 
-  mode AssignmentMode? @default(INDIVIDUAL)
+  mode AssignmentMode
 
   maxAttempts         Int?      @db.SmallInt
-  allowLateSubmission Boolean?  @default(false)
+  allowLateSubmission Boolean
   latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
@@ -887,9 +887,9 @@ model Quiz {
   subtitle        String?       @db.VarChar(500)
   content         Json // Structured quiz content (eg. description, instructions, etc.)
 
-  timeLimit           Int?      @default(0) // in minutes
+  timeLimit           Int? // in minutes
   maxAttempts         Int?      @db.SmallInt
-  allowLateSubmission Boolean?  @default(false)
+  allowLateSubmission Boolean
   latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
@@ -1104,7 +1104,7 @@ model AssignmentGrading {
   weight        Decimal @db.Decimal(5, 2) // For final grade calculation
 
   // Grade processing metadata
-  isCurved      Boolean? @default(false)
+  isCurved      Boolean
   curveSettings Json? // for adjusting grades (eg. adding points to all grades)
 
   /// @DtoReadOnly

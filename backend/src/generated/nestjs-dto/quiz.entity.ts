@@ -47,9 +47,8 @@ export class Quiz {
   maxAttempts: number | null;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  allowLateSubmission: boolean | null;
+  allowLateSubmission: boolean;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

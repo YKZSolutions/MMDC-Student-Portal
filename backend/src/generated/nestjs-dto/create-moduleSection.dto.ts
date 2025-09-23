@@ -17,13 +17,10 @@ export class CreateModuleSectionDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    default: 0,
-    required: false,
-    nullable: true,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
-  order?: number | null;
+  order: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

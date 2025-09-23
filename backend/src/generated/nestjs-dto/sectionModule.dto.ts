@@ -9,9 +9,8 @@ export class SectionModuleDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  order: number | null;
+  order: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

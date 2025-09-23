@@ -41,9 +41,8 @@ export class Assignment {
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
-    nullable: true,
   })
-  mode: AssignmentMode | null;
+  mode: AssignmentMode;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -52,9 +51,8 @@ export class Assignment {
   maxAttempts: number | null;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  allowLateSubmission: boolean | null;
+  allowLateSubmission: boolean;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

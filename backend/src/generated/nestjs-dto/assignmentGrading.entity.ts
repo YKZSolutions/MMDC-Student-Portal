@@ -25,9 +25,8 @@ export class AssignmentGrading {
   weight: Prisma.Decimal;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  isCurved: boolean | null;
+  isCurved: boolean;
   @ApiProperty({
     type: () => Object,
     nullable: true,

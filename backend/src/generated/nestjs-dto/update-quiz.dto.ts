@@ -34,7 +34,6 @@ export class UpdateQuizDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    default: 0,
     required: false,
     nullable: true,
   })
@@ -52,13 +51,11 @@ export class UpdateQuizDto {
   maxAttempts?: number | null;
   @ApiProperty({
     type: 'boolean',
-    default: false,
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsBoolean()
-  allowLateSubmission?: boolean | null;
+  allowLateSubmission?: boolean;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

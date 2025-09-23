@@ -12,13 +12,10 @@ export class CreateAssignmentGradingDto {
   weight: Prisma.Decimal;
   @ApiProperty({
     type: 'boolean',
-    default: false,
-    required: false,
-    nullable: true,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsBoolean()
-  isCurved?: boolean | null;
+  isCurved: boolean;
   @ApiProperty({
     type: () => Object,
     required: false,
