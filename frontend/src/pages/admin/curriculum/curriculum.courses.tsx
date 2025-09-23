@@ -4,7 +4,7 @@ import {
   type CourseFormInput,
   type CourseFormOutput,
 } from '@/features/curriculum/schema/add-course.schema'
-import { usePaginationSearch } from '@/features/pagination/usePaginationSearch'
+import { usePaginationSearch } from '@/features/pagination/use-pagination-search'
 import { useQuickAction } from '@/hooks/use-quick-action'
 import { useQuickForm } from '@/hooks/use-quick-form'
 import {
