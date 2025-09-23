@@ -1,3 +1,30 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
+import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
+import { FileService } from '@/modules/lms/content/file/file.service';
+import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
+import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
+import { UrlService } from '@/modules/lms/content/url/url.service';
+import { VideoService } from '@/modules/lms/content/video/video.service';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
+import {
+  ModuleTreeDto,
+  ModuleTreeSectionDto,
+} from '@/modules/lms/dto/module-tree.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import {
   BadRequestException,
   ConflictException,
@@ -5,46 +32,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import {
   ContentType,
   CourseEnrollmentStatus,
   EnrollmentStatus,
-  Module,
   Prisma,
   Role,
 } from '@prisma/client';
 import { isUUID } from 'class-validator';
-import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import type { Module as ModuleAsType } from '@/generated/nestjs-dto/module.entity';
-import type { ModuleSection as ModuleSectionAsType } from '@/generated/nestjs-dto/moduleSection.entity';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
-import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
-import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
-import { FileService } from '@/modules/lms/content/file/file.service';
-import { UrlService } from '@/modules/lms/content/url/url.service';
-import { VideoService } from '@/modules/lms/content/video/video.service';
-import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
-import {
-  ModuleTreeDto,
-  ModuleTreeSectionDto,
-} from '@/modules/lms/dto/module-tree.dto';
-import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -883,18 +880,24 @@ export class LmsContentService {
       await this.prisma.client.module.findUniqueOrThrow({
         where: {
           id: moduleId,
-          ...(role !== Role.admin && { publishedAt: { not: null } }),
+          ...(role !== Role.admin && {
+            // This fixes the issue for not being able to
+            // fetch published modules.
+            moduleSections: {
+              some: { publishedAt: { not: null } },
+            },
+          }),
           deletedAt: null,
         },
         select: {
           id: true,
           courseId: true,
           title: true,
-          publishedAt: role === Role.student ? true : false,
-          toPublishAt: role === Role.student ? true : false,
-          unpublishedAt: role === Role.student ? true : false,
-          createdAt: role === Role.student ? true : false,
-          updatedAt: role === Role.student ? true : false,
+          publishedAt: true,
+          toPublishAt: true,
+          unpublishedAt: true,
+          createdAt: true,
+          updatedAt: true,
           ...(role === Role.student &&
             userId && {
               progresses: {
@@ -920,11 +923,11 @@ export class LmsContentService {
               prerequisiteSectionId: true,
               title: true,
               order: true,
-              publishedAt: role === Role.student ? true : false,
-              toPublishAt: role === Role.student ? true : false,
-              unpublishedAt: role === Role.student ? true : false,
-              createdAt: role === Role.student ? true : false,
-              updatedAt: role === Role.student ? true : false,
+              publishedAt: true,
+              toPublishAt: true,
+              unpublishedAt: true,
+              createdAt: true,
+              updatedAt: true,
               moduleContents: {
                 where: {
                   ...(role !== Role.admin && { publishedAt: { not: null } }),
@@ -934,11 +937,11 @@ export class LmsContentService {
                   id: true,
                   order: true,
                   contentType: true,
-                  publishedAt: role === Role.student ? true : false,
-                  toPublishAt: role === Role.student ? true : false,
-                  unpublishedAt: role === Role.student ? true : false,
-                  createdAt: role === Role.student ? true : false,
-                  updatedAt: role === Role.student ? true : false,
+                  publishedAt: true,
+                  toPublishAt: true,
+                  unpublishedAt: true,
+                  createdAt: true,
+                  updatedAt: true,
                   lesson: { omit: { content: true } },
                   assignment: {
                     include: { grading: { omit: { gradingSchema: true } } },
