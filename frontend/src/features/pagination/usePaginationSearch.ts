@@ -9,7 +9,7 @@ export const usePaginationSearch = <T>(route: RouteApi<T>) => {
   const pagination = route.useSearch()
   const navigate = route.useNavigate() as unknown as PaginationNavigate
 
-  const search = (search: string) => {
+  const searchQuery = (search: string) => {
     navigate({
       search: (prev) => ({
         ...prev,
@@ -29,7 +29,7 @@ export const usePaginationSearch = <T>(route: RouteApi<T>) => {
 
   return {
     pagination,
-    search,
+    searchQuery,
     changePage,
   }
 }

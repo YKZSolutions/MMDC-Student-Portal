@@ -120,6 +120,7 @@ const BaseNavButton = memo(function BaseNavButton({
               e.preventDefault()
               if (toggle) toggle()
             }}
+            data-cy={`${item.label.toLowerCase()}-link-dropdown`}
           />
         )
       }
