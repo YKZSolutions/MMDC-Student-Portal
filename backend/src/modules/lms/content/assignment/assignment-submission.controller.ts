@@ -60,8 +60,10 @@ export class AssignmentSubmissionController {
   async updateAssignmentSubmission(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
     @Body() dto: UpdateAssignmentSubmissionDto,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.assignmentSubmissionService.update(submissionId, dto);
+    const { user_id } = user.user_metadata;
+    return this.assignmentSubmissionService.update(submissionId, user_id, dto);
   }
 
   @Post(':assignmentId/submission/:submissionId/finalize')
@@ -74,8 +76,13 @@ export class AssignmentSubmissionController {
   ])
   async finalizeAssignmentSubmission(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.assignmentSubmissionService.finalizeSubmission(submissionId);
+    const { user_id } = user.user_metadata;
+    return this.assignmentSubmissionService.finalizeSubmission(
+      submissionId,
+      user_id,
+    );
   }
 
   @Get(':assignmentId/submission/:submissionId')
@@ -83,8 +90,14 @@ export class AssignmentSubmissionController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   async getAssignmentSubmission(
     @Param('submissionId', ParseUUIDPipe) submissionId: string,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.assignmentSubmissionService.findById(submissionId);
+    const { role, user_id } = user.user_metadata;
+    return this.assignmentSubmissionService.findById(
+      submissionId,
+      role,
+      user_id,
+    );
   }
 
   @Get(':assignmentId/submissions')
@@ -94,14 +107,12 @@ export class AssignmentSubmissionController {
     @Param('assignmentId', ParseUUIDPipe) assignmentId: string,
     @CurrentUser() user: CurrentAuthUser,
   ) {
-    const { user_id } = user.user_metadata;
+    const { role, user_id } = user.user_metadata;
 
-    if (user_id) {
-      return this.assignmentSubmissionService.findByAssignmentAndStudent(
-        assignmentId,
-        user_id,
-      );
-    }
-    return this.assignmentSubmissionService.findByAssignment(assignmentId);
+    return this.assignmentSubmissionService.findByAssignment(
+      assignmentId,
+      role,
+      user_id,
+    );
   }
 }

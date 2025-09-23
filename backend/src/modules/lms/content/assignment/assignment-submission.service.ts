@@ -23,6 +23,7 @@ import {
   SubmissionState,
   AssignmentSubmission as PrismaAssignmentSubmission,
   Assignment as PrismaAssignment,
+  Role,
 } from '@prisma/client';
 import { SubmitAssignmentDto } from '@/modules/lms/dto/submit-assignment.dto';
 
@@ -103,7 +104,8 @@ export class AssignmentSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Finalizing assignment submission ${id}`,
+    logArgsMessage: ({ id, userId }) =>
+      `Finalizing assignment submission ${id} for student ${userId}`,
     logSuccessMessage: (submission) =>
       `Assignment submission [${submission.id}] successfully finalized.`,
     logErrorMessage: (err, { id }) =>
@@ -111,13 +113,14 @@ export class AssignmentSubmissionService {
   })
   async finalizeSubmission(
     @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
   ): Promise<AssignmentSubmissionDto> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
 
     const existing = await this.prisma.client.assignmentSubmission.findUnique({
-      where: { id },
+      where: { id, studentId: userId },
       include: { assignment: true, attachments: true },
     });
 
@@ -174,15 +177,16 @@ export class AssignmentSubmissionService {
   })
   async update(
     @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
     @LogParam('dto') dto: UpdateAssignmentSubmissionDto,
   ): Promise<AssignmentSubmissionDto> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
 
     // Check if submission can be modified
     const existing = await this.prisma.client.assignmentSubmission.findUnique({
-      where: { id },
+      where: { id, studentId: userId },
       include: { assignment: true, gradeRecord: true },
     });
 
@@ -210,7 +214,8 @@ export class AssignmentSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Fetching assignment submission ${id}`,
+    logArgsMessage: ({ id, role, userId }) =>
+      `Fetching assignment submission ${id} for ${role} ${userId}`,
     logSuccessMessage: (submission) =>
       `Assignment submission [${submission.id}] successfully fetched.`,
     logErrorMessage: (err, { id }) =>
@@ -220,48 +225,25 @@ export class AssignmentSubmissionService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Assignment submission not found'),
   })
-  async findById(@LogParam('id') id: string): Promise<AssignmentSubmission> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+  async findById(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
+  ): Promise<AssignmentSubmission> {
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
     const result =
       await this.prisma.client.assignmentSubmission.findUniqueOrThrow({
-        where: { id },
+        where: { id, ...(role === Role.student && { studentId: userId }) },
         include: { attachments: true },
       });
     return this.mapSubmission(result);
   }
 
   @Log({
-    logArgsMessage: ({ assignmentId, studentId }) =>
-      `Fetching assignment submissions for assignment ${assignmentId} and student ${studentId}`,
-    logSuccessMessage: (submissions) =>
-      `Fetched ${submissions.length} assignment submissions.`,
-    logErrorMessage: (err, { assignmentId, studentId }) =>
-      `Error fetching assignment submissions for assignment ${assignmentId} and student ${studentId}: ${err.message}`,
-  })
-  async findByAssignmentAndStudent(
-    @LogParam('assignmentId') assignmentId: string,
-    @LogParam('studentId') studentId: string,
-  ): Promise<AssignmentSubmission[]> {
-    if (!isUUID(assignmentId) || !isUUID(studentId)) {
-      throw new BadRequestException('Invalid assignment or student ID format');
-    }
-    const results = await this.prisma.client.assignmentSubmission.findMany({
-      where: { assignmentId, studentId },
-      include: { attachments: true },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return results.map((r) => ({
-      ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
-    }));
-  }
-
-  @Log({
-    logArgsMessage: ({ assignmentId }) =>
-      `Fetching all submissions for assignment ${assignmentId}`,
+    logArgsMessage: ({ assignmentId, role, userId }) =>
+      `Fetching all submissions for assignment ${assignmentId} for ${role} ${userId}`,
     logSuccessMessage: (submissions) =>
       `Fetched ${submissions.length} submissions for assignment.`,
     logErrorMessage: (err, { assignmentId }) =>
@@ -269,38 +251,17 @@ export class AssignmentSubmissionService {
   })
   async findByAssignment(
     @LogParam('assignmentId') assignmentId: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
   ): Promise<AssignmentSubmission[]> {
-    if (!isUUID(assignmentId)) {
-      throw new BadRequestException('Invalid assignment ID format');
+    if (!isUUID(assignmentId) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid assignment ID or user ID format');
     }
     const results = await this.prisma.client.assignmentSubmission.findMany({
-      where: { assignmentId },
-      include: { attachments: true },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return results.map((r) => ({
-      ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
-    }));
-  }
-
-  @Log({
-    logArgsMessage: ({ studentId }) =>
-      `Fetching all assignment submissions for student ${studentId}`,
-    logSuccessMessage: (submissions) =>
-      `Fetched ${submissions.length} assignment submissions for student.`,
-    logErrorMessage: (err, { studentId }) =>
-      `Error fetching assignment submissions for student ${studentId}: ${err.message}`,
-  })
-  async findByStudent(
-    @LogParam('studentId') studentId: string,
-  ): Promise<AssignmentSubmission[]> {
-    if (!isUUID(studentId)) {
-      throw new BadRequestException('Invalid student ID format');
-    }
-    const results = await this.prisma.client.assignmentSubmission.findMany({
-      where: { studentId },
+      where: {
+        assignmentId,
+        ...(role === Role.student && { studentId: userId }),
+      },
       include: { attachments: true },
       orderBy: { submittedAt: 'desc' },
     });
