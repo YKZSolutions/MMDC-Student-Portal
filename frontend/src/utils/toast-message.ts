@@ -13,7 +13,7 @@ export const toastMessage = (
   },
   success: {
     title: `${titleCase(name)} ${titleCase(operationAfter)}`,
-    message: `The ${lowerCase(name)} has been ${titleCase(operationAfter)}.`,
+    message: `The ${lowerCase(name)} has been ${lowerCase(operationAfter)}.`,
   },
   error: {
     title: `Failed ${titleCase(operationBefore)} ${titleCase(name)}`,
