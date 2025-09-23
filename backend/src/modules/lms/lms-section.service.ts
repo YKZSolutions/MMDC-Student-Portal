@@ -46,7 +46,10 @@ export class LmsSectionService {
   ): Promise<DetailedModuleSectionDto> {
     // No order specified — append to the end.
     const { _max } = await this.prisma.client.moduleSection.aggregate({
-      where: { moduleId },
+      where: {
+        moduleId,
+        ...(dto.parentSectionId && { parentSectionId: dto.parentSectionId }),
+      },
       _max: { order: true },
     });
 
