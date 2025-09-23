@@ -75,7 +75,6 @@ function ModulesStudentPage() {
 
       {/* Module Content */}
       <ModulePanel
-        module={module}
         viewMode="student"
         allExpanded={allExpanded}
       />

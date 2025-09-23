@@ -1,3 +1,13 @@
+import ModulePanel from '@/features/courses/modules/module-panel.tsx'
+import {
+  type Module,
+  type ModuleItem,
+  type ModuleSection,
+} from '@/features/courses/modules/types.ts'
+import {
+  getModuleItemsFromModule,
+  getModuleSubSectionsFromSections,
+} from '@/utils/helpers.ts'
 import {
   Alert,
   Badge,
@@ -11,16 +21,6 @@ import {
   Title,
 } from '@mantine/core'
 import { IconEye, IconInfoCircle, IconListCheck } from '@tabler/icons-react'
-import ModulePanel from '@/features/courses/modules/module-panel.tsx'
-import {
-  type Module,
-  type ModuleItem,
-  type ModuleSection,
-} from '@/features/courses/modules/types.ts'
-import {
-  getModuleItemsFromModule,
-  getModuleSubSectionsFromSections,
-} from '@/utils/helpers.ts'
 
 interface ReviewStepProps {
   module: Module
@@ -86,7 +86,7 @@ const ModuleReviewStep = ({ module }: ReviewStepProps) => {
         </Tabs.List>
 
         <Tabs.Panel value="preview" pt="md">
-          <ModulePanel allExpanded={true} viewMode="student" module={module} />
+          <ModulePanel allExpanded={true} viewMode="student" />
         </Tabs.Panel>
 
         <Tabs.Panel value="summary" pt="md">

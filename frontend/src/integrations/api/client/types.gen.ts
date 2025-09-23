@@ -3418,6 +3418,114 @@ export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
 
+export type LmsControllerFindAllForStudentData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter modules by enrollment period ID
+         */
+        enrollmentPeriodId?: string;
+    };
+    url: '/modules/student';
+};
+
+export type LmsControllerFindAllForStudentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerFindAllForStudentError = LmsControllerFindAllForStudentErrors[keyof LmsControllerFindAllForStudentErrors];
+
+export type LmsControllerFindAllForStudentResponses = {
+    200: PaginatedModulesDto;
+};
+
+export type LmsControllerFindAllForStudentResponse = LmsControllerFindAllForStudentResponses[keyof LmsControllerFindAllForStudentResponses];
+
+export type LmsControllerFindAllForMentorData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter modules by enrollment period ID
+         */
+        enrollmentPeriodId?: string;
+    };
+    url: '/modules/mentor';
+};
+
+export type LmsControllerFindAllForMentorErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerFindAllForMentorError = LmsControllerFindAllForMentorErrors[keyof LmsControllerFindAllForMentorErrors];
+
+export type LmsControllerFindAllForMentorResponses = {
+    200: PaginatedModulesDto;
+};
+
+export type LmsControllerFindAllForMentorResponse = LmsControllerFindAllForMentorResponses[keyof LmsControllerFindAllForMentorResponses];
+
+export type LmsControllerFindAllForAdminData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter modules by enrollment period ID
+         */
+        enrollmentPeriodId?: string;
+    };
+    url: '/modules/admin';
+};
+
+export type LmsControllerFindAllForAdminErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerFindAllForAdminError = LmsControllerFindAllForAdminErrors[keyof LmsControllerFindAllForAdminErrors];
+
+export type LmsControllerFindAllForAdminResponses = {
+    200: PaginatedModulesDto;
+};
+
+export type LmsControllerFindAllForAdminResponse = LmsControllerFindAllForAdminResponses[keyof LmsControllerFindAllForAdminResponses];
+
 export type LmsControllerRemoveData = {
     body?: never;
     path: {
@@ -3522,105 +3630,6 @@ export type LmsControllerUpdateResponses = {
 };
 
 export type LmsControllerUpdateResponse = LmsControllerUpdateResponses[keyof LmsControllerUpdateResponses];
-
-export type LmsControllerFindAllForStudentData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        enrollmentPeriodId?: string;
-    };
-    url: '/modules/student';
-};
-
-export type LmsControllerFindAllForStudentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsControllerFindAllForStudentError = LmsControllerFindAllForStudentErrors[keyof LmsControllerFindAllForStudentErrors];
-
-export type LmsControllerFindAllForStudentResponses = {
-    200: PaginatedModulesDto;
-};
-
-export type LmsControllerFindAllForStudentResponse = LmsControllerFindAllForStudentResponses[keyof LmsControllerFindAllForStudentResponses];
-
-export type LmsControllerFindAllForMentorData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        enrollmentPeriodId?: string;
-    };
-    url: '/modules/mentor';
-};
-
-export type LmsControllerFindAllForMentorErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsControllerFindAllForMentorError = LmsControllerFindAllForMentorErrors[keyof LmsControllerFindAllForMentorErrors];
-
-export type LmsControllerFindAllForMentorResponses = {
-    200: PaginatedModulesDto;
-};
-
-export type LmsControllerFindAllForMentorResponse = LmsControllerFindAllForMentorResponses[keyof LmsControllerFindAllForMentorResponses];
-
-export type LmsControllerFindAllForAdminData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        enrollmentPeriodId?: string;
-    };
-    url: '/modules/admin';
-};
-
-export type LmsControllerFindAllForAdminErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsControllerFindAllForAdminError = LmsControllerFindAllForAdminErrors[keyof LmsControllerFindAllForAdminErrors];
-
-export type LmsControllerFindAllForAdminResponses = {
-    200: PaginatedModulesDto;
-};
-
-export type LmsControllerFindAllForAdminResponse = LmsControllerFindAllForAdminResponses[keyof LmsControllerFindAllForAdminResponses];
 
 export type LmsControllerPublishData = {
     body?: never;
