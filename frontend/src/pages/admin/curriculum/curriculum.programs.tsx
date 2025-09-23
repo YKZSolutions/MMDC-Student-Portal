@@ -80,7 +80,7 @@ export default function CurriculumPrograms() {
       <Stack gap={'md'} flex={1}>
         <Group gap={rem(5)} justify="end" align="center">
           <TextInput
-            placeholder="Search year/term/date"
+            placeholder="Search program name or code"
             radius={'md'}
             leftSection={<IconSearch size={18} stroke={1} />}
             w={rem(250)}
