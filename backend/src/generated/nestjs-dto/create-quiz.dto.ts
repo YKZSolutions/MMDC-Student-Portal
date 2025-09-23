@@ -57,7 +57,6 @@ export class CreateQuizDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
-    default: 0,
     required: false,
     nullable: true,
   })

@@ -60,7 +60,6 @@ export class UpdateAssignmentDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
-    default: 0,
     required: false,
     nullable: true,
   })

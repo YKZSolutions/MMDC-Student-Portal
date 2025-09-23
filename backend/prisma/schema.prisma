@@ -768,7 +768,7 @@ model Assignment {
 
   maxAttempts         Int?      @db.SmallInt
   allowLateSubmission Boolean
-  latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
+  latePenalty         Decimal?  @db.Decimal(5, 2)
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
@@ -890,7 +890,7 @@ model Quiz {
   timeLimit           Int? // in minutes
   maxAttempts         Int?      @db.SmallInt
   allowLateSubmission Boolean
-  latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
+  latePenalty         Decimal?  @db.Decimal(5, 2)
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
