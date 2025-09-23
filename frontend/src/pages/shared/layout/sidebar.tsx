@@ -2,7 +2,11 @@ import RoleComponentManager from '@/components/role-component-manager'
 import SupabaseAvatar from '@/components/supabase-avatar'
 import { useAuth } from '@/features/auth/auth.hook'
 import NavButton from '@/features/navigation/nav-button'
-import { adminLinks, mentorLinks, studentLinks } from '@/features/navigation/navLinks'
+import {
+  adminLinks,
+  mentorLinks,
+  studentLinks,
+} from '@/features/navigation/navLinks'
 import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
@@ -32,7 +36,7 @@ function Sidebar() {
   const isCMS =
     authUser?.role === 'admin' && useLocation().pathname.startsWith('/cms')
 
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
 
   if (!authUser) {
     return null //TODO: or a loader / skeleton
