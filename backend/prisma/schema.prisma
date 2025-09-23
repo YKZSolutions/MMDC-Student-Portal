@@ -228,7 +228,7 @@ model Course {
   coreqFor Course[] @relation("CourseCoreq")
 
   /// @DtoApiHidden
-  modules         Module[]
+  modules Module[]
 
   curriculumCourses CurriculumCourse[]
 
@@ -346,7 +346,7 @@ model CourseOffering {
   /// @DtoApiHidden
   courseSections    CourseSection[] // Each offering can have multiple sections
   /// @DtoApiHidden
-  modules Module[]
+  modules           Module[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -541,14 +541,14 @@ enum PricingType {
 }
 
 model Pricing {
-  id            String           @id @default(uuid()) @db.Uuid
+  id          String         @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
   priceGroups PricingGroup[]
 
   type    PricingType
-  name String @unique
-  amount       Decimal     @db.Decimal(10, 2)
-  enabled Boolean @default(true)
+  name    String      @unique
+  amount  Decimal     @db.Decimal(10, 2)
+  enabled Boolean     @default(true)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -559,12 +559,12 @@ model Pricing {
 }
 
 model PricingGroup {
-  id            String           @id @default(uuid()) @db.Uuid
+  id     String    @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
   prices Pricing[]
 
-  name String
-  amount       Decimal     @db.Decimal(10, 2)
+  name    String
+  amount  Decimal @db.Decimal(10, 2)
   enabled Boolean @default(true)
 
   /// @DtoReadOnly
@@ -574,7 +574,6 @@ model PricingGroup {
   /// @DtoReadOnly
   deletedAt DateTime?
 }
-
 
 model Module {
   id    String @id @default(uuid()) @db.Uuid
@@ -586,7 +585,7 @@ model Module {
 
   /// @DtoApiHidden
   courseOffering   CourseOffering? @relation(fields: [courseOfferingId], references: [id])
-  courseOfferingId String? @db.Uuid
+  courseOfferingId String?         @db.Uuid
 
   /// @DtoApiHidden
   sectionModules SectionModule[]
@@ -599,8 +598,8 @@ model Module {
   /// @DtoApiHidden
   groups         Group[]
 
-  publishedAt DateTime?
-  toPublishAt DateTime?
+  publishedAt   DateTime?
+  toPublishAt   DateTime?
   unpublishedAt DateTime?
 
   /// @DtoReadOnly
@@ -612,16 +611,16 @@ model Module {
 }
 
 model SectionModule {
-  id             String       @id @default(uuid()) @db.Uuid
-  courseSection  CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
-  courseSectionId String      @db.Uuid
+  id              String        @id @default(uuid()) @db.Uuid
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String        @db.Uuid
 
-  module         Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  moduleId       String        @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String @db.Uuid
 
-  order          Int           @default(0)
-  publishedAt    DateTime?
-  toPublishAt    DateTime?
+  order       Int       @default(0)
+  publishedAt DateTime?
+  toPublishAt DateTime?
 
   classMeetings Json?
 
@@ -645,11 +644,11 @@ model ModuleSection {
   subsections     ModuleSection[] @relation("ModuleSubsection")
 
   /// @DtoApiHidden
-  prerequisiteSection   ModuleSection?  @relation("ModulePrerequisite", fields: [prerequisiteSectionId], references: [id])
-  prerequisiteSectionId String?         @db.Uuid
+  prerequisiteSection   ModuleSection? @relation("ModulePrerequisite", fields: [prerequisiteSectionId], references: [id])
+  prerequisiteSectionId String?        @db.Uuid
 
   /// @DtoApiHidden
-  dependentSections     ModuleSection[] @relation("ModulePrerequisite")
+  dependentSections ModuleSection[] @relation("ModulePrerequisite")
 
   /// @DtoApiHidden
   moduleContents ModuleContent[]
@@ -657,8 +656,8 @@ model ModuleSection {
   title String @db.VarChar(255)
   order Int    @default(0)
 
-  publishedAt DateTime?
-  toPublishAt DateTime?
+  publishedAt   DateTime?
+  toPublishAt   DateTime?
   unpublishedAt DateTime?
 
   /// @DtoReadOnly
@@ -789,11 +788,45 @@ model Assignment {
   @@index([dueDate])
 }
 
+enum SubmissionState {
+  // Work-in-progress submission
+  // Student is still working on the assignment/quiz
+  // Can be saved multiple times without counting as an attempt
+  // Not visible to instructors for grading
+  DRAFT
+
+  // Student has completed and submitted work
+  // Submission is now "locked in" for evaluation
+  // Counts as an attempt toward maxAttempts
+  // Becomes visible to instructors
+  SUBMITTED
+
+  // Instructor has started grading process
+  // Prevents concurrent grading by multiple instructors
+  // Provides status transparency to student
+  // Allows for complex multi-stage evaluation processes
+  UNDER_REVIEW
+
+  // Final grades and feedback have been provided
+  // Student can view their grade and feedback
+  // Submission is now read-only
+  // Marks the end of successful evaluation process
+  GRADED
+
+  // Submission requires student action/resubmission
+  // Work didn't meet requirements or needs correction
+  // Student can revise and resubmit (if attempts remain)
+  // Creates feedback loop for improvement
+  RETURNED
+}
+
 model AssignmentSubmission {
   id           String     @id @default(uuid()) @db.Uuid
   assignmentId String     @db.Uuid
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   studentId    String     @db.Uuid
+
+  state SubmissionState @default(DRAFT)
 
   /// @DtoApiHidden
   student User @relation(fields: [studentId], references: [id])
@@ -880,6 +913,8 @@ model QuizSubmission {
   /// @DtoApiHidden
   student   User   @relation(fields: [studentId], references: [id])
   studentId String @db.Uuid
+
+  state SubmissionState @default(DRAFT) //Draft is when students are answering the quiz
 
   answers  Json // Student's answers
   rawScore Decimal? @db.Decimal(5, 2)
