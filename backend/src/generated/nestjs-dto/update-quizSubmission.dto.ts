@@ -67,6 +67,16 @@ export class UpdateQuizSubmissionDto {
   @IsInt()
   lateDays?: number | null;
   @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    default: new Date().toISOString(),
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  submittedAt?: Date | null;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,

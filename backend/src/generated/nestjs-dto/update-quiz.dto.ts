@@ -34,7 +34,7 @@ export class UpdateQuizDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    default: 60,
+    default: 0,
     required: false,
     nullable: true,
   })

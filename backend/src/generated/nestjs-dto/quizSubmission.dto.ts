@@ -47,8 +47,9 @@ export class QuizSubmissionDto {
   @ApiProperty({
     type: 'string',
     format: 'date-time',
+    nullable: true,
   })
-  submittedAt: Date;
+  submittedAt: Date | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

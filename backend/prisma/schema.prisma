@@ -887,7 +887,7 @@ model Quiz {
   subtitle        String?       @db.VarChar(500)
   content         Json // Structured quiz content (eg. description, instructions, etc.)
 
-  timeLimit           Int?      @default(60) // in minutes
+  timeLimit           Int?      @default(0) // in minutes
   maxAttempts         Int?      @default(1) @db.SmallInt
   allowLateSubmission Boolean?  @default(false)
   latePenalty         Decimal?  @default(0.0) @db.Decimal(5, 2)
@@ -930,9 +930,9 @@ model QuizSubmission {
 
   lateDays Int? @db.SmallInt
 
-  submittedAt   DateTime @default(now())
+  submittedAt   DateTime? @default(now())
   timeSpent     Int? // in seconds
-  attemptNumber Int?     @default(1) @db.SmallInt
+  attemptNumber Int?      @default(1) @db.SmallInt
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
