@@ -7,6 +7,8 @@ import type {
   Module,
   ModuleItem,
   ModuleSection,
+  ModuleTreeItemDto,
+  ModuleTreeSectionDto,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 
@@ -84,54 +86,73 @@ export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
 }
 
 export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
+  return convertModuleSectionsToTreeData(
+    module.sections.map(
+      (s) =>
+        ({
+          id: s.id,
+          parentSectionId: s.parentId,
+          title: s.title,
+          order: s.order,
+          items: s.items.map((it) => ({
+            id: it.id,
+            title: it.title,
+            parentId: it.parentId,
+            type: it.type,
+            order: it.order,
+          })),
+          subsections: s.subsections as unknown as ModuleTreeSectionDto[],
+        }) as ModuleTreeSectionDto,
+    ),
+  )
+}
+
+export function convertModuleSectionsToTreeData(
+  sections: ModuleTreeSectionDto[],
+): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
   const processSection = (
-    section: ModuleSection,
+    section: ModuleTreeSectionDto,
     parentId: string = 'root',
     level: number = 1,
   ) => {
     const sectionNode: CourseNodeModel = {
       id: section.id,
       parent: parentId,
-      text: section.title,
+      text: section.title || 'Untitled Section',
       droppable: true,
       data: {
         level,
         type: getTypeFromLevel(level),
-        contentData: section,
+        contentData: section as any,
       },
     }
     treeData.push(sectionNode)
 
-    // Process items in this section
-    section.items.forEach((item) => {
+    // items
+    ;(section.items || []).forEach((item: ModuleTreeItemDto) => {
       const itemNode: CourseNodeModel = {
         id: item.id,
         parent: section.id,
-        text: item.title,
+        text: item.title || 'Untitled Item',
         droppable: false,
         data: {
           level: 3,
           type: 'item',
-          contentData: item,
+          contentData: item as any,
         },
       }
       treeData.push(itemNode)
     })
 
-    // Process subsections recursively
-    if (section.subsections) {
-      section.subsections.forEach((subsection) => {
-        processSection(subsection, section.id, 2)
-      })
-    }
+    // subsections
+    ;(section.subsections || []).forEach((sub) => {
+      processSection(sub, section.id, level + 1)
+    })
   }
 
-  // Process all top-level sections
-  module.sections.forEach((section) => {
-    processSection(section)
-  })
+  sections.forEach((s) => processSection(s))
 
   return treeData
 }

@@ -2,8 +2,8 @@ import type {
   AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
-import type { NodeModel } from '@minoru/react-dnd-treeview'
 import type { Block } from '@blocknote/core'
+import type { NodeModel } from '@minoru/react-dnd-treeview'
 
 export interface ContentProgress {
   contentId: string
@@ -35,6 +35,28 @@ export interface ModuleSection {
   subsections: ModuleSection[]
   prerequisites?: string[]
   published: Published
+}
+
+// DTO shape returned from the API for module tree data. Fields are kept
+// permissive so the frontend can consume remote data without schema drift.
+export interface ModuleTreeItemDto {
+  id: string
+  parentId?: string | null
+  title?: string
+  order?: number
+  type?: ContentType
+  // published metadata may be present in different forms
+  publishedAt?: string | null
+}
+
+export interface ModuleTreeSectionDto {
+  id: string
+  parentSectionId?: string | null
+  title?: string
+  order?: number
+  items?: ModuleTreeItemDto[]
+  subsections?: ModuleTreeSectionDto[] | null
+  publishedAt?: string | null
 }
 
 export interface ModuleItem {
