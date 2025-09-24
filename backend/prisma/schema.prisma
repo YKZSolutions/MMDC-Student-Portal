@@ -315,9 +315,9 @@ model EnrollmentPeriod {
   id String @id @default(uuid()) @db.Uuid
 
   courseOfferings CourseOffering[] // An enrollment can have multiple offerings
-  pricingGroupId  String           @db.Uuid
+  pricingGroupId  String?          @db.Uuid
   /// @DtoApiHidden
-  pricingGroup    PricingGroup     @relation(fields: [pricingGroupId], references: [id])
+  pricingGroup    PricingGroup?    @relation(fields: [pricingGroupId], references: [id])
 
   startYear Int
   endYear   Int

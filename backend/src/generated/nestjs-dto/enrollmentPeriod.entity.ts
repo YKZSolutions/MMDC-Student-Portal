@@ -22,10 +22,11 @@ export class EnrollmentPeriod {
   courseOfferings?: CourseOfferingAsType[];
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  pricingGroupId: string;
+  pricingGroupId: string | null;
   @ApiHideProperty()
-  pricingGroup?: PricingGroupAsType;
+  pricingGroup?: PricingGroupAsType | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
