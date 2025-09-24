@@ -20,13 +20,15 @@ export function createModuleData(
 export function createModuleSectionData(
   moduleId: string,
   order: number,
-  subsectionId?: string,
+  parentSectionId?: string,
 ): Prisma.ModuleSectionCreateInput {
   return {
     title: `Section: ${faker.lorem.words(2)}`,
     order,
     module: { connect: { id: moduleId } },
-    ...(subsectionId && { subsection: { connect: { id: subsectionId } } }),
+    ...(parentSectionId && {
+      parentSection: { connect: { id: parentSectionId } },
+    }),
     publishedAt: faker.date.past(),
   };
 }
