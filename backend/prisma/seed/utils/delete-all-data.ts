@@ -1,19 +1,35 @@
 import { PrismaClient } from '@prisma/client';
-import * as readline from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
 import { SupabaseService } from '../../../src/lib/supabase/supabase.service';
+import * as readline from 'node:readline';
+import { stdin, stdout } from 'node:process';
 
 async function confirmDeletion(): Promise<boolean> {
-  const rl = readline.createInterface({ input, output });
-
-  try {
-    const answer = await rl.question(
-      '⚠️ WARNING: This will delete ALL data in the database. Are you sure you want to continue? (Y/N) ',
-    );
-    return answer.toLowerCase() === 'Y';
-  } finally {
-    rl.close();
-  }
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({ input: stdin, output: stdout });
+    
+    // Set raw mode to get keypresses immediately
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
+    
+    console.log('⚠️ WARNING: This will delete ALL data in the database. Are you sure you want to continue? (Y/N)');
+    
+    // Handle keypress events
+    const onKeyPress = (str: string, key: any) => {
+      // Clean up
+      process.stdin.off('keypress', onKeyPress);
+      process.stdin.setRawMode(false);
+      rl.close();
+      
+      const char = str.toLowerCase();
+      console.log(char); // Echo the pressed key
+      resolve(char === 'y');
+    };
+    
+    // Set up the keypress listener
+    readline.emitKeypressEvents(process.stdin);
+    process.stdin.on('keypress', onKeyPress);
+  });
 }
 
 export async function deleteAllData(
