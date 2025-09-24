@@ -69,6 +69,7 @@ export class AssignmentSubmissionService {
       throw new NotFoundException('Assignment not found');
     }
 
+    let groupSnapshot = {};
     // Validate group submission if groupId provided
     if (dto.groupSnapshot) {
       if (assignment.mode !== 'GROUP') {
@@ -78,6 +79,7 @@ export class AssignmentSubmissionService {
       }
 
       await this.validateGroupMembership(dto.groupSnapshot.id, studentId);
+      groupSnapshot = structuredClone(dto.groupSnapshot);
     } else if (assignment.mode === 'GROUP') {
       throw new BadRequestException(
         'This assignment requires group submission',
@@ -91,9 +93,10 @@ export class AssignmentSubmissionService {
       studentId,
       state: dto.state || SubmissionState.DRAFT,
       content: dto.content as Prisma.JsonValue,
-      groupSnapshot: dto.groupSnapshot
-        ? (JSON.parse(JSON.stringify(dto.groupSnapshot)) as Prisma.JsonValue)
-        : null,
+      groupSnapshot:
+        assignment.mode === 'GROUP'
+          ? (groupSnapshot as Prisma.JsonValue)
+          : null,
     };
 
     const submission = await this.prisma.client.assignmentSubmission.create({
@@ -255,7 +258,8 @@ export class AssignmentSubmissionService {
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Updating assignment submission ${id}`,
+    logArgsMessage: ({ id, userId }) =>
+      `Updating assignment submission ${id} for user ${userId}`,
     logSuccessMessage: (submission) =>
       `Assignment submission [${submission.id}] successfully updated.`,
     logErrorMessage: (err, { id }) =>
