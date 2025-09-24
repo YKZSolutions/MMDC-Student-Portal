@@ -9,6 +9,14 @@ export class UpdateCurriculumCourseDto {
   })
   @IsOptional()
   @IsInt()
+  order?: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
   year?: number;
   @ApiProperty({
     type: 'integer',

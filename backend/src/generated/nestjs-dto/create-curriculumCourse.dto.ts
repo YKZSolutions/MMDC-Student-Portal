@@ -8,6 +8,13 @@ export class CreateCurriculumCourseDto {
   })
   @IsNotEmpty()
   @IsInt()
+  order: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  @IsNotEmpty()
+  @IsInt()
   year: number;
   @ApiProperty({
     type: 'integer',

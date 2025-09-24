@@ -992,7 +992,6 @@ export type ModuleTreeDto = {
 
 export type CreateModuleSectionDto = {
     title: string;
-    order: number;
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
@@ -1100,7 +1099,6 @@ export type CreateVideoDto = {
 };
 
 export type CreateContentDto = {
-    order: number;
     contentType: ContentType;
     publishedAt?: string | null;
     toPublishAt?: string | null;
@@ -1311,7 +1309,6 @@ export type OmitTypeClass = {
 };
 
 export type UpdateContentDto = {
-    order?: number;
     contentType?: ContentType;
     publishedAt?: string | null;
     toPublishAt?: string | null;

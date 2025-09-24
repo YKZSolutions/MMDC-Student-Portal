@@ -26,6 +26,11 @@ export class CurriculumCourse {
     type: 'integer',
     format: 'int32',
   })
+  order: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
   year: number;
   @ApiProperty({
     type: 'integer',

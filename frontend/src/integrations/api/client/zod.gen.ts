@@ -1469,7 +1469,6 @@ export const zModuleTreeDto = z.object({
 
 export const zCreateModuleSectionDto = z.object({
     title: z.string(),
-    order: z.int(),
     publishedAt: z.optional(z.union([
         z.iso.datetime(),
         z.null()
@@ -1673,7 +1672,6 @@ export const zCreateVideoDto = z.object({
 });
 
 export const zCreateContentDto = z.object({
-    order: z.int(),
     contentType: zContentType,
     publishedAt: z.optional(z.union([
         z.iso.datetime(),
@@ -2076,7 +2074,6 @@ export const zOmitTypeClass = z.object({
 });
 
 export const zUpdateContentDto = z.object({
-    order: z.optional(z.int()),
     contentType: z.optional(zContentType),
     publishedAt: z.optional(z.union([
         z.iso.datetime(),

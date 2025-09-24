@@ -16060,10 +16060,6 @@
           "title": {
             "type": "string"
           },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
           "publishedAt": {
             "type": "string",
             "nullable": true,
@@ -16089,8 +16085,7 @@
           }
         },
         "required": [
-          "title",
-          "order"
+          "title"
         ]
       },
       "DetailedModuleSectionDto": {
@@ -16406,10 +16401,6 @@
       "CreateContentDto": {
         "type": "object",
         "properties": {
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
           "contentType": {
             "allOf": [
               {
@@ -16458,7 +16449,6 @@
           }
         },
         "required": [
-          "order",
           "contentType"
         ]
       },
@@ -17283,10 +17273,6 @@
       "UpdateContentDto": {
         "type": "object",
         "properties": {
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
           "contentType": {
             "allOf": [
               {
