@@ -36,14 +36,12 @@ export class Discussion {
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  isThreaded: boolean | null;
+  isThreaded: boolean;
   @ApiProperty({
     type: 'boolean',
-    nullable: true,
   })
-  requirePost: boolean | null;
+  requirePost: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

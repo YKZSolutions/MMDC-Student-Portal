@@ -73,9 +73,9 @@ export class ProgramController {
   }
 
   /**
-   * Retrieve all majors of a program
+   * Retrive all majors of a program
    *
-   * @remarks Retrieves a paginated list of majors based on the program id and provided filters.
+   * @remarks Retrives a paginated list of majors based on the program id and provided filters.
    * Requires `ADMIN` role.
    */
   @Get(':programId/majors')

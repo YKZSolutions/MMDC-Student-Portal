@@ -7,6 +7,7 @@ import { GeminiService } from '@/lib/gemini/gemini.service';
 import { UsersService } from '@/modules/users/users.service';
 import { BillingService } from '@/modules/billing/billing.service';
 import { CoursesService } from '@/modules/courses/courses.service';
+import { FunctionCall } from '@google/genai';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
 import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
 import {
@@ -31,6 +32,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { FilterModulesDto } from '@/modules/lms/dto/filter-modules.dto';
 import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
 import {
   parseRelativeDateRange,
   RelativeDateRange,
