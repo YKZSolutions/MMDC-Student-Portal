@@ -2,6 +2,7 @@ export const seedConfig = {
   // ⚠️ Be careful when changing these values! It might generate large amounts of data.
   // Current configuration already generates at least 1000 records
 
+  DELETE_ALL_DATA: false,
   CREATE_USER_ACCOUNTS: false,
 
   // ---COUNTS---

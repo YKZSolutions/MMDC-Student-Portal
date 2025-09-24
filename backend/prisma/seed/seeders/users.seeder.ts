@@ -3,12 +3,11 @@ import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import { createUserData } from '../factories/user.factory';
 import { SupabaseService } from '../../../src/lib/supabase/supabase.service';
-import { ConfigService } from '@nestjs/config';
-import { EnvVars } from '../../../src/config/env.schema';
 
-const supabase = new SupabaseService(new ConfigService<EnvVars>());
-
-export async function seedUsers(prisma: PrismaClient) {
+export async function seedUsers(
+  prisma: PrismaClient,
+  supabase: SupabaseService,
+) {
   log('Seeding users...');
   const { TOTAL, ADMINS, MENTORS } = seedConfig.USERS;
 
