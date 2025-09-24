@@ -29,7 +29,7 @@ export async function seedUsers(prisma: PrismaClient) {
 
     const baseUserData = createUserData(role, i);
 
-    if (!authCreated[role]) {
+    if (!authCreated[role] && seedConfig.CREATE_USER_ACCOUNTS) {
       // First time we hit this role → create auth account
       const email = `${role}@tester.com`;
       const password = 'password';

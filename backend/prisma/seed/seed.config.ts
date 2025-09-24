@@ -2,6 +2,8 @@ export const seedConfig = {
   // ⚠️ Be careful when changing these values! It might generate large amounts of data.
   // Current configuration already generates at least 1000 records
 
+  CREATE_USER_ACCOUNTS: false,
+
   // ---COUNTS---
   // Adjust these numbers to control the amount of data generated
   USERS: {
