@@ -3,11 +3,11 @@ import type {
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
 import type {
+  ContentNode,
   CourseNodeModel,
   Module,
   ModuleItem,
   ModuleSection,
-  ModuleTreeSectionDto,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 
@@ -91,7 +91,7 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
 
 // Convert API DTO sections into CourseNodeModel[] for the Tree component
 export function convertModuleSectionsToTreeData(
-  sections: ModuleTreeSectionDto[],
+  sections: ContentNode[],
 ): CourseNodeModel[] {
   return convertSectionsToTreeData(sections)
 }
@@ -99,12 +99,12 @@ export function convertModuleSectionsToTreeData(
 // Shared implementation: simple, non-mutating traversal that flattens
 // sections, subsections and items into the node list expected by the Tree.
 function convertSectionsToTreeData(
-  sections: ModuleTreeSectionDto[] | ModuleSection[],
+  sections: ContentNode[] | ModuleSection[],
 ): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
   function processSection(
-    section: ModuleTreeSectionDto | ModuleSection,
+    section: ContentNode | ModuleSection,
     parentId = 'root',
     level = 1,
   ) {
@@ -122,22 +122,33 @@ function convertSectionsToTreeData(
       },
     })
 
-    // This is still needed for the mock items. 
+    // This is still needed for the mock items.
     // Remove if real data always has items defined.
-    const items = section.items ?? []
-    for (const item of items) {
-      if (!item) continue
-      treeData.push({
-        id: item.id,
-        parent: section.id,
-        text: item.title ?? 'Untitled Item',
-        droppable: false,
-        data: {
-          level: 3,
-          type: 'item',
-          contentData: item,
-        },
-      })
+
+    if ('items' in section) {
+      const items = section.items ?? []
+      for (const item of items) {
+        if (!item) continue
+        treeData.push({
+          id: item.id,
+          parent: section.id,
+          text: item.title ?? 'Untitled Item',
+          droppable: false,
+          data: {
+            level: 3,
+            type: 'item',
+            contentData: {
+              ...item,
+              moduleId: section.moduleId,
+              parentSectionId: section.id,
+              prerequisiteSectionId: item.prerequisites?.[0] || '',
+              publishedAt: new Date().toISOString(),
+              toPublishAt: new Date().toISOString(),
+              unpublishedAt: new Date().toISOString(),
+            },
+          },
+        })
+      }
     }
 
     const subs = section.subsections ?? []
