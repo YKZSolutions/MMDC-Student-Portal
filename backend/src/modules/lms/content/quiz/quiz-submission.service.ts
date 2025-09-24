@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
@@ -35,6 +36,8 @@ export class QuizSubmissionService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
+
+  private logger = new Logger(QuizSubmissionService.name, { timestamp: true });
 
   @Log({
     logArgsMessage: ({ quizId, studentId }) =>
@@ -541,7 +544,10 @@ export class QuizSubmissionService {
         questionResults: questionResults as unknown as Prisma.JsonValue,
       };
     } catch (error) {
-      console.error('Auto-grading failed:', error);
+      this.logger.warn(
+        `Auto grading failed for submission ${submission.id}`,
+        error,
+      );
       // Return zero score if grading fails
       return {
         rawScore: 0,
@@ -597,7 +603,7 @@ export class QuizSubmissionService {
           };
       }
     } catch (error) {
-      console.error(`Error grading question ${question.id}:`, error);
+      this.logger.warn(`Error grading question ${question.id}:`, error);
       return {
         score: 0,
         feedback: 'Error grading this question',
@@ -789,7 +795,10 @@ export class QuizSubmissionService {
             : question.feedback?.incorrect || 'Incorrect. Try again.',
         };
       } catch (e) {
-        console.error('Invalid regex pattern:', e);
+        this.logger.warn(
+          `Invalid regex pattern ${question.matchPattern} for question ${question.id}:`,
+          e,
+        );
         return { score: 0, feedback: 'Error evaluating answer' };
       }
     }
