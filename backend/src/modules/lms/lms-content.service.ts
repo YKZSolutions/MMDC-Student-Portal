@@ -96,13 +96,21 @@ export class LmsContentService {
       externalUrl,
       video,
       lesson,
+      sectionId,
       ...rest
     } = createModuleContentDto;
 
-    return this.prisma.client.$transaction(async (tx) => {
+    const result = await this.prisma.client.$transaction(async (tx) => {
       // 1. Create the base module content
       const content = await tx.moduleContent.create({
         data: {
+          ...(sectionId
+            ? {
+                moduleSection: {
+                  connect: { id: sectionId },
+                },
+              }
+            : {}),
           ...rest,
           module: { connect: { id: moduleId } },
         },
@@ -153,9 +161,11 @@ export class LmsContentService {
           break;
       }
 
-      // 3. Always return fresh with relations
-      return this.findOne(content.id, Role.admin, null);
+      return content;
     });
+
+    // 3. Always return fresh with relations
+    return this.findOne(result.id, Role.admin, null);
   }
 
   @Log({
