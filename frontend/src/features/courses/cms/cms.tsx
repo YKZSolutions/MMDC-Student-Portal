@@ -63,6 +63,8 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import { Suspense } from 'react'
+import { CMSContentTreeSuspense } from '../suspense'
 
 type CMSProps = {
   courseCode?: string
@@ -370,17 +372,19 @@ function CMSCourseStructure({
           <Divider />
         </Stack>
 
-        <CMSCourseStructureQueryProvider>
-          {({ moduleTree }) => (
-            <CMSContentTree
-              handleAdd={handleAdd}
-              moduleTree={moduleTree}
-              handleNodeSelect={(nodeData) => {
-                handleUpdate(editorState.type, nodeData, editorState.view)
-              }}
-            />
-          )}
-        </CMSCourseStructureQueryProvider>
+        <Suspense fallback={<CMSContentTreeSuspense />}>
+          <CMSCourseStructureQueryProvider>
+            {({ moduleTree }) => (
+              <CMSContentTree
+                handleAdd={handleAdd}
+                moduleTree={moduleTree}
+                handleNodeSelect={(nodeData) => {
+                  handleUpdate(editorState.type, nodeData, editorState.view)
+                }}
+              />
+            )}
+          </CMSCourseStructureQueryProvider>
+        </Suspense>
       </Container>
     </Box>
   )
