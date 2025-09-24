@@ -1168,6 +1168,7 @@ export type DetailedModuleSectionDto = {
     deletedAt: string | null;
     prerequisiteSectionId?: string | null;
     parentSectionId?: string | null;
+    moduleId: string;
 };
 
 export type UpdateModuleSectionDto = {
@@ -3853,6 +3854,36 @@ export type LmsSectionControllerRemoveError = LmsSectionControllerRemoveErrors[k
 export type LmsSectionControllerRemoveResponses = {
     200: unknown;
 };
+
+export type LmsSectionControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerFindOneError = LmsSectionControllerFindOneErrors[keyof LmsSectionControllerFindOneErrors];
+
+export type LmsSectionControllerFindOneResponses = {
+    200: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerFindOneResponse = LmsSectionControllerFindOneResponses[keyof LmsSectionControllerFindOneResponses];
 
 export type LmsSectionControllerUpdateData = {
     body: UpdateModuleSectionDto;

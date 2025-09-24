@@ -8656,6 +8656,111 @@
       }
     },
     "/modules/{moduleId}/sections/{moduleSectionId}": {
+      "get": {
+        "operationId": "LmsSectionController_findOne",
+        "parameters": [
+          {
+            "name": "moduleSectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedModuleSectionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieves a module section by its ID",
+        "tags": [
+          "LmsSection"
+        ]
+      },
       "patch": {
         "description": "Requires `ADMIN` role",
         "operationId": "LmsSectionController_update",
@@ -16733,6 +16838,9 @@
           "parentSectionId": {
             "type": "string",
             "nullable": true
+          },
+          "moduleId": {
+            "type": "string"
           }
         },
         "required": [
@@ -16744,7 +16852,8 @@
           "unpublishedAt",
           "createdAt",
           "updatedAt",
-          "deletedAt"
+          "deletedAt",
+          "moduleId"
         ]
       },
       "UpdateModuleSectionDto": {

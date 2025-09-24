@@ -1768,7 +1768,8 @@ export const zDetailedModuleSectionDto = z.object({
     parentSectionId: z.optional(z.union([
         z.string(),
         z.null()
-    ]))
+    ])),
+    moduleId: z.string()
 });
 
 export const zUpdateModuleSectionDto = z.object({});
@@ -3122,6 +3123,16 @@ export const zLmsSectionControllerRemoveData = z.object({
         directDelete: z.optional(z.boolean())
     }))
 });
+
+export const zLmsSectionControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleSectionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsSectionControllerFindOneResponse = zDetailedModuleSectionDto;
 
 export const zLmsSectionControllerUpdateData = z.object({
     body: zUpdateModuleSectionDto,
