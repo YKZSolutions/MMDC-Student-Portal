@@ -104,6 +104,42 @@ export class LmsSectionService {
   }
 
   /**
+   * Retrieves a module section by its ID.
+   *
+   * @async
+   * @param {string} moduleSectionId - The UUID of the module section.
+   * @returns {Promise<DetailedModuleSectionDto>} - The module section record.
+   * @throws {NotFoundException} - If the specified module section is not found.
+   *
+   */
+  @Log({
+    logArgsMessage: ({ moduleSectionId }) =>
+      `Fetching module section ${moduleSectionId}`,
+    logSuccessMessage: (_, { moduleSectionId }) =>
+      `Fetched module section ${moduleSectionId}`,
+    logErrorMessage: (err, { moduleSectionId }) =>
+      `Fetching module section ${moduleSectionId} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { moduleSectionId }) =>
+      new NotFoundException(`Module section ${moduleSectionId} not found`),
+  })
+  async findById(
+    @LogParam('moduleSectionId') moduleSectionId: string,
+  ): Promise<DetailedModuleSectionDto> {
+    return this.prisma.client.moduleSection.findUniqueOrThrow({
+      where: { id: moduleSectionId },
+      include: {
+        subsections: {
+          include: {
+            subsections: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Updates the details of an existing module section.
    *
    * @async
