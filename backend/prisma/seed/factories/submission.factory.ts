@@ -1,7 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { mockContent } from '../constants/mockBlockNoteContent';
 import { seedConfig } from '../seed.config';
+import { pickRandomEnum } from '../utils/helpers';
 
 export function createContentProgressData(
   userId: string,
@@ -27,6 +28,7 @@ export function createAssignmentSubmissionData(
     content: mockContent,
     submittedAt: faker.date.past(),
     lateDays: isLate ? faker.number.int({ min: 0, max: 10 }) : null,
+    state: pickRandomEnum(SubmissionState),
     attachments: {
       create: {
         name: 'document.pdf',
@@ -63,6 +65,14 @@ export function createQuizSubmissionData(
   quizId: string,
 ): Prisma.QuizSubmissionCreateInput {
   const isGraded = Math.random() < seedConfig.GRADING_CHANCE;
+  const state = isGraded
+    ? SubmissionState.GRADED
+    : pickRandomEnum(
+        Object.values(SubmissionState).filter(
+          (s) => s !== SubmissionState.GRADED,
+        ),
+      );
+
   return {
     student: { connect: { id: studentId } },
     quiz: { connect: { id: quizId } },
@@ -80,5 +90,6 @@ export function createQuizSubmissionData(
         feedback: faker.lorem.sentence(),
       })),
     }),
+    state: state,
   };
 }

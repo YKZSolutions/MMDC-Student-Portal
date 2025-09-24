@@ -38,7 +38,7 @@ export async function seedSubmissions(
   // Map modules by id for quick lookup
   const moduleMap = new Map<
     string,
-    { courseId: string; courseOfferingId: string | null }
+    { courseId: string | null; courseOfferingId: string | null }
   >();
   for (const m of modules) {
     moduleMap.set(m.id, {
