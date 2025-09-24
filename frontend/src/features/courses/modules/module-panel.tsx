@@ -1,7 +1,12 @@
 import NoItemFound from '@/components/no-item-found'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import type { ModuleTreeSectionDto } from '@/integrations/api/client'
 import {
+  type BasicModuleItemDto,
+  type ContentType,
+  type ModuleTreeSectionDto,
+} from '@/integrations/api/client'
+import {
+  lmsContentControllerCreateMutation,
   lmsControllerFindModuleTreeOptions,
   lmsControllerFindModuleTreeQueryKey,
   lmsSectionControllerCreateMutation,
@@ -24,6 +29,7 @@ import {
   rem,
   Stack,
   Text,
+  ThemeIcon,
   Title,
   Tooltip,
   useMantineTheme,
@@ -37,10 +43,11 @@ import {
   IconDotsVertical,
   IconEdit,
   IconExternalLink,
-  IconFile,
+  IconEye,
   IconFileText,
   IconInbox,
   IconMessageCircle,
+  IconPaperclip,
   IconPlus,
   IconRubberStamp,
   IconRubberStampOff,
@@ -179,8 +186,8 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
 
                               <Accordion.Panel>
                                 <Stack gap="xs">
-                                  {subsection?.subsections == null ||
-                                  subsection?.subsections.length === 0 ? (
+                                  {subsection?.moduleContents == null ||
+                                  subsection?.moduleContents.length === 0 ? (
                                     <NoItemFound
                                       icon={
                                         <IconInbox size={36} stroke={1.5} />
@@ -189,11 +196,11 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
                                       subtitle="This module section currently has no content."
                                     />
                                   ) : (
-                                    subsection?.subsections?.map(
-                                      (subsection_2) => (
+                                    subsection?.moduleContents?.map(
+                                      (moduleContent) => (
                                         <ModuleItemCard
-                                          key={subsection_2.id}
-                                          section={subsection_2}
+                                          key={moduleContent.id}
+                                          moduleContent={moduleContent}
                                           viewMode={viewMode}
                                         />
                                       ),
@@ -219,41 +226,68 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
 }
 
 interface ModuleItemCardProps {
-  section: ModuleTreeSectionDto
+  moduleContent: BasicModuleItemDto
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
-function ModuleItemCard({ section, viewMode }: ModuleItemCardProps) {
+function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
-  // const isOverdue =
-  //   item.type === 'assignment' && item.assignment?.dueDate
-  //     ? new Date(item.assignment.dueDate) < new Date() &&
-  //       getSubmissionStatus(item.assignment) === 'pending'
-  //     : false
+  const isOverdue =
+    moduleContent.contentType === 'ASSIGNMENT' &&
+    moduleContent.assignment?.dueDate &&
+    new Date(moduleContent.assignment.dueDate) < new Date()
 
-  // const isCompleted =
-  //   item.type === 'lesson'
-  //     ? item.progress?.isCompleted
-  //     : ['graded', 'ready-for-grading', 'submitted'].includes(
-  //         getSubmissionStatus(item.assignment) || '',
-  //       )
+  const isCompleted =
+    moduleContent.contentType === 'LESSON' &&
+    moduleContent.studentProgress?.every(
+      (progress) => progress.status === 'COMPLETED',
+    )
 
-  const getContentTypeIcon = (type: string) => {
-    switch (type) {
-      case 'lesson':
+  const getContentTypeIcon = (contentType: ContentType) => {
+    switch (contentType) {
+      case 'LESSON':
         return <IconFileText size={16} />
-      case 'assignment':
+
+      case 'ASSIGNMENT':
         return <IconClipboard size={16} />
-      case 'discussion':
+      case 'QUIZ':
+        return <IconPaperclip size={16} />
+      case 'DISCUSSION':
         return <IconMessageCircle size={16} />
-      case 'url':
+      case 'FILE':
+        return <IconPaperclip size={16} />
+      case 'URL':
         return <IconExternalLink size={16} />
-      case 'file':
-        return <IconFile size={16} />
+      case 'VIDEO':
+        return <IconCalendarTime size={16} />
       default:
-        return <IconFileText size={16} />
+        return 'Untitled Item'
+    }
+  }
+
+  const getTitleByContentType = (
+    contentType: ContentType,
+    moduleContent: BasicModuleItemDto,
+  ) => {
+    switch (contentType) {
+      case 'LESSON':
+        return moduleContent.lesson?.title || 'Untitled Lesson'
+      case 'ASSIGNMENT':
+        return moduleContent.assignment?.title || 'Untitled Assignment'
+      case 'QUIZ':
+        return moduleContent.quiz?.title || 'Untitled Quiz'
+      case 'DISCUSSION':
+        return moduleContent.discussion?.title || 'Untitled Discussion'
+      case 'FILE':
+        return moduleContent.fileResource?.title || 'Untitled File'
+      case 'URL':
+        return moduleContent.externalUrl?.title || 'Untitled External Tool'
+      case 'VIDEO':
+        return moduleContent.video?.title || 'Untitled Video'
+      default:
+        return 'Untitled Item'
     }
   }
 
@@ -261,7 +295,7 @@ function ModuleItemCard({ section, viewMode }: ModuleItemCardProps) {
     navigate({
       from: '/lms/$lmsCode/modules',
       to: `$itemId`,
-      params: { itemId: section.id },
+      params: { itemId: moduleContent.id },
     })
   }
 
@@ -282,94 +316,100 @@ function ModuleItemCard({ section, viewMode }: ModuleItemCardProps) {
       <Group align="center" justify="space-between" wrap="nowrap">
         {/* Icon + Title */}
         <Group align="center" gap="sm" wrap="nowrap" flex={1}>
-          {/* <ThemeIcon
+          <ThemeIcon
             size="md"
             variant="light"
-            color={isOverdue ? 'red' : isCompleted ? 'green' : 'gray'}
+            color={isOverdue ? 'red' : isCompleted ? 'green.8' : 'gray'}
           >
-            {getContentTypeIcon(item.type)}
-          </ThemeIcon> */}
+            {getContentTypeIcon(moduleContent.contentType)}
+          </ThemeIcon>
 
           <Box flex={1}>
             <Group gap="xs" mb={4}>
               <Text fw={500} size="sm" lineClamp={2}>
-                {section.title}
+                {getTitleByContentType(
+                  moduleContent.contentType,
+                  moduleContent,
+                )}
               </Text>
 
-              {/* {item.type && (
+              {moduleContent.contentType && (
                 <Badge size="xs" variant="light" color="gray">
-                  {item.type}
+                  {moduleContent.contentType}
                 </Badge>
-              )} */}
+              )}
 
-              {!section.publishedAt && viewMode !== 'student' && (
+              {!moduleContent.publishedAt && viewMode !== 'student' && (
                 <Badge size="xs" variant="outline" color="orange">
                   Draft
                 </Badge>
               )}
 
-              {/* {isOverdue && (
+              {isOverdue && (
                 <Badge size="xs" variant="filled" color="red">
                   Overdue
                 </Badge>
-              )} */}
+              )}
             </Group>
 
             {/* Meta info */}
-            {/* {item.type === 'lesson' && (
+            {moduleContent.contentType === 'LESSON' && (
               <Text size="xs" c="dimmed">
                 Reading Material
-                {item.progress?.completedAt && (
+                {moduleContent.studentProgress?.every(
+                  (p) => p.status === 'COMPLETED',
+                ) && (
                   <>
                     {' '}
                     • Completed{' '}
-                    {formatTimestampToDateTimeText(
-                      item.progress.completedAt,
-                      'on',
-                    )}
+                    {/* {formatTimestampToDateTimeText(
+                      moduleContent.studentProgress.find(
+                        (p) => p.status === 'COMPLETED',
+                      )?.completedAt,
+                    )} */}
                   </>
                 )}
               </Text>
-            )} */}
+            )}
 
-            {/* {item.assignment && (
+            {moduleContent.assignment && (
               <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
                 Due{' '}
                 {formatTimestampToDateTimeText(
-                  item.assignment.dueDate || '',
+                  moduleContent.assignment.dueDate || '',
                   'by',
                 )}{' '}
-                • {item.assignment.points} pts
+                {/* • {moduleContent.assignment.points} pts */}
               </Text>
-            )} */}
+            )}
           </Box>
         </Group>
 
         {/* Right-side Actions */}
         <Box>
-          {/* {viewMode === 'student' && item.type === 'assignment' && (
+          {/* {viewMode === 'student' && moduleContent.contentType === 'ASSIGNMENT' && (
             <SubmitButton
               submissionStatus={
-                getSubmissionStatus(item.assignment) || 'pending'
+                getSubmissionStatus(moduleContent.assignment) || 'pending'
               }
               onClick={() => {}}
-              dueDate={item.assignment?.dueDate || ''}
-              assignmentStatus={item.assignment?.status || 'open'}
+              dueDate={moduleContent.assignment?.dueDate || ''}
+              assignmentStatus={moduleContent.assignment?.status || 'open'}
               isPreview={authUser.role !== 'student'}
             />
           )} */}
 
-          {/* {viewMode === 'mentor' && item.type === 'assignment' && (
+          {viewMode === 'mentor' && moduleContent.contentType === 'ASSIGNMENT' && (
             <Tooltip label="View submissions">
               <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
                 <IconEye size={16} />
               </ActionIcon>
             </Tooltip>
-          )} */}
-
-          {viewMode === 'admin' && (
-            <AdminActions isLastSubsection={true} section={section} />
           )}
+
+          {/* {viewMode === 'admin' && (
+            <AdminActions isLastSubsection={true} section={section} />
+          )} */}
         </Box>
       </Group>
     </Card>
@@ -595,6 +635,36 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
     },
   )
 
+  const { mutateAsync: createModuleContent } = useAppMutation(
+    lmsContentControllerCreateMutation,
+    {
+      loading: {
+        title: 'Creating Content',
+        message: 'Creating new content — please wait',
+      },
+      success: {
+        title: 'Content Created',
+        message: 'Content was created successfully',
+      },
+      error: {
+        title: 'Failed to Create Content',
+        message:
+          'There was an error while creating the content. Please try again.',
+      },
+    },
+    {
+      onSuccess: async (data) => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
   const handleDelete = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
@@ -638,15 +708,31 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
     //   search: { id: section.id },
     // })
 
-    await createSubsection({
-      path: {
-        moduleId: lmsCode || '',
-      },
-      body: {
-        title: randomId('subsection-'),
-        parentSectionId: section.id,
-      },
-    })
+    if (section.parentSectionId) {
+      await createModuleContent({
+        path: {
+          moduleId: lmsCode || '',
+        },
+        body: {
+          contentType: 'LESSON',
+          order: 1,
+          lesson: {
+            title: 'New Lesson',
+          },
+          sectionId: section.id,
+        },
+      })
+    } else {
+      await createSubsection({
+        path: {
+          moduleId: lmsCode || '',
+        },
+        body: {
+          title: randomId('subsection-'),
+          parentSectionId: section.id,
+        },
+      })
+    }
   }
 
   const handlePublishNow = async (
