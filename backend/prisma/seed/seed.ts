@@ -7,17 +7,30 @@ import { seedSubmissions } from './seeders/submissions.seeder';
 import { seedBilling } from './seeders/billing.seeder';
 import { seedNotifications } from './seeders/notifications.seeder';
 import { seedGrades } from './seeders/grades.seeder';
+import { seedConfig } from './seed.config';
+import { deleteAllData } from './utils/delete-all-data';
+import { SupabaseService } from '../../src/lib/supabase/supabase.service';
+import { ConfigService } from '@nestjs/config';
+import { EnvVars } from '../../src/config/env.schema';
 
 const prisma = new PrismaClient();
+const supabase = new SupabaseService(new ConfigService<EnvVars>());
 
 async function main() {
   console.log('🌱 Starting seed...');
+
+  if (seedConfig.DELETE_ALL_DATA) {
+    await deleteAllData(prisma, supabase);
+  }
 
   // --- SEEDING ---
   console.time('Database seeded in');
 
   console.time('Seeded Users');
-  const { users, admins, mentors, students } = await seedUsers(prisma);
+  const { users, admins, mentors, students } = await seedUsers(
+    prisma,
+    supabase,
+  );
   console.timeEnd('Seeded Users');
 
   console.time('Seeded Academics');

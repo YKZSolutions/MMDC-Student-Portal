@@ -4,9 +4,8 @@ import {
   TrueFalseQuestionDto,
 } from '../../../src/modules/lms/content/quiz/dto/quiz-questions.dto';
 
-
 export const mockMultipleChoiceQuestionDto: MultipleChoiceQuestionDto = {
-  questionNumber: 1,
+  id: '1',
   type: 'multiple_choice',
   points: 5,
   question: 'What is the capital of France?',
@@ -18,7 +17,7 @@ export const mockMultipleChoiceQuestionDto: MultipleChoiceQuestionDto = {
 };
 
 export const mockShortAnswerQuestionDto: ShortAnswerQuestionDto = {
-  questionNumber: 2,
+  id: '2',
   type: 'short_answer',
   points: 10,
   question: 'Explain the theory of relativity',
@@ -26,14 +25,11 @@ export const mockShortAnswerQuestionDto: ShortAnswerQuestionDto = {
 };
 
 export const mockTrueFalseQuestionDto: TrueFalseQuestionDto = {
-  questionNumber: 3,
+  id: '3',
   type: 'true_false',
   points: 10,
   question: 'Is the theory of relativity correct?',
-  options: [
-    { id: 'a', text: 'True', correct: true },
-    { id: 'b', text: 'False', correct: false },
-  ],
+  correctAnswer: true,
 };
 
 export const mockQuizQuestions = [

@@ -618,7 +618,6 @@ model SectionModule {
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   moduleId String @db.Uuid
 
-  order       Int       @default(0)
   publishedAt DateTime?
   toPublishAt DateTime?
 
@@ -698,7 +697,7 @@ model ModuleContent {
   /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  order       Int
+  order       Int         @default(0)
   contentType ContentType
 
   publishedAt   DateTime?
@@ -764,12 +763,13 @@ model Assignment {
   subtitle String? @db.VarChar(500)
   content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
 
-  mode AssignmentMode @default(INDIVIDUAL)
+  mode AssignmentMode
 
-  maxAttempts         Int       @default(1) @db.SmallInt
-  allowLateSubmission Boolean   @default(false)
-  latePenalty         Decimal   @default(0.0) @db.Decimal(5, 2)
+  maxAttempts         Int?      @db.SmallInt
+  allowLateSubmission Boolean
+  latePenalty         Decimal?  @db.Decimal(5, 2)
   dueDate             DateTime?
+  gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -788,11 +788,47 @@ model Assignment {
   @@index([dueDate])
 }
 
+enum SubmissionState {
+  // Work-in-progress submission
+  // Student is still working on the assignment/quiz
+  // Can be saved multiple times without counting as an attempt
+  // Not visible to instructors for grading
+  DRAFT
+
+  // Student has completed and submitted work
+  // Submission is now "locked in" for evaluation
+  // Counts as an attempt toward maxAttempts
+  // Becomes visible to instructors
+  SUBMITTED
+
+  // Instructor has started grading process
+  // Prevents concurrent grading by multiple instructors
+  // Provides status transparency to student
+  // Allows for complex multi-stage evaluation processes
+  UNDER_REVIEW
+
+  // Final grades and feedback have been provided
+  // Student can view their grade and feedback
+  // Submission is now read-only
+  // Marks the end of successful evaluation process
+  GRADED
+
+  // Submission requires student action/resubmission
+  // Work didn't meet requirements or needs correction
+  // Student can revise and resubmit (if attempts remain)
+  // Creates feedback loop for improvement
+  RETURNED
+}
+
 model AssignmentSubmission {
   id           String     @id @default(uuid()) @db.Uuid
   assignmentId String     @db.Uuid
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   studentId    String     @db.Uuid
+
+  state SubmissionState
+
+  gradeRecord AssignmentGradeRecord?
 
   /// @DtoApiHidden
   student User @relation(fields: [studentId], references: [id])
@@ -805,7 +841,7 @@ model AssignmentSubmission {
   /// Text submission
   content       Json?
   submittedAt   DateTime?
-  attemptNumber Int?      @db.SmallInt
+  attemptNumber Int       @default(1) @db.SmallInt
 
   // Late submission tracking
   lateDays Int? @db.SmallInt
@@ -851,10 +887,11 @@ model Quiz {
   content         Json // Structured quiz content (eg. description, instructions, etc.)
 
   timeLimit           Int? // in minutes
-  maxAttempts         Int       @default(1) @db.SmallInt
-  allowLateSubmission Boolean   @default(false)
-  latePenalty         Decimal   @default(0.0) @db.Decimal(5, 2)
+  maxAttempts         Int?      @db.SmallInt
+  allowLateSubmission Boolean
+  latePenalty         Decimal?  @db.Decimal(5, 2)
   dueDate             DateTime?
+  gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
   questions Json // Store all questions in a structured format
 
@@ -880,14 +917,21 @@ model QuizSubmission {
   student   User   @relation(fields: [studentId], references: [id])
   studentId String @db.Uuid
 
+  state SubmissionState //Draft is when students are answering the quiz
+
   answers  Json // Student's answers
   rawScore Decimal? @db.Decimal(5, 2)
 
+  gradedAt DateTime?
+  grade    Decimal?  @db.Decimal(5, 2) //Final score with adjustments
+
   questionResults Json? // [{questionId, points, score, feedback}]
 
-  submittedAt   DateTime @default(now())
+  lateDays Int? @db.SmallInt
+
+  submittedAt   DateTime? @default(now())
   timeSpent     Int? // in seconds
-  attemptNumber Int      @default(1) @db.SmallInt
+  attemptNumber Int       @default(1) @db.SmallInt
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
@@ -907,8 +951,8 @@ model Discussion {
   subtitle String? @db.VarChar(500)
   content  Json? // Discussion prompt/question
 
-  isThreaded  Boolean @default(true)
-  requirePost Boolean @default(false)
+  isThreaded  Boolean? @default(true)
+  requirePost Boolean? @default(false)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -1059,7 +1103,7 @@ model AssignmentGrading {
   weight        Decimal @db.Decimal(5, 2) // For final grade calculation
 
   // Grade processing metadata
-  isCurved      Boolean @default(false)
+  isCurved      Boolean
   curveSettings Json? // for adjusting grades (eg. adding points to all grades)
 
   /// @DtoReadOnly
@@ -1086,6 +1130,10 @@ model AssignmentGradeRecord {
   /// @DtoApiHidden
   student   User              @relation(fields: [studentId], references: [id])
   studentId String            @db.Uuid
+
+  // @DtoApiHidden
+  submission   AssignmentSubmission? @relation(fields: [submissionId], references: [id])
+  submissionId String?               @unique @db.Uuid
 
   rawScore   Decimal @db.Decimal(5, 2) // Actual grade data
   finalScore Decimal @db.Decimal(5, 2)
@@ -1118,7 +1166,9 @@ model Group {
   /// @DtoApiHidden
   submissions AssignmentSubmission[]
 
+  /// @DtoReadOnly
   createdAt DateTime @default(now())
+  /// @DtoReadOnly
   updatedAt DateTime @updatedAt
 
   @@unique([moduleId, groupNumber])
@@ -1131,7 +1181,7 @@ model GroupMember {
   group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   studentId String @db.Uuid
-  user      User   @relation(fields: [studentId], references: [id])
+  student   User   @relation(fields: [studentId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
