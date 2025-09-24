@@ -25,7 +25,11 @@ interface PaginatedTableProps<T> {
   currentPage?: number
   fullHeight?: boolean
   rowComponent: (data: T) => ReactNode
+  menuComponent?: (data: T) => ReactNode
   onPaginationChange?: (value: number) => void
+  onItemView?: (item: T) => void
+  onItemEdit?: (item: T) => void
+  onItemDelete?: (item: T) => void
 }
 
 function PaginatedTable<T>({
@@ -38,7 +42,11 @@ function PaginatedTable<T>({
   tableProps,
   fullHeight = false,
   rowComponent,
+  menuComponent,
   onPaginationChange,
+  onItemView,
+  onItemEdit,
+  onItemDelete,
 }: PaginatedTableProps<T>) {
   const message = formatPaginationMessage({
     limit: 10,
@@ -98,23 +106,40 @@ function PaginatedTable<T>({
 
               {menu && (
                 <Table.Td>
-                  <Menu shadow="md" width={200}>
-                    <Menu.Target>
-                      <ActionIcon
-                        onClick={(e) => e.stopPropagation()}
-                        variant="subtle"
-                        color="gray"
-                        radius={'xl'}
-                      >
-                        <IconDotsVertical size={20} stroke={1.5} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item>View Details</Menu.Item>
-                      <Menu.Item>Edit</Menu.Item>
-                      <Menu.Item c="red">Delete</Menu.Item>{' '}
-                    </Menu.Dropdown>
-                  </Menu>
+                  {menuComponent ? (
+                    menuComponent(item)
+                  ) : (
+                    <Menu shadow="md" width={200}>
+                      <Menu.Target>
+                        <ActionIcon
+                          onClick={(e) => e.stopPropagation()}
+                          variant="subtle"
+                          color="gray"
+                          radius={'xl'}
+                        >
+                          <IconDotsVertical size={20} stroke={1.5} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item
+                          onClick={() => onItemView && onItemView(item)}
+                        >
+                          View Details
+                        </Menu.Item>
+                        <Menu.Item
+                          onClick={() => onItemEdit && onItemEdit(item)}
+                        >
+                          Edit
+                        </Menu.Item>
+                        <Menu.Item
+                          c="red"
+                          onClick={() => onItemDelete && onItemDelete(item)}
+                        >
+                          Delete
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  )}
                 </Table.Td>
               )}
             </Table.Tr>

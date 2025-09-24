@@ -8,7 +8,7 @@ import {
 import { useRef } from 'react'
 import { getContext } from './root-provider'
 
-type NotificationMessages = {
+export type NotificationMessages = {
   loading: { title: string; message: string }
   success: { title: string; message: string }
   error?: { title: string; message: string }
@@ -77,7 +77,9 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
     },
     onSettled: (data, error, variables, context) => {
       // treat context as unknown-safe when checking for custom keys
-      const ctxAny = context as unknown as { keys?: Record<string, unknown> } | undefined
+      const ctxAny = context as unknown as
+        | { keys?: Record<string, unknown> }
+        | undefined
 
       const { queryClient } = getContext()
       if (ctxAny?.keys) {
@@ -85,7 +87,9 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
           if (val == null) continue
 
           // if the value is already a queryKey array, use it; otherwise wrap single value
-          const keyArr = Array.isArray(val) ? (val as readonly unknown[]) : ([val] as readonly unknown[])
+          const keyArr = Array.isArray(val)
+            ? (val as readonly unknown[])
+            : ([val] as readonly unknown[])
           queryClient.invalidateQueries({ queryKey: keyArr })
         }
       }

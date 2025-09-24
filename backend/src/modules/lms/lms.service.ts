@@ -1,17 +1,26 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
 import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
-import { PaginatedModulesDto } from './dto/paginated-module.dto';
+import { isUUID } from 'class-validator';
+import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterModulesDto } from './dto/filter-modules.dto';
+import {
+  DetailedModulesDto,
+  PaginatedModulesDto,
+} from './dto/paginated-module.dto';
 
 @Injectable()
 export class LmsService {
@@ -332,48 +341,121 @@ export class LmsService {
   }
 
   /**
-   * Retrieves a paginated list of modules available to the user, filtered by search criteria and role.
+   * Retrieves a single module by ID with role-based access control.
    *
-   * - All users can filter modules by course name or course code.
-   * - Students see only modules from courses they are enrolled in.
-   * - Mentors see only modules from courses they are assigned to.
-   * - Admins see all modules across courses.
+   * - Admins can access any module.
+   * - Mentors can access modules for course sections they are assigned to.
+   * - Students can access modules for course sections they are enrolled in.
    *
-   * Results are sorted by the most recent enrollment period (`startDate` descending).
+   * The returned module includes `courseOffering` (with `course`, `enrollmentPeriod`,
+   * and `courseSections`) and `moduleSections` (without contents).
    *
-   * @async
-   * @param {string} userId - The user ID making the request.
-   * @param {Role} role - The user's role.
-   * @param {BaseFilterDto} filters - Filters for search, pagination, and other options.
-   *
-   * @returns {Promise<PaginatedModulesDto>} A list of matching modules and pagination metadata.
-   *
-   * @throws {NotFoundException} If no modules are found (Prisma `RecordNotFound`).
+   * @param id - Module UUID
+   * @param role - Role of the requesting user
+   * @param userId - ID of the requesting user (nullable for admins)
+   * @returns The module DTO with related offering and sections
+   * @throws BadRequestException when the id is not a valid UUID
+   * @throws NotFoundException when the module is not accessible/does not exist
    */
   @Log({
-    logArgsMessage: ({ userId, role, filters }) =>
-      `Fetching modules for user ${userId} role=${role}, filters=${JSON.stringify(filters)}`,
+    logArgsMessage: ({ id, role, userId }) =>
+      `Fetching module ${id} for role=${role} user=${userId}`,
+    logSuccessMessage: (res, { id }) => `Fetched module ${id}`,
+    logErrorMessage: (err, { id }) =>
+      `Fetching module ${id} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Module ${id} not found`),
+  })
+  async findOne(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string | null,
+  ): Promise<DetailedModulesDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid module ID format');
+    }
+
+    // Build role-based where clause
+    const where: Prisma.ModuleWhereInput = { id };
+
+    if (role === Role.student && userId) {
+      where.courseOffering = {
+        is: {
+          courseSections: {
+            some: { courseEnrollments: { some: { studentId: userId } } },
+          },
+        },
+      };
+    } else if (role === Role.mentor && userId) {
+      where.courseOffering = {
+        is: {
+          courseSections: { some: { mentorId: userId } },
+        },
+      };
+    }
+
+    // Always include course sections and their enrollments, then filter in JS
+    const moduleData = await this.prisma.client.module.findFirstOrThrow({
+      where,
+      include: {
+        courseOffering: {
+          include: {
+            course: true,
+            courseSections: {
+              where:
+                role == Role.student && userId
+                  ? { courseEnrollments: { some: { studentId: userId } } }
+                  : undefined,
+              include: {
+                user: true,
+              },
+            },
+            enrollmentPeriod: true,
+          },
+        },
+      },
+    });
+
+    return moduleData;
+  }
+
+  /**
+   * Retrieves a paginated list of modules available to a student, filtered by search criteria and enrollment.
+   *
+   * - Students see only modules from courses they are enrolled in.
+   * - Supports filtering by course name, course code, year, and term.
+   * - Results are sorted by the most recent enrollment period (startDate descending).
+   *
+   * @async
+   * @param {string} userId - The student user ID making the request.
+   * @param {FilterModulesDto} filters - Filters for search, pagination, year, and term.
+   * @returns {Promise<PaginatedModulesDto>} A list of matching modules and pagination metadata.
+   * @throws {NotFoundException} If no modules are found for the student.
+   */
+  @Log({
+    logArgsMessage: ({ userId, filters }) =>
+      `Fetching modules for student ${userId}, filters=${JSON.stringify(filters)}`,
     logSuccessMessage: (result, { userId }) =>
-      `Fetched ${result.modules.length} modules for user ${userId}`,
+      `Fetched ${result.modules.length} modules for student ${userId}`,
     logErrorMessage: (err, { userId }) =>
-      `Fetching modules for user ${userId} | Error: ${err.message}`,
+      `Fetching modules for student ${userId} | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
-      new NotFoundException(`No modules found for user ${userId}`),
+      new NotFoundException(`No modules found for student ${userId}`),
   })
-  async findAll(
-    @LogParam('userId') userId: string,
-    @LogParam('role') role: Role,
-    @LogParam('filters') filters: FilterModulesDto,
+  async findAllForStudent(
+    userId: string,
+    filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
 
-    // All users can filter by course name or course code
+    // Build search conditions
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
-
       where.AND = searchTerms.map((term) => ({
         OR: [
           {
@@ -397,35 +479,235 @@ export class LmsService {
       }));
     }
 
-    // If student retrieve all modules based on course enrollment and course section
-    if (role === Role.student) {
-      where.courseOffering = {
-        is: {
-          courseEnrollments: {
-            some: {
-              studentId: userId,
+    // Only include modules from courses the student is enrolled in
+    where.courseOffering = {
+      is: {
+        courseEnrollments: { some: { studentId: userId } },
+      },
+    };
+
+    // Apply year/term filters if provided
+    if (filters.enrollmentPeriodId) {
+      if (
+        where.courseOffering &&
+        'is' in where.courseOffering &&
+        where.courseOffering.is
+      ) {
+        where.courseOffering.is = {
+          ...where.courseOffering.is,
+          enrollmentPeriod: {
+            id: filters.enrollmentPeriodId,
+          },
+        };
+      } else {
+        where.courseOffering = {
+          enrollmentPeriod: {
+            id: filters.enrollmentPeriodId,
+          },
+        };
+      }
+    }
+
+    const [modules, meta] = await this.prisma.client.module
+      .paginate({
+        where,
+        orderBy: {
+          courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
+        },
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              courseSections: {
+                // Only include course sections that are relevant to the student
+                where: { courseEnrollments: { some: { studentId: userId } } },
+                include: {
+                  user: true,
+                },
+              },
             },
           },
         },
-      };
+      })
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
+
+    return { modules, meta };
+  }
+
+  /**
+   * Retrieves a paginated list of modules available to a mentor, filtered by search criteria and teaching assignment.
+   *
+   * - Mentors see only modules from courses they are assigned to teach.
+   * - Supports filtering by course name, course code, year, and term.
+   * - Results are sorted by the most recent enrollment period (startDate descending).
+   *
+   * @async
+   * @param {string} userId - The mentor user ID making the request.
+   * @param {FilterModulesDto} filters - Filters for search, pagination, year, and term.
+   * @returns {Promise<PaginatedModulesDto>} A list of matching modules and pagination metadata.
+   * @throws {NotFoundException} If no modules are found for the mentor.
+   */
+  @Log({
+    logArgsMessage: ({ userId, filters }) =>
+      `Fetching modules for mentor ${userId}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { userId }) =>
+      `Fetched ${result.modules.length} modules for mentor ${userId}`,
+    logErrorMessage: (err, { userId }) =>
+      `Fetching modules for mentor ${userId} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
+      new NotFoundException(`No modules found for mentor ${userId}`),
+  })
+  async findAllForMentor(
+    userId: string,
+    filters: FilterModulesDto,
+  ): Promise<PaginatedModulesDto> {
+    const where: Prisma.ModuleWhereInput = {};
+    const page = filters.page || 1;
+
+    // Build search conditions
+    if (filters.search?.trim()) {
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+      where.AND = searchTerms.map((term) => ({
+        OR: [
+          {
+            course: {
+              is: {
+                courseCode: {
+                  contains: term,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+          {
+            course: {
+              is: {
+                name: { contains: term, mode: Prisma.QueryMode.insensitive },
+              },
+            },
+          },
+        ],
+      }));
     }
 
-    // If mentor retrieve all modules based on assigned course section
-    if (role === Role.mentor) {
-      where.courseOffering = {
-        is: {
-          courseSections: { some: { mentorId: userId } },
+    //
+    where.courseOffering = {
+      is: {
+        courseSections: { some: { mentorId: userId } },
+      },
+    };
+
+    // Apply year/term filters if provided
+    if (filters.enrollmentPeriodId) {
+      if (
+        where.courseOffering &&
+        'is' in where.courseOffering &&
+        where.courseOffering.is
+      ) {
+        where.courseOffering.is = {
+          ...where.courseOffering.is,
+          enrollmentPeriod: {
+            id: filters.enrollmentPeriodId,
+          },
+        };
+      } else {
+        where.courseOffering = {
+          enrollmentPeriod: {
+            id: filters.enrollmentPeriodId,
+          },
+        };
+      }
+    }
+
+    const [modules, meta] = await this.prisma.client.module
+      .paginate({
+        where,
+        orderBy: {
+          courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
-      };
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              courseSections: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
+      })
+      .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
+
+    return { modules, meta };
+  }
+
+  /**
+   * Retrieves a paginated list of all modules for admins, filtered by search criteria, year, and term.
+   *
+   * - Admins see all modules across all courses and offerings.
+   * - Supports filtering by course name, course code, year, and term.
+   * - Results are sorted by the most recent enrollment period (startDate descending).
+   *
+   * @async
+   * @param {string} userId - The admin user ID making the request (not used for filtering).
+   * @param {FilterModulesDto} filters - Filters for search, pagination, year, and term.
+   * @returns {Promise<PaginatedModulesDto>} A list of all matching modules and pagination metadata.
+   * @throws {NotFoundException} If no modules are found for the admin.
+   */
+  @Log({
+    logArgsMessage: ({ userId, filters }) =>
+      `Fetching modules for admin ${userId}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { userId }) =>
+      `Fetched ${result.modules.length} modules for admin ${userId}`,
+    logErrorMessage: (err, { userId }) =>
+      `Fetching modules for admin ${userId} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
+      new NotFoundException(`No modules found for admin ${userId}`),
+  })
+  async findAllForAdmin(
+    userId: string,
+    filters: FilterModulesDto,
+  ): Promise<PaginatedModulesDto> {
+    const where: Prisma.ModuleWhereInput = {};
+    const page = filters.page || 1;
+
+    // Build search conditions
+    if (filters.search?.trim()) {
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+      where.AND = searchTerms.map((term) => ({
+        OR: [
+          {
+            course: {
+              is: {
+                courseCode: {
+                  contains: term,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+          {
+            course: {
+              is: {
+                name: { contains: term, mode: Prisma.QueryMode.insensitive },
+              },
+            },
+          },
+        ],
+      }));
     }
 
-    // All users can filter by academic year and term
-    if (filters.startYear || filters.endYear || filters.term) {
+    // Apply year/term filters if provided
+    if (filters.enrollmentPeriodId) {
       where.courseOffering = {
         enrollmentPeriod: {
-          startYear: filters.startYear,
-          endYear: filters.endYear,
-          term: filters.term,
+          id: filters.enrollmentPeriodId,
         },
       };
     }
@@ -434,9 +716,17 @@ export class LmsService {
       .paginate({
         where,
         orderBy: {
+          courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
+        },
+        include: {
           courseOffering: {
-            enrollmentPeriod: {
-              startDate: 'desc',
+            include: {
+              course: true,
+              courseSections: {
+                include: {
+                  user: true,
+                },
+              },
             },
           },
         },

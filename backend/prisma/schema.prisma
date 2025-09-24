@@ -667,7 +667,7 @@ model ModuleSection {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([moduleId, order]) // ensure unique order within module
+  @@index([moduleId, order])
   @@index([moduleId])
   @@index([parentSectionId])
   @@index([order])

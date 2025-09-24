@@ -1,16 +1,17 @@
-import SubmitButton from '@/components/submit-button.tsx'
+import NoItemFound from '@/components/no-item-found'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import type {
-  Module,
-  ModuleItem,
-  ModuleSection,
-} from '@/features/courses/modules/types.ts'
-import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
+import type { ModuleTreeSectionDto } from '@/integrations/api/client'
 import {
-  getCompletedItemsCount,
-  getOverdueItemsCount,
-  getSubmissionStatus,
-} from '@/utils/helpers.ts'
+  lmsControllerFindModuleTreeOptions,
+  lmsControllerFindModuleTreeQueryKey,
+  lmsSectionControllerCreateMutation,
+  lmsSectionControllerPublishSectionMutation,
+  lmsSectionControllerRemoveMutation,
+  lmsSectionControllerUnpublishSectionMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
 import {
   Accordion,
   ActionIcon,
@@ -20,15 +21,15 @@ import {
   Divider,
   Group,
   Menu,
-  Progress,
   rem,
   Stack,
   Text,
-  ThemeIcon,
   Title,
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
+import { randomId } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   IconCalendarTime,
   IconChartBar,
@@ -36,44 +37,73 @@ import {
   IconDotsVertical,
   IconEdit,
   IconExternalLink,
-  IconEye,
   IconFile,
   IconFileText,
+  IconInbox,
   IconMessageCircle,
   IconPlus,
   IconRubberStamp,
   IconRubberStampOff,
   IconTrash,
 } from '@tabler/icons-react'
-import { useNavigate } from '@tanstack/react-router'
-import { Fragment, useEffect, useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useNavigate, useParams } from '@tanstack/react-router'
+import { Fragment, Suspense, useState } from 'react'
+import { getMockModuleByRole } from '../mocks'
+import { ModulePanelSuspense } from '../suspense'
+
+const { queryClient } = getContext()
 
 interface ModulePanelProps {
-  module: Module
   viewMode: 'student' | 'mentor' | 'admin'
   allExpanded?: boolean
 }
 
-function ModulePanel({
-  module,
-  viewMode,
-  allExpanded = false,
-}: ModulePanelProps) {
+function ModulePanelQueryProvider({
+  children,
+}: {
+  children: (props: {
+    moduleSections: ModuleTreeSectionDto[] | null | undefined
+  }) => React.ReactNode
+}) {
+  const { lmsCode } = useParams({ strict: false })
+
+  const { data } = useSuspenseQuery(
+    lmsControllerFindModuleTreeOptions({
+      path: {
+        id: lmsCode || '',
+      },
+    }),
+  )
+
+  const moduleSections = data?.moduleSections
+
+  console.log('Module data:', moduleSections)
+
+  return children({
+    moduleSections,
+  })
+}
+
+function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
+  const { authUser } = useAuth('protected')
+  const moduleData = getMockModuleByRole(authUser.role) //TODO: replace with actual data
+
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
 
   // Update expanded state when allExpanded prop changes
-  useEffect(() => {
-    if (allExpanded) {
-      const allSectionIds = module.sections.map((s) => s.id)
-      const allSubSectionIds = module.sections.flatMap((s) =>
-        s.subsections?.map((sub) => sub.id),
-      )
-      setExpandedItems([...allSectionIds, ...(allSubSectionIds as string[])])
-    } else {
-      setExpandedItems([])
-    }
-  }, [allExpanded])
+  // useEffect(() => {
+  //   if (allExpanded) {
+  //     const allSectionIds = moduleData.sections.map((s) => s.id)
+  //     const allSubSectionIds = moduleData.sections.flatMap((s) =>
+  //       s.subsections?.map((sub) => sub.id),
+  //     )
+  //     setExpandedItems([...allSectionIds, ...(allSubSectionIds as string[])])
+  //   } else {
+  //     setExpandedItems([])
+  //   }
+  // }, [allExpanded])
 
   return (
     <Accordion
@@ -89,91 +119,126 @@ function ModulePanel({
       }}
     >
       <Divider />
-      {module.sections.map((section) => (
-        <Fragment key={section.id}>
-          <Accordion.Item py={'sm'} value={section.id}>
-            <CustomAccordionControl
-              item={section}
-              title={section.title}
-              viewMode={viewMode}
-            />
-            <Accordion.Panel>
-              {/* Subsections */}
-              <Accordion
-                multiple
-                value={expandedItems}
-                onChange={setExpandedItems}
-                chevronPosition="left"
-                variant="separated"
-                radius={'md'}
-                styles={{
-                  chevron: {
-                    padding: theme.spacing.sm,
-                  },
-                  // item: {
-                  //   marginBottom: theme.spacing.sm,
-                  // },
-                }}
-              >
-                {section.subsections?.map((subsection) => (
-                  <Accordion.Item
-                    value={subsection.id}
-                    key={subsection.id}
-                    py={'sm'}
-                    bg={'white'}
-                    className="ring-1 ring-gray-200"
-                  >
+      <Suspense fallback={<ModulePanelSuspense />}>
+        <ModulePanelQueryProvider>
+          {({ moduleSections }) =>
+            moduleSections == null || moduleSections.length === 0 ? (
+              <NoItemFound
+                icon={<IconInbox size={36} stroke={1.5} />}
+                title="No content yet"
+                subtitle="This module currently has no content."
+              />
+            ) : (
+              moduleSections.map((section) => (
+                <Fragment key={section.id}>
+                  <Accordion.Item value={section.id}>
                     <CustomAccordionControl
-                      item={subsection}
-                      title={subsection.title}
+                      section={section}
+                      title={section.title}
                       viewMode={viewMode}
-                      isSubsection
                     />
-
                     <Accordion.Panel>
-                      <Stack gap="xs">
-                        {subsection.items.map((item) => (
-                          <ModuleItemCard
-                            key={item.id}
-                            item={item}
-                            viewMode={viewMode}
+                      {/* Subsections */}
+                      <Accordion
+                        multiple
+                        value={expandedItems}
+                        onChange={setExpandedItems}
+                        chevronPosition="left"
+                        variant="separated"
+                        radius={'md'}
+                        styles={{
+                          chevron: {
+                            padding: theme.spacing.sm,
+                          },
+                          // item: {
+                          //   marginBottom: theme.spacing.sm,
+                          // },
+                        }}
+                      >
+                        {section.subsections == null ||
+                        section.subsections.length === 0 ? (
+                          <NoItemFound
+                            icon={<IconInbox size={36} stroke={1.5} />}
+                            title="No content yet"
+                            subtitle="This module section currently has no content."
                           />
-                        ))}
-                      </Stack>
+                        ) : (
+                          section.subsections?.map((subsection) => (
+                            <Accordion.Item
+                              value={subsection.id}
+                              key={subsection.id}
+                              bg={'white'}
+                              className="ring-1 ring-gray-200"
+                            >
+                              <CustomAccordionControl
+                                section={subsection}
+                                title={subsection.title}
+                                viewMode={viewMode}
+                                isSubsection
+                              />
+
+                              <Accordion.Panel>
+                                <Stack gap="xs">
+                                  {subsection?.subsections == null ||
+                                  subsection?.subsections.length === 0 ? (
+                                    <NoItemFound
+                                      icon={
+                                        <IconInbox size={36} stroke={1.5} />
+                                      }
+                                      title="No content yet"
+                                      subtitle="This module section currently has no content."
+                                    />
+                                  ) : (
+                                    subsection?.subsections?.map(
+                                      (subsection_2) => (
+                                        <ModuleItemCard
+                                          key={subsection_2.id}
+                                          section={subsection_2}
+                                          viewMode={viewMode}
+                                        />
+                                      ),
+                                    )
+                                  )}
+                                </Stack>
+                              </Accordion.Panel>
+                            </Accordion.Item>
+                          ))
+                        )}
+                      </Accordion>
                     </Accordion.Panel>
                   </Accordion.Item>
-                ))}
-              </Accordion>
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Divider />
-        </Fragment>
-      ))}
+                  <Divider />
+                </Fragment>
+              ))
+            )
+          }
+        </ModulePanelQueryProvider>
+      </Suspense>
     </Accordion>
   )
 }
 
 interface ModuleItemCardProps {
-  item: ModuleItem
+  section: ModuleTreeSectionDto
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
-function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
+function ModuleItemCard({ section, viewMode }: ModuleItemCardProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
-  const isOverdue =
-    item.type === 'assignment' && item.assignment?.dueDate
-      ? new Date(item.assignment.dueDate) < new Date() &&
-        getSubmissionStatus(item.assignment) === 'pending'
-      : false
+  // const isOverdue =
+  //   item.type === 'assignment' && item.assignment?.dueDate
+  //     ? new Date(item.assignment.dueDate) < new Date() &&
+  //       getSubmissionStatus(item.assignment) === 'pending'
+  //     : false
 
-  const isCompleted =
-    item.type === 'lesson'
-      ? item.progress?.isCompleted
-      : ['graded', 'ready-for-grading', 'submitted'].includes(
-          getSubmissionStatus(item.assignment) || '',
-        )
+  // const isCompleted =
+  //   item.type === 'lesson'
+  //     ? item.progress?.isCompleted
+  //     : ['graded', 'ready-for-grading', 'submitted'].includes(
+  //         getSubmissionStatus(item.assignment) || '',
+  //       )
 
   const getContentTypeIcon = (type: string) => {
     switch (type) {
@@ -194,9 +259,9 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
 
   const navigateToItem = () => {
     navigate({
-      from: '/courses/$courseCode/modules',
+      from: '/lms/$lmsCode/modules',
       to: `$itemId`,
-      params: { itemId: item.id },
+      params: { itemId: section.id },
     })
   }
 
@@ -217,41 +282,41 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
       <Group align="center" justify="space-between" wrap="nowrap">
         {/* Icon + Title */}
         <Group align="center" gap="sm" wrap="nowrap" flex={1}>
-          <ThemeIcon
+          {/* <ThemeIcon
             size="md"
             variant="light"
             color={isOverdue ? 'red' : isCompleted ? 'green' : 'gray'}
           >
             {getContentTypeIcon(item.type)}
-          </ThemeIcon>
+          </ThemeIcon> */}
 
           <Box flex={1}>
             <Group gap="xs" mb={4}>
               <Text fw={500} size="sm" lineClamp={2}>
-                {item.title}
+                {section.title}
               </Text>
 
-              {item.type && (
+              {/* {item.type && (
                 <Badge size="xs" variant="light" color="gray">
                   {item.type}
                 </Badge>
-              )}
+              )} */}
 
-              {!item.published.isPublished && viewMode !== 'student' && (
+              {!section.publishedAt && viewMode !== 'student' && (
                 <Badge size="xs" variant="outline" color="orange">
                   Draft
                 </Badge>
               )}
 
-              {isOverdue && (
+              {/* {isOverdue && (
                 <Badge size="xs" variant="filled" color="red">
                   Overdue
                 </Badge>
-              )}
+              )} */}
             </Group>
 
             {/* Meta info */}
-            {item.type === 'lesson' && (
+            {/* {item.type === 'lesson' && (
               <Text size="xs" c="dimmed">
                 Reading Material
                 {item.progress?.completedAt && (
@@ -265,9 +330,9 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
                   </>
                 )}
               </Text>
-            )}
+            )} */}
 
-            {item.assignment && (
+            {/* {item.assignment && (
               <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
                 Due{' '}
                 {formatTimestampToDateTimeText(
@@ -276,13 +341,13 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
                 )}{' '}
                 • {item.assignment.points} pts
               </Text>
-            )}
+            )} */}
           </Box>
         </Group>
 
         {/* Right-side Actions */}
         <Box>
-          {viewMode === 'student' && item.type === 'assignment' && (
+          {/* {viewMode === 'student' && item.type === 'assignment' && (
             <SubmitButton
               submissionStatus={
                 getSubmissionStatus(item.assignment) || 'pending'
@@ -292,17 +357,19 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
               assignmentStatus={item.assignment?.status || 'open'}
               isPreview={authUser.role !== 'student'}
             />
-          )}
+          )} */}
 
-          {viewMode === 'mentor' && item.type === 'assignment' && (
+          {/* {viewMode === 'mentor' && item.type === 'assignment' && (
             <Tooltip label="View submissions">
               <ActionIcon variant="subtle" color="blue" radius="xl" size="md">
                 <IconEye size={16} />
               </ActionIcon>
             </Tooltip>
-          )}
+          )} */}
 
-          {viewMode === 'admin' && <AdminActions item={item} />}
+          {viewMode === 'admin' && (
+            <AdminActions isLastSubsection={true} section={section} />
+          )}
         </Box>
       </Group>
     </Card>
@@ -310,38 +377,40 @@ function ModuleItemCard({ item, viewMode }: ModuleItemCardProps) {
 }
 
 type CustomAccordionControlProps = {
-  item: ModuleSection
+  section: ModuleTreeSectionDto
   title: string
   isPreview?: boolean
   isSubsection?: boolean
+  isLastSubsection?: boolean
   viewMode: 'student' | 'mentor' | 'admin'
   accordionControlProps?: any
 }
 
 function CustomAccordionControl({
-  item,
+  section,
   title,
   isSubsection = false,
+  isLastSubsection = false,
   viewMode,
   accordionControlProps,
   ...props
 }: CustomAccordionControlProps) {
   // Derive items for sections or subsections to avoid prop drilling
-  const items: ModuleItem[] =
-    (item.items as ModuleItem[]) ??
-    (item.subsections?.flatMap(
-      (s: ModuleSection) => s.items,
-    ) as ModuleItem[]) ??
-    []
+  // const items: ModuleItem[] =
+  //   (item.items as ModuleItem[]) ??
+  //   (item.subsections?.flatMap(
+  //     (s: ModuleSection) => s.items,
+  //   ) as ModuleItem[]) ??
+  //   []
 
-  const completedItemsCount = getCompletedItemsCount(items)
-  const overdueItemsCount = getOverdueItemsCount(items)
-  const totalItemsCount = items.length
-  const progressPercentage =
-    totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0
+  // const completedItemsCount = getCompletedItemsCount(items)
+  // const overdueItemsCount = getOverdueItemsCount(items)
+  // const totalItemsCount = items.length
+  // const progressPercentage =
+  //   totalItemsCount > 0 ? (completedItemsCount / totalItemsCount) * 100 : 0
 
   return (
-    <Accordion.Control {...accordionControlProps}>
+    <Accordion.Control py={'sm'} {...accordionControlProps}>
       <Group wrap="nowrap" flex={1}>
         <Stack gap={'xs'} flex={1}>
           <Group gap="xs" mb={4}>
@@ -349,32 +418,32 @@ function CustomAccordionControl({
               {title}
             </Title>
 
-            {!item.published.isPublished && viewMode !== 'student' && (
+            {!section.publishedAt && viewMode !== 'student' && (
               <Badge size="xs" variant="outline" color="orange">
                 Draft
               </Badge>
             )}
 
-            {overdueItemsCount > 0 && viewMode === 'student' && (
+            {/* {overdueItemsCount > 0 && viewMode === 'student' && (
               <Badge size="xs" variant="filled" color="red">
                 {overdueItemsCount} Overdue
               </Badge>
-            )}
+            )} */}
           </Group>
 
-          {viewMode === 'student' && totalItemsCount > 0 && (
+          {/* {viewMode === 'student' && totalItemsCount > 0 && (
             <Progress
               value={progressPercentage}
               size="sm"
               radius="xl"
               color={progressPercentage === 100 ? 'green' : 'blue'}
             />
-          )}
+          )} */}
 
-          {viewMode !== 'student' && item.published.publishedAt && (
+          {viewMode !== 'student' && section.publishedAt && (
             <Text size="xs" c="dimmed">
               Published{' '}
-              {formatTimestampToDateTimeText(item.published.publishedAt, 'on')}
+              {formatTimestampToDateTimeText(section.publishedAt, 'on')}
             </Text>
           )}
         </Stack>
@@ -387,56 +456,280 @@ function CustomAccordionControl({
           </Tooltip>
         )}
 
-        {viewMode === 'admin' && <AdminActions item={item} />}
+        {viewMode === 'admin' && <AdminActions section={section} />}
       </Group>
     </Accordion.Control>
   )
 }
 
 type AdminActionsProps = {
-  item: ModuleItem | ModuleSection
+  isLastSubsection?: boolean
+  section: ModuleTreeSectionDto
 }
 
-function AdminActions({ item }: AdminActionsProps) {
+function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
   const theme = useMantineTheme()
+  const { lmsCode } = useParams({ strict: false })
   const navigate = useNavigate()
-  const handleDelete = () => {} //TODO: implement this
+
   const [publishMenuOpen, setPublishMenuOpen] = useState(false)
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
 
+  const { mutateAsync: createSubsection } = useAppMutation(
+    lmsSectionControllerCreateMutation,
+    {
+      loading: {
+        title: 'Creating Subsection',
+        message: 'Creating new subsection — please wait',
+      },
+      success: {
+        title: 'Subsection Created',
+        message: 'Subsection was created successfully',
+      },
+      error: {
+        title: 'Failed to Create Subsection',
+        message:
+          'There was an error while creating the subsection. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const { mutateAsync: deleteSubsection } = useAppMutation(
+    lmsSectionControllerRemoveMutation,
+    {
+      loading: {
+        title: 'Deleting Subsection',
+        message: 'Deleting subsection — please wait',
+      },
+      success: {
+        title: 'Subsection Deleted',
+        message: 'Subsection was deleted successfully',
+      },
+      error: {
+        title: 'Failed to Delete Subsection',
+        message:
+          'There was an error while deleting the subsection. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const { mutateAsync: publishSubsection } = useAppMutation(
+    lmsSectionControllerPublishSectionMutation,
+    {
+      loading: {
+        title: 'Publishing Section',
+        message: 'Publishing section — please wait',
+      },
+      success: {
+        title: 'Section Published',
+        message: 'Section was published successfully',
+      },
+      error: {
+        title: 'Failed to Publish Section',
+        message:
+          'There was an error while publishing the section. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const { mutateAsync: unpublishSubsection } = useAppMutation(
+    lmsSectionControllerUnpublishSectionMutation,
+    {
+      loading: {
+        title: 'Unpublishing Section',
+        message: 'Unpublishing section — please wait',
+      },
+      success: {
+        title: 'Section Unpublished',
+        message: 'Section was unpublished successfully',
+      },
+      error: {
+        title: 'Failed to Unpublish Section',
+        message:
+          'There was an error while unpublishing the section. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Delete Module Section
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to delete this module section? This action
+          cannot be undone.
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Delete', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await deleteSubsection({
+          path: {
+            moduleSectionId: section.id,
+          },
+          query: {
+            directDelete: true,
+          },
+        })
+      },
+    })
+  }
+
+  const handleNewItem = async (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+    // navigate({
+    //   from: '/lms/$lmsCode/modules',
+    //   to: `create`,
+    //   search: { id: section.id },
+    // })
+
+    await createSubsection({
+      path: {
+        moduleId: lmsCode || '',
+      },
+      body: {
+        title: randomId('subsection-'),
+        parentSectionId: section.id,
+      },
+    })
+  }
+
+  const handlePublishNow = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+    // navigate({
+    //   from: '/lms/$lmsCode/modules',
+    //   to: `$itemId/publish`,
+    //   params: { itemId: section.id },
+    //   search: { scheduled: false, unpublish: false },
+    // })
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Publish Module Section
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to publish this module section?
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Publish', cancel: 'Cancel' },
+      confirmProps: { color: 'green.9' },
+      onConfirm: async () => {
+        await publishSubsection({
+          path: {
+            id: section.id,
+          },
+        })
+      },
+    })
+  }
+
+  const handleUnpublish = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation()
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Unpublish Module Section
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to unpublish this module section? This will hide
+          the section from students.
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Unpublish', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await unpublishSubsection({
+          path: {
+            id: section.id,
+          },
+        })
+      },
+    })
+  }
+
   return (
     <Group gap={rem(5)}>
-      <Menu
-        shadow="md"
-        width={200}
-        opened={publishMenuOpen}
-        onClose={() => setPublishMenuOpen(false)}
-      >
+      <Menu shadow="md" width={200} withinPortal>
         <Menu.Target>
           <Tooltip
-            label={item.published.isPublished ? 'Published' : 'Not Published'}
+            onClick={(e) => e.stopPropagation()}
+            label={section.publishedAt ? 'Published' : 'Not Published'}
           >
             <ActionIcon
               component="div"
               variant={'subtle'}
-              color={item.published.isPublished ? 'green' : 'gray'}
+              color={section.publishedAt ? 'green' : 'gray'}
               radius="xl"
               size="lg"
-              onClick={(e) => {
-                e.stopPropagation()
-                if (item.published.isPublished) {
-                  navigate({
-                    from: '/courses/$courseCode/modules',
-                    to: `$itemId/publish`,
-                    params: { itemId: item.id },
-                    search: { scheduled: false, unpublish: true },
-                  })
-                } else {
-                  setPublishMenuOpen(true)
-                }
-              }}
             >
-              {item.published.isPublished ? (
+              {section.publishedAt ? (
                 <IconRubberStamp size={16} />
               ) : (
                 <IconRubberStampOff size={16} />
@@ -446,17 +739,9 @@ function AdminActions({ item }: AdminActionsProps) {
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Label>Publish Actions</Menu.Label>
-          {!item.published.isPublished && (
+          {!section.publishedAt && (
             <Menu.Item
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate({
-                  from: '/courses/$courseCode/modules',
-                  to: `$itemId/publish`,
-                  params: { itemId: item.id },
-                  search: { scheduled: false, unpublish: false },
-                })
-              }}
+              onClick={(e) => handlePublishNow(e)}
               leftSection={
                 <IconRubberStamp
                   size={16}
@@ -468,14 +753,15 @@ function AdminActions({ item }: AdminActionsProps) {
               Publish Now
             </Menu.Item>
           )}
-          {!item.published.isPublished && (
+
+          {!section.publishedAt && (
             <Menu.Item
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({
-                  from: '/courses/$courseCode/modules',
+                  from: '/lms/$lmsCode/modules',
                   to: `$itemId/publish`,
-                  params: { itemId: item.id },
+                  params: { itemId: section.id },
                   search: { scheduled: true, unpublish: false },
                 })
               }}
@@ -490,28 +776,38 @@ function AdminActions({ item }: AdminActionsProps) {
               Schedule Publish
             </Menu.Item>
           )}
+
+          {section.publishedAt && (
+            <Menu.Item
+              onClick={(e) => handleUnpublish(e)}
+              leftSection={
+                <IconRubberStampOff
+                  size={16}
+                  stroke={1.5}
+                  color={theme.colors.blue[6]}
+                />
+              }
+            >
+              Unpublish
+            </Menu.Item>
+          )}
         </Menu.Dropdown>
       </Menu>
 
-      <Tooltip label="Add new item">
-        <ActionIcon
-          component="div"
-          variant={'subtle'}
-          color="blue"
-          radius="xl"
-          size="lg"
-          onClick={(e) => {
-            e.stopPropagation()
-            navigate({
-              from: '/courses/$courseCode/modules',
-              to: `create`,
-              search: { id: item.id },
-            })
-          }}
-        >
-          <IconPlus size={16} />
-        </ActionIcon>
-      </Tooltip>
+      {!isLastSubsection && (
+        <Tooltip label="Add new item">
+          <ActionIcon
+            component="div"
+            variant={'subtle'}
+            color="blue"
+            radius="xl"
+            size="lg"
+            onClick={(e) => handleNewItem(e)}
+          >
+            <IconPlus size={16} />
+          </ActionIcon>
+        </Tooltip>
+      )}
 
       <Menu
         shadow="md"
@@ -542,9 +838,9 @@ function AdminActions({ item }: AdminActionsProps) {
             onClick={(e) => {
               e.stopPropagation()
               navigate({
-                from: '/courses/$courseCode/modules',
+                from: '/lms/$lmsCode/modules',
                 to: `edit`,
-                search: { id: item.id },
+                search: { id: section.id },
               })
             }}
           >
@@ -553,10 +849,7 @@ function AdminActions({ item }: AdminActionsProps) {
           <Menu.Item
             color="red"
             leftSection={<IconTrash size={16} stroke={1.5} />}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDelete()
-            }}
+            onClick={(e) => handleDelete(e)}
           >
             Delete
           </Menu.Item>

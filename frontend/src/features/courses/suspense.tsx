@@ -1,16 +1,17 @@
 import {
-    Box,
-    Card,
-    Divider,
-    Flex,
-    Group,
-    rem,
-    Skeleton,
-    Stack,
-    Text,
-    Title,
-    useMantineTheme,
+  Accordion,
+  Box,
+  Card,
+  Divider,
+  Flex,
+  Group,
+  rem,
+  Skeleton,
+  Stack,
+  Title,
+  useMantineTheme,
 } from '@mantine/core'
+import { Fragment } from 'react/jsx-runtime'
 
 type CourseListSuspenseProps = {
   variant?: 'card' | 'row'
@@ -53,9 +54,7 @@ function CardSkeleton() {
           <Skeleton height={12} width={80} />
         </Group>
 
-        <Text size={'sm'} mt={8} c={theme.colors.dark[3]}>
-          <Skeleton height={12} width="50%" />
-        </Text>
+        <Skeleton mt={8} height={12} width="50%" />
       </Box>
 
       <Divider />
@@ -156,5 +155,91 @@ export function CourseHeaderSkeleton() {
         <Skeleton height={14} width={140} />
       </Group>
     </Box>
+  )
+}
+
+type ModulePanelSuspenseProps = {
+  sections?: number
+  subsectionsPerSection?: number
+  itemsPerSubsection?: number
+}
+
+export function ModulePanelSuspense({
+  sections = 3,
+  subsectionsPerSection = 2,
+  itemsPerSubsection = 2,
+}: ModulePanelSuspenseProps) {
+  const theme = useMantineTheme()
+
+  const sectionIndexes = Array.from({ length: sections })
+
+  return (
+    <Accordion multiple variant="filled" chevronPosition="left">
+      {sectionIndexes.map((_, si) => (
+        <Fragment key={si}>
+          <Accordion.Item key={si} value={`section-${si}`}>
+            <Accordion.Control py={'sm'}>
+              <Group wrap="nowrap">
+                <Stack gap={'xs'} style={{ flex: 1 }}>
+                  <Group gap="xs">
+                    <Title order={4} fw={600}>
+                      <Skeleton height={18} width={240} />
+                    </Title>
+                    <Skeleton height={14} width={60} />
+                  </Group>
+                  <Skeleton height={12} width={180} />
+                </Stack>
+              </Group>
+            </Accordion.Control>
+
+            <Accordion.Panel>
+              <Accordion
+                multiple
+                chevronPosition="left"
+                variant="separated"
+                radius={'md'}
+                styles={{ chevron: { padding: theme.spacing.sm } }}
+              >
+                {Array.from({ length: subsectionsPerSection }).map(
+                  (_, subi) => (
+                    <Accordion.Item
+                      key={subi}
+                      value={`section-${si}-sub-${subi}`}
+                    >
+                      <Accordion.Control py={'sm'}>
+                        <Group wrap="nowrap">
+                          <Stack gap={'xs'} style={{ flex: 1 }}>
+                            <Group gap="xs" mb={4}>
+                              <Title order={5} fw={600}>
+                                <Skeleton height={16} width={200} />
+                              </Title>
+                              <Skeleton height={12} width={48} />
+                            </Group>
+                            <Skeleton height={10} width={140} />
+                          </Stack>
+                        </Group>
+                      </Accordion.Control>
+
+                      <Accordion.Panel>
+                        <Stack gap="xs">
+                          {Array.from({ length: itemsPerSubsection }).map(
+                            (_, ii) => (
+                              <div key={ii}>
+                                <CardSkeleton />
+                              </div>
+                            ),
+                          )}
+                        </Stack>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  ),
+                )}
+              </Accordion>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Divider />
+        </Fragment>
+      ))}
+    </Accordion>
   )
 }

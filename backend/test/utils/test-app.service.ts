@@ -49,43 +49,58 @@ export class TestAppService {
    * @returns An object containing the initialized Prisma client
    */
   async start() {
-    const IMAGE = 'postgres:14-alpine';
-    this.pgContainer = await new PostgreSqlContainer(IMAGE).start();
+    try {
+      const IMAGE = 'postgres:14-alpine';
+      this.pgContainer = await new PostgreSqlContainer(IMAGE).start();
 
-    this.pgClient = new Client({
-      host: this.pgContainer.getHost(),
-      port: this.pgContainer.getPort(),
-      database: this.pgContainer.getDatabase(),
-      user: this.pgContainer.getUsername(),
-      password: this.pgContainer.getPassword(),
-    });
+      this.pgClient = new Client({
+        host: this.pgContainer.getHost(),
+        port: this.pgContainer.getPort(),
+        database: this.pgContainer.getDatabase(),
+        user: this.pgContainer.getUsername(),
+        password: this.pgContainer.getPassword(),
+      });
 
-    await this.pgClient.connect();
+      await this.pgClient.connect();
 
-    const databaseUrl = `postgresql://${this.pgClient.user}:${this.pgClient.password}@${this.pgClient.host}:${this.pgClient.port}/${this.pgClient.database}`;
+      const databaseUrl = `postgresql://${this.pgClient.user}:${this.pgClient.password}@${this.pgClient.host}:${this.pgClient.port}/${this.pgClient.database}`;
 
-    execSync('npx prisma db push --skip-generate', {
-      stdio: 'inherit',
-      env: {
-        DATABASE_CLOUD_URL: databaseUrl,
-        DIRECT_CLOUD_URL: databaseUrl,
-      },
-    });
+      // Wait a bit for the database to be fully ready
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    this.prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: databaseUrl,
+      // Use both DATABASE_URL and your custom variables
+      execSync('npx prisma db push --skip-generate', {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          DATABASE_URL: databaseUrl, // Standard Prisma environment variable
+          DATABASE_CLOUD_URL: databaseUrl,
+          DIRECT_CLOUD_URL: databaseUrl,
         },
-      },
-      log: ['query'],
-    }).$extends(pagination());
+        cwd: process.cwd(), // Ensure we're in the correct directory
+      });
 
-    console.log('connected to test db...');
+      this.prisma = new PrismaClient({
+        datasources: {
+          db: {
+            url: databaseUrl,
+          },
+        },
+        log: ['query'],
+      }).$extends(pagination());
 
-    this.setupUserData();
+      console.log('connected to test db...');
 
-    return { prisma: this.prisma };
+      // Wait for setupUserData to complete
+      await this.setupUserData();
+
+      return { prisma: this.prisma };
+    } catch (error) {
+      console.error('Failed to start test environment:', error);
+      // Cleanup any partially initialized resources
+      await this.cleanup();
+      throw error;
+    }
   }
 
   /**
@@ -93,59 +108,64 @@ export class TestAppService {
    * Also updates the `mockUsers` object with the created DB IDs for linking.
    */
   async setupUserData() {
-    for (const [key, value] of Object.entries(mockUsers)) {
-      if (!value) continue;
+    try {
+      for (const [key, value] of Object.entries(mockUsers)) {
+        if (!value) continue;
 
-      await this.prisma.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            firstName: key.charAt(0).toUpperCase() + key.slice(1),
-            lastName: 'User',
-            role: Role[key],
-          },
-        });
-
-        mockUsers[key].user_metadata.user_id = user.id;
-
-        await tx.userAccount.create({
-          data: {
-            userId: user.id,
-            authUid: value.id,
-            email: `${key}@user.com`,
-          },
-        });
-
-        await tx.userDetails.create({
-          data: {
-            userId: user.id,
-            dateJoined: new Date().toISOString(),
-            dob: new Date().toISOString(),
-            gender: 'male',
-          },
-        });
-
-        if (key === 'student') {
-          await tx.studentDetails.create({
+        await this.prisma.$transaction(async (tx) => {
+          const user = await tx.user.create({
             data: {
-              userId: user.id,
-              studentNumber: 1,
-              studentType: StudentType.regular,
-              admissionDate: new Date().toISOString(),
-              otherDetails: {},
+              firstName: key.charAt(0).toUpperCase() + key.slice(1),
+              lastName: 'User',
+              role: Role[key],
             },
           });
-        } else {
-          await tx.staffDetails.create({
+
+          mockUsers[key].user_metadata.user_id = user.id;
+
+          await tx.userAccount.create({
             data: {
               userId: user.id,
-              employeeNumber: key === 'admin' ? 1 : 2,
-              department: 'System Administration',
-              position: 'Specialist',
-              otherDetails: {},
+              authUid: value.id,
+              email: `${key}@user.com`,
             },
           });
-        }
-      });
+
+          await tx.userDetails.create({
+            data: {
+              userId: user.id,
+              dateJoined: new Date().toISOString(),
+              dob: new Date().toISOString(),
+              gender: 'male',
+            },
+          });
+
+          if (key === 'student') {
+            await tx.studentDetails.create({
+              data: {
+                userId: user.id,
+                studentNumber: 1,
+                studentType: StudentType.regular,
+                admissionDate: new Date().toISOString(),
+                otherDetails: {},
+              },
+            });
+          } else {
+            await tx.staffDetails.create({
+              data: {
+                userId: user.id,
+                employeeNumber: key === 'admin' ? 1 : 2,
+                department: 'System Administration',
+                position: 'Specialist',
+                otherDetails: {},
+              },
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to setup user data:', error);
+      throw error;
     }
   }
 
@@ -274,13 +294,62 @@ export class TestAppService {
   }
 
   /**
+   * Internal cleanup method for partial cleanups during errors
+   */
+  private async cleanup() {
+    const errors: Error[] = [];
+
+    // Close Prisma client
+    if (this.prisma) {
+      try {
+        await this.prisma.$disconnect();
+      } catch (error) {
+        console.error('Error disconnecting Prisma:', error);
+        errors.push(error as Error);
+      }
+    }
+
+    // Close PostgreSQL client
+    if (this.pgClient) {
+      try {
+        await this.pgClient.end();
+      } catch (error) {
+        console.error('Error closing PG client:', error);
+        errors.push(error as Error);
+      }
+    }
+
+    // Stop PostgreSQL container
+    if (this.pgContainer) {
+      try {
+        await this.pgContainer.stop();
+      } catch (error) {
+        console.error('Error stopping container:', error);
+        errors.push(error as Error);
+      }
+    }
+
+    // Close NestJS app
+    if (this.app) {
+      try {
+        await this.app.close();
+      } catch (error) {
+        console.error('Error closing app:', error);
+        errors.push(error as Error);
+      }
+    }
+
+    // If there were errors but we need to continue, log them
+    if (errors.length > 0) {
+      console.warn(`Cleanup completed with ${errors.length} errors`);
+    }
+  }
+
+  /**
    * Closes the Prisma client, PostgreSQL client, container, and NestJS app.
    * Should be called in `afterAll()` to clean up test resources.
    */
   async close() {
-    await this.prisma.$disconnect();
-    await this.pgClient.end();
-    await this.pgContainer.stop();
-    await this.app.close();
+    await this.cleanup();
   }
 }
