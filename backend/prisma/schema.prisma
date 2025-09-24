@@ -11,7 +11,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["typedSql", "driverAdapters"]
+  previewFeatures = ["typedSql"]
 }
 
 generator json {
@@ -51,8 +51,6 @@ model User {
   /// @DtoApiHidden
   bills                Bill[]
   /// @DtoApiHidden
-  notifications        Notification[]
-  /// @DtoApiHidden
   courseEnrollment     CourseEnrollment[]
   /// @DtoApiHidden
   courseSections       CourseSection[]
@@ -68,6 +66,12 @@ model User {
   moduleProgress       ContentProgress[]
   /// @DtoApiHidden
   groups               GroupMember[]
+  /// @DtoApiHidden
+  appointmentStudents  Appointment[]           @relation("AppointmentStudent")
+  /// @DtoApiHidden
+  appointmentMentors   Appointment[]           @relation("AppointmentMentor")
+  /// @DtoApiHidden
+  notifications        NotificationReceipt[]
 
   firstName  String
   middleName String?
@@ -311,6 +315,9 @@ model EnrollmentPeriod {
   id String @id @default(uuid()) @db.Uuid
 
   courseOfferings CourseOffering[] // An enrollment can have multiple offerings
+  pricingGroupId  String?          @db.Uuid
+  /// @DtoApiHidden
+  pricingGroup    PricingGroup?    @relation(fields: [pricingGroupId], references: [id])
 
   startYear Int
   endYear   Int
@@ -347,6 +354,8 @@ model CourseOffering {
   courseSections    CourseSection[] // Each offering can have multiple sections
   /// @DtoApiHidden
   modules           Module[]
+  /// @DtoApiHidden
+  appointments      Appointment[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -559,9 +568,11 @@ model Pricing {
 }
 
 model PricingGroup {
-  id     String    @id @default(uuid()) @db.Uuid
+  id                String             @id @default(uuid()) @db.Uuid
   /// @DtoApiHidden
-  prices Pricing[]
+  prices            Pricing[]
+  /// @DtoApiHidden
+  enrollmentPeriods EnrollmentPeriod[]
 
   name    String
   amount  Decimal @db.Decimal(10, 2)
@@ -1189,15 +1200,69 @@ model GroupMember {
   @@unique([groupId, studentId])
 }
 
-model Notification {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
+enum AppointmentStatus {
+  booked
+  approved
+  cancelled
+  rescheduled
+  finished
+  extended
+}
+
+model Appointment {
+  id String @id @default(uuid()) @db.Uuid
+
+  courseId  String         @db.Uuid
   /// @DtoApiHidden
-  user   User   @relation(fields: [userId], references: [id])
+  course    CourseOffering @relation(fields: [courseId], references: [id])
+  studentId String         @db.Uuid
+  /// @DtoApiHidden
+  student   User           @relation("AppointmentStudent", fields: [studentId], references: [id])
+  mentorId  String         @db.Uuid
+  /// @DtoApiHidden
+  mentor    User           @relation("AppointmentMentor", fields: [mentorId], references: [id])
+
+  title        String
+  description  String
+  startAt      DateTime
+  endAt        DateTime
+  status       AppointmentStatus @default(booked)
+  gmeetLink    String?
+  cancelReason String?
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+
+  receipts NotificationReceipt[]
 
   title   String
   content String
-  isRead  Boolean @default(false)
+  role    Role[]
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+model NotificationReceipt {
+  id String @id @default(uuid()) @db.Uuid
+
+  notificationId String       @db.Uuid
+  notification   Notification @relation(fields: [notificationId], references: [id])
+  userId         String       @db.Uuid
+  /// @DtoApiHidden
+  user           User         @relation(fields: [userId], references: [id])
+
+  isRead Boolean @default(false)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())

@@ -13,6 +13,10 @@ import {
   type CourseSection as CourseSectionAsType,
 } from './courseSection.entity';
 import { Module, type Module as ModuleAsType } from './module.entity';
+import {
+  Appointment,
+  type Appointment as AppointmentAsType,
+} from './appointment.entity';
 
 export class CourseOffering {
   @ApiProperty({
@@ -37,6 +41,12 @@ export class CourseOffering {
   courseSections?: CourseSectionAsType[];
   @ApiHideProperty()
   modules?: ModuleAsType[];
+  @ApiProperty({
+    type: () => Appointment,
+    isArray: true,
+    required: false,
+  })
+  appointments?: AppointmentAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -1,5 +1,9 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
+import { Role } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  NotificationReceipt,
+  type NotificationReceipt as NotificationReceiptAsType,
+} from './notificationReceipt.entity';
 
 export class Notification {
   @ApiProperty({
@@ -7,11 +11,11 @@ export class Notification {
   })
   id: string;
   @ApiProperty({
-    type: 'string',
+    type: () => NotificationReceipt,
+    isArray: true,
+    required: false,
   })
-  userId: string;
-  @ApiHideProperty()
-  user?: UserAsType;
+  receipts?: NotificationReceiptAsType[];
   @ApiProperty({
     type: 'string',
   })
@@ -21,9 +25,11 @@ export class Notification {
   })
   content: string;
   @ApiProperty({
-    type: 'boolean',
+    isArray: true,
+    enum: Role,
+    enumName: 'Role',
   })
-  isRead: boolean;
+  role: Role[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
