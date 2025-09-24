@@ -2,6 +2,7 @@ import type {
   AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
+import type { ModuleTreeSectionDto } from '@/integrations/api/client'
 import type { Block } from '@blocknote/core'
 import type { NodeModel } from '@minoru/react-dnd-treeview'
 
@@ -13,8 +14,9 @@ export interface ContentProgress {
 
 export interface Published {
   isPublished: boolean
-  publishedAt?: string
-  toPublishAt?: string
+  publishedAt: string
+  toPublishAt: string
+  unpublishedAt: string
 }
 
 export interface Module {
@@ -26,41 +28,17 @@ export interface Module {
   published: Published
 }
 
-export interface ModuleSection {
+export interface ModuleSection extends Published {
   id: string
   parentId: string
+  moduleId: string
+  parentSectionId: string
+  prerequisiteSectionId: string
   title: string
   order: number
   items: ModuleItem[]
   subsections: ModuleSection[]
   prerequisites?: string[]
-  published: Published
-}
-
-// DTO shape returned from the API for module tree data. Fields are kept
-// permissive so the frontend can consume remote data without schema drift.
-export interface ModuleTreeItemDto {
-  id: string
-  parentId: string
-  type: ContentType
-  title: string
-  order: number
-  prerequisites?: string[]
-  content?: Block[]
-  url?: string
-  progress?: ContentProgress
-  assignment?: AssignmentBase | StudentAssignment
-  published: Published
-}
-
-export interface ModuleTreeSectionDto {
-  id: string
-  parentId?: string
-  title: string
-  order: number
-  items?: ModuleTreeItemDto[]
-  subsections?: ModuleTreeSectionDto[] | null
-  publishedAt?: string | null
 }
 
 export interface ModuleItem {
@@ -84,7 +62,7 @@ export type ContentType =
   | 'url'
   | 'file'
 
-export type ContentNode = ModuleTreeSectionDto | ModuleTreeItemDto
+export type ContentNode = ModuleTreeSectionDto
 export type ContentNodeType = 'section' | 'subsection' | 'item' | 'add-button'
 
 export interface CourseNodeData {
