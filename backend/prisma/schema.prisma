@@ -354,7 +354,7 @@ model CourseOffering {
   courseSections    CourseSection[] // Each offering can have multiple sections
   /// @DtoApiHidden
   modules           Module[]
-  // @DtoApiHidden
+  /// @DtoApiHidden
   appointments      Appointment[]
 
   /// @DtoReadOnly
