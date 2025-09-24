@@ -1,13 +1,9 @@
-import { Prisma, SubmissionState } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Assignment,
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
-import {
-  AssignmentGradeRecord,
-  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
-} from './assignmentGradeRecord.entity';
 import { User, type User as UserAsType } from './user.entity';
 import { Group, type Group as GroupAsType } from './group.entity';
 import {
@@ -33,17 +29,6 @@ export class AssignmentSubmission {
     type: 'string',
   })
   studentId: string;
-  @ApiProperty({
-    enum: SubmissionState,
-    enumName: 'SubmissionState',
-  })
-  state: SubmissionState;
-  @ApiProperty({
-    type: () => AssignmentGradeRecord,
-    required: false,
-    nullable: true,
-  })
-  gradeRecord?: AssignmentGradeRecordAsType | null;
   @ApiHideProperty()
   student?: UserAsType;
   @ApiProperty({
@@ -76,8 +61,9 @@ export class AssignmentSubmission {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  attemptNumber: number;
+  attemptNumber: number | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

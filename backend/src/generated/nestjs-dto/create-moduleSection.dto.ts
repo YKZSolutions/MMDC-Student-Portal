@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -14,13 +13,6 @@ export class CreateModuleSectionDto {
   @IsNotEmpty()
   @IsString()
   title: string;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  @IsNotEmpty()
-  @IsInt()
-  order: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

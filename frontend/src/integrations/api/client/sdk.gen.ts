@@ -633,8 +633,8 @@ export const programControllerCreate = <ThrowOnError extends boolean = false>(op
 };
 
 /**
- * Retrieve all majors of a program
- * Retrieves a paginated list of majors based on the program id and provided filters.
+ * Retrive all majors of a program
+ * Retrives a paginated list of majors based on the program id and provided filters.
  * Requires `ADMIN` role.
  */
 export const programControllerFindAllMajors = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerFindAllMajorsData, ThrowOnError>) => {
@@ -1329,8 +1329,8 @@ export const groupControllerUpdate = <ThrowOnError extends boolean = false>(opti
 };
 
 /**
- * Retrive all majors
- * Retrives a paginated list of majors based on the provided filters.
+ * Retrieve all majors
+ * Retrieves a paginated list of majors based on the provided filters.
  * Requires `ADMIN` role.
  */
 export const majorControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<MajorControllerFindAllData, ThrowOnError>) => {
