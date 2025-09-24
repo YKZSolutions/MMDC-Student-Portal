@@ -4024,7 +4024,7 @@
     },
     "/programs/{programId}/majors": {
       "get": {
-        "description": "Retrives a paginated list of majors based on the program id and provided filters.\nRequires `ADMIN` role.",
+        "description": "Retrieves a paginated list of majors based on the program id and provided filters.\nRequires `ADMIN` role.",
         "operationId": "ProgramController_findAllMajors",
         "parameters": [
           {
@@ -4190,7 +4190,7 @@
             "description": ""
           }
         },
-        "summary": "Retrive all majors of a program",
+        "summary": "Retrieve all majors of a program",
         "tags": [
           "Program"
         ]
