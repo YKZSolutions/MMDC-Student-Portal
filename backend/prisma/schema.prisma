@@ -283,7 +283,6 @@ model CurriculumCourse {
   /// @DtoApiHidden
   course   Course @relation(fields: [courseId], references: [id])
 
-  order    Int @default(0)
   year     Int
   semester Int
 
