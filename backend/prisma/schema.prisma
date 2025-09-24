@@ -283,7 +283,7 @@ model CurriculumCourse {
   /// @DtoApiHidden
   course   Course @relation(fields: [courseId], references: [id])
 
-  order    Int
+  order    Int @default(0)
   year     Int
   semester Int
 
@@ -618,7 +618,6 @@ model SectionModule {
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   moduleId String @db.Uuid
 
-  order       Int
   publishedAt DateTime?
   toPublishAt DateTime?
 
@@ -654,7 +653,7 @@ model ModuleSection {
   moduleContents ModuleContent[]
 
   title String @db.VarChar(255)
-  order Int
+  order Int    @default(0)
 
   publishedAt   DateTime?
   toPublishAt   DateTime?
@@ -698,7 +697,7 @@ model ModuleContent {
   /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  order       Int
+  order       Int         @default(0)
   contentType ContentType
 
   publishedAt   DateTime?
