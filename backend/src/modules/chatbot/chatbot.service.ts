@@ -8,9 +8,6 @@ import {
 } from '@/common/utils/date-range.util';
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { N8nService } from '@/lib/n8n/n8n.service';
-import { BillingService } from '@/modules/billing/billing.service';
-import { CoursesService } from '@/modules/courses/courses.service';
-import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
 import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
 import {
@@ -18,13 +15,14 @@ import {
   UserStaffContext,
   UserStudentContext,
 } from '@/modules/chatbot/dto/user-context.dto';
-import { CoursesService } from '@/modules/courses/courses.service';
 import { CourseEnrollmentService } from '@/modules/enrollment/course-enrollment.service';
 import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { FilterModulesDto } from '@/modules/lms/dto/filter-modules.dto';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { LmsService } from '@/modules/lms/lms.service';
+import { CoursesService } from '@/modules/courses/courses.service';
+import { BillingService } from '@/modules/billing/billing.service';
 import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
 import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
 import {
@@ -54,7 +52,7 @@ export class ChatbotService {
   ) {}
 
   private mapUserToContext(
-    role: string,
+    role: Role,
     user: UserStudentDetailsDto | UserStaffDetailsDto,
   ): UserBaseContext | UserStudentContext | UserStaffContext {
     // Create base context with required fields
@@ -91,7 +89,15 @@ export class ChatbotService {
   }
 
   @Log({
-    logArgsMessage: ({ authId, role, prompt }) =>
+    logArgsMessage: ({
+      authId,
+      role,
+      prompt,
+    }: {
+      authId: string;
+      role: string;
+      prompt: PromptDto;
+    }) =>
       `Handle chatbot question authId=${authId}, role=${role}, question="${prompt.question}"`,
     logSuccessMessage: (_, { authId, role }) =>
       `Successfully handled chatbot question userId=${authId}, role=${role}`,
@@ -100,7 +106,7 @@ export class ChatbotService {
   })
   async handleQuestion(
     @LogParam('authId') authId: string,
-    @LogParam('role') role: string,
+    @LogParam('role') role: Role,
     @LogParam('prompt') prompt: PromptDto,
   ): Promise<ChatbotResponseDto> {
     const result: ChatbotResponseDto = { response: '' };
@@ -167,7 +173,7 @@ export class ChatbotService {
             const courses =
               await this.courseEnrollmentService.getCourseEnrollments(
                 userContext.id,
-                userContext.role as Role,
+                userContext.role,
               );
             return `Active enrolled courses: ${JSON.stringify(courses)}`;
           }
@@ -175,14 +181,25 @@ export class ChatbotService {
           case 'lms_my_modules': {
             const args = functionCall.args as FilterModulesDto;
             let modules;
-            if (userContext.role === 'student') {
-              modules = await this.lmsService.findAllForStudent(userContext.id, args);
-            } else if (userContext.role === 'mentor') {
-              modules = await this.lmsService.findAllForMentor(userContext.id, args);
-            } else if (userContext.role === 'admin') {
-              modules = await this.lmsService.findAllForAdmin(userContext.id, args);
-            } else {
-              throw new NotImplementedException(`Role not supported: ${userContext.role}`);
+            switch (userContext.role) {
+              case 'student':
+                modules = await this.lmsService.findAllForStudent(
+                  userContext.id,
+                  args,
+                );
+                break;
+              case 'mentor':
+                modules = await this.lmsService.findAllForMentor(
+                  userContext.id,
+                  args,
+                );
+                break;
+              case 'admin':
+                modules = await this.lmsService.findAllForAdmin(
+                  userContext.id,
+                  args,
+                );
+                break;
             }
             return `My modules: ${JSON.stringify(modules)}`;
           }
@@ -191,7 +208,7 @@ export class ChatbotService {
             const args = functionCall.args as FilterModuleContentsDto;
             const contents = await this.lmsContentService.findAll(
               args,
-              userContext.role as Role,
+              userContext.role,
               userContext.id,
             );
             return `Module contents: ${JSON.stringify(contents)}`;
@@ -201,7 +218,7 @@ export class ChatbotService {
             const args = functionCall.args as FilterBillDto;
             const invoices = await this.billingService.findAll(
               args,
-              userContext.role as Role,
+              userContext.role,
               userContext.id,
             );
             return `My invoices: ${JSON.stringify(invoices)}`;
@@ -211,7 +228,7 @@ export class ChatbotService {
             const { id } = functionCall.args as { id: string };
             const invoice = await this.billingService.findOne(
               id,
-              userContext.role as Role,
+              userContext.role,
               userContext.id,
             );
             return `Invoice: ${JSON.stringify(invoice)}`;
