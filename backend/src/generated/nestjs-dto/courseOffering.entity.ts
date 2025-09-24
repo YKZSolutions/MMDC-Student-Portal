@@ -41,11 +41,7 @@ export class CourseOffering {
   courseSections?: CourseSectionAsType[];
   @ApiHideProperty()
   modules?: ModuleAsType[];
-  @ApiProperty({
-    type: () => Appointment,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   appointments?: AppointmentAsType[];
   @ApiProperty({
     type: 'string',
