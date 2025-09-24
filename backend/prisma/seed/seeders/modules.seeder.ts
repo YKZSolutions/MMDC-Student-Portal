@@ -30,6 +30,7 @@ export async function seedModules(
   log('Seeding modules...');
   const allModules: Module[] = [];
   const allSections: ModuleSection[] = [];
+  const allSubsections: ModuleSection[] = [];
   const allContents: ModuleContent[] = [];
   const allAssignments: any[] = [];
   const allQuizzes: any[] = [];
@@ -58,83 +59,94 @@ export async function seedModules(
           data: createModuleSectionData(module.id, j + 1),
         });
         moduleSections.push(section);
-      }
-      allSections.push(...moduleSections);
 
-      for (const section of moduleSections) {
-        for (let k = 0; k < seedConfig.CONTENTS_PER_SECTION; k++) {
-          const contentType =
-            Math.random() < seedConfig.ASSIGNMENT_CHANCE
-              ? ContentType.ASSIGNMENT
-              : pickRandomEnum(
-                  Object.values(ContentType).filter(
-                    (type) => type !== ContentType.ASSIGNMENT,
-                  ),
-                );
-
-          const content = await prisma.moduleContent.create({
-            data: createModuleContentData(
-              module.id,
-              section.id,
-              k + 1,
-              contentType,
-            ),
+        // 🔽 Create subsections inside this section
+        for (let s = 0; s < seedConfig.SUBSECTIONS_PER_SECTION; s++) {
+          const subsection = await prisma.moduleSection.create({
+            data: {
+              ...createModuleSectionData(module.id, s + 1, section.id),
+            },
           });
-          allContents.push(content);
+          allSubsections.push(subsection);
 
-          // Create specific content type
-          switch (contentType) {
-            case ContentType.ASSIGNMENT:
-              const grading = await prisma.assignmentGrading.create({
-                data: createAssignmentGradingData(),
-              });
-              allGradings.push(grading);
+          // Put contents in subsections (instead of parent sections)
+          for (let k = 0; k < seedConfig.CONTENTS_PER_SECTION; k++) {
+            const contentType =
+              Math.random() < seedConfig.ASSIGNMENT_CHANCE
+                ? ContentType.ASSIGNMENT
+                : pickRandomEnum(
+                    Object.values(ContentType).filter(
+                      (type) => type !== ContentType.ASSIGNMENT,
+                    ),
+                  );
 
-              const assignment = await prisma.assignment.create({
-                data: createAssignmentData(content.id, grading.id),
-              });
-              allAssignments.push(assignment);
-              break;
+            const content = await prisma.moduleContent.create({
+              data: createModuleContentData(
+                module.id,
+                subsection.id, // 🔑 link to subsection
+                k + 1,
+                contentType,
+              ),
+            });
+            allContents.push(content);
 
-            case ContentType.QUIZ:
-              const quiz = await prisma.quiz.create({
-                data: createQuizData(content.id),
-              });
-              allQuizzes.push(quiz);
-              break;
+            // Create specific content type
+            switch (contentType) {
+              case ContentType.ASSIGNMENT: {
+                const grading = await prisma.assignmentGrading.create({
+                  data: createAssignmentGradingData(),
+                });
+                allGradings.push(grading);
 
-            case ContentType.LESSON:
-              const lesson = await prisma.lesson.create({
-                data: createLessonData(content.id),
-              });
-              allLessons.push(lesson);
-              break;
-
-            case ContentType.VIDEO:
-              const video = await prisma.video.create({
-                data: createVideoData(content.id),
-              });
-              break;
-
-            case ContentType.URL:
-              const externalUrl = await prisma.externalUrl.create({
-                data: createExternalUrlData(content.id),
-              });
-              break;
-
-            case ContentType.FILE:
-              const fileResource = await prisma.fileResource.create({
-                data: createFileResourceData(content.id),
-              });
-              break;
+                const assignment = await prisma.assignment.create({
+                  data: createAssignmentData(content.id, grading.id),
+                });
+                allAssignments.push(assignment);
+                break;
+              }
+              case ContentType.QUIZ: {
+                const quiz = await prisma.quiz.create({
+                  data: createQuizData(content.id),
+                });
+                allQuizzes.push(quiz);
+                break;
+              }
+              case ContentType.LESSON: {
+                const lesson = await prisma.lesson.create({
+                  data: createLessonData(content.id),
+                });
+                allLessons.push(lesson);
+                break;
+              }
+              case ContentType.VIDEO: {
+                await prisma.video.create({
+                  data: createVideoData(content.id),
+                });
+                break;
+              }
+              case ContentType.URL: {
+                await prisma.externalUrl.create({
+                  data: createExternalUrlData(content.id),
+                });
+                break;
+              }
+              case ContentType.FILE: {
+                await prisma.fileResource.create({
+                  data: createFileResourceData(content.id),
+                });
+                break;
+              }
+            }
           }
         }
       }
+      allSections.push(...moduleSections);
     }
   }
 
   log(`-> Created ${allModules.length} modules.`);
   log(`-> Created ${allSections.length} module sections.`);
+  log(`-> Created ${allSubsections.length} module subsections.`);
   log(`-> Created ${allContents.length} module contents.`);
   log(`-> Created ${allAssignments.length} assignments.`);
   log(`-> Created ${allQuizzes.length} quizzes.`);
@@ -144,6 +156,7 @@ export async function seedModules(
   return {
     modules: allModules,
     sections: allSections,
+    subsections: allSubsections,
     contents: allContents,
     assignments: allAssignments,
     quizzes: allQuizzes,

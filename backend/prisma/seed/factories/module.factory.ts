@@ -20,11 +20,13 @@ export function createModuleData(
 export function createModuleSectionData(
   moduleId: string,
   order: number,
+  subsectionId?: string,
 ): Prisma.ModuleSectionCreateInput {
   return {
     title: `Section: ${faker.lorem.words(2)}`,
     order,
     module: { connect: { id: moduleId } },
+    ...(subsectionId && { subsection: { connect: { id: subsectionId } } }),
     publishedAt: faker.date.past(),
   };
 }
@@ -48,6 +50,7 @@ export function createAssignmentGradingData(): Prisma.AssignmentGradingCreateInp
   return {
     gradingSchema: mockRubrics,
     weight: faker.number.float({ min: 0.1, max: 1 }),
+    isCurved: Math.random() > 0.5,
   };
 }
 
@@ -75,6 +78,7 @@ export function createQuizData(
     content: mockContent,
     dueDate: faker.date.future(),
     questions: mockQuizQuestions,
+    allowLateSubmission: Math.random() > 0.5,
   };
 }
 
