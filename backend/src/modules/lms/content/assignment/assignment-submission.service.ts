@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -13,12 +14,18 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { CreateAssignmentSubmissionDto } from '@/generated/nestjs-dto/create-assignmentSubmission.dto';
 import { UpdateAssignmentSubmissionDto } from '@/generated/nestjs-dto/update-assignmentSubmission.dto';
 import { AssignmentSubmissionDto } from '@/generated/nestjs-dto/assignmentSubmission.dto';
 import { AssignmentSubmission } from '@/generated/nestjs-dto/assignmentSubmission.entity';
 import { isUUID } from 'class-validator';
-import { Prisma } from '@prisma/client';
+import {
+  Prisma,
+  SubmissionState,
+  AssignmentSubmission as PrismaAssignmentSubmission,
+  Assignment as PrismaAssignment,
+  Role,
+} from '@prisma/client';
+import { SubmitAssignmentDto } from '@/modules/lms/dto/submit-assignment.dto';
 
 @Injectable()
 export class AssignmentSubmissionService {
@@ -44,28 +51,215 @@ export class AssignmentSubmissionService {
   async create(
     @LogParam('assignmentId') assignmentId: string,
     @LogParam('studentId') studentId: string,
-    @LogParam('dto') dto: CreateAssignmentSubmissionDto,
+    @LogParam('dto') dto: SubmitAssignmentDto,
   ): Promise<AssignmentSubmissionDto> {
     if (!isUUID(assignmentId) || !isUUID(studentId)) {
       throw new BadRequestException('Invalid assignment or student ID format');
     }
-    const submission = await this.prisma.client.assignmentSubmission.create({
-      data: {
-        ...dto,
-        assignmentId,
-        studentId,
-        content: dto.content as Prisma.JsonValue,
+
+    // Validate assignment exists and get settings
+    const assignment = await this.prisma.client.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        moduleContent: { include: { module: { include: { course: true } } } },
       },
     });
-    return {
-      ...submission,
-      content: submission.content as Prisma.JsonValue,
-      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
+
+    if (!assignment) {
+      throw new NotFoundException('Assignment not found');
+    }
+
+    let groupSnapshot = {};
+    // Validate group submission if groupId provided
+    if (dto.groupSnapshot) {
+      if (assignment.mode !== 'GROUP') {
+        throw new BadRequestException(
+          'This assignment does not allow group submissions',
+        );
+      }
+
+      await this.validateGroupMembership(dto.groupSnapshot.id, studentId);
+      groupSnapshot = structuredClone(dto.groupSnapshot);
+    } else if (assignment.mode === 'GROUP') {
+      throw new BadRequestException(
+        'This assignment requires group submission',
+      );
+    }
+
+    // Set default state to DRAFT if not provided
+    const submissionData = {
+      ...dto,
+      assignmentId,
+      studentId,
+      state: dto.state || SubmissionState.DRAFT,
+      content: dto.content as Prisma.JsonValue,
+      groupSnapshot:
+        assignment.mode === 'GROUP'
+          ? (groupSnapshot as Prisma.JsonValue)
+          : null,
     };
+
+    const submission = await this.prisma.client.assignmentSubmission.create({
+      data: submissionData,
+    });
+
+    return this.mapSubmission(submission);
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Updating assignment submission ${id}`,
+    logArgsMessage: ({ id, userId }) =>
+      `Finalizing assignment submission ${id} for student ${userId}`,
+    logSuccessMessage: (submission) =>
+      `Assignment submission [${submission.id}] successfully finalized.`,
+    logErrorMessage: (err, { id }) =>
+      `Error finalizing assignment submission ${id}: ${err.message}`,
+  })
+  async finalizeSubmission(
+    @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
+  ): Promise<AssignmentSubmissionDto> {
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
+    }
+
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id, studentId: userId },
+      include: { assignment: true, attachments: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.state !== SubmissionState.DRAFT) {
+      throw new ConflictException('Only draft submissions can be finalized');
+    }
+
+    // Validate submission has content
+    if (!existing.content && existing.attachments.length === 0) {
+      throw new BadRequestException(
+        'Submission must have content or attachments',
+      );
+    }
+
+    // Validate attempt limit
+    await this.validateAttemptLimit(existing.assignmentId, existing.studentId);
+
+    // Validate deadline and calculate late submission
+    const lateStatus = this.validateDeadline(
+      existing.assignment,
+      true, // isFinalSubmission
+    );
+
+    const submission = await this.prisma.client.assignmentSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.SUBMITTED,
+        submittedAt: new Date(),
+        lateDays: lateStatus.isLate ? lateStatus.lateDays : null,
+        attemptNumber: await this.calculateAttemptNumber(
+          existing.assignmentId,
+          existing.studentId,
+        ),
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
+    logArgsMessage: ({ id }) =>
+      `Returning assignment submission ${id} for revision`,
+    logSuccessMessage: (submission) =>
+      `Assignment submission [${submission.id}] returned for revision.`,
+    logErrorMessage: (err, { id }) =>
+      `Error returning assignment submission ${id} for revision: ${err.message}`,
+  })
+  async returnForRevision(
+    @LogParam('id') id: string,
+    @LogParam('feedback') feedback?: string,
+  ): Promise<AssignmentSubmissionDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid submission ID format');
+    }
+
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id },
+      include: { assignment: true, gradeRecord: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.state !== SubmissionState.GRADED) {
+      throw new ConflictException(
+        'Only graded submissions can be returned for revision',
+      );
+    }
+
+    const submission = await this.prisma.client.assignmentSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.RETURNED,
+        // Store feedback for the student
+        ...(feedback && { feedback }),
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
+    logArgsMessage: ({ id }) =>
+      `Starting resubmission for assignment submission ${id}`,
+    logSuccessMessage: (submission) =>
+      `Assignment submission [${submission.id}] ready for resubmission.`,
+    logErrorMessage: (err, { id }) =>
+      `Error starting resubmission for assignment submission ${id}: ${err.message}`,
+  })
+  async startResubmission(
+    @LogParam('id') id: string,
+  ): Promise<AssignmentSubmissionDto> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid submission ID format');
+    }
+
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id },
+      include: { assignment: true, gradeRecord: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.state !== SubmissionState.RETURNED) {
+      throw new ConflictException(
+        'Only returned submissions can be resubmitted',
+      );
+    }
+
+    // Validate that student hasn't exceeded max attempts
+    await this.validateAttemptLimit(existing.assignmentId, existing.studentId);
+
+    const submission = await this.prisma.client.assignmentSubmission.update({
+      where: { id },
+      data: {
+        state: SubmissionState.DRAFT,
+        // Reset submission timing for the resubmission
+        submittedAt: null,
+        lateDays: null,
+        // Keep the previous attempt number for tracking
+      },
+    });
+
+    return this.mapSubmission(submission);
+  }
+
+  @Log({
+    logArgsMessage: ({ id, userId }) =>
+      `Updating assignment submission ${id} for user ${userId}`,
     logSuccessMessage: (submission) =>
       `Assignment submission [${submission.id}] successfully updated.`,
     logErrorMessage: (err, { id }) =>
@@ -77,11 +271,31 @@ export class AssignmentSubmissionService {
   })
   async update(
     @LogParam('id') id: string,
+    @LogParam('userId') userId: string,
     @LogParam('dto') dto: UpdateAssignmentSubmissionDto,
   ): Promise<AssignmentSubmissionDto> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
+
+    // Check if submission can be modified
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id, studentId: userId },
+      include: { assignment: true, gradeRecord: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.gradeRecord) {
+      throw new ForbiddenException('Cannot modify graded submission');
+    }
+
+    if (existing.state !== SubmissionState.DRAFT) {
+      throw new ConflictException('Can only modify draft submissions');
+    }
+
     const submission = await this.prisma.client.assignmentSubmission.update({
       where: { id },
       data: {
@@ -89,15 +303,13 @@ export class AssignmentSubmissionService {
         content: dto.content as Prisma.JsonValue,
       },
     });
-    return {
-      ...submission,
-      content: submission.content as Prisma.JsonValue,
-      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
-    };
+
+    return this.mapSubmission(submission);
   }
 
   @Log({
-    logArgsMessage: ({ id }) => `Fetching assignment submission ${id}`,
+    logArgsMessage: ({ id, role, userId }) =>
+      `Fetching assignment submission ${id} for ${role} ${userId}`,
     logSuccessMessage: (submission) =>
       `Assignment submission [${submission.id}] successfully fetched.`,
     logErrorMessage: (err, { id }) =>
@@ -107,50 +319,25 @@ export class AssignmentSubmissionService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Assignment submission not found'),
   })
-  async findById(@LogParam('id') id: string): Promise<AssignmentSubmission> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Invalid submission ID format');
+  async findById(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
+  ): Promise<AssignmentSubmission> {
+    if (!isUUID(id) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid submission ID or user ID format');
     }
     const result =
       await this.prisma.client.assignmentSubmission.findUniqueOrThrow({
-        where: { id },
+        where: { id, ...(role === Role.student && { studentId: userId }) },
+        include: { attachments: true },
       });
-    return {
-      ...result,
-      content: result.content as Prisma.JsonValue,
-      groupSnapshot: result.groupSnapshot as Prisma.JsonValue,
-    };
+    return this.mapSubmission(result);
   }
 
   @Log({
-    logArgsMessage: ({ assignmentId, studentId }) =>
-      `Fetching assignment submissions for assignment ${assignmentId} and student ${studentId}`,
-    logSuccessMessage: (submissions) =>
-      `Fetched ${submissions.length} assignment submissions.`,
-    logErrorMessage: (err, { assignmentId, studentId }) =>
-      `Error fetching assignment submissions for assignment ${assignmentId} and student ${studentId}: ${err.message}`,
-  })
-  async findByAssignmentAndStudent(
-    @LogParam('assignmentId') assignmentId: string,
-    @LogParam('studentId') studentId: string,
-  ): Promise<AssignmentSubmission[]> {
-    if (!isUUID(assignmentId) || !isUUID(studentId)) {
-      throw new BadRequestException('Invalid assignment or student ID format');
-    }
-    const results = await this.prisma.client.assignmentSubmission.findMany({
-      where: { assignmentId, studentId },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return results.map((r) => ({
-      ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
-    }));
-  }
-
-  @Log({
-    logArgsMessage: ({ assignmentId }) =>
-      `Fetching all submissions for assignment ${assignmentId}`,
+    logArgsMessage: ({ assignmentId, role, userId }) =>
+      `Fetching all submissions for assignment ${assignmentId} for ${role} ${userId}`,
     logSuccessMessage: (submissions) =>
       `Fetched ${submissions.length} submissions for assignment.`,
     logErrorMessage: (err, { assignmentId }) =>
@@ -158,37 +345,18 @@ export class AssignmentSubmissionService {
   })
   async findByAssignment(
     @LogParam('assignmentId') assignmentId: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
   ): Promise<AssignmentSubmission[]> {
-    if (!isUUID(assignmentId)) {
-      throw new BadRequestException('Invalid assignment ID format');
+    if (!isUUID(assignmentId) || !isUUID(userId)) {
+      throw new BadRequestException('Invalid assignment ID or user ID format');
     }
     const results = await this.prisma.client.assignmentSubmission.findMany({
-      where: { assignmentId },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return results.map((r) => ({
-      ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
-    }));
-  }
-
-  @Log({
-    logArgsMessage: ({ studentId }) =>
-      `Fetching all assignment submissions for student ${studentId}`,
-    logSuccessMessage: (submissions) =>
-      `Fetched ${submissions.length} assignment submissions for student.`,
-    logErrorMessage: (err, { studentId }) =>
-      `Error fetching assignment submissions for student ${studentId}: ${err.message}`,
-  })
-  async findByStudent(
-    @LogParam('studentId') studentId: string,
-  ): Promise<AssignmentSubmission[]> {
-    if (!isUUID(studentId)) {
-      throw new BadRequestException('Invalid student ID format');
-    }
-    const results = await this.prisma.client.assignmentSubmission.findMany({
-      where: { studentId },
+      where: {
+        assignmentId,
+        ...(role === Role.student && { studentId: userId }),
+      },
+      include: { attachments: true },
       orderBy: { submittedAt: 'desc' },
     });
     return results.map((r) => ({
@@ -215,6 +383,25 @@ export class AssignmentSubmissionService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid submission ID format');
     }
+
+    // Check if submission can be deleted
+    const existing = await this.prisma.client.assignmentSubmission.findUnique({
+      where: { id },
+      include: { gradeRecord: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Assignment submission not found');
+    }
+
+    if (existing.gradeRecord) {
+      throw new ForbiddenException('Cannot delete graded submission');
+    }
+
+    if (existing.state !== SubmissionState.DRAFT) {
+      throw new ConflictException('Can only delete draft submissions');
+    }
+
     if (directDelete) {
       await this.prisma.client.assignmentSubmission.delete({ where: { id } });
     } else {
@@ -223,5 +410,129 @@ export class AssignmentSubmissionService {
         data: { deletedAt: new Date() },
       });
     }
+  }
+
+  private async validateGroupMembership(groupId: string, studentId: string) {
+    const groupMembership = await this.prisma.client.groupMember.findFirst({
+      where: {
+        groupId,
+        studentId,
+      },
+      include: { student: true },
+    });
+
+    if (!groupMembership) {
+      throw new BadRequestException(
+        'Student is not a member of the specified group',
+      );
+    }
+  }
+
+  private async validateAttemptLimit(
+    assignmentId: string,
+    studentId: string,
+  ): Promise<void> {
+    const assignment = await this.prisma.client.assignment.findUnique({
+      where: { id: assignmentId },
+      select: { maxAttempts: true },
+    });
+
+    if (!assignment) {
+      throw new BadRequestException('Assignment not found');
+    }
+
+    const previousSubmissions =
+      await this.prisma.client.assignmentSubmission.count({
+        where: {
+          assignmentId,
+          studentId,
+          state: SubmissionState.SUBMITTED,
+        },
+      });
+
+    if (
+      assignment.maxAttempts !== null &&
+      assignment.maxAttempts > 0 &&
+      previousSubmissions >= assignment.maxAttempts
+    ) {
+      throw new ConflictException(
+        `Maximum submission attempts (${assignment.maxAttempts}) exceeded`,
+      );
+    }
+  }
+
+  private validateDeadline(
+    assignment: PrismaAssignment,
+    isFinalSubmission: boolean,
+  ): {
+    isLate: boolean;
+    inGrace: boolean;
+    lateDays?: number;
+    penalty?: number;
+  } {
+    if (!isFinalSubmission) {
+      return { isLate: false, inGrace: false };
+    }
+
+    const now = new Date();
+
+    if (!assignment.dueDate) {
+      return { isLate: false, inGrace: false };
+    }
+
+    // Calculate grace period end
+    const gracePeriodMs = (assignment.gracePeriodMinutes || 0) * 60000;
+    const graceEnd = new Date(assignment.dueDate.getTime() + gracePeriodMs);
+
+    // Check submission timing
+    if (now <= assignment.dueDate) {
+      return { isLate: false, inGrace: false }; // On time
+    }
+
+    if (now <= graceEnd) {
+      return { isLate: false, inGrace: true }; // Within grace period
+    }
+
+    // Late submission after grace period
+    if (!assignment.allowLateSubmission) {
+      throw new BadRequestException(
+        'Late submissions are not allowed for this assignment',
+      );
+    }
+
+    const lateDays = Math.ceil(
+      (now.getTime() - assignment.dueDate.getTime()) / (1000 * 3600 * 24),
+    );
+    const penalty = assignment.latePenalty
+      ? lateDays * Number(assignment.latePenalty)
+      : 0;
+
+    return { isLate: true, inGrace: false, lateDays, penalty };
+  }
+
+  private async calculateAttemptNumber(
+    assignmentId: string,
+    studentId: string,
+  ): Promise<number> {
+    const previousAttempts =
+      await this.prisma.client.assignmentSubmission.count({
+        where: {
+          assignmentId,
+          studentId,
+          state: SubmissionState.SUBMITTED,
+        },
+      });
+
+    return previousAttempts + 1;
+  }
+
+  private mapSubmission(
+    submission: PrismaAssignmentSubmission,
+  ): AssignmentSubmission {
+    return {
+      ...submission,
+      content: submission.content as Prisma.JsonValue,
+      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
+    };
   }
 }
