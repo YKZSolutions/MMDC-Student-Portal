@@ -7,7 +7,6 @@ import type {
   Module,
   ModuleItem,
   ModuleSection,
-  ModuleTreeItemDto,
   ModuleTreeSectionDto,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
@@ -85,74 +84,69 @@ export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
   return augmented
 }
 
+// Convert a Module (local model) into CourseNodeModel[] for the Tree component
 export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
-  return convertModuleSectionsToTreeData(
-    module.sections.map(
-      (s) =>
-        ({
-          id: s.id,
-          parentSectionId: s.parentId,
-          title: s.title,
-          order: s.order,
-          items: s.items.map((it) => ({
-            id: it.id,
-            title: it.title,
-            parentId: it.parentId,
-            type: it.type,
-            order: it.order,
-          })),
-          subsections: s.subsections as unknown as ModuleTreeSectionDto[],
-        }) as ModuleTreeSectionDto,
-    ),
-  )
+  return convertSectionsToTreeData(module.sections as any[])
 }
 
+// Convert API DTO sections into CourseNodeModel[] for the Tree component
 export function convertModuleSectionsToTreeData(
   sections: ModuleTreeSectionDto[],
 ): CourseNodeModel[] {
+  return convertSectionsToTreeData(sections)
+}
+
+// Shared implementation: simple, non-mutating traversal that flattens
+// sections, subsections and items into the node list expected by the Tree.
+function convertSectionsToTreeData(
+  sections: ModuleTreeSectionDto[] | ModuleSection[],
+): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
-  const processSection = (
-    section: ModuleTreeSectionDto,
-    parentId: string = 'root',
-    level: number = 1,
-  ) => {
-    const sectionNode: CourseNodeModel = {
+  function processSection(
+    section: ModuleTreeSectionDto | ModuleSection,
+    parentId = 'root',
+    level = 1,
+  ) {
+    if (!section) return
+
+    treeData.push({
       id: section.id,
       parent: parentId,
-      text: section.title || 'Untitled Section',
-      droppable: true,
+      text: section.title ?? 'Untitled Section',
+      droppable: getTypeFromLevel(level) !== 'item',
       data: {
         level,
         type: getTypeFromLevel(level),
-        contentData: section as any,
+        contentData: section,
       },
-    }
-    treeData.push(sectionNode)
+    })
 
-    // items
-    ;(section.items || []).forEach((item: ModuleTreeItemDto) => {
-      const itemNode: CourseNodeModel = {
+    // This is still needed for the mock items. 
+    // Remove if real data always has items defined.
+    const items = section.items ?? []
+    for (const item of items) {
+      if (!item) continue
+      treeData.push({
         id: item.id,
         parent: section.id,
-        text: item.title || 'Untitled Item',
+        text: item.title ?? 'Untitled Item',
         droppable: false,
         data: {
           level: 3,
           type: 'item',
-          contentData: item as any,
+          contentData: item,
         },
-      }
-      treeData.push(itemNode)
-    })
+      })
+    }
 
-    // subsections
-    ;(section.subsections || []).forEach((sub) => {
+    const subs = section.subsections ?? []
+    for (const sub of subs) {
       processSection(sub, section.id, level + 1)
-    })
+    }
   }
 
-  sections.forEach((s) => processSection(s))
+  for (const section of sections) processSection(section)
 
   return treeData
 }
