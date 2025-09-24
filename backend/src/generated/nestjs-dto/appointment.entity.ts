@@ -1,61 +1,67 @@
-import { EnrollmentStatus } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
-import {
-  PricingGroup,
-  type PricingGroup as PricingGroupAsType,
-} from './pricingGroup.entity';
+import { User, type User as UserAsType } from './user.entity';
 
-export class EnrollmentPeriod {
+export class Appointment {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: () => CourseOffering,
-    isArray: true,
-    required: false,
-  })
-  courseOfferings?: CourseOfferingAsType[];
-  @ApiProperty({
     type: 'string',
   })
-  pricingGroupId: string;
+  courseId: string;
   @ApiHideProperty()
-  pricingGroup?: PricingGroupAsType;
+  course?: CourseOfferingAsType;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  startYear: number;
+  studentId: string;
+  @ApiHideProperty()
+  student?: UserAsType;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  endYear: number;
+  mentorId: string;
+  @ApiHideProperty()
+  mentor?: UserAsType;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  term: number;
+  title: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  description: string;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  startDate: Date;
+  startAt: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  endDate: Date;
+  endAt: Date;
   @ApiProperty({
-    enum: EnrollmentStatus,
-    enumName: 'EnrollmentStatus',
+    enum: AppointmentStatus,
+    enumName: 'AppointmentStatus',
   })
-  status: EnrollmentStatus;
+  status: AppointmentStatus;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  gmeetLink: string | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  cancelReason: string | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
