@@ -17076,7 +17076,7 @@
             "format": "date-time"
           },
           "sectionId": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
+            "type": "string"
           },
           "assignment": {
             "$ref": "#/components/schemas/CreateAssignmentDto"
@@ -17258,7 +17258,7 @@
             "format": "date-time"
           },
           "sectionId": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
+            "type": "string"
           },
           "assignment": {
             "$ref": "#/components/schemas/CreateAssignmentDto"
