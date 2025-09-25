@@ -9,17 +9,24 @@ import {
 } from '../constants/mockAcademics';
 
 function getProgramCode(programName: string) {
-  return (
-    PROGRAM_NAMES.find(() =>
-      programName.includes('Computer Science')
-        ? 'CS'
-        : programName.includes('Information Technology')
-          ? 'IT'
-          : programName.includes('Data Science')
-            ? 'DS'
-            : 'CY',
-    )?.substring(0, 2) || 'CS'
-  );
+  if (programName.includes('Computer Science')) return 'CS';
+  if (programName.includes('Information Technology')) return 'IT';
+  if (programName.includes('Data Science')) return 'DS';
+  if (programName.includes('Cybersecurity')) return 'CY';
+  return 'GEN';
+}
+
+function getMajorCode(major: string) {
+  if (major.includes('Artificial Intelligence')) return 'AI';
+  if (major.includes('Web Development')) return 'WEB';
+  if (major.includes('Mobile Development')) return 'MOB';
+  if (major.includes('Data Analytics')) return 'DAT';
+  if (major.includes('Network Security')) return 'NET';
+  if (major.includes('Cloud Computing')) return 'CLOUD';
+  if (major.includes('Database Management')) return 'DB';
+  if (major.includes('Game Development')) return 'GAME';
+  if (major.includes('UX/UI Design')) return 'UI';
+  if (major.includes('DevOps')) return 'DEVOPS';
 }
 
 export function createProgramData(
@@ -34,15 +41,15 @@ export function createProgramData(
 }
 
 export function createMajorData(
+  specialization: string,
   programId: string,
   programCode: string,
+  programName: string,
 ): Prisma.MajorCreateInput {
-  const specialization = faker.helpers.arrayElement(MAJOR_SPECIALIZATIONS);
-
   return {
     program: { connect: { id: programId } },
-    majorCode: `${programCode}-${specialization.substring(0, 3).toUpperCase()}`,
-    name: `${specialization} Specialization`,
+    majorCode: `${programCode}-${getMajorCode(specialization)}`,
+    name: `${programName} Specialization in ${specialization}`,
     description: `Specialization in ${specialization} covering advanced topics and practical applications.`,
   };
 }
