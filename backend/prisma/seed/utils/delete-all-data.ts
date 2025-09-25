@@ -49,11 +49,8 @@ export async function deleteAllData(
 
   // Order matters due to foreign key constraints!
   await prisma.$transaction([
-    // Grade-related records
-    prisma.gradingConfig.deleteMany(),
+    // Grades and submissions
     prisma.gradeRecord.deleteMany(),
-
-    // Submission records
     prisma.assignmentSubmission.deleteMany(),
     prisma.quizSubmission.deleteMany(),
 
@@ -64,9 +61,14 @@ export async function deleteAllData(
     // Content progress tracking
     prisma.contentProgress.deleteMany(),
 
-    // Assignment and quiz questions
+    // Assignments
     prisma.assignment.deleteMany(),
+
+    // Quizzes
     prisma.quiz.deleteMany(),
+
+    // Grading configs
+    prisma.gradingConfig.deleteMany(),
 
     // Module content
     prisma.lesson.deleteMany(),
@@ -111,9 +113,11 @@ export async function deleteAllData(
     prisma.user.deleteMany(),
 
     // Billing and payments
+    prisma.billPayment.deleteMany(),
+    prisma.billInstallment.deleteMany(),
+    prisma.bill.deleteMany(),
     prisma.pricing.deleteMany(),
     prisma.pricingGroup.deleteMany(),
-    prisma.bill.deleteMany(),
   ]);
 
   // 2. Delete Supabase auth users

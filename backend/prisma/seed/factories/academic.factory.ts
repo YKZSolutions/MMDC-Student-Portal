@@ -46,9 +46,9 @@ export function createMajorData(programId: string): Prisma.MajorCreateInput {
   };
 }
 
-export function createCourseData(index: number): Prisma.CourseCreateInput {
+export function createCourseData(index: number, majorId?: string): Prisma.CourseCreateInput {
   const courseTitle =
-    COURSE_TITLES[index] ||
+    COURSE_TITLES[index % COURSE_TITLES.length] ||
     `${faker.helpers.arrayElement(COURSE_TOPICS)} ${faker.helpers.arrayElement(COURSE_SUBJECTS)}`;
 
   const dept =
@@ -66,8 +66,13 @@ export function createCourseData(index: number): Prisma.CourseCreateInput {
       )
       ?.substring(0, 3) || 'CSC';
 
+  // Generate a unique course code using department, index, and a random component
+  const randomSuffix = faker.string.alphanumeric(2).toUpperCase();
+  const majorPrefix = majorId ? majorId.substring(0, 2) : '';
+  const courseCode = `${dept.toUpperCase()}${100 + index}${majorPrefix}${randomSuffix}`;
+
   return {
-    courseCode: `${dept.toUpperCase()}${100 + index}`,
+    courseCode,
     name: courseTitle,
     description: `This course covers fundamental concepts and practical applications of ${courseTitle.toLowerCase()}. Students will gain hands-on experience through projects and assignments.`,
     units: faker.helpers.arrayElement([3, 4, 5]),

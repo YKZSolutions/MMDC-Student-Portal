@@ -44,16 +44,17 @@ export async function seedAcademics(prisma: PrismaClient) {
   const majorCourseMap = new Map<string, Course[]>();
 
   for (const major of majors) {
-    const createdCourses = await Promise.all(
-      Array.from({ length: seedConfig.COURSES_PER_MAJOR }, (_, i) =>
-        prisma.course.create({
-          data: {
-            ...createCourseData(i),
-            majors: { connect: { id: major.id } },
-          },
-        }),
-      ),
-    );
+    // Create courses sequentially to ensure unique course codes
+    const createdCourses: Course[] = [];
+    for (let i = 0; i < seedConfig.COURSES_PER_MAJOR; i++) {
+      const course = await prisma.course.create({
+        data: {
+          ...createCourseData(i, major.id),
+          majors: { connect: { id: major.id } },
+        },
+      });
+      createdCourses.push(course);
+    }
     courses.push(...createdCourses);
     majorCourseMap.set(major.id, createdCourses);
   }
