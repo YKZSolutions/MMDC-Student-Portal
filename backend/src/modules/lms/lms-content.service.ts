@@ -101,7 +101,18 @@ export class LmsContentService {
     } = createModuleContentDto;
 
     const result = await this.prisma.client.$transaction(async (tx) => {
-      // 1. Create the base module content
+      // 1. Determine the order within the section
+      const { _max } = await tx.moduleContent.aggregate({
+        where: {
+          moduleId,
+          moduleSectionId: sectionId,
+        },
+        _max: { order: true },
+      });
+
+      const appendOrder = (_max.order ?? 0) + 1;
+
+      // 2. Create the base module content
       const content = await tx.moduleContent.create({
         data: {
           ...(sectionId
@@ -113,10 +124,11 @@ export class LmsContentService {
             : {}),
           ...rest,
           module: { connect: { id: moduleId } },
+          order: appendOrder,
         },
       });
 
-      // 2. Delegate to specialized services OR inline nested creation
+      // 3. Delegate to specialized services OR inline nested creation
       switch (rest.contentType) {
         case ContentType.ASSIGNMENT:
           if (assignment) {
@@ -164,7 +176,7 @@ export class LmsContentService {
       return content;
     });
 
-    // 3. Always return fresh with relations
+    // 4. Always return fresh with relations
     return this.findOne(result.id, Role.admin, null);
   }
 
