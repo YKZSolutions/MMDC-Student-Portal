@@ -1,19 +1,14 @@
 import RichTextEditor from '@/components/rich-text-editor.tsx'
-import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
 import {
   EditorProvider,
   type EditorView,
   editorViewOptions,
   useEditorState,
 } from '@/features/courses/hooks/useEditorState.tsx'
-import { mockInitialContent } from '@/features/courses/mocks.ts'
-import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
 import type {
   ContentNode,
   ContentNodeType,
   CourseNodeModel,
-  ModuleItem,
-  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import type { ModuleTreeSectionDto } from '@/integrations/api/client'
@@ -38,7 +33,6 @@ import {
   Select,
   Stack,
   Text,
-  Title,
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -80,20 +74,16 @@ export function CMS(props: CMSProps) {
   )
 }
 
-function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
+function CMSWrapper({ courseCode }: CMSProps) {
   const navigate = useNavigate()
   const theme = useMantineTheme()
 
   const [isTreeOpened, { open: openTree, close: closeTree }] =
     useDisclosure(false)
 
-  const { courseDetails, setCourseDetails } = useCourseData(courseCode)
-
   const { editorState } = useEditorState()
 
-  const handleCourseChange = (course: CourseBasicDetails | undefined) => {
-    setCourseDetails(course)
-  }
+  const handleCourseChange = (course: CourseBasicDetails | undefined) => {}
 
   const handleSegmentedControl = (value: EditorView) => {
     if (value === editorViewOptions[1].value) {
@@ -147,10 +137,10 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
             />
           </Group>
 
-          <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
+          {/* <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
             {courseDetails?.courseCode ? `${courseDetails?.courseCode}` : ''}{' '}
             {courseDetails?.courseName}{' '}
-          </Title>
+          </Title> */}
 
           <Group gap={'xs'}>
             <Group wrap="nowrap" gap={0}>
@@ -270,41 +260,22 @@ interface CourseSelectorProps {
 }
 
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
-  const { module, updateCourseContent, getNode } = useCourseData(courseCode)
-
-  const { editorState, handleUpdate } = useEditorState()
+  const { editorState } = useEditorState()
 
   switch (editorState.view) {
     case 'content':
-      return (
-        <RichTextEditor
-          content={
-            editorState.data && 'content' in editorState.data
-              ? editorState.data?.content || mockInitialContent
-              : null
-          }
-          onUpdate={(newContent) => {
-            updateCourseContent(newContent, editorState.data?.id)
-            if (editorState.data) {
-              const updatedNode = {
-                ...editorState.data,
-                content: newContent,
-              }
-              handleUpdate(editorState.type, updatedNode, editorState.view)
-            }
-          }}
-        />
-      )
+      return <RichTextEditor editor={editorState.content} />
     case 'preview':
       return (
-        <ModuleContentView
-          module={module}
-          moduleItem={editorState.data as ModuleItem}
-          parentSection={
-            getNode(editorState.data?.parentId as string)?.node as ModuleSection
-          }
-          isPreview={true}
-        />
+        // <ModuleContentView
+        //   module={module}
+        //   moduleItem={editorState.data}
+        //   parentSection={
+        //     getNode(editorState.data?.parentId as string)?.node as ModuleSection
+        //   }
+        //   isPreview={true}
+        // />
+        <></>
       )
   }
 }
@@ -344,9 +315,7 @@ function CMSCourseStructure({
   handleCourseChange: (course: CourseBasicDetails | undefined) => void
   closeTree: () => void
 }) {
-  const { courseDetails, module } = useCourseData(courseCode)
-
-  const { editorState, handleAdd, handleUpdate } = useEditorState()
+  const { editorState, handleAdd, handleNavigate } = useEditorState()
 
   return (
     <Box py={'md'} h={'100%'}>
@@ -379,7 +348,7 @@ function CMSCourseStructure({
                 handleAdd={handleAdd}
                 moduleTree={moduleTree}
                 handleNodeSelect={(nodeData) => {
-                  handleUpdate(editorState.type, nodeData, editorState.view)
+                  handleNavigate(nodeData)
                 }}
               />
             )}

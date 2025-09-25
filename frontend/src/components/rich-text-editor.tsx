@@ -1,13 +1,5 @@
-import {
-  Box,
-  Divider,
-  Group,
-  Paper,
-  Popover,
-  ScrollArea,
-  Stack,
-} from '@mantine/core'
-import { useCallback, useState } from 'react'
+import type { BlockNoteEditor } from '@blocknote/core'
+import { BlockNoteView } from '@blocknote/mantine'
 import {
   BasicTextStyleButton,
   BlockNoteViewEditor,
@@ -24,10 +16,8 @@ import {
   UnnestBlockButton,
   useBlockNoteEditor,
   useComponentsContext,
-  useCreateBlockNote,
-  useEditorChange,
 } from '@blocknote/react'
-import { BlockNoteView } from '@blocknote/mantine'
+import { Box, Divider, Group, Paper, ScrollArea, Stack } from '@mantine/core'
 import {
   IconArrowBack,
   IconArrowForwardUp,
@@ -35,30 +25,14 @@ import {
   IconEye,
   IconLink,
 } from '@tabler/icons-react'
-import { mockInitialContent } from '@/features/courses/mocks.ts'
-import type { Block } from '@blocknote/core'
+import { useState } from 'react'
 
 interface RichTextEditorProps {
-  content: Block[] | null
-  onUpdate: (content: Block[]) => void
+  editor: BlockNoteEditor
 }
 
-const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
-  const editor = useCreateBlockNote({
-    initialContent: mockInitialContent,
-  })
-
+const RichTextEditor = ({ editor }: RichTextEditorProps) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false)
-
-  const updateContent = useCallback(async () => {
-    // Save to JSON for saving
-    const jsonObject = editor.document
-
-    // Save to database
-    onUpdate(jsonObject)
-  }, [editor, onUpdate])
-
-  useEditorChange(updateContent, editor)
 
   return (
     <Box
