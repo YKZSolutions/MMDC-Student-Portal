@@ -715,7 +715,6 @@ function AdminActions({ isLastSubsection, section }: AdminActionsProps) {
         },
         body: {
           contentType: 'LESSON',
-          order: 1,
           lesson: {
             title: 'New Lesson',
           },
