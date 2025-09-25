@@ -45,7 +45,7 @@ export class CourseOfferingController {
   }
 
   /**
-   * Creates a course offerings given a curriculum
+   * Creates course offerings given a curriculum
    *
    * @remarks
    * Requires `ADMIN` role.
@@ -80,10 +80,12 @@ export class CourseOfferingController {
     @Query() filters: FilterCourseOfferingDto,
     @CurrentUser() user: CurrentAuthUser,
   ) {
+    const { role, user_id } = user.user_metadata;
     return this.courseOfferingService.findAllCourseOfferings(
-      filters,
       enrollmentId,
-      user,
+      user_id,
+      role,
+      filters,
     );
   }
 
@@ -94,7 +96,7 @@ export class CourseOfferingController {
    * Requires `ADMIN` role.
    *
    * @throws NotFoundException If the offering does not exist
-   * @throws BadRequestException If ID format is invalid
+   * @throws BadRequestException If the ID format is invalid
    */
   @ApiException(() => [NotFoundException, BadRequestException])
   @Roles(Role.ADMIN)
