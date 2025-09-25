@@ -58,7 +58,10 @@ export async function seedModules(
     }
     allModules.push(...courseModules);
 
-    for (const [moduleIndex, module] of courseModules.entries()) {
+    for (let i = 0; i < courseModules.length; i++) {
+      const module = courseModules[i];
+      const moduleIndex = i;
+
       const moduleSections: ModuleSection[] = [];
 
       // Create main sections
