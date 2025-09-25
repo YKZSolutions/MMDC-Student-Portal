@@ -1,7 +1,7 @@
 import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateAssignmentDto } from '@/generated/nestjs-dto/create-assignment.dto';
-import { IsOptional, ValidateNested } from 'class-validator';
+import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
 import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
 import { CreateLessonDto } from '@/generated/nestjs-dto/create-lesson.dto';
 import { CreateExternalUrlDto } from '@/generated/nestjs-dto/create-externalUrl.dto';
@@ -20,10 +20,10 @@ export class CreateContentDto extends CreateModuleContentDto {
   // newContent: NewContentDto;
 
   @ApiProperty({
-    type: CreateAssignmentDto,
+    type: 'string',
     required: false,
   })
-  @ValidateNested()
+  @IsUUID()
   @IsOptional()
   sectionId?: string;
 
