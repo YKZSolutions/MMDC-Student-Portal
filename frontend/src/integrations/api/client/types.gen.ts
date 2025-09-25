@@ -1104,7 +1104,7 @@ export type CreateContentDto = {
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
-    sectionId?: string;
+    sectionId: string;
     assignment?: CreateAssignmentDto;
     quiz?: CreateQuizDto;
     lesson?: CreateLessonDto;

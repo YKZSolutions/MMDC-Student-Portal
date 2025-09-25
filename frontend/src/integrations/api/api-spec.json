@@ -16558,7 +16558,8 @@
           }
         },
         "required": [
-          "contentType"
+          "contentType",
+          "sectionId"
         ]
       },
       "Lesson": {
