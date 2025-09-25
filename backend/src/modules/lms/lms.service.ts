@@ -133,7 +133,6 @@ export class LmsService {
                 lesson: true,
                 assignment: {
                   include: {
-                    grading: true,
                     submissions: false,
                   },
                 },
@@ -219,24 +218,6 @@ export class LmsService {
 
               case 'ASSIGNMENT':
                 if (oldContent.assignment) {
-                  // Clone grading if it exists
-                  let gradingId: string | null = null;
-                  if (oldContent.assignment.grading) {
-                    const gradingSchema = oldContent.assignment.grading
-                      .gradingSchema as Prisma.JsonValue;
-                    const curveSettings = oldContent.assignment.grading
-                      .curveSettings as Prisma.JsonValue;
-                    const newGrading = await tx.assignmentGrading.create({
-                      data: {
-                        gradingSchema: gradingSchema ?? {},
-                        weight: oldContent.assignment.grading.weight,
-                        isCurved: oldContent.assignment.grading.isCurved,
-                        curveSettings: curveSettings ?? {},
-                      },
-                    });
-                    gradingId = newGrading.id;
-                  }
-
                   await tx.assignment.create({
                     data: {
                       moduleContentId: newContent.id,
@@ -249,7 +230,7 @@ export class LmsService {
                       allowLateSubmission:
                         oldContent.assignment.allowLateSubmission,
                       latePenalty: oldContent.assignment.latePenalty,
-                      gradingId,
+                      gradingId: oldContent.assignment.gradingId,
                     },
                   });
                 }
@@ -267,6 +248,7 @@ export class LmsService {
                       maxAttempts: oldContent.quiz.maxAttempts,
                       allowLateSubmission: oldContent.quiz.allowLateSubmission,
                       questions: oldContent.quiz.questions,
+                      gradingId: oldContent.quiz.gradingId,
                     },
                   });
                 }
@@ -409,7 +391,7 @@ export class LmsService {
                   ? { courseEnrollments: { some: { studentId: userId } } }
                   : undefined,
               include: {
-                user: true,
+                mentor: true,
               },
             },
             enrollmentPeriod: true,
@@ -522,7 +504,7 @@ export class LmsService {
                 // Only include course sections that are relevant to the student
                 where: { courseEnrollments: { some: { studentId: userId } } },
                 include: {
-                  user: true,
+                  mentor: true,
                 },
               },
             },
@@ -633,7 +615,7 @@ export class LmsService {
               course: true,
               courseSections: {
                 include: {
-                  user: true,
+                  mentor: true,
                 },
               },
             },
@@ -724,7 +706,7 @@ export class LmsService {
               course: true,
               courseSections: {
                 include: {
-                  user: true,
+                  mentor: true,
                 },
               },
             },
