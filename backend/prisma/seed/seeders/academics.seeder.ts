@@ -52,6 +52,7 @@ export async function seedAcademics(prisma: PrismaClient) {
   // 3. Create Courses and link them to Majors
   const courses: Course[] = [];
   const majorCourseMap = new Map<string, Course[]>();
+  let index = 0;
 
   for (const major of majors) {
     // Create courses sequentially to ensure unique course codes
@@ -59,10 +60,11 @@ export async function seedAcademics(prisma: PrismaClient) {
     for (let i = 0; i < seedConfig.COURSES_PER_MAJOR; i++) {
       const course = await prisma.course.create({
         data: {
-          ...createCourseData(i, major.id),
+          ...createCourseData(index, major.majorCode),
           majors: { connect: { id: major.id } },
         },
       });
+      index++;
       createdCourses.push(course);
     }
     courses.push(...createdCourses);

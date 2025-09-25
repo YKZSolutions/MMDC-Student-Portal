@@ -20,8 +20,11 @@ function getMajorCode(major: string) {
   if (major.includes('Artificial Intelligence')) return 'AI';
   if (major.includes('Web Development')) return 'WEB';
   if (major.includes('Mobile Development')) return 'MOB';
+  if (major.includes('Software Development')) return 'SD';
   if (major.includes('Data Analytics')) return 'DAT';
-  if (major.includes('Network Security')) return 'NET';
+  if (major.includes('Network & CyberSecurity')) return 'CS';
+  if (major.includes('Marketing Technology')) return 'MT';
+  if (major.includes('Entrepreneurship Technology')) return 'ET';
   if (major.includes('Cloud Computing')) return 'CLOUD';
   if (major.includes('Database Management')) return 'DB';
   if (major.includes('Game Development')) return 'GAME';
@@ -56,31 +59,14 @@ export function createMajorData(
 
 export function createCourseData(
   index: number,
-  majorId?: string,
+  majorCode: string,
 ): Prisma.CourseCreateInput {
   const courseTitle =
     COURSE_TITLES[index % COURSE_TITLES.length] ||
     `${faker.helpers.arrayElement(COURSE_TOPICS)} ${faker.helpers.arrayElement(COURSE_SUBJECTS)}`;
 
-  const dept =
-    courseTitle
-      .split(' ')
-      .find((word) =>
-        [
-          'Programming',
-          'Database',
-          'Network',
-          'Web',
-          'Mobile',
-          'Data',
-        ].includes(word),
-      )
-      ?.substring(0, 3) || 'CSC';
-
-  // Generate a unique course code using department, index, and a random component
-  const randomSuffix = faker.string.alphanumeric(2).toUpperCase();
-  const majorPrefix = majorId ? majorId.substring(0, 2) : '';
-  const courseCode = `${dept.toUpperCase()}${100 + index}${majorPrefix}${randomSuffix}`;
+  const programCode = majorCode.split('-')[0];
+  const courseCode = `M0-${programCode}-${100 + index}`;
 
   return {
     courseCode,

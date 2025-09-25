@@ -16,30 +16,30 @@ export const seedConfig = {
   },
 
   // --- Academic Structure ---
-  COURSES_PER_MAJOR: 4,
+  COURSES_PER_MAJOR: 2,
   ENROLLMENT_PERIODS: 2,
-  SECTIONS_PER_OFFERING: 2,
+  SECTIONS_PER_OFFERING: 3,
 
   // --- Course Content ---
-  MODULES_PER_COURSE: 4,
+  MODULES_PER_COURSE: 2,
   SECTIONS_PER_MODULE: 3,
   SUBSECTIONS_PER_SECTION: 2,
-  CONTENTS_PER_SUBSECTION: 3,
+  CONTENTS_PER_SUBSECTION: 2,
 
   // --- Groups ---
   GROUPS_PER_MODULE: 2,
-  STUDENTS_PER_GROUP: 4,
+  STUDENTS_PER_GROUP: 7,
 
   // --- Mentoring ---
-  APPOINTMENTS_PER_STUDENT: 2,
+  APPOINTMENTS_PER_STUDENT: 1,
 
   // --- Discussion ---
   DISCUSSIONS_PER_MODULE: 2,
-  POSTS_PER_DISCUSSION: 5,
+  POSTS_PER_DISCUSSION: 3,
 
   // --- Probabilities ---
   // Likelihood of a student being enrolled in an available course offering
-  ENROLLMENT_CHANCE: 0.8,
+  ENROLLMENT_CHANCE: 0.6,
   // Max students per section, enrollment will stop if this is reached
   MAX_STUDENTS_PER_SECTION: 25,
   // Likelihood of a content item being an assignment
@@ -47,13 +47,13 @@ export const seedConfig = {
   // Likelihood of a content item being a quiz
   QUIZ_CHANCE: 0.2,
   // Likelihood of an enrolled student submitting their assignment
-  SUBMISSION_CHANCE: 0.7,
+  SUBMISSION_CHANCE: 0.4,
   // Likelihood of a student submitting their assignment late
   LATE_SUBMISSION_CHANCE: 0.15,
   // Likelihood of a student receiving a grade for their assignment and quiz
-  GRADING_CHANCE: 0.8,
+  GRADING_CHANCE: 0.3,
   // Likelihood of a student having started/completed a module content
-  PROGRESS_CHANCE: 0.75,
+  PROGRESS_CHANCE: 0.5,
 
   // --- Billing ---
   // Number of installments for bills

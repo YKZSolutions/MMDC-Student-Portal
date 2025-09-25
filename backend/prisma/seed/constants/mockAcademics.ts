@@ -1,23 +1,25 @@
-// [file name]: academic.constants.ts
 export const PROGRAM_NAMES = [
-  'Bachelor of Science in Computer Science',
+  // 'Bachelor of Science in Computer Science',
   'Bachelor of Science in Information Technology',
-  'Bachelor of Science in Data Science',
-  'Bachelor of Science in Cybersecurity',
-  'Bachelor of Science in Software Engineering',
+  // 'Bachelor of Science in Data Science',
+  // 'Bachelor of Science in Cybersecurity',
+  // 'Bachelor of Science in Software Engineering',
 ];
 
 export const MAJOR_SPECIALIZATIONS = [
-  'Artificial Intelligence',
-  'Web Development',
-  'Mobile Development',
+  // 'Artificial Intelligence',
+  // 'Web Development',
+  // 'Mobile Development',
+  'Software Development',
   'Data Analytics',
-  'Network Security',
-  'Cloud Computing',
-  'Database Management',
-  'Game Development',
-  'UX/UI Design',
-  'DevOps',
+  'Network & CyberSecurity',
+  'Marketing Technology',
+  'Entrepreneurship Technology',
+  // 'Cloud Computing',
+  // 'Database Management',
+  // 'Game Development',
+  // 'UX/UI Design',
+  // 'DevOps',
 ];
 
 export const COURSE_SUBJECTS = [
