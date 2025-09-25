@@ -8,35 +8,36 @@ import {
   COURSE_TOPICS,
 } from '../constants/mockAcademics';
 
-export function createProgramData(): Prisma.ProgramCreateInput {
-  const programName = faker.helpers.arrayElement(PROGRAM_NAMES);
-  const baseCode = programName
-    .split(' ')
-    .map((word) => word[0])
-    .join('')
-    .substring(0, 3)
-    .toUpperCase();
+function getProgramCode(programName: string) {
+  return (
+    PROGRAM_NAMES.find(() =>
+      programName.includes('Computer Science')
+        ? 'CS'
+        : programName.includes('Information Technology')
+          ? 'IT'
+          : programName.includes('Data Science')
+            ? 'DS'
+            : 'CY',
+    )?.substring(0, 2) || 'CS'
+  );
+}
 
+export function createProgramData(
+  programName: string,
+): Prisma.ProgramCreateInput {
   return {
-    programCode: `${baseCode}${faker.string.numeric(2)}`,
+    programCode: getProgramCode(programName),
     name: programName,
     description: `Comprehensive program focusing on ${programName.toLowerCase().replace('bachelor of science in ', '')} principles and practices.`,
     yearDuration: 4,
   };
 }
 
-export function createMajorData(programId: string): Prisma.MajorCreateInput {
+export function createMajorData(
+  programId: string,
+  programCode: string,
+): Prisma.MajorCreateInput {
   const specialization = faker.helpers.arrayElement(MAJOR_SPECIALIZATIONS);
-  const programCode =
-    PROGRAM_NAMES.find((name) =>
-      name.includes('Computer Science')
-        ? 'CS'
-        : name.includes('Information Technology')
-          ? 'IT'
-          : name.includes('Data Science')
-            ? 'DS'
-            : 'CY',
-    )?.substring(0, 2) || 'CS';
 
   return {
     program: { connect: { id: programId } },
@@ -46,7 +47,10 @@ export function createMajorData(programId: string): Prisma.MajorCreateInput {
   };
 }
 
-export function createCourseData(index: number, majorId?: string): Prisma.CourseCreateInput {
+export function createCourseData(
+  index: number,
+  majorId?: string,
+): Prisma.CourseCreateInput {
   const courseTitle =
     COURSE_TITLES[index % COURSE_TITLES.length] ||
     `${faker.helpers.arrayElement(COURSE_TOPICS)} ${faker.helpers.arrayElement(COURSE_SUBJECTS)}`;

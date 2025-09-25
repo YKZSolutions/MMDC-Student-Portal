@@ -16,7 +16,6 @@ export const seedConfig = {
   },
 
   // --- Academic Structure ---
-  PROGRAMS: 3,
   MAJORS_PER_PROGRAM: 2,
   COURSES_PER_MAJOR: 4,
   ENROLLMENT_PERIODS: 2,

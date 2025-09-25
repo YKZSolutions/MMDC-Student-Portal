@@ -13,16 +13,19 @@ import {
   createMajorData,
   createProgramData,
 } from '../factories/academic.factory';
+import { PROGRAM_NAMES } from '../constants/mockAcademics';
 
 export async function seedAcademics(prisma: PrismaClient) {
   log('Seeding academics (Programs, Majors, Courses, Curriculums)...');
 
   // 1. Create Programs
-  const programs: Program[] = await Promise.all(
-    Array.from({ length: seedConfig.PROGRAMS }, () =>
-      prisma.program.create({ data: createProgramData() }),
-    ),
-  );
+  const programs: Program[] = [];
+  for (const programName of PROGRAM_NAMES) {
+    const program = await prisma.program.create({
+      data: createProgramData(programName),
+    });
+    programs.push(program);
+  }
   log(`-> Created ${programs.length} programs.`);
 
   // 2. Create Majors for each Program
@@ -31,7 +34,9 @@ export async function seedAcademics(prisma: PrismaClient) {
       programs.map((program) =>
         Promise.all(
           Array.from({ length: seedConfig.MAJORS_PER_PROGRAM }, () =>
-            prisma.major.create({ data: createMajorData(program.id) }),
+            prisma.major.create({
+              data: createMajorData(program.id, program.programCode),
+            }),
           ),
         ),
       ),
