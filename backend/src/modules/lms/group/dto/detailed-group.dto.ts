@@ -14,7 +14,7 @@ export class GroupMemberDto {
   studentId: string;
 
   @ApiProperty({ type: () => StudentInfoDto })
-  student: StudentInfoDto;
+  user: StudentInfoDto;
 }
 
 export class DetailedGroupDto extends PickType(GroupDto, [

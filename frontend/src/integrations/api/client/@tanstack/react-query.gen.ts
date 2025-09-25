@@ -1209,8 +1209,8 @@ export const programControllerCreateMutation = (options?: Partial<Options<Progra
 export const programControllerFindAllMajorsQueryKey = (options: Options<ProgramControllerFindAllMajorsData>) => createQueryKey('programControllerFindAllMajors', options);
 
 /**
- * Retrieve all majors of a program
- * Retrieves a paginated list of majors based on the program id and provided filters.
+ * Retrive all majors of a program
+ * Retrives a paginated list of majors based on the program id and provided filters.
  * Requires `ADMIN` role.
  */
 export const programControllerFindAllMajorsOptions = (options: Options<ProgramControllerFindAllMajorsData>) => {
@@ -1231,8 +1231,8 @@ export const programControllerFindAllMajorsOptions = (options: Options<ProgramCo
 export const programControllerFindAllMajorsInfiniteQueryKey = (options: Options<ProgramControllerFindAllMajorsData>): QueryKey<Options<ProgramControllerFindAllMajorsData>> => createQueryKey('programControllerFindAllMajors', options, true);
 
 /**
- * Retrieve all majors of a program
- * Retrieves a paginated list of majors based on the program id and provided filters.
+ * Retrive all majors of a program
+ * Retrives a paginated list of majors based on the program id and provided filters.
  * Requires `ADMIN` role.
  */
 export const programControllerFindAllMajorsInfiniteOptions = (options: Options<ProgramControllerFindAllMajorsData>) => {

@@ -24,7 +24,7 @@ export class GroupMember {
     type: () => User,
     required: false,
   })
-  student?: UserAsType;
+  user?: UserAsType;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
