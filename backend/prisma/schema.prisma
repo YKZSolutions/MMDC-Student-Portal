@@ -371,7 +371,7 @@ model CourseSection {
   name String
 
   /// @DtoApiHidden
-  user     User?   @relation(fields: [mentorId], references: [id], onDelete: SetNull)
+  mentor   User?   @relation(fields: [mentorId], references: [id], onDelete: SetNull)
   mentorId String? @db.Uuid // make mentor optional
 
   /// @DtoApiHidden
@@ -420,7 +420,7 @@ model CourseEnrollment {
   courseSectionId String        @db.Uuid // Each student enrollment belong to one section
 
   /// @DtoApiHidden
-  user      User   @relation(fields: [studentId], references: [id])
+  student   User   @relation(fields: [studentId], references: [id])
   studentId String @db.Uuid // Each enrolled course belong to one user i.e student
 
   status      CourseEnrollmentStatus
@@ -1061,10 +1061,11 @@ enum ProgressStatus {
 }
 
 model ContentProgress {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
+
   /// @DtoApiHidden
-  user   User   @relation(fields: [userId], references: [id])
+  student   User   @relation(fields: [studentId], references: [id])
+  studentId String @db.Uuid
 
   // Denormalized for efficient queries
   /// @DtoApiHidden
@@ -1085,8 +1086,8 @@ model ContentProgress {
   /// @DtoReadOnly
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, moduleContentId])
-  @@index([userId, moduleId])
+  @@unique([studentId, moduleContentId])
+  @@index([studentId, moduleId])
   @@index([moduleContentId])
   @@index([completedAt])
   @@index([moduleId])
