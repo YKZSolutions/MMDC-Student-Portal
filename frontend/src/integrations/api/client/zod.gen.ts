@@ -1686,7 +1686,7 @@ export const zCreateContentDto = z.object({
         z.iso.datetime(),
         z.null()
     ])),
-    sectionId: z.string(),
+    sectionId: z.uuid(),
     assignment: z.optional(zCreateAssignmentDto),
     quiz: z.optional(zCreateQuizDto),
     lesson: z.optional(zCreateLessonDto),
@@ -2088,7 +2088,7 @@ export const zUpdateContentDto = z.object({
         z.iso.datetime(),
         z.null()
     ])),
-    sectionId: z.optional(z.string()),
+    sectionId: z.optional(z.uuid()),
     assignment: z.optional(zCreateAssignmentDto),
     quiz: z.optional(zCreateQuizDto),
     lesson: z.optional(zCreateLessonDto),

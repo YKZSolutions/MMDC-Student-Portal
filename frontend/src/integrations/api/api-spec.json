@@ -16533,7 +16533,8 @@
             "format": "date-time"
           },
           "sectionId": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "assignment": {
             "$ref": "#/components/schemas/CreateAssignmentDto"
@@ -17406,7 +17407,8 @@
             "format": "date-time"
           },
           "sectionId": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "assignment": {
             "$ref": "#/components/schemas/CreateAssignmentDto"
