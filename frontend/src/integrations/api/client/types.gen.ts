@@ -664,7 +664,7 @@ export type DetailedCourseSectionDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    user: UserDto | null;
+    mentor: UserDto | null;
     mentorId: string | null;
 };
 
@@ -847,16 +847,44 @@ export type Lesson = {
 
 export type AssignmentMode = 'INDIVIDUAL' | 'GROUP';
 
-export type AssignmentGrading = {
+export type Quiz = {
     id: string;
-    gradingSchema: {
+    moduleContentId: string;
+    title: string;
+    subtitle: string | null;
+    content: {
         [key: string]: unknown;
     };
-    weight: string;
+    timeLimit: number | null;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean;
+    latePenalty: string | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    questions: {
+        [key: string]: unknown;
+    };
+    grading?: GradingConfig;
+    gradingId: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type GradingConfig = {
+    id: string;
+    weight: string | null;
     isCurved: boolean;
     curveSettings: {
         [key: string]: unknown;
     } | null;
+    rubricSchema: {
+        [key: string]: unknown;
+    } | null;
+    questionRules: {
+        [key: string]: unknown;
+    } | null;
+    quizzes?: Array<Quiz>;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -871,36 +899,16 @@ export type Assignment = {
         [key: string]: unknown;
     } | null;
     mode: AssignmentMode;
-    maxAttempts: number;
+    maxAttempts: number | null;
     allowLateSubmission: boolean;
-    latePenalty: string;
+    latePenalty: string | null;
     dueDate: string | null;
+    gracePeriodMinutes: number | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    gradingId: string | null;
-    grading?: AssignmentGrading | null;
-};
-
-export type Quiz = {
-    id: string;
-    moduleContentId: string;
-    title: string;
-    subtitle: string | null;
-    content: {
-        [key: string]: unknown;
-    };
-    timeLimit: number | null;
-    maxAttempts: number;
-    allowLateSubmission: boolean;
-    latePenalty: string;
-    dueDate: string | null;
-    questions: {
-        [key: string]: unknown;
-    };
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
+    grading?: GradingConfig;
+    gradingId: string;
 };
 
 export type DiscussionPost = {
@@ -928,8 +936,8 @@ export type Discussion = {
     content: {
         [key: string]: unknown;
     } | null;
-    isThreaded: boolean;
-    requirePost: boolean;
+    isThreaded: boolean | null;
+    requirePost: boolean | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -970,7 +978,7 @@ export type ProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export type ContentProgress = {
     id: string;
-    userId: string;
+    studentId: string;
     moduleId: string;
     moduleContentId: string;
     status: ProgressStatus;
@@ -1035,10 +1043,11 @@ export type BasicAssignmentDto = {
     title: string;
     subtitle: string | null;
     mode: AssignmentMode;
-    maxAttempts: number;
+    maxAttempts: number | null;
     allowLateSubmission: boolean;
-    latePenalty: string;
+    latePenalty: string | null;
     dueDate: string | null;
+    gracePeriodMinutes: number | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -1049,10 +1058,11 @@ export type BasicQuizDto = {
     title: string;
     subtitle: string | null;
     timeLimit: number | null;
-    maxAttempts: number;
+    maxAttempts: number | null;
     allowLateSubmission: boolean;
-    latePenalty: string;
+    latePenalty: string | null;
     dueDate: string | null;
+    gracePeriodMinutes: number | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -1062,8 +1072,8 @@ export type BasicDiscussionDto = {
     id: string;
     title: string;
     subtitle: string | null;
-    isThreaded: boolean;
-    requirePost: boolean;
+    isThreaded: boolean | null;
+    requirePost: boolean | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -1180,7 +1190,12 @@ export type CreateAssignmentDto = {
     content?: {
         [key: string]: unknown;
     } | null;
+    mode: AssignmentMode;
+    maxAttempts?: number | null;
+    allowLateSubmission: boolean;
+    latePenalty?: string | null;
     dueDate?: string | null;
+    gracePeriodMinutes?: number | null;
 };
 
 export type CreateQuizDto = {
@@ -1190,7 +1205,11 @@ export type CreateQuizDto = {
         [key: string]: unknown;
     };
     timeLimit?: number | null;
+    maxAttempts?: number | null;
+    allowLateSubmission: boolean;
+    latePenalty?: string | null;
     dueDate?: string | null;
+    gracePeriodMinutes?: number | null;
     questions: {
         [key: string]: unknown;
     };
@@ -1210,6 +1229,8 @@ export type CreateDiscussionDto = {
     content?: {
         [key: string]: unknown;
     } | null;
+    isThreaded?: boolean | null;
+    requirePost?: boolean | null;
 };
 
 export type CreateExternalUrlDto = {
@@ -1249,7 +1270,7 @@ export type CreateContentDto = {
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
-    sectionId?: CreateAssignmentDto;
+    sectionId?: string;
     assignment?: CreateAssignmentDto;
     quiz?: CreateQuizDto;
     lesson?: CreateLessonDto;
@@ -1285,7 +1306,7 @@ export type UpdateContentDto = {
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
-    sectionId?: CreateAssignmentDto;
+    sectionId?: string;
     assignment?: CreateAssignmentDto;
     quiz?: CreateQuizDto;
     lesson?: CreateLessonDto;
@@ -1318,7 +1339,7 @@ export type ModuleContentInfoDto = {
 export type DetailedContentProgressDto = {
     id: string;
     completedAt: string | null;
-    userId: string;
+    studentId: string;
     moduleContent: ModuleContentInfoDto;
 };
 
@@ -1338,7 +1359,7 @@ export type StudentInfoDto = {
 
 export type GroupMemberDto = {
     studentId: string;
-    user: StudentInfoDto;
+    student: StudentInfoDto;
 };
 
 export type DetailedGroupDto = {
@@ -4180,7 +4201,9 @@ export type LmsContentControllerFindAllContentProgressData = {
     path: {
         moduleId: string;
     };
-    query?: never;
+    query: {
+        studentId: string;
+    };
     url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
 };
 

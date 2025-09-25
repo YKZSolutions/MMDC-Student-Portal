@@ -882,7 +882,7 @@ export const zDetailedCourseSectionDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
-    user: z.union([
+    mentor: z.union([
         zUserDto,
         z.null()
     ]),
@@ -1158,15 +1158,69 @@ export const zAssignmentMode = z.enum([
     'GROUP'
 ]);
 
-export const zAssignmentGrading = z.object({
+export const zGradingConfig = z.object({
     id: z.string(),
-    gradingSchema: z.object({}),
-    weight: z.string(),
+    weight: z.union([
+        z.string(),
+        z.null()
+    ]),
     isCurved: z.boolean(),
     curveSettings: z.union([
         z.object({}),
         z.null()
     ]),
+    rubricSchema: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    questionRules: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    get quizzes(): z.ZodOptional {
+        return z.optional(z.array(zQuiz));
+    },
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zQuiz = z.object({
+    id: z.string(),
+    moduleContentId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.object({}),
+    timeLimit: z.union([
+        z.int(),
+        z.null()
+    ]),
+    maxAttempts: z.union([
+        z.int(),
+        z.null()
+    ]),
+    allowLateSubmission: z.boolean(),
+    latePenalty: z.union([
+        z.string(),
+        z.null()
+    ]),
+    dueDate: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    gracePeriodMinutes: z.union([
+        z.int(),
+        z.null()
+    ]),
+    questions: z.object({}),
+    grading: z.optional(zGradingConfig),
+    gradingId: z.string(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1188,56 +1242,31 @@ export const zAssignment = z.object({
         z.null()
     ]),
     mode: zAssignmentMode,
-    maxAttempts: z.int(),
-    allowLateSubmission: z.boolean(),
-    latePenalty: z.string(),
-    dueDate: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    gradingId: z.union([
-        z.string(),
-        z.null()
-    ]),
-    grading: z.optional(z.union([
-        zAssignmentGrading,
-        z.null()
-    ]))
-});
-
-export const zQuiz = z.object({
-    id: z.string(),
-    moduleContentId: z.string(),
-    title: z.string(),
-    subtitle: z.union([
-        z.string(),
-        z.null()
-    ]),
-    content: z.object({}),
-    timeLimit: z.union([
+    maxAttempts: z.union([
         z.int(),
         z.null()
     ]),
-    maxAttempts: z.int(),
     allowLateSubmission: z.boolean(),
-    latePenalty: z.string(),
+    latePenalty: z.union([
+        z.string(),
+        z.null()
+    ]),
     dueDate: z.union([
         z.iso.datetime(),
         z.null()
     ]),
-    questions: z.object({}),
+    gracePeriodMinutes: z.union([
+        z.int(),
+        z.null()
+    ]),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
         z.iso.datetime(),
         z.null()
-    ])
+    ]),
+    grading: z.optional(zGradingConfig),
+    gradingId: z.string()
 });
 
 export const zDiscussion = z.object({
@@ -1252,8 +1281,14 @@ export const zDiscussion = z.object({
         z.object({}),
         z.null()
     ]),
-    isThreaded: z.boolean(),
-    requirePost: z.boolean(),
+    isThreaded: z.union([
+        z.boolean(),
+        z.null()
+    ]),
+    requirePost: z.union([
+        z.boolean(),
+        z.null()
+    ]),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1353,7 +1388,7 @@ export const zProgressStatus = z.enum([
 
 export const zContentProgress = z.object({
     id: z.string(),
-    userId: z.string(),
+    studentId: z.string(),
     moduleId: z.string(),
     moduleContentId: z.string(),
     status: zProgressStatus,
@@ -1484,11 +1519,21 @@ export const zBasicAssignmentDto = z.object({
         z.null()
     ]),
     mode: zAssignmentMode,
-    maxAttempts: z.int(),
+    maxAttempts: z.union([
+        z.int(),
+        z.null()
+    ]),
     allowLateSubmission: z.boolean(),
-    latePenalty: z.string(),
+    latePenalty: z.union([
+        z.string(),
+        z.null()
+    ]),
     dueDate: z.union([
         z.iso.datetime(),
+        z.null()
+    ]),
+    gracePeriodMinutes: z.union([
+        z.int(),
         z.null()
     ]),
     createdAt: z.iso.datetime(),
@@ -1510,11 +1555,21 @@ export const zBasicQuizDto = z.object({
         z.int(),
         z.null()
     ]),
-    maxAttempts: z.int(),
+    maxAttempts: z.union([
+        z.int(),
+        z.null()
+    ]),
     allowLateSubmission: z.boolean(),
-    latePenalty: z.string(),
+    latePenalty: z.union([
+        z.string(),
+        z.null()
+    ]),
     dueDate: z.union([
         z.iso.datetime(),
+        z.null()
+    ]),
+    gracePeriodMinutes: z.union([
+        z.int(),
         z.null()
     ]),
     createdAt: z.iso.datetime(),
@@ -1532,8 +1587,14 @@ export const zBasicDiscussionDto = z.object({
         z.string(),
         z.null()
     ]),
-    isThreaded: z.boolean(),
-    requirePost: z.boolean(),
+    isThreaded: z.union([
+        z.boolean(),
+        z.null()
+    ]),
+    requirePost: z.union([
+        z.boolean(),
+        z.null()
+    ]),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1783,10 +1844,24 @@ export const zCreateAssignmentDto = z.object({
         z.object({}),
         z.null()
     ])),
+    mode: zAssignmentMode,
+    maxAttempts: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    allowLateSubmission: z.boolean(),
+    latePenalty: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     dueDate: z.optional(z.union([
         z.iso.datetime(),
         z.null()
-    ]))
+    ])),
+    gracePeriodMinutes: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0)
 });
 
 export const zCreateQuizDto = z.object({
@@ -1800,10 +1875,23 @@ export const zCreateQuizDto = z.object({
         z.int(),
         z.null()
     ])),
+    maxAttempts: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    allowLateSubmission: z.boolean(),
+    latePenalty: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     dueDate: z.optional(z.union([
         z.iso.datetime(),
         z.null()
     ])),
+    gracePeriodMinutes: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
     questions: z.object({})
 });
 
@@ -1828,7 +1916,15 @@ export const zCreateDiscussionDto = z.object({
     content: z.optional(z.union([
         z.object({}),
         z.null()
-    ]))
+    ])),
+    isThreaded: z.optional(z.union([
+        z.boolean().default(true),
+        z.null()
+    ])).default(true),
+    requirePost: z.optional(z.union([
+        z.boolean().default(false),
+        z.null()
+    ])).default(false)
 });
 
 export const zCreateExternalUrlDto = z.object({
@@ -1898,7 +1994,7 @@ export const zCreateContentDto = z.object({
         z.iso.datetime(),
         z.null()
     ])),
-    sectionId: z.optional(zCreateAssignmentDto),
+    sectionId: z.optional(z.uuid()),
     assignment: z.optional(zCreateAssignmentDto),
     quiz: z.optional(zCreateQuizDto),
     lesson: z.optional(zCreateLessonDto),
@@ -1979,7 +2075,7 @@ export const zUpdateContentDto = z.object({
         z.iso.datetime(),
         z.null()
     ])),
-    sectionId: z.optional(zCreateAssignmentDto),
+    sectionId: z.optional(z.uuid()),
     assignment: z.optional(zCreateAssignmentDto),
     quiz: z.optional(zCreateQuizDto),
     lesson: z.optional(zCreateLessonDto),
@@ -2018,7 +2114,7 @@ export const zDetailedContentProgressDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
-    userId: z.string(),
+    studentId: z.string(),
     moduleContent: zModuleContentInfoDto
 });
 
@@ -2038,7 +2134,7 @@ export const zStudentInfoDto = z.object({
 
 export const zGroupMemberDto = z.object({
     studentId: z.uuid(),
-    user: zStudentInfoDto
+    student: zStudentInfoDto
 });
 
 export const zDetailedGroupDto = z.object({
@@ -3237,7 +3333,9 @@ export const zLmsContentControllerFindAllContentProgressData = z.object({
     path: z.object({
         moduleId: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.object({
+        studentId: z.string()
+    })
 });
 
 export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
