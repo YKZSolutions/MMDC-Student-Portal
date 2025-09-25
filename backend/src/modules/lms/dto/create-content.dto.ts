@@ -8,7 +8,7 @@ import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
 import { CreateVideoDto } from '@/generated/nestjs-dto/create-video.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsOptional, ValidateNested } from 'class-validator';
+import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
 
 export class CreateContentDto extends CreateModuleContentDto {
   // @ApiProperty({
@@ -23,6 +23,7 @@ export class CreateContentDto extends CreateModuleContentDto {
     type: 'string',
     required: true,
   })
+  @IsUUID()
   sectionId: string;
 
   @ApiProperty({
