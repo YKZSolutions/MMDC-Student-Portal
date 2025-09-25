@@ -18,9 +18,9 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
 import { QuizDto } from '@/generated/nestjs-dto/quiz.dto';
 import { UpdateQuizDto } from '@/generated/nestjs-dto/update-quiz.dto';
+import { CreateQuizItemDto } from '@/modules/lms/content/quiz/dto/create-quiz-item.dto';
 
 @Injectable()
 export class QuizService {
@@ -45,7 +45,7 @@ export class QuizService {
   })
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('quizData') quizData: CreateQuizDto,
+    @LogParam('quizData') quizData: CreateQuizItemDto,
     @LogParam('transactionClient')
     tx?: PrismaTransaction,
   ): Promise<QuizDto> {
@@ -53,13 +53,29 @@ export class QuizService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
+    if (!quizData.grading && !quizData.gradingId) {
+      throw new BadRequestException('Quiz must have a grading config');
+    }
+
     const client = tx ?? this.prisma.client;
-    const quiz = await client.quiz.create({
-      data: {
-        ...quizData,
+    const { gradingId, grading, ...quizDataWithoutGradingId } = quizData;
+
+    let data;
+    if (gradingId) {
+      data = {
+        ...quizDataWithoutGradingId,
+        moduleContentId,
+        gradingId,
+      };
+    } else {
+      data = {
+        ...quizDataWithoutGradingId,
         moduleContent: { connect: { id: moduleContentId } },
-      },
-    });
+        grading: { create: grading },
+      };
+    }
+
+    const quiz = await client.quiz.create({ data });
 
     return {
       ...quiz,

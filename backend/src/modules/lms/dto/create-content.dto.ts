@@ -9,6 +9,7 @@ import { CreateFileResourceDto } from '@/generated/nestjs-dto/create-fileResourc
 import { CreateVideoDto } from '@/generated/nestjs-dto/create-video.dto';
 import { Type } from 'class-transformer';
 import { CreateDiscussionDto } from '@/generated/nestjs-dto/create-discussion.dto';
+import { CreateQuizItemDto } from '@/modules/lms/content/quiz/dto/create-quiz-item.dto';
 
 export class CreateContentDto extends CreateModuleContentDto {
   // @ApiProperty({
@@ -42,8 +43,8 @@ export class CreateContentDto extends CreateModuleContentDto {
   })
   @ValidateNested()
   @IsOptional()
-  @Type(() => CreateQuizDto)
-  quiz?: CreateQuizDto;
+  @Type(() => CreateQuizItemDto)
+  quiz?: CreateQuizItemDto;
 
   @ApiProperty({
     type: CreateLessonDto,

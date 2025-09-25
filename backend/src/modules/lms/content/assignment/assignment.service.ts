@@ -22,6 +22,7 @@ import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { CreateAssignmentDto } from '@/generated/nestjs-dto/create-assignment.dto';
 import { UpdateAssignmentDto } from '@/generated/nestjs-dto/update-assignment.dto';
 import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
+import { CreateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/create-assignment-item.dto';
 
 @Injectable()
 export class AssignmentService {
@@ -50,7 +51,7 @@ export class AssignmentService {
   async create(
     @LogParam('moduleContentId') moduleContentId: string,
     @LogParam('assignmentData')
-    assignmentData: CreateAssignmentDto,
+    assignmentData: CreateAssignmentItemDto,
     @LogParam('transactionClient')
     tx?: PrismaTransaction,
   ): Promise<AssignmentDto> {
@@ -59,12 +60,24 @@ export class AssignmentService {
     }
 
     const client = tx ?? this.prisma.client;
-    const assignment = await client.assignment.create({
-      data: {
-        ...assignmentData,
+    const { gradingId, grading, ...quizDataWithoutGradingId } = assignmentData;
+
+    let data;
+    if (gradingId) {
+      data = {
+        ...quizDataWithoutGradingId,
+        moduleContentId,
+        gradingId,
+      };
+    } else {
+      data = {
+        ...quizDataWithoutGradingId,
         moduleContent: { connect: { id: moduleContentId } },
-      },
-    });
+        grading: { create: grading },
+      };
+    }
+
+    const assignment = await client.assignment.create({ data });
 
     return {
       ...assignment,
