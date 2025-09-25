@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDecimal, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateGradingConfigDto {
   @ApiProperty({
@@ -12,12 +12,6 @@ export class CreateGradingConfigDto {
   @IsOptional()
   @IsDecimal()
   weight?: Prisma.Decimal | null;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  @IsNotEmpty()
-  @IsBoolean()
-  isCurved: boolean;
   @ApiProperty({
     type: () => Object,
     required: false,

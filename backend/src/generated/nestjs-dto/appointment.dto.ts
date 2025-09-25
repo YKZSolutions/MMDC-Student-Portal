@@ -1,7 +1,7 @@
-import { Prisma } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class QuizDto {
+export class AppointmentDto {
   @ApiProperty({
     type: 'string',
   })
@@ -12,43 +12,33 @@ export class QuizDto {
   title: string;
   @ApiProperty({
     type: 'string',
-    nullable: true,
   })
-  subtitle: string | null;
-  @ApiProperty({
-    type: () => Object,
-  })
-  content: Prisma.JsonValue;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  timeLimit: number | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  maxAttempts: number;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  allowLateSubmission: boolean;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  latePenalty: Prisma.Decimal;
+  description: string;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
+  })
+  startAt: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  endAt: Date;
+  @ApiProperty({
+    enum: AppointmentStatus,
+    enumName: 'AppointmentStatus',
+  })
+  status: AppointmentStatus;
+  @ApiProperty({
+    type: 'string',
     nullable: true,
   })
-  dueDate: Date | null;
+  gmeetLink: string | null;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
+    nullable: true,
   })
-  questions: Prisma.JsonValue;
+  cancelReason: string | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

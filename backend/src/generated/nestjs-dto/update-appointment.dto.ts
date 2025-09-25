@@ -1,8 +1,7 @@
-import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsOptional, IsString } from 'class-validator';
 
-export class UpdateQuizDto {
+export class UpdateAppointmentDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -13,39 +12,40 @@ export class UpdateQuizDto {
   @ApiProperty({
     type: 'string',
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsString()
-  subtitle?: string | null;
-  @ApiProperty({
-    type: () => Object,
-    required: false,
-  })
-  @IsOptional()
-  content?: Prisma.InputJsonValue;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsInt()
-  timeLimit?: number | null;
+  description?: string;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsDateString()
-  dueDate?: Date | null;
+  startAt?: Date;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
+    format: 'date-time',
     required: false,
   })
   @IsOptional()
-  questions?: Prisma.InputJsonValue;
+  @IsDateString()
+  endAt?: Date;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  gmeetLink?: string | null;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  cancelReason?: string | null;
 }

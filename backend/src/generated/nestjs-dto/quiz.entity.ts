@@ -46,9 +46,8 @@ export class Quiz {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  maxAttempts: number | null;
+  maxAttempts: number;
   @ApiProperty({
     type: 'boolean',
   })
@@ -56,21 +55,14 @@ export class Quiz {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
-    nullable: true,
   })
-  latePenalty: Prisma.Decimal | null;
+  latePenalty: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,
   })
   dueDate: Date | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  gracePeriodMinutes: number | null;
   @ApiProperty({
     type: () => Object,
   })

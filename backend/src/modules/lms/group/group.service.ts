@@ -26,7 +26,7 @@ export class GroupService {
    * @param {string} moduleId - The UUID of the module to which the group belongs.
    * @param {CreateDetailedGroupDto} dto - Data Transfer Object containing the details of the group to create.
    * @returns {Promise<DetailedGroupDto>} - The created group record.
-   * @throws {NotFoundException} - If the specified moduleId or studentId/s is not found.
+   * @throws {NotFoundException} - If the specified moduleId or userId/s is not found.
    */
   @Log({
     logArgsMessage: ({ moduleId }) => `Creating group for module ${moduleId}`,
@@ -54,7 +54,7 @@ export class GroupService {
       include: {
         members: {
           include: {
-            student: {
+            user: {
               select: {
                 id: true,
                 firstName: true,
@@ -98,7 +98,7 @@ export class GroupService {
         members: {
           select: {
             studentId: true,
-            student: {
+            user: {
               select: {
                 firstName: true,
                 lastName: true,
@@ -117,7 +117,7 @@ export class GroupService {
    * @param {string} groupId - The UUID of the group to update.
    * @param {CreateDetailedGroupDto} dto - Data Transfer Object containing the group details.
    * @returns {Promise<DetailedGroupDto>} - The updated group.
-   * @throws {NotFoundException} - If the specified groupId or studentId/s is not found.
+   * @throws {NotFoundException} - If the specified groupId or userId/s is not found.
    */
   @Log({
     logArgsMessage: ({ groupId }) => `Updating group ${groupId}`,
@@ -153,7 +153,7 @@ export class GroupService {
         members: {
           select: {
             studentId: true,
-            student: { select: { firstName: true, lastName: true } },
+            user: { select: { firstName: true, lastName: true } },
           },
         },
       },
