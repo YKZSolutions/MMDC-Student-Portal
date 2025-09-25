@@ -2,6 +2,9 @@ export const seedConfig = {
   // ⚠️ Be careful when changing these values! It might generate large amounts of data.
   // Current configuration already generates at least 1000 records
 
+  DELETE_ALL_DATA: false,
+  CREATE_USER_ACCOUNTS: false,
+
   // ---COUNTS---
   // Adjust these numbers to control the amount of data generated
   USERS: {
@@ -17,6 +20,7 @@ export const seedConfig = {
   SECTIONS_PER_OFFERING: 2,
   MODULES_PER_COURSE: 2,
   SECTIONS_PER_MODULE: 3,
+  SUBSECTIONS_PER_SECTION: 2,
   CONTENTS_PER_SECTION: 3,
 
   // ---PROBABILITIES & SETTINGS---

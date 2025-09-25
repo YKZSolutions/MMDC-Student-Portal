@@ -1,16 +1,8 @@
 import { ContentType } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsInt, IsOptional } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional } from 'class-validator';
 
 export class UpdateModuleContentDto {
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    required: false,
-  })
-  @IsOptional()
-  @IsInt()
-  order?: number;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',

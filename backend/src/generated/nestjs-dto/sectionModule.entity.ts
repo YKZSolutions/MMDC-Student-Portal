@@ -30,11 +30,6 @@ export class SectionModule {
   })
   moduleId: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  order: number;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,

@@ -1,7 +1,7 @@
-import { Prisma } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class DiscussionDto {
+export class AppointmentDto {
   @ApiProperty({
     type: 'string',
   })
@@ -12,24 +12,33 @@ export class DiscussionDto {
   title: string;
   @ApiProperty({
     type: 'string',
-    nullable: true,
   })
-  subtitle: string | null;
+  description: string;
   @ApiProperty({
-    type: () => Object,
-    nullable: true,
+    type: 'string',
+    format: 'date-time',
   })
-  content: Prisma.JsonValue | null;
+  startAt: Date;
   @ApiProperty({
-    type: 'boolean',
-    nullable: true,
+    type: 'string',
+    format: 'date-time',
   })
-  isThreaded: boolean | null;
+  endAt: Date;
   @ApiProperty({
-    type: 'boolean',
+    enum: AppointmentStatus,
+    enumName: 'AppointmentStatus',
+  })
+  status: AppointmentStatus;
+  @ApiProperty({
+    type: 'string',
     nullable: true,
   })
-  requirePost: boolean | null;
+  gmeetLink: string | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  cancelReason: string | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

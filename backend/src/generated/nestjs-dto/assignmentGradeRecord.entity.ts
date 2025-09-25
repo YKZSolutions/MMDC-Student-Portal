@@ -5,6 +5,10 @@ import {
   type AssignmentGrading as AssignmentGradingAsType,
 } from './assignmentGrading.entity';
 import { User, type User as UserAsType } from './user.entity';
+import {
+  AssignmentSubmission,
+  type AssignmentSubmission as AssignmentSubmissionAsType,
+} from './assignmentSubmission.entity';
 
 export class AssignmentGradeRecord {
   @ApiProperty({
@@ -23,6 +27,17 @@ export class AssignmentGradeRecord {
     type: 'string',
   })
   studentId: string;
+  @ApiProperty({
+    type: () => AssignmentSubmission,
+    required: false,
+    nullable: true,
+  })
+  submission?: AssignmentSubmissionAsType | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  submissionId: string | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

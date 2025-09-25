@@ -265,6 +265,7 @@ export class LmsService {
                       content: oldContent.quiz.content,
                       timeLimit: oldContent.quiz.timeLimit,
                       maxAttempts: oldContent.quiz.maxAttempts,
+                      allowLateSubmission: oldContent.quiz.allowLateSubmission,
                       questions: oldContent.quiz.questions,
                     },
                   });

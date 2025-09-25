@@ -18,6 +18,7 @@ export class ModuleContentModuleSectionIdOrderUniqueInputDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    default: 0,
   })
   @IsNotEmpty()
   @IsInt()

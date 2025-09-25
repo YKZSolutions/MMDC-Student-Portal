@@ -1,5 +1,6 @@
+import { Role } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class UpdateNotificationDto {
   @ApiProperty({
@@ -16,4 +17,14 @@ export class UpdateNotificationDto {
   @IsOptional()
   @IsString()
   content?: string;
+  @ApiProperty({
+    isArray: true,
+    enum: Role,
+    enumName: 'Role',
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Role, { each: true })
+  role?: Role[];
 }

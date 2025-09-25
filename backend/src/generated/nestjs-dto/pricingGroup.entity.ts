@@ -1,6 +1,10 @@
 import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Pricing, type Pricing as PricingAsType } from './pricing.entity';
+import {
+  EnrollmentPeriod,
+  type EnrollmentPeriod as EnrollmentPeriodAsType,
+} from './enrollmentPeriod.entity';
 
 export class PricingGroup {
   @ApiProperty({
@@ -9,6 +13,8 @@ export class PricingGroup {
   id: string;
   @ApiHideProperty()
   prices?: PricingAsType[];
+  @ApiHideProperty()
+  enrollmentPeriods?: EnrollmentPeriodAsType[];
   @ApiProperty({
     type: 'string',
   })
