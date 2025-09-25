@@ -5,15 +5,34 @@ import {
   EnrollmentStatus,
   Prisma,
 } from '@prisma/client';
-import { pickRandomEnum } from '../utils/helpers';
+
+const SECTION_NAMES = ['A', 'B', 'C', 'D', 'E', 'F'];
+const TIME_SLOTS = [
+  { start: '08:00', end: '10:00' },
+  { start: '10:00', end: '12:00' },
+  { start: '13:00', end: '15:00' },
+  { start: '15:00', end: '17:00' },
+  { start: '18:00', end: '20:00' },
+];
+
+const DAY_COMBINATIONS = [
+  [Days.monday, Days.wednesday],
+  [Days.tuesday, Days.thursday],
+  [Days.wednesday, Days.friday],
+  [Days.monday, Days.wednesday, Days.friday],
+  [Days.tuesday, Days.thursday],
+];
 
 export function createEnrollmentPeriodData(
   year: number,
   term: number,
-  status: EnrollmentStatus = pickRandomEnum(EnrollmentStatus),
+  status: EnrollmentStatus = term === 1
+    ? EnrollmentStatus.active
+    : EnrollmentStatus.upcoming,
 ): Prisma.EnrollmentPeriodCreateInput {
-  const startDate = new Date(year, (term - 1) * 6); // Simple date logic
-  const endDate = new Date(year, term * 6 - 1);
+  const startDate = new Date(year, (term - 1) * 6, 1);
+  const endDate = new Date(year, term * 6 - 1, 30);
+
   return {
     startYear: year,
     endYear: year,
@@ -29,15 +48,15 @@ export function createCourseSectionData(
   mentorId: string,
   index: number,
 ): Prisma.CourseSectionCreateInput {
+  const timeSlot = faker.helpers.arrayElement(TIME_SLOTS);
+  const days = faker.helpers.arrayElement(DAY_COMBINATIONS);
+
   return {
-    name: `Section ${String.fromCharCode(65 + index)}`, // A, B, C...
-    maxSlot: 20,
-    startSched: '09:00',
-    endSched: '11:00',
-    days: faker.helpers.arrayElements(Object.values(Days), {
-      min: 1,
-      max: 3,
-    }),
+    name: `Section ${SECTION_NAMES[index] || String.fromCharCode(65 + index)}`,
+    maxSlot: faker.number.int({ min: 15, max: 30 }),
+    startSched: timeSlot.start,
+    endSched: timeSlot.end,
+    days,
     courseOffering: { connect: { id: courseOfferingId } },
     mentor: { connect: { id: mentorId } },
   };
@@ -48,13 +67,26 @@ export function createCourseEnrollmentData(
   courseSectionId: string,
   studentId: string,
 ): Prisma.CourseEnrollmentCreateInput {
+  const status = faker.helpers.arrayElement([
+    CourseEnrollmentStatus.enrolled,
+    CourseEnrollmentStatus.enrolled,
+    CourseEnrollmentStatus.enrolled, // Higher weight for enrolled
+    CourseEnrollmentStatus.completed,
+    CourseEnrollmentStatus.incomplete,
+  ]);
+
+  const startedAt = faker.date.recent({ days: 60 });
+  const completedAt =
+    status === CourseEnrollmentStatus.completed
+      ? faker.date.between({ from: startedAt, to: new Date() })
+      : null;
+
   return {
     courseOffering: { connect: { id: courseOfferingId } },
     courseSection: { connect: { id: courseSectionId } },
     student: { connect: { id: studentId } },
-    status: pickRandomEnum(CourseEnrollmentStatus),
-    startedAt: faker.date.recent(),
-    completedAt:
-      Math.random() > 0.5 ? faker.date.future({ refDate: new Date() }) : null,
+    status,
+    startedAt,
+    completedAt,
   };
 }

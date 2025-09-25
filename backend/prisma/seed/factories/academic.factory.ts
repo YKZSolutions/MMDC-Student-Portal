@@ -1,38 +1,81 @@
 import { faker } from '@faker-js/faker';
 import { Prisma } from '@prisma/client';
+import {
+  PROGRAM_NAMES,
+  MAJOR_SPECIALIZATIONS,
+  COURSE_TITLES,
+  COURSE_SUBJECTS,
+  COURSE_TOPICS,
+} from '../constants/mockAcademics';
 
 export function createProgramData(): Prisma.ProgramCreateInput {
-  const name = faker.company.name();
+  const programName = faker.helpers.arrayElement(PROGRAM_NAMES);
+  const baseCode = programName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .substring(0, 3)
+    .toUpperCase();
+
   return {
-    programCode: name.substring(0, 4).toUpperCase(),
-    name: `Bachelor of Science in ${name}`,
-    description: faker.lorem.sentence(),
+    programCode: `${baseCode}${faker.string.numeric(2)}`,
+    name: programName,
+    description: `Comprehensive program focusing on ${programName.toLowerCase().replace('bachelor of science in ', '')} principles and practices.`,
     yearDuration: 4,
   };
 }
 
 export function createMajorData(programId: string): Prisma.MajorCreateInput {
-  const baseName = faker.person.jobArea();
-  const uniqueSuffix = faker.string.alphanumeric(4).toUpperCase();
-  const name = `${baseName} ${uniqueSuffix}`;
-  
+  const specialization = faker.helpers.arrayElement(MAJOR_SPECIALIZATIONS);
+  const programCode =
+    PROGRAM_NAMES.find((name) =>
+      name.includes('Computer Science')
+        ? 'CS'
+        : name.includes('Information Technology')
+          ? 'IT'
+          : name.includes('Data Science')
+            ? 'DS'
+            : 'CY',
+    )?.substring(0, 2) || 'CS';
+
   return {
     program: { connect: { id: programId } },
-    majorCode: `${baseName.substring(0, 3).toUpperCase()}-${faker.string.alphanumeric(3).toUpperCase()}`,
-    name,
-    description: faker.lorem.sentence(),
+    majorCode: `${programCode}-${specialization.substring(0, 3).toUpperCase()}`,
+    name: `${specialization} Specialization`,
+    description: `Specialization in ${specialization} covering advanced topics and practical applications.`,
   };
 }
 
 export function createCourseData(index: number): Prisma.CourseCreateInput {
-  const dept = faker.commerce.department().substring(0, 3).toUpperCase();
-  // Generate a unique identifier for the course code
-  const uniqueId = faker.string.alphanumeric(3).toUpperCase();
+  const courseTitle =
+    COURSE_TITLES[index] ||
+    `${faker.helpers.arrayElement(COURSE_TOPICS)} ${faker.helpers.arrayElement(COURSE_SUBJECTS)}`;
+
+  const dept =
+    courseTitle
+      .split(' ')
+      .find((word) =>
+        [
+          'Programming',
+          'Database',
+          'Network',
+          'Web',
+          'Mobile',
+          'Data',
+        ].includes(word),
+      )
+      ?.substring(0, 3) || 'CSC';
+
   return {
-    courseCode: `${dept}${100 + index}-${uniqueId}`,
-    name: faker.lorem.words(3),
-    description: faker.lorem.sentence(),
-    units: faker.number.int({ min: 1, max: 5 }),
-    type: faker.helpers.arrayElement(['Lecture', 'Lab', 'Seminar']),
+    courseCode: `${dept.toUpperCase()}${100 + index}`,
+    name: courseTitle,
+    description: `This course covers fundamental concepts and practical applications of ${courseTitle.toLowerCase()}. Students will gain hands-on experience through projects and assignments.`,
+    units: faker.helpers.arrayElement([3, 4, 5]),
+    type: faker.helpers.arrayElement([
+      'Lecture',
+      'Lab',
+      'Seminar',
+      'Lecture/Lab',
+    ]),
   };
 }
