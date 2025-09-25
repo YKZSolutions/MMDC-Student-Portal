@@ -51,6 +51,7 @@
     "react-draggable": "^4.5.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.4",
+    "sse.js": "2.7.2",
     "tailwind-preset-mantine": "^2.1.0",
     "text-case": "^1.2.4",
     "use-immer": "^0.11.0",

@@ -3787,6 +3787,190 @@
         ]
       }
     },
+    "/notifications/subscribe": {
+      "get": {
+        "description": "This endpoint provides a real-time stream of notifications for the authenticated user via Server-Sent Events (SSE).",
+        "operationId": "NotificationsController_subscribe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Subscribe to server-sent notifications",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/count": {
+      "get": {
+        "description": "This operation returns the total, read, and unread notification counts for the authenticated user.",
+        "operationId": "NotificationsController_getCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationCountDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get notification counts",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications": {
+      "get": {
+        "description": "This operation retrieves a paginated list of notifications for the authenticated user, with optional filtering.",
+        "operationId": "NotificationsController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "read",
+                "unread"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedNotificationDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Fetch notifications",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/{id}": {
+      "get": {
+        "description": "This operation retrieves a specific notification by its ID, ensuring it is accessible to the authenticated user.",
+        "operationId": "NotificationsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationItemDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Fetch a single notification",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/mark-read": {
+      "post": {
+        "description": "This operation marks a list of specified notifications as read for the authenticated user.",
+        "operationId": "NotificationsController_markAsRead",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationMarkRead"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Mark notifications as read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/mark-read/all": {
+      "post": {
+        "description": "This operation marks all notifications as read for the authenticated user.",
+        "operationId": "NotificationsController_markAllAsRead",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Mark all notifications as read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
     "/programs": {
       "post": {
         "description": "This operation creates a new academic program.\nRequires `ADMIN` role.",
@@ -13996,6 +14180,102 @@
             "nullable": true
           }
         }
+      },
+      "NotificationCountDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "read": {
+            "type": "number"
+          },
+          "unread": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "read",
+          "unread"
+        ]
+      },
+      "NotificationItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "role": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "content",
+          "role",
+          "createdAt",
+          "isRead"
+        ]
+      },
+      "PaginatedNotificationDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "notifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationItemDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "notifications"
+        ]
+      },
+      "NotificationMarkRead": {
+        "type": "object",
+        "properties": {
+          "notificationIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "notificationIds"
+        ]
       },
       "CreateProgramDto": {
         "type": "object",

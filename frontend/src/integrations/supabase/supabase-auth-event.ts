@@ -6,7 +6,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
     console.log('Refreshing auth token...')
     client.setConfig({
       headers: {
-        Authorization: `Bearer ${session?.access_token}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
     })
   }
