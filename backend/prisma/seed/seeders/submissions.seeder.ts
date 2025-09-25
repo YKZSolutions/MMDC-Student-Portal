@@ -124,8 +124,8 @@ export async function seedSubmissions(
       if (Math.random() < seedConfig.PROGRESS_CHANCE) {
         const progress = await prisma.contentProgress.upsert({
           where: {
-            userId_moduleContentId: {
-              userId: studentId,
+            studentId_moduleContentId: {
+              studentId,
               moduleContentId: content.id,
             },
           },
