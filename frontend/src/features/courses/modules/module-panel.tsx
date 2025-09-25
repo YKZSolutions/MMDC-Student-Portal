@@ -21,7 +21,7 @@ import { zContentType } from '@/integrations/api/client/zod.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import { getTitleByContentType } from '@/utils/helpers'
+import { getContentTypeIcon, getTitleByContentType } from '@/utils/helpers'
 import {
   Accordion,
   ActionIcon,
@@ -48,19 +48,14 @@ import { modals } from '@mantine/modals'
 import {
   IconCalendarTime,
   IconChartBar,
-  IconClipboard,
   IconDotsVertical,
   IconEdit,
-  IconExternalLink,
   IconEye,
-  IconFileText,
   IconInbox,
-  IconMessageCircle,
-  IconPaperclip,
   IconPlus,
   IconRubberStamp,
   IconRubberStampOff,
-  IconTrash,
+  IconTrash
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
@@ -254,27 +249,7 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
       (progress) => progress.status === 'COMPLETED',
     )
 
-  const getContentTypeIcon = (contentType: ContentType) => {
-    switch (contentType) {
-      case 'LESSON':
-        return <IconFileText size={16} />
-
-      case 'ASSIGNMENT':
-        return <IconClipboard size={16} />
-      case 'QUIZ':
-        return <IconPaperclip size={16} />
-      case 'DISCUSSION':
-        return <IconMessageCircle size={16} />
-      case 'FILE':
-        return <IconPaperclip size={16} />
-      case 'URL':
-        return <IconExternalLink size={16} />
-      case 'VIDEO':
-        return <IconCalendarTime size={16} />
-      default:
-        return 'Untitled Item'
-    }
-  }
+  
 
   const navigateToItem = () => {
     navigate({

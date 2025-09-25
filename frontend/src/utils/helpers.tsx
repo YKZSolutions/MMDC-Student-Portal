@@ -11,11 +11,20 @@ import type {
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
+  Assignment,
   BasicModuleItemDto,
   ContentType,
+  Discussion,
+  ExternalUrl,
+  FileResource,
+  Lesson,
   ModuleContent,
+  Quiz,
+  UpdateContentDto,
+  Video,
 } from '@/integrations/api/client'
-import type { Block } from '@blocknote/core'
+import type { Block, BlockNoteEditor } from '@blocknote/core'
+import { IconFileText, IconClipboard, IconPaperclip, IconMessageCircle, IconExternalLink, IconCalendarTime } from '@tabler/icons-react'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -258,6 +267,7 @@ export const formatTerm = (academicTerm: AcademicTerm | undefined) => {
     : 'N/A'
 }
 
+// Ensures that the content is a valid Block array for BlockNote initialization
 export const toBlockArray = (content: unknown): Block[] => {
   if (Array.isArray(content) && content.length > 0) {
     return content as Block[]
@@ -302,6 +312,27 @@ export const getTitleByContentType = (
   }
 }
 
+export const getContentTypeIcon = (contentType: ContentType) => {
+  switch (contentType) {
+    case 'LESSON':
+      return <IconFileText size={16} />
+    case 'ASSIGNMENT':
+      return <IconClipboard size={16} />
+    case 'QUIZ':
+      return <IconPaperclip size={16} />
+    case 'DISCUSSION':
+      return <IconMessageCircle size={16} />
+    case 'FILE':
+      return <IconPaperclip size={16} />
+    case 'URL':
+      return <IconExternalLink size={16} />
+    case 'VIDEO':
+      return <IconCalendarTime size={16} />
+    default:
+      return 'Untitled Item'
+  }
+}
+
 export const getModuleContent = (moduleContent: ModuleContent) => {
   switch (moduleContent?.contentType) {
     case 'LESSON':
@@ -320,5 +351,65 @@ export const getModuleContent = (moduleContent: ModuleContent) => {
       return moduleContent.video
     default:
       return null
+  }
+}
+
+export const getModuleContentKeyValuePair = (
+  moduleContent: ModuleContent,
+  contentBlocks: BlockNoteEditor,
+): UpdateContentDto => {
+  switch (moduleContent?.contentType) {
+    case 'LESSON':
+      return {
+        lesson: {
+          ...moduleContent.lesson,
+          content: contentBlocks.document as unknown,
+        } as Lesson,
+      }
+
+    case 'ASSIGNMENT':
+      return {
+        assignment: {
+          ...moduleContent.assignment,
+          content: contentBlocks.document as unknown,
+        } as Assignment,
+      }
+    case 'DISCUSSION':
+      return {
+        discussion: {
+          ...moduleContent.discussion,
+          content: contentBlocks.document as unknown,
+        } as Discussion,
+      }
+    case 'URL':
+      return {
+        externalUrl: {
+          ...moduleContent.externalUrl,
+          content: contentBlocks.document as unknown,
+        } as ExternalUrl,
+      }
+    case 'FILE':
+      return {
+        file: {
+          ...moduleContent.fileResource,
+          content: contentBlocks.document as unknown,
+        } as FileResource,
+      }
+    case 'QUIZ':
+      return {
+        quiz: {
+          ...moduleContent.quiz,
+          content: contentBlocks.document as unknown,
+        } as Quiz,
+      }
+    case 'VIDEO':
+      return {
+        video: {
+          ...moduleContent.video,
+          content: contentBlocks.document as unknown,
+        } as Video,
+      }
+    default:
+      return {} as UpdateContentDto // fallback, but keeps typing happy
   }
 }

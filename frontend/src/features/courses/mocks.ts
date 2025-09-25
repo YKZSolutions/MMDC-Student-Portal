@@ -18,7 +18,7 @@ import type {
   CourseBasicDetails,
   EnrolledCourse,
 } from '@/features/courses/types.ts'
-import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
+import { getFutureDate, getPastDate } from '@/utils/helpers'
 import type { Block } from '@blocknote/core'
 
 export const mockCourseBasicDetails: CourseBasicDetails[] = [

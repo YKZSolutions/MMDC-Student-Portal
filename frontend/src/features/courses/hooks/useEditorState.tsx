@@ -4,7 +4,7 @@ import {
 } from '@/features/courses/modules/types.ts'
 import type { ModuleContent } from '@/integrations/api/client'
 import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { getModuleContent, toBlockArray } from '@/utils/helpers.ts'
+import { getModuleContent, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useSuspenseQuery } from '@tanstack/react-query'
