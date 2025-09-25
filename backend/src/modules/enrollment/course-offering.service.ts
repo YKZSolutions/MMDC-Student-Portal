@@ -4,7 +4,6 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CourseOfferingDto } from '@/generated/nestjs-dto/courseOffering.dto';
 import { CourseOffering } from '@/generated/nestjs-dto/courseOffering.entity';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
@@ -14,7 +13,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateCourseOfferingDto } from './dto/create-course-offering.dto';
 import {
@@ -42,22 +41,43 @@ export class CourseOfferingService {
    * @throws BadRequestException - If invalid references are provided
    */
   @Log({
-    logArgsMessage: ({ periodId, courseOffering }) =>
-      `Creating course offering [${courseOffering.code}] for period [${periodId}]`,
-    logSuccessMessage: (offering, periodId) =>
+    logArgsMessage: ({
+      periodId,
+      courseOffering,
+    }: {
+      periodId: string;
+      courseOffering: CreateCourseOfferingDto;
+    }) =>
+      `Creating course offering [${courseOffering.courseId}] for period [${periodId}]`,
+    logSuccessMessage: (offering, { periodId }) =>
       `Course offering [${offering.id}] successfully created for period [${periodId}]`,
-    logErrorMessage: (err, { periodId, courseOffering }) =>
-      `Error creating course offering [${courseOffering.code}] for period [${periodId}] | Error: ${err.message}`,
+    logErrorMessage: (
+      err,
+      {
+        periodId,
+        courseOffering,
+      }: { periodId: string; courseOffering: CreateCourseOfferingDto },
+    ) =>
+      `Error creating course offering [${courseOffering.courseId}] for period [${periodId}] | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RelatedRecordNotFound]: (
       _,
-      { periodId, courseOffering },
+      {
+        periodId,
+        courseOffering,
+      }: { periodId: string; courseOffering: CreateCourseOfferingDto },
     ) =>
       new NotFoundException(
         `Enrollment period [${periodId}] or Course [${courseOffering.courseId}] does not exist.`,
       ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { periodId, courseOffering }) =>
+    [PrismaErrorCode.ForeignKeyConstraint]: (
+      _,
+      {
+        periodId,
+        courseOffering,
+      }: { periodId: string; courseOffering: CreateCourseOfferingDto },
+    ) =>
       new BadRequestException(
         `Invalid reference: Enrollment period [${periodId}] or Course [${courseOffering.courseId}] is invalid.`,
       ),
@@ -73,32 +93,62 @@ export class CourseOfferingService {
   }
 
   /**
-   * Create courses under an enrollment period based n a given curriculum
+   * Create courses under an enrollment period based on a given curriculum
    *
    * @param periodId - The ID of the enrollment period
-   * @param createCourseOfferingDto - DTO containing the the curriculum id
+   * @param createCourseOfferingDto - DTO containing the curriculum id
    * @returns The created {@link CourseOfferingDto[]}
    *
    * @throws NotFoundException - If the enrollment period or course does not exist
    * @throws BadRequestException - If invalid references are provided
    */
   @Log({
-    logArgsMessage: ({ periodId, courseOffering }) =>
+    logArgsMessage: ({
+      periodId,
+      courseOffering,
+    }: {
+      periodId: string;
+      courseOffering: CreateCourseOfferingCurriculumDto;
+    }) =>
       `Creating curriculum course offering [${courseOffering.curriculumId}] for period [${periodId}]`,
-    logSuccessMessage: (offering, periodId) =>
+    logSuccessMessage: (offering, { periodId }) =>
       `Curriculum course offerings with ${offering.length} items successfully created for period [${periodId}]`,
-    logErrorMessage: (err, { periodId, courseOffering }) =>
+    logErrorMessage: (
+      err,
+      {
+        periodId,
+        courseOffering,
+      }: {
+        periodId: string;
+        courseOffering: CreateCourseOfferingCurriculumDto;
+      },
+    ) =>
       `Error creating course offering [${courseOffering.curriculumId}] for period [${periodId}] | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RelatedRecordNotFound]: (
       _,
-      { periodId, courseOffering },
+      {
+        periodId,
+        courseOffering,
+      }: {
+        periodId: string;
+        courseOffering: CreateCourseOfferingCurriculumDto;
+      },
     ) =>
       new NotFoundException(
         `Enrollment period [${periodId}] or Curriculum [${courseOffering.curriculumId}] does not exist.`,
       ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { periodId, courseOffering }) =>
+    [PrismaErrorCode.ForeignKeyConstraint]: (
+      _,
+      {
+        periodId,
+        courseOffering,
+      }: {
+        periodId: string;
+        courseOffering: CreateCourseOfferingCurriculumDto;
+      },
+    ) =>
       new BadRequestException(
         `Invalid reference: Enrollment period [${periodId}] or Curriculum [${courseOffering.curriculumId}] is invalid.`,
       ),
@@ -129,28 +179,33 @@ export class CourseOfferingService {
    * Retrieves a paginated list of course offerings.
    *
    * @param filters - Pagination filters
+   * @param enrollmentId - The enrollment period ID
+   * @param userId - The user ID
+   * @param role - The user role
+   *
    * @returns A paginated list of course offerings
    */
   @Log({
-    logArgsMessage: ({ filters }) =>
+    logArgsMessage: ({ filters }: { filters: FilterCourseOfferingDto }) =>
       `Fetching course offerings | page: ${filters.page}`,
     logSuccessMessage: (result) =>
       `Fetched ${result.courseOfferings.length} course offerings (page ${result.meta.currentPage} of ${result.meta.pageCount})`,
-    logErrorMessage: (err, { filters }) =>
+    logErrorMessage: (err, { filters }: { filters: FilterCourseOfferingDto }) =>
       `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
   })
   async findAllCourseOfferings(
+    @LogParam('enrollmentId') enrollmentId: string,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     @LogParam('filters') filters: FilterCourseOfferingDto,
-    enrollmentId: string,
-    user: CurrentAuthUser,
   ): Promise<PaginatedCourseOfferingsDto> {
     const page = filters.page || 1;
     const status = (filters.status || undefined) satisfies
       | CourseOfferingStatus
       | undefined;
 
-    const isStudent = user.user_metadata.role === 'student';
-    const studentId = user.user_metadata.user_id;
+    const isStudent = role === Role.student;
+    const studentId = userId;
 
     const whereClause: Prisma.CourseOfferingWhereInput = {};
 
@@ -158,9 +213,13 @@ export class CourseOfferingService {
       whereClause.periodId = enrollmentId;
     }
 
-    if (isStudent && (status === 'enrolled' || status === 'not enrolled')) {
+    if (
+      isStudent &&
+      (status === CourseOfferingStatus.ENROLLED ||
+        status === CourseOfferingStatus.NOT_ENROLLED)
+    ) {
       whereClause.courseEnrollments =
-        status === 'enrolled'
+        status === CourseOfferingStatus.ENROLLED
           ? { some: { studentId, status: { not: 'dropped' } } } // offerings the student is enrolled in
           : { none: { studentId, status: { not: 'dropped' } } }; // offerings the student is NOT enrolled in
     }
@@ -169,7 +228,7 @@ export class CourseOfferingService {
       course: true,
       courseSections: {
         include: {
-          user: true,
+          mentor: true,
         },
       },
 
@@ -195,6 +254,7 @@ export class CourseOfferingService {
   /**
    * Retrieves a single course offering by ID.
    *
+   * @param enrollmentId - The enrollment period ID
    * @param offeringId - The course offering ID
    * @returns The corresponding {@link CourseOfferingDto}
    *
