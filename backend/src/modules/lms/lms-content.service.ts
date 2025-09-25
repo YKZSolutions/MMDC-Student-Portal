@@ -4,7 +4,6 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
