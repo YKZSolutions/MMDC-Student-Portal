@@ -10,19 +10,19 @@ import {
 
 export class CreateAssignmentSubmissionDto {
   @ApiProperty({
-    enum: SubmissionState,
-    enumName: 'SubmissionState',
-  })
-  @IsNotEmpty()
-  @IsEnum(SubmissionState)
-  state: SubmissionState;
-  @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,
   })
   @IsOptional()
   groupSnapshot?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @ApiProperty({
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
+  })
+  @IsNotEmpty()
+  @IsEnum(SubmissionState)
+  state: SubmissionState;
   @ApiProperty({
     type: () => Object,
     required: false,

@@ -5,6 +5,10 @@ import {
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import {
+  GradingConfig,
+  type GradingConfig as GradingConfigAsType,
+} from './gradingConfig.entity';
+import {
   QuizSubmission,
   type QuizSubmission as QuizSubmissionAsType,
 } from './quizSubmission.entity';
@@ -71,6 +75,15 @@ export class Quiz {
     type: () => Object,
   })
   questions: Prisma.JsonValue;
+  @ApiProperty({
+    type: () => GradingConfig,
+    required: false,
+  })
+  grading?: GradingConfigAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  gradingId: string;
   @ApiHideProperty()
   submissions?: QuizSubmissionAsType[];
   @ApiProperty({

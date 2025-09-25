@@ -7,15 +7,15 @@ export class AssignmentSubmissionDto {
   })
   id: string;
   @ApiProperty({
-    enum: SubmissionState,
-    enumName: 'SubmissionState',
-  })
-  state: SubmissionState;
-  @ApiProperty({
     type: () => Object,
     nullable: true,
   })
   groupSnapshot: Prisma.JsonValue | null;
+  @ApiProperty({
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
+  })
+  state: SubmissionState;
   @ApiProperty({
     type: () => Object,
     nullable: true,

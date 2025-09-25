@@ -5,9 +5,9 @@ import {
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import {
-  AssignmentGrading,
-  type AssignmentGrading as AssignmentGradingAsType,
-} from './assignmentGrading.entity';
+  GradingConfig,
+  type GradingConfig as GradingConfigAsType,
+} from './gradingConfig.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
@@ -88,16 +88,14 @@ export class Assignment {
   })
   deletedAt: Date | null;
   @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  gradingId: string | null;
-  @ApiProperty({
-    type: () => AssignmentGrading,
+    type: () => GradingConfig,
     required: false,
-    nullable: true,
   })
-  grading?: AssignmentGradingAsType | null;
+  grading?: GradingConfigAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  gradingId: string;
   @ApiHideProperty()
   submissions?: AssignmentSubmissionAsType[];
 }

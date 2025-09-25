@@ -4,6 +4,13 @@ import { IsDateString, IsEnum, IsInt, IsOptional } from 'class-validator';
 
 export class UpdateAssignmentSubmissionDto {
   @ApiProperty({
+    type: () => Object,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  groupSnapshot?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @ApiProperty({
     enum: SubmissionState,
     enumName: 'SubmissionState',
     required: false,
@@ -11,13 +18,6 @@ export class UpdateAssignmentSubmissionDto {
   @IsOptional()
   @IsEnum(SubmissionState)
   state?: SubmissionState;
-  @ApiProperty({
-    type: () => Object,
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  groupSnapshot?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: () => Object,
     required: false,

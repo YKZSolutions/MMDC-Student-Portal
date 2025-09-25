@@ -1,23 +1,11 @@
 import { Prisma } from '@prisma/client';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import {
-  Assignment,
-  type Assignment as AssignmentAsType,
-} from './assignment.entity';
-import {
-  AssignmentGradeRecord,
-  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
-} from './assignmentGradeRecord.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class AssignmentGrading {
+export class GradingConfigDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
-  @ApiProperty({
-    type: () => Object,
-  })
-  gradingSchema: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -34,6 +22,16 @@ export class AssignmentGrading {
   })
   curveSettings: Prisma.JsonValue | null;
   @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  rubricSchema: Prisma.JsonValue | null;
+  @ApiProperty({
+    type: () => Object,
+    nullable: true,
+  })
+  questionRules: Prisma.JsonValue | null;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
@@ -49,8 +47,4 @@ export class AssignmentGrading {
     nullable: true,
   })
   deletedAt: Date | null;
-  @ApiHideProperty()
-  assignments?: AssignmentAsType[];
-  @ApiHideProperty()
-  gradeRecords?: AssignmentGradeRecordAsType[];
 }
