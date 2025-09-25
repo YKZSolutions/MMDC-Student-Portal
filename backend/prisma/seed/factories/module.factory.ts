@@ -48,11 +48,21 @@ export function createModuleContentData(
   };
 }
 
-export function createAssignmentGradingData(): Prisma.AssignmentGradingCreateInput {
+export function createGradingConfigData(
+  isAssignment: boolean,
+): Prisma.GradingConfigCreateInput {
   return {
-    gradingSchema: mockRubrics,
     weight: faker.number.float({ min: 0.1, max: 1 }),
     isCurved: Math.random() > 0.5,
+    curveSettings: Math.random() > 0.5 ? { adjustment: 5 } : null,
+    ...(isAssignment
+      ? { rubricSchema: mockRubrics }
+      : {
+          questionRules: {
+            MCQ: { points: 1, penalty: 0.25, allowPartialCredit: false },
+            Essay: { points: 10, allowPartialCredit: true },
+          },
+        }),
   };
 }
 
@@ -73,9 +83,11 @@ export function createAssignmentData(
 
 export function createQuizData(
   moduleContentId: string,
+  gradingId: string,
 ): Prisma.QuizCreateInput {
   return {
     moduleContent: { connect: { id: moduleContentId } },
+    grading: { connect: { id: gradingId } },
     title: faker.lorem.sentence(),
     content: mockContent,
     dueDate: faker.date.future(),

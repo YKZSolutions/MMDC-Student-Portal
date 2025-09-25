@@ -39,7 +39,7 @@ export function createCourseSectionData(
       max: 3,
     }),
     courseOffering: { connect: { id: courseOfferingId } },
-    user: { connect: { id: mentorId } },
+    mentor: { connect: { id: mentorId } },
   };
 }
 
@@ -51,7 +51,7 @@ export function createCourseEnrollmentData(
   return {
     courseOffering: { connect: { id: courseOfferingId } },
     courseSection: { connect: { id: courseSectionId } },
-    user: { connect: { id: studentId } },
+    student: { connect: { id: studentId } },
     status: pickRandomEnum(CourseEnrollmentStatus),
     startedAt: faker.date.recent(),
     completedAt:

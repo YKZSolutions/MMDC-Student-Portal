@@ -11,9 +11,9 @@ import { log, pickRandom, pickRandomEnum } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import {
   createAssignmentData,
-  createAssignmentGradingData,
   createExternalUrlData,
   createFileResourceData,
+  createGradingConfigData,
   createLessonData,
   createModuleContentData,
   createModuleData,
@@ -93,8 +93,8 @@ export async function seedModules(
             // Create specific content type
             switch (contentType) {
               case ContentType.ASSIGNMENT: {
-                const grading = await prisma.assignmentGrading.create({
-                  data: createAssignmentGradingData(),
+                const grading = await prisma.gradingConfig.create({
+                  data: createGradingConfigData(true), // rubricSchema for assignment
                 });
                 allGradings.push(grading);
 
@@ -105,8 +105,13 @@ export async function seedModules(
                 break;
               }
               case ContentType.QUIZ: {
+                const grading = await prisma.gradingConfig.create({
+                  data: createGradingConfigData(false), // questionRules for quiz
+                });
+                allGradings.push(grading);
+
                 const quiz = await prisma.quiz.create({
-                  data: createQuizData(content.id),
+                  data: createQuizData(content.id, grading.id),
                 });
                 allQuizzes.push(quiz);
                 break;
