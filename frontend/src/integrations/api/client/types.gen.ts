@@ -830,26 +830,16 @@ export type ModuleDto = {
     deletedAt: string | null;
 };
 
-export type TodoDto = {
-    id: string;
-    type: 'LESSON' | 'ASSIGNMENT' | 'QUIZ' | 'DISCUSSION' | 'VIDEO' | 'URL' | 'FILE';
-    title: string;
-    dueDate: string;
-    moduleName: string;
-};
-
-export type PaginatedTodosDto = {
-    meta: PaginationMetaDto;
-    todos: Array<TodoDto>;
-};
-
 export type ContentType = 'LESSON' | 'ASSIGNMENT' | 'QUIZ' | 'DISCUSSION' | 'VIDEO' | 'URL' | 'FILE';
 
-export type BasicLessonDto = {
+export type Lesson = {
     id: string;
     moduleContentId: string;
     title: string;
     subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -905,7 +895,9 @@ export type Quiz = {
     allowLateSubmission: boolean;
     latePenalty: string;
     dueDate: string | null;
-    gracePeriodMinutes: number | null;
+    questions: {
+        [key: string]: unknown;
+    };
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -913,10 +905,16 @@ export type Quiz = {
 
 export type DiscussionPost = {
     id: string;
-    title: string;
-    subtitle: string | null;
-    isThreaded: boolean | null;
-    requirePost: boolean | null;
+    discussionId: string;
+    discussion?: Discussion;
+    authorId: string;
+    author?: User;
+    content: {
+        [key: string]: unknown;
+    };
+    parentId: string | null;
+    parent?: DiscussionPost | null;
+    replies?: Array<DiscussionPost>;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -981,6 +979,129 @@ export type ContentProgress = {
     lastAccessedAt: string | null;
     createdAt: string;
     updatedAt: string;
+};
+
+export type ModuleContent = {
+    id: string;
+    moduleId: string;
+    moduleSectionId: string | null;
+    order: number;
+    contentType: ContentType;
+    publishedAt: string | null;
+    toPublishAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    lesson?: Lesson | null;
+    assignment?: Assignment | null;
+    quiz?: Quiz | null;
+    discussion?: Discussion | null;
+    video?: Video | null;
+    externalUrl?: ExternalUrl | null;
+    fileResource?: FileResource | null;
+    studentProgress?: Array<ContentProgress>;
+};
+
+export type FileResource = {
+    id: string;
+    moduleContentId: string;
+    moduleContent?: ModuleContent;
+    title: string;
+    subtitle: string | null;
+    content: {
+        [key: string]: unknown;
+    } | null;
+    name: string;
+    path: string;
+    size: number;
+    mimeType: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicLessonDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicAssignmentDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    mode: AssignmentMode;
+    maxAttempts: number;
+    allowLateSubmission: boolean;
+    latePenalty: string;
+    dueDate: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicQuizDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    timeLimit: number | null;
+    maxAttempts: number;
+    allowLateSubmission: boolean;
+    latePenalty: string;
+    dueDate: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicDiscussionDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    isThreaded: boolean;
+    requirePost: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicVideoDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    url: string;
+    duration: number | null;
+    transcript: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicExternalUrlDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    url: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BasicFileResourceDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    name: string;
+    path: string;
+    size: number;
+    mimeType: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type BasicModuleItemDto = {

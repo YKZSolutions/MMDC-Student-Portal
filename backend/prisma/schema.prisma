@@ -666,7 +666,6 @@ model ModuleSection {
 
   title String @db.VarChar(255)
   order Int    @default(0)
-  order Int    @default(0)
 
   publishedAt DateTime?
   toPublishAt DateTime?

@@ -15312,24 +15312,26 @@
           "deletedAt"
         ]
       },
-      "TodoDto": {
+      "ContentType": {
+        "type": "string",
+        "enum": [
+          "LESSON",
+          "ASSIGNMENT",
+          "QUIZ",
+          "DISCUSSION",
+          "VIDEO",
+          "URL",
+          "FILE"
+        ]
+      },
+      "Lesson": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "LESSON",
-              "ASSIGNMENT",
-              "QUIZ",
-              "DISCUSSION",
-              "VIDEO",
-              "URL",
-              "FILE"
-            ]
+          "moduleContentId": {
+            "type": "string"
           },
           "title": {
             "type": "string"
@@ -16118,39 +16120,16 @@
           "title": {
             "type": "string"
           },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "toPublishAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "parentSectionId": {
+          "subtitle": {
             "type": "string",
             "nullable": true
           },
-          "prerequisiteSectionId": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "DetailedModuleSectionDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
           },
           "maxAttempts": {
             "type": "integer",
@@ -16450,6 +16429,13 @@
       "BasicModuleItemDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
           "contentType": {
             "allOf": [
               {
@@ -16544,7 +16530,14 @@
           }
         },
         "required": [
-          "contentType"
+          "id",
+          "order",
+          "contentType",
+          "publishedAt",
+          "toPublishAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "ModuleTreeSectionDto": {
@@ -16947,10 +16940,6 @@
       "CreateContentDto": {
         "type": "object",
         "properties": {
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
           "contentType": {
             "allOf": [
               {
@@ -16999,7 +16988,6 @@
           }
         },
         "required": [
-          "order",
           "contentType"
         ]
       },

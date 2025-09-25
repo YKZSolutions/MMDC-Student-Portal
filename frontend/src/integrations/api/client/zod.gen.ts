@@ -1123,27 +1123,6 @@ export const zModuleDto = z.object({
     ])
 });
 
-export const zTodoDto = z.object({
-    id: z.uuid(),
-    type: z.enum([
-        'LESSON',
-        'ASSIGNMENT',
-        'QUIZ',
-        'DISCUSSION',
-        'VIDEO',
-        'URL',
-        'FILE'
-    ]),
-    title: z.string(),
-    dueDate: z.iso.datetime(),
-    moduleName: z.string()
-});
-
-export const zPaginatedTodosDto = z.object({
-    meta: zPaginationMetaDto,
-    todos: z.array(zTodoDto)
-});
-
 export const zContentType = z.enum([
     'LESSON',
     'ASSIGNMENT',
