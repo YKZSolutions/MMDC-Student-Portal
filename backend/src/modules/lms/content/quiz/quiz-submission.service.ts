@@ -78,7 +78,6 @@ export class QuizSubmissionService {
       studentId,
       state: dto.state || SubmissionState.DRAFT,
       answers: dto.answers as Prisma.JsonValue,
-      questionResults: dto.questionResults as Prisma.JsonValue,
     };
 
     const submission = await this.prisma.client.quizSubmission.create({
@@ -112,14 +111,14 @@ export class QuizSubmissionService {
     // Check if submission can be modified
     const existing = await this.prisma.client.quizSubmission.findUnique({
       where: { id, studentId: userId },
-      include: { quiz: true },
+      include: { quiz: true, gradeRecord: true },
     });
 
     if (!existing) {
       throw new NotFoundException('Quiz submission not found');
     }
 
-    if (existing.gradedAt) {
+    if (existing.gradeRecord) {
       throw new ForbiddenException('Cannot modify graded quiz submission');
     }
 
@@ -132,7 +131,6 @@ export class QuizSubmissionService {
       data: {
         ...dto,
         answers: dto.answers as Prisma.JsonValue,
-        questionResults: dto.questionResults as Prisma.JsonValue,
       },
     });
 
@@ -285,11 +283,6 @@ export class QuizSubmissionService {
         state: SubmissionState.DRAFT,
         submittedAt: null,
         lateDays: null,
-        // Reset grading information
-        gradedAt: null,
-        grade: null,
-        rawScore: null,
-        questionResults: null,
       },
     });
 
@@ -323,7 +316,6 @@ export class QuizSubmissionService {
     return {
       ...result,
       answers: result.answers as Prisma.JsonValue,
-      questionResults: result.questionResults as Prisma.JsonValue,
     };
   }
 
@@ -350,7 +342,6 @@ export class QuizSubmissionService {
     return results.map((r) => ({
       ...r,
       answers: r.answers as Prisma.JsonValue,
-      questionResults: r.questionResults as Prisma.JsonValue,
     }));
   }
 
@@ -369,13 +360,14 @@ export class QuizSubmissionService {
     // Check if submission can be deleted
     const existing = await this.prisma.client.quizSubmission.findUnique({
       where: { id },
+      include: { gradeRecord: true },
     });
 
     if (!existing) {
       throw new NotFoundException('Quiz submission not found');
     }
 
-    if (existing.gradedAt) {
+    if (existing.gradeRecord) {
       throw new ForbiddenException('Cannot delete graded quiz submission');
     }
 
@@ -865,7 +857,6 @@ export class QuizSubmissionService {
     return {
       ...submission,
       answers: submission.answers as Prisma.JsonValue,
-      questionResults: submission.questionResults as Prisma.JsonValue,
     };
   }
 }
