@@ -24,7 +24,6 @@ export class AssignmentSubmissionAssignmentIdStudentIdAttemptNumberUniqueInputDt
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    default: 1,
   })
   @IsNotEmpty()
   @IsInt()

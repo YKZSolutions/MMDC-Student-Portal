@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -7,7 +6,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateAssignmentDto {
+export class CreateAppointmentDto {
   @ApiProperty({
     type: 'string',
   })
@@ -16,26 +15,38 @@ export class CreateAssignmentDto {
   title: string;
   @ApiProperty({
     type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  description: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  startAt: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  endAt: Date;
+  @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
   @IsOptional()
   @IsString()
-  subtitle?: string | null;
-  @ApiProperty({
-    type: () => Object,
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  gmeetLink?: string | null;
   @ApiProperty({
     type: 'string',
-    format: 'date-time',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDateString()
-  dueDate?: Date | null;
+  @IsString()
+  cancelReason?: string | null;
 }

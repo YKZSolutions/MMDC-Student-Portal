@@ -18,10 +18,6 @@ import {
 } from './staffDetails.entity';
 import { Bill, type Bill as BillAsType } from './bill.entity';
 import {
-  Notification,
-  type Notification as NotificationAsType,
-} from './notification.entity';
-import {
   CourseEnrollment,
   type CourseEnrollment as CourseEnrollmentAsType,
 } from './courseEnrollment.entity';
@@ -53,6 +49,14 @@ import {
   GroupMember,
   type GroupMember as GroupMemberAsType,
 } from './groupMember.entity';
+import {
+  Appointment,
+  type Appointment as AppointmentAsType,
+} from './appointment.entity';
+import {
+  NotificationReceipt,
+  type NotificationReceipt as NotificationReceiptAsType,
+} from './notificationReceipt.entity';
 
 export class User {
   @ApiProperty({
@@ -70,8 +74,6 @@ export class User {
   @ApiHideProperty()
   bills?: BillAsType[];
   @ApiHideProperty()
-  notifications?: NotificationAsType[];
-  @ApiHideProperty()
   courseEnrollment?: CourseEnrollmentAsType[];
   @ApiHideProperty()
   mentorSections?: CourseSectionAsType[];
@@ -87,6 +89,12 @@ export class User {
   moduleProgress?: ContentProgressAsType[];
   @ApiHideProperty()
   groups?: GroupMemberAsType[];
+  @ApiHideProperty()
+  appointmentStudents?: AppointmentAsType[];
+  @ApiHideProperty()
+  appointmentMentors?: AppointmentAsType[];
+  @ApiHideProperty()
+  notifications?: NotificationReceiptAsType[];
   @ApiProperty({
     type: 'string',
   })

@@ -1,4 +1,4 @@
-import { Prisma, SubmissionState } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AssignmentSubmissionDto {
@@ -30,8 +30,9 @@ export class AssignmentSubmissionDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  attemptNumber: number;
+  attemptNumber: number | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
