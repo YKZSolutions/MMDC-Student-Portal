@@ -74,7 +74,7 @@ export class User {
   @ApiHideProperty()
   courseEnrollment?: CourseEnrollmentAsType[];
   @ApiHideProperty()
-  courseSections?: CourseSectionAsType[];
+  mentorSections?: CourseSectionAsType[];
   @ApiHideProperty()
   submittedAssignments?: AssignmentSubmissionAsType[];
   @ApiHideProperty()

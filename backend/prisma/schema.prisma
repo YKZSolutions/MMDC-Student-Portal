@@ -55,7 +55,7 @@ model User {
   /// @DtoApiHidden
   courseEnrollment     CourseEnrollment[]
   /// @DtoApiHidden
-  courseSections       CourseSection[]
+  mentorSections       CourseSection[]
   /// @DtoApiHidden
   submittedAssignments AssignmentSubmission[]
   /// @DtoApiHidden
@@ -1100,7 +1100,7 @@ model AssignmentGrading {
   // Grading schema definition
   /// @DtoReadOnly
   gradingSchema Json // Rubric structure, criteria, weights, check rubricDTO
-  weight        Decimal @db.Decimal(5, 2) // For final grade calculation
+  weight        Decimal? @db.Decimal(5, 2) // For final grade calculation
 
   // Grade processing metadata
   isCurved      Boolean
