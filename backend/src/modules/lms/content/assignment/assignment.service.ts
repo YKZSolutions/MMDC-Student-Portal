@@ -1,4 +1,3 @@
-// assignment.service.ts
 import {
   BadRequestException,
   ConflictException,
@@ -147,13 +146,12 @@ export class AssignmentService {
     return {
       ...assignment,
       content: assignment.content as Prisma.JsonValue,
-      grading: assignment.grading
-        ? {
-            ...assignment.grading,
-            gradingSchema: assignment.grading.gradingSchema as Prisma.JsonValue,
-            curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
-          }
-        : null,
+      grading: {
+        ...assignment.grading,
+        rubricSchema: assignment.grading.rubricSchema as Prisma.JsonValue,
+        questionRules: assignment.grading.questionRules as Prisma.JsonValue,
+        curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
+      },
       submissions: assignment.submissions.map((submission) => ({
         ...submission,
         content: submission.content as Prisma.JsonValue,
