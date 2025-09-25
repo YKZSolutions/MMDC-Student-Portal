@@ -8,7 +8,7 @@ import type {
   ModuleItem,
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
-import { getModuleItemsFromSections } from '@/utils/helpers.ts'
+import { getModuleItemsFromSections } from '@/utils/helpers.tsx'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
 import {

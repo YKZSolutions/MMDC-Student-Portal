@@ -1,3 +1,20 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import {
+  AuthUser,
+  CurrentAuthUser,
+} from '@/common/interfaces/auth.user-metadata';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { LmsContentService } from '@/modules/lms/lms-content.service';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -13,24 +30,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
 import { ApiCreatedResponse, ApiOkResponse, OmitType } from '@nestjs/swagger';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { Role } from '@/common/enums/roles.enum';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import {
-  AuthUser,
-  CurrentAuthUser,
-} from '@/common/interfaces/auth.user-metadata';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {

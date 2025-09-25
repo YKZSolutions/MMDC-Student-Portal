@@ -1,25 +1,25 @@
 import type {
+  AssignmentBase,
+  AssignmentSubmissionReport,
+  StudentAssignment,
+} from '@/features/courses/assignments/types.ts'
+import type {
+  CourseGradebookForMentor,
+  CourseGradebookForStudent,
+} from '@/features/courses/grades/types.ts'
+import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
+import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
+import type { StudentModule } from '@/features/courses/modules/student/types.ts'
+import type { Module } from '@/features/courses/modules/types.ts'
+import type {
   AcademicProgram,
   AcademicTerm,
   Course,
   CourseBasicDetails,
   EnrolledCourse,
 } from '@/features/courses/types.ts'
+import { getFutureDate, getPastDate } from '@/utils/helpers'
 import type { Block } from '@blocknote/core'
-import { getFutureDate, getPastDate } from '@/utils/helpers.ts'
-import type {
-  AssignmentBase,
-  AssignmentSubmissionReport,
-  StudentAssignment,
-} from '@/features/courses/assignments/types.ts'
-import type { Module } from '@/features/courses/modules/types.ts'
-import type { StudentModule } from '@/features/courses/modules/student/types.ts'
-import type { MentorModule } from '@/features/courses/modules/mentor/types.ts'
-import type { AdminModule } from '@/features/courses/modules/admin/types.ts'
-import type {
-  CourseGradebookForMentor,
-  CourseGradebookForStudent,
-} from '@/features/courses/grades/types.ts'
 
 export const mockCourseBasicDetails: CourseBasicDetails[] = [
   {
@@ -563,6 +563,8 @@ export const mockModule: Module = {
   published: {
     isPublished: true,
     publishedAt: new Date().toISOString(),
+    toPublishAt: new Date().toISOString(),
+    unpublishedAt: new Date().toISOString(),
   },
   sections: [
     // Section 1: Introduction to Course
@@ -572,20 +574,26 @@ export const mockModule: Module = {
       title: 'Introduction to Course',
       order: 1,
       items: [],
-      published: {
-        isPublished: true,
-        publishedAt: new Date().toISOString(),
-      },
+      isPublished: true,
+      publishedAt: new Date().toISOString(),
+      toPublishAt: new Date().toISOString(),
+      unpublishedAt: new Date().toISOString(),
+      moduleId: 'module-1',
+      prerequisiteSectionId: '',
+      parentSectionId: 'module-1',
       subsections: [
         {
           id: 'subsection-1-1',
           parentId: 'section-1',
           title: 'Onboarding',
           order: 1,
-          published: {
-            isPublished: true,
-            publishedAt: new Date().toISOString(),
-          },
+          publishedAt: new Date().toISOString(),
+          isPublished: true,
+          toPublishAt: new Date().toISOString(),
+          unpublishedAt: new Date().toISOString(),
+          moduleId: 'module-1',
+          prerequisiteSectionId: '',
+          parentSectionId: 'section-1',
           items: [
             {
               id: 'lesson-1',
@@ -597,6 +605,8 @@ export const mockModule: Module = {
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -609,6 +619,8 @@ export const mockModule: Module = {
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
           ],
@@ -624,20 +636,26 @@ export const mockModule: Module = {
       order: 2,
       parentId: 'module-1',
       items: [],
-      published: {
-        isPublished: true,
-        publishedAt: new Date().toISOString(),
-      },
+      isPublished: true,
+      publishedAt: new Date().toISOString(),
+      toPublishAt: new Date().toISOString(),
+      unpublishedAt: new Date().toISOString(),
+      moduleId: 'module-1',
+      prerequisiteSectionId: 'section-1',
+      parentSectionId: 'module-1',
       subsections: [
         {
           id: 'subsection-2-1',
           title: 'Basic Principles',
           order: 1,
           parentId: 'section-2',
-          published: {
-            isPublished: true,
-            publishedAt: new Date().toISOString(),
-          },
+          isPublished: true,
+          publishedAt: new Date().toISOString(),
+          toPublishAt: new Date().toISOString(),
+          unpublishedAt: new Date().toISOString(),
+          moduleId: 'module-1',
+          prerequisiteSectionId: '',
+          parentSectionId: 'section-2',
           items: [
             {
               id: 'lesson-2',
@@ -650,6 +668,8 @@ export const mockModule: Module = {
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -662,6 +682,8 @@ export const mockModule: Module = {
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -674,6 +696,8 @@ export const mockModule: Module = {
               published: {
                 isPublished: true,
                 publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
           ],
@@ -689,18 +713,27 @@ export const mockModule: Module = {
       order: 3,
       parentId: 'module-1',
       items: [],
-      published: {
-        isPublished: false,
-      },
+      isPublished: false,
+      publishedAt: new Date().toISOString(),
+      toPublishAt: new Date().toISOString(),
+      unpublishedAt: new Date().toISOString(),
+      moduleId: 'module-1',
+      prerequisiteSectionId: 'section-2',
+      parentSectionId: 'module-1',
+
       subsections: [
         {
           id: 'subsection-4-1',
           title: 'Final Project',
           order: 1,
           parentId: 'section-3',
-          published: {
-            isPublished: false,
-          },
+          isPublished: false,
+          publishedAt: new Date().toISOString(),
+          toPublishAt: new Date().toISOString(),
+          unpublishedAt: new Date().toISOString(),
+          moduleId: 'module-1',
+          prerequisiteSectionId: '',
+          parentSectionId: 'section-3',
           items: [
             {
               id: 'assignment-3',
@@ -711,6 +744,9 @@ export const mockModule: Module = {
               assignment: mockAssignmentBase[2],
               published: {
                 isPublished: false,
+                publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -722,6 +758,9 @@ export const mockModule: Module = {
               assignment: mockAssignmentBase[3],
               published: {
                 isPublished: false,
+                publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -733,6 +772,9 @@ export const mockModule: Module = {
               url: 'https://example.com/resources',
               published: {
                 isPublished: false,
+                publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -744,6 +786,9 @@ export const mockModule: Module = {
               url: '/uploads/course-materials.pdf',
               published: {
                 isPublished: false,
+                publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
             {
@@ -756,6 +801,9 @@ export const mockModule: Module = {
               assignment: mockAssignmentBase[4],
               published: {
                 isPublished: false,
+                publishedAt: new Date().toISOString(),
+                toPublishAt: new Date().toISOString(),
+                unpublishedAt: new Date().toISOString(),
               },
             },
           ],

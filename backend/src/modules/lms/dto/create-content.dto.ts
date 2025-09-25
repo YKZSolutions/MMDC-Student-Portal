@@ -1,14 +1,14 @@
-import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
-import { ApiProperty } from '@nestjs/swagger';
 import { CreateAssignmentDto } from '@/generated/nestjs-dto/create-assignment.dto';
-import { IsOptional, ValidateNested } from 'class-validator';
-import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
-import { CreateLessonDto } from '@/generated/nestjs-dto/create-lesson.dto';
+import { CreateDiscussionDto } from '@/generated/nestjs-dto/create-discussion.dto';
 import { CreateExternalUrlDto } from '@/generated/nestjs-dto/create-externalUrl.dto';
 import { CreateFileResourceDto } from '@/generated/nestjs-dto/create-fileResource.dto';
+import { CreateLessonDto } from '@/generated/nestjs-dto/create-lesson.dto';
+import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
+import { CreateQuizDto } from '@/generated/nestjs-dto/create-quiz.dto';
 import { CreateVideoDto } from '@/generated/nestjs-dto/create-video.dto';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { CreateDiscussionDto } from '@/generated/nestjs-dto/create-discussion.dto';
+import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
 
 export class CreateContentDto extends CreateModuleContentDto {
   // @ApiProperty({
@@ -20,12 +20,11 @@ export class CreateContentDto extends CreateModuleContentDto {
   // newContent: NewContentDto;
 
   @ApiProperty({
-    type: CreateAssignmentDto,
-    required: false,
+    type: 'string',
+    required: true,
   })
-  @ValidateNested()
-  @IsOptional()
-  sectionId?: string;
+  @IsUUID()
+  sectionId: string;
 
   @ApiProperty({
     type: CreateAssignmentDto,
