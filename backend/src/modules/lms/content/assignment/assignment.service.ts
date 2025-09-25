@@ -19,7 +19,6 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
-import { CreateAssignmentDto } from '@/generated/nestjs-dto/create-assignment.dto';
 import { UpdateAssignmentDto } from '@/generated/nestjs-dto/update-assignment.dto';
 import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
 import { CreateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/create-assignment-item.dto';
