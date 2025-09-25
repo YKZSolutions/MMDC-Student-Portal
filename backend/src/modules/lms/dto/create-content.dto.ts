@@ -21,10 +21,9 @@ export class CreateContentDto extends CreateModuleContentDto {
 
   @ApiProperty({
     type: 'string',
-    required: false,
+    required: true,
   })
-  @IsOptional()
-  sectionId?: string;
+  sectionId: string;
 
   @ApiProperty({
     type: CreateAssignmentDto,
