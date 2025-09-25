@@ -183,7 +183,7 @@ export class LmsContentService {
 
     if (role === Role.student && userId) {
       baseInclude.studentProgress = {
-        where: { userId },
+        where: { studentId: userId },
       };
     }
 
@@ -758,7 +758,7 @@ export class LmsContentService {
             courseOffering: {
               courseEnrollments: {
                 some: {
-                  user: {
+                  student: {
                     OR: [
                       // search by full or partial student name
                       {
@@ -833,7 +833,8 @@ export class LmsContentService {
           fileResource: { omit: { content: true } },
           externalUrl: { omit: { content: true } },
           video: { omit: { content: true } },
-          studentProgress: role === Role.student ? { where: { userId } } : true,
+          studentProgress:
+            role === Role.student ? { where: { studentId: userId } } : true,
         },
         orderBy: [
           { assignment: { dueDate: 'asc' } },
@@ -901,7 +902,7 @@ export class LmsContentService {
           ...(role === Role.student &&
             userId && {
               progresses: {
-                where: { userId },
+                where: { studentId: userId },
                 select: {
                   id: true,
                   moduleContentId: true,
@@ -944,7 +945,6 @@ export class LmsContentService {
                   updatedAt: true,
                   lesson: { omit: { content: true } },
                   assignment: {
-                    include: { grading: { omit: { gradingSchema: true } } },
                     omit: { content: true },
                   },
                   quiz: { omit: { content: true, questions: true } },
@@ -953,7 +953,7 @@ export class LmsContentService {
                   externalUrl: { omit: { content: true } },
                   fileResource: { omit: { content: true } },
                   ...(role === Role.student && userId
-                    ? { studentProgress: { where: { userId } } }
+                    ? { studentProgress: { where: { studentId: userId } } }
                     : { studentProgress: true }),
                 },
                 orderBy: { order: 'asc' },
@@ -1030,13 +1030,13 @@ export class LmsContentService {
 
     return await this.prisma.client.contentProgress.upsert({
       where: {
-        userId_moduleContentId: {
-          userId,
+        studentId_moduleContentId: {
+          studentId: userId,
           moduleContentId,
         },
       },
       create: {
-        userId,
+        studentId: userId,
         moduleId,
         moduleContentId,
         completedAt: new Date(),
@@ -1063,10 +1063,11 @@ export class LmsContentService {
    *
    * @async
    * @param {string} moduleId - The UUID of the module for which content progress is being fetched.
-   * @param {string | undefined} studentId - The UUID of the student. Required if the current user is a mentor.
-   * @param {AuthUser} user - The currently authenticated user.
+   * @param {string} userId - The UUID of the user making this request.
+   * @param {Role} role - The role of the user making this request.
+   * @param {string} studentId - The UUID of the student owning the content progress.
    * @returns {Promise<DetailedContentProgressDto[]>} - An array of content progress records with related module content details.
-   * @throws {BadRequestException} - If the user ID is missing or invalid.
+   * @throws {BadRequestException} - If the student ID is missing or invalid.
    */
   @Log({
     logArgsMessage: ({ moduleId, studentId }) =>
@@ -1078,24 +1079,18 @@ export class LmsContentService {
   })
   async findAllContentProgress(
     @LogParam('moduleId') moduleId: string,
-    @LogParam('studentId') studentId: string | undefined,
-    user: AuthUser,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
+    @LogParam('studentId') studentId?: string,
   ): Promise<DetailedContentProgressDto[]> {
-    const userId =
-      user.user_metadata.role !== 'student'
-        ? studentId
-        : user.user_metadata.user_id;
-
-    if (!userId) {
+    if (!studentId && role !== Role.student) {
       throw new BadRequestException(
-        user.user_metadata.role === 'student'
-          ? 'Invalid userId'
-          : 'Mentors and admins must provide a studentId',
+        'Mentors and admins must provide a studentId',
       );
     }
 
     return await this.prisma.client.contentProgress.findMany({
-      where: { moduleId, userId },
+      where: { moduleId, studentId: studentId ?? userId },
       include: {
         moduleContent: {
           select: {
@@ -1112,15 +1107,15 @@ export class LmsContentService {
   }
 
   @Log({
-    logArgsMessage: ({ userId, filters }) =>
-      `Fetching todos for user ${userId} in active term with filters ${JSON.stringify(filters)}`,
+    logArgsMessage: ({ studentId, filters }) =>
+      `Fetching todos for student ${studentId} in active term with filters ${JSON.stringify(filters)}`,
     logSuccessMessage: (result) =>
       `Successfully fetched ${result.todos.length} todos`,
-    logErrorMessage: (err, { userId }) =>
-      `Error fetching todos for user ${userId}: ${err.message}`,
+    logErrorMessage: (err, { studentId }) =>
+      `Error fetching todos for user ${studentId}: ${err.message}`,
   })
   async findTodos(
-    @LogParam('userId') userId: string,
+    @LogParam('studentId') studentId: string,
     @LogParam('filters') filters: FilterTodosDto,
   ): Promise<PaginatedTodosDto> {
     // First, get the active enrollment period
@@ -1148,7 +1143,7 @@ export class LmsContentService {
     // Get user's enrolled courses in active term
     const userEnrollments = await this.prisma.client.courseEnrollment.findMany({
       where: {
-        studentId: userId,
+        studentId,
         status: CourseEnrollmentStatus.enrolled,
         courseOffering: {
           periodId: activeTerm.id,
@@ -1206,7 +1201,7 @@ export class LmsContentService {
             },
           },
           studentProgress: {
-            where: { userId },
+            where: { studentId },
           },
         },
         orderBy: [
