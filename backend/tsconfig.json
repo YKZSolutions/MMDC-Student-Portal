@@ -27,8 +27,9 @@
   },
   "include": [
     "src",
+    "src/**/*",
+    "prisma/**/*.ts",
     "src/common/types/request.d.ts",
-    "src/common/types/prisma.d.ts",
-    "prisma/seed.ts"
+    "src/common/types/prisma.d.ts"
   ]
 }
