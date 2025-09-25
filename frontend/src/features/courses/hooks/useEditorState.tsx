@@ -1,14 +1,15 @@
-import type {
-  ContentNode,
-  ContentNodeType,
+import {
+  type ContentNode,
+  type ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import { lmsSectionControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import type { ModuleContent } from '@/integrations/api/client'
+import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getModuleContent, toBlockArray } from '@/utils/helpers.ts'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { createContext, useContext, type ReactNode } from 'react'
-import { mockInitialContent } from '../mocks'
 
 export type EditorView = 'content' | 'preview'
 
@@ -25,7 +26,7 @@ export const editorViewOptions: EditorViewOption[] = [
 export interface EditorState {
   id: string | null
   type: ContentNodeType
-  data: ContentNode | null
+  data: ModuleContent
   content: BlockNoteEditor
   parentId: string | null
   view: EditorView
@@ -49,18 +50,27 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const searchParams: EditorSearchParams = useSearch({ strict: false })
 
-  const { data: moduleSectionData } = useSuspenseQuery(
-    lmsSectionControllerFindOneOptions({
+  // const { data: moduleSectionData } = useSuspenseQuery(
+  //   lmsSectionControllerFindOneOptions({
+  //     path: {
+  //       moduleSectionId: searchParams.id || '',
+  //     },
+  //   }),
+  // )
+
+  const { data: moduleContentData } = useSuspenseQuery(
+    lmsContentControllerFindOneOptions({
       path: {
-        moduleSectionId: searchParams.id || '',
+        moduleContentId: searchParams.id || '',
       },
     }),
   )
 
-  console.log('Fetched Section Data:', moduleSectionData)
+  // console.log('Fetched Section Data:', moduleSectionData)
+  console.log('Fetched Content Data:', moduleContentData)
 
   const editor = useCreateBlockNote({
-    initialContent: mockInitialContent,
+    initialContent: toBlockArray(getModuleContent(moduleContentData)?.content),
   })
 
   const editorState = {
@@ -68,7 +78,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     type: (searchParams.type as ContentNodeType) || 'section',
     parentId: (searchParams.parentId as string) || null,
     view: (searchParams.view as EditorView) || 'content',
-    data: moduleSectionData as ContentNode | null,
+    data: moduleContentData,
     content: editor,
   } satisfies EditorState
 
