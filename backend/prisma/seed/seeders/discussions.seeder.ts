@@ -15,7 +15,16 @@ export async function seedDiscussions(
   log('Seeding discussion posts...');
 
   let postCount = 0;
-  const allPosts = [];
+  const allPosts: Array<{
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    content: any;
+    discussionId: string;
+    parentId: string | null;
+    authorId: string;
+  }> = [];
 
   for (const discussion of discussions) {
     // Get the module content and then the module to find enrolled students
