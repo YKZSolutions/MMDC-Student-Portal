@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class UpdateDiscussionDto {
   @ApiProperty({
@@ -25,4 +25,22 @@ export class UpdateDiscussionDto {
   })
   @IsOptional()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @ApiProperty({
+    type: 'boolean',
+    default: true,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isThreaded?: boolean | null;
+  @ApiProperty({
+    type: 'boolean',
+    default: false,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  requirePost?: boolean | null;
 }
