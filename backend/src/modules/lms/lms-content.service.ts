@@ -999,7 +999,7 @@ export class LmsContentService {
    * @async
    * @param {string} moduleId - The UUID of the module that contains the content.
    * @param {string} moduleContentId - The UUID of the module content for which progress is being tracked.
-   * @param {AuthUser} user - The currently authenticated user.
+   * @param {string} userId - The UUID of the user making the request.
    * @returns {Promise<DetailedContentProgressDto>} - The upserted content progress record, including related content details.
    * @throws {BadRequestException} - If the user ID is missing or invalid.
    * @throws {NotFoundException} - If the related User, Module, or ModuleContent record does not exist.
@@ -1021,9 +1021,8 @@ export class LmsContentService {
   async createContentProgress(
     @LogParam('moduleId') moduleId: string,
     @LogParam('moduleContentId') moduleContentId: string,
-    user: AuthUser,
+    @LogParam('userId') userId: string,
   ): Promise<DetailedContentProgressDto> {
-    const userId = user.user_metadata.user_id;
     if (!userId) {
       throw new BadRequestException(`Invalid userId ${userId}`);
     }

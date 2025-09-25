@@ -21,10 +21,7 @@ import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import {
-  AuthUser,
-  CurrentAuthUser,
-} from '@/common/interfaces/auth.user-metadata';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
@@ -216,12 +213,13 @@ export class LmsContentController {
   createContentProgress(
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
+    const { user_id } = user.user_metadata;
     return this.lmsContentService.createContentProgress(
       moduleId,
       moduleContentId,
-      user,
+      user_id,
     );
   }
 
@@ -241,14 +239,16 @@ export class LmsContentController {
   ])
   findAllContentProgress(
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
+    @CurrentUser() user: CurrentAuthUser,
     @Query('studentId', new ParseUUIDPipe({ optional: true }))
-    studentId: string | undefined,
-    @CurrentUser() user: AuthUser,
+    studentId?: string,
   ) {
+    const { role, user_id } = user.user_metadata;
     return this.lmsContentService.findAllContentProgress(
       moduleId,
+      user_id,
+      role,
       studentId,
-      user,
     );
   }
 }
