@@ -30,6 +30,23 @@ export async function seedModules(
 ) {
   log('Seeding modules and course content...');
 
+  // Create shared grading configurations
+  log('Creating shared grading configurations...');
+  const assignmentGradingConfig = await prisma.gradingConfig.create({
+    data: createGradingConfigData(true), // For assignments
+  });
+
+  const quizGradingConfig = await prisma.gradingConfig.create({
+    data: createGradingConfigData(false), // For quizzes
+  });
+
+  log(
+    `-> Created shared grading config for assignments (ID: ${assignmentGradingConfig.id})`,
+  );
+  log(
+    `-> Created shared grading config for quizzes (ID: ${quizGradingConfig.id})`,
+  );
+
   const allModules: Module[] = [];
   const allSections: ModuleSection[] = [];
   const allSubsections: ModuleSection[] = [];
@@ -38,7 +55,7 @@ export async function seedModules(
   const allQuizzes: any[] = [];
   const allLessons: any[] = [];
   const allDiscussions: any[] = [];
-  const allGradings: any[] = [];
+  const allGradings = [assignmentGradingConfig, quizGradingConfig]; // Track the shared grading configs
 
   for (const course of courses) {
     const courseModules: Module[] = [];
@@ -113,15 +130,10 @@ export async function seedModules(
             // Create specific content type
             switch (contentType) {
               case ContentType.ASSIGNMENT: {
-                const grading = await prisma.gradingConfig.create({
-                  data: createGradingConfigData(true),
-                });
-                allGradings.push(grading);
-
                 const assignment = await prisma.assignment.create({
                   data: createAssignmentData(
                     content.id,
-                    grading.id,
+                    assignmentGradingConfig.id, // Use shared assignment grading config
                     moduleIndex,
                   ),
                 });
@@ -129,13 +141,12 @@ export async function seedModules(
                 break;
               }
               case ContentType.QUIZ: {
-                const grading = await prisma.gradingConfig.create({
-                  data: createGradingConfigData(false),
-                });
-                allGradings.push(grading);
-
                 const quiz = await prisma.quiz.create({
-                  data: createQuizData(content.id, grading.id, moduleIndex),
+                  data: createQuizData(
+                    content.id,
+                    quizGradingConfig.id, // Use shared quiz grading config
+                    moduleIndex,
+                  ),
                 });
                 allQuizzes.push(quiz);
                 break;
@@ -188,7 +199,7 @@ export async function seedModules(
   log(`-> Created ${allQuizzes.length} quizzes.`);
   log(`-> Created ${allLessons.length} lessons.`);
   log(`-> Created ${allDiscussions.length} discussions.`);
-  log(`-> Created ${allGradings.length} grading configurations.`);
+  log(`-> Created ${allGradings.length} shared grading configurations.`);
 
   return {
     modules: allModules,
