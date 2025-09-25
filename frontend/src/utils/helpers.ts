@@ -10,6 +10,12 @@ import type {
   ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
+import type {
+  BasicModuleItemDto,
+  ContentType,
+  ModuleContent,
+} from '@/integrations/api/client'
+import type { Block } from '@blocknote/core'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -98,16 +104,10 @@ export function convertModuleSectionsToTreeData(
 
 // Shared implementation: simple, non-mutating traversal that flattens
 // sections, subsections and items into the node list expected by the Tree.
-function convertSectionsToTreeData(
-  sections: ContentNode[] | ModuleSection[],
-): CourseNodeModel[] {
+function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
-  function processSection(
-    section: ContentNode | ModuleSection,
-    parentId = 'root',
-    level = 1,
-  ) {
+  function processSection(section: ContentNode, parentId = 'root', level = 1) {
     if (!section) return
 
     treeData.push({
@@ -125,26 +125,51 @@ function convertSectionsToTreeData(
     // This is still needed for the mock items.
     // Remove if real data always has items defined.
 
-    if ('items' in section) {
-      const items = section.items ?? []
+    // if ('items' in section) {
+    //   const items = section.items ?? []
+    //   for (const item of items) {
+    //     if (!item) continue
+    //     treeData.push({
+    //       id: item.id,
+    //       parent: section.id,
+    //       text: item.title ?? 'Untitled Item',
+    //       droppable: false,
+    //       data: {
+    //         level: 3,
+    //         type: 'item',
+    //         contentData: {
+    //           ...item,
+    //           moduleId: section.moduleId,
+    //           parentSectionId: section.id,
+    //           prerequisiteSectionId: item.prerequisites?.[0] || '',
+    //           publishedAt: new Date().toISOString(),
+    //           toPublishAt: new Date().toISOString(),
+    //           unpublishedAt: new Date().toISOString(),
+    //         },
+    //       },
+    //     })
+    //   }
+    // }
+
+    if ('moduleContents' in section) {
+      const items = section.moduleContents ?? []
       for (const item of items) {
         if (!item) continue
         treeData.push({
           id: item.id,
           parent: section.id,
-          text: item.title ?? 'Untitled Item',
+          text:
+            getTitleByContentType(item.contentType, item) ?? 'Untitled Item',
           droppable: false,
           data: {
             level: 3,
             type: 'item',
             contentData: {
               ...item,
+              title: getTitleByContentType(item.contentType, item),
               moduleId: section.moduleId,
-              parentSectionId: section.id,
-              prerequisiteSectionId: item.prerequisites?.[0] || '',
-              publishedAt: new Date().toISOString(),
-              toPublishAt: new Date().toISOString(),
-              unpublishedAt: new Date().toISOString(),
+              parentSectionId: '',
+              prerequisiteSectionId: '',
             },
           },
         })
@@ -231,4 +256,69 @@ export const formatTerm = (academicTerm: AcademicTerm | undefined) => {
   return academicTerm
     ? `${academicTerm.schoolYear} - ${academicTerm.term}`
     : 'N/A'
+}
+
+export const toBlockArray = (content: unknown): Block[] => {
+  if (Array.isArray(content) && content.length > 0) {
+    return content as Block[]
+  }
+
+  return [
+    {
+      id: 'initial-paragraph',
+      type: 'paragraph',
+      props: {
+        backgroundColor: 'transparent',
+        textAlignment: 'left',
+        textColor: 'initial',
+      },
+      content: [],
+      children: [],
+    },
+  ]
+}
+
+export const getTitleByContentType = (
+  contentType: ContentType,
+  moduleContent: BasicModuleItemDto,
+) => {
+  switch (contentType) {
+    case 'LESSON':
+      return moduleContent.lesson?.title || 'Untitled Lesson'
+    case 'ASSIGNMENT':
+      return moduleContent.assignment?.title || 'Untitled Assignment'
+    case 'QUIZ':
+      return moduleContent.quiz?.title || 'Untitled Quiz'
+    case 'DISCUSSION':
+      return moduleContent.discussion?.title || 'Untitled Discussion'
+    case 'FILE':
+      return moduleContent.fileResource?.title || 'Untitled File'
+    case 'URL':
+      return moduleContent.externalUrl?.title || 'Untitled External Tool'
+    case 'VIDEO':
+      return moduleContent.video?.title || 'Untitled Video'
+    default:
+      return 'Untitled Item'
+  }
+}
+
+export const getModuleContent = (moduleContent: ModuleContent) => {
+  switch (moduleContent?.contentType) {
+    case 'LESSON':
+      return moduleContent.lesson
+    case 'ASSIGNMENT':
+      return moduleContent.assignment
+    case 'DISCUSSION':
+      return moduleContent.discussion
+    case 'URL':
+      return moduleContent.externalUrl
+    case 'FILE':
+      return moduleContent.fileResource
+    case 'QUIZ':
+      return moduleContent.quiz
+    case 'VIDEO':
+      return moduleContent.video
+    default:
+      return null
+  }
 }

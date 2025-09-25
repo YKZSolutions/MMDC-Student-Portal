@@ -21,6 +21,7 @@ import { zContentType } from '@/integrations/api/client/zod.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
+import { getTitleByContentType } from '@/utils/helpers'
 import {
   Accordion,
   ActionIcon,
@@ -270,30 +271,6 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
         return <IconExternalLink size={16} />
       case 'VIDEO':
         return <IconCalendarTime size={16} />
-      default:
-        return 'Untitled Item'
-    }
-  }
-
-  const getTitleByContentType = (
-    contentType: ContentType,
-    moduleContent: BasicModuleItemDto,
-  ) => {
-    switch (contentType) {
-      case 'LESSON':
-        return moduleContent.lesson?.title || 'Untitled Lesson'
-      case 'ASSIGNMENT':
-        return moduleContent.assignment?.title || 'Untitled Assignment'
-      case 'QUIZ':
-        return moduleContent.quiz?.title || 'Untitled Quiz'
-      case 'DISCUSSION':
-        return moduleContent.discussion?.title || 'Untitled Discussion'
-      case 'FILE':
-        return moduleContent.fileResource?.title || 'Untitled File'
-      case 'URL':
-        return moduleContent.externalUrl?.title || 'Untitled External Tool'
-      case 'VIDEO':
-        return moduleContent.video?.title || 'Untitled Video'
       default:
         return 'Untitled Item'
     }
