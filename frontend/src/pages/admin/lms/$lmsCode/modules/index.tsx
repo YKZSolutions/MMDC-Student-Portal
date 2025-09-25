@@ -27,8 +27,6 @@ const { queryClient } = getContext()
 function ModulesAdminPage() {
   const [allExpanded, setAllExpanded] = useState(false)
 
-  const toggleExpandAll = () => setAllExpanded((prev) => !prev)
-
   return (
     <Box>
       <ModulesAdminPageDrawer>
@@ -160,7 +158,7 @@ function ModulesAdminPageDrawer({
             radius={'md'}
             placeholder="Section title"
             required
-            variant='filled'
+            variant="filled"
             {...form.getInputProps('title')}
           />
 
