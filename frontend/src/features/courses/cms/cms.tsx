@@ -12,12 +12,17 @@ import type {
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import type { ModuleTreeSectionDto } from '@/integrations/api/client'
-import { lmsControllerFindModuleTreeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  lmsContentControllerUpdateMutation,
+  lmsControllerFindModuleTreeOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
   convertModuleSectionsToTreeData,
+  getModuleContentKeyValuePair,
   getTypeFromLevel,
-  injectAddButtons,
+  injectAddButtons
 } from '@/utils/helpers'
 import {
   ActionIcon,
@@ -83,7 +88,34 @@ function CMSWrapper({ courseCode }: CMSProps) {
 
   const { editorState } = useEditorState()
 
+  const { mutateAsync: updateModuleContent } = useAppMutation(
+    lmsContentControllerUpdateMutation,
+    {
+      loading: {
+        message: 'Saving changes...',
+        title: 'Updating Content',
+      },
+      success: {
+        message: 'Content updated successfully',
+        title: 'Content Updated',
+      },
+      error: {
+        title: 'Failed to update content',
+        message: 'Please try again later',
+      },
+    },
+  )
+
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {}
+
+  const handleSave = async () => {
+    await updateModuleContent({
+      path: {
+        moduleContentId: editorState.id || '',
+      },
+      body: getModuleContentKeyValuePair(editorState.data, editorState.content)
+    })
+  }
 
   const handleSegmentedControl = (value: EditorView) => {
     if (value === editorViewOptions[1].value) {
@@ -150,6 +182,7 @@ function CMSWrapper({ courseCode }: CMSProps) {
                   borderStartStartRadius: '4px',
                   borderEndStartRadius: '4px',
                 }}
+                onClick={handleSave}
               >
                 Save
               </Button>
@@ -425,7 +458,7 @@ function CMSContentTree({
   const { editorState } = useEditorState()
   // Handle node selection and trigger onChange
   const handleNodeRowSelect = (node: CourseNodeModel) => {
-    if (node.data?.type === 'add-button') return
+    if (node.data?.type === 'add-button' || node.data?.type !== 'item') return
 
     if (node.data?.contentData) {
       handleNodeSelect(node.data.contentData)
