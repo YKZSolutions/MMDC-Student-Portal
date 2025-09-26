@@ -1,5 +1,4 @@
 import { mockModule } from '@/features/courses/mocks'
-import ModuleContentView from '@/features/courses/modules/content/module-content-view'
 import { getAllModuleSections, getModuleItemsFromModule } from '@/utils/helpers'
 import { getRouteApi } from '@tanstack/react-router'
 
@@ -28,11 +27,12 @@ function ModulesContentPage() {
   }
 
   return (
-    <ModuleContentView
-      moduleItem={currentItem}
-      parentSection={parentSection}
-      module={mockModule}
-    />
+    // <ModuleContentView
+    //   moduleItem={currentItem}
+    //   parentSection={parentSection}
+    //   module={mockModule}
+    // />
+    <></>
   )
 }
 

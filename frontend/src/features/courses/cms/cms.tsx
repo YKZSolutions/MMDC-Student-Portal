@@ -63,6 +63,7 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { Suspense } from 'react'
+import ModuleContentView from '../modules/content/module-content-view'
 import { CMSContentTreeSuspense } from '../suspense'
 
 type CMSProps = {
@@ -305,20 +306,18 @@ interface CourseSelectorProps {
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
   const { editorState } = useEditorState()
 
+  console.log(editorState.content)
+
   switch (editorState.view) {
     case 'content':
       return <RichTextEditor editor={editorState.content} />
     case 'preview':
       return (
-        // <ModuleContentView
-        //   module={module}
-        //   moduleItem={editorState.data}
-        //   parentSection={
-        //     getNode(editorState.data?.parentId as string)?.node as ModuleSection
-        //   }
-        //   isPreview={true}
-        // />
-        <></>
+        <ModuleContentView
+          moduleContentData={editorState.data}
+          editor={editorState.content}
+          isPreview={true}
+        />
       )
   }
 }
