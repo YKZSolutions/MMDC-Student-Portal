@@ -57,14 +57,6 @@ export class LmsSectionService {
 
     return this.prisma.client.moduleSection.create({
       data: { ...dto, moduleId, order: appendOrder },
-      include: {
-        subsections: {
-          include: {
-            subsections: true,
-          },
-        },
-        moduleContents: true,
-      },
     });
   }
 
@@ -104,7 +96,6 @@ export class LmsSectionService {
             subsections: true, // Could represent 'Exceptations', 'Expected Output', etc.,
           },
         },
-        moduleContents: true,
       },
       orderBy: {
         order: 'asc',
@@ -144,7 +135,6 @@ export class LmsSectionService {
             subsections: true,
           },
         },
-        moduleContents: true,
       },
     });
   }
@@ -175,14 +165,6 @@ export class LmsSectionService {
     dto: UpdateModuleSectionDto,
   ): Promise<DetailedModuleSectionDto> {
     return this.prisma.client.moduleSection.update({
-      include: {
-        subsections: {
-          include: {
-            subsections: true,
-          },
-        },
-        moduleContents: true,
-      },
       where: {
         id: moduleSectionId,
       },
