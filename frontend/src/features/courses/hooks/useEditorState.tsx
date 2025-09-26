@@ -3,12 +3,14 @@ import {
   type ContentNodeType,
 } from '@/features/courses/modules/types.ts'
 import type { ModuleContent } from '@/integrations/api/client'
-import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  lmsContentControllerFindOneOptions
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { createContext, useContext, type ReactNode } from 'react'
 
 export type EditorView = 'content' | 'preview'
@@ -28,7 +30,6 @@ export interface EditorState {
   type: ContentNodeType
   data: ModuleContent
   content: BlockNoteEditor
-  parentId: string | null
   view: EditorView
 }
 
@@ -49,37 +50,29 @@ const EditorContext = createContext<EditorContextValue | null>(null)
 export function EditorProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const searchParams: EditorSearchParams = useSearch({ strict: false })
+  const { itemId } = useParams({ strict: false })
 
-  // const { data: moduleSectionData } = useSuspenseQuery(
-  //   lmsSectionControllerFindOneOptions({
-  //     path: {
-  //       moduleSectionId: searchParams.id || '',
-  //     },
-  //   }),
-  // )
+  const moduleContentId = searchParams.id ?? itemId ?? ''
 
   const { data: moduleContentData } = useSuspenseQuery(
     lmsContentControllerFindOneOptions({
-      path: {
-        moduleContentId: searchParams.id || '',
-      },
+      path: { moduleContentId },
     }),
   )
-
-  // console.log('Fetched Section Data:', moduleSectionData)
-  console.log('Fetched Content Data:', moduleContentData)
 
   const { contentKey, existingContent } =
     getContentKeyAndData(moduleContentData)
 
-  const editor = useCreateBlockNote({
-    initialContent: toBlockArray(existingContent?.content),
-  })
+  const editor = useCreateBlockNote(
+    {
+      initialContent: toBlockArray(existingContent?.content),
+    },
+    [moduleContentId],
+  )
 
   const editorState = {
     id: (searchParams.id as string) || null,
     type: (searchParams.type as ContentNodeType) || 'section',
-    parentId: (searchParams.parentId as string) || null,
     view: (searchParams.view as EditorView) || 'content',
     data: moduleContentData,
     content: editor,
