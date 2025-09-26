@@ -322,6 +322,10 @@ type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
       : never
     : never
 
+export type ExistingContent<T extends ModuleContent | BasicModuleItemDto> =
+  | NonNullable<T[ModuleContentKeyFor<T>]>
+  | undefined
+
 export const getContentKeyAndData = <
   T extends ModuleContent | BasicModuleItemDto,
 >(
