@@ -1141,10 +1141,7 @@ export const zLesson = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1169,14 +1166,8 @@ export const zGradingConfig = z.object({
         z.object({}),
         z.null()
     ]),
-    rubricSchema: z.union([
-        z.object({}),
-        z.null()
-    ]),
-    questionRules: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    rubricSchema: z.array(z.object({})),
+    questionRules: z.array(z.object({})),
     get quizzes(): z.ZodOptional {
         return z.optional(z.array(zQuiz));
     },
@@ -1196,10 +1187,7 @@ export const zQuiz = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     timeLimit: z.union([
         z.int(),
         z.null()
@@ -1224,10 +1212,7 @@ export const zQuiz = z.object({
         z.int(),
         z.null()
     ]),
-    questions: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    questions: z.array(z.object({})),
     grading: z.optional(z.union([
         zGradingConfig,
         z.null()
@@ -1252,10 +1237,7 @@ export const zAssignment = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     mode: z.union([
         zAssignmentMode,
         z.null()
@@ -1304,10 +1286,7 @@ export const zDiscussion = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     isThreaded: z.union([
         z.boolean(),
         z.null()
@@ -1365,10 +1344,7 @@ export const zVideo = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     url: z.union([
         z.string(),
         z.null()
@@ -1397,10 +1373,7 @@ export const zExternalUrl = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     url: z.union([
         z.string(),
         z.null()
@@ -1452,10 +1425,7 @@ export const zFileResource = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.union([
-        z.object({}),
-        z.null()
-    ]),
+    content: z.array(z.object({})),
     url: z.union([
         z.string(),
         z.null()
@@ -1947,76 +1917,13 @@ export const zCreateContentDto = z.object({
     title: z.string()
 });
 
-export const zOmitTypeClass = z.object({
-    id: z.string(),
-    moduleId: z.string(),
-    moduleSectionId: z.union([
-        z.string(),
-        z.null()
-    ]),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
-    contentType: zContentType,
-    publishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    toPublishAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    unpublishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    lesson: z.optional(z.union([
-        zLesson,
-        z.null()
-    ])),
-    assignment: z.optional(z.union([
-        zAssignment,
-        z.null()
-    ])),
-    quiz: z.optional(z.union([
-        zQuiz,
-        z.null()
-    ])),
-    discussion: z.optional(z.union([
-        zDiscussion,
-        z.null()
-    ])),
-    video: z.optional(z.union([
-        zVideo,
-        z.null()
-    ])),
-    url: z.optional(z.union([
-        zExternalUrl,
-        z.null()
-    ])),
-    file: z.optional(z.union([
-        zFileResource,
-        z.null()
-    ]))
-});
-
 export const zUpdateLessonItemDto = z.object({
     title: z.optional(z.string()),
     subtitle: z.optional(z.union([
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     order: z.optional(z.union([
         z.int().default(0),
         z.null()
@@ -2043,10 +1950,7 @@ export const zUpdateAssignmentItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     mode: z.optional(z.union([
         zAssignmentMode,
         z.null()
@@ -2098,10 +2002,7 @@ export const zUpdateQuizItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     timeLimit: z.optional(z.union([
         z.int(),
         z.null()
@@ -2126,10 +2027,7 @@ export const zUpdateQuizItemDto = z.object({
         z.int().default(0),
         z.null()
     ])).default(0),
-    questions: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    questions: z.optional(z.array(z.object({}))),
     order: z.optional(z.union([
         z.int().default(0),
         z.null()
@@ -2157,10 +2055,7 @@ export const zUpdateDiscussionItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     isThreaded: z.optional(z.union([
         z.boolean().default(true),
         z.null()
@@ -2195,10 +2090,7 @@ export const zUpdateFileItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     url: z.optional(z.union([
         z.string(),
         z.null()
@@ -2245,10 +2137,7 @@ export const zUpdateExternalUrlItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     url: z.optional(z.union([
         z.string(),
         z.null()
@@ -2279,10 +2168,7 @@ export const zUpdateVideoItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
+    content: z.optional(z.array(z.object({}))),
     url: z.optional(z.union([
         z.string(),
         z.null()
@@ -3506,7 +3392,7 @@ export const zLmsContentControllerCreateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zLmsContentControllerCreateResponse = zOmitTypeClass;
+export const zLmsContentControllerCreateResponse = zModuleContent;
 
 export const zLmsContentControllerRemoveData = z.object({
     body: z.optional(z.never()),
@@ -3562,7 +3448,7 @@ export const zLmsContentControllerUpdateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zLmsContentControllerUpdateResponse = zOmitTypeClass;
+export const zLmsContentControllerUpdateResponse = zModuleContent;
 
 export const zLmsContentControllerPublishData = z.object({
     body: z.optional(z.never()),

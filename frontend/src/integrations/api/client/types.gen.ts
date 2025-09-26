@@ -837,9 +837,9 @@ export type Lesson = {
     moduleContentId: string;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -852,18 +852,18 @@ export type Quiz = {
     moduleContentId: string;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     timeLimit: number | null;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
     latePenalty: string | null;
     dueDate: string | null;
     gracePeriodMinutes: number | null;
-    questions: {
+    questions: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     grading?: GradingConfig | null;
     gradingId: string | null;
     createdAt: string;
@@ -878,12 +878,12 @@ export type GradingConfig = {
     curveSettings: {
         [key: string]: unknown;
     } | null;
-    rubricSchema: {
+    rubricSchema: Array<{
         [key: string]: unknown;
-    } | null;
-    questionRules: {
+    }>;
+    questionRules: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     quizzes?: Array<Quiz>;
     createdAt: string;
     updatedAt: string;
@@ -895,9 +895,9 @@ export type Assignment = {
     moduleContentId: string;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     mode: AssignmentMode | null;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -933,9 +933,9 @@ export type Discussion = {
     moduleContentId: string;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     isThreaded: boolean | null;
     requirePost: boolean | null;
     createdAt: string;
@@ -949,9 +949,9 @@ export type Video = {
     moduleContentId: string;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     url: string | null;
     duration: number | null;
     transcript: string | null;
@@ -965,9 +965,9 @@ export type ExternalUrl = {
     moduleContentId: string;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     url: string | null;
     createdAt: string;
     updatedAt: string;
@@ -1017,9 +1017,9 @@ export type FileResource = {
     moduleContent?: ModuleContent;
     title: string;
     subtitle: string | null;
-    content: {
+    content: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     url: string | null;
     name: string | null;
     path: string | null;
@@ -1198,33 +1198,12 @@ export type CreateContentDto = {
     title: string;
 };
 
-export type OmitTypeClass = {
-    id: string;
-    moduleId: string;
-    moduleSectionId: string | null;
-    order: number | null;
-    contentType: ContentType;
-    publishedAt: string | null;
-    toPublishAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    lesson?: Lesson | null;
-    assignment?: Assignment | null;
-    quiz?: Quiz | null;
-    discussion?: Discussion | null;
-    video?: Video | null;
-    url?: ExternalUrl | null;
-    file?: FileResource | null;
-};
-
 export type UpdateLessonItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     order?: number | null;
     contentType?: ContentType;
     publishedAt?: string | null;
@@ -1236,9 +1215,9 @@ export type UpdateLessonItemDto = {
 export type UpdateAssignmentItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     mode?: AssignmentMode | null;
     maxAttempts?: number | null;
     allowLateSubmission?: boolean | null;
@@ -1257,18 +1236,18 @@ export type UpdateAssignmentItemDto = {
 export type UpdateQuizItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     timeLimit?: number | null;
     maxAttempts?: number | null;
     allowLateSubmission?: boolean | null;
     latePenalty?: string | null;
     dueDate?: string | null;
     gracePeriodMinutes?: number | null;
-    questions?: {
+    questions?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     order?: number | null;
     contentType?: ContentType;
     publishedAt?: string | null;
@@ -1281,9 +1260,9 @@ export type UpdateQuizItemDto = {
 export type UpdateDiscussionItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     isThreaded?: boolean | null;
     requirePost?: boolean | null;
     order?: number | null;
@@ -1297,9 +1276,9 @@ export type UpdateDiscussionItemDto = {
 export type UpdateFileItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     url?: string | null;
     name?: string | null;
     path?: string | null;
@@ -1316,9 +1295,9 @@ export type UpdateFileItemDto = {
 export type UpdateExternalUrlItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     url?: string | null;
     order?: number | null;
     contentType?: ContentType;
@@ -1331,9 +1310,9 @@ export type UpdateExternalUrlItemDto = {
 export type UpdateVideoItemDto = {
     title?: string;
     subtitle?: string | null;
-    content?: {
+    content?: Array<{
         [key: string]: unknown;
-    } | null;
+    }>;
     url?: string | null;
     order?: number | null;
     contentType?: ContentType;
@@ -4078,7 +4057,7 @@ export type LmsContentControllerCreateErrors = {
 export type LmsContentControllerCreateError = LmsContentControllerCreateErrors[keyof LmsContentControllerCreateErrors];
 
 export type LmsContentControllerCreateResponses = {
-    201: OmitTypeClass;
+    201: ModuleContent;
 };
 
 export type LmsContentControllerCreateResponse = LmsContentControllerCreateResponses[keyof LmsContentControllerCreateResponses];
@@ -4194,7 +4173,7 @@ export type LmsContentControllerUpdateErrors = {
 export type LmsContentControllerUpdateError = LmsContentControllerUpdateErrors[keyof LmsContentControllerUpdateErrors];
 
 export type LmsContentControllerUpdateResponses = {
-    200: OmitTypeClass;
+    200: ModuleContent;
 };
 
 export type LmsContentControllerUpdateResponse = LmsContentControllerUpdateResponses[keyof LmsContentControllerUpdateResponses];

@@ -11,17 +11,16 @@ import type {
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
-  Assignment,
   BasicModuleItemDto,
   ContentType,
-  Discussion,
-  ExternalUrl,
-  FileResource,
-  Lesson,
   ModuleContent,
-  Quiz,
-  UpdateContentDto,
-  Video,
+  UpdateAssignmentItemDto,
+  UpdateDiscussionItemDto,
+  UpdateExternalUrlItemDto,
+  UpdateFileItemDto,
+  UpdateLessonItemDto,
+  UpdateQuizItemDto,
+  UpdateVideoItemDto,
 } from '@/integrations/api/client'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
 import {
@@ -364,59 +363,58 @@ export const getModuleContent = (moduleContent: ModuleContent) => {
 export const getModuleContentKeyValuePair = (
   moduleContent: ModuleContent,
   contentBlocks: BlockNoteEditor,
-): UpdateContentDto => {
+):
+  | ({ contentType: 'LESSON' } & UpdateLessonItemDto)
+  | ({ contentType: 'ASSIGNMENT' } & UpdateAssignmentItemDto)
+  | ({ contentType: 'QUIZ' } & UpdateQuizItemDto)
+  | ({ contentType: 'DISCUSSION' } & UpdateDiscussionItemDto)
+  | ({ contentType: 'URL' } & UpdateExternalUrlItemDto)
+  | ({ contentType: 'FILE' } & UpdateFileItemDto)
+  | ({ contentType: 'VIDEO' } & UpdateVideoItemDto) => {
   switch (moduleContent?.contentType) {
     case 'LESSON':
       return {
-        lesson: {
-          ...moduleContent.lesson,
-          content: contentBlocks.document as unknown,
-        } as Lesson,
-      }
-
+        contentType: 'LESSON',
+        ...moduleContent.lesson,
+        content: contentBlocks.document,
+      } as const
     case 'ASSIGNMENT':
       return {
-        assignment: {
-          ...moduleContent.assignment,
-          content: contentBlocks.document as unknown,
-        } as Assignment,
-      }
+        contentType: 'ASSIGNMENT',
+        ...moduleContent.assignment,
+        content: contentBlocks.document,
+        gradingId: moduleContent.assignment?.gradingId ?? undefined,
+      } as const
     case 'DISCUSSION':
       return {
-        discussion: {
-          ...moduleContent.discussion,
-          content: contentBlocks.document as unknown,
-        } as Discussion,
-      }
+        contentType: 'DISCUSSION',
+        ...moduleContent.discussion,
+        content: contentBlocks.document,
+      } as const
     case 'URL':
       return {
-        url: {
-          ...moduleContent.url,
-          content: contentBlocks.document as unknown,
-        } as ExternalUrl,
-      }
+        contentType: 'URL',
+        ...moduleContent.url,
+        content: contentBlocks.document,
+      } as const
     case 'FILE':
       return {
-        file: {
-          ...moduleContent.file,
-          content: contentBlocks.document as unknown,
-        } as FileResource,
-      }
+        contentType: 'FILE',
+        ...moduleContent.file,
+        content: contentBlocks.document,
+      } as const
     case 'QUIZ':
       return {
-        quiz: {
-          ...moduleContent.quiz,
-          content: contentBlocks.document as unknown,
-        } as Quiz,
-      }
+        contentType: 'QUIZ',
+        ...moduleContent.quiz,
+        content: contentBlocks.document as Block[],
+        gradingId: moduleContent.quiz?.gradingId ?? undefined,
+      } as const
     case 'VIDEO':
       return {
-        video: {
-          ...moduleContent.video,
-          content: contentBlocks.document as unknown,
-        } as Video,
-      }
-    default:
-      return {} as UpdateContentDto // fallback, but keeps typing happy
+        contentType: 'VIDEO',
+        ...moduleContent.video,
+        content: contentBlocks.document as Block[],
+      } as const
   }
 }
