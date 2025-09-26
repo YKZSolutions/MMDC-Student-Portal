@@ -700,7 +700,7 @@ model ModuleSection {
   moduleContents ModuleContent[]
 
   title String @db.VarChar(255)
-  order Int    @default(0)
+  order Int?   @default(0)
 
   publishedAt   DateTime?
   toPublishAt   DateTime?
@@ -744,7 +744,7 @@ model ModuleContent {
   /// @DtoApiHidden
   moduleSection   ModuleSection? @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
 
-  order       Int         @default(0)
+  order       Int?        @default(0)
   contentType ContentType
 
   publishedAt   DateTime?

@@ -50,8 +50,9 @@ export class ModuleContent {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  order: number;
+  order: number | null;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
