@@ -2,7 +2,7 @@ import NoItemFound from '@/components/no-item-found'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
   type BasicModuleItemDto,
-  type ModuleTreeSectionDto
+  type ModuleTreeSectionDto,
 } from '@/integrations/api/client'
 import {
   lmsContentControllerPublishMutation,
@@ -12,7 +12,7 @@ import {
   lmsControllerFindModuleTreeQueryKey,
   lmsSectionControllerPublishSectionMutation,
   lmsSectionControllerRemoveMutation,
-  lmsSectionControllerUnpublishSectionMutation
+  lmsSectionControllerUnpublishSectionMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -33,7 +33,7 @@ import {
   ThemeIcon,
   Title,
   Tooltip,
-  useMantineTheme
+  useMantineTheme,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import {
@@ -242,6 +242,16 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
     )
 
   const navigateToItem = () => {
+    const role = authUser.role
+
+    if (role == 'admin') {
+      return navigate({
+        from: '/lms/$lmsCode/modules',
+        to: `edit`,
+        search: { id: moduleContent.id, view: 'preview' },
+      })
+    }
+
     navigate({
       from: '/lms/$lmsCode/modules',
       to: `$itemId`,
