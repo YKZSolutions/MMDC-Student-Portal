@@ -343,7 +343,8 @@ export class LmsService {
   @Log({
     logArgsMessage: ({ id, role, userId }) =>
       `Fetching module ${id} for role=${role} user=${userId}`,
-    logSuccessMessage: (_, { id }) => `Fetched module ${id}`,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    logSuccessMessage: (result, { id }) => `Fetched module ${id}`,
     logErrorMessage: (err, { id }) =>
       `Fetching module ${id} | Error: ${err.message}`,
   })

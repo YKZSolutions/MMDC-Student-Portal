@@ -7,7 +7,6 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2023",
-    "downlevelIteration": true,
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./src",
