@@ -28,25 +28,36 @@ export class UpdateFileResourceDto {
   @ApiProperty({
     type: 'string',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsString()
-  name?: string;
+  url?: string | null;
   @ApiProperty({
     type: 'string',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsString()
-  path?: string;
+  name?: string | null;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  path?: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsInt()
-  size?: number;
+  size?: number | null;
   @ApiProperty({
     type: 'string',
     required: false,

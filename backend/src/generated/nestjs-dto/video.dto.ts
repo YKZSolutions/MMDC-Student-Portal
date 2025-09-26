@@ -22,8 +22,9 @@ export class VideoDto {
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  url: string;
+  url: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

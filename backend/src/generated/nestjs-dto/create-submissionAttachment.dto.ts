@@ -13,7 +13,7 @@ export class CreateSubmissionAttachmentDto {
   })
   @IsNotEmpty()
   @IsString()
-  fileUrl: string;
+  url: string;
   @ApiProperty({
     type: 'string',
   })

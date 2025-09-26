@@ -22,8 +22,9 @@ export class ExternalUrlDto {
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  url: string;
+  url: string | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

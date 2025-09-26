@@ -37,10 +37,11 @@ export class UpdateAssignmentDto {
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsEnum(AssignmentMode)
-  mode?: AssignmentMode;
+  mode?: AssignmentMode | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -53,10 +54,11 @@ export class UpdateAssignmentDto {
   @ApiProperty({
     type: 'boolean',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsBoolean()
-  allowLateSubmission?: boolean;
+  allowLateSubmission?: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

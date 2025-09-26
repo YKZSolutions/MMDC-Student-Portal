@@ -28,10 +28,11 @@ export class UpdateVideoDto {
   @ApiProperty({
     type: 'string',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsString()
-  url?: string;
+  url?: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

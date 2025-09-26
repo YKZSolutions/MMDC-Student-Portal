@@ -36,10 +36,12 @@ export class CreateAssignmentDto {
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(AssignmentMode)
-  mode: AssignmentMode;
+  mode?: AssignmentMode | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -51,10 +53,12 @@ export class CreateAssignmentDto {
   maxAttempts?: number | null;
   @ApiProperty({
     type: 'boolean',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsBoolean()
-  allowLateSubmission: boolean;
+  allowLateSubmission?: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

@@ -28,9 +28,10 @@ export class UpdateQuizDto {
   @ApiProperty({
     type: () => Object,
     required: false,
+    nullable: true,
   })
   @IsOptional()
-  content?: Prisma.InputJsonValue;
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -52,10 +53,11 @@ export class UpdateQuizDto {
   @ApiProperty({
     type: 'boolean',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsBoolean()
-  allowLateSubmission?: boolean;
+  allowLateSubmission?: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -87,7 +89,8 @@ export class UpdateQuizDto {
   @ApiProperty({
     type: () => Object,
     required: false,
+    nullable: true,
   })
   @IsOptional()
-  questions?: Prisma.InputJsonValue;
+  questions?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }

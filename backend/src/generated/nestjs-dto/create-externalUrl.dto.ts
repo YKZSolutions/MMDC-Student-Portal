@@ -26,8 +26,10 @@ export class CreateExternalUrlDto {
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  url: string;
+  url?: string | null;
 }

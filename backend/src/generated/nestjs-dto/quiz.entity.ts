@@ -35,8 +35,9 @@ export class Quiz {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
+    nullable: true,
   })
-  content: Prisma.JsonValue;
+  content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -51,8 +52,9 @@ export class Quiz {
   maxAttempts: number | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  allowLateSubmission: boolean;
+  allowLateSubmission: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -73,17 +75,20 @@ export class Quiz {
   gracePeriodMinutes: number | null;
   @ApiProperty({
     type: () => Object,
+    nullable: true,
   })
-  questions: Prisma.JsonValue;
+  questions: Prisma.JsonValue | null;
   @ApiProperty({
     type: () => GradingConfig,
     required: false,
+    nullable: true,
   })
-  grading?: GradingConfigAsType;
+  grading?: GradingConfigAsType | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  gradingId: string;
+  gradingId: string | null;
   @ApiHideProperty()
   submissions?: QuizSubmissionAsType[];
   @ApiProperty({

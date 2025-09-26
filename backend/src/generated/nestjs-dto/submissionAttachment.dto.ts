@@ -12,7 +12,7 @@ export class SubmissionAttachmentDto {
   @ApiProperty({
     type: 'string',
   })
-  fileUrl: string;
+  url: string;
   @ApiProperty({
     type: 'string',
   })

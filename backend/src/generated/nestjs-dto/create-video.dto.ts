@@ -26,10 +26,12 @@ export class CreateVideoDto {
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  url: string;
+  url?: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

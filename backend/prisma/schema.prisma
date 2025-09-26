@@ -759,13 +759,13 @@ model ModuleContent {
   deletedAt DateTime?
 
   // Relations to specific content types
-  lesson       Lesson?
-  assignment   Assignment?
-  quiz         Quiz?
-  discussion   Discussion?
-  video        Video?
-  externalUrl  ExternalUrl?
-  fileResource FileResource?
+  lesson     Lesson?
+  assignment Assignment?
+  quiz       Quiz?
+  discussion Discussion?
+  video      Video?
+  url        ExternalUrl?
+  file       FileResource?
 
   studentProgress ContentProgress[]
 
@@ -810,10 +810,10 @@ model Assignment {
   subtitle String? @db.VarChar(500)
   content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
 
-  mode AssignmentMode
+  mode AssignmentMode?
 
   maxAttempts         Int?      @db.SmallInt
-  allowLateSubmission Boolean
+  allowLateSubmission Boolean?
   latePenalty         Decimal?  @db.Decimal(5, 2)
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
@@ -825,8 +825,8 @@ model Assignment {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  grading   GradingConfig @relation(fields: [gradingId], references: [id], onDelete: Restrict)
-  gradingId String        @db.Uuid
+  grading   GradingConfig? @relation(fields: [gradingId], references: [id], onDelete: Restrict)
+  gradingId String?        @db.Uuid
 
   /// @DtoApiHidden
   submissions AssignmentSubmission[]
@@ -920,9 +920,9 @@ model SubmissionAttachment {
 
   name String
 
-  fileUrl String // Files, links, Images, etc.
-  type    String // e.g., "document", "image", "code"
-  size    Int // in bytes
+  url  String // Files, links, Images, etc.
+  type String // e.g., "document", "image", "code"
+  size Int // in bytes
 
   /// @DtoReadOnly
   createdAt DateTime @default(now())
@@ -935,20 +935,20 @@ model Quiz {
   moduleContentId String        @unique @db.Uuid
   title           String        @db.VarChar(255)
   subtitle        String?       @db.VarChar(500)
-  content         Json // Structured quiz content (eg. description, instructions, etc.)
+  content         Json? // Structured quiz content (eg. description, instructions, etc.)
 
   timeLimit           Int? // in minutes
   maxAttempts         Int?      @db.SmallInt
-  allowLateSubmission Boolean
+  allowLateSubmission Boolean?
   latePenalty         Decimal?  @db.Decimal(5, 2)
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
-  questions Json // Store all questions in a structured format
+  questions Json? // Store all questions in a structured format
 
   // Grading per question will be overriden in the UI if present in the questions
-  grading   GradingConfig @relation(fields: [gradingId], references: [id], onDelete: Restrict)
-  gradingId String        @db.Uuid
+  grading   GradingConfig? @relation(fields: [gradingId], references: [id], onDelete: Restrict)
+  gradingId String?        @db.Uuid
 
   /// @DtoApiHidden
   submissions QuizSubmission[]
@@ -1116,7 +1116,7 @@ model Video {
   subtitle String? @db.VarChar(500)
   content  Json?
 
-  url        String
+  url        String?
   duration   Int? // in seconds
   transcript String?
 
@@ -1138,7 +1138,7 @@ model ExternalUrl {
   subtitle String? @db.VarChar(500)
   content  Json?
 
-  url String
+  url String?
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -1157,9 +1157,11 @@ model FileResource {
   subtitle String? @db.VarChar(500)
   content  Json?
 
-  name     String
-  path     String
-  size     Int // in bytes
+  url String? //download url
+
+  name     String?
+  path     String?
+  size     Int? // in bytes
   mimeType String?
 
   /// @DtoReadOnly

@@ -27,9 +27,11 @@ export class CreateQuizDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
-  content: Prisma.InputJsonValue;
+  @IsOptional()
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -50,10 +52,12 @@ export class CreateQuizDto {
   maxAttempts?: number | null;
   @ApiProperty({
     type: 'boolean',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsBoolean()
-  allowLateSubmission: boolean;
+  allowLateSubmission?: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -84,7 +88,9 @@ export class CreateQuizDto {
   gracePeriodMinutes?: number | null;
   @ApiProperty({
     type: () => Object,
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
-  questions: Prisma.InputJsonValue;
+  @IsOptional()
+  questions?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }

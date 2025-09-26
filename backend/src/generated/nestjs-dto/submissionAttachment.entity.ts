@@ -34,7 +34,7 @@ export class SubmissionAttachment {
   @ApiProperty({
     type: 'string',
   })
-  fileUrl: string;
+  url: string;
   @ApiProperty({
     type: 'string',
   })

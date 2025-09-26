@@ -15,7 +15,7 @@ export class UpdateSubmissionAttachmentDto {
   })
   @IsOptional()
   @IsString()
-  fileUrl?: string;
+  url?: string;
   @ApiProperty({
     type: 'string',
     required: false,
