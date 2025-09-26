@@ -20,9 +20,9 @@ import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
   convertModuleSectionsToTreeData,
-  getModuleContentKeyValuePair,
+  getContentKeyAndData,
   getTypeFromLevel,
-  injectAddButtons
+  injectAddButtons,
 } from '@/utils/helpers'
 import {
   ActionIcon,
@@ -109,11 +109,21 @@ function CMSWrapper({ courseCode }: CMSProps) {
   const handleCourseChange = (course: CourseBasicDetails | undefined) => {}
 
   const handleSave = async () => {
+    const data = editorState.data
+    if (!data) return
+
+    const { contentKey, existingContent } = getContentKeyAndData(data)
+
     await updateModuleContent({
       path: {
         moduleContentId: editorState.id || '',
       },
-      body: getModuleContentKeyValuePair(editorState.data, editorState.content)
+      body: {
+        [contentKey]: {
+          ...(existingContent ?? {}),
+          content: editorState.content.document,
+        },
+      },
     })
   }
 

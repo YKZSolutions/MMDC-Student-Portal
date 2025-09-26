@@ -11,20 +11,19 @@ import type {
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
-  Assignment,
   BasicModuleItemDto,
   ContentType,
-  Discussion,
-  ExternalUrl,
-  FileResource,
-  Lesson,
-  ModuleContent,
-  Quiz,
-  UpdateContentDto,
-  Video,
+  ModuleContent
 } from '@/integrations/api/client'
-import type { Block, BlockNoteEditor } from '@blocknote/core'
-import { IconFileText, IconClipboard, IconPaperclip, IconMessageCircle, IconExternalLink, IconCalendarTime } from '@tabler/icons-react'
+import type { Block } from '@blocknote/core'
+import {
+  IconCalendarTime,
+  IconClipboard,
+  IconExternalLink,
+  IconFileText,
+  IconMessageCircle,
+  IconPaperclip,
+} from '@tabler/icons-react'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -291,22 +290,25 @@ export const toBlockArray = (content: unknown): Block[] => {
 export const getTitleByContentType = (
   contentType: ContentType,
   moduleContent: BasicModuleItemDto,
+  title?: string | undefined,
 ) => {
   switch (contentType) {
     case 'LESSON':
-      return moduleContent.lesson?.title || 'Untitled Lesson'
+      return title || moduleContent.lesson?.title || 'Untitled Lesson'
     case 'ASSIGNMENT':
-      return moduleContent.assignment?.title || 'Untitled Assignment'
+      return title || moduleContent.assignment?.title || 'Untitled Assignment'
     case 'QUIZ':
-      return moduleContent.quiz?.title || 'Untitled Quiz'
+      return title || moduleContent.quiz?.title || 'Untitled Quiz'
     case 'DISCUSSION':
-      return moduleContent.discussion?.title || 'Untitled Discussion'
+      return title || moduleContent.discussion?.title || 'Untitled Discussion'
     case 'FILE':
-      return moduleContent.fileResource?.title || 'Untitled File'
+      return title || moduleContent.fileResource?.title || 'Untitled File'
     case 'URL':
-      return moduleContent.externalUrl?.title || 'Untitled External Tool'
+      return (
+        title || moduleContent.externalUrl?.title || 'Untitled External Tool'
+      )
     case 'VIDEO':
-      return moduleContent.video?.title || 'Untitled Video'
+      return title || moduleContent.video?.title || 'Untitled Video'
     default:
       return 'Untitled Item'
   }
@@ -354,62 +356,15 @@ export const getModuleContent = (moduleContent: ModuleContent) => {
   }
 }
 
-export const getModuleContentKeyValuePair = (
-  moduleContent: ModuleContent,
-  contentBlocks: BlockNoteEditor,
-): UpdateContentDto => {
-  switch (moduleContent?.contentType) {
-    case 'LESSON':
-      return {
-        lesson: {
-          ...moduleContent.lesson,
-          content: contentBlocks.document as unknown,
-        } as Lesson,
-      }
+export const getContentKeyAndData = <T extends { contentType: string }>(
+  data: T,
+): {
+  contentKey: keyof T
+  existingContent: Record<string, T> | undefined
+} => {
+  // Narrow down the dynamic key safely
+  const contentKey = data.contentType.toLowerCase() as keyof T
+  const existingContent = data[contentKey] as Record<string, T> | undefined
 
-    case 'ASSIGNMENT':
-      return {
-        assignment: {
-          ...moduleContent.assignment,
-          content: contentBlocks.document as unknown,
-        } as Assignment,
-      }
-    case 'DISCUSSION':
-      return {
-        discussion: {
-          ...moduleContent.discussion,
-          content: contentBlocks.document as unknown,
-        } as Discussion,
-      }
-    case 'URL':
-      return {
-        externalUrl: {
-          ...moduleContent.externalUrl,
-          content: contentBlocks.document as unknown,
-        } as ExternalUrl,
-      }
-    case 'FILE':
-      return {
-        file: {
-          ...moduleContent.fileResource,
-          content: contentBlocks.document as unknown,
-        } as FileResource,
-      }
-    case 'QUIZ':
-      return {
-        quiz: {
-          ...moduleContent.quiz,
-          content: contentBlocks.document as unknown,
-        } as Quiz,
-      }
-    case 'VIDEO':
-      return {
-        video: {
-          ...moduleContent.video,
-          content: contentBlocks.document as unknown,
-        } as Video,
-      }
-    default:
-      return {} as UpdateContentDto // fallback, but keeps typing happy
-  }
+  return { contentKey, existingContent }
 }
