@@ -121,6 +121,9 @@ function ModulesAdminPageDrawer({
       path: { moduleId: lmsCode },
       body: { title: form.getValues().title.trim() },
     })
+
+    setDrawer(false)
+    form.reset()
   }
 
   // single helper to update drawer state
