@@ -1,3 +1,4 @@
+import { Loader } from '@/components/loader-component'
 import RichTextEditor from '@/components/rich-text-editor.tsx'
 import {
   EditorProvider,
@@ -74,9 +75,11 @@ type CMSProps = {
 
 export function CMS(props: CMSProps) {
   return (
-    <EditorProvider>
-      <CMSWrapper {...props} />
-    </EditorProvider>
+    <Suspense fallback={<Loader />}>
+      <EditorProvider>
+        <CMSWrapper {...props} />
+      </EditorProvider>
+    </Suspense>
   )
 }
 
@@ -284,11 +287,7 @@ function CMSWrapper({ courseCode }: CMSProps) {
         opened={isTreeOpened}
         onClose={closeTree}
       >
-        <CMSCourseStructure
-          courseCode={courseCode}
-          handleCourseChange={handleCourseChange}
-          closeTree={closeTree}
-        />
+        <CMSCourseStructure closeTree={closeTree} />
       </Drawer>
 
       <CMSStatusBar />
@@ -339,8 +338,6 @@ function CMSCourseStructureQueryProvider({
     }),
   )
 
-  console.log(moduleTreeData?.moduleSections)
-
   const moduleTree = moduleTreeData?.moduleSections
 
   return children({
@@ -348,15 +345,7 @@ function CMSCourseStructureQueryProvider({
   })
 }
 
-function CMSCourseStructure({
-  courseCode,
-  handleCourseChange,
-  closeTree,
-}: {
-  courseCode?: string
-  handleCourseChange: (course: CourseBasicDetails | undefined) => void
-  closeTree: () => void
-}) {
+function CMSCourseStructure({ closeTree }: { closeTree: () => void }) {
   const { editorState, handleAdd, handleNavigate } = useEditorState()
 
   return (
