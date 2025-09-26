@@ -1,11 +1,15 @@
-import type {
-  ContentNode,
-  ContentNodeType,
+import {
+  type ContentNode,
+  type ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import { convertModuleToTreeData } from '@/utils/helpers'
+import type { ModuleContent } from '@/integrations/api/client'
+import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getModuleContent, toBlockArray } from '@/utils/helpers.tsx'
+import type { BlockNoteEditor } from '@blocknote/core'
+import { useCreateBlockNote } from '@blocknote/react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { createContext, useContext, type ReactNode } from 'react'
-import { mockModule } from '../mocks'
 
 export type EditorView = 'content' | 'preview'
 
@@ -20,25 +24,24 @@ export const editorViewOptions: EditorViewOption[] = [
 ]
 
 export interface EditorState {
+  id: string | null
   type: ContentNodeType
-  data: ContentNode | null
+  data: ModuleContent
+  content: BlockNoteEditor
   parentId: string | null
   view: EditorView
 }
 
-export interface EditorSearchParams extends Omit<EditorState, 'data'> {
+export interface EditorSearchParams
+  extends Omit<EditorState, 'data' | 'content'> {
   id: string | null
 }
 
 interface EditorContextValue {
   editorState: EditorState
   handleAdd: (parentId?: string, newType?: ContentNodeType) => void
-  handleUpdate: (
-    nodeType: ContentNodeType,
-    nodeData: ContentNode,
-    view: EditorView,
-  ) => void
   handlePreview: (nodeType: ContentNodeType, nodeData: ContentNode) => void
+  handleNavigate: (nodeData: ContentNode) => void
 }
 
 const EditorContext = createContext<EditorContextValue | null>(null)
@@ -47,20 +50,37 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const searchParams: EditorSearchParams = useSearch({ strict: false })
 
-  // TODO: Implement the real fetching of data here
-  const data =
-    convertModuleToTreeData(mockModule).find(
-      (node) => node.id === searchParams.id,
-    )?.data?.contentData || null
+  // const { data: moduleSectionData } = useSuspenseQuery(
+  //   lmsSectionControllerFindOneOptions({
+  //     path: {
+  //       moduleSectionId: searchParams.id || '',
+  //     },
+  //   }),
+  // )
 
-  console.log(data)
+  const { data: moduleContentData } = useSuspenseQuery(
+    lmsContentControllerFindOneOptions({
+      path: {
+        moduleContentId: searchParams.id || '',
+      },
+    }),
+  )
+
+  // console.log('Fetched Section Data:', moduleSectionData)
+  console.log('Fetched Content Data:', moduleContentData)
+
+  const editor = useCreateBlockNote({
+    initialContent: toBlockArray(getModuleContent(moduleContentData)?.content),
+  })
 
   const editorState = {
+    id: (searchParams.id as string) || null,
     type: (searchParams.type as ContentNodeType) || 'section',
     parentId: (searchParams.parentId as string) || null,
     view: (searchParams.view as EditorView) || 'content',
-    id: (searchParams.id as string) || null,
-  } satisfies EditorSearchParams
+    data: moduleContentData,
+    content: editor,
+  } satisfies EditorState
 
   const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
     // TODO: Implement adding new nodes using mutation
@@ -72,19 +92,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     // })
   }
 
-  const handleUpdate = (
-    nodeType: ContentNodeType,
-    nodeData: ContentNode,
-    view: EditorView,
-  ) => {
-    // TODO: Implement updating nodes using mutation
-    // setEditorState({
-    //   type: nodeType,
-    //   data: nodeData,
-    //   parentId: null,
-    //   view,
-    // })
+  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}
 
+  const handleNavigate = (nodeData: ContentNode) => {
     navigate({
       to: '.',
       search: (prev) => ({
@@ -94,15 +104,13 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}
-
   return (
     <EditorContext.Provider
       value={{
-        editorState: { ...editorState, data } as EditorState,
+        editorState,
         handleAdd,
-        handleUpdate,
         handlePreview,
+        handleNavigate,
       }}
     >
       {children}

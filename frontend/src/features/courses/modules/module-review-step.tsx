@@ -7,7 +7,7 @@ import {
 import {
   getModuleItemsFromModule,
   getModuleSubSectionsFromSections,
-} from '@/utils/helpers.ts'
+} from '@/utils/helpers.tsx'
 import {
   Alert,
   Badge,

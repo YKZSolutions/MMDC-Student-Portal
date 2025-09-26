@@ -1,27 +1,28 @@
 import RichTextEditor from '@/components/rich-text-editor.tsx'
-import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
 import {
   EditorProvider,
   type EditorView,
   editorViewOptions,
   useEditorState,
 } from '@/features/courses/hooks/useEditorState.tsx'
-import { mockInitialContent } from '@/features/courses/mocks.ts'
-import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
 import type {
   ContentNode,
   ContentNodeType,
   CourseNodeModel,
-  Module,
-  ModuleItem,
-  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
+import type { ModuleTreeSectionDto } from '@/integrations/api/client'
+import {
+  lmsContentControllerUpdateMutation,
+  lmsControllerFindModuleTreeOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
-  convertModuleToTreeData,
+  convertModuleSectionsToTreeData,
+  getModuleContentKeyValuePair,
   getTypeFromLevel,
-  injectAddButtons,
+  injectAddButtons
 } from '@/utils/helpers'
 import {
   ActionIcon,
@@ -37,7 +38,6 @@ import {
   Select,
   Stack,
   Text,
-  Title,
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -60,7 +60,10 @@ import {
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import { Suspense } from 'react'
+import { CMSContentTreeSuspense } from '../suspense'
 
 type CMSProps = {
   courseCode?: string
@@ -76,19 +79,42 @@ export function CMS(props: CMSProps) {
   )
 }
 
-function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
+function CMSWrapper({ courseCode }: CMSProps) {
   const navigate = useNavigate()
   const theme = useMantineTheme()
 
   const [isTreeOpened, { open: openTree, close: closeTree }] =
     useDisclosure(false)
 
-  const { courseDetails, setCourseDetails } = useCourseData(courseCode)
-
   const { editorState } = useEditorState()
 
-  const handleCourseChange = (course: CourseBasicDetails | undefined) => {
-    setCourseDetails(course)
+  const { mutateAsync: updateModuleContent } = useAppMutation(
+    lmsContentControllerUpdateMutation,
+    {
+      loading: {
+        message: 'Saving changes...',
+        title: 'Updating Content',
+      },
+      success: {
+        message: 'Content updated successfully',
+        title: 'Content Updated',
+      },
+      error: {
+        title: 'Failed to update content',
+        message: 'Please try again later',
+      },
+    },
+  )
+
+  const handleCourseChange = (course: CourseBasicDetails | undefined) => {}
+
+  const handleSave = async () => {
+    await updateModuleContent({
+      path: {
+        moduleContentId: editorState.id || '',
+      },
+      body: getModuleContentKeyValuePair(editorState.data, editorState.content)
+    })
   }
 
   const handleSegmentedControl = (value: EditorView) => {
@@ -132,14 +158,21 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
               defaultValue={editorState.view}
               value={editorState.view}
               onChange={(view) => handleSegmentedControl(view as EditorView)}
-              data={editorViewOptions}
+              data={editorViewOptions.map((option) => ({
+                label: option.label,
+                value: option.value,
+                disabled:
+                  option.value === 'preview' && !editorState.data?.id
+                    ? true
+                    : false,
+              }))}
             />
           </Group>
 
-          <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
+          {/* <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
             {courseDetails?.courseCode ? `${courseDetails?.courseCode}` : ''}{' '}
             {courseDetails?.courseName}{' '}
-          </Title>
+          </Title> */}
 
           <Group gap={'xs'}>
             <Group wrap="nowrap" gap={0}>
@@ -149,6 +182,7 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
                   borderStartStartRadius: '4px',
                   borderEndStartRadius: '4px',
                 }}
+                onClick={handleSave}
               >
                 Save
               </Button>
@@ -259,43 +293,50 @@ interface CourseSelectorProps {
 }
 
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
-  const { module, updateCourseContent, getNode } = useCourseData(courseCode)
-
-  const { editorState, handleUpdate } = useEditorState()
+  const { editorState } = useEditorState()
 
   switch (editorState.view) {
     case 'content':
-      return (
-        <RichTextEditor
-          content={
-            editorState.data && 'content' in editorState.data
-              ? editorState.data?.content || mockInitialContent
-              : null
-          }
-          onUpdate={(newContent) => {
-            updateCourseContent(newContent, editorState.data?.id)
-            if (editorState.data) {
-              const updatedNode = {
-                ...editorState.data,
-                content: newContent,
-              }
-              handleUpdate(editorState.type, updatedNode, editorState.view)
-            }
-          }}
-        />
-      )
+      return <RichTextEditor editor={editorState.content} />
     case 'preview':
       return (
-        <ModuleContentView
-          module={module}
-          moduleItem={editorState.data as ModuleItem}
-          parentSection={
-            getNode(editorState.data?.parentId as string)?.node as ModuleSection
-          }
-          isPreview={true}
-        />
+        // <ModuleContentView
+        //   module={module}
+        //   moduleItem={editorState.data}
+        //   parentSection={
+        //     getNode(editorState.data?.parentId as string)?.node as ModuleSection
+        //   }
+        //   isPreview={true}
+        // />
+        <></>
       )
   }
+}
+
+function CMSCourseStructureQueryProvider({
+  children,
+}: {
+  children: (props: {
+    moduleTree: ModuleTreeSectionDto[] | null | undefined
+  }) => React.ReactNode
+}) {
+  const { lmsCode } = useParams({ strict: false })
+
+  const { data: moduleTreeData } = useSuspenseQuery(
+    lmsControllerFindModuleTreeOptions({
+      path: {
+        id: lmsCode || '',
+      },
+    }),
+  )
+
+  console.log(moduleTreeData?.moduleSections)
+
+  const moduleTree = moduleTreeData?.moduleSections
+
+  return children({
+    moduleTree,
+  })
 }
 
 function CMSCourseStructure({
@@ -307,9 +348,7 @@ function CMSCourseStructure({
   handleCourseChange: (course: CourseBasicDetails | undefined) => void
   closeTree: () => void
 }) {
-  const { courseDetails, module } = useCourseData(courseCode)
-
-  const { editorState, handleAdd, handleUpdate } = useEditorState()
+  const { editorState, handleAdd, handleNavigate } = useEditorState()
 
   return (
     <Box py={'md'} h={'100%'}>
@@ -335,13 +374,19 @@ function CMSCourseStructure({
           <Divider />
         </Stack>
 
-        <CMSContentTree
-          handleAdd={handleAdd}
-          module={module}
-          handleNodeSelect={(nodeData) => {
-            handleUpdate(editorState.type, nodeData, editorState.view)
-          }}
-        />
+        <Suspense fallback={<CMSContentTreeSuspense />}>
+          <CMSCourseStructureQueryProvider>
+            {({ moduleTree }) => (
+              <CMSContentTree
+                handleAdd={handleAdd}
+                moduleTree={moduleTree}
+                handleNodeSelect={(nodeData) => {
+                  handleNavigate(nodeData)
+                }}
+              />
+            )}
+          </CMSCourseStructureQueryProvider>
+        </Suspense>
       </Container>
     </Box>
   )
@@ -400,20 +445,20 @@ function CMSStatusBar({}: StatusBarProps) {
 }
 
 interface ContentTreeProps {
-  module: Module
+  moduleTree: ModuleTreeSectionDto[] | null | undefined
   handleAdd: (parentId: string, nodeType: ContentNodeType) => void
   handleNodeSelect: (nodeData: ContentNode) => void
 }
 
 function CMSContentTree({
-  module,
+  moduleTree,
   handleAdd,
   handleNodeSelect,
 }: ContentTreeProps) {
   const { editorState } = useEditorState()
   // Handle node selection and trigger onChange
   const handleNodeRowSelect = (node: CourseNodeModel) => {
-    if (node.data?.type === 'add-button') return
+    if (node.data?.type === 'add-button' || node.data?.type !== 'item') return
 
     if (node.data?.contentData) {
       handleNodeSelect(node.data.contentData)
@@ -424,7 +469,9 @@ function CMSContentTree({
     <DndProvider backend={MultiBackend} options={getBackendOptions()}>
       <Stack gap={0} h="100%">
         <Tree
-          tree={injectAddButtons(convertModuleToTreeData(module))}
+          tree={injectAddButtons(
+            convertModuleSectionsToTreeData(moduleTree || []),
+          )}
           sort={false}
           rootId={'root'}
           insertDroppableFirst={false}
