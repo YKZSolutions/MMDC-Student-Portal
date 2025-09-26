@@ -315,7 +315,7 @@ export class QuizSubmissionService {
 
     return {
       ...result,
-      answers: result.answers as Prisma.JsonValue,
+      answers: result.answers as Prisma.JsonArray,
     };
   }
 
@@ -341,7 +341,7 @@ export class QuizSubmissionService {
     });
     return results.map((r) => ({
       ...r,
-      answers: r.answers as Prisma.JsonValue,
+      answers: r.answers as Prisma.JsonArray,
     }));
   }
 
@@ -856,7 +856,7 @@ export class QuizSubmissionService {
   private mapSubmission(submission: PrismaQuizSubmission): QuizSubmission {
     return {
       ...submission,
-      answers: submission.answers as Prisma.JsonValue,
+      answers: submission.answers as Prisma.JsonArray,
     };
   }
 }

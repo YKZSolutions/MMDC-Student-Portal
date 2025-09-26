@@ -206,8 +206,8 @@ export class GradingService {
           finalScore,
           grade,
           feedback: dto.feedback,
-          rubricScores:
-            (dto.rubricScores as Prisma.JsonValue) || Prisma.JsonNull,
+          rubricScores: dto.rubricScores,
+          questionScores: null,
         },
       });
 
@@ -218,8 +218,8 @@ export class GradingService {
 
       return {
         ...gradeRecord,
-        rubricScores: gradeRecord.rubricScores as Prisma.JsonValue,
-        questionScores: null,
+        rubricScores: gradeRecord.rubricScores as Prisma.JsonArray,
+        questionScores: [],
       };
     });
   }
@@ -285,8 +285,7 @@ export class GradingService {
           finalScore,
           grade,
           feedback: dto.feedback,
-          questionScores:
-            (dto.questionScores as Prisma.JsonValue) || Prisma.JsonNull,
+          questionScores: dto.questionScores,
         },
       });
 
@@ -297,8 +296,8 @@ export class GradingService {
 
       return {
         ...gradeRecord,
-        rubricScores: null,
-        questionScores: gradeRecord.questionScores as Prisma.JsonValue,
+        rubricScores: [],
+        questionScores: gradeRecord.questionScores as Prisma.JsonArray,
       };
     });
   }
@@ -367,8 +366,8 @@ export class GradingService {
 
     return {
       ...updated,
-      rubricScores: updated.rubricScores as Prisma.JsonValue,
-      questionScores: updated.questionScores as Prisma.JsonValue,
+      rubricScores: updated.rubricScores as Prisma.JsonArray,
+      questionScores: updated.questionScores as Prisma.JsonArray,
     };
   }
 

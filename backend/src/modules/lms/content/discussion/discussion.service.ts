@@ -70,7 +70,7 @@ export class DiscussionService {
 
     return {
       ...discussion,
-      content: discussion.content as Prisma.JsonValue,
+      content: discussion.content as Prisma.JsonArray,
     };
   }
 
@@ -107,7 +107,7 @@ export class DiscussionService {
 
     return {
       ...discussion,
-      content: discussion.content as Prisma.JsonValue,
+      content: discussion.content as Prisma.JsonArray,
     };
   }
 
@@ -159,10 +159,10 @@ export class DiscussionService {
 
     return {
       ...discussion,
-      content: discussion.content as Prisma.JsonValue,
+      content: discussion.content as Prisma.JsonArray,
       posts: discussion.posts.map((post) => ({
         ...post,
-        content: post.content as Prisma.JsonValue,
+        content: post.content as Prisma.JsonArray,
       })),
     };
   }
@@ -254,7 +254,7 @@ export class DiscussionService {
 
     return {
       ...post,
-      content: post.content as Prisma.JsonValue,
+      content: post.content as Prisma.JsonArray,
     };
   }
 
@@ -296,7 +296,7 @@ export class DiscussionService {
 
     return {
       ...post,
-      content: post.content as Prisma.JsonValue,
+      content: post.content as Prisma.JsonArray,
     };
   }
 

@@ -66,7 +66,7 @@ export class FileService {
 
     return {
       ...file,
-      content: file.content as Prisma.JsonValue,
+      content: file.content as Prisma.JsonArray,
     };
   }
 
@@ -103,7 +103,7 @@ export class FileService {
 
     return {
       ...file,
-      content: file.content as Prisma.JsonValue,
+      content: file.content as Prisma.JsonArray,
     };
   }
 
@@ -135,7 +135,7 @@ export class FileService {
 
     return {
       ...file,
-      content: file.content as Prisma.JsonValue,
+      content: file.content as Prisma.JsonArray,
     };
   }
 

@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -20,7 +19,6 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { QuizDto } from '@/generated/nestjs-dto/quiz.dto';
 import { UpdateQuizDto } from '@/generated/nestjs-dto/update-quiz.dto';
-import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
 
 @Injectable()
 export class QuizService {
@@ -79,8 +77,8 @@ export class QuizService {
   //
   //   return {
   //     ...quiz,
-  //     content: quiz.content as Prisma.JsonValue,
-  //     questions: quiz.questions as Prisma.JsonValue,
+  //     content: quiz.content as Prisma.JsonArray,
+  //     questions: quiz.questions as Prisma.JsonArray,
   //   };
   // }
 
@@ -116,8 +114,8 @@ export class QuizService {
 
     return {
       ...quiz,
-      content: quiz.content as Prisma.JsonValue,
-      questions: quiz.questions as Prisma.JsonValue,
+      content: quiz.content as Prisma.JsonArray,
+      questions: quiz.questions as Prisma.JsonArray,
     };
   }
 
@@ -151,8 +149,8 @@ export class QuizService {
 
     return {
       ...quiz,
-      content: quiz.content as Prisma.JsonValue,
-      questions: quiz.questions as Prisma.JsonValue,
+      content: quiz.content as Prisma.JsonArray,
+      questions: quiz.questions as Prisma.JsonArray,
     };
   }
 
@@ -268,7 +266,7 @@ export class QuizService {
   // async submitQuiz(
   //   @LogParam('quizId') quizId: string,
   //   @LogParam('studentId') studentId: string,
-  //   @LogParam('answers') answers: Prisma.JsonValue,
+  //   @LogParam('answers') answers: Prisma.JsonArray,
   //   @LogParam('timeSpent') timeSpent: number,
   // ) {
   //   if (!isUUID(quizId) || !isUUID(studentId)) {
@@ -327,7 +325,7 @@ export class QuizService {
   //   @LogParam('submissionId') submissionId: string,
   //   @LogParam('graderId') graderId: string,
   //   @LogParam('rawScore') rawScore: number,
-  //   @LogParam('questionResults') questionResults: Prisma.JsonValue,
+  //   @LogParam('questionResults') questionResults: Prisma.JsonArray,
   // ) {
   //   if (!isUUID(submissionId) || !isUUID(graderId)) {
   //     throw new BadRequestException('Invalid ID format');

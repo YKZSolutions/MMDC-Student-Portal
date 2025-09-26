@@ -64,7 +64,7 @@ export class LessonService {
 
     return {
       ...lesson,
-      content: lesson.content as Prisma.JsonValue,
+      content: lesson.content as Prisma.JsonArray,
     };
   }
 
@@ -104,7 +104,7 @@ export class LessonService {
 
     return {
       ...lesson,
-      content: lesson.content as Prisma.JsonValue,
+      content: lesson.content as Prisma.JsonArray,
     };
   }
 
@@ -136,7 +136,7 @@ export class LessonService {
 
     return {
       ...lesson,
-      content: lesson.content as Prisma.JsonValue,
+      content: lesson.content as Prisma.JsonArray,
     };
   }
 

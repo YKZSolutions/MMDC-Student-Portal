@@ -80,7 +80,7 @@ export class AssignmentService {
   //
   //   return {
   //     ...assignment,
-  //     content: assignment.content as Prisma.JsonValue,
+  //     content: assignment.content as Prisma.JsonArray,
   //   };
   // }
 
@@ -121,7 +121,7 @@ export class AssignmentService {
 
     return {
       ...assignment,
-      content: assignment.content as Prisma.JsonValue,
+      content: assignment.content as Prisma.JsonArray,
     };
   }
 
@@ -157,10 +157,10 @@ export class AssignmentService {
 
     return {
       ...assignment,
-      content: assignment.content as Prisma.JsonValue,
+      content: assignment.content as Prisma.JsonArray,
       submissions: assignment.submissions.map((submission) => ({
         ...submission,
-        content: submission.content as Prisma.JsonValue | null,
+        content: submission.content as Prisma.JsonArray,
         groupSnapshot: submission.groupSnapshot as Prisma.JsonValue | null,
       })),
       grading:
@@ -169,10 +169,9 @@ export class AssignmentService {
               ...assignment.grading,
               curveSettings: assignment.grading
                 .curveSettings as Prisma.JsonValue | null,
-              rubricSchema: assignment.grading
-                .rubricSchema as Prisma.JsonValue | null,
+              rubricSchema: assignment.grading.rubricSchema as Prisma.JsonArray,
               questionRules: assignment.grading
-                .questionRules as Prisma.JsonValue | null,
+                .questionRules as Prisma.JsonArray,
             }
           : null,
     };
