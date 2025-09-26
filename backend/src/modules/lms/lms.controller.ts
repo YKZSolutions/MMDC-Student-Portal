@@ -42,7 +42,7 @@ export class LmsController {
    * Retrieve all modules
    *
    * @remarks
-   * Returns a paginated list of modules for the curren user.
+   * Returns a paginated list of modules for the current user.
    * For student - Only modules from courses the student is enrolled in are included.
    * For mentor - Only modules from courses the mentor is assigned to are included.
    * For admin - All modules are included.
@@ -50,15 +50,15 @@ export class LmsController {
    * @param user - The authenticated user
    * @param filters - Query filters for pagination and search
    */
-  @Get('student')
-  @Roles(Role.STUDENT)
+  @Get()
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   findAllForStudent(
     @CurrentUser() user: CurrentAuthUser,
     @Query() filters: FilterModulesDto,
   ) {
-    const { user_id } = user.user_metadata;
-    return this.lmsService.findAll(user_id, filters);
+    const { role, user_id } = user.user_metadata;
+    return this.lmsService.findAll(user_id, role, filters);
   }
 
   /**
