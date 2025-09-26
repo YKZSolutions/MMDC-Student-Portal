@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -21,7 +20,6 @@ import {
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { UpdateAssignmentDto } from '@/generated/nestjs-dto/update-assignment.dto';
 import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
-import { CreateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/create-assignment-item.dto';
 
 @Injectable()
 export class AssignmentService {
@@ -29,62 +27,62 @@ export class AssignmentService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
-
-  /**
-   * Creates a new assignment linked to a module content
-   */
-  @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Creating assignment for module content ${moduleContentId}`,
-    logSuccessMessage: (assignment) =>
-      `Assignment [${assignment.title}] successfully created.`,
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while creating assignment for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: () =>
-      new ConflictException(
-        'Assignment already exists for this module content',
-      ),
-  })
-  async create(
-    @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('assignmentData')
-    assignmentData: CreateAssignmentItemDto,
-    @LogParam('transactionClient')
-    tx?: PrismaTransaction,
-  ): Promise<AssignmentDto> {
-    if (!isUUID(moduleContentId)) {
-      throw new BadRequestException('Invalid module content ID format');
-    }
-
-    const client = tx ?? this.prisma.client;
-    const { gradingId, grading, ...quizDataWithoutGradingId } = assignmentData;
-
-    let data:
-      | Prisma.AssignmentUncheckedCreateInput
-      | Prisma.AssignmentCreateInput;
-    if (gradingId) {
-      data = {
-        ...quizDataWithoutGradingId,
-        moduleContentId,
-        gradingId,
-      };
-    } else {
-      data = {
-        ...quizDataWithoutGradingId,
-        moduleContent: { connect: { id: moduleContentId } },
-        grading: { create: grading },
-      };
-    }
-
-    const assignment = await client.assignment.create({ data });
-
-    return {
-      ...assignment,
-      content: assignment.content as Prisma.JsonValue,
-    };
-  }
+  //
+  // /**
+  //  * Creates a new assignment linked to a module content
+  //  */
+  // @Log({
+  //   logArgsMessage: ({ moduleContentId }) =>
+  //     `Creating assignment for module content ${moduleContentId}`,
+  //   logSuccessMessage: (assignment) =>
+  //     `Assignment [${assignment.title}] successfully created.`,
+  //   logErrorMessage: (err, { moduleContentId }) =>
+  //     `An error has occurred while creating assignment for module content ${moduleContentId} | Error: ${err.message}`,
+  // })
+  // @PrismaError({
+  //   [PrismaErrorCode.UniqueConstraint]: () =>
+  //     new ConflictException(
+  //       'Assignment already exists for this module content',
+  //     ),
+  // })
+  // async create(
+  //   @LogParam('moduleContentId') moduleContentId: string,
+  //   @LogParam('assignmentData')
+  //   assignmentData: CreateAssignmentItemDto,
+  //   @LogParam('transactionClient')
+  //   tx?: PrismaTransaction,
+  // ): Promise<AssignmentDto> {
+  //   if (!isUUID(moduleContentId)) {
+  //     throw new BadRequestException('Invalid module content ID format');
+  //   }
+  //
+  //   const client = tx ?? this.prisma.client;
+  //   const { gradingId, grading, ...quizDataWithoutGradingId } = assignmentData;
+  //
+  //   let data:
+  //     | Prisma.AssignmentUncheckedCreateInput
+  //     | Prisma.AssignmentCreateInput;
+  //   if (gradingId) {
+  //     data = {
+  //       ...quizDataWithoutGradingId,
+  //       moduleContentId,
+  //       gradingId,
+  //     };
+  //   } else {
+  //     data = {
+  //       ...quizDataWithoutGradingId,
+  //       moduleContent: { connect: { id: moduleContentId } },
+  //       grading: { create: grading },
+  //     };
+  //   }
+  //
+  //   const assignment = await client.assignment.create({ data });
+  //
+  //   return {
+  //     ...assignment,
+  //     content: assignment.content as Prisma.JsonValue,
+  //   };
+  // }
 
   /**
    * Updates an existing assignment

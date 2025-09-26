@@ -14,12 +14,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { ApiCreatedResponse, ApiOkResponse, OmitType } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  getSchemaPath,
+  OmitType,
+} from '@nestjs/swagger';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
@@ -28,6 +33,15 @@ import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
 import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { UpdateLessonItemDto } from '@/modules/lms/content/lesson/dto/update-lesson-item.dto';
+import { UpdateAssignmentDto } from '@/generated/nestjs-dto/update-assignment.dto';
+import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
+import { UpdateDiscussionItemDto } from '@/modules/lms/content/discussion/dto/update-discussion-item.dto';
+import { UpdateFileItemDto } from '@/modules/lms/content/file/dto/update-file-item.dto';
+import { UpdateExternalUrlItemDto } from '@/modules/lms/content/url/dto/update-external-url-item.dto';
+import { UpdateVideoItemDto } from '@/modules/lms/content/video/dto/update-video-item.dto';
+import { ContentType } from '@prisma/client';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -95,6 +109,32 @@ export class LmsContentController {
     InternalServerErrorException,
   ])
   @Roles(Role.ADMIN)
+  @ApiBody({
+    // Define the overall schema type as oneOf the possible DTOs
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(UpdateLessonItemDto) },
+        { $ref: getSchemaPath(UpdateAssignmentDto) },
+        { $ref: getSchemaPath(UpdateQuizItemDto) },
+        { $ref: getSchemaPath(UpdateDiscussionItemDto) },
+        { $ref: getSchemaPath(UpdateFileItemDto) },
+        { $ref: getSchemaPath(UpdateExternalUrlItemDto) },
+        { $ref: getSchemaPath(UpdateVideoItemDto) },
+      ],
+      discriminator: {
+        propertyName: 'contentType',
+        mapping: {
+          [ContentType.LESSON]: getSchemaPath(UpdateLessonItemDto),
+          [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentDto),
+          [ContentType.QUIZ]: getSchemaPath(UpdateQuizItemDto),
+          [ContentType.DISCUSSION]: getSchemaPath(UpdateDiscussionItemDto),
+          [ContentType.FILE]: getSchemaPath(UpdateFileItemDto),
+          [ContentType.URL]: getSchemaPath(UpdateExternalUrlItemDto),
+          [ContentType.VIDEO]: getSchemaPath(UpdateVideoItemDto),
+        },
+      },
+    },
+  })
   @Patch(':moduleContentId')
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,

@@ -87,8 +87,7 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const { assignment, quiz, discussion, file, url, video, lesson, ...rest } =
-      createModuleContentDto;
+    const { title, ...rest } = createModuleContentDto;
 
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Create the base module content
@@ -102,45 +101,45 @@ export class LmsContentService {
       // 2. Delegate to specialized services OR inline nested creation
       switch (rest.contentType) {
         case ContentType.ASSIGNMENT:
-          if (assignment) {
-            await this.assignmentService.create(content.id, assignment, tx);
-          }
+          await tx.assignment.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.QUIZ:
-          if (quiz) {
-            await this.quizService.create(content.id, quiz, tx);
-          }
+          await tx.quiz.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.DISCUSSION:
-          if (discussion) {
-            await this.discussionService.create(content.id, discussion, tx);
-          }
+          await tx.discussion.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.FILE:
-          if (file) {
-            await this.fileService.create(content.id, file, tx);
-          }
+          await tx.fileResource.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.URL:
-          if (url) {
-            await this.urlService.create(content.id, url, tx);
-          }
+          await tx.externalUrl.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.VIDEO:
-          if (video) {
-            await this.videoService.create(content.id, video, tx);
-          }
+          await tx.video.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.LESSON:
-          if (lesson) {
-            await this.lessonService.create(content.id, lesson, tx);
-          }
+          await tx.lesson.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
       }
 
@@ -264,7 +263,7 @@ export class LmsContentService {
   })
   async update(
     @LogParam('id') id: string,
-    @LogParam('content') updateContentDto: UpdateContentDto,
+    @LogParam('dto') dto: UpdateContentDto,
   ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
@@ -281,31 +280,18 @@ export class LmsContentService {
         throw new NotFoundException(`Module content with ID ${id} not found`);
       }
 
-      const {
-        sectionId,
-        assignment,
-        quiz,
-        discussion,
-        file,
-        url,
-        video,
-        lesson,
-        contentType: newContentType, // prevent changing contentType
-        ...contentData
-      } = updateContentDto;
-
-      if (newContentType && newContentType !== currentContent.contentType) {
+      if (dto.contentType !== currentContent.contentType) {
         throw new BadRequestException(
           'Changing contentType is not allowed. Please remove and recreate the content.',
         );
       }
 
       const data: Prisma.ModuleContentUpdateInput = {
-        ...contentData,
+        order: dto.order,
       };
 
-      if (sectionId) {
-        data.moduleSection = { connect: { id: sectionId } };
+      if (dto.sectionId) {
+        data.moduleSection = { connect: { id: dto.sectionId } };
       }
 
       // 2. Update the base module content
@@ -317,39 +303,25 @@ export class LmsContentService {
       // 3. Delegate to specialized services (pass `tx`)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
-          if (assignment) {
-            await this.assignmentService.update(id, assignment, tx);
-          }
+          await this.assignmentService.update(id, dto, tx);
           break;
         case ContentType.QUIZ:
-          if (quiz) {
-            await this.quizService.update(id, quiz, tx);
-          }
+          await this.quizService.update(id, dto, tx);
           break;
         case ContentType.DISCUSSION:
-          if (discussion) {
-            await this.discussionService.update(id, discussion, tx);
-          }
+          await this.discussionService.update(id, dto, tx);
           break;
         case ContentType.FILE:
-          if (file) {
-            await this.fileService.update(id, file, tx);
-          }
+          await this.fileService.update(id, dto, tx);
           break;
         case ContentType.URL:
-          if (url) {
-            await this.urlService.update(id, url, tx);
-          }
+          await this.urlService.update(id, dto, tx);
           break;
         case ContentType.VIDEO:
-          if (video) {
-            await this.videoService.update(id, video, tx);
-          }
+          await this.videoService.update(id, dto, tx);
           break;
         case ContentType.LESSON:
-          if (lesson) {
-            await this.lessonService.update(id, lesson, tx);
-          }
+          await this.lessonService.update(id, dto, tx);
           break;
       }
 

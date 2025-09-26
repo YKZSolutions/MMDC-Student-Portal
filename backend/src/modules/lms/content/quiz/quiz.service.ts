@@ -20,7 +20,7 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { QuizDto } from '@/generated/nestjs-dto/quiz.dto';
 import { UpdateQuizDto } from '@/generated/nestjs-dto/update-quiz.dto';
-import { CreateQuizItemDto } from '@/modules/lms/content/quiz/dto/create-quiz-item.dto';
+import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
 
 @Injectable()
 export class QuizService {
@@ -29,60 +29,60 @@ export class QuizService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
-  /**
-   * Creates a new quiz linked to a module content
-   */
-  @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Creating quiz for module content ${moduleContentId}`,
-    logSuccessMessage: (quiz) => `Quiz [${quiz.title}] successfully created.`,
-    logErrorMessage: (err, { moduleContentId }) =>
-      `An error has occurred while creating quiz for module content ${moduleContentId} | Error: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: () =>
-      new ConflictException('Quiz already exists for this module content'),
-  })
-  async create(
-    @LogParam('moduleContentId') moduleContentId: string,
-    @LogParam('quizData') quizData: CreateQuizItemDto,
-    @LogParam('transactionClient')
-    tx?: PrismaTransaction,
-  ): Promise<QuizDto> {
-    if (!isUUID(moduleContentId)) {
-      throw new BadRequestException('Invalid module content ID format');
-    }
-
-    if (!quizData.grading && !quizData.gradingId) {
-      throw new BadRequestException('Quiz must have a grading config');
-    }
-
-    const client = tx ?? this.prisma.client;
-    const { gradingId, grading, ...quizDataWithoutGradingId } = quizData;
-
-    let data;
-    if (gradingId) {
-      data = {
-        ...quizDataWithoutGradingId,
-        moduleContentId,
-        gradingId,
-      };
-    } else {
-      data = {
-        ...quizDataWithoutGradingId,
-        moduleContent: { connect: { id: moduleContentId } },
-        grading: { create: grading },
-      };
-    }
-
-    const quiz = await client.quiz.create({ data });
-
-    return {
-      ...quiz,
-      content: quiz.content as Prisma.JsonValue,
-      questions: quiz.questions as Prisma.JsonValue,
-    };
-  }
+  // /**
+  //  * Creates a new quiz linked to a module content
+  //  */
+  // @Log({
+  //   logArgsMessage: ({ moduleContentId }) =>
+  //     `Creating quiz for module content ${moduleContentId}`,
+  //   logSuccessMessage: (quiz) => `Quiz [${quiz.title}] successfully created.`,
+  //   logErrorMessage: (err, { moduleContentId }) =>
+  //     `An error has occurred while creating quiz for module content ${moduleContentId} | Error: ${err.message}`,
+  // })
+  // @PrismaError({
+  //   [PrismaErrorCode.UniqueConstraint]: () =>
+  //     new ConflictException('Quiz already exists for this module content'),
+  // })
+  // async create(
+  //   @LogParam('moduleContentId') moduleContentId: string,
+  //   @LogParam('quizData') quizData: UpdateQuizItemDto,
+  //   @LogParam('transactionClient')
+  //   tx?: PrismaTransaction,
+  // ): Promise<QuizDto> {
+  //   if (!isUUID(moduleContentId)) {
+  //     throw new BadRequestException('Invalid module content ID format');
+  //   }
+  //
+  //   if (!quizData.grading && !quizData.gradingId) {
+  //     throw new BadRequestException('Quiz must have a grading config');
+  //   }
+  //
+  //   const client = tx ?? this.prisma.client;
+  //   const { gradingId, grading, ...quizDataWithoutGradingId } = quizData;
+  //
+  //   let data;
+  //   if (gradingId) {
+  //     data = {
+  //       ...quizDataWithoutGradingId,
+  //       moduleContentId,
+  //       gradingId,
+  //     };
+  //   } else {
+  //     data = {
+  //       ...quizDataWithoutGradingId,
+  //       moduleContent: { connect: { id: moduleContentId } },
+  //       grading: { create: grading },
+  //     };
+  //   }
+  //
+  //   const quiz = await client.quiz.create({ data });
+  //
+  //   return {
+  //     ...quiz,
+  //     content: quiz.content as Prisma.JsonValue,
+  //     questions: quiz.questions as Prisma.JsonValue,
+  //   };
+  // }
 
   /**
    * Updates an existing quiz
