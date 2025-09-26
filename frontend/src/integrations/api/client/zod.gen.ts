@@ -1739,6 +1739,30 @@ export const zCreateModuleSectionDto = z.object({
     ]))
 });
 
+export const zModuleContentDto = z.object({
+    id: z.string(),
+    order: z.int(),
+    contentType: zContentType,
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    toPublishAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
 export const zDetailedModuleSectionDto = z.object({
     id: z.string(),
     title: z.string(),
@@ -1769,7 +1793,8 @@ export const zDetailedModuleSectionDto = z.object({
         z.string(),
         z.null()
     ])),
-    moduleId: z.string()
+    moduleId: z.string(),
+    moduleContents: z.array(zModuleContentDto)
 });
 
 export const zUpdateModuleSectionDto = z.object({});
