@@ -227,6 +227,7 @@ export function createFileResourceData(
     subtitle: `Downloadable resource for ${faker.lorem.words(2)}`,
     content: mockContent,
     name: fileType.name,
+    url: faker.internet.url(),
     path: `/resources/${fileType.name}`,
     size: faker.number.int({ min: 1000, max: 5000000 }),
     mimeType: fileType.name.endsWith('.pdf')

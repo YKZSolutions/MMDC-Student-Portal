@@ -71,7 +71,7 @@ export function createAssignmentSubmissionData(
           ? [
               {
                 name: 'solution.pdf',
-                fileUrl: faker.internet.url(),
+                url: faker.internet.url(),
                 type: 'document',
                 size: faker.number.int({ min: 1000, max: 5000000 }),
               },
@@ -79,7 +79,7 @@ export function createAssignmentSubmissionData(
                 ? [
                     {
                       name: 'code.zip',
-                      fileUrl: faker.internet.url(),
+                      url: faker.internet.url(),
                       type: 'archive',
                       size: faker.number.int({ min: 5000, max: 20000000 }),
                     },
