@@ -39,12 +39,13 @@ export class LmsController {
   ) {}
 
   /**
-   * Retrieve all modules for students
+   * Retrieve all modules
    *
    * @remarks
-   * Returns a paginated list of modules for the current student user.
-   * Only modules from courses the student is enrolled in are included.
-   * Requires `STUDENT` role.
+   * Returns a paginated list of modules for the curren user.
+   * For student - Only modules from courses the student is enrolled in are included.
+   * For mentor - Only modules from courses the mentor is assigned to are included.
+   * For admin - All modules are included.
    *
    * @param user - The authenticated user
    * @param filters - Query filters for pagination and search
@@ -57,50 +58,7 @@ export class LmsController {
     @Query() filters: FilterModulesDto,
   ) {
     const { user_id } = user.user_metadata;
-    return this.lmsService.findAllForStudent(user_id, filters);
-  }
-
-  /**
-   * Retrieve all modules for mentors
-   *
-   * @remarks
-   * Returns a paginated list of modules for the current mentor user.
-   * Only modules from courses the mentor is assigned to are included.
-   * Requires `MENTOR` role.
-   *
-   * @param user - The authenticated user
-   * @param filters - Query filters for pagination and search
-   */
-  @Get('mentor')
-  @Roles(Role.MENTOR)
-  @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAllForMentor(
-    @CurrentUser() user: CurrentAuthUser,
-    @Query() filters: FilterModulesDto,
-  ) {
-    const { user_id } = user.user_metadata;
-    return this.lmsService.findAllForMentor(user_id, filters);
-  }
-
-  /**
-   * Retrieve all modules for admins
-   *
-   * @remarks
-   * Returns a paginated list of all modules across all courses.
-   * Requires `ADMIN` role.
-   *
-   * @param user - The authenticated user
-   * @param filters - Query filters for pagination and search
-   */
-  @Get('admin')
-  @Roles(Role.ADMIN)
-  @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAllForAdmin(
-    @Query() filters: FilterModulesDto,
-    @CurrentUser() user: CurrentAuthUser,
-  ) {
-    const { user_id } = user.user_metadata;
-    return this.lmsService.findAllForAdmin(user_id, filters);
+    return this.lmsService.findAll(user_id, filters);
   }
 
   /**
