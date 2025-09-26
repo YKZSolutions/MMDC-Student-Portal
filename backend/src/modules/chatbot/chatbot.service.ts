@@ -180,11 +180,27 @@ export class ChatbotService {
 
           case 'lms_my_modules': {
             const args = functionCall.args as FilterModulesDto;
-            const modules = await this.lmsService.findAll(
-              userContext.id,
-              userContext.role,
-              args,
-            );
+            let modules;
+            switch (userContext.role) {
+              case 'student':
+                modules = await this.lmsService.findAllForStudent(
+                  userContext.id,
+                  args,
+                );
+                break;
+              case 'mentor':
+                modules = await this.lmsService.findAllForMentor(
+                  userContext.id,
+                  args,
+                );
+                break;
+              case 'admin':
+                modules = await this.lmsService.findAllForAdmin(
+                  userContext.id,
+                  args,
+                );
+                break;
+            }
             return `My modules: ${JSON.stringify(modules)}`;
           }
 
