@@ -17,6 +17,7 @@ import { LmsContentService } from '@/modules/lms/lms-content.service';
 import {
   ApiBody,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiOkResponse,
   getSchemaPath,
   OmitType,
@@ -35,13 +36,13 @@ import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-content
 import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
 import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import { UpdateLessonItemDto } from '@/modules/lms/content/lesson/dto/update-lesson-item.dto';
-import { UpdateAssignmentDto } from '@/generated/nestjs-dto/update-assignment.dto';
 import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
 import { UpdateDiscussionItemDto } from '@/modules/lms/content/discussion/dto/update-discussion-item.dto';
 import { UpdateFileItemDto } from '@/modules/lms/content/file/dto/update-file-item.dto';
 import { UpdateExternalUrlItemDto } from '@/modules/lms/content/url/dto/update-external-url-item.dto';
 import { UpdateVideoItemDto } from '@/modules/lms/content/video/dto/update-video-item.dto';
 import { ContentType } from '@prisma/client';
+import { UpdateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/update-assignment-item.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -114,7 +115,7 @@ export class LmsContentController {
     schema: {
       oneOf: [
         { $ref: getSchemaPath(UpdateLessonItemDto) },
-        { $ref: getSchemaPath(UpdateAssignmentDto) },
+        { $ref: getSchemaPath(UpdateAssignmentItemDto) },
         { $ref: getSchemaPath(UpdateQuizItemDto) },
         { $ref: getSchemaPath(UpdateDiscussionItemDto) },
         { $ref: getSchemaPath(UpdateFileItemDto) },
@@ -125,7 +126,7 @@ export class LmsContentController {
         propertyName: 'contentType',
         mapping: {
           [ContentType.LESSON]: getSchemaPath(UpdateLessonItemDto),
-          [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentDto),
+          [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentItemDto),
           [ContentType.QUIZ]: getSchemaPath(UpdateQuizItemDto),
           [ContentType.DISCUSSION]: getSchemaPath(UpdateDiscussionItemDto),
           [ContentType.FILE]: getSchemaPath(UpdateFileItemDto),
@@ -135,6 +136,15 @@ export class LmsContentController {
       },
     },
   })
+  @ApiExtraModels(
+    UpdateLessonItemDto,
+    UpdateAssignmentItemDto,
+    UpdateQuizItemDto,
+    UpdateDiscussionItemDto,
+    UpdateFileItemDto,
+    UpdateExternalUrlItemDto,
+    UpdateVideoItemDto,
+  )
   @Patch(':moduleContentId')
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
