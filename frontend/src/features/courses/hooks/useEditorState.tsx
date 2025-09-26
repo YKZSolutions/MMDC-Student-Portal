@@ -4,7 +4,7 @@ import {
 } from '@/features/courses/modules/types.ts'
 import type { ModuleContent } from '@/integrations/api/client'
 import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { getModuleContent, toBlockArray } from '@/utils/helpers.tsx'
+import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -69,8 +69,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   // console.log('Fetched Section Data:', moduleSectionData)
   console.log('Fetched Content Data:', moduleContentData)
 
+  const { contentKey, existingContent } =
+    getContentKeyAndData(moduleContentData)
+
   const editor = useCreateBlockNote({
-    initialContent: toBlockArray(getModuleContent(moduleContentData)?.content),
+    initialContent: toBlockArray(existingContent?.content),
   })
 
   const editorState = {

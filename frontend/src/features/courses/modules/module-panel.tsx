@@ -21,7 +21,7 @@ import { zContentType } from '@/integrations/api/client/zod.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import { getContentTypeIcon, getTitleByContentType } from '@/utils/helpers'
+import { getContentKeyAndData, getContentTypeIcon } from '@/utils/helpers'
 import {
   Accordion,
   ActionIcon,
@@ -55,7 +55,7 @@ import {
   IconPlus,
   IconRubberStamp,
   IconRubberStampOff,
-  IconTrash
+  IconTrash,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
@@ -249,8 +249,6 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
       (progress) => progress.status === 'COMPLETED',
     )
 
-  
-
   const navigateToItem = () => {
     navigate({
       from: '/lms/$lmsCode/modules',
@@ -287,10 +285,7 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
           <Box flex={1}>
             <Group gap="xs" mb={4}>
               <Text fw={500} size="sm" lineClamp={2}>
-                {getTitleByContentType(
-                  moduleContent.contentType,
-                  moduleContent,
-                )}
+                {getContentKeyAndData(moduleContent).existingContent?.title}
               </Text>
 
               {moduleContent.contentType && (
@@ -834,11 +829,6 @@ function AdminActionsModuleContent({
         title: 'Module Content Deleted',
         message: 'Module content was deleted successfully',
       },
-      error: {
-        title: 'Failed to Delete Module Content',
-        message:
-          'There was an error while deleting the module content. Please try again.',
-      },
     },
     {
       onSuccess: async () => {
@@ -1246,15 +1236,17 @@ function AddSubsectionDrawer({
 
     if (form.validate().hasErrors) return
 
+    const values = form.getValues()
+
     if (isSubsection) {
       await createModuleContent({
         path: {
           moduleId: lmsCode || '',
         },
         body: {
-          contentType: form.getValues().contentType,
-          lesson: {
-            title: form.getValues().title,
+          contentType: values.contentType,
+          [values.contentType.toLocaleLowerCase()]: {
+            title: values.title,
           },
           sectionId: section.id,
         },
@@ -1265,7 +1257,7 @@ function AddSubsectionDrawer({
           moduleId: lmsCode || '',
         },
         body: {
-          title: form.getValues().title,
+          title: values.title,
           parentSectionId: section.id,
         },
       })

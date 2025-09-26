@@ -13,7 +13,7 @@ import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
   BasicModuleItemDto,
   ContentType,
-  ModuleContent
+  ModuleContent,
 } from '@/integrations/api/client'
 import type { Block } from '@blocknote/core'
 import {
@@ -167,14 +167,15 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
           id: item.id,
           parent: section.id,
           text:
-            getTitleByContentType(item.contentType, item) ?? 'Untitled Item',
+            getContentKeyAndData(item).existingContent?.title ??
+            'Untitled Item',
           droppable: false,
           data: {
             level: 3,
             type: 'item',
             contentData: {
               ...item,
-              title: getTitleByContentType(item.contentType, item),
+              title: getContentKeyAndData(item).existingContent?.title ?? '',
               moduleId: section.moduleId,
               parentSectionId: '',
               prerequisiteSectionId: '',
@@ -287,33 +288,6 @@ export const toBlockArray = (content: unknown): Block[] => {
   ]
 }
 
-export const getTitleByContentType = (
-  contentType: ContentType,
-  moduleContent: BasicModuleItemDto,
-  title?: string | undefined,
-) => {
-  switch (contentType) {
-    case 'LESSON':
-      return title || moduleContent.lesson?.title || 'Untitled Lesson'
-    case 'ASSIGNMENT':
-      return title || moduleContent.assignment?.title || 'Untitled Assignment'
-    case 'QUIZ':
-      return title || moduleContent.quiz?.title || 'Untitled Quiz'
-    case 'DISCUSSION':
-      return title || moduleContent.discussion?.title || 'Untitled Discussion'
-    case 'FILE':
-      return title || moduleContent.fileResource?.title || 'Untitled File'
-    case 'URL':
-      return (
-        title || moduleContent.externalUrl?.title || 'Untitled External Tool'
-      )
-    case 'VIDEO':
-      return title || moduleContent.video?.title || 'Untitled Video'
-    default:
-      return 'Untitled Item'
-  }
-}
-
 export const getContentTypeIcon = (contentType: ContentType) => {
   switch (contentType) {
     case 'LESSON':
@@ -335,36 +309,33 @@ export const getContentTypeIcon = (contentType: ContentType) => {
   }
 }
 
-export const getModuleContent = (moduleContent: ModuleContent) => {
-  switch (moduleContent?.contentType) {
-    case 'LESSON':
-      return moduleContent.lesson
-    case 'ASSIGNMENT':
-      return moduleContent.assignment
-    case 'DISCUSSION':
-      return moduleContent.discussion
-    case 'URL':
-      return moduleContent.externalUrl
-    case 'FILE':
-      return moduleContent.fileResource
-    case 'QUIZ':
-      return moduleContent.quiz
-    case 'VIDEO':
-      return moduleContent.video
-    default:
-      return null
+// Helper type: maps ModuleContent.contentType (e.g. 'LESSON') to the corresponding
+// lowercased key on the ModuleContent object (e.g. 'lesson').
+type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
+  U extends {
+    contentType: infer CT
   }
-}
+    ? CT extends string
+      ? Lowercase<CT> extends keyof U
+        ? Lowercase<CT>
+        : never
+      : never
+    : never
 
-export const getContentKeyAndData = <T extends { contentType: string }>(
+export const getContentKeyAndData = <
+  T extends ModuleContent | BasicModuleItemDto,
+>(
   data: T,
 ): {
-  contentKey: keyof T
-  existingContent: Record<string, T> | undefined
+  contentKey: ModuleContentKeyFor<T>
+  existingContent: NonNullable<T[ModuleContentKeyFor<T>]> | undefined
 } => {
-  // Narrow down the dynamic key safely
-  const contentKey = data.contentType.toLowerCase() as keyof T
-  const existingContent = data[contentKey] as Record<string, T> | undefined
+  const contentKey = data.contentType.toLowerCase() as ModuleContentKeyFor<T>
+
+  // Read the property and cast to the precise type so callers get IntelliSense.
+  const existingContent = (data[contentKey] ?? undefined) as
+    | NonNullable<T[ModuleContentKeyFor<T>]>
+    | undefined
 
   return { contentKey, existingContent }
 }
