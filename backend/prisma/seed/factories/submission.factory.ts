@@ -96,7 +96,10 @@ export function createGradeRecordData(
   studentId: string,
   isAssignment: boolean,
 ): Prisma.GradeRecordCreateInput {
-  const rawScore = faker.number.int({ min: 70, max: 100 });
+  const rawScore = faker.number.int({
+    min: seedConfig.MIN_SCORE,
+    max: seedConfig.MIN_SCORE,
+  });
   const finalScore = isAssignment ? rawScore : rawScore; // Could apply curve here
 
   const grade =
@@ -133,47 +136,65 @@ export function createGradeRecordData(
             {
               criterionKey: 'accuracy',
               label: 'Accuracy',
-              maxPoints: 20,
-              score: faker.number.int({ min: 15, max: 20 }),
+              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
+              score: faker.number.int({
+                min: seedConfig.RUBRIC_MIN_SCORE,
+                max: seedConfig.RUBRIC_MAX_SCORE,
+              }),
             },
             {
               criterionKey: 'clarity',
               label: 'Clarity',
-              maxPoints: 20,
-              score: faker.number.int({ min: 15, max: 20 }),
+              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
+              score: faker.number.int({
+                min: seedConfig.RUBRIC_MIN_SCORE,
+                max: seedConfig.RUBRIC_MAX_SCORE,
+              }),
             },
             {
               criterionKey: 'completeness',
               label: 'Completeness',
-              maxPoints: 20,
-              score: faker.number.int({ min: 15, max: 20 }),
+              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
+              score: faker.number.int({
+                min: seedConfig.RUBRIC_MIN_SCORE,
+                max: seedConfig.RUBRIC_MAX_SCORE,
+              }),
             },
             {
               criterionKey: 'timeliness',
               label: 'Timeliness',
-              maxPoints: 20,
-              score: faker.number.int({ min: 15, max: 20 }),
+              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
+              score: faker.number.int({
+                min: seedConfig.RUBRIC_MIN_SCORE,
+                max: seedConfig.RUBRIC_MAX_SCORE,
+              }),
             },
             {
               criterionKey: 'quality',
               label: 'Quality',
-              maxPoints: 20,
-              score: faker.number.int({ min: 15, max: 20 }),
+              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
+              score: faker.number.int({
+                min: seedConfig.RUBRIC_MIN_SCORE,
+                max: seedConfig.RUBRIC_MAX_SCORE,
+              }),
             },
           ],
         }
       : {
-          questionResults: Array.from({ length: 5 }, (_, i) => ({
-            questionId: `q${i + 1}`,
-            answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-            score: faker.number.int({ min: 1, max: 5 }),
-            feedback: faker.helpers.arrayElement([
-              'Correct',
-              'Partially correct',
-              'Incorrect',
-            ]),
-            correctAnswer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-          })),
+          questionResults: Array.from(
+            { length: seedConfig.QUESTION_COUNT },
+            (_, i) => ({
+              questionId: `q${i + 1}`,
+              answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+              score: faker.number.int({ min: 1, max: 5 }),
+              feedback: faker.helpers.arrayElement([
+                'Correct',
+                'Partially correct',
+                'Incorrect',
+              ]),
+              correctAnswer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+            }),
+          ),
         }),
   };
 }

@@ -128,7 +128,10 @@ export async function seedSubmissions(
             ),
             status,
             lastAccessedAt: new Date(),
-            timeSpent: faker.number.int({ min: 300, max: 3600 }), // 5-60 minutes
+            timeSpent: faker.number.int({
+              min: seedConfig.MIN_TIME_SPENT,
+              max: seedConfig.MAX_TIME_SPENT,
+            }), // 5-60 minutes
           },
         });
         contentProgress.push(progress);

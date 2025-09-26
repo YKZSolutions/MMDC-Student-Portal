@@ -55,6 +55,20 @@ export const seedConfig = {
   // Likelihood of a student having started/completed a module content
   PROGRESS_CHANCE: 0.5,
 
+  // --- QUIZ ---
+  // In minutes
+  MIN_TIME_SPENT: 300,
+  MAX_TIME_SPENT: 3600,
+  QUESTION_COUNT: 50,
+
+  // --- GRADING ---
+  MIN_SCORE: 15,
+  MAX_SCORE: 100,
+
+  // --- RUBRIC ---
+  RUBRIC_MIN_SCORE: 15,
+  RUBRIC_MAX_SCORE: 20,
+
   // --- Billing ---
   // Number of installments for bills
   BILL_INSTALLMENTS: 3,
