@@ -1,3 +1,4 @@
+import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { ModuleSectionDto } from '@/generated/nestjs-dto/moduleSection.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -15,4 +16,10 @@ export class DetailedModuleSectionDto extends ModuleSectionDto {
     type: 'string',
   })
   moduleId: string;
+
+  @ApiProperty({
+    type: () => ModuleContentDto,
+    isArray: true,
+  })
+  moduleContents: ModuleContentDto[];
 }
