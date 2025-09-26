@@ -2,22 +2,18 @@ import NoItemFound from '@/components/no-item-found'
 import { useAuth } from '@/features/auth/auth.hook.ts'
 import {
   type BasicModuleItemDto,
-  type ContentType,
-  type ModuleTreeSectionDto,
+  type ModuleTreeSectionDto
 } from '@/integrations/api/client'
 import {
-  lmsContentControllerCreateMutation,
   lmsContentControllerPublishMutation,
   lmsContentControllerRemoveMutation,
   lmsContentControllerUnpublishMutation,
   lmsControllerFindModuleTreeOptions,
   lmsControllerFindModuleTreeQueryKey,
-  lmsSectionControllerCreateMutation,
   lmsSectionControllerPublishSectionMutation,
   lmsSectionControllerRemoveMutation,
-  lmsSectionControllerUnpublishSectionMutation,
+  lmsSectionControllerUnpublishSectionMutation
 } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { zContentType } from '@/integrations/api/client/zod.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
@@ -27,23 +23,18 @@ import {
   ActionIcon,
   Badge,
   Box,
-  Button,
   Card,
   Divider,
-  Drawer,
   Group,
   Menu,
   rem,
-  Select,
   Stack,
   Text,
-  TextInput,
   ThemeIcon,
   Title,
   Tooltip,
-  useMantineTheme,
+  useMantineTheme
 } from '@mantine/core'
-import { useForm } from '@mantine/form'
 import { modals } from '@mantine/modals'
 import {
   IconCalendarTime,
@@ -58,10 +49,11 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { Fragment, Suspense, useState } from 'react'
 import { getMockModuleByRole } from '../mocks'
 import { ModulePanelSuspense } from '../suspense'
+import AddModuleItemDrawer from './admin/add-module-item-drawer'
 
 const { queryClient } = getContext()
 
@@ -737,7 +729,7 @@ function AdminActions({ section }: AdminActionsProps) {
       </Menu>
 
       <Tooltip label="Add new item">
-        <AddSubsectionDrawer props={{ section }}>
+        <AddModuleItemDrawer props={{ section }}>
           {({ setDrawer }) => (
             <ActionIcon
               component="div"
@@ -753,7 +745,7 @@ function AdminActions({ section }: AdminActionsProps) {
               <IconPlus size={16} />
             </ActionIcon>
           )}
-        </AddSubsectionDrawer>
+        </AddModuleItemDrawer>
       </Tooltip>
 
       <Menu
@@ -784,14 +776,9 @@ function AdminActions({ section }: AdminActionsProps) {
             leftSection={<IconEdit size={16} stroke={1.5} />}
             onClick={(e) => {
               e.stopPropagation()
-              navigate({
-                from: '/lms/$lmsCode/modules',
-                to: `edit`,
-                search: { id: section.id },
-              })
             }}
           >
-            Edit
+            Rename
           </Menu.Item>
           <Menu.Item
             color="red"
@@ -1123,230 +1110,6 @@ function AdminActionsModuleContent({
         </Menu.Dropdown>
       </Menu>
     </Group>
-  )
-}
-
-function AddSubsectionDrawer({
-  children,
-  props: { section },
-}: {
-  props: { section: ModuleTreeSectionDto }
-  children: ({
-    setDrawer,
-  }: {
-    setDrawer: (open: boolean) => void
-  }) => React.ReactNode
-}) {
-  const { lmsCode } = useParams({ strict: false })
-  const navigate = useNavigate()
-  const searchParam: {
-    createSubsection?: boolean
-    sectionId: string | undefined
-  } = useSearch({ strict: false })
-
-  const drawerOpened =
-    !!searchParam.createSubsection && searchParam.sectionId === section.id
-
-  const isSubsection = !!section.parentSectionId
-
-  const form = useForm({
-    mode: 'uncontrolled',
-    initialValues: {
-      title: '',
-      contentType: 'LESSON' as ContentType,
-    },
-    validate: {
-      title: (value) =>
-        value.trim().length === 0 ? 'Section title is required' : null,
-
-      contentType: (value) =>
-        isSubsection && !value
-          ? 'Content type is required for new content'
-          : null,
-    },
-  })
-
-  const { mutateAsync: createSubsection, isPending: creatingSubsection } =
-    useAppMutation(
-      lmsSectionControllerCreateMutation,
-      {
-        loading: {
-          title: 'Creating Subsection',
-          message: 'Creating new subsection — please wait',
-        },
-        success: {
-          title: 'Subsection Created',
-          message: 'Subsection was created successfully',
-        },
-        error: {
-          title: 'Failed to Create Subsection',
-          message:
-            'There was an error while creating the subsection. Please try again.',
-        },
-      },
-      {
-        onSuccess: async () => {
-          const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
-            path: { id: lmsCode || '' },
-          })
-
-          await queryClient.cancelQueries({ queryKey: moduleTreeKey })
-
-          await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
-        },
-      },
-    )
-
-  const { mutateAsync: createModuleContent } = useAppMutation(
-    lmsContentControllerCreateMutation,
-    {
-      loading: {
-        title: 'Creating Content',
-        message: 'Creating new content — please wait',
-      },
-      success: {
-        title: 'Content Created',
-        message: 'Content was created successfully',
-      },
-      error: {
-        title: 'Failed to Create Content',
-        message:
-          'There was an error while creating the content. Please try again.',
-      },
-    },
-    {
-      onSuccess: async (data) => {
-        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
-          path: { id: lmsCode || '' },
-        })
-
-        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
-
-        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
-      },
-    },
-  )
-
-  const handleNewItem = async () => {
-    // navigate({
-    //   from: '/lms/$lmsCode/modules',
-    //   to: `create`,
-    //   search: { id: section.id },
-    // })
-
-    if (form.validate().hasErrors) return
-
-    const values = form.getValues()
-
-    if (isSubsection) {
-      await createModuleContent({
-        path: {
-          moduleId: lmsCode || '',
-        },
-        body: {
-          contentType: values.contentType,
-          [values.contentType.toLocaleLowerCase()]: {
-            title: values.title,
-          },
-          sectionId: section.id,
-        },
-      })
-    } else {
-      await createSubsection({
-        path: {
-          moduleId: lmsCode || '',
-        },
-        body: {
-          title: values.title,
-          parentSectionId: section.id,
-        },
-      })
-    }
-
-    // Close drawer and reset form
-    setDrawer(false)
-  }
-
-  const setDrawer = (open: boolean) => {
-    navigate({
-      from: '/lms/$lmsCode/modules',
-      search: (prev) => ({
-        ...prev,
-        createSubsection: open || undefined,
-        sectionId: open ? section.id : undefined,
-      }),
-    })
-
-    form.reset()
-  }
-
-  return (
-    <Fragment>
-      {children({ setDrawer })}
-
-      {/* Drawer for creating new subsection or item */}
-      <Drawer
-        opened={drawerOpened}
-        onClick={(e) => e.stopPropagation()}
-        onClose={() => setDrawer(false)}
-        position="right"
-        keepMounted={false}
-      >
-        <Stack gap="md">
-          <Box>
-            <Text c="dark.7" fw={600}>
-              Add New {isSubsection ? 'Content' : 'Subsection'}
-            </Text>
-            <Text c="dimmed">
-              Create a new module {isSubsection ? 'content' : 'subsection'} by
-              providing a title.
-            </Text>
-          </Box>
-
-          <TextInput
-            radius={'md'}
-            placeholder={isSubsection ? 'Content title' : 'Subsection title'}
-            required
-            variant="filled"
-            {...form.getInputProps('title')}
-          />
-
-          {isSubsection && (
-            <Select
-              radius={'md'}
-              placeholder="Select content type"
-              required
-              variant="filled"
-              data={zContentType.options.map((type) => ({
-                label: type.charAt(0) + type.slice(1).toLowerCase(),
-                value: type,
-              }))}
-              defaultValue="LESSON"
-              disabled={!isSubsection}
-              {...form.getInputProps('contentType')}
-            />
-          )}
-
-          <Group style={{ justifyContent: 'flex-end' }}>
-            <Button
-              variant="light"
-              onClick={() => setDrawer(false)}
-              disabled={creatingSubsection}
-            >
-              Cancel
-            </Button>
-            <Button
-              leftSection={<IconPlus />}
-              type="submit"
-              loading={creatingSubsection}
-              onClick={handleNewItem}
-            >
-              Create
-            </Button>
-          </Group>
-        </Stack>
-      </Drawer>
-    </Fragment>
   )
 }
 

@@ -38,7 +38,7 @@ import {
   SegmentedControl,
   Stack,
   Text,
-  useMantineTheme
+  useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
@@ -57,7 +57,7 @@ import {
   IconPlus,
   IconRubberStamp,
   IconTrash,
-  IconX
+  IconX,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
@@ -362,11 +362,6 @@ function CMSCourseStructure({ closeTree }: { closeTree: () => void }) {
             <Text fw={500}>Course Structure</Text>
           </Group>
 
-          {/* <CMSCourseSelector
-            courses={mockCourseBasicDetails}
-            selectedCourse={courseDetails}
-            handleCourseChange={handleCourseChange}
-          /> */}
           <Divider />
         </Stack>
 
@@ -374,7 +369,6 @@ function CMSCourseStructure({ closeTree }: { closeTree: () => void }) {
           <CMSCourseStructureQueryProvider>
             {({ moduleTree }) => (
               <CMSContentTree
-                handleAdd={handleAdd}
                 moduleTree={moduleTree}
                 handleNodeSelect={(nodeData) => {
                   handleNavigate(nodeData)
@@ -420,15 +414,10 @@ function CMSStatusBar({}: StatusBarProps) {
 
 interface ContentTreeProps {
   moduleTree: ModuleTreeSectionDto[] | null | undefined
-  handleAdd: (parentId: string, nodeType: ContentNodeType) => void
   handleNodeSelect: (nodeData: ContentNode) => void
 }
 
-function CMSContentTree({
-  moduleTree,
-  handleAdd,
-  handleNodeSelect,
-}: ContentTreeProps) {
+function CMSContentTree({ moduleTree, handleNodeSelect }: ContentTreeProps) {
   const { editorState } = useEditorState()
   // Handle node selection and trigger onChange
   const handleNodeRowSelect = (node: CourseNodeModel) => {
@@ -463,7 +452,6 @@ function CMSContentTree({
               isDropTarget={isDropTarget}
               isSelected={editorState.data?.id === node.id}
               onToggle={onToggle}
-              handleAdd={handleAdd}
               handleNodeSelect={handleNodeRowSelect}
             />
           )}
@@ -498,7 +486,6 @@ interface NodeRowProps {
   isDropTarget: boolean
   isSelected: boolean
   onToggle: () => void
-  handleAdd: (parentId: string, nodeType: ContentNodeType) => void
   handleNodeSelect: (node: CourseNodeModel) => void
 }
 
@@ -509,9 +496,10 @@ function CMSNodeRow({
   isDropTarget,
   isSelected,
   onToggle,
-  handleAdd,
   handleNodeSelect,
 }: NodeRowProps) {
+  const { handleAdd } = useEditorState()
+
   const theme = useMantineTheme()
 
   // Calculate proper indentation (20px per level)

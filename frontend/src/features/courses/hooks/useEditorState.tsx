@@ -2,9 +2,10 @@ import {
   type ContentNode,
   type ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import type { ModuleContent } from '@/integrations/api/client'
+import type { DetailedModuleSectionDto, ModuleContent } from '@/integrations/api/client'
 import {
-  lmsContentControllerFindOneOptions
+  lmsContentControllerFindOneOptions,
+  lmsSectionControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
@@ -30,6 +31,7 @@ export interface EditorState {
   type: ContentNodeType
   data: ModuleContent
   content: BlockNoteEditor
+  section: DetailedModuleSectionDto
   view: EditorView
 }
 
@@ -60,6 +62,16 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     }),
   )
 
+  const { data: moduleSectionData } = useSuspenseQuery(
+    lmsSectionControllerFindOneOptions({
+      path: {
+        moduleSectionId: moduleContentData.moduleSectionId || '',
+      },
+    }),
+  )
+
+  console.log('Fetched Section Data:', moduleSectionData)
+
   const { contentKey, existingContent } =
     getContentKeyAndData(moduleContentData)
 
@@ -76,6 +88,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     view: (searchParams.view as EditorView) || 'content',
     data: moduleContentData,
     content: editor,
+    section: moduleSectionData,
   } satisfies EditorState
 
   const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
