@@ -36,10 +36,9 @@ import {
   Menu,
   rem,
   SegmentedControl,
-  Select,
   Stack,
   Text,
-  useMantineTheme,
+  useMantineTheme
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
@@ -49,7 +48,6 @@ import {
   Tree,
 } from '@minoru/react-dnd-treeview'
 import {
-  IconBook,
   IconCalendar,
   IconChevronDown,
   IconChevronRight,
@@ -59,7 +57,7 @@ import {
   IconPlus,
   IconRubberStamp,
   IconTrash,
-  IconX,
+  IconX
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
@@ -387,28 +385,6 @@ function CMSCourseStructure({ closeTree }: { closeTree: () => void }) {
         </Suspense>
       </Container>
     </Box>
-  )
-}
-
-function CMSCourseSelector({
-  courses,
-  selectedCourse,
-  handleCourseChange,
-}: CourseSelectorProps) {
-  return (
-    <Group align="center" wrap={'nowrap'}>
-      <Select
-        data={courses.map((course) => course.courseName)}
-        value={selectedCourse?.courseName}
-        onChange={(value) => {
-          const course = courses.find((c) => c.courseName === value)
-          handleCourseChange(course)
-        }}
-        leftSection={<IconBook size={24} />}
-        searchable={true}
-        flex={1}
-      />
-    </Group>
   )
 }
 
