@@ -15,7 +15,7 @@ import {
   TextAlignButton,
   UnnestBlockButton,
   useBlockNoteEditor,
-  useComponentsContext,
+  useComponentsContext
 } from '@blocknote/react'
 import { Box, Divider, Group, Paper, Stack } from '@mantine/core'
 import {
@@ -54,22 +54,25 @@ const RichTextEditor = ({ editor }: RichTextEditorProps) => {
         }}
       >
         <Stack align={'center'} style={{ height: '100%', width: '100%' }}>
-          <Paper
-            radius={0}
-            p="0.25rem"
-            display={'flex'}
-            className="rt-header"
-            // withBorder
-            // style={{
-            //   flexShrink: 0,
-            //   width: '100%',
-            //   borderTop: 'none',
-            //   borderLeft: 'none',
-            //   borderRight: 'none',
-            // }}
-          >
-            <FormattingToolbarController
-              formattingToolbar={() => (
+          <FormattingToolbarController
+            floatingOptions={{
+              placement: 'top',
+            }}
+            formattingToolbar={() => (
+              <Paper
+                radius={'md'}
+                p="0.25rem"
+                display={'flex'}
+                className="rt-header"
+                withBorder
+                // style={{
+                //   flexShrink: 0,
+                //   width: '100%',
+                //   borderTop: 'none',
+                //   borderLeft: 'none',
+                //   borderRight: 'none',
+                // }}
+              >
                 <FormattingToolbar>
                   <Group gap={12} align="center">
                     <Group gap={0}>
@@ -141,18 +144,18 @@ const RichTextEditor = ({ editor }: RichTextEditorProps) => {
                 /> */}
                   </Group>
                 </FormattingToolbar>
-              )}
-            />
-          </Paper>
+              </Paper>
+            )}
+          />
 
           {/* <ScrollArea
-          w={'100%'}
-          type="scroll"
-          style={{
-            flex: 1,
-            minHeight: 0,
-          }}
-        >
+            w={'100%'}
+            type="scroll"
+            style={{
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
           <Box
             style={{
               minHeight: '90%',
@@ -172,7 +175,7 @@ const RichTextEditor = ({ editor }: RichTextEditorProps) => {
               <BlockNoteViewEditor />
             </Box>
           </Box>
-        </ScrollArea> */}
+          </ScrollArea> */}
         </Stack>
       </BlockNoteView>
     </Box>
