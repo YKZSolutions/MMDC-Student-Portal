@@ -24,7 +24,14 @@ import type {
   Video,
 } from '@/integrations/api/client'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
-import { IconFileText, IconClipboard, IconPaperclip, IconMessageCircle, IconExternalLink, IconCalendarTime } from '@tabler/icons-react'
+import {
+  IconFileText,
+  IconClipboard,
+  IconPaperclip,
+  IconMessageCircle,
+  IconExternalLink,
+  IconCalendarTime,
+} from '@tabler/icons-react'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -342,9 +349,9 @@ export const getModuleContent = (moduleContent: ModuleContent) => {
     case 'DISCUSSION':
       return moduleContent.discussion
     case 'URL':
-      return moduleContent.externalUrl
+      return moduleContent.url
     case 'FILE':
-      return moduleContent.fileResource
+      return moduleContent.file
     case 'QUIZ':
       return moduleContent.quiz
     case 'VIDEO':
@@ -383,15 +390,15 @@ export const getModuleContentKeyValuePair = (
       }
     case 'URL':
       return {
-        externalUrl: {
-          ...moduleContent.externalUrl,
+        url: {
+          ...moduleContent.url,
           content: contentBlocks.document as unknown,
         } as ExternalUrl,
       }
     case 'FILE':
       return {
         file: {
-          ...moduleContent.fileResource,
+          ...moduleContent.file,
           content: contentBlocks.document as unknown,
         } as FileResource,
       }
