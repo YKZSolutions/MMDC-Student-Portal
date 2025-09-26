@@ -1501,6 +1501,82 @@ export type UpdateCurriculumWithCourseDto = {
     courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
+export type PricingType = 'tuition' | 'lab' | 'misc' | 'other';
+
+export type CreatePricingDto = {
+    type: PricingType;
+    name: string;
+    amount: string;
+};
+
+export type PricingDto = {
+    id: string;
+    type: PricingType;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedPricingDto = {
+    meta: PaginationMetaDto;
+    pricings: Array<PricingDto>;
+};
+
+export type UpdatePricingDto = {
+    type?: PricingType;
+    name?: string;
+    amount?: string;
+};
+
+export type CreatePricingGroupDto = {
+    name: string;
+    amount: string;
+};
+
+export type CreatePricingGroupItemDto = {
+    group: CreatePricingGroupDto;
+    pricings: Array<string>;
+};
+
+export type PricingGroupDto = {
+    id: string;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PricingGroupItemDto = {
+    id: string;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    prices: Array<PricingDto>;
+};
+
+export type PaginatedPricingGroupDto = {
+    meta: PaginationMetaDto;
+    pricingGroups: Array<PricingGroupItemDto>;
+};
+
+export type UpdatePricingGroupDto = {
+    name?: string;
+    amount?: string;
+};
+
+export type UpdatePricingGroupItemDto = {
+    group: UpdatePricingGroupDto;
+    pricings?: Array<string>;
+};
+
 export type TestControllerTestStudentData = {
     body?: never;
     path?: never;
@@ -4723,6 +4799,297 @@ export type SwaggerControllerDownloadAllSpecsData = {
 export type SwaggerControllerDownloadAllSpecsResponses = {
     200: unknown;
 };
+
+export type PricingControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/pricing';
+};
+
+export type PricingControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerFindAllError = PricingControllerFindAllErrors[keyof PricingControllerFindAllErrors];
+
+export type PricingControllerFindAllResponses = {
+    200: PaginatedPricingDto;
+};
+
+export type PricingControllerFindAllResponse = PricingControllerFindAllResponses[keyof PricingControllerFindAllResponses];
+
+export type PricingControllerCreateData = {
+    body: CreatePricingDto;
+    path?: never;
+    query?: never;
+    url: '/pricing';
+};
+
+export type PricingControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerCreateError = PricingControllerCreateErrors[keyof PricingControllerCreateErrors];
+
+export type PricingControllerCreateResponses = {
+    201: PricingDto;
+};
+
+export type PricingControllerCreateResponse = PricingControllerCreateResponses[keyof PricingControllerCreateResponses];
+
+export type PricingControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/pricing/{id}';
+};
+
+export type PricingControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerRemoveError = PricingControllerRemoveErrors[keyof PricingControllerRemoveErrors];
+
+export type PricingControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type PricingControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing/{id}';
+};
+
+export type PricingControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerFindOneError = PricingControllerFindOneErrors[keyof PricingControllerFindOneErrors];
+
+export type PricingControllerFindOneResponses = {
+    200: PricingDto;
+};
+
+export type PricingControllerFindOneResponse = PricingControllerFindOneResponses[keyof PricingControllerFindOneResponses];
+
+export type PricingControllerUpdateData = {
+    body: UpdatePricingDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing/{id}';
+};
+
+export type PricingControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerUpdateError = PricingControllerUpdateErrors[keyof PricingControllerUpdateErrors];
+
+export type PricingControllerUpdateResponses = {
+    200: PricingDto;
+};
+
+export type PricingControllerUpdateResponse = PricingControllerUpdateResponses[keyof PricingControllerUpdateResponses];
+
+export type PricingGroupControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/pricing-group';
+};
+
+export type PricingGroupControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerFindAllError = PricingGroupControllerFindAllErrors[keyof PricingGroupControllerFindAllErrors];
+
+export type PricingGroupControllerFindAllResponses = {
+    200: PaginatedPricingGroupDto;
+};
+
+export type PricingGroupControllerFindAllResponse = PricingGroupControllerFindAllResponses[keyof PricingGroupControllerFindAllResponses];
+
+export type PricingGroupControllerCreateData = {
+    body: CreatePricingGroupItemDto;
+    path?: never;
+    query?: never;
+    url: '/pricing-group';
+};
+
+export type PricingGroupControllerCreateErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerCreateError = PricingGroupControllerCreateErrors[keyof PricingGroupControllerCreateErrors];
+
+export type PricingGroupControllerCreateResponses = {
+    201: PricingGroupDto;
+};
+
+export type PricingGroupControllerCreateResponse = PricingGroupControllerCreateResponses[keyof PricingGroupControllerCreateResponses];
+
+export type PricingGroupControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/pricing-group/{id}';
+};
+
+export type PricingGroupControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerRemoveError = PricingGroupControllerRemoveErrors[keyof PricingGroupControllerRemoveErrors];
+
+export type PricingGroupControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type PricingGroupControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing-group/{id}';
+};
+
+export type PricingGroupControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerFindOneError = PricingGroupControllerFindOneErrors[keyof PricingGroupControllerFindOneErrors];
+
+export type PricingGroupControllerFindOneResponses = {
+    200: PricingGroupItemDto;
+};
+
+export type PricingGroupControllerFindOneResponse = PricingGroupControllerFindOneResponses[keyof PricingGroupControllerFindOneResponses];
+
+export type PricingGroupControllerUpdateData = {
+    body: UpdatePricingGroupItemDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing-group/{id}';
+};
+
+export type PricingGroupControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerUpdateError = PricingGroupControllerUpdateErrors[keyof PricingGroupControllerUpdateErrors];
+
+export type PricingGroupControllerUpdateResponses = {
+    200: PricingGroupItemDto;
+};
+
+export type PricingGroupControllerUpdateResponse = PricingGroupControllerUpdateResponses[keyof PricingGroupControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;

@@ -22,6 +22,7 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { CurriculumModule } from './modules/curriculum/curriculum.module';
 import { SwaggerModule } from './modules/swagger/swagger.module';
 import { LmsModule } from '@/modules/lms/lms.module';
+import { PricingModule } from '@/modules/pricing/pricing.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { LmsModule } from '@/modules/lms/lms.module';
     CurriculumModule,
     LmsModule,
     SwaggerModule,
+    PricingModule,
   ],
   controllers: [],
   providers: [

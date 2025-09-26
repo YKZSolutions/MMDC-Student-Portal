@@ -2335,6 +2335,96 @@ export const zUpdateCurriculumWithCourseDto = z.object({
     courses: z.array(zUpdateCurriculumCourseItemDto)
 });
 
+export const zPricingType = z.enum([
+    'tuition',
+    'lab',
+    'misc',
+    'other'
+]);
+
+export const zCreatePricingDto = z.object({
+    type: zPricingType,
+    name: z.string(),
+    amount: z.string()
+});
+
+export const zPricingDto = z.object({
+    id: z.string(),
+    type: zPricingType,
+    name: z.string(),
+    amount: z.string(),
+    enabled: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPaginatedPricingDto = z.object({
+    meta: zPaginationMetaDto,
+    pricings: z.array(zPricingDto)
+});
+
+export const zUpdatePricingDto = z.object({
+    type: z.optional(zPricingType),
+    name: z.optional(z.string()),
+    amount: z.optional(z.string())
+});
+
+export const zCreatePricingGroupDto = z.object({
+    name: z.string(),
+    amount: z.string()
+});
+
+export const zCreatePricingGroupItemDto = z.object({
+    group: zCreatePricingGroupDto,
+    pricings: z.array(z.uuid())
+});
+
+export const zPricingGroupDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    amount: z.string(),
+    enabled: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPricingGroupItemDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    amount: z.string(),
+    enabled: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    prices: z.array(zPricingDto)
+});
+
+export const zPaginatedPricingGroupDto = z.object({
+    meta: zPaginationMetaDto,
+    pricingGroups: z.array(zPricingGroupItemDto)
+});
+
+export const zUpdatePricingGroupDto = z.object({
+    name: z.optional(z.string()),
+    amount: z.optional(z.string())
+});
+
+export const zUpdatePricingGroupItemDto = z.object({
+    group: zUpdatePricingGroupDto,
+    pricings: z.optional(z.array(z.uuid()))
+});
+
 export const zTestControllerTestStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -3504,3 +3594,103 @@ export const zSwaggerControllerDownloadAllSpecsData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
+
+export const zPricingControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zPricingControllerFindAllResponse = zPaginatedPricingDto;
+
+export const zPricingControllerCreateData = z.object({
+    body: zCreatePricingDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zPricingControllerCreateResponse = zPricingDto;
+
+export const zPricingControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zPricingControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingControllerFindOneResponse = zPricingDto;
+
+export const zPricingControllerUpdateData = z.object({
+    body: zUpdatePricingDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingControllerUpdateResponse = zPricingDto;
+
+export const zPricingGroupControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zPricingGroupControllerFindAllResponse = zPaginatedPricingGroupDto;
+
+export const zPricingGroupControllerCreateData = z.object({
+    body: zCreatePricingGroupItemDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zPricingGroupControllerCreateResponse = zPricingGroupDto;
+
+export const zPricingGroupControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zPricingGroupControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingGroupControllerFindOneResponse = zPricingGroupItemDto;
+
+export const zPricingGroupControllerUpdateData = z.object({
+    body: zUpdatePricingGroupItemDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingGroupControllerUpdateResponse = zPricingGroupItemDto;
