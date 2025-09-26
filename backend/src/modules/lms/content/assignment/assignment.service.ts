@@ -61,7 +61,9 @@ export class AssignmentService {
     const client = tx ?? this.prisma.client;
     const { gradingId, grading, ...quizDataWithoutGradingId } = assignmentData;
 
-    let data;
+    let data:
+      | Prisma.AssignmentUncheckedCreateInput
+      | Prisma.AssignmentCreateInput;
     if (gradingId) {
       data = {
         ...quizDataWithoutGradingId,
@@ -158,17 +160,23 @@ export class AssignmentService {
     return {
       ...assignment,
       content: assignment.content as Prisma.JsonValue,
-      grading: {
-        ...assignment.grading,
-        rubricSchema: assignment.grading.rubricSchema as Prisma.JsonValue,
-        questionRules: assignment.grading.questionRules as Prisma.JsonValue,
-        curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
-      },
       submissions: assignment.submissions.map((submission) => ({
         ...submission,
-        content: submission.content as Prisma.JsonValue,
-        groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
+        content: submission.content as Prisma.JsonValue | null,
+        groupSnapshot: submission.groupSnapshot as Prisma.JsonValue | null,
       })),
+      grading:
+        assignment.grading !== null
+          ? {
+              ...assignment.grading,
+              curveSettings: assignment.grading
+                .curveSettings as Prisma.JsonValue | null,
+              rubricSchema: assignment.grading
+                .rubricSchema as Prisma.JsonValue | null,
+              questionRules: assignment.grading
+                .questionRules as Prisma.JsonValue | null,
+            }
+          : null,
     };
   }
 
