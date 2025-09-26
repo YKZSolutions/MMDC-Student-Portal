@@ -1156,18 +1156,6 @@ export type CreateModuleSectionDto = {
     prerequisiteSectionId?: string | null;
 };
 
-export type ModuleContentDto = {
-    id: string;
-    order: number;
-    contentType: ContentType;
-    publishedAt: string | null;
-    toPublishAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type DetailedModuleSectionDto = {
     id: string;
     title: string;
@@ -1181,7 +1169,6 @@ export type DetailedModuleSectionDto = {
     prerequisiteSectionId?: string | null;
     parentSectionId?: string | null;
     moduleId: string;
-    moduleContents: Array<ModuleContentDto>;
 };
 
 export type UpdateModuleSectionDto = {

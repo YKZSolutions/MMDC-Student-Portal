@@ -16790,64 +16790,6 @@
           "title"
         ]
       },
-      "ModuleContentDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "contentType": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentType"
-              }
-            ]
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "toPublishAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "order",
-          "contentType",
-          "publishedAt",
-          "toPublishAt",
-          "unpublishedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
       "DetailedModuleSectionDto": {
         "type": "object",
         "properties": {
@@ -16899,12 +16841,6 @@
           },
           "moduleId": {
             "type": "string"
-          },
-          "moduleContents": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ModuleContentDto"
-            }
           }
         },
         "required": [
@@ -16917,8 +16853,7 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
-          "moduleId",
-          "moduleContents"
+          "moduleId"
         ]
       },
       "UpdateModuleSectionDto": {
