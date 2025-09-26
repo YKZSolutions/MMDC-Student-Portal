@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDecimal, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDecimal,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateGradeRecordDto {
   @ApiProperty({
@@ -33,16 +39,16 @@ export class CreateGradeRecordDto {
   feedback?: string | null;
   @ApiProperty({
     type: () => Object,
-    required: false,
-    nullable: true,
+    isArray: true,
   })
-  @IsOptional()
-  rubricScores?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @IsNotEmpty()
+  @IsArray()
+  rubricScores: Prisma.InputJsonValue[];
   @ApiProperty({
     type: () => Object,
-    required: false,
-    nullable: true,
+    isArray: true,
   })
-  @IsOptional()
-  questionScores?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @IsNotEmpty()
+  @IsArray()
+  questionScores: Prisma.InputJsonValue[];
 }

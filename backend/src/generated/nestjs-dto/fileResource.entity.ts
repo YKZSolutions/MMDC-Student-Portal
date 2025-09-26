@@ -30,9 +30,9 @@ export class FileResource {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  content: Prisma.JsonValue | null;
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     nullable: true,

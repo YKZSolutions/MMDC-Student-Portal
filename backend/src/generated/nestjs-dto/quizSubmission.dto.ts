@@ -13,8 +13,9 @@ export class QuizSubmissionDto {
   state: SubmissionState;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  answers: Prisma.JsonValue;
+  answers: Prisma.JsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',

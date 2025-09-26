@@ -64,9 +64,9 @@ export class AssignmentSubmission {
   gradeRecord?: GradeRecordAsType | null;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  content: Prisma.JsonValue | null;
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

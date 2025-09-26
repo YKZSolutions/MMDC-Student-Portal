@@ -28,14 +28,14 @@ export class GradingConfig {
   curveSettings: Prisma.JsonValue | null;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  rubricSchema: Prisma.JsonValue | null;
+  rubricSchema: Prisma.JsonValue[];
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  questionRules: Prisma.JsonValue | null;
+  questionRules: Prisma.JsonValue[];
   @ApiHideProperty()
   assignments?: AssignmentAsType[];
   @ApiProperty({

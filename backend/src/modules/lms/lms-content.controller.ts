@@ -59,7 +59,7 @@ export class LmsContentController {
    *
    */
   @ApiCreatedResponse({
-    type: OmitType(ModuleContent, ['studentProgress'] as const),
+    type: ModuleContent,
   })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
@@ -67,7 +67,7 @@ export class LmsContentController {
   create(
     @Body() createModuleContentDto: CreateContentDto,
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
-  ): Promise<Omit<ModuleContent, 'studentProgress'>> {
+  ): Promise<ModuleContent> {
     return this.lmsContentService.create(createModuleContentDto, moduleId);
   }
 
@@ -102,7 +102,7 @@ export class LmsContentController {
    * Requires `ADMIN` role.
    */
   @ApiOkResponse({
-    type: OmitType(ModuleContent, ['studentProgress'] as const),
+    type: ModuleContent,
   })
   @ApiException(() => [
     NotFoundException,
@@ -149,7 +149,7 @@ export class LmsContentController {
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
     @Body() updateContentDto: UpdateContentDto,
-  ): Promise<Omit<ModuleContent, 'studentProgress'>> {
+  ): Promise<ModuleContent> {
     return this.lmsContentService.update(moduleContentId, updateContentDto);
   }
 

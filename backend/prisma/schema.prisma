@@ -668,7 +668,7 @@ model SectionModule {
   publishedAt DateTime?
   toPublishAt DateTime?
 
-  classMeetings Json?
+  classMeetings Json[]
 
   @@unique([courseSectionId, moduleId])
   @@index([courseSectionId])
@@ -784,7 +784,7 @@ model Lesson {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json? // Structured lesson content
+  content  Json[] // Structured lesson content
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -808,7 +808,7 @@ model Assignment {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json? // Structured assignment content (eg. description, instructions, submission instructions, etc.)
+  content  Json[] // Structured assignment content (eg. description, instructions, submission instructions, etc.)
 
   mode AssignmentMode?
 
@@ -886,7 +886,7 @@ model AssignmentSubmission {
   gradeRecord GradeRecord?
 
   /// Text submission
-  content       Json?
+  content       Json[]
   submittedAt   DateTime?
   attemptNumber Int       @default(1) @db.SmallInt
 
@@ -935,7 +935,7 @@ model Quiz {
   moduleContentId String        @unique @db.Uuid
   title           String        @db.VarChar(255)
   subtitle        String?       @db.VarChar(500)
-  content         Json? // Structured quiz content (eg. description, instructions, etc.)
+  content         Json[] // Structured quiz content (eg. description, instructions, etc.)
 
   timeLimit           Int? // in minutes
   maxAttempts         Int?      @db.SmallInt
@@ -944,7 +944,7 @@ model Quiz {
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
-  questions Json? // Store all questions in a structured format
+  questions Json[] // Store all questions in a structured format
 
   // Grading per question will be overriden in the UI if present in the questions
   grading   GradingConfig? @relation(fields: [gradingId], references: [id], onDelete: Restrict)
@@ -974,9 +974,9 @@ model QuizSubmission {
 
   state SubmissionState //Draft is when students are answering the quiz
 
-  answers       Json // Student's answers
+  answers       Json[] // Student's answers
   timeSpent     Int? // in seconds
-  attemptNumber Int  @default(1) @db.SmallInt
+  attemptNumber Int    @default(1) @db.SmallInt
 
   submittedAt DateTime? @default(now())
   lateDays    Int?      @db.SmallInt
@@ -1006,8 +1006,8 @@ model GradingConfig {
   curveSettings Json? // for adjusting grades (eg. adding points to all grades)
 
   // Config details (depending on type)
-  rubricSchema  Json? // For assignments
-  questionRules Json? // For quizzes (default grading rules for each question type)
+  rubricSchema  Json[] // For assignments
+  questionRules Json[] // For quizzes (default grading rules for each question type)
 
   /// @DtoApiHidden
   assignments Assignment[]
@@ -1045,8 +1045,8 @@ model GradeRecord {
   feedback   String?
 
   // Flexible detail fields
-  rubricScores   Json? // For assignments
-  questionScores Json? // For quizzes
+  rubricScores   Json[] // For assignments
+  questionScores Json[] // For quizzes
 
   /// @DtoReadOnly
   gradedAt  DateTime @default(now())
@@ -1065,7 +1065,7 @@ model Discussion {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json? // Discussion prompt/question
+  content  Json[] // Discussion prompt/question
 
   isThreaded  Boolean? @default(true)
   requirePost Boolean? @default(false)
@@ -1114,7 +1114,7 @@ model Video {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json?
+  content  Json[]
 
   url        String?
   duration   Int? // in seconds
@@ -1136,7 +1136,7 @@ model ExternalUrl {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json?
+  content  Json[]
 
   url String?
 
@@ -1155,7 +1155,7 @@ model FileResource {
 
   title    String  @db.VarChar(255)
   subtitle String? @db.VarChar(500)
-  content  Json?
+  content  Json[]
 
   url String? //download url
 
