@@ -827,8 +827,8 @@ export class LmsContentService {
       `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
     logSuccessMessage: (_, { userId }) =>
       `Successfully fetched module content tree for user ${userId}`,
-    logErrorMessage: (err: any, { moduleId, userId }) =>
-      `Error fetching module contents tree for module ${moduleId} of user ${userId}: ${err.message}`,
+    logErrorMessage: (err: any, { moduleId, userId, role }) =>
+      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role}: ${err.message}`,
   })
   async findModuleTree(
     @LogParam('moduleId') moduleId: string,
