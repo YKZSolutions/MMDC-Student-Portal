@@ -108,7 +108,7 @@ export class GradingService {
             contentType: ContentType.ASSIGNMENT,
             assignmentId: item.assignment.id,
             grading: {
-              weight: item.assignment.grading.weight,
+              weight: item.assignment.grading?.weight,
             },
           };
         }
@@ -121,7 +121,7 @@ export class GradingService {
             contentType: ContentType.QUIZ,
             quizId: item.quiz.id,
             grading: {
-              weight: item.quiz.grading.weight,
+              weight: item.quiz.grading?.weight,
             },
           };
         }

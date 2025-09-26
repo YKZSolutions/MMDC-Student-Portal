@@ -87,16 +87,8 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const {
-      assignment,
-      quiz,
-      discussion,
-      file,
-      externalUrl,
-      video,
-      lesson,
-      ...rest
-    } = createModuleContentDto;
+    const { assignment, quiz, discussion, file, url, video, lesson, ...rest } =
+      createModuleContentDto;
 
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Create the base module content
@@ -134,8 +126,8 @@ export class LmsContentService {
           break;
 
         case ContentType.URL:
-          if (externalUrl) {
-            await this.urlService.create(content.id, externalUrl, tx);
+          if (url) {
+            await this.urlService.create(content.id, url, tx);
           }
           break;
 
@@ -232,9 +224,9 @@ export class LmsContentService {
         },
       };
     } else if (contentType === ContentType.FILE) {
-      baseInclude.fileResource = true;
+      baseInclude.file = true;
     } else if (contentType === ContentType.URL) {
-      baseInclude.externalUrl = true;
+      baseInclude.url = true;
     } else if (contentType === ContentType.VIDEO) {
       baseInclude.video = true;
     }
@@ -295,7 +287,7 @@ export class LmsContentService {
         quiz,
         discussion,
         file,
-        externalUrl,
+        url,
         video,
         lesson,
         contentType: newContentType, // prevent changing contentType
@@ -345,8 +337,8 @@ export class LmsContentService {
           }
           break;
         case ContentType.URL:
-          if (externalUrl) {
-            await this.urlService.update(id, externalUrl, tx);
+          if (url) {
+            await this.urlService.update(id, url, tx);
           }
           break;
         case ContentType.VIDEO:
@@ -649,7 +641,7 @@ export class LmsContentService {
 
         case ContentType.FILE:
           console.log('setting file');
-          whereCondition.fileResource = filters.search
+          whereCondition.file = filters.search
             ? {
                 OR: [
                   { title: { contains: filters.search, mode: 'insensitive' } },
@@ -662,8 +654,8 @@ export class LmsContentService {
           break;
 
         case ContentType.URL:
-          console.log('setting externalUrl');
-          whereCondition.externalUrl = filters.search
+          console.log('setting url');
+          whereCondition.url = filters.search
             ? {
                 OR: [
                   { title: { contains: filters.search, mode: 'insensitive' } },
@@ -740,12 +732,12 @@ export class LmsContentService {
           },
         },
         {
-          fileResource: {
+          file: {
             title: { contains: filters.search, mode: 'insensitive' },
           },
         },
         {
-          externalUrl: {
+          url: {
             title: { contains: filters.search, mode: 'insensitive' },
           },
         },
@@ -829,8 +821,8 @@ export class LmsContentService {
           quiz: { omit: { content: true, questions: true } },
           lesson: { omit: { content: true } },
           discussion: { omit: { content: true } },
-          fileResource: { omit: { content: true } },
-          externalUrl: { omit: { content: true } },
+          file: { omit: { content: true } },
+          url: { omit: { content: true } },
           video: { omit: { content: true } },
           studentProgress:
             role === Role.student ? { where: { studentId: userId } } : true,
@@ -863,7 +855,7 @@ export class LmsContentService {
       `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
     logSuccessMessage: (_, { userId }) =>
       `Successfully fetched module content tree for user ${userId}`,
-    logErrorMessage: (err: any, { moduleId, role, userId }) =>
+    logErrorMessage: (err: any, { moduleId, userId }) =>
       `Error fetching module contents tree for module ${moduleId} of user ${userId}: ${err.message}`,
   })
   async findModuleTree(
@@ -949,8 +941,8 @@ export class LmsContentService {
                   quiz: { omit: { content: true, questions: true } },
                   discussion: { omit: { content: true } },
                   video: { omit: { content: true } },
-                  externalUrl: { omit: { content: true } },
-                  fileResource: { omit: { content: true } },
+                  url: { omit: { content: true } },
+                  file: { omit: { content: true } },
                   ...(role === Role.student && userId
                     ? { studentProgress: { where: { studentId: userId } } }
                     : { studentProgress: true }),

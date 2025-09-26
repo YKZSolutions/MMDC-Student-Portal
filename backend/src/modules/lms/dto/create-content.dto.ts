@@ -71,7 +71,7 @@ export class CreateContentDto extends CreateModuleContentDto {
   @ValidateNested()
   @IsOptional()
   @Type(() => CreateExternalUrlDto)
-  externalUrl?: CreateExternalUrlDto;
+  url?: CreateExternalUrlDto;
 
   @ApiProperty({
     type: CreateFileResourceDto,
