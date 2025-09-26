@@ -1196,7 +1196,10 @@ export const zQuiz = z.object({
         z.string(),
         z.null()
     ]),
-    content: z.object({}),
+    content: z.union([
+        z.object({}),
+        z.null()
+    ]),
     timeLimit: z.union([
         z.int(),
         z.null()
@@ -1205,7 +1208,10 @@ export const zQuiz = z.object({
         z.int(),
         z.null()
     ]),
-    allowLateSubmission: z.boolean(),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
     latePenalty: z.union([
         z.string(),
         z.null()
@@ -1218,9 +1224,18 @@ export const zQuiz = z.object({
         z.int(),
         z.null()
     ]),
-    questions: z.object({}),
-    grading: z.optional(zGradingConfig),
-    gradingId: z.string(),
+    questions: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    grading: z.optional(z.union([
+        zGradingConfig,
+        z.null()
+    ])),
+    gradingId: z.union([
+        z.string(),
+        z.null()
+    ]),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1241,12 +1256,18 @@ export const zAssignment = z.object({
         z.object({}),
         z.null()
     ]),
-    mode: zAssignmentMode,
+    mode: z.union([
+        zAssignmentMode,
+        z.null()
+    ]),
     maxAttempts: z.union([
         z.int(),
         z.null()
     ]),
-    allowLateSubmission: z.boolean(),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
     latePenalty: z.union([
         z.string(),
         z.null()
@@ -1265,8 +1286,14 @@ export const zAssignment = z.object({
         z.iso.datetime(),
         z.null()
     ]),
-    grading: z.optional(zGradingConfig),
-    gradingId: z.string()
+    grading: z.optional(z.union([
+        zGradingConfig,
+        z.null()
+    ])),
+    gradingId: z.union([
+        z.string(),
+        z.null()
+    ])
 });
 
 export const zDiscussion = z.object({
@@ -1342,7 +1369,10 @@ export const zVideo = z.object({
         z.object({}),
         z.null()
     ]),
-    url: z.string(),
+    url: z.union([
+        z.string(),
+        z.null()
+    ]),
     duration: z.union([
         z.int(),
         z.null()
@@ -1371,7 +1401,10 @@ export const zExternalUrl = z.object({
         z.object({}),
         z.null()
     ]),
-    url: z.string(),
+    url: z.union([
+        z.string(),
+        z.null()
+    ]),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1423,9 +1456,22 @@ export const zFileResource = z.object({
         z.object({}),
         z.null()
     ]),
-    name: z.string(),
-    path: z.string(),
-    size: z.int(),
+    url: z.union([
+        z.string(),
+        z.null()
+    ]),
+    name: z.union([
+        z.string(),
+        z.null()
+    ]),
+    path: z.union([
+        z.string(),
+        z.null()
+    ]),
+    size: z.union([
+        z.int(),
+        z.null()
+    ]),
     mimeType: z.union([
         z.string(),
         z.null()
@@ -1485,11 +1531,11 @@ export const zModuleContent = z.object({
         zVideo,
         z.null()
     ])),
-    externalUrl: z.optional(z.union([
+    url: z.optional(z.union([
         zExternalUrl,
         z.null()
     ])),
-    fileResource: z.optional(z.union([
+    file: z.optional(z.union([
         zFileResource,
         z.null()
     ])),
@@ -1518,12 +1564,18 @@ export const zBasicAssignmentDto = z.object({
         z.string(),
         z.null()
     ]),
-    mode: zAssignmentMode,
+    mode: z.union([
+        zAssignmentMode,
+        z.null()
+    ]),
     maxAttempts: z.union([
         z.int(),
         z.null()
     ]),
-    allowLateSubmission: z.boolean(),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
     latePenalty: z.union([
         z.string(),
         z.null()
@@ -1559,7 +1611,10 @@ export const zBasicQuizDto = z.object({
         z.int(),
         z.null()
     ]),
-    allowLateSubmission: z.boolean(),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
     latePenalty: z.union([
         z.string(),
         z.null()
@@ -1610,7 +1665,10 @@ export const zBasicVideoDto = z.object({
         z.string(),
         z.null()
     ]),
-    url: z.string(),
+    url: z.union([
+        z.string(),
+        z.null()
+    ]),
     duration: z.union([
         z.int(),
         z.null()
@@ -1634,7 +1692,10 @@ export const zBasicExternalUrlDto = z.object({
         z.string(),
         z.null()
     ]),
-    url: z.string(),
+    url: z.union([
+        z.string(),
+        z.null()
+    ]),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     deletedAt: z.union([
@@ -1650,9 +1711,22 @@ export const zBasicFileResourceDto = z.object({
         z.string(),
         z.null()
     ]),
-    name: z.string(),
-    path: z.string(),
-    size: z.int(),
+    url: z.union([
+        z.string(),
+        z.null()
+    ]),
+    name: z.union([
+        z.string(),
+        z.null()
+    ]),
+    path: z.union([
+        z.string(),
+        z.null()
+    ]),
+    size: z.union([
+        z.int(),
+        z.null()
+    ]),
     mimeType: z.union([
         z.string(),
         z.null()
@@ -1829,7 +1903,8 @@ export const zDetailedModuleSectionDto = z.object({
     parentSectionId: z.optional(z.union([
         z.string(),
         z.null()
-    ]))
+    ])),
+    moduleId: z.string()
 });
 
 export const zUpdateModuleSectionDto = z.object({});
@@ -1844,12 +1919,18 @@ export const zCreateAssignmentDto = z.object({
         z.object({}),
         z.null()
     ])),
-    mode: zAssignmentMode,
+    mode: z.optional(z.union([
+        zAssignmentMode,
+        z.null()
+    ])),
     maxAttempts: z.optional(z.union([
         z.int(),
         z.null()
     ])),
-    allowLateSubmission: z.boolean(),
+    allowLateSubmission: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
     latePenalty: z.optional(z.union([
         z.string(),
         z.null()
@@ -1870,7 +1951,10 @@ export const zCreateQuizDto = z.object({
         z.string(),
         z.null()
     ])),
-    content: z.object({}),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
     timeLimit: z.optional(z.union([
         z.int(),
         z.null()
@@ -1879,7 +1963,10 @@ export const zCreateQuizDto = z.object({
         z.int(),
         z.null()
     ])),
-    allowLateSubmission: z.boolean(),
+    allowLateSubmission: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
     latePenalty: z.optional(z.union([
         z.string(),
         z.null()
@@ -1892,7 +1979,10 @@ export const zCreateQuizDto = z.object({
         z.int().default(0),
         z.null()
     ])).default(0),
-    questions: z.object({})
+    questions: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ]))
 });
 
 export const zCreateLessonDto = z.object({
@@ -1937,7 +2027,10 @@ export const zCreateExternalUrlDto = z.object({
         z.object({}),
         z.null()
     ])),
-    url: z.string()
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zCreateFileResourceDto = z.object({
@@ -1950,9 +2043,22 @@ export const zCreateFileResourceDto = z.object({
         z.object({}),
         z.null()
     ])),
-    name: z.string(),
-    path: z.string(),
-    size: z.int(),
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    name: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    path: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    size: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
     mimeType: z.optional(z.union([
         z.string(),
         z.null()
@@ -1969,7 +2075,10 @@ export const zCreateVideoDto = z.object({
         z.object({}),
         z.null()
     ])),
-    url: z.string(),
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     duration: z.optional(z.union([
         z.int(),
         z.null()
@@ -1999,7 +2108,7 @@ export const zCreateContentDto = z.object({
     quiz: z.optional(zCreateQuizDto),
     lesson: z.optional(zCreateLessonDto),
     discussion: z.optional(zCreateDiscussionDto),
-    externalUrl: z.optional(zCreateExternalUrlDto),
+    url: z.optional(zCreateExternalUrlDto),
     file: z.optional(zCreateFileResourceDto),
     video: z.optional(zCreateVideoDto)
 });
@@ -2051,11 +2160,11 @@ export const zOmitTypeClass = z.object({
         zVideo,
         z.null()
     ])),
-    externalUrl: z.optional(z.union([
+    url: z.optional(z.union([
         zExternalUrl,
         z.null()
     ])),
-    fileResource: z.optional(z.union([
+    file: z.optional(z.union([
         zFileResource,
         z.null()
     ]))
@@ -2080,7 +2189,7 @@ export const zUpdateContentDto = z.object({
     quiz: z.optional(zCreateQuizDto),
     lesson: z.optional(zCreateLessonDto),
     discussion: z.optional(zCreateDiscussionDto),
-    externalUrl: z.optional(zCreateExternalUrlDto),
+    url: z.optional(zCreateExternalUrlDto),
     file: z.optional(zCreateFileResourceDto),
     video: z.optional(zCreateVideoDto)
 });
@@ -3216,6 +3325,16 @@ export const zLmsSectionControllerRemoveData = z.object({
         directDelete: z.optional(z.boolean())
     }))
 });
+
+export const zLmsSectionControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleSectionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsSectionControllerFindOneResponse = zDetailedModuleSectionDto;
 
 export const zLmsSectionControllerUpdateData = z.object({
     body: zUpdateModuleSectionDto,

@@ -854,18 +854,18 @@ export type Quiz = {
     subtitle: string | null;
     content: {
         [key: string]: unknown;
-    };
+    } | null;
     timeLimit: number | null;
     maxAttempts: number | null;
-    allowLateSubmission: boolean;
+    allowLateSubmission: boolean | null;
     latePenalty: string | null;
     dueDate: string | null;
     gracePeriodMinutes: number | null;
     questions: {
         [key: string]: unknown;
-    };
-    grading?: GradingConfig;
-    gradingId: string;
+    } | null;
+    grading?: GradingConfig | null;
+    gradingId: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -898,17 +898,17 @@ export type Assignment = {
     content: {
         [key: string]: unknown;
     } | null;
-    mode: AssignmentMode;
+    mode: AssignmentMode | null;
     maxAttempts: number | null;
-    allowLateSubmission: boolean;
+    allowLateSubmission: boolean | null;
     latePenalty: string | null;
     dueDate: string | null;
     gracePeriodMinutes: number | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    grading?: GradingConfig;
-    gradingId: string;
+    grading?: GradingConfig | null;
+    gradingId: string | null;
 };
 
 export type DiscussionPost = {
@@ -952,7 +952,7 @@ export type Video = {
     content: {
         [key: string]: unknown;
     } | null;
-    url: string;
+    url: string | null;
     duration: number | null;
     transcript: string | null;
     createdAt: string;
@@ -968,7 +968,7 @@ export type ExternalUrl = {
     content: {
         [key: string]: unknown;
     } | null;
-    url: string;
+    url: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -1006,8 +1006,8 @@ export type ModuleContent = {
     quiz?: Quiz | null;
     discussion?: Discussion | null;
     video?: Video | null;
-    externalUrl?: ExternalUrl | null;
-    fileResource?: FileResource | null;
+    url?: ExternalUrl | null;
+    file?: FileResource | null;
     studentProgress?: Array<ContentProgress>;
 };
 
@@ -1020,9 +1020,10 @@ export type FileResource = {
     content: {
         [key: string]: unknown;
     } | null;
-    name: string;
-    path: string;
-    size: number;
+    url: string | null;
+    name: string | null;
+    path: string | null;
+    size: number | null;
     mimeType: string | null;
     createdAt: string;
     updatedAt: string;
@@ -1042,9 +1043,9 @@ export type BasicAssignmentDto = {
     id: string;
     title: string;
     subtitle: string | null;
-    mode: AssignmentMode;
+    mode: AssignmentMode | null;
     maxAttempts: number | null;
-    allowLateSubmission: boolean;
+    allowLateSubmission: boolean | null;
     latePenalty: string | null;
     dueDate: string | null;
     gracePeriodMinutes: number | null;
@@ -1059,7 +1060,7 @@ export type BasicQuizDto = {
     subtitle: string | null;
     timeLimit: number | null;
     maxAttempts: number | null;
-    allowLateSubmission: boolean;
+    allowLateSubmission: boolean | null;
     latePenalty: string | null;
     dueDate: string | null;
     gracePeriodMinutes: number | null;
@@ -1083,7 +1084,7 @@ export type BasicVideoDto = {
     id: string;
     title: string;
     subtitle: string | null;
-    url: string;
+    url: string | null;
     duration: number | null;
     transcript: string | null;
     createdAt: string;
@@ -1095,7 +1096,7 @@ export type BasicExternalUrlDto = {
     id: string;
     title: string;
     subtitle: string | null;
-    url: string;
+    url: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -1105,9 +1106,10 @@ export type BasicFileResourceDto = {
     id: string;
     title: string;
     subtitle: string | null;
-    name: string;
-    path: string;
-    size: number;
+    url: string | null;
+    name: string | null;
+    path: string | null;
+    size: number | null;
     mimeType: string | null;
     createdAt: string;
     updatedAt: string;
@@ -1178,6 +1180,7 @@ export type DetailedModuleSectionDto = {
     deletedAt: string | null;
     prerequisiteSectionId?: string | null;
     parentSectionId?: string | null;
+    moduleId: string;
 };
 
 export type UpdateModuleSectionDto = {
@@ -1190,9 +1193,9 @@ export type CreateAssignmentDto = {
     content?: {
         [key: string]: unknown;
     } | null;
-    mode: AssignmentMode;
+    mode?: AssignmentMode | null;
     maxAttempts?: number | null;
-    allowLateSubmission: boolean;
+    allowLateSubmission?: boolean | null;
     latePenalty?: string | null;
     dueDate?: string | null;
     gracePeriodMinutes?: number | null;
@@ -1201,18 +1204,18 @@ export type CreateAssignmentDto = {
 export type CreateQuizDto = {
     title: string;
     subtitle?: string | null;
-    content: {
+    content?: {
         [key: string]: unknown;
-    };
+    } | null;
     timeLimit?: number | null;
     maxAttempts?: number | null;
-    allowLateSubmission: boolean;
+    allowLateSubmission?: boolean | null;
     latePenalty?: string | null;
     dueDate?: string | null;
     gracePeriodMinutes?: number | null;
-    questions: {
+    questions?: {
         [key: string]: unknown;
-    };
+    } | null;
 };
 
 export type CreateLessonDto = {
@@ -1239,7 +1242,7 @@ export type CreateExternalUrlDto = {
     content?: {
         [key: string]: unknown;
     } | null;
-    url: string;
+    url?: string | null;
 };
 
 export type CreateFileResourceDto = {
@@ -1248,9 +1251,10 @@ export type CreateFileResourceDto = {
     content?: {
         [key: string]: unknown;
     } | null;
-    name: string;
-    path: string;
-    size: number;
+    url?: string | null;
+    name?: string | null;
+    path?: string | null;
+    size?: number | null;
     mimeType?: string | null;
 };
 
@@ -1260,7 +1264,7 @@ export type CreateVideoDto = {
     content?: {
         [key: string]: unknown;
     } | null;
-    url: string;
+    url?: string | null;
     duration?: number | null;
     transcript?: string | null;
 };
@@ -1275,7 +1279,7 @@ export type CreateContentDto = {
     quiz?: CreateQuizDto;
     lesson?: CreateLessonDto;
     discussion?: CreateDiscussionDto;
-    externalUrl?: CreateExternalUrlDto;
+    url?: CreateExternalUrlDto;
     file?: CreateFileResourceDto;
     video?: CreateVideoDto;
 };
@@ -1297,8 +1301,8 @@ export type OmitTypeClass = {
     quiz?: Quiz | null;
     discussion?: Discussion | null;
     video?: Video | null;
-    externalUrl?: ExternalUrl | null;
-    fileResource?: FileResource | null;
+    url?: ExternalUrl | null;
+    file?: FileResource | null;
 };
 
 export type UpdateContentDto = {
@@ -1311,7 +1315,7 @@ export type UpdateContentDto = {
     quiz?: CreateQuizDto;
     lesson?: CreateLessonDto;
     discussion?: CreateDiscussionDto;
-    externalUrl?: CreateExternalUrlDto;
+    url?: CreateExternalUrlDto;
     file?: CreateFileResourceDto;
     video?: CreateVideoDto;
 };
@@ -3872,6 +3876,36 @@ export type LmsSectionControllerRemoveError = LmsSectionControllerRemoveErrors[k
 export type LmsSectionControllerRemoveResponses = {
     200: unknown;
 };
+
+export type LmsSectionControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerFindOneError = LmsSectionControllerFindOneErrors[keyof LmsSectionControllerFindOneErrors];
+
+export type LmsSectionControllerFindOneResponses = {
+    200: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerFindOneResponse = LmsSectionControllerFindOneResponses[keyof LmsSectionControllerFindOneResponses];
 
 export type LmsSectionControllerUpdateData = {
     body: UpdateModuleSectionDto;
