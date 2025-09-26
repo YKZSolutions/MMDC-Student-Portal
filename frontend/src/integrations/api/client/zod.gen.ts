@@ -1491,7 +1491,10 @@ export const zModuleContent = z.object({
         z.string(),
         z.null()
     ]),
-    order: z.int(),
+    order: z.union([
+        z.int(),
+        z.null()
+    ]),
     contentType: zContentType,
     publishedAt: z.union([
         z.iso.datetime(),
@@ -1741,7 +1744,10 @@ export const zBasicFileResourceDto = z.object({
 
 export const zBasicModuleItemDto = z.object({
     id: z.string(),
-    order: z.int(),
+    order: z.union([
+        z.int(),
+        z.null()
+    ]),
     contentType: zContentType,
     publishedAt: z.union([
         z.iso.datetime(),
@@ -1800,7 +1806,10 @@ export const zModuleTreeSectionDto = z.object({
         z.null()
     ]),
     title: z.string(),
-    order: z.int(),
+    order: z.union([
+        z.int(),
+        z.null()
+    ]),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -1852,6 +1861,10 @@ export const zModuleTreeDto = z.object({
 
 export const zCreateModuleSectionDto = z.object({
     title: z.string(),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
     publishedAt: z.optional(z.union([
         z.iso.datetime(),
         z.null()
@@ -1877,7 +1890,10 @@ export const zCreateModuleSectionDto = z.object({
 export const zDetailedModuleSectionDto = z.object({
     id: z.string(),
     title: z.string(),
-    order: z.int(),
+    order: z.union([
+        z.int(),
+        z.null()
+    ]),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -1909,187 +1925,11 @@ export const zDetailedModuleSectionDto = z.object({
 
 export const zUpdateModuleSectionDto = z.object({});
 
-export const zCreateAssignmentDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
-    mode: z.optional(z.union([
-        zAssignmentMode,
-        z.null()
-    ])),
-    maxAttempts: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    allowLateSubmission: z.optional(z.union([
-        z.boolean(),
-        z.null()
-    ])),
-    latePenalty: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    dueDate: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    gracePeriodMinutes: z.optional(z.union([
-        z.int().default(0),
-        z.null()
-    ])).default(0)
-});
-
-export const zCreateQuizDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
-    timeLimit: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    maxAttempts: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    allowLateSubmission: z.optional(z.union([
-        z.boolean(),
-        z.null()
-    ])),
-    latePenalty: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    dueDate: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    gracePeriodMinutes: z.optional(z.union([
+export const zCreateContentDto = z.object({
+    order: z.optional(z.union([
         z.int().default(0),
         z.null()
     ])).default(0),
-    questions: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ]))
-});
-
-export const zCreateLessonDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ]))
-});
-
-export const zCreateDiscussionDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
-    isThreaded: z.optional(z.union([
-        z.boolean().default(true),
-        z.null()
-    ])).default(true),
-    requirePost: z.optional(z.union([
-        z.boolean().default(false),
-        z.null()
-    ])).default(false)
-});
-
-export const zCreateExternalUrlDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
-    url: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zCreateFileResourceDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
-    url: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    name: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    path: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    size: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    mimeType: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zCreateVideoDto = z.object({
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.union([
-        z.object({}),
-        z.null()
-    ])),
-    url: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    duration: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    transcript: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zCreateContentDto = z.object({
     contentType: zContentType,
     publishedAt: z.optional(z.union([
         z.iso.datetime(),
@@ -2104,13 +1944,7 @@ export const zCreateContentDto = z.object({
         z.null()
     ])),
     sectionId: z.optional(z.uuid()),
-    assignment: z.optional(zCreateAssignmentDto),
-    quiz: z.optional(zCreateQuizDto),
-    lesson: z.optional(zCreateLessonDto),
-    discussion: z.optional(zCreateDiscussionDto),
-    url: z.optional(zCreateExternalUrlDto),
-    file: z.optional(zCreateFileResourceDto),
-    video: z.optional(zCreateVideoDto)
+    title: z.string()
 });
 
 export const zOmitTypeClass = z.object({
@@ -2120,7 +1954,10 @@ export const zOmitTypeClass = z.object({
         z.string(),
         z.null()
     ]),
-    order: z.int(),
+    order: z.union([
+        z.int(),
+        z.null()
+    ]),
     contentType: zContentType,
     publishedAt: z.union([
         z.iso.datetime(),
@@ -2170,7 +2007,20 @@ export const zOmitTypeClass = z.object({
     ]))
 });
 
-export const zUpdateContentDto = z.object({
+export const zUpdateLessonItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
     contentType: z.optional(zContentType),
     publishedAt: z.optional(z.union([
         z.iso.datetime(),
@@ -2184,14 +2034,277 @@ export const zUpdateContentDto = z.object({
         z.iso.datetime(),
         z.null()
     ])),
-    sectionId: z.optional(z.uuid()),
-    assignment: z.optional(zCreateAssignmentDto),
-    quiz: z.optional(zCreateQuizDto),
-    lesson: z.optional(zCreateLessonDto),
-    discussion: z.optional(zCreateDiscussionDto),
-    url: z.optional(zCreateExternalUrlDto),
-    file: z.optional(zCreateFileResourceDto),
-    video: z.optional(zCreateVideoDto)
+    sectionId: z.optional(z.uuid())
+});
+
+export const zUpdateAssignmentItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    mode: z.optional(z.union([
+        zAssignmentMode,
+        z.null()
+    ])),
+    maxAttempts: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    allowLateSubmission: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
+    latePenalty: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    dueDate: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    gracePeriodMinutes: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    gradingId: z.optional(z.uuid()),
+    sectionId: z.optional(z.uuid())
+});
+
+export const zUpdateQuizItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    timeLimit: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    maxAttempts: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    allowLateSubmission: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
+    latePenalty: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    dueDate: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    gracePeriodMinutes: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    questions: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    gradingId: z.optional(z.uuid()),
+    sectionId: z.optional(z.uuid())
+});
+
+export const zUpdateDiscussionItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    isThreaded: z.optional(z.union([
+        z.boolean().default(true),
+        z.null()
+    ])).default(true),
+    requirePost: z.optional(z.union([
+        z.boolean().default(false),
+        z.null()
+    ])).default(false),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    sectionId: z.optional(z.uuid())
+});
+
+export const zUpdateFileItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    name: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    path: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    size: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    mimeType: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    sectionId: z.optional(z.uuid())
+});
+
+export const zUpdateExternalUrlItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    sectionId: z.optional(z.uuid())
+});
+
+export const zUpdateVideoItemDto = z.object({
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    order: z.optional(z.union([
+        z.int().default(0),
+        z.null()
+    ])).default(0),
+    contentType: z.optional(zContentType),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    toPublishAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    sectionId: z.optional(z.uuid())
 });
 
 export const zEnrollmentPeriodFilterDto = z.object({
@@ -2208,7 +2321,10 @@ export const zPaginatedModuleContentDto = z.object({
 
 export const zModuleContentInfoDto = z.object({
     id: z.string(),
-    order: z.int(),
+    order: z.union([
+        z.int(),
+        z.null()
+    ]),
     contentType: zContentType,
     moduleSectionId: z.union([
         z.string(),
@@ -3417,7 +3533,29 @@ export const zLmsContentControllerFindOneData = z.object({
 export const zLmsContentControllerFindOneResponse = zModuleContent;
 
 export const zLmsContentControllerUpdateData = z.object({
-    body: zUpdateContentDto,
+    body: z.union([
+        z.object({
+            contentType: z.literal('LESSON')
+        }).and(zUpdateLessonItemDto),
+        z.object({
+            contentType: z.literal('ASSIGNMENT')
+        }).and(zUpdateAssignmentItemDto),
+        z.object({
+            contentType: z.literal('QUIZ')
+        }).and(zUpdateQuizItemDto),
+        z.object({
+            contentType: z.literal('DISCUSSION')
+        }).and(zUpdateDiscussionItemDto),
+        z.object({
+            contentType: z.literal('FILE')
+        }).and(zUpdateFileItemDto),
+        z.object({
+            contentType: z.literal('URL')
+        }).and(zUpdateExternalUrlItemDto),
+        z.object({
+            contentType: z.literal('VIDEO')
+        }).and(zUpdateVideoItemDto)
+    ]),
     path: z.object({
         moduleContentId: z.string()
     }),

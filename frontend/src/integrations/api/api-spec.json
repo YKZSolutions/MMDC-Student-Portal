@@ -9590,7 +9590,41 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateContentDto"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateLessonItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateAssignmentItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateQuizItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateDiscussionItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateFileItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateExternalUrlItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateVideoItemDto"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "contentType",
+                  "mapping": {
+                    "LESSON": "#/components/schemas/UpdateLessonItemDto",
+                    "ASSIGNMENT": "#/components/schemas/UpdateAssignmentItemDto",
+                    "QUIZ": "#/components/schemas/UpdateQuizItemDto",
+                    "DISCUSSION": "#/components/schemas/UpdateDiscussionItemDto",
+                    "FILE": "#/components/schemas/UpdateFileItemDto",
+                    "URL": "#/components/schemas/UpdateExternalUrlItemDto",
+                    "VIDEO": "#/components/schemas/UpdateVideoItemDto"
+                  }
+                }
               }
             }
           }
@@ -16059,6 +16093,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "contentType": {
@@ -16637,6 +16672,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "contentType": {
@@ -16765,6 +16801,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -16860,6 +16897,12 @@
           "title": {
             "type": "string"
           },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
           "publishedAt": {
             "type": "string",
             "nullable": true,
@@ -16899,6 +16942,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -16958,257 +17002,15 @@
         "type": "object",
         "properties": {}
       },
-      "CreateAssignmentDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "mode": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentMode"
-              }
-            ]
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "latePenalty": {
-            "type": "string",
-            "nullable": true,
-            "format": "Decimal.js"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32",
-            "default": 0
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateQuizDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "timeLimit": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "latePenalty": {
-            "type": "string",
-            "nullable": true,
-            "format": "Decimal.js"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32",
-            "default": 0
-          },
-          "questions": {
-            "type": "object",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateLessonDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateDiscussionDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "isThreaded": {
-            "type": "boolean",
-            "nullable": true,
-            "default": true
-          },
-          "requirePost": {
-            "type": "boolean",
-            "nullable": true,
-            "default": false
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateExternalUrlDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "url": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateFileResourceDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "url": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "path": {
-            "type": "string",
-            "nullable": true
-          },
-          "size": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "mimeType": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateVideoDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "url": {
-            "type": "string",
-            "nullable": true
-          },
-          "duration": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "transcript": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
       "CreateContentDto": {
         "type": "object",
         "properties": {
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
           "contentType": {
             "allOf": [
               {
@@ -17235,30 +17037,13 @@
             "type": "string",
             "format": "uuid"
           },
-          "assignment": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
-          },
-          "quiz": {
-            "$ref": "#/components/schemas/CreateQuizDto"
-          },
-          "lesson": {
-            "$ref": "#/components/schemas/CreateLessonDto"
-          },
-          "discussion": {
-            "$ref": "#/components/schemas/CreateDiscussionDto"
-          },
-          "url": {
-            "$ref": "#/components/schemas/CreateExternalUrlDto"
-          },
-          "file": {
-            "$ref": "#/components/schemas/CreateFileResourceDto"
-          },
-          "video": {
-            "$ref": "#/components/schemas/CreateVideoDto"
+          "title": {
+            "type": "string"
           }
         },
         "required": [
-          "contentType"
+          "contentType",
+          "title"
         ]
       },
       "OmitTypeClass": {
@@ -17276,6 +17061,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "contentType": {
@@ -17384,10 +17170,28 @@
           "deletedAt"
         ]
       },
-      "UpdateContentDto": {
+      "UpdateLessonItemDto": {
         "type": "object",
         "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "object",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
           "contentType": {
+            "default": "LESSON",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ContentType"
@@ -17412,27 +17216,414 @@
           "sectionId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "UpdateAssignmentItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
           },
-          "assignment": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
+          "subtitle": {
+            "type": "string",
+            "nullable": true
           },
-          "quiz": {
-            "$ref": "#/components/schemas/CreateQuizDto"
+          "content": {
+            "type": "object",
+            "nullable": true
           },
-          "lesson": {
-            "$ref": "#/components/schemas/CreateLessonDto"
+          "mode": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
           },
-          "discussion": {
-            "$ref": "#/components/schemas/CreateDiscussionDto"
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "string",
+            "nullable": true,
+            "format": "Decimal.js"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "ASSIGNMENT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gradingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateQuizItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "object",
+            "nullable": true
+          },
+          "timeLimit": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "string",
+            "nullable": true,
+            "format": "Decimal.js"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "questions": {
+            "type": "object",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "QUIZ",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gradingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateDiscussionItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "object",
+            "nullable": true
+          },
+          "isThreaded": {
+            "type": "boolean",
+            "nullable": true,
+            "default": true
+          },
+          "requirePost": {
+            "type": "boolean",
+            "nullable": true,
+            "default": false
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "DISCUSSION",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateFileItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "object",
+            "nullable": true
           },
           "url": {
-            "$ref": "#/components/schemas/CreateExternalUrlDto"
+            "type": "string",
+            "nullable": true
           },
-          "file": {
-            "$ref": "#/components/schemas/CreateFileResourceDto"
+          "name": {
+            "type": "string",
+            "nullable": true
           },
-          "video": {
-            "$ref": "#/components/schemas/CreateVideoDto"
+          "path": {
+            "type": "string",
+            "nullable": true
+          },
+          "size": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "FILE",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateExternalUrlItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "object",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "URL",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateVideoItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "object",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "VIDEO",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -17492,6 +17683,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "contentType": {

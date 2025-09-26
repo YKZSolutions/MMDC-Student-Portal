@@ -993,7 +993,7 @@ export type ModuleContent = {
     id: string;
     moduleId: string;
     moduleSectionId: string | null;
-    order: number;
+    order: number | null;
     contentType: ContentType;
     publishedAt: string | null;
     toPublishAt: string | null;
@@ -1118,7 +1118,7 @@ export type BasicFileResourceDto = {
 
 export type BasicModuleItemDto = {
     id: string;
-    order: number;
+    order: number | null;
     contentType: ContentType;
     publishedAt: string | null;
     toPublishAt: string | null;
@@ -1141,7 +1141,7 @@ export type ModuleTreeSectionDto = {
     parentSectionId: string | null;
     prerequisiteSectionId: string | null;
     title: string;
-    order: number;
+    order: number | null;
     publishedAt: string | null;
     toPublishAt: string | null;
     unpublishedAt: string | null;
@@ -1161,6 +1161,7 @@ export type ModuleTreeDto = {
 
 export type CreateModuleSectionDto = {
     title: string;
+    order?: number | null;
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
@@ -1171,7 +1172,7 @@ export type CreateModuleSectionDto = {
 export type DetailedModuleSectionDto = {
     id: string;
     title: string;
-    order: number;
+    order: number | null;
     publishedAt: string | null;
     toPublishAt: string | null;
     unpublishedAt: string | null;
@@ -1187,108 +1188,21 @@ export type UpdateModuleSectionDto = {
     [key: string]: unknown;
 };
 
-export type CreateAssignmentDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-    mode?: AssignmentMode | null;
-    maxAttempts?: number | null;
-    allowLateSubmission?: boolean | null;
-    latePenalty?: string | null;
-    dueDate?: string | null;
-    gracePeriodMinutes?: number | null;
-};
-
-export type CreateQuizDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-    timeLimit?: number | null;
-    maxAttempts?: number | null;
-    allowLateSubmission?: boolean | null;
-    latePenalty?: string | null;
-    dueDate?: string | null;
-    gracePeriodMinutes?: number | null;
-    questions?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type CreateLessonDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type CreateDiscussionDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-    isThreaded?: boolean | null;
-    requirePost?: boolean | null;
-};
-
-export type CreateExternalUrlDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-    url?: string | null;
-};
-
-export type CreateFileResourceDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-    url?: string | null;
-    name?: string | null;
-    path?: string | null;
-    size?: number | null;
-    mimeType?: string | null;
-};
-
-export type CreateVideoDto = {
-    title: string;
-    subtitle?: string | null;
-    content?: {
-        [key: string]: unknown;
-    } | null;
-    url?: string | null;
-    duration?: number | null;
-    transcript?: string | null;
-};
-
 export type CreateContentDto = {
+    order?: number | null;
     contentType: ContentType;
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
     sectionId?: string;
-    assignment?: CreateAssignmentDto;
-    quiz?: CreateQuizDto;
-    lesson?: CreateLessonDto;
-    discussion?: CreateDiscussionDto;
-    url?: CreateExternalUrlDto;
-    file?: CreateFileResourceDto;
-    video?: CreateVideoDto;
+    title: string;
 };
 
 export type OmitTypeClass = {
     id: string;
     moduleId: string;
     moduleSectionId: string | null;
-    order: number;
+    order: number | null;
     contentType: ContentType;
     publishedAt: string | null;
     toPublishAt: string | null;
@@ -1305,19 +1219,128 @@ export type OmitTypeClass = {
     file?: FileResource | null;
 };
 
-export type UpdateContentDto = {
+export type UpdateLessonItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    order?: number | null;
     contentType?: ContentType;
     publishedAt?: string | null;
     toPublishAt?: string | null;
     unpublishedAt?: string | null;
     sectionId?: string;
-    assignment?: CreateAssignmentDto;
-    quiz?: CreateQuizDto;
-    lesson?: CreateLessonDto;
-    discussion?: CreateDiscussionDto;
-    url?: CreateExternalUrlDto;
-    file?: CreateFileResourceDto;
-    video?: CreateVideoDto;
+};
+
+export type UpdateAssignmentItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    mode?: AssignmentMode | null;
+    maxAttempts?: number | null;
+    allowLateSubmission?: boolean | null;
+    latePenalty?: string | null;
+    dueDate?: string | null;
+    gracePeriodMinutes?: number | null;
+    order?: number | null;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    gradingId?: string;
+    sectionId?: string;
+};
+
+export type UpdateQuizItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    timeLimit?: number | null;
+    maxAttempts?: number | null;
+    allowLateSubmission?: boolean | null;
+    latePenalty?: string | null;
+    dueDate?: string | null;
+    gracePeriodMinutes?: number | null;
+    questions?: {
+        [key: string]: unknown;
+    } | null;
+    order?: number | null;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    gradingId?: string;
+    sectionId?: string;
+};
+
+export type UpdateDiscussionItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    isThreaded?: boolean | null;
+    requirePost?: boolean | null;
+    order?: number | null;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    sectionId?: string;
+};
+
+export type UpdateFileItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    url?: string | null;
+    name?: string | null;
+    path?: string | null;
+    size?: number | null;
+    mimeType?: string | null;
+    order?: number | null;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    sectionId?: string;
+};
+
+export type UpdateExternalUrlItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    url?: string | null;
+    order?: number | null;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    sectionId?: string;
+};
+
+export type UpdateVideoItemDto = {
+    title?: string;
+    subtitle?: string | null;
+    content?: {
+        [key: string]: unknown;
+    } | null;
+    url?: string | null;
+    order?: number | null;
+    contentType?: ContentType;
+    publishedAt?: string | null;
+    toPublishAt?: string | null;
+    unpublishedAt?: string | null;
+    sectionId?: string;
 };
 
 export type EnrollmentPeriodFilterDto = {
@@ -1334,7 +1357,7 @@ export type PaginatedModuleContentDto = {
 
 export type ModuleContentInfoDto = {
     id: string;
-    order: number;
+    order: number | null;
     contentType: ContentType;
     moduleSectionId: string | null;
     moduleId: string;
@@ -4128,7 +4151,21 @@ export type LmsContentControllerFindOneResponses = {
 export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
 
 export type LmsContentControllerUpdateData = {
-    body: UpdateContentDto;
+    body: ({
+        contentType: 'LESSON';
+    } & UpdateLessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & UpdateAssignmentItemDto) | ({
+        contentType: 'QUIZ';
+    } & UpdateQuizItemDto) | ({
+        contentType: 'DISCUSSION';
+    } & UpdateDiscussionItemDto) | ({
+        contentType: 'FILE';
+    } & UpdateFileItemDto) | ({
+        contentType: 'URL';
+    } & UpdateExternalUrlItemDto) | ({
+        contentType: 'VIDEO';
+    } & UpdateVideoItemDto);
     path: {
         moduleContentId: string;
     };
