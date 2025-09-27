@@ -42,6 +42,7 @@ import {
   SegmentedControl,
   Stack,
   Text,
+  TextInput,
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -311,11 +312,45 @@ interface CourseSelectorProps {
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
   const { editorState } = useEditorState()
 
-  console.log(editorState.content)
+  const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
 
   switch (editorState.view) {
     case 'content':
-      return <RichTextEditor editor={editorState.content} />
+      return (
+        <Stack gap={0} h="100%" style={{ overflow: 'hidden' }}>
+          <Box
+            p="md"
+            // style={{
+            //   borderBottom: '1px solid #e9ecef',
+            //   backgroundColor: '#f8f9fa',
+            // }}
+          >
+            <TextInput
+              placeholder="Title of the content"
+              value={existingContent?.title}
+              variant="unstyled"
+              // styles={{
+              //   input: {
+              //     fontSize: '18px',
+              //     fontWeight: 600,
+              //     color: '#212529',
+              //     padding: 0,
+              //     border: 'none',
+              //     backgroundColor: 'transparent',
+              //     '&::placeholder': {
+              //       color: '#6c757d',
+              //     },
+              //   },
+              // }}
+              size="lg"
+              px={"xl"}
+            />
+          </Box>
+          <Box style={{ flex: 1, overflow: 'hidden' }}>
+            <RichTextEditor editor={editorState.content} />
+          </Box>
+        </Stack>
+      )
     case 'preview':
       return (
         <ModuleContentView
