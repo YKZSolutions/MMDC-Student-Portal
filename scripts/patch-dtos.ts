@@ -1,158 +1,214 @@
-import fs from "fs/promises";
-import { glob } from "glob";
+import path from "path";
+import { Project, SyntaxKind } from "ts-morph";
+import { execSync } from "child_process";
 
-// Configuration
-const DTO_DIR = "../backend/src/generated/nestjs-dto/**/*.ts";
-
-// Prisma JSON types that should be treated as arrays
+const GENERATED_GLOB = "../backend/src/generated/nestjs-dto/**/*.ts";
+const JSON_ARRAY_FIELDS = ["content"];
 const PRISMA_JSON_TYPES = [
-    'Json',
-    'JsonValue',
-    'JsonArray',
-    'InputJsonValue',
-    'NullableJsonNullValueInput'
+    "Json",
+    "JsonValue",
+    "JsonArray",
+    "InputJsonValue",
+    "NullableJsonNullValueInput",
 ];
 
-// Checks if a field type is a Prisma JSON type
-function isPrismaJsonType(typeText: string): boolean {
-    return PRISMA_JSON_TYPES.some(type => 
-        typeText.includes(type) && typeText.includes('Prisma.')
+function isPrismaJsonType(typeText: string) {
+    if (!typeText) return false;
+    return (
+        typeText.includes("Prisma.") &&
+        PRISMA_JSON_TYPES.some((t) => typeText.includes(t))
     );
 }
 
-/**
- * Updates the ApiProperty decorator to include isArray: true
- */
-function updateApiProperty(apiProperty: string): string {
-    const match = apiProperty.match(/@ApiProperty\(([^)]*)\)/);
-    if (!match) return apiProperty;
-
-    let options = match[1].trim();
-    
-    // Handle empty or simple cases
-    if (!options || options === '{}') {
-        return '@ApiProperty({ type: () => Object, isArray: true })';
-    }
-
-    // Add isArray to existing options
-    if (!options.includes('isArray:')) {
-        options = options.endsWith('}') 
-            ? options.slice(0, -1) + ', isArray: true }' 
-            : options + ' isArray: true';
-    }
-
-    return `@ApiProperty(${options})`;
-}
-
-/**
- * Ensures required imports are present in the file
- */
-function ensureImports(content: string): string {
-    // Add Prisma import if needed
-    if (content.includes('Prisma.') && !content.includes("import { Prisma } from '@prisma/client'")) {
-        const lastImport = content.match(/^import.*?;$/gm)?.pop() || '';
-        content = content.replace(lastImport, `${lastImport}\nimport { Prisma } from '@prisma/client';`);
-    }
-
-    // Add IsArray import if needed
-    if (content.includes('@IsArray') && !content.includes("import { IsArray }")) {
-        const validatorImport = content.match(/import\s*\{([^}]*)\}\s*from\s*['"]class-validator['"]/);
-        
-        if (validatorImport) {
-            const imports = validatorImport[1].split(',').map(i => i.trim()).filter(Boolean);
-            if (!imports.includes('IsArray')) {
-                imports.push('IsArray');
-                content = content.replace(
-                    validatorImport[0],
-                    `import { ${imports.join(', ')} } from 'class-validator';`
-                );
-            }
-        } else {
-            const lastImport = content.match(/^import.*?;$/gm)?.pop() || '';
-            content = content.replace(lastImport, `${lastImport}\nimport { IsArray } from 'class-validator';`);
-        }
-    }
-
-    return content;
-}
-
-/**
- * Processes a single DTO file
- */
-async function processFile(file: string): Promise<boolean> {
-    let content = await fs.readFile(file, "utf-8");
-    const originalContent = content;
-    let modified = false;
-
-    // Process each field in the DTO
-    const fieldRegex = /(\s*@[^\n]+\n)*\s*(\w+)\??\s*:\s*([^\n;]+);/g;
-    let match;
-    
-    while ((match = fieldRegex.exec(content)) !== null) {
-        const [fullMatch, decorators, fieldName, typeText] = match;
-        
-        // Skip if not a Prisma JSON type
-        if (!isPrismaJsonType(typeText)) {
-            continue;
-        }
-
-        // Add @IsArray() decorator if not present
-        if (!decorators?.includes('@IsArray()')) {
-            const updatedDecorators = decorators 
-                ? `@IsArray()\n  ${decorators.trim()}`
-                : '@IsArray()\n  ';
-            
-            content = content.replace(
-                fullMatch,
-                fullMatch.replace(decorators || '', updatedDecorators)
-            );
-            modified = true;
-        }
-
-        // Update ApiProperty decorator to include isArray
-        if (decorators?.includes('@ApiProperty')) {
-            content = content.replace(
-                /@ApiProperty\([^)]*\)/g,
-                updateApiProperty
-            );
-        }
-    }
-
-    // Add necessary imports if file was modified
-    if (modified) {
-        content = ensureImports(content);
-        await fs.writeFile(file, content);
-    }
-
-    return modified;
-}
-
-/**
- * Main function to process all DTO files
- */
 async function main() {
-    try {
-        console.log("🚀 Starting DTO update process...");
-        const files = await glob(DTO_DIR);
-        let updatedCount = 0;
+    const project = new Project({
+        // point at your tsconfig so ts-morph knows project formatting / paths
+        tsConfigFilePath: path.resolve("tsconfig.json"),
+        skipAddingFilesFromTsConfig: true,
+    });
 
-        for (const file of files) {
-            try {
-                if (await processFile(file)) {
-                    console.log(`✅ Updated ${file}`);
-                    updatedCount++;
-                }
-            } catch (error) {
-                console.error(`❌ Error processing ${file}:`, error);
-            }
+    const files = project.addSourceFilesAtPaths(GENERATED_GLOB);
+    let modifiedCount = 0;
+
+    for (const sf of files) {
+        let fileChanged = false;
+
+        // Ensure we have the ApiProperty import available if needed later
+        const swaggerImport = sf.getImportDeclaration("@nestjs/swagger");
+        if (!swaggerImport) {
+            // don't add blindly — we'll add only if we add an ApiProperty decorator later
         }
 
-        console.log(`\n🎉 Processed ${files.length} files, updated ${updatedCount} files.`);
-    } catch (error) {
-        console.error('❌ Fatal error:', error);
-        process.exit(1);
-    }
+        for (const cls of sf.getClasses()) {
+            for (const prop of cls.getProperties()) {
+                const name = prop.getName();
+                if (!JSON_ARRAY_FIELDS.includes(name)) continue;
+
+                const typeNode = prop.getTypeNode();
+                if (!typeNode) continue;
+                const typeText = typeNode.getText();
+                if (!isPrismaJsonType(typeText)) continue;
+
+                // --------- 1) Ensure ApiProperty has `isArray: true` and a `type` entry ----------
+                const apiDec = prop.getDecorator("ApiProperty");
+                if (apiDec) {
+                    const call = apiDec.getCallExpression();
+                    if (call) {
+                        const args = call.getArguments();
+                        const firstArg = args[0];
+
+                        if (!firstArg) {
+                            // no args: replace decorator with an object that has type + isArray
+                            apiDec.remove();
+                            prop.addDecorator({
+                                name: "ApiProperty",
+                                arguments: ["{ type: () => Object, isArray: true }"],
+                            });
+                            fileChanged = true;
+                        } else if (firstArg.getKind() === SyntaxKind.ObjectLiteralExpression) {
+                            const obj = firstArg.asKindOrThrow(
+                                SyntaxKind.ObjectLiteralExpression
+                            );
+                            // add or set isArray: true
+                            const isArrayProp = obj.getProperty("isArray");
+                            if (!isArrayProp) {
+                                obj.addPropertyAssignment({ name: "isArray", initializer: "true" });
+                                fileChanged = true;
+                            } else {
+                                // ensure initializer is `true`
+                                try {
+                                    // property exists; set initializer text to true
+                                    (isArrayProp as any).setInitializer?.("true");
+                                } catch {
+                                    // ignore if can't set
+                                }
+                            }
+
+                            // ensure there is a `type` key; if missing add `type: () => Object`
+                            if (!obj.getProperty("type")) {
+                                obj.addPropertyAssignment({
+                                    name: "type",
+                                    initializer: "() => Object",
+                                });
+                                fileChanged = true;
+                            }
+                        } else {
+                            // ApiProperty has a non-object argument (rare). Replace with object arg
+                            apiDec.remove();
+                            prop.addDecorator({
+                                name: "ApiProperty",
+                                arguments: ["{ type: () => Object, isArray: true }"],
+                            });
+                            fileChanged = true;
+                        }
+                    }
+                } else {
+                    // No ApiProperty decorator — add one that includes isArray
+                    prop.addDecorator({
+                        name: "ApiProperty",
+                        arguments: ["{ type: () => Object, isArray: true }"],
+                    });
+                    fileChanged = true;
+                }
+
+                // --------- 2) Collect decorators, ensure IsArray exists and reorder ----------
+                // collect current decorators (after ApiProperty changes)
+                const currentDecs = prop.getDecorators();
+                const decsData = currentDecs.map((d) => {
+                    const name = d.getName();
+                    const call = d.getCallExpression();
+                    const args = call ? call.getArguments().map((a) => a.getText()) : [];
+                    return { name, args };
+                });
+
+                const hasIsArray = decsData.some((d) => d.name === "IsArray");
+                if (!hasIsArray) {
+                    // we will insert IsArray
+                    decsData.push({ name: "IsArray", args: [] });
+                }
+
+                // Create new ordering: ApiProperty, IsOptional, IsArray, then the rest (preserving original relative order)
+                const specialOrder = ["ApiProperty", "IsOptional", "IsArray"];
+                const newDecs: { name: string; args: string[] }[] = [];
+
+                // add in the special order if present
+                for (const n of specialOrder) {
+                    const idx = decsData.findIndex((d) => d.name === n);
+                    if (idx >= 0) {
+                        newDecs.push(decsData[idx]);
+                    }
+                }
+
+                // append remaining decorators preserving original order
+                for (const d of decsData) {
+                    if (!specialOrder.includes(d.name)) {
+                        // avoid duplicates
+                        if (!newDecs.find((nd) => nd.name === d.name && JSON.stringify(nd.args) === JSON.stringify(d.args))) {
+                            newDecs.push(d);
+                        }
+                    }
+                }
+
+                // Remove all existing decorators and re-add in new order
+                currentDecs.forEach((d) => d.remove());
+                for (const d of newDecs) {
+                    prop.addDecorator({ name: d.name, arguments: d.args });
+                }
+
+                fileChanged = true;
+            } // end property loop
+        } // end class loop
+
+        // If file changed, ensure imports are present (IsArray, ApiProperty) and save
+        if (fileChanged) {
+            // ensure ApiProperty import
+            let swaggerImport = sf.getImportDeclaration("@nestjs/swagger");
+            if (!swaggerImport) {
+                sf.addImportDeclaration({
+                    moduleSpecifier: "@nestjs/swagger",
+                    namedImports: [{ name: "ApiProperty" }],
+                });
+            } else {
+                const hasApi = swaggerImport
+                    .getNamedImports()
+                    .some((ni) => ni.getName() === "ApiProperty");
+                if (!hasApi) swaggerImport.addNamedImport("ApiProperty");
+            }
+
+            // ensure IsArray import from class-validator
+            let cvImport = sf.getImportDeclaration("class-validator");
+            if (!cvImport) {
+                sf.addImportDeclaration({
+                    moduleSpecifier: "class-validator",
+                    namedImports: [{ name: "IsArray" }],
+                });
+            } else {
+                const hasIsArray = cvImport
+                    .getNamedImports()
+                    .some((ni) => ni.getName() === "IsArray");
+                if (!hasIsArray) cvImport.addNamedImport("IsArray");
+            }
+
+            // 🔥 auto-format the file to clean imports + indentation
+            sf.formatText();
+
+            await sf.save();
+            modifiedCount++;
+        }
+    } // files loop
+
+    console.log("🎨 Running Prettier...");
+    execSync("npx prettier --write src/generated/nestjs-dto/**/*.ts", {
+        stdio: "inherit",
+        cwd: path.resolve("../backend"),
+    });
+
+    console.log(
+        `✅ Processed ${files.length} file(s). Updated ${modifiedCount} file(s).`
+    );
 }
 
-// Run the script
-main();
+main().catch((err) => {
+    console.error("❌ Error running patch script:", err);
+    process.exit(1);
+});
