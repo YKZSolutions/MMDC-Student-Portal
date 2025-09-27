@@ -113,10 +113,7 @@ export class AssignmentService {
     const client = tx ?? this.prisma.client;
     const assignment = await client.assignment.update({
       where: { moduleContentId },
-      data: {
-        ...assignmentData,
-        moduleContent: { connect: { id: moduleContentId } },
-      },
+      data: assignmentData,
     });
 
     return {

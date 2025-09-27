@@ -300,25 +300,27 @@ export class LmsContentService {
         data,
       });
 
+      const { sectionId, contentType, ...updateFields } = dto;
+
       // 3. Delegate to specialized services (pass `tx`)
-      switch (currentContent.contentType) {
+      switch (contentType) {
         case ContentType.ASSIGNMENT:
-          await this.assignmentService.update(id, dto, tx);
+          await this.assignmentService.update(id, updateFields, tx);
           break;
         case ContentType.QUIZ:
-          await this.quizService.update(id, dto, tx);
+          await this.quizService.update(id, updateFields, tx);
           break;
         case ContentType.DISCUSSION:
-          await this.discussionService.update(id, dto, tx);
+          await this.discussionService.update(id, updateFields, tx);
           break;
         case ContentType.FILE:
-          await this.fileService.update(id, dto, tx);
+          await this.fileService.update(id, updateFields, tx);
           break;
         case ContentType.URL:
-          await this.urlService.update(id, dto, tx);
+          await this.urlService.update(id, updateFields, tx);
           break;
         case ContentType.VIDEO:
-          await this.videoService.update(id, dto, tx);
+          await this.videoService.update(id, updateFields, tx);
           break;
         case ContentType.LESSON:
           await this.lessonService.update(id, dto, tx);
