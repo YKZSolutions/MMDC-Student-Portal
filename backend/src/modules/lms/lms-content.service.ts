@@ -292,6 +292,10 @@ export class LmsContentService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
+    const { contentType, ...rest } = dto;
+
+    const destructuredDto = rest;
+
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Get current content type inside the transaction
       const currentContent = await tx.moduleContent.findUnique({
@@ -326,25 +330,25 @@ export class LmsContentService {
       // 3. Delegate to specialized services (pass `tx`)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
-          await this.assignmentService.update(id, dto, tx);
+          await this.assignmentService.update(id, destructuredDto, tx);
           break;
         case ContentType.QUIZ:
-          await this.quizService.update(id, dto, tx);
+          await this.quizService.update(id, destructuredDto, tx);
           break;
         case ContentType.DISCUSSION:
-          await this.discussionService.update(id, dto, tx);
+          await this.discussionService.update(id, destructuredDto, tx);
           break;
         case ContentType.FILE:
-          await this.fileService.update(id, dto, tx);
+          await this.fileService.update(id, destructuredDto, tx);
           break;
         case ContentType.URL:
-          await this.urlService.update(id, dto, tx);
+          await this.urlService.update(id, destructuredDto, tx);
           break;
         case ContentType.VIDEO:
-          await this.videoService.update(id, dto, tx);
+          await this.videoService.update(id, destructuredDto, tx);
           break;
         case ContentType.LESSON:
-          await this.lessonService.update(id, dto, tx);
+          await this.lessonService.update(id, destructuredDto, tx);
           break;
       }
 
