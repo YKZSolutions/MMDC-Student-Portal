@@ -14,9 +14,13 @@ import type {
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import type { ModuleTreeSectionDto } from '@/integrations/api/client'
 import {
+  lmsContentControllerRemoveMutation,
   lmsContentControllerUpdateMutation,
   lmsControllerFindModuleTreeOptions,
+  lmsControllerFindModuleTreeQueryKey,
+  lmsSectionControllerRemoveMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
@@ -41,6 +45,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   DndProvider,
   getBackendOptions,
@@ -62,8 +67,12 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { Suspense } from 'react'
+import AddModuleDrawer from '../modules/admin/add-module-drawer'
+import AddModuleItemDrawer from '../modules/admin/add-module-item-drawer'
 import ModuleContentView from '../modules/content/module-content-view'
 import { CMSContentTreeSuspense } from '../suspense'
+
+const { queryClient } = getContext()
 
 type CMSProps = {
   courseCode?: string
@@ -371,6 +380,7 @@ function CMSCourseStructure({ closeTree }: { closeTree: () => void }) {
                 moduleTree={moduleTree}
                 handleNodeSelect={(nodeData) => {
                   handleNavigate(nodeData)
+                  closeTree()
                 }}
               />
             )}
@@ -497,33 +507,176 @@ function CMSNodeRow({
   onToggle,
   handleNodeSelect,
 }: NodeRowProps) {
-  const { handleAdd } = useEditorState()
+  const { handleAdd, editorState } = useEditorState()
+
+  const { lmsCode } = useParams({ strict: false })
 
   const theme = useMantineTheme()
 
   // Calculate proper indentation (20px per level)
   const indentSize = depth * 20
 
+  const isSectionAdd = getTypeFromLevel(node.data?.level) === 'section'
+
+  const { mutateAsync: deleteModuleContent } = useAppMutation(
+    lmsContentControllerRemoveMutation,
+    {
+      loading: {
+        title: 'Deleting Module Content',
+        message: 'Deleting module content — please wait',
+      },
+      success: {
+        title: 'Module Content Deleted',
+        message: 'Module content was deleted successfully',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const { mutateAsync: deleteModuleSection } = useAppMutation(
+    lmsSectionControllerRemoveMutation,
+    {
+      loading: {
+        title: 'Deleting Subsection',
+        message: 'Deleting subsection — please wait',
+      },
+      success: {
+        title: 'Subsection Deleted',
+        message: 'Subsection was deleted successfully',
+      },
+      error: {
+        title: 'Failed to Delete Subsection',
+        message:
+          'There was an error while deleting the subsection. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    moduleContent: CourseNodeModel,
+  ) => {
+    e.stopPropagation()
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Delete Module {isSectionAdd ? 'Section' : 'Content'}
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to delete this module{' '}
+          {isSectionAdd ? 'section' : 'content'}? This action cannot be undone.
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Delete', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        isSectionAdd
+          ? await deleteModuleSection({
+              path: {
+                moduleSectionId: moduleContent.id.toString(),
+              },
+              query: {
+                directDelete: true,
+              },
+            })
+          : await deleteModuleContent({
+              path: {
+                moduleContentId: moduleContent.id.toString(),
+              },
+              query: {
+                directDelete: true,
+              },
+            })
+      },
+    })
+  }
+
   if (node.data?.type === 'add-button') {
+    if (!isSectionAdd) {
+      return (
+        <Box pl={indentSize + 24} py={2}>
+          <AddModuleItemDrawer
+            props={{
+              section: {
+                ...node.data.contentData,
+                id: node.parent as string,
+                parentSectionId:
+                  node.parent === 'root' ||
+                  getTypeFromLevel(node.data?.level) === 'subsection'
+                    ? null
+                    : node.parent,
+              } as ModuleTreeSectionDto,
+            }}
+          >
+            {({ setDrawer }) => (
+              <Button
+                variant="transparent"
+                size="xs"
+                leftSection={<IconPlus size={14} />}
+                onClick={() => handleAdd(setDrawer)}
+                style={{
+                  color: theme.colors.blue[8],
+                  height: 'auto',
+                  padding: '4px 8px',
+                }}
+              >
+                <Text size="sm" fw={500}>
+                  Add{' '}
+                  {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
+                </Text>
+              </Button>
+            )}
+          </AddModuleItemDrawer>
+        </Box>
+      )
+    }
+
     return (
       <Box pl={indentSize + 24} py={2}>
-        <Button
-          variant="transparent"
-          size="xs"
-          leftSection={<IconPlus size={14} />}
-          onClick={() =>
-            handleAdd(node.parent as string, getTypeFromLevel(node.data?.level))
-          }
-          style={{
-            color: theme.colors.blue[8],
-            height: 'auto',
-            padding: '4px 8px',
-          }}
-        >
-          <Text size="sm" fw={500}>
-            Add {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
-          </Text>
-        </Button>
+        <AddModuleDrawer>
+          {({ setDrawer }) => (
+            <Button
+              variant="transparent"
+              size="xs"
+              leftSection={<IconPlus size={14} />}
+              onClick={() => handleAdd(setDrawer)}
+              style={{
+                color: theme.colors.blue[8],
+                height: 'auto',
+                padding: '4px 8px',
+              }}
+            >
+              <Text size="sm" fw={500}>
+                Add {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
+              </Text>
+            </Button>
+          )}
+        </AddModuleDrawer>
       </Box>
     )
   }
@@ -625,7 +778,11 @@ function CMSNodeRow({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
+          <Menu.Item
+            color="red"
+            leftSection={<IconTrash size={14} />}
+            onClick={(e) => handleDelete(e, node)}
+          >
             Delete
           </Menu.Item>
         </Menu.Dropdown>
