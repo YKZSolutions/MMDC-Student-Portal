@@ -87,18 +87,37 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const { title, ...rest } = createModuleContentDto;
+    const { title, sectionId, ...rest } = createModuleContentDto;
 
-    return this.prisma.client.$transaction(async (tx) => {
-      // 1. Create the base module content
+    const result = await this.prisma.client.$transaction(async (tx) => {
+      // 1. Determine the order within the section
+      const { _max } = await tx.moduleContent.aggregate({
+        where: {
+          moduleId,
+          moduleSectionId: sectionId,
+        },
+        _max: { order: true },
+      });
+
+      const appendOrder = (_max.order ?? 0) + 1;
+
+      // 2. Create the base module content
       const content = await tx.moduleContent.create({
         data: {
+          ...(sectionId
+            ? {
+                moduleSection: {
+                  connect: { id: sectionId },
+                },
+              }
+            : {}),
           ...rest,
           module: { connect: { id: moduleId } },
+          order: appendOrder,
         },
       });
 
-      // 2. Delegate to specialized services OR inline nested creation
+      // 3. Delegate to specialized services OR inline nested creation
       switch (rest.contentType) {
         case ContentType.ASSIGNMENT:
           await tx.assignment.create({
@@ -143,9 +162,11 @@ export class LmsContentService {
           break;
       }
 
-      // 3. Always return fresh with relations
-      return this.findOne(content.id, Role.admin, null);
+      return content;
     });
+
+    // 4. Always return fresh with relations
+    return this.findOne(result.id, Role.admin, null);
   }
 
   @Log({
@@ -187,7 +208,9 @@ export class LmsContentService {
     const contentType = contentRecord.contentType; // Use the fetched contentType
 
     // Add content-type specific includes
-    if (contentType === ContentType.ASSIGNMENT) {
+    if (contentType === ContentType.LESSON) {
+      baseInclude.lesson = true;
+    } else if (contentType === ContentType.ASSIGNMENT) {
       if (role === Role.student && userId) {
         baseInclude.assignment = {
           include: {
@@ -269,6 +292,10 @@ export class LmsContentService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
+    const { contentType, ...rest } = dto;
+
+    const destructuredDto = rest;
+
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Get current content type inside the transaction
       const currentContent = await tx.moduleContent.findUnique({
@@ -303,25 +330,25 @@ export class LmsContentService {
       // 3. Delegate to specialized services (pass `tx`)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
-          await this.assignmentService.update(id, dto, tx);
+          await this.assignmentService.update(id, destructuredDto, tx);
           break;
         case ContentType.QUIZ:
-          await this.quizService.update(id, dto, tx);
+          await this.quizService.update(id, destructuredDto, tx);
           break;
         case ContentType.DISCUSSION:
-          await this.discussionService.update(id, dto, tx);
+          await this.discussionService.update(id, destructuredDto, tx);
           break;
         case ContentType.FILE:
-          await this.fileService.update(id, dto, tx);
+          await this.fileService.update(id, destructuredDto, tx);
           break;
         case ContentType.URL:
-          await this.urlService.update(id, dto, tx);
+          await this.urlService.update(id, destructuredDto, tx);
           break;
         case ContentType.VIDEO:
-          await this.videoService.update(id, dto, tx);
+          await this.videoService.update(id, destructuredDto, tx);
           break;
         case ContentType.LESSON:
-          await this.lessonService.update(id, dto, tx);
+          await this.lessonService.update(id, destructuredDto, tx);
           break;
       }
 

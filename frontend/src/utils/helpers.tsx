@@ -14,22 +14,15 @@ import type {
   BasicModuleItemDto,
   ContentType,
   ModuleContent,
-  UpdateAssignmentItemDto,
-  UpdateDiscussionItemDto,
-  UpdateExternalUrlItemDto,
-  UpdateFileItemDto,
-  UpdateLessonItemDto,
-  UpdateQuizItemDto,
-  UpdateVideoItemDto,
 } from '@/integrations/api/client'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
 import {
-  IconFileText,
-  IconClipboard,
-  IconPaperclip,
-  IconMessageCircle,
-  IconExternalLink,
   IconCalendarTime,
+  IconClipboard,
+  IconExternalLink,
+  IconFileText,
+  IconMessageCircle,
+  IconPaperclip,
 } from '@tabler/icons-react'
 
 export function getTypeFromLevel(level?: number) {
@@ -174,14 +167,15 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
           id: item.id,
           parent: section.id,
           text:
-            getTitleByContentType(item.contentType, item) ?? 'Untitled Item',
+            getContentKeyAndData(item).existingContent?.title ??
+            'Untitled Item',
           droppable: false,
           data: {
             level: 3,
             type: 'item',
             contentData: {
               ...item,
-              title: getTitleByContentType(item.contentType, item),
+              title: getContentKeyAndData(item).existingContent?.title ?? '',
               moduleId: section.moduleId,
               parentSectionId: '',
               prerequisiteSectionId: '',
@@ -294,30 +288,6 @@ export const toBlockArray = (content: unknown): Block[] => {
   ]
 }
 
-export const getTitleByContentType = (
-  contentType: ContentType,
-  moduleContent: BasicModuleItemDto,
-) => {
-  switch (contentType) {
-    case 'LESSON':
-      return moduleContent.lesson?.title || 'Untitled Lesson'
-    case 'ASSIGNMENT':
-      return moduleContent.assignment?.title || 'Untitled Assignment'
-    case 'QUIZ':
-      return moduleContent.quiz?.title || 'Untitled Quiz'
-    case 'DISCUSSION':
-      return moduleContent.discussion?.title || 'Untitled Discussion'
-    case 'FILE':
-      return moduleContent.fileResource?.title || 'Untitled File'
-    case 'URL':
-      return moduleContent.externalUrl?.title || 'Untitled External Tool'
-    case 'VIDEO':
-      return moduleContent.video?.title || 'Untitled Video'
-    default:
-      return 'Untitled Item'
-  }
-}
-
 export const getContentTypeIcon = (contentType: ContentType) => {
   switch (contentType) {
     case 'LESSON':
@@ -339,82 +309,50 @@ export const getContentTypeIcon = (contentType: ContentType) => {
   }
 }
 
-export const getModuleContent = (moduleContent: ModuleContent) => {
-  switch (moduleContent?.contentType) {
-    case 'LESSON':
-      return moduleContent.lesson
-    case 'ASSIGNMENT':
-      return moduleContent.assignment
-    case 'DISCUSSION':
-      return moduleContent.discussion
-    case 'URL':
-      return moduleContent.url
-    case 'FILE':
-      return moduleContent.file
-    case 'QUIZ':
-      return moduleContent.quiz
-    case 'VIDEO':
-      return moduleContent.video
-    default:
-      return null
+// Helper type: maps ModuleContent.contentType (e.g. 'LESSON') to the corresponding
+// lowercased key on the ModuleContent object (e.g. 'lesson').
+type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
+  U extends {
+    contentType: infer CT
   }
+    ? CT extends string
+      ? Lowercase<CT> extends keyof U
+        ? Lowercase<CT>
+        : never
+      : never
+    : never
+
+export type ExistingContent<T extends ModuleContent | BasicModuleItemDto> =
+  | NonNullable<T[ModuleContentKeyFor<T>]>
+  | undefined
+
+export const getContentKeyAndData = <
+  T extends ModuleContent | BasicModuleItemDto,
+>(
+  data: T,
+): {
+  contentKey: ModuleContentKeyFor<T>
+  existingContent: NonNullable<T[ModuleContentKeyFor<T>]> | undefined
+} => {
+  const contentKey = data.contentType.toLowerCase() as ModuleContentKeyFor<T>
+
+  // Read the property and cast to the precise type so callers get IntelliSense.
+  const existingContent = (data[contentKey] ?? undefined) as
+    | NonNullable<T[ModuleContentKeyFor<T>]>
+    | undefined
+
+  return { contentKey, existingContent }
 }
 
-export const getModuleContentKeyValuePair = (
-  moduleContent: ModuleContent,
-  contentBlocks: BlockNoteEditor,
-):
-  | ({ contentType: 'LESSON' } & UpdateLessonItemDto)
-  | ({ contentType: 'ASSIGNMENT' } & UpdateAssignmentItemDto)
-  | ({ contentType: 'QUIZ' } & UpdateQuizItemDto)
-  | ({ contentType: 'DISCUSSION' } & UpdateDiscussionItemDto)
-  | ({ contentType: 'URL' } & UpdateExternalUrlItemDto)
-  | ({ contentType: 'FILE' } & UpdateFileItemDto)
-  | ({ contentType: 'VIDEO' } & UpdateVideoItemDto) => {
-  switch (moduleContent?.contentType) {
-    case 'LESSON':
-      return {
-        contentType: 'LESSON',
-        ...moduleContent.lesson,
-        content: contentBlocks.document,
-      } as const
-    case 'ASSIGNMENT':
-      return {
-        contentType: 'ASSIGNMENT',
-        ...moduleContent.assignment,
-        content: contentBlocks.document,
-        gradingId: moduleContent.assignment?.gradingId ?? undefined,
-      } as const
-    case 'DISCUSSION':
-      return {
-        contentType: 'DISCUSSION',
-        ...moduleContent.discussion,
-        content: contentBlocks.document,
-      } as const
-    case 'URL':
-      return {
-        contentType: 'URL',
-        ...moduleContent.url,
-        content: contentBlocks.document,
-      } as const
-    case 'FILE':
-      return {
-        contentType: 'FILE',
-        ...moduleContent.file,
-        content: contentBlocks.document,
-      } as const
-    case 'QUIZ':
-      return {
-        contentType: 'QUIZ',
-        ...moduleContent.quiz,
-        content: contentBlocks.document as Block[],
-        gradingId: moduleContent.quiz?.gradingId ?? undefined,
-      } as const
-    case 'VIDEO':
-      return {
-        contentType: 'VIDEO',
-        ...moduleContent.video,
-        content: contentBlocks.document as Block[],
-      } as const
-  }
+export const isEditorEmpty = (editor: BlockNoteEditor) => {
+  if (editor.document.length !== 1) return false
+
+  const block = editor.document[0]
+  if (block.type !== 'paragraph') return false
+
+  // Ensure content array is empty or only contains empty text
+  return (
+    block.content.length === 0 ||
+    block.content.every((c) => c.type === 'text' && c.text.trim() === '')
+  )
 }

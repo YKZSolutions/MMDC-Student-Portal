@@ -3466,7 +3466,7 @@ export const zLmsContentControllerPublishData = z.object({
 export const zLmsContentControllerUnpublishData = z.object({
     body: z.optional(z.never()),
     path: z.object({
-        ':moduleContentId': z.string()
+        moduleContentId: z.string()
     }),
     query: z.optional(z.never())
 });
