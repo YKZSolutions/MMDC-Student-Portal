@@ -4,14 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "fetch-spec": "node fetch-api-spec.ts"
+    "fetch-spec": "node fetch-api-spec.ts",
+    "patch-dtos": "ts-node patch-dtos.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.3.1",
+    "glob": "^11.0.3",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }

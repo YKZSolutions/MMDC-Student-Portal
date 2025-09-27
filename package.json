@@ -13,7 +13,7 @@
     "frontend:api": "pnpm --filter frontend openapi-ts",
     "backend": "cross-env SUPABASE_ENV=cloud pnpm --filter backend start:dev",
     "backend:local": "cross-env SUPABASE_ENV=local pnpm --filter backend start:dev",
-    "backend:prisma-gen": "pnpm --filter backend prisma-gen",
+    "backend:prisma-gen": "pnpm --filter backend prisma-gen && pnpm --filter scripts patch-dtos",
     "backend:prisma-gen-sql": "pnpm --filter backend prisma-gen-sql",
     "backend:api": "concurrently -k -s first -n backend,fetch \"pnpm --filter backend api-gen\" \"wait-on http://localhost:3001/api/json && pnpm --filter scripts fetch-spec\"",
     "backend:test": "pnpm --filter backend test:e2e",
