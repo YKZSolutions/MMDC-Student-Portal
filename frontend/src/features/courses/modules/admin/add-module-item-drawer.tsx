@@ -140,9 +140,7 @@ function AddModuleItemDrawer({
         },
         body: {
           contentType: values.contentType,
-          [values.contentType.toLocaleLowerCase()]: {
-            title: values.title,
-          },
+          title: values.title,
           sectionId: section.id,
         },
       })
@@ -164,7 +162,7 @@ function AddModuleItemDrawer({
 
   const setDrawer = (open: boolean) => {
     navigate({
-      to: ".",
+      to: '.',
       search: (prev) => ({
         ...prev,
         createSubsection: open || undefined,
