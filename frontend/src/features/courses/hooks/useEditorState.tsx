@@ -2,12 +2,8 @@ import {
   type ContentNode,
   type ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import type {
-  ModuleContent
-} from '@/integrations/api/client'
-import {
-  lmsContentControllerFindOneOptions
-} from '@/integrations/api/client/@tanstack/react-query.gen'
+import type { ModuleContent } from '@/integrations/api/client'
+import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
@@ -43,7 +39,6 @@ export interface EditorSearchParams
 interface EditorContextValue {
   editorState: EditorState
   handleAdd: (fn: (open: boolean) => void) => void
-  handlePreview: (nodeType: ContentNodeType, nodeData: ContentNode) => void
   handleNavigate: (nodeData: ContentNode) => void
 }
 
@@ -84,8 +79,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     fn(true)
   }
 
-  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}
-
   const handleNavigate = (nodeData: ContentNode) => {
     navigate({
       to: '.',
@@ -101,7 +94,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       value={{
         editorState,
         handleAdd,
-        handlePreview,
         handleNavigate,
       }}
     >
