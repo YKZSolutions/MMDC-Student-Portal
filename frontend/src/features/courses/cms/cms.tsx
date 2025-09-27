@@ -66,6 +66,7 @@ import {
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import dayjs from 'dayjs'
 import { Suspense } from 'react'
 import AddModuleDrawer from '../modules/admin/add-module-drawer'
 import AddModuleItemDrawer from '../modules/admin/add-module-item-drawer'
@@ -396,6 +397,10 @@ interface StatusBarProps {}
 function CMSStatusBar({}: StatusBarProps) {
   const theme = useMantineTheme()
 
+  const { editorState } = useEditorState()
+
+  const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
+
   return (
     <Group
       justify={'space-between'}
@@ -408,13 +413,13 @@ function CMSStatusBar({}: StatusBarProps) {
     >
       <Group gap="xs">
         <Text size="sm" c="dimmed">
-          Last saved: 2 minutes ago
+          Last saved: {dayjs(existingContent?.updatedAt).fromNow()}
         </Text>
         <Text size="sm" c={theme.colors.blue[6]}>
           •
         </Text>
         <Text size="sm" c="dimmed">
-          Course Version: 1.0.0
+          Title: {existingContent?.title}
         </Text>
       </Group>
     </Group>
