@@ -87,18 +87,37 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const { title, ...rest } = createModuleContentDto;
+    const { title, sectionId, ...rest } = createModuleContentDto;
 
-    return this.prisma.client.$transaction(async (tx) => {
-      // 1. Create the base module content
+    const result = await this.prisma.client.$transaction(async (tx) => {
+      // 1. Determine the order within the section
+      const { _max } = await tx.moduleContent.aggregate({
+        where: {
+          moduleId,
+          moduleSectionId: sectionId,
+        },
+        _max: { order: true },
+      });
+
+      const appendOrder = (_max.order ?? 0) + 1;
+
+      // 2. Create the base module content
       const content = await tx.moduleContent.create({
         data: {
+          ...(sectionId
+            ? {
+                moduleSection: {
+                  connect: { id: sectionId },
+                },
+              }
+            : {}),
           ...rest,
           module: { connect: { id: moduleId } },
+          order: appendOrder,
         },
       });
 
-      // 2. Delegate to specialized services OR inline nested creation
+      // 3. Delegate to specialized services OR inline nested creation
       switch (rest.contentType) {
         case ContentType.ASSIGNMENT:
           await tx.assignment.create({
@@ -143,9 +162,11 @@ export class LmsContentService {
           break;
       }
 
-      // 3. Always return fresh with relations
-      return this.findOne(content.id, Role.admin, null);
+      return content;
     });
+
+    // 4. Always return fresh with relations
+    return this.findOne(result.id, Role.admin, null);
   }
 
   @Log({
@@ -187,7 +208,9 @@ export class LmsContentService {
     const contentType = contentRecord.contentType; // Use the fetched contentType
 
     // Add content-type specific includes
-    if (contentType === ContentType.ASSIGNMENT) {
+    if (contentType === ContentType.LESSON) {
+      baseInclude.lesson = true;
+    } else if (contentType === ContentType.ASSIGNMENT) {
       if (role === Role.student && userId) {
         baseInclude.assignment = {
           include: {
@@ -269,6 +292,8 @@ export class LmsContentService {
       throw new BadRequestException('Invalid module content ID format');
     }
 
+    const { sectionId, contentType, ...updateFields } = dto;
+
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Get current content type inside the transaction
       const currentContent = await tx.moduleContent.findUnique({
@@ -280,7 +305,7 @@ export class LmsContentService {
         throw new NotFoundException(`Module content with ID ${id} not found`);
       }
 
-      if (dto.contentType !== currentContent.contentType) {
+      if (contentType !== currentContent.contentType) {
         throw new BadRequestException(
           'Changing contentType is not allowed. Please remove and recreate the content.',
         );
@@ -291,7 +316,7 @@ export class LmsContentService {
       };
 
       if (dto.sectionId) {
-        data.moduleSection = { connect: { id: dto.sectionId } };
+        data.moduleSection = { connect: { id: sectionId } };
       }
 
       // 2. Update the base module content
@@ -299,8 +324,6 @@ export class LmsContentService {
         where: { id },
         data,
       });
-
-      const { sectionId, contentType, ...updateFields } = dto;
 
       // 3. Delegate to specialized services (pass `tx`)
       switch (contentType) {
@@ -323,7 +346,7 @@ export class LmsContentService {
           await this.videoService.update(id, updateFields, tx);
           break;
         case ContentType.LESSON:
-          await this.lessonService.update(id, dto, tx);
+          await this.lessonService.update(id, updateFields, tx);
           break;
       }
 

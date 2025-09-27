@@ -1273,8 +1273,6 @@ model NotificationReceipt {
   /// @DtoApiHidden
   user           User         @relation(fields: [userId], references: [id])
 
-  title   String
-  content String
   isRead  Boolean @default(false)
 
   /// @DtoReadOnly
