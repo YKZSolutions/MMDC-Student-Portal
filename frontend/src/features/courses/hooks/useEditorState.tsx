@@ -2,10 +2,11 @@ import {
   type ContentNode,
   type ContentNodeType,
 } from '@/features/courses/modules/types.ts'
-import type { DetailedModuleSectionDto, ModuleContent } from '@/integrations/api/client'
+import type {
+  ModuleContent
+} from '@/integrations/api/client'
 import {
-  lmsContentControllerFindOneOptions,
-  lmsSectionControllerFindOneOptions,
+  lmsContentControllerFindOneOptions
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
@@ -31,7 +32,6 @@ export interface EditorState {
   type: ContentNodeType
   data: ModuleContent
   content: BlockNoteEditor
-  section: DetailedModuleSectionDto
   view: EditorView
 }
 
@@ -42,7 +42,7 @@ export interface EditorSearchParams
 
 interface EditorContextValue {
   editorState: EditorState
-  handleAdd: (parentId?: string, newType?: ContentNodeType) => void
+  handleAdd: (fn: (open: boolean) => void) => void
   handlePreview: (nodeType: ContentNodeType, nodeData: ContentNode) => void
   handleNavigate: (nodeData: ContentNode) => void
 }
@@ -62,16 +62,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     }),
   )
 
-  const { data: moduleSectionData } = useSuspenseQuery(
-    lmsSectionControllerFindOneOptions({
-      path: {
-        moduleSectionId: moduleContentData.moduleSectionId || '',
-      },
-    }),
-  )
-
-  console.log('Fetched Section Data:', moduleSectionData)
-
   const { contentKey, existingContent } =
     getContentKeyAndData(moduleContentData)
 
@@ -88,17 +78,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     view: (searchParams.view as EditorView) || 'content',
     data: moduleContentData,
     content: editor,
-    section: moduleSectionData,
   } satisfies EditorState
 
-  const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
-    // TODO: Implement adding new nodes using mutation
-    // setEditorState({
-    //   type: newType || 'section',
-    //   data: null,
-    //   parentId,
-    //   view: 'content',
-    // })
+  const handleAdd = (fn: (open: boolean) => void) => {
+    fn(true)
   }
 
   const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}
