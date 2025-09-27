@@ -407,14 +407,14 @@ export const getModuleContentKeyValuePair = (
       return {
         contentType: 'QUIZ',
         ...moduleContent.quiz,
-        content: contentBlocks.document as Block[],
+        content: contentBlocks.document,
         gradingId: moduleContent.quiz?.gradingId ?? undefined,
       } as const
     case 'VIDEO':
       return {
         contentType: 'VIDEO',
         ...moduleContent.video,
-        content: contentBlocks.document as Block[],
+        content: contentBlocks.document,
       } as const
   }
 }

@@ -8,6 +8,7 @@ import {
   DiscussionPost,
   type DiscussionPost as DiscussionPostAsType,
 } from './discussionPost.entity';
+import { IsArray } from 'class-validator';
 
 export class Discussion {
   @ApiProperty({
@@ -29,10 +30,13 @@ export class Discussion {
     nullable: true,
   })
   subtitle: string | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'boolean',

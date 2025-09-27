@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray } from 'class-validator';
 
 export class QuizDto {
   @ApiProperty({
@@ -15,10 +16,13 @@ export class QuizDto {
     nullable: true,
   })
   subtitle: string | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'integer',

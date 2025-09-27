@@ -5,6 +5,7 @@ import {
   type Discussion as DiscussionAsType,
 } from './discussion.entity';
 import { User, type User as UserAsType } from './user.entity';
+import { IsArray } from 'class-validator';
 
 export class DiscussionPost {
   @ApiProperty({
@@ -29,9 +30,12 @@ export class DiscussionPost {
     required: false,
   })
   author?: UserAsType;
+
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',

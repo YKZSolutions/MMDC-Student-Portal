@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
 
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { Program } from '@/generated/nestjs-dto/program.entity';

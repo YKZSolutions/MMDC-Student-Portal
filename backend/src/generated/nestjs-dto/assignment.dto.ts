@@ -1,5 +1,6 @@
 import { AssignmentMode, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray } from 'class-validator';
 
 export class AssignmentDto {
   @ApiProperty({
@@ -15,10 +16,13 @@ export class AssignmentDto {
     nullable: true,
   })
   subtitle: string | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     enum: AssignmentMode,

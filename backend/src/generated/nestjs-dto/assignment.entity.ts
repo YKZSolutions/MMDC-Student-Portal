@@ -12,6 +12,7 @@ import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
 } from './assignmentSubmission.entity';
+import { IsArray } from 'class-validator';
 
 export class Assignment {
   @ApiProperty({
@@ -33,10 +34,13 @@ export class Assignment {
     nullable: true,
   })
   subtitle: string | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     enum: AssignmentMode,

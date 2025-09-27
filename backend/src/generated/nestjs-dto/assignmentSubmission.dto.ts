@@ -1,5 +1,6 @@
 import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray } from 'class-validator';
 
 export class AssignmentSubmissionDto {
   @ApiProperty({
@@ -16,10 +17,13 @@ export class AssignmentSubmissionDto {
     enumName: 'SubmissionState',
   })
   state: SubmissionState;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',

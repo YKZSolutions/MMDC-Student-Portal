@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 
 export class CreateLessonDto {
   @ApiProperty({
@@ -17,11 +17,14 @@ export class CreateLessonDto {
   @IsOptional()
   @IsString()
   subtitle?: string | null;
+
   @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,
+    isArray: true,
   })
   @IsOptional()
+  @IsArray()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }

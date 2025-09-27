@@ -1,6 +1,12 @@
 import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsInt, IsOptional } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsArray,
+} from 'class-validator';
 
 export class UpdateAssignmentSubmissionDto {
   @ApiProperty({
@@ -18,12 +24,15 @@ export class UpdateAssignmentSubmissionDto {
   @IsOptional()
   @IsEnum(SubmissionState)
   state?: SubmissionState;
+
   @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,
+    isArray: true,
   })
   @IsOptional()
+  @IsArray()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',

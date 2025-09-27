@@ -1,14 +1,18 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray } from 'class-validator';
 
 export class DiscussionPostDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
+
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue;
   @ApiProperty({
     type: 'string',

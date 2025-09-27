@@ -9,6 +9,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsArray,
 } from 'class-validator';
 
 export class CreateAssignmentDto {
@@ -26,12 +27,15 @@ export class CreateAssignmentDto {
   @IsOptional()
   @IsString()
   subtitle?: string | null;
+
   @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,
+    isArray: true,
   })
   @IsOptional()
+  @IsArray()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     enum: AssignmentMode,

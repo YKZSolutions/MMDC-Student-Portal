@@ -14,6 +14,7 @@ import {
   SubmissionAttachment,
   type SubmissionAttachment as SubmissionAttachmentAsType,
 } from './submissionAttachment.entity';
+import { IsArray } from 'class-validator';
 
 export class AssignmentSubmission {
   @ApiProperty({
@@ -62,10 +63,13 @@ export class AssignmentSubmission {
     nullable: true,
   })
   gradeRecord?: GradeRecordAsType | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',

@@ -4,6 +4,7 @@ import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
+import { IsArray } from 'class-validator';
 
 export class FileResource {
   @ApiProperty({
@@ -28,10 +29,13 @@ export class FileResource {
     nullable: true,
   })
   subtitle: string | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',

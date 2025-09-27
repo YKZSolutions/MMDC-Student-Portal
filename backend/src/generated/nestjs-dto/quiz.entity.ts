@@ -12,6 +12,7 @@ import {
   QuizSubmission,
   type QuizSubmission as QuizSubmissionAsType,
 } from './quizSubmission.entity';
+import { IsArray } from 'class-validator';
 
 export class Quiz {
   @ApiProperty({
@@ -33,10 +34,13 @@ export class Quiz {
     nullable: true,
   })
   subtitle: string | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'integer',

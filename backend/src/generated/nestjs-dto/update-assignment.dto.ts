@@ -8,6 +8,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsArray,
 } from 'class-validator';
 
 export class UpdateAssignmentDto {
@@ -26,12 +27,15 @@ export class UpdateAssignmentDto {
   @IsOptional()
   @IsString()
   subtitle?: string | null;
+
   @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,
+    isArray: true,
   })
   @IsOptional()
+  @IsArray()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     enum: AssignmentMode,

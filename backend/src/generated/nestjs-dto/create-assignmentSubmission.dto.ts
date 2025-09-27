@@ -6,6 +6,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 
 export class CreateAssignmentSubmissionDto {
@@ -23,12 +24,15 @@ export class CreateAssignmentSubmissionDto {
   @IsNotEmpty()
   @IsEnum(SubmissionState)
   state: SubmissionState;
+
   @ApiProperty({
     type: () => Object,
     required: false,
     nullable: true,
+    isArray: true,
   })
   @IsOptional()
+  @IsArray()
   content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',

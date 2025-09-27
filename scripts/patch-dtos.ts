@@ -3,7 +3,7 @@ import { Project, SyntaxKind } from "ts-morph";
 import { execSync } from "child_process";
 
 const GENERATED_GLOB = "../backend/src/generated/nestjs-dto/**/*.ts";
-const JSON_ARRAY_FIELDS = ["content"];
+const JSON_ARRAY_FIELDS = ["content, rubricSchema, questionRules"];
 const PRISMA_JSON_TYPES = [
     "Json",
     "JsonValue",
@@ -32,12 +32,6 @@ async function main() {
 
     for (const sf of files) {
         let fileChanged = false;
-
-        // Ensure we have the ApiProperty import available if needed later
-        const swaggerImport = sf.getImportDeclaration("@nestjs/swagger");
-        if (!swaggerImport) {
-            // don't add blindly — we'll add only if we add an ApiProperty decorator later
-        }
 
         for (const cls of sf.getClasses()) {
             for (const prop of cls.getProperties()) {

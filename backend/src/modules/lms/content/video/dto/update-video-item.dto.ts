@@ -1,11 +1,11 @@
 import { ApiProperty, IntersectionType } from '@nestjs/swagger';
-import { UpdateExternalUrlDto } from '@/generated/nestjs-dto/update-externalUrl.dto';
 import { UpdateModuleContentDto } from '@/generated/nestjs-dto/update-moduleContent.dto';
 import { ContentType } from '@prisma/client';
 import { IsOptional, IsUUID } from 'class-validator';
+import { UpdateVideoDto } from '@/generated/nestjs-dto/update-video.dto';
 
 export class UpdateVideoItemDto extends IntersectionType(
-  UpdateExternalUrlDto,
+  UpdateVideoDto,
   UpdateModuleContentDto,
 ) {
   @ApiProperty({
