@@ -6,14 +6,6 @@ export class NotificationReceiptDto {
   })
   id: string;
   @ApiProperty({
-    type: 'string',
-  })
-  title: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  content: string;
-  @ApiProperty({
     type: 'boolean',
   })
   isRead: boolean;
