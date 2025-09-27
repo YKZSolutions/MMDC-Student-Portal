@@ -2,6 +2,7 @@ import { Loader } from '@/components/loader-component'
 import RichTextEditor from '@/components/rich-text-editor.tsx'
 import {
   EditorProvider,
+  type EditorSearchParams,
   type EditorView,
   editorViewOptions,
   useEditorState,
@@ -14,6 +15,8 @@ import type {
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
 import type { ModuleTreeSectionDto } from '@/integrations/api/client'
 import {
+  lmsContentControllerFindOneQueryKey,
+  lmsContentControllerPublishMutation,
   lmsContentControllerRemoveMutation,
   lmsContentControllerUpdateMutation,
   lmsControllerFindModuleTreeOptions,
@@ -31,6 +34,7 @@ import {
 } from '@/utils/helpers'
 import {
   ActionIcon,
+  Badge,
   Box,
   Button,
   Container,
@@ -42,6 +46,7 @@ import {
   SegmentedControl,
   Stack,
   Text,
+  TextInput,
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -65,7 +70,7 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense } from 'react'
 import AddModuleDrawer from '../modules/admin/add-module-drawer'
@@ -310,13 +315,100 @@ interface CourseSelectorProps {
 }
 
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
+  const searchParams: EditorSearchParams = useSearch({ strict: false })
+
   const { editorState } = useEditorState()
 
   const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
 
+  const isPublished = editorState.data.publishedAt || false
+
+  const { mutateAsync: updateModuleContent } = useAppMutation(
+    lmsContentControllerUpdateMutation,
+    {
+      loading: {
+        title: 'Updating Title',
+        message: 'Saving changes...',
+      },
+      success: {
+        title: 'Title Updated',
+        message: 'Title updated successfully',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleContentKey = lmsContentControllerFindOneQueryKey({
+          path: { moduleContentId: searchParams.id || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleContentKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleContentKey })
+      },
+    },
+  )
+
+  const handleOnBlur = async (
+    e: React.FocusEvent<HTMLInputElement, Element>,
+  ) => {
+    const title = e.currentTarget.value.trim()
+
+    if (!title) {
+      throw new Error('Title cannot be empty')
+    }
+
+    if (existingContent?.title === title) return
+
+    await updateModuleContent({
+      path: {
+        moduleContentId: editorState.id || '',
+      },
+      body: {
+        contentType: editorState.data.contentType,
+        title: title,
+      },
+    })
+  }
+
   switch (editorState.view) {
     case 'content':
-      return <RichTextEditor editor={editorState.content} />
+      return (
+        <Stack gap={0}>
+          <Stack gap="md" px={rem(48)} py={'lg'}>
+            <Group align="start" gap="sm" justify="space-between">
+              <Box>
+                <TextInput
+                  onBlur={(e) => handleOnBlur(e)}
+                  placeholder="Title of the content"
+                  defaultValue={existingContent?.title}
+                  variant="unstyled"
+                  styles={{
+                    input: {
+                      fontSize: '24px',
+                      fontWeight: 600,
+                      color: '#212529',
+                      padding: 0,
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      '&::placeholder': {
+                        color: '#6c757d',
+                      },
+                    },
+                  }}
+                  size="lg"
+                />
+                <Group gap="xs">
+                  {/* <Badge variant="light">{module?.courseCode || 'N/A'}</Badge> */}
+                  <Badge variant="light" color={isPublished ? 'green' : 'red'}>
+                    {isPublished ? 'Published' : 'Draft'}
+                  </Badge>
+                </Group>
+              </Box>
+            </Group>
+          </Stack>
+          <RichTextEditor editor={editorState.content} />
+        </Stack>
+      )
     case 'preview':
       return (
         <ModuleContentView
