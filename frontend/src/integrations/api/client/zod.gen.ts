@@ -1170,11 +1170,11 @@ export const zGradingConfig = z.object({
         z.null()
     ]),
     rubricSchema: z.union([
-        z.object({}),
+        z.array(z.object({})),
         z.null()
     ]),
     questionRules: z.union([
-        z.object({}),
+        z.array(z.object({})),
         z.null()
     ]),
     get quizzes(): z.ZodOptional {

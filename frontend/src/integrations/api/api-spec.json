@@ -10040,7 +10040,7 @@
         "operationId": "LmsContentController_unpublish",
         "parameters": [
           {
-            "name": ":moduleContentId",
+            "name": "moduleContentId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15646,12 +15646,18 @@
             "nullable": true
           },
           "rubricSchema": {
-            "type": "object",
-            "nullable": true
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
           "questionRules": {
-            "type": "object",
-            "nullable": true
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
           "quizzes": {
             "type": "array",

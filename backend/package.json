@@ -21,7 +21,8 @@
     "api-gen": "nest build && node dist/swagger.gen.js",
     "prisma-gen": "prisma generate",
     "prisma-gen-sql": "prisma generate --sql",
-    "db:seed": "ts-node prisma/seed/seed.ts"
+    "db:seed": "ts-node prisma/seed/seed.ts",
+    "patch-dtos": "ts-node src/patch-dtos.ts"
   },
   "dependencies": {
     "@electric-sql/pglite-socket": "^0.0.12",
@@ -87,6 +88,7 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",
+    "ts-morph": "^27.0.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",

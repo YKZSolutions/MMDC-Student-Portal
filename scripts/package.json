@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "fetch-spec": "node fetch-api-spec.ts",
-    "patch-dtos": "ts-node patch-dtos.ts"
+    "fetch-spec": "node fetch-api-spec.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +13,6 @@
   "devDependencies": {
     "@types/node": "^24.3.1",
     "glob": "^11.0.3",
-    "ts-morph": "^27.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }

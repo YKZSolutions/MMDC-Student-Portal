@@ -5,6 +5,7 @@ import {
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
 import { Quiz, type Quiz as QuizAsType } from './quiz.entity';
+import { IsArray } from 'class-validator';
 
 export class GradingConfig {
   @ApiProperty({
@@ -26,15 +27,21 @@ export class GradingConfig {
     nullable: true,
   })
   curveSettings: Prisma.JsonValue | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   rubricSchema: Prisma.JsonValue | null;
+
   @ApiProperty({
     type: () => Object,
     nullable: true,
+    isArray: true,
   })
+  @IsArray()
   questionRules: Prisma.JsonValue | null;
   @ApiHideProperty()
   assignments?: AssignmentAsType[];

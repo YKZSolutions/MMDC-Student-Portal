@@ -21,7 +21,7 @@
     "supabase:stop": "pnpm --filter supabase supabase:stop",
     "cypress": "pnpm --filter cypress cy:open",
     "db:seed": "pnpm --filter backend db:seed",
-    "patch-dtos": "pnpm --filter scripts patch-dtos"
+    "patch-dtos": "pnpm --filter backend patch-dtos"
   },
   "keywords": [],
   "author": "",

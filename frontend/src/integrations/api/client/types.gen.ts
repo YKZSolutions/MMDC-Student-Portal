@@ -878,12 +878,12 @@ export type GradingConfig = {
     curveSettings: {
         [key: string]: unknown;
     } | null;
-    rubricSchema: {
+    rubricSchema: Array<{
         [key: string]: unknown;
-    } | null;
-    questionRules: {
+    }> | null;
+    questionRules: Array<{
         [key: string]: unknown;
-    } | null;
+    }> | null;
     quizzes?: Array<Quiz>;
     createdAt: string;
     updatedAt: string;
