@@ -208,7 +208,9 @@ export class LmsContentService {
     const contentType = contentRecord.contentType; // Use the fetched contentType
 
     // Add content-type specific includes
-    if (contentType === ContentType.ASSIGNMENT) {
+    if (contentType === ContentType.LESSON) {
+      baseInclude.lesson = true;
+    } else if (contentType === ContentType.ASSIGNMENT) {
       if (role === Role.student && userId) {
         baseInclude.assignment = {
           include: {
