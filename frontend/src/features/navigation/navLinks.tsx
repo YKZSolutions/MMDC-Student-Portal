@@ -17,6 +17,7 @@ import {
   IconUser,
   IconUserCog,
   IconUserFilled,
+  IconVocabulary,
 } from '@tabler/icons-react'
 
 export const studentLinks: NavItem[] = [
@@ -28,8 +29,8 @@ export const studentLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/courses',
-    label: 'Courses',
+    link: '/lms',
+    label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
@@ -73,8 +74,8 @@ export const mentorLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/courses',
-    label: 'Courses',
+    link: '/lms',
+    label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
@@ -104,8 +105,8 @@ export const adminLinks: NavItem[] = [
     fuzzy: true,
   },
   {
-    link: '/courses',
-    label: 'Courses',
+    link: '/lms',
+    label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
@@ -124,6 +125,13 @@ export const adminLinks: NavItem[] = [
     IconInactive: IconSchool,
     fuzzy: true,
     subItems: [
+      {
+        link: '/curriculum/programs',
+        label: 'Programs',
+        Icon: IconVocabulary,
+        IconInactive: IconVocabulary,
+        fuzzy: true,
+      },
       {
         link: '/curriculum/courses',
         label: 'Courses',

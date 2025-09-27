@@ -1,9 +1,13 @@
 import { EnrollmentStatus } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   CourseOffering,
   type CourseOffering as CourseOfferingAsType,
 } from './courseOffering.entity';
+import {
+  PricingGroup,
+  type PricingGroup as PricingGroupAsType,
+} from './pricingGroup.entity';
 
 export class EnrollmentPeriod {
   @ApiProperty({
@@ -16,6 +20,13 @@ export class EnrollmentPeriod {
     required: false,
   })
   courseOfferings?: CourseOfferingAsType[];
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  pricingGroupId: string | null;
+  @ApiHideProperty()
+  pricingGroup?: PricingGroupAsType | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

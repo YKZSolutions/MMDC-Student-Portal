@@ -623,8 +623,8 @@ function FinalizationPanel() {
                       time: `${enrolledCourse.courseSection?.startSched!} - ${enrolledCourse.courseSection?.endSched!}`,
                     }}
                     mentor={
-                      enrolledCourse.courseSection?.user
-                        ? `${enrolledCourse.courseSection?.user?.firstName} ${enrolledCourse.courseSection?.user?.lastName}`
+                      enrolledCourse.courseSection?.mentor
+                        ? `${enrolledCourse.courseSection?.mentor?.firstName} ${enrolledCourse.courseSection?.mentor?.lastName}`
                         : 'No Mentor Assigned'
                     }
                   />
@@ -1010,7 +1010,7 @@ function CourseOfferingSubjectCard({
               </Text>
               <Text c={'gray.6'} size="sm">
                 {section.mentorId
-                  ? `${section.user?.firstName} ${section.user?.lastName}`
+                  ? `${section.mentor?.firstName} ${section.mentor?.lastName}`
                   : 'No Mentor Assigned'}
               </Text>
             </Stack>

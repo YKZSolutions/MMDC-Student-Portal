@@ -1,30 +1,41 @@
+import { Loader } from '@/components/loader-component'
 import RichTextEditor from '@/components/rich-text-editor.tsx'
-import { useCourseData } from '@/features/courses/hooks/useCourseData.ts'
 import {
   EditorProvider,
+  type EditorSearchParams,
   type EditorView,
   editorViewOptions,
   useEditorState,
 } from '@/features/courses/hooks/useEditorState.tsx'
-import { mockInitialContent } from '@/features/courses/mocks.ts'
-import ModuleContentView from '@/features/courses/modules/content/module-content-view.tsx'
 import type {
   ContentNode,
   ContentNodeType,
   CourseNodeModel,
-  Module,
-  ModuleItem,
-  ModuleSection,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
+import type { ModuleTreeSectionDto } from '@/integrations/api/client'
+import {
+  lmsContentControllerFindOneQueryKey,
+  lmsContentControllerPublishMutation,
+  lmsContentControllerRemoveMutation,
+  lmsContentControllerUnpublishMutation,
+  lmsContentControllerUpdateMutation,
+  lmsControllerFindModuleTreeOptions,
+  lmsControllerFindModuleTreeQueryKey,
+  lmsSectionControllerRemoveMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
-  convertModuleToTreeData,
+  convertModuleSectionsToTreeData,
+  getContentKeyAndData,
   getTypeFromLevel,
   injectAddButtons,
 } from '@/utils/helpers'
 import {
   ActionIcon,
+  Badge,
   Box,
   Button,
   Container,
@@ -34,13 +45,13 @@ import {
   Menu,
   rem,
   SegmentedControl,
-  Select,
   Stack,
   Text,
-  Title,
+  TextInput,
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import {
   DndProvider,
   getBackendOptions,
@@ -48,8 +59,6 @@ import {
   Tree,
 } from '@minoru/react-dnd-treeview'
 import {
-  IconBook,
-  IconCalendar,
   IconChevronDown,
   IconChevronRight,
   IconDotsVertical,
@@ -57,10 +66,20 @@ import {
   IconList,
   IconPlus,
   IconRubberStamp,
+  IconRubberStampOff,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import dayjs from 'dayjs'
+import { Suspense } from 'react'
+import AddModuleDrawer from '../modules/admin/add-module-drawer'
+import AddModuleItemDrawer from '../modules/admin/add-module-item-drawer'
+import ModuleContentView from '../modules/content/module-content-view'
+import { CMSContentTreeSuspense } from '../suspense'
+
+const { queryClient } = getContext()
 
 type CMSProps = {
   courseCode?: string
@@ -70,25 +89,154 @@ type CMSProps = {
 
 export function CMS(props: CMSProps) {
   return (
-    <EditorProvider>
-      <CMSWrapper {...props} />
-    </EditorProvider>
+    <Suspense fallback={<Loader />}>
+      <EditorProvider>
+        <CMSWrapper {...props} />
+      </EditorProvider>
+    </Suspense>
   )
 }
 
-function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
+function CMSWrapper({ courseCode }: CMSProps) {
+  const searchParams: EditorSearchParams = useSearch({ strict: false })
   const navigate = useNavigate()
   const theme = useMantineTheme()
 
   const [isTreeOpened, { open: openTree, close: closeTree }] =
     useDisclosure(false)
 
-  const { courseDetails, setCourseDetails } = useCourseData(courseCode)
-
   const { editorState } = useEditorState()
 
-  const handleCourseChange = (course: CourseBasicDetails | undefined) => {
-    setCourseDetails(course)
+  const { mutateAsync: updateModuleContent } = useAppMutation(
+    lmsContentControllerUpdateMutation,
+    {
+      loading: {
+        message: 'Saving changes...',
+        title: 'Updating Content',
+      },
+      success: {
+        message: 'Content updated successfully',
+        title: 'Content Updated',
+      },
+      error: {
+        title: 'Failed to update content',
+        message: 'Please try again later',
+      },
+    },
+  )
+
+  const { mutateAsync: publishModuleContent } = useAppMutation(
+    lmsContentControllerPublishMutation,
+    {
+      loading: {
+        message: 'Publishing changes...',
+        title: 'Publishing Content',
+      },
+      success: {
+        message: 'Content published successfully',
+        title: 'Content Published',
+      },
+      error: {
+        title: 'Failed to publish content',
+        message: 'Please try again later',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleContentKey = lmsContentControllerFindOneQueryKey({
+          path: { moduleContentId: searchParams.id || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleContentKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleContentKey })
+      },
+    },
+  )
+
+  const { mutateAsync: unpublishModuleContent } = useAppMutation(
+    lmsContentControllerUnpublishMutation,
+    {
+      loading: {
+        message: 'Unpublishing changes...',
+        title: 'Unpublishing Content',
+      },
+      success: {
+        message: 'Content unpublished successfully',
+        title: 'Content Unpublished',
+      },
+      error: {
+        title: 'Failed to unpublish content',
+        message: 'Please try again later',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleContentKey = lmsContentControllerFindOneQueryKey({
+          path: { moduleContentId: searchParams.id || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleContentKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleContentKey })
+      },
+    },
+  )
+
+  const { mutateAsync: deleteModuleContent } = useAppMutation(
+    lmsContentControllerRemoveMutation,
+    {
+      loading: {
+        message: 'Deleting content...',
+        title: 'Deleting Content',
+      },
+      success: {
+        message: 'Content deleted successfully',
+        title: 'Content Deleted',
+      },
+      error: {
+        title: 'Failed to delete content',
+        message: 'Please try again later',
+      },
+    },
+  )
+
+  const handlePublish = async () => {
+    await publishModuleContent({
+      path: { moduleContentId: editorState.id || '' },
+    })
+  }
+
+  const handleUnpublish = async () => {
+    await unpublishModuleContent({
+      path: { moduleContentId: editorState.id || '' },
+    })
+  }
+
+  const handleSave = async () => {
+    const data = editorState.data
+    if (!data) return
+
+    const { contentKey, existingContent } = getContentKeyAndData(data)
+
+    await updateModuleContent({
+      path: {
+        moduleContentId: editorState.id || '',
+      },
+      body: {
+        contentType: data.contentType,
+        ...(existingContent ?? {}),
+        content: editorState.content.document,
+      },
+    })
+  }
+
+  const handleDelete = async () => {
+    await deleteModuleContent({
+      path: { moduleContentId: editorState.id || '' },
+    })
+
+    navigate({ to: '..' })
   }
 
   const handleSegmentedControl = (value: EditorView) => {
@@ -132,14 +280,21 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
               defaultValue={editorState.view}
               value={editorState.view}
               onChange={(view) => handleSegmentedControl(view as EditorView)}
-              data={editorViewOptions}
+              data={editorViewOptions.map((option) => ({
+                label: option.label,
+                value: option.value,
+                disabled:
+                  option.value === 'preview' && !editorState.data?.id
+                    ? true
+                    : false,
+              }))}
             />
           </Group>
 
-          <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
+          {/* <Title order={3} c={'gray.7'} maw={'65%'} lineClamp={1}>
             {courseDetails?.courseCode ? `${courseDetails?.courseCode}` : ''}{' '}
             {courseDetails?.courseName}{' '}
-          </Title>
+          </Title> */}
 
           <Group gap={'xs'}>
             <Group wrap="nowrap" gap={0}>
@@ -149,6 +304,7 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
                   borderStartStartRadius: '4px',
                   borderEndStartRadius: '4px',
                 }}
+                onClick={handleSave}
               >
                 Save
               </Button>
@@ -173,30 +329,33 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item
-                    leftSection={
-                      <IconRubberStamp
-                        size={16}
-                        stroke={1.5}
-                        color={theme.colors.blue[5]}
-                      />
-                    }
-                    component={Link}
-                    to={`../publish`}
-                  >
-                    Publish
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={
-                      <IconCalendar
-                        size={16}
-                        stroke={1.5}
-                        color={theme.colors.blue[5]}
-                      />
-                    }
-                  >
-                    Schedule publishing
-                  </Menu.Item>
+                  {editorState.data.publishedAt ? (
+                    <Menu.Item
+                      leftSection={
+                        <IconRubberStampOff
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.gray[6]}
+                        />
+                      }
+                      onClick={handleUnpublish}
+                    >
+                      Unpublish
+                    </Menu.Item>
+                  ) : (
+                    <Menu.Item
+                      leftSection={
+                        <IconRubberStamp
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.blue[5]}
+                        />
+                      }
+                      onClick={handlePublish}
+                    >
+                      Publish
+                    </Menu.Item>
+                  )}
                   <Menu.Item
                     leftSection={
                       <IconTrash
@@ -205,6 +364,7 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
                         color={theme.colors.red[5]}
                       />
                     }
+                    onClick={handleDelete}
                   >
                     Delete
                   </Menu.Item>
@@ -239,11 +399,7 @@ function CMSWrapper({ courseCode, itemId, viewMode = 'editor' }: CMSProps) {
         opened={isTreeOpened}
         onClose={closeTree}
       >
-        <CMSCourseStructure
-          courseCode={courseCode}
-          handleCourseChange={handleCourseChange}
-          closeTree={closeTree}
-        />
+        <CMSCourseStructure closeTree={closeTree} />
       </Drawer>
 
       <CMSStatusBar />
@@ -259,57 +415,141 @@ interface CourseSelectorProps {
 }
 
 function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
-  const { module, updateCourseContent, getNode } = useCourseData(courseCode)
+  const searchParams: EditorSearchParams = useSearch({ strict: false })
 
-  const { editorState, handleUpdate } = useEditorState()
+  const { editorState } = useEditorState()
+
+  const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
+
+  const isPublished = editorState.data.publishedAt || false
+
+  const { mutateAsync: updateModuleContent } = useAppMutation(
+    lmsContentControllerUpdateMutation,
+    {
+      loading: {
+        title: 'Updating Title',
+        message: 'Saving changes...',
+      },
+      success: {
+        title: 'Title Updated',
+        message: 'Title updated successfully',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleContentKey = lmsContentControllerFindOneQueryKey({
+          path: { moduleContentId: searchParams.id || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleContentKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleContentKey })
+      },
+    },
+  )
+
+  const handleOnBlur = async (
+    e: React.FocusEvent<HTMLInputElement, Element>,
+  ) => {
+    const title = e.currentTarget.value.trim()
+
+    if (!title) {
+      throw new Error('Title cannot be empty')
+    }
+
+    if (existingContent?.title === title) return
+
+    await updateModuleContent({
+      path: {
+        moduleContentId: editorState.id || '',
+      },
+      body: {
+        contentType: editorState.data.contentType,
+        title: title,
+      },
+    })
+  }
+
+  console.log(existingContent)
 
   switch (editorState.view) {
     case 'content':
       return (
-        <RichTextEditor
-          content={
-            editorState.data && 'content' in editorState.data
-              ? editorState.data?.content || mockInitialContent
-              : null
-          }
-          onUpdate={(newContent) => {
-            updateCourseContent(newContent, editorState.data?.id)
-            if (editorState.data) {
-              const updatedNode = {
-                ...editorState.data,
-                content: newContent,
-              }
-              handleUpdate(editorState.type, updatedNode, editorState.view)
-            }
-          }}
-        />
+        <Stack gap={0}>
+          <Stack gap="md" px={rem(48)} py={'lg'} pb={'xl'}>
+            <Group align="start" gap="sm" justify="space-between">
+              <Box>
+                <TextInput
+                  key={existingContent?.id}
+                  onBlur={(e) => handleOnBlur(e)}
+                  placeholder="Title of the content"
+                  defaultValue={existingContent?.title}
+                  variant="unstyled"
+                  width={'100%'}
+                  styles={{
+                    input: {
+                      fontSize: '24px',
+                      fontWeight: 600,
+                      color: '#212529',
+                      padding: 0,
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      '&::placeholder': {
+                        color: '#6c757d',
+                      },
+                    },
+                  }}
+                  size="lg"
+                />
+                <Group gap="xs">
+                  <Badge variant="light" color={isPublished ? 'green' : 'red'}>
+                    {isPublished ? 'Published' : 'Draft'}
+                  </Badge>
+                </Group>
+              </Box>
+            </Group>
+          </Stack>
+          <Divider />
+          <RichTextEditor editor={editorState.content} />
+        </Stack>
       )
     case 'preview':
       return (
         <ModuleContentView
-          module={module}
-          moduleItem={editorState.data as ModuleItem}
-          parentSection={
-            getNode(editorState.data?.parentId as string)?.node as ModuleSection
-          }
+          moduleContentData={editorState.data}
+          editor={editorState.content}
           isPreview={true}
         />
       )
   }
 }
 
-function CMSCourseStructure({
-  courseCode,
-  handleCourseChange,
-  closeTree,
+function CMSCourseStructureQueryProvider({
+  children,
 }: {
-  courseCode?: string
-  handleCourseChange: (course: CourseBasicDetails | undefined) => void
-  closeTree: () => void
+  children: (props: {
+    moduleTree: ModuleTreeSectionDto[] | null | undefined
+  }) => React.ReactNode
 }) {
-  const { courseDetails, module } = useCourseData(courseCode)
+  const { lmsCode } = useParams({ strict: false })
 
-  const { editorState, handleAdd, handleUpdate } = useEditorState()
+  const { data: moduleTreeData } = useSuspenseQuery(
+    lmsControllerFindModuleTreeOptions({
+      path: {
+        id: lmsCode || '',
+      },
+    }),
+  )
+
+  const moduleTree = moduleTreeData?.moduleSections
+
+  return children({
+    moduleTree,
+  })
+}
+
+function CMSCourseStructure({ closeTree }: { closeTree: () => void }) {
+  const { editorState, handleAdd, handleNavigate } = useEditorState()
 
   return (
     <Box py={'md'} h={'100%'}>
@@ -327,45 +567,24 @@ function CMSCourseStructure({
             <Text fw={500}>Course Structure</Text>
           </Group>
 
-          {/* <CMSCourseSelector
-            courses={mockCourseBasicDetails}
-            selectedCourse={courseDetails}
-            handleCourseChange={handleCourseChange}
-          /> */}
           <Divider />
         </Stack>
 
-        <CMSContentTree
-          handleAdd={handleAdd}
-          module={module}
-          handleNodeSelect={(nodeData) => {
-            handleUpdate(editorState.type, nodeData, editorState.view)
-          }}
-        />
+        <Suspense fallback={<CMSContentTreeSuspense />}>
+          <CMSCourseStructureQueryProvider>
+            {({ moduleTree }) => (
+              <CMSContentTree
+                moduleTree={moduleTree}
+                handleNodeSelect={(nodeData) => {
+                  handleNavigate(nodeData)
+                  closeTree()
+                }}
+              />
+            )}
+          </CMSCourseStructureQueryProvider>
+        </Suspense>
       </Container>
     </Box>
-  )
-}
-
-function CMSCourseSelector({
-  courses,
-  selectedCourse,
-  handleCourseChange,
-}: CourseSelectorProps) {
-  return (
-    <Group align="center" wrap={'nowrap'}>
-      <Select
-        data={courses.map((course) => course.courseName)}
-        value={selectedCourse?.courseName}
-        onChange={(value) => {
-          const course = courses.find((c) => c.courseName === value)
-          handleCourseChange(course)
-        }}
-        leftSection={<IconBook size={24} />}
-        searchable={true}
-        flex={1}
-      />
-    </Group>
   )
 }
 
@@ -373,6 +592,10 @@ interface StatusBarProps {}
 
 function CMSStatusBar({}: StatusBarProps) {
   const theme = useMantineTheme()
+
+  const { editorState } = useEditorState()
+
+  const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
 
   return (
     <Group
@@ -386,13 +609,13 @@ function CMSStatusBar({}: StatusBarProps) {
     >
       <Group gap="xs">
         <Text size="sm" c="dimmed">
-          Last saved: 2 minutes ago
+          Last saved: {dayjs(existingContent?.updatedAt).fromNow()}
         </Text>
         <Text size="sm" c={theme.colors.blue[6]}>
           •
         </Text>
         <Text size="sm" c="dimmed">
-          Course Version: 1.0.0
+          Title: {existingContent?.title}
         </Text>
       </Group>
     </Group>
@@ -400,20 +623,15 @@ function CMSStatusBar({}: StatusBarProps) {
 }
 
 interface ContentTreeProps {
-  module: Module
-  handleAdd: (parentId: string, nodeType: ContentNodeType) => void
+  moduleTree: ModuleTreeSectionDto[] | null | undefined
   handleNodeSelect: (nodeData: ContentNode) => void
 }
 
-function CMSContentTree({
-  module,
-  handleAdd,
-  handleNodeSelect,
-}: ContentTreeProps) {
+function CMSContentTree({ moduleTree, handleNodeSelect }: ContentTreeProps) {
   const { editorState } = useEditorState()
   // Handle node selection and trigger onChange
   const handleNodeRowSelect = (node: CourseNodeModel) => {
-    if (node.data?.type === 'add-button') return
+    if (node.data?.type === 'add-button' || node.data?.type !== 'item') return
 
     if (node.data?.contentData) {
       handleNodeSelect(node.data.contentData)
@@ -424,7 +642,9 @@ function CMSContentTree({
     <DndProvider backend={MultiBackend} options={getBackendOptions()}>
       <Stack gap={0} h="100%">
         <Tree
-          tree={injectAddButtons(convertModuleToTreeData(module))}
+          tree={injectAddButtons(
+            convertModuleSectionsToTreeData(moduleTree || []),
+          )}
           sort={false}
           rootId={'root'}
           insertDroppableFirst={false}
@@ -442,7 +662,6 @@ function CMSContentTree({
               isDropTarget={isDropTarget}
               isSelected={editorState.data?.id === node.id}
               onToggle={onToggle}
-              handleAdd={handleAdd}
               handleNodeSelect={handleNodeRowSelect}
             />
           )}
@@ -477,7 +696,6 @@ interface NodeRowProps {
   isDropTarget: boolean
   isSelected: boolean
   onToggle: () => void
-  handleAdd: (parentId: string, nodeType: ContentNodeType) => void
   handleNodeSelect: (node: CourseNodeModel) => void
 }
 
@@ -488,34 +706,181 @@ function CMSNodeRow({
   isDropTarget,
   isSelected,
   onToggle,
-  handleAdd,
   handleNodeSelect,
 }: NodeRowProps) {
+  const { handleAdd, editorState } = useEditorState()
+
+  const { lmsCode } = useParams({ strict: false })
+  const navigate = useNavigate()
+
   const theme = useMantineTheme()
 
   // Calculate proper indentation (20px per level)
   const indentSize = depth * 20
 
+  const isSectionAdd = getTypeFromLevel(node.data?.level) === 'section'
+
+  const { mutateAsync: deleteModuleContent } = useAppMutation(
+    lmsContentControllerRemoveMutation,
+    {
+      loading: {
+        title: 'Deleting Module Content',
+        message: 'Deleting module content — please wait',
+      },
+      success: {
+        title: 'Module Content Deleted',
+        message: 'Module content was deleted successfully',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const { mutateAsync: deleteModuleSection } = useAppMutation(
+    lmsSectionControllerRemoveMutation,
+    {
+      loading: {
+        title: 'Deleting Subsection',
+        message: 'Deleting subsection — please wait',
+      },
+      success: {
+        title: 'Subsection Deleted',
+        message: 'Subsection was deleted successfully',
+      },
+      error: {
+        title: 'Failed to Delete Subsection',
+        message:
+          'There was an error while deleting the subsection. Please try again.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleTreeKey = lmsControllerFindModuleTreeQueryKey({
+          path: { id: lmsCode || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleTreeKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleTreeKey })
+      },
+    },
+  )
+
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    moduleContent: CourseNodeModel,
+  ) => {
+    e.stopPropagation()
+
+    modals.openConfirmModal({
+      title: (
+        <Text fw={600} c={'dark.7'}>
+          Delete Module {isSectionAdd ? 'Section' : 'Content'}
+        </Text>
+      ),
+      children: (
+        <Text size="sm" c={'dark.3'}>
+          Are you sure you want to delete this module{' '}
+          {isSectionAdd ? 'section' : 'content'}? This action cannot be undone.
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Delete', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        isSectionAdd
+          ? await deleteModuleSection({
+              path: {
+                moduleSectionId: moduleContent.id.toString(),
+              },
+              query: {
+                directDelete: true,
+              },
+            })
+          : await deleteModuleContent({
+              path: {
+                moduleContentId: moduleContent.id.toString(),
+              },
+              query: {
+                directDelete: true,
+              },
+            })
+
+        navigate({ to: '..' })
+      },
+    })
+  }
+
   if (node.data?.type === 'add-button') {
+    if (!isSectionAdd) {
+      return (
+        <Box pl={indentSize + 24} py={2}>
+          <AddModuleItemDrawer
+            props={{
+              section: {
+                ...node.data.contentData,
+                id: node.parent as string,
+                parentSectionId:
+                  node.parent === 'root' ||
+                  getTypeFromLevel(node.data?.level) === 'subsection'
+                    ? null
+                    : node.parent,
+              } as ModuleTreeSectionDto,
+            }}
+          >
+            {({ setDrawer }) => (
+              <Button
+                variant="transparent"
+                size="xs"
+                leftSection={<IconPlus size={14} />}
+                onClick={() => handleAdd(setDrawer)}
+                style={{
+                  color: theme.colors.blue[8],
+                  height: 'auto',
+                  padding: '4px 8px',
+                }}
+              >
+                <Text size="sm" fw={500}>
+                  Add{' '}
+                  {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
+                </Text>
+              </Button>
+            )}
+          </AddModuleItemDrawer>
+        </Box>
+      )
+    }
+
     return (
       <Box pl={indentSize + 24} py={2}>
-        <Button
-          variant="transparent"
-          size="xs"
-          leftSection={<IconPlus size={14} />}
-          onClick={() =>
-            handleAdd(node.parent as string, getTypeFromLevel(node.data?.level))
-          }
-          style={{
-            color: theme.colors.blue[8],
-            height: 'auto',
-            padding: '4px 8px',
-          }}
-        >
-          <Text size="sm" fw={500}>
-            Add {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
-          </Text>
-        </Button>
+        <AddModuleDrawer>
+          {({ setDrawer }) => (
+            <Button
+              variant="transparent"
+              size="xs"
+              leftSection={<IconPlus size={14} />}
+              onClick={() => handleAdd(setDrawer)}
+              style={{
+                color: theme.colors.blue[8],
+                height: 'auto',
+                padding: '4px 8px',
+              }}
+            >
+              <Text size="sm" fw={500}>
+                Add {capitalizeFirstLetter(getTypeFromLevel(node.data?.level))}
+              </Text>
+            </Button>
+          )}
+        </AddModuleDrawer>
       </Box>
     )
   }
@@ -617,7 +982,11 @@ function CMSNodeRow({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
+          <Menu.Item
+            color="red"
+            leftSection={<IconTrash size={14} />}
+            onClick={(e) => handleDelete(e, node)}
+          >
             Delete
           </Menu.Item>
         </Menu.Dropdown>

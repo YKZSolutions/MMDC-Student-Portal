@@ -5,9 +5,9 @@ import {
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import {
-  AssignmentGrading,
-  type AssignmentGrading as AssignmentGradingAsType,
-} from './assignmentGrading.entity';
+  GradingConfig,
+  type GradingConfig as GradingConfigAsType,
+} from './gradingConfig.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
@@ -35,34 +35,44 @@ export class Assignment {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  content: Prisma.JsonValue | null;
+  content: Prisma.JsonValue[];
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
+    nullable: true,
   })
-  mode: AssignmentMode;
+  mode: AssignmentMode | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  maxAttempts: number;
+  maxAttempts: number | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  allowLateSubmission: boolean;
+  allowLateSubmission: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
+    nullable: true,
   })
-  latePenalty: Prisma.Decimal;
+  latePenalty: Prisma.Decimal | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,
   })
   dueDate: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  gracePeriodMinutes: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -80,16 +90,16 @@ export class Assignment {
   })
   deletedAt: Date | null;
   @ApiProperty({
+    type: () => GradingConfig,
+    required: false,
+    nullable: true,
+  })
+  grading?: GradingConfigAsType | null;
+  @ApiProperty({
     type: 'string',
     nullable: true,
   })
   gradingId: string | null;
-  @ApiProperty({
-    type: () => AssignmentGrading,
-    required: false,
-    nullable: true,
-  })
-  grading?: AssignmentGradingAsType | null;
   @ApiHideProperty()
   submissions?: AssignmentSubmissionAsType[];
 }

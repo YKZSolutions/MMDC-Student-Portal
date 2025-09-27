@@ -1,16 +1,17 @@
 import {
-    Box,
-    Card,
-    Divider,
-    Flex,
-    Group,
-    rem,
-    Skeleton,
-    Stack,
-    Text,
-    Title,
-    useMantineTheme,
+  Accordion,
+  Box,
+  Card,
+  Divider,
+  Flex,
+  Group,
+  rem,
+  Skeleton,
+  Stack,
+  Title,
+  useMantineTheme,
 } from '@mantine/core'
+import { Fragment } from 'react/jsx-runtime'
 
 type CourseListSuspenseProps = {
   variant?: 'card' | 'row'
@@ -53,9 +54,7 @@ function CardSkeleton() {
           <Skeleton height={12} width={80} />
         </Group>
 
-        <Text size={'sm'} mt={8} c={theme.colors.dark[3]}>
-          <Skeleton height={12} width="50%" />
-        </Text>
+        <Skeleton mt={8} height={12} width="50%" />
       </Box>
 
       <Divider />
@@ -121,9 +120,9 @@ export function CourseListSuspense({
     return (
       <Stack>
         {items.map((_, i) => (
-          <div key={i}>
+          <Box key={i}>
             <RowSkeleton />
-          </div>
+          </Box>
         ))}
       </Stack>
     )
@@ -132,9 +131,9 @@ export function CourseListSuspense({
   return (
     <Group>
       {items.map((_, i) => (
-        <div key={i}>
+        <Box key={i}>
           {variant === 'card' ? <CardSkeleton /> : <RowSkeleton />}
-        </div>
+        </Box>
       ))}
     </Group>
   )
@@ -156,5 +155,171 @@ export function CourseHeaderSkeleton() {
         <Skeleton height={14} width={140} />
       </Group>
     </Box>
+  )
+}
+
+type ModulePanelSuspenseProps = {
+  sections?: number
+  subsectionsPerSection?: number
+  itemsPerSubsection?: number
+}
+
+export function ModulePanelSuspense({
+  sections = 3,
+  subsectionsPerSection = 2,
+  itemsPerSubsection = 2,
+}: ModulePanelSuspenseProps) {
+  const theme = useMantineTheme()
+
+  const sectionIndexes = Array.from({ length: sections })
+
+  return (
+    <Accordion multiple variant="filled" chevronPosition="left">
+      {sectionIndexes.map((_, si) => (
+        <Fragment key={si}>
+          <Accordion.Item key={si} value={`section-${si}`}>
+            <Accordion.Control py={'sm'}>
+              <Group wrap="nowrap">
+                <Stack gap={'xs'} style={{ flex: 1 }}>
+                  <Group gap="xs">
+                    <Title order={4} fw={600}>
+                      <Skeleton height={18} width={240} />
+                    </Title>
+                    <Skeleton height={14} width={60} />
+                  </Group>
+                  <Skeleton height={12} width={180} />
+                </Stack>
+              </Group>
+            </Accordion.Control>
+
+            <Accordion.Panel>
+              <Accordion
+                multiple
+                chevronPosition="left"
+                variant="separated"
+                radius={'md'}
+                styles={{ chevron: { padding: theme.spacing.sm } }}
+              >
+                {Array.from({ length: subsectionsPerSection }).map(
+                  (_, subi) => (
+                    <Accordion.Item
+                      key={subi}
+                      value={`section-${si}-sub-${subi}`}
+                    >
+                      <Accordion.Control py={'sm'}>
+                        <Group wrap="nowrap">
+                          <Stack gap={'xs'} style={{ flex: 1 }}>
+                            <Group gap="xs" mb={4}>
+                              <Title order={5} fw={600}>
+                                <Skeleton height={16} width={200} />
+                              </Title>
+                              <Skeleton height={12} width={48} />
+                            </Group>
+                            <Skeleton height={10} width={140} />
+                          </Stack>
+                        </Group>
+                      </Accordion.Control>
+
+                      <Accordion.Panel>
+                        <Stack gap="xs">
+                          {Array.from({ length: itemsPerSubsection }).map(
+                            (_, ii) => (
+                              <Box key={ii}>
+                                <CardSkeleton />
+                              </Box>
+                            ),
+                          )}
+                        </Stack>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  ),
+                )}
+              </Accordion>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Divider />
+        </Fragment>
+      ))}
+    </Accordion>
+  )
+}
+
+type CMSContentTreeSuspenseProps = {
+  sections?: number
+  subsectionsPerSection?: number
+  itemsPerSubsection?: number
+}
+
+export function CMSContentTreeSuspense({
+  sections = 4,
+  subsectionsPerSection = 2,
+  itemsPerSubsection = 2,
+}: CMSContentTreeSuspenseProps) {
+  const sectionIndexes = Array.from({ length: sections })
+
+  return (
+    <Stack gap={0} h="100%">
+      <Box p="xs">
+        <Title order={5}>
+          <Skeleton height={18} width={240} />
+        </Title>
+      </Box>
+
+      <Divider />
+
+      <Stack p="xs" gap={6} style={{ overflow: 'auto' }}>
+        {sectionIndexes.map((_, si) => (
+          <Box key={si}>
+            <Group align="center" wrap="nowrap" style={{ padding: '6px 4px' }}>
+              <Skeleton height={18} width={18} />
+              <Skeleton circle height={20} width={20} />
+              <Skeleton height={14} width={220} />
+              <Skeleton height={12} width={60} style={{ marginLeft: 'auto' }} />
+            </Group>
+
+            <Stack ml={rem(24)} gap={6}>
+              {Array.from({ length: subsectionsPerSection }).map((_, subi) => (
+                <Box key={subi}>
+                  <Group
+                    align="center"
+                    wrap="nowrap"
+                    style={{ padding: '4px 4px' }}
+                  >
+                    <Skeleton height={14} width={14} />
+                    <Skeleton height={12} width={180} />
+                    <Skeleton
+                      height={10}
+                      width={48}
+                      style={{ marginLeft: 'auto' }}
+                    />
+                  </Group>
+
+                  <Stack ml={rem(20)} gap={6}>
+                    {Array.from({ length: itemsPerSubsection }).map((_, ii) => (
+                      <Group
+                        key={ii}
+                        align="center"
+                        wrap="nowrap"
+                        style={{ padding: '4px 4px' }}
+                      >
+                        <Skeleton circle height={12} width={12} />
+                        <Skeleton height={12} width={200} />
+                        <Skeleton
+                          height={10}
+                          width={40}
+                          style={{ marginLeft: 'auto' }}
+                        />
+                      </Group>
+                    ))}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+
+            <Divider mt={6} />
+          </Box>
+        ))}
+      </Stack>
+    </Stack>
   )
 }

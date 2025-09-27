@@ -1,3 +1,29 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
+import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
+import { FileService } from '@/modules/lms/content/file/file.service';
+import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
+import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
+import { UrlService } from '@/modules/lms/content/url/url.service';
+import { VideoService } from '@/modules/lms/content/video/video.service';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
+import {
+  ModuleTreeDto,
+  ModuleTreeSectionDto,
+} from '@/modules/lms/dto/module-tree.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
 import {
   BadRequestException,
   ConflictException,
@@ -5,46 +31,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
 import {
   ContentType,
   CourseEnrollmentStatus,
   EnrollmentStatus,
-  Module,
   Prisma,
   Role,
 } from '@prisma/client';
 import { isUUID } from 'class-validator';
-import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
-import { LogParam } from '@/common/decorators/log-param.decorator';
-import { Log } from '@/common/decorators/log.decorator';
-import {
-  PrismaError,
-  PrismaErrorCode,
-} from '@/common/decorators/prisma-error.decorator';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import type { Module as ModuleAsType } from '@/generated/nestjs-dto/module.entity';
-import type { ModuleSection as ModuleSectionAsType } from '@/generated/nestjs-dto/moduleSection.entity';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { AssignmentService } from '@/modules/lms/content/assignment/assignment.service';
-import { QuizService } from '@/modules/lms/content/quiz/quiz.service';
-import { DiscussionService } from '@/modules/lms/content/discussion/discussion.service';
-import { FileService } from '@/modules/lms/content/file/file.service';
-import { UrlService } from '@/modules/lms/content/url/url.service';
-import { VideoService } from '@/modules/lms/content/video/video.service';
-import { LessonService } from '@/modules/lms/content/lesson/lessson.service';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
-import {
-  ModuleTreeDto,
-  ModuleTreeSectionDto,
-} from '@/modules/lms/dto/module-tree.dto';
-import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -91,74 +87,86 @@ export class LmsContentService {
     @LogParam('content') createModuleContentDto: CreateContentDto,
     @LogParam('moduleId') moduleId: string,
   ): Promise<ModuleContent> {
-    const {
-      assignment,
-      quiz,
-      discussion,
-      file,
-      externalUrl,
-      video,
-      lesson,
-      ...rest
-    } = createModuleContentDto;
+    const { title, sectionId, ...rest } = createModuleContentDto;
 
-    return this.prisma.client.$transaction(async (tx) => {
-      // 1. Create the base module content
+    const result = await this.prisma.client.$transaction(async (tx) => {
+      // 1. Determine the order within the section
+      const { _max } = await tx.moduleContent.aggregate({
+        where: {
+          moduleId,
+          moduleSectionId: sectionId,
+        },
+        _max: { order: true },
+      });
+
+      const appendOrder = (_max.order ?? 0) + 1;
+
+      // 2. Create the base module content
       const content = await tx.moduleContent.create({
         data: {
+          ...(sectionId
+            ? {
+                moduleSection: {
+                  connect: { id: sectionId },
+                },
+              }
+            : {}),
           ...rest,
           module: { connect: { id: moduleId } },
+          order: appendOrder,
         },
       });
 
-      // 2. Delegate to specialized services OR inline nested creation
+      // 3. Delegate to specialized services OR inline nested creation
       switch (rest.contentType) {
         case ContentType.ASSIGNMENT:
-          if (assignment) {
-            await this.assignmentService.create(content.id, assignment, tx);
-          }
+          await tx.assignment.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.QUIZ:
-          if (quiz) {
-            await this.quizService.create(content.id, quiz, tx);
-          }
+          await tx.quiz.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.DISCUSSION:
-          if (discussion) {
-            await this.discussionService.create(content.id, discussion, tx);
-          }
+          await tx.discussion.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.FILE:
-          if (file) {
-            await this.fileService.create(content.id, file, tx);
-          }
+          await tx.fileResource.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.URL:
-          if (externalUrl) {
-            await this.urlService.create(content.id, externalUrl, tx);
-          }
+          await tx.externalUrl.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.VIDEO:
-          if (video) {
-            await this.videoService.create(content.id, video, tx);
-          }
+          await tx.video.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
 
         case ContentType.LESSON:
-          if (lesson) {
-            await this.lessonService.create(content.id, lesson, tx);
-          }
+          await tx.lesson.create({
+            data: { title, moduleContent: { connect: { id: content.id } } },
+          });
           break;
       }
 
-      // 3. Always return fresh with relations
-      return this.findOne(content.id, Role.admin, null);
+      return content;
     });
+
+    // 4. Always return fresh with relations
+    return this.findOne(result.id, Role.admin, null);
   }
 
   @Log({
@@ -186,7 +194,7 @@ export class LmsContentService {
 
     if (role === Role.student && userId) {
       baseInclude.studentProgress = {
-        where: { userId },
+        where: { studentId: userId },
       };
     }
 
@@ -200,7 +208,9 @@ export class LmsContentService {
     const contentType = contentRecord.contentType; // Use the fetched contentType
 
     // Add content-type specific includes
-    if (contentType === ContentType.ASSIGNMENT) {
+    if (contentType === ContentType.LESSON) {
+      baseInclude.lesson = true;
+    } else if (contentType === ContentType.ASSIGNMENT) {
       if (role === Role.student && userId) {
         baseInclude.assignment = {
           include: {
@@ -236,9 +246,9 @@ export class LmsContentService {
         },
       };
     } else if (contentType === ContentType.FILE) {
-      baseInclude.fileResource = true;
+      baseInclude.file = true;
     } else if (contentType === ContentType.URL) {
-      baseInclude.externalUrl = true;
+      baseInclude.url = true;
     } else if (contentType === ContentType.VIDEO) {
       baseInclude.video = true;
     }
@@ -276,11 +286,15 @@ export class LmsContentService {
   })
   async update(
     @LogParam('id') id: string,
-    @LogParam('content') updateContentDto: UpdateContentDto,
+    @LogParam('dto') dto: UpdateContentDto,
   ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
+
+    const { contentType, ...rest } = dto;
+
+    const destructuredDto = rest;
 
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Get current content type inside the transaction
@@ -293,31 +307,18 @@ export class LmsContentService {
         throw new NotFoundException(`Module content with ID ${id} not found`);
       }
 
-      const {
-        sectionId,
-        assignment,
-        quiz,
-        discussion,
-        file,
-        externalUrl,
-        video,
-        lesson,
-        contentType: newContentType, // prevent changing contentType
-        ...contentData
-      } = updateContentDto;
-
-      if (newContentType && newContentType !== currentContent.contentType) {
+      if (dto.contentType !== currentContent.contentType) {
         throw new BadRequestException(
           'Changing contentType is not allowed. Please remove and recreate the content.',
         );
       }
 
       const data: Prisma.ModuleContentUpdateInput = {
-        ...contentData,
+        order: dto.order,
       };
 
-      if (sectionId) {
-        data.moduleSection = { connect: { id: sectionId } };
+      if (dto.sectionId) {
+        data.moduleSection = { connect: { id: dto.sectionId } };
       }
 
       // 2. Update the base module content
@@ -329,39 +330,25 @@ export class LmsContentService {
       // 3. Delegate to specialized services (pass `tx`)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
-          if (assignment) {
-            await this.assignmentService.update(id, assignment, tx);
-          }
+          await this.assignmentService.update(id, destructuredDto, tx);
           break;
         case ContentType.QUIZ:
-          if (quiz) {
-            await this.quizService.update(id, quiz, tx);
-          }
+          await this.quizService.update(id, destructuredDto, tx);
           break;
         case ContentType.DISCUSSION:
-          if (discussion) {
-            await this.discussionService.update(id, discussion, tx);
-          }
+          await this.discussionService.update(id, destructuredDto, tx);
           break;
         case ContentType.FILE:
-          if (file) {
-            await this.fileService.update(id, file, tx);
-          }
+          await this.fileService.update(id, destructuredDto, tx);
           break;
         case ContentType.URL:
-          if (externalUrl) {
-            await this.urlService.update(id, externalUrl, tx);
-          }
+          await this.urlService.update(id, destructuredDto, tx);
           break;
         case ContentType.VIDEO:
-          if (video) {
-            await this.videoService.update(id, video, tx);
-          }
+          await this.videoService.update(id, destructuredDto, tx);
           break;
         case ContentType.LESSON:
-          if (lesson) {
-            await this.lessonService.update(id, lesson, tx);
-          }
+          await this.lessonService.update(id, destructuredDto, tx);
           break;
       }
 
@@ -653,7 +640,7 @@ export class LmsContentService {
 
         case ContentType.FILE:
           console.log('setting file');
-          whereCondition.fileResource = filters.search
+          whereCondition.file = filters.search
             ? {
                 OR: [
                   { title: { contains: filters.search, mode: 'insensitive' } },
@@ -666,8 +653,8 @@ export class LmsContentService {
           break;
 
         case ContentType.URL:
-          console.log('setting externalUrl');
-          whereCondition.externalUrl = filters.search
+          console.log('setting url');
+          whereCondition.url = filters.search
             ? {
                 OR: [
                   { title: { contains: filters.search, mode: 'insensitive' } },
@@ -744,12 +731,12 @@ export class LmsContentService {
           },
         },
         {
-          fileResource: {
+          file: {
             title: { contains: filters.search, mode: 'insensitive' },
           },
         },
         {
-          externalUrl: {
+          url: {
             title: { contains: filters.search, mode: 'insensitive' },
           },
         },
@@ -761,7 +748,7 @@ export class LmsContentService {
             courseOffering: {
               courseEnrollments: {
                 some: {
-                  user: {
+                  student: {
                     OR: [
                       // search by full or partial student name
                       {
@@ -833,10 +820,11 @@ export class LmsContentService {
           quiz: { omit: { content: true, questions: true } },
           lesson: { omit: { content: true } },
           discussion: { omit: { content: true } },
-          fileResource: { omit: { content: true } },
-          externalUrl: { omit: { content: true } },
+          file: { omit: { content: true } },
+          url: { omit: { content: true } },
           video: { omit: { content: true } },
-          studentProgress: role === Role.student ? { where: { userId } } : true,
+          studentProgress:
+            role === Role.student ? { where: { studentId: userId } } : true,
         },
         orderBy: [
           { assignment: { dueDate: 'asc' } },
@@ -866,8 +854,8 @@ export class LmsContentService {
       `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
     logSuccessMessage: (_, { userId }) =>
       `Successfully fetched module content tree for user ${userId}`,
-    logErrorMessage: (err: any, { moduleId, role, userId }) =>
-      `Error fetching module contents tree for module ${moduleId} of user ${userId}: ${err.message}`,
+    logErrorMessage: (err: any, { moduleId, userId, role }) =>
+      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role}: ${err.message}`,
   })
   async findModuleTree(
     @LogParam('moduleId') moduleId: string,
@@ -883,22 +871,28 @@ export class LmsContentService {
       await this.prisma.client.module.findUniqueOrThrow({
         where: {
           id: moduleId,
-          ...(role !== Role.admin && { publishedAt: { not: null } }),
+          ...(role !== Role.admin && {
+            // This fixes the issue for not being able to
+            // fetch published modules.
+            moduleSections: {
+              some: { publishedAt: { not: null } },
+            },
+          }),
           deletedAt: null,
         },
         select: {
           id: true,
           courseId: true,
           title: true,
-          publishedAt: role === Role.student ? true : false,
-          toPublishAt: role === Role.student ? true : false,
-          unpublishedAt: role === Role.student ? true : false,
-          createdAt: role === Role.student ? true : false,
-          updatedAt: role === Role.student ? true : false,
+          publishedAt: true,
+          toPublishAt: true,
+          unpublishedAt: true,
+          createdAt: true,
+          updatedAt: true,
           ...(role === Role.student &&
             userId && {
               progresses: {
-                where: { userId },
+                where: { studentId: userId },
                 select: {
                   id: true,
                   moduleContentId: true,
@@ -920,11 +914,11 @@ export class LmsContentService {
               prerequisiteSectionId: true,
               title: true,
               order: true,
-              publishedAt: role === Role.student ? true : false,
-              toPublishAt: role === Role.student ? true : false,
-              unpublishedAt: role === Role.student ? true : false,
-              createdAt: role === Role.student ? true : false,
-              updatedAt: role === Role.student ? true : false,
+              publishedAt: true,
+              toPublishAt: true,
+              unpublishedAt: true,
+              createdAt: true,
+              updatedAt: true,
               moduleContents: {
                 where: {
                   ...(role !== Role.admin && { publishedAt: { not: null } }),
@@ -934,23 +928,22 @@ export class LmsContentService {
                   id: true,
                   order: true,
                   contentType: true,
-                  publishedAt: role === Role.student ? true : false,
-                  toPublishAt: role === Role.student ? true : false,
-                  unpublishedAt: role === Role.student ? true : false,
-                  createdAt: role === Role.student ? true : false,
-                  updatedAt: role === Role.student ? true : false,
+                  publishedAt: true,
+                  toPublishAt: true,
+                  unpublishedAt: true,
+                  createdAt: true,
+                  updatedAt: true,
                   lesson: { omit: { content: true } },
                   assignment: {
-                    include: { grading: { omit: { gradingSchema: true } } },
                     omit: { content: true },
                   },
                   quiz: { omit: { content: true, questions: true } },
                   discussion: { omit: { content: true } },
                   video: { omit: { content: true } },
-                  externalUrl: { omit: { content: true } },
-                  fileResource: { omit: { content: true } },
+                  url: { omit: { content: true } },
+                  file: { omit: { content: true } },
                   ...(role === Role.student && userId
-                    ? { studentProgress: { where: { userId } } }
+                    ? { studentProgress: { where: { studentId: userId } } }
                     : { studentProgress: true }),
                 },
                 orderBy: { order: 'asc' },
@@ -996,7 +989,7 @@ export class LmsContentService {
    * @async
    * @param {string} moduleId - The UUID of the module that contains the content.
    * @param {string} moduleContentId - The UUID of the module content for which progress is being tracked.
-   * @param {AuthUser} user - The currently authenticated user.
+   * @param {string} userId - The UUID of the user making the request.
    * @returns {Promise<DetailedContentProgressDto>} - The upserted content progress record, including related content details.
    * @throws {BadRequestException} - If the user ID is missing or invalid.
    * @throws {NotFoundException} - If the related User, Module, or ModuleContent record does not exist.
@@ -1018,22 +1011,21 @@ export class LmsContentService {
   async createContentProgress(
     @LogParam('moduleId') moduleId: string,
     @LogParam('moduleContentId') moduleContentId: string,
-    user: AuthUser,
+    @LogParam('userId') userId: string,
   ): Promise<DetailedContentProgressDto> {
-    const userId = user.user_metadata.user_id;
     if (!userId) {
       throw new BadRequestException(`Invalid userId ${userId}`);
     }
 
     return await this.prisma.client.contentProgress.upsert({
       where: {
-        userId_moduleContentId: {
-          userId,
+        studentId_moduleContentId: {
+          studentId: userId,
           moduleContentId,
         },
       },
       create: {
-        userId,
+        studentId: userId,
         moduleId,
         moduleContentId,
         completedAt: new Date(),
@@ -1060,10 +1052,11 @@ export class LmsContentService {
    *
    * @async
    * @param {string} moduleId - The UUID of the module for which content progress is being fetched.
-   * @param {string | undefined} studentId - The UUID of the student. Required if the current user is a mentor.
-   * @param {AuthUser} user - The currently authenticated user.
+   * @param {string} userId - The UUID of the user making this request.
+   * @param {Role} role - The role of the user making this request.
+   * @param {string} studentId - The UUID of the student owning the content progress.
    * @returns {Promise<DetailedContentProgressDto[]>} - An array of content progress records with related module content details.
-   * @throws {BadRequestException} - If the user ID is missing or invalid.
+   * @throws {BadRequestException} - If the student ID is missing or invalid.
    */
   @Log({
     logArgsMessage: ({ moduleId, studentId }) =>
@@ -1075,24 +1068,18 @@ export class LmsContentService {
   })
   async findAllContentProgress(
     @LogParam('moduleId') moduleId: string,
-    @LogParam('studentId') studentId: string | undefined,
-    user: AuthUser,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
+    @LogParam('studentId') studentId?: string,
   ): Promise<DetailedContentProgressDto[]> {
-    const userId =
-      user.user_metadata.role !== 'student'
-        ? studentId
-        : user.user_metadata.user_id;
-
-    if (!userId) {
+    if (!studentId && role !== Role.student) {
       throw new BadRequestException(
-        user.user_metadata.role === 'student'
-          ? 'Invalid userId'
-          : 'Mentors and admins must provide a studentId',
+        'Mentors and admins must provide a studentId',
       );
     }
 
     return await this.prisma.client.contentProgress.findMany({
-      where: { moduleId, userId },
+      where: { moduleId, studentId: studentId ?? userId },
       include: {
         moduleContent: {
           select: {
@@ -1109,15 +1096,15 @@ export class LmsContentService {
   }
 
   @Log({
-    logArgsMessage: ({ userId, filters }) =>
-      `Fetching todos for user ${userId} in active term with filters ${JSON.stringify(filters)}`,
+    logArgsMessage: ({ studentId, filters }) =>
+      `Fetching todos for student ${studentId} in active term with filters ${JSON.stringify(filters)}`,
     logSuccessMessage: (result) =>
       `Successfully fetched ${result.todos.length} todos`,
-    logErrorMessage: (err, { userId }) =>
-      `Error fetching todos for user ${userId}: ${err.message}`,
+    logErrorMessage: (err, { studentId }) =>
+      `Error fetching todos for user ${studentId}: ${err.message}`,
   })
   async findTodos(
-    @LogParam('userId') userId: string,
+    @LogParam('studentId') studentId: string,
     @LogParam('filters') filters: FilterTodosDto,
   ): Promise<PaginatedTodosDto> {
     // First, get the active enrollment period
@@ -1145,7 +1132,7 @@ export class LmsContentService {
     // Get user's enrolled courses in active term
     const userEnrollments = await this.prisma.client.courseEnrollment.findMany({
       where: {
-        studentId: userId,
+        studentId,
         status: CourseEnrollmentStatus.enrolled,
         courseOffering: {
           periodId: activeTerm.id,
@@ -1203,7 +1190,7 @@ export class LmsContentService {
             },
           },
           studentProgress: {
-            where: { userId },
+            where: { studentId },
           },
         },
         orderBy: [

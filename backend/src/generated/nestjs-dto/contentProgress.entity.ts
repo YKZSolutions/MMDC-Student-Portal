@@ -12,12 +12,12 @@ export class ContentProgress {
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  student?: UserAsType;
   @ApiProperty({
     type: 'string',
   })
-  userId: string;
-  @ApiHideProperty()
-  user?: UserAsType;
+  studentId: string;
   @ApiHideProperty()
   module?: ModuleAsType;
   @ApiProperty({

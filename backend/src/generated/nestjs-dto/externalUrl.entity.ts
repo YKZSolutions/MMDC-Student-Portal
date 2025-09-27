@@ -27,13 +27,14 @@ export class ExternalUrl {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  content: Prisma.JsonValue | null;
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  url: string;
+  url: string | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

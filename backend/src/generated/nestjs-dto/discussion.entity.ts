@@ -31,17 +31,19 @@ export class Discussion {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
+  })
+  content: Prisma.JsonValue[];
+  @ApiProperty({
+    type: 'boolean',
     nullable: true,
   })
-  content: Prisma.JsonValue | null;
+  isThreaded: boolean | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  isThreaded: boolean;
-  @ApiProperty({
-    type: 'boolean',
-  })
-  requirePost: boolean;
+  requirePost: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

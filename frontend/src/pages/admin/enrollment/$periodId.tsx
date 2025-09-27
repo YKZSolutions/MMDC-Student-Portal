@@ -733,7 +733,7 @@ function CourseOfferingAccordionPanel({
               createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
               updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
               deletedAt: null,
-              user: null,
+              mentor: null,
               mentorId: null,
             }}
             course={course}
@@ -853,7 +853,7 @@ function CourseOfferingSubjectCard({
               </Text>
               <Text c="gray.6" size="sm">
                 {section.mentorId
-                  ? `${section.user?.firstName} ${section.user?.lastName}`
+                  ? `${section.mentor?.firstName} ${section.mentor?.lastName}`
                   : 'No Mentor Assigned'}
               </Text>
             </Stack>
@@ -1053,7 +1053,7 @@ function CourseOfferingSectionEditForm({
           placeholder="e.g. 30"
           {...form.getInputProps('maxSlot')}
         />
-        <AsyncMentorCombobox form={form} defaultSelectedUser={section.user} />
+        <AsyncMentorCombobox form={form} defaultSelectedUser={section.mentor} />
       </Group>
 
       <Group gap="sm" justify="flex-end" pt="lg">

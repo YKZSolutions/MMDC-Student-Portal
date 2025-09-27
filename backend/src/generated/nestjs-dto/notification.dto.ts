@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class NotificationDto {
@@ -14,9 +15,11 @@ export class NotificationDto {
   })
   content: string;
   @ApiProperty({
-    type: 'boolean',
+    isArray: true,
+    enum: Role,
+    enumName: 'Role',
   })
-  isRead: boolean;
+  role: Role[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

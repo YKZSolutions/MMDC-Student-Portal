@@ -3,12 +3,14 @@ import {
   SubmissionForm,
   type SubmissionPayload,
 } from '@/features/courses/modules/content/submission-form.tsx'
-import type {
-  Module,
-  ModuleItem,
-  ModuleSection,
-} from '@/features/courses/modules/types.ts'
-import { getModuleItemsFromSections } from '@/utils/helpers.ts'
+import type { ModuleContent } from '@/integrations/api/client'
+import {
+  getContentKeyAndData,
+  isEditorEmpty,
+  toBlockArray,
+  type ExistingContent,
+} from '@/utils/helpers.tsx'
+import type { Block, BlockNoteEditor } from '@blocknote/core'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
 import {
@@ -41,37 +43,30 @@ import {
 import { Link } from '@tanstack/react-router'
 
 interface ModuleContentViewProps {
-  moduleItem: ModuleItem
-  parentSection: ModuleSection
-  module: Module
+  moduleContentData: ModuleContent | null
+  editor: BlockNoteEditor
   isPreview?: boolean
 }
 
 function ModuleContentView({
-  moduleItem,
-  parentSection,
-  module,
+  moduleContentData,
+  editor,
   isPreview = false,
 }: ModuleContentViewProps) {
-  // Flattened list of all module items
-  const allItems = getModuleItemsFromSections(module.sections)
-  const currentIndex = allItems.findIndex((i) => i.id === moduleItem.id)
-  const previousItem = currentIndex > 0 ? allItems[currentIndex - 1] : null
-  const nextItem =
-    currentIndex < allItems.length - 1 ? allItems[currentIndex + 1] : null
+  // Extract content data from moduleContentData
+  const { existingContent, contentKey } = getContentKeyAndData(
+    moduleContentData || ({} as ModuleContent),
+  )
 
-  // Progress
-  const completed = allItems.filter((i) => i.progress?.isCompleted).length
-  const progressPercentage = allItems.length
-    ? (completed / allItems.length) * 100
-    : 0
-
-  // Editor setup
-  const initialContent = moduleItem.content ? moduleItem.content : undefined
-  const editor = useCreateBlockNote({ initialContent })
+  // For now, we'll disable some features that depend on full module structure
+  // until we have proper integration with the module context
+  const allItems: any[] = [] // TODO: Implement when module context is available
+  const progressPercentage = 0 // TODO: Implement when progress tracking is available
+  const previousItem = null // TODO: Implement navigation when module context is available
+  const nextItem = null // TODO: Implement navigation when module context is available
 
   return (
-    <Container size="lg" py="xl" pt={'lg'}>
+    <Container size="lg" w={'100%'} py="xl" pt={'lg'}>
       {/* Main Content Area */}
       <Stack flex={1}>
         <Button
@@ -88,7 +83,6 @@ function ModuleContentView({
         </Button>
 
         {/* Header Section */}
-
         <Grid>
           <Grid.Col
             span={{
@@ -102,16 +96,20 @@ function ModuleContentView({
           >
             <Stack flex={1}>
               <HeaderSection
-                moduleItem={moduleItem}
-                parentSection={parentSection}
-                module={module}
+                moduleContentData={moduleContentData}
+                existingContent={existingContent}
                 onMarkComplete={() => {}}
                 onPublish={() => {}}
               />
-              <ContentArea moduleItem={moduleItem} editor={editor} />
 
-              {moduleItem.type === 'assignment' && moduleItem.assignment && (
-                <EmbeddedSubmissionBox assignmentItem={moduleItem} />
+              <ContentArea
+                content={toBlockArray(existingContent?.content)}
+                editor={editor}
+                isPreview={isPreview}
+              />
+
+              {moduleContentData?.contentType === 'ASSIGNMENT' && (
+                <EmbeddedSubmissionBox assignmentData={existingContent} />
               )}
             </Stack>
           </Grid.Col>
@@ -128,15 +126,15 @@ function ModuleContentView({
           >
             <ProgressCard
               allItems={allItems}
-              moduleItem={moduleItem}
+              existingContent={existingContent}
               progressPercentage={progressPercentage}
             />
           </Grid.Col>
         </Grid>
 
-        <Divider my={"lg"} mb={"md"} />
+        <Divider my={'lg'} mb={'md'} />
 
-        {/* Continue Button */}
+        {/* Navigation - disabled until module context is available */}
         <Navigation previousItem={previousItem} nextItem={nextItem} />
       </Stack>
     </Container>
@@ -147,21 +145,30 @@ function ModuleContentView({
    Subcomponents
 --------------------------------------------------- */
 
-type ModuleItemProps = {
-  moduleItem: ModuleItem
-  parentSection: ModuleSection
-  module: Module
+type HeaderSectionProps = {
+  moduleContentData: ModuleContent | null
+  existingContent: ExistingContent<ModuleContent> | undefined
   onMarkComplete: () => void
   onPublish: () => void
 }
+
 function HeaderSection({
-  moduleItem,
-  parentSection,
-  module,
+  moduleContentData,
+  existingContent,
   onMarkComplete,
   onPublish,
-}: ModuleItemProps) {
+}: HeaderSectionProps) {
   const { authUser } = useAuth('protected')
+
+  if (!existingContent) {
+    return (
+      <Paper withBorder radius="md" p="xl">
+        <Text c="dimmed">No content data available.</Text>
+      </Paper>
+    )
+  }
+
+  const isPublished = !!moduleContentData?.publishedAt
 
   return (
     <Paper withBorder radius="md" p="xl">
@@ -169,16 +176,13 @@ function HeaderSection({
         <Group align="start" gap="sm" justify="space-between">
           <Box>
             <Title order={1} size="h2" mb="xs">
-              {moduleItem.title}
+              {existingContent.title}
             </Title>
             <Group gap="xs">
-              <Badge variant="light">{module.courseCode}</Badge>
+              {/* <Badge variant="light">{module?.courseCode || 'N/A'}</Badge> */}
               {authUser.role !== 'student' && (
-                <Badge
-                  variant="light"
-                  color={moduleItem.published.isPublished ? 'green' : 'red'}
-                >
-                  {moduleItem.published.isPublished ? 'Published' : 'Draft'}
+                <Badge variant="light" color={isPublished ? 'green' : 'red'}>
+                  {isPublished ? 'Published' : 'Draft'}
                 </Badge>
               )}
             </Group>
@@ -186,26 +190,26 @@ function HeaderSection({
 
           <Group>
             <Button
-              variant={moduleItem.progress?.isCompleted ? 'filled' : 'outline'}
-              color={moduleItem.progress?.isCompleted ? 'green' : 'blue'}
+              variant={isPublished ? 'filled' : 'outline'}
+              color={isPublished ? 'green' : 'blue'}
               leftSection={
-                moduleItem.progress?.isCompleted ? (
+                isPublished ? (
                   <IconCheck size={16} />
                 ) : (
                   <IconBookmark size={16} />
                 )
               }
-              onClick={onMarkComplete}
+              onClick={onPublish}
             >
               {authUser.role !== 'student'
-                ? moduleItem.published.isPublished
+                ? isPublished
                   ? 'Published'
                   : 'Publish'
-                : moduleItem.progress?.isCompleted
+                : isPublished
                   ? 'Completed'
                   : 'Mark Complete'}
             </Button>
-            {moduleItem.type === 'assignment' && (
+            {moduleContentData?.contentType === 'ASSIGNMENT' && (
               <Button color="blue" leftSection={<IconEdit size={16} />}>
                 Submit
               </Button>
@@ -217,18 +221,26 @@ function HeaderSection({
   )
 }
 
-// 🔹 Content Section
+// Content Section
 type ContentAreaProps = {
-  moduleItem: ModuleItem
-  editor: any
+  content: Block[]
+  editor: BlockNoteEditor
+  isPreview: boolean
 }
-function ContentArea({ moduleItem, editor }: ContentAreaProps) {
+
+function ContentArea({ content, editor, isPreview }: ContentAreaProps) {
+  const editorData = isPreview
+    ? editor
+    : useCreateBlockNote({
+        initialContent: toBlockArray(content),
+      })
+
   return (
-    <Paper withBorder radius="md" p="xl">
-      {moduleItem.content ? (
-        <BlockNoteView editor={editor} theme="light" editable={false} />
+    <Paper withBorder radius="md" py="xl">
+      {!isEditorEmpty(editorData) ? (
+        <BlockNoteView editor={editorData} theme="light" editable={false} />
       ) : (
-        <Text c="dimmed" fs="italic">
+        <Text c="dimmed" fs="italic" px={'xl'}>
           No content available for this item.
         </Text>
       )}
@@ -240,16 +252,21 @@ function Navigation({
   previousItem,
   nextItem,
 }: {
-  previousItem: ModuleItem | null
-  nextItem: ModuleItem | null
+  previousItem: any | null
+  nextItem: any | null
 }) {
+  // Navigation is disabled when items are null (no module context available)
+  if (!previousItem && !nextItem) {
+    return null
+  }
+
   return (
     <Paper radius="md">
       <Stack gap="md">
         <Group justify="space-between">
           {previousItem && (
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId`}
               params={{ itemId: previousItem?.id || '' }}
             >
@@ -267,7 +284,7 @@ function Navigation({
           )}
           {nextItem && (
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId`}
               params={{ itemId: nextItem?.id || '' }}
               className="ml-auto"
@@ -292,11 +309,11 @@ function Navigation({
 
 function ProgressCard({
   allItems,
-  moduleItem,
+  existingContent,
   progressPercentage,
 }: {
-  allItems: ModuleItem[]
-  moduleItem: ModuleItem
+  allItems: any[]
+  existingContent: ExistingContent<ModuleContent> | undefined
   progressPercentage: number
 }) {
   const theme = useMantineTheme()
@@ -323,26 +340,24 @@ function ProgressCard({
         />
         {!isMobile && (
           <Timeline bulletSize={20} lineWidth={2}>
-            {allItems.slice(0, 5).map((item) => (
+            {allItems.length > 0 ? (
+              allItems
+                .slice(0, 5)
+                .map((item, index) => (
+                  <Timeline.Item
+                    key={item.id || index}
+                    bullet={<IconFileText size={12} />}
+                    title={item.title || 'Untitled Item'}
+                    color={item.id === existingContent?.id ? 'blue' : 'gray'}
+                  />
+                ))
+            ) : (
               <Timeline.Item
-                key={item.id}
-                bullet={
-                  item.progress?.isCompleted ? (
-                    <IconCheck size={12} />
-                  ) : (
-                    <IconFileText size={12} />
-                  )
-                }
-                title={item.title}
-                color={
-                  item.progress?.isCompleted
-                    ? 'green'
-                    : item.id === moduleItem.id
-                      ? 'blue'
-                      : 'gray'
-                }
+                bullet={<IconFileText size={12} />}
+                title={existingContent?.title || 'Current Item'}
+                color="blue"
               />
-            ))}
+            )}
             {allItems.length > 5 && (
               <Timeline.Item
                 title={`+${allItems.length - 5} more`}
@@ -356,20 +371,14 @@ function ProgressCard({
   )
 }
 
-function EmbeddedSubmissionBox({
-  assignmentItem,
-}: {
-  assignmentItem: ModuleItem
-}) {
-  const submitted =
-    assignmentItem.assignment && 'submissionStatus' in assignmentItem.assignment
-      ? assignmentItem.assignment?.submissionStatus === 'submitted'
-      : false
+function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
+  // For now, we'll assume not submitted since we don't have submission status from editorState
+  const submitted = false
 
   const handleQuickSubmit = (payload: SubmissionPayload) => {
     console.log('Quick submitting...', {
       ...payload,
-      assignmentId: assignmentItem.assignment?.id,
+      assignmentId: assignmentData?.id,
     })
     // TODO: mutation call
   }
@@ -402,9 +411,9 @@ function EmbeddedSubmissionBox({
           // Submitted State
           <Group justify="flex-end">
             <Link
-              from={'/courses/$courseCode/modules'}
+              from={'/lms/$lmsCode/modules'}
               to={`$itemId/submit`}
-              params={{ itemId: assignmentItem.id }}
+              params={{ itemId: assignmentData?.id || '' }}
             >
               <Button
                 variant="light"

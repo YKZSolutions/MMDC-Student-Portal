@@ -11,9 +11,10 @@ import { log, pickRandom, pickRandomEnum } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import {
   createAssignmentData,
-  createAssignmentGradingData,
+  createDiscussionData,
   createExternalUrlData,
   createFileResourceData,
+  createGradingConfigData,
   createLessonData,
   createModuleContentData,
   createModuleData,
@@ -27,127 +28,188 @@ export async function seedModules(
   courses: Course[],
   courseOfferings: CourseOffering[],
 ) {
-  log('Seeding modules...');
+  log('Seeding modules and course content...');
+
+  // Create shared grading configurations
+  log('Creating shared grading configurations...');
+  const assignmentGradingConfig = await prisma.gradingConfig.create({
+    data: createGradingConfigData(true), // For assignments
+  });
+
+  const quizGradingConfig = await prisma.gradingConfig.create({
+    data: createGradingConfigData(false), // For quizzes
+  });
+
+  log(
+    `-> Created shared grading config for assignments (ID: ${assignmentGradingConfig.id})`,
+  );
+  log(
+    `-> Created shared grading config for quizzes (ID: ${quizGradingConfig.id})`,
+  );
+
   const allModules: Module[] = [];
   const allSections: ModuleSection[] = [];
+  const allSubsections: ModuleSection[] = [];
   const allContents: ModuleContent[] = [];
   const allAssignments: any[] = [];
   const allQuizzes: any[] = [];
   const allLessons: any[] = [];
-  const allGradings: any[] = [];
+  const allDiscussions: any[] = [];
+  const allGradings = [assignmentGradingConfig, quizGradingConfig]; // Track the shared grading configs
 
   for (const course of courses) {
     const courseModules: Module[] = [];
+    const courseOfferingsForCourse = courseOfferings.filter(
+      (offering) => offering.courseId === course.id,
+    );
+
     for (let i = 0; i < seedConfig.MODULES_PER_COURSE; i++) {
-      const courseOfferingIds = courseOfferings
-        .filter((offering) => offering.courseId === course.id)
-        .map((offering) => offering.id);
-
       const module = await prisma.module.create({
-        data: createModuleData(course.id, pickRandom(courseOfferingIds)),
+        data: createModuleData(
+          course.id,
+          pickRandom(courseOfferingsForCourse).id,
+          i,
+        ),
       });
-
       courseModules.push(module);
     }
     allModules.push(...courseModules);
 
-    for (const module of courseModules) {
+    for (let i = 0; i < courseModules.length; i++) {
+      const module = courseModules[i];
+      const moduleIndex = i;
+
       const moduleSections: ModuleSection[] = [];
+
+      // Create main sections
       for (let j = 0; j < seedConfig.SECTIONS_PER_MODULE; j++) {
         const section = await prisma.moduleSection.create({
           data: createModuleSectionData(module.id, j + 1),
         });
         moduleSections.push(section);
-      }
-      allSections.push(...moduleSections);
 
-      for (const section of moduleSections) {
-        for (let k = 0; k < seedConfig.CONTENTS_PER_SECTION; k++) {
-          const contentType =
-            Math.random() < seedConfig.ASSIGNMENT_CHANCE
-              ? ContentType.ASSIGNMENT
-              : pickRandomEnum(
-                  Object.values(ContentType).filter(
-                    (type) => type !== ContentType.ASSIGNMENT,
-                  ),
-                );
-
-          const content = await prisma.moduleContent.create({
-            data: createModuleContentData(
-              module.id,
-              section.id,
-              k + 1,
-              contentType,
-            ),
+        // Create subsections
+        for (let s = 0; s < seedConfig.SUBSECTIONS_PER_SECTION; s++) {
+          const subsection = await prisma.moduleSection.create({
+            data: createModuleSectionData(module.id, s + 1, section.id),
           });
-          allContents.push(content);
+          allSubsections.push(subsection);
 
-          // Create specific content type
-          switch (contentType) {
-            case ContentType.ASSIGNMENT:
-              const grading = await prisma.assignmentGrading.create({
-                data: createAssignmentGradingData(),
-              });
-              allGradings.push(grading);
+          // Create content in subsections
+          for (let k = 0; k < seedConfig.CONTENTS_PER_SUBSECTION; k++) {
+            let contentType: ContentType;
+            const rand = Math.random();
 
-              const assignment = await prisma.assignment.create({
-                data: createAssignmentData(content.id, grading.id),
-              });
-              allAssignments.push(assignment);
-              break;
+            if (rand < seedConfig.ASSIGNMENT_CHANCE) {
+              contentType = ContentType.ASSIGNMENT;
+            } else if (
+              rand <
+              seedConfig.ASSIGNMENT_CHANCE + seedConfig.QUIZ_CHANCE
+            ) {
+              contentType = ContentType.QUIZ;
+            } else {
+              contentType = pickRandomEnum(
+                Object.values(ContentType).filter(
+                  (type) =>
+                    type !== ContentType.ASSIGNMENT &&
+                    type !== ContentType.QUIZ,
+                ),
+              );
+            }
 
-            case ContentType.QUIZ:
-              const quiz = await prisma.quiz.create({
-                data: createQuizData(content.id),
-              });
-              allQuizzes.push(quiz);
-              break;
+            const content = await prisma.moduleContent.create({
+              data: createModuleContentData(
+                module.id,
+                subsection.id,
+                k + 1,
+                contentType,
+              ),
+            });
+            allContents.push(content);
 
-            case ContentType.LESSON:
-              const lesson = await prisma.lesson.create({
-                data: createLessonData(content.id),
-              });
-              allLessons.push(lesson);
-              break;
-
-            case ContentType.VIDEO:
-              const video = await prisma.video.create({
-                data: createVideoData(content.id),
-              });
-              break;
-
-            case ContentType.URL:
-              const externalUrl = await prisma.externalUrl.create({
-                data: createExternalUrlData(content.id),
-              });
-              break;
-
-            case ContentType.FILE:
-              const fileResource = await prisma.fileResource.create({
-                data: createFileResourceData(content.id),
-              });
-              break;
+            // Create specific content type
+            switch (contentType) {
+              case ContentType.ASSIGNMENT: {
+                const assignment = await prisma.assignment.create({
+                  data: createAssignmentData(
+                    content.id,
+                    assignmentGradingConfig.id, // Use shared assignment grading config
+                    moduleIndex,
+                  ),
+                });
+                allAssignments.push(assignment);
+                break;
+              }
+              case ContentType.QUIZ: {
+                const quiz = await prisma.quiz.create({
+                  data: createQuizData(
+                    content.id,
+                    quizGradingConfig.id, // Use shared quiz grading config
+                    moduleIndex,
+                  ),
+                });
+                allQuizzes.push(quiz);
+                break;
+              }
+              case ContentType.LESSON: {
+                const lesson = await prisma.lesson.create({
+                  data: createLessonData(content.id, j),
+                });
+                allLessons.push(lesson);
+                break;
+              }
+              case ContentType.VIDEO: {
+                await prisma.video.create({
+                  data: createVideoData(content.id),
+                });
+                break;
+              }
+              case ContentType.URL: {
+                await prisma.externalUrl.create({
+                  data: createExternalUrlData(content.id),
+                });
+                break;
+              }
+              case ContentType.FILE: {
+                await prisma.fileResource.create({
+                  data: createFileResourceData(content.id),
+                });
+                break;
+              }
+              case ContentType.DISCUSSION: {
+                const discussion = await prisma.discussion.create({
+                  data: createDiscussionData(content.id),
+                });
+                allDiscussions.push(discussion);
+                break;
+              }
+            }
           }
         }
       }
+      allSections.push(...moduleSections);
     }
   }
 
   log(`-> Created ${allModules.length} modules.`);
   log(`-> Created ${allSections.length} module sections.`);
+  log(`-> Created ${allSubsections.length} module subsections.`);
   log(`-> Created ${allContents.length} module contents.`);
   log(`-> Created ${allAssignments.length} assignments.`);
   log(`-> Created ${allQuizzes.length} quizzes.`);
   log(`-> Created ${allLessons.length} lessons.`);
-  log(`-> Created ${allGradings.length} assignment gradings.`);
+  log(`-> Created ${allDiscussions.length} discussions.`);
+  log(`-> Created ${allGradings.length} shared grading configurations.`);
 
   return {
     modules: allModules,
     sections: allSections,
+    subsections: allSubsections,
     contents: allContents,
     assignments: allAssignments,
     quizzes: allQuizzes,
     lessons: allLessons,
+    discussions: allDiscussions,
     gradings: allGradings,
   };
 }

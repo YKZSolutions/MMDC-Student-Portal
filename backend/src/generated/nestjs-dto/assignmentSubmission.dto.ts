@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AssignmentSubmissionDto {
@@ -12,10 +12,15 @@ export class AssignmentSubmissionDto {
   })
   groupSnapshot: Prisma.JsonValue | null;
   @ApiProperty({
-    type: () => Object,
-    nullable: true,
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
   })
-  content: Prisma.JsonValue | null;
+  state: SubmissionState;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -25,9 +30,8 @@ export class AssignmentSubmissionDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  attemptNumber: number | null;
+  attemptNumber: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

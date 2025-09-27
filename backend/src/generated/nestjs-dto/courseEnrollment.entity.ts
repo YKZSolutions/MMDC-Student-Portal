@@ -28,7 +28,7 @@ export class CourseEnrollment {
   })
   courseSectionId: string;
   @ApiHideProperty()
-  user?: UserAsType;
+  student?: UserAsType;
   @ApiProperty({
     type: 'string',
   })

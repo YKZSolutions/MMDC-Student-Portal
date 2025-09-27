@@ -1,4 +1,5 @@
 import { IsNumber, IsString } from 'class-validator';
+import { Role } from '@prisma/client';
 
 export class UserBaseContext {
   @IsString()
@@ -7,8 +8,7 @@ export class UserBaseContext {
   @IsString()
   email: string | null;
 
-  @IsString()
-  role: string;
+  role: Role;
 }
 
 export class UserStudentContext extends UserBaseContext {

@@ -30,22 +30,30 @@ export class FileResource {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
+  })
+  content: Prisma.JsonValue[];
+  @ApiProperty({
+    type: 'string',
     nullable: true,
   })
-  content: Prisma.JsonValue | null;
+  url: string | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  name: string;
+  name: string | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  path: string;
+  path: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  size: number;
+  size: number | null;
   @ApiProperty({
     type: 'string',
     nullable: true,

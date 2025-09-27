@@ -7,11 +7,6 @@ export class SectionModuleDto {
   })
   id: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  order: number;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,
@@ -25,7 +20,7 @@ export class SectionModuleDto {
   toPublishAt: Date | null;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  classMeetings: Prisma.JsonValue | null;
+  classMeetings: Prisma.JsonValue[];
 }

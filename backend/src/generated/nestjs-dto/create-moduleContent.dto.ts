@@ -12,10 +12,13 @@ export class CreateModuleContentDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    default: 0,
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
-  order: number;
+  order?: number | null;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',

@@ -1,16 +1,7 @@
-import {
-  Box,
-  Divider,
-  Group,
-  Paper,
-  Popover,
-  ScrollArea,
-  Stack,
-} from '@mantine/core'
-import { useCallback, useState } from 'react'
+import type { BlockNoteEditor } from '@blocknote/core'
+import { BlockNoteView } from '@blocknote/mantine'
 import {
   BasicTextStyleButton,
-  BlockNoteViewEditor,
   BlockTypeSelect,
   ColorStyleButton,
   FileCaptionButton,
@@ -19,15 +10,14 @@ import {
   FileRenameButton,
   FileReplaceButton,
   FormattingToolbar,
+  FormattingToolbarController,
   NestBlockButton,
   TextAlignButton,
   UnnestBlockButton,
   useBlockNoteEditor,
-  useComponentsContext,
-  useCreateBlockNote,
-  useEditorChange,
+  useComponentsContext
 } from '@blocknote/react'
-import { BlockNoteView } from '@blocknote/mantine'
+import { Box, Divider, Group, Paper, Stack } from '@mantine/core'
 import {
   IconArrowBack,
   IconArrowForwardUp,
@@ -35,31 +25,13 @@ import {
   IconEye,
   IconLink,
 } from '@tabler/icons-react'
-import { mockInitialContent } from '@/features/courses/mocks.ts'
-import type { Block } from '@blocknote/core'
+import { useState } from 'react'
 
 interface RichTextEditorProps {
-  content: Block[] | null
-  onUpdate: (content: Block[]) => void
+  editor: BlockNoteEditor
 }
 
-const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
-  const editor = useCreateBlockNote({
-    initialContent: mockInitialContent,
-  })
-
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
-
-  const updateContent = useCallback(async () => {
-    // Save to JSON for saving
-    const jsonObject = editor.document
-
-    // Save to database
-    onUpdate(jsonObject)
-  }, [editor, onUpdate])
-
-  useEditorChange(updateContent, editor)
-
+const RichTextEditor = ({ editor }: RichTextEditorProps) => {
   return (
     <Box
       style={{
@@ -68,12 +40,11 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
         display: 'flex',
         flexDirection: 'column',
       }}
-      pb={'xl'}
+      py={'xl'}
     >
       <BlockNoteView
         editor={editor}
         theme={'light'}
-        renderEditor={false}
         formattingToolbar={false}
         style={{
           height: '100%',
@@ -83,95 +54,101 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
         }}
       >
         <Stack align={'center'} style={{ height: '100%', width: '100%' }}>
-          <Paper
-            radius={0}
-            p="0.25rem"
-            display={'flex'}
-            className="rt-header"
-            withBorder
-            style={{
-              flexShrink: 0,
-              width: '100%',
-              borderTop: 'none',
-              borderLeft: 'none',
-              borderRight: 'none',
+          <FormattingToolbarController
+            floatingOptions={{
+              placement: 'top',
             }}
-          >
-            <FormattingToolbar>
-              <Group gap={12} align="center">
-                <Group gap={0}>
-                  <RedoButton key={'redoButton'} />
-                  <UndoButton key={'undoButton'} />
-                </Group>
-                <Divider orientation="vertical" />
-                <Group gap={2}>
-                  <BlockTypeSelect key={'blockTypeSelect'} />
-                  <FileDeleteButton key={'deleteFileButton'} />
-                  <FileDownloadButton key={'downloadFileButton'} />
-                </Group>
-                <Divider orientation="vertical" />
-                <Group gap={2}>
-                  <FileRenameButton key={'renameFileButton'} />
-                  <FileCaptionButton key={'fileCaptionButton'} />
-                  <FileReplaceButton key={'replaceFileButton'} />
-                  <ColorStyleButton key={'colorStyleButton'} />
-                  <BasicTextStyleButton
-                    basicTextStyle={'bold'}
-                    key={'boldStyleButton'}
-                  />
-                  <BasicTextStyleButton
-                    basicTextStyle={'italic'}
-                    key={'italicStyleButton'}
-                  />
-                  <BasicTextStyleButton
-                    basicTextStyle={'underline'}
-                    key={'underlineStyleButton'}
-                  />
-                  <BasicTextStyleButton
-                    basicTextStyle={'strike'}
-                    key={'strikeStyleButton'}
-                  />
-                  <BasicTextStyleButton
-                    key={'codeStyleButton'}
-                    basicTextStyle={'code'}
-                  />
-                  <CustomCreateLinkButton key={'createLinkButton'} />
-                </Group>
-                <Divider orientation="vertical" />
-                <Group gap={2}>
-                  <TextAlignButton
-                    textAlignment={'left'}
-                    key={'textAlignLeftButton'}
-                  />
-                  <TextAlignButton
-                    textAlignment={'center'}
-                    key={'textAlignCenterButton'}
-                  />
-                  <TextAlignButton
-                    textAlignment={'right'}
-                    key={'textAlignRightButton'}
-                  />
-                  <TextAlignButton
-                    textAlignment={'justify'}
-                    key={'textAlignJustifyButton'}
-                  />
-                </Group>
-                <Divider orientation="vertical" />
-                <Group gap={2}>
-                  <NestBlockButton key={'nestBlockButton'} />
-                  <UnnestBlockButton key={'unnestBlockButton'} />
-                </Group>
-                <Divider orientation="vertical" />
-                <ModeToggleButton
+            formattingToolbar={() => (
+              <Paper
+                radius={'md'}
+                p="0.25rem"
+                display={'flex'}
+                className="rt-header"
+                withBorder
+                // style={{
+                //   flexShrink: 0,
+                //   width: '100%',
+                //   borderTop: 'none',
+                //   borderLeft: 'none',
+                //   borderRight: 'none',
+                // }}
+              >
+                <FormattingToolbar>
+                  <Group gap={12} align="center">
+                    <Group gap={0}>
+                      <RedoButton key={'redoButton'} />
+                      <UndoButton key={'undoButton'} />
+                    </Group>
+                    <Divider orientation="vertical" />
+                    <Group gap={2}>
+                      <BlockTypeSelect key={'blockTypeSelect'} />
+                      <FileDeleteButton key={'deleteFileButton'} />
+                      <FileDownloadButton key={'downloadFileButton'} />
+                    </Group>
+                    <Divider orientation="vertical" />
+                    <Group gap={2}>
+                      <FileRenameButton key={'renameFileButton'} />
+                      <FileCaptionButton key={'fileCaptionButton'} />
+                      <FileReplaceButton key={'replaceFileButton'} />
+                      <ColorStyleButton key={'colorStyleButton'} />
+                      <BasicTextStyleButton
+                        basicTextStyle={'bold'}
+                        key={'boldStyleButton'}
+                      />
+                      <BasicTextStyleButton
+                        basicTextStyle={'italic'}
+                        key={'italicStyleButton'}
+                      />
+                      <BasicTextStyleButton
+                        basicTextStyle={'underline'}
+                        key={'underlineStyleButton'}
+                      />
+                      <BasicTextStyleButton
+                        basicTextStyle={'strike'}
+                        key={'strikeStyleButton'}
+                      />
+                      <BasicTextStyleButton
+                        key={'codeStyleButton'}
+                        basicTextStyle={'code'}
+                      />
+                      <CustomCreateLinkButton key={'createLinkButton'} />
+                    </Group>
+                    <Divider orientation="vertical" />
+                    <Group gap={2}>
+                      <TextAlignButton
+                        textAlignment={'left'}
+                        key={'textAlignLeftButton'}
+                      />
+                      <TextAlignButton
+                        textAlignment={'center'}
+                        key={'textAlignCenterButton'}
+                      />
+                      <TextAlignButton
+                        textAlignment={'right'}
+                        key={'textAlignRightButton'}
+                      />
+                      <TextAlignButton
+                        textAlignment={'justify'}
+                        key={'textAlignJustifyButton'}
+                      />
+                    </Group>
+                    <Divider orientation="vertical" />
+                    <Group gap={2}>
+                      <NestBlockButton key={'nestBlockButton'} />
+                      <UnnestBlockButton key={'unnestBlockButton'} />
+                    </Group>
+                    {/* <ModeToggleButton
                   key={'modeToggleButton'}
                   onToggle={() => setIsPreviewMode(!isPreviewMode)}
                   isPreviewMode={isPreviewMode}
-                />
-              </Group>
-            </FormattingToolbar>
-          </Paper>
+                /> */}
+                  </Group>
+                </FormattingToolbar>
+              </Paper>
+            )}
+          />
 
-          <ScrollArea
+          {/* <ScrollArea
             w={'100%'}
             type="scroll"
             style={{
@@ -179,26 +156,26 @@ const RichTextEditor = ({ content, onUpdate }: RichTextEditorProps) => {
               minHeight: 0,
             }}
           >
+          <Box
+            style={{
+              minHeight: '90%',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
             <Box
               style={{
-                minHeight: '90%',
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
+                width: '80%',
+                maxWidth: '1080px',
+                minWidth: '300px',
               }}
+              mt={'xl'}
             >
-              <Box
-                style={{
-                  width: '80%',
-                  maxWidth: '1080px',
-                  minWidth: '300px',
-                }}
-                mt={'xl'}
-              >
-                <BlockNoteViewEditor editable={!isPreviewMode} />
-              </Box>
+              <BlockNoteViewEditor />
             </Box>
-          </ScrollArea>
+          </Box>
+          </ScrollArea> */}
         </Stack>
       </BlockNoteView>
     </Box>

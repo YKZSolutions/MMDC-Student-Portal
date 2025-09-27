@@ -1,3 +1,10 @@
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { LmsSectionService } from '@/modules/lms/lms-section.service';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -11,15 +18,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { LmsSectionService } from '@/modules/lms/lms-section.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/enums/roles.enum';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { CreateModuleSectionDto } from './dto/create-module-section.dto';
 import { UpdateModuleSectionDto } from './dto/update-module-section.dto';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
 
 @Controller('modules/:moduleId/sections')
 export class LmsSectionController {
@@ -55,6 +55,18 @@ export class LmsSectionController {
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
   ) {
     return this.lmsSectionService.findByModuleId(moduleId);
+  }
+
+  /**
+   * Retrieves a module section by its ID
+   */
+  @Get(':moduleSectionId')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @ApiException(() => [BadRequestException, InternalServerErrorException])
+  findOne(
+    @Param('moduleSectionId', new ParseUUIDPipe()) moduleSectionId: string,
+  ) {
+    return this.lmsSectionService.findById(moduleSectionId);
   }
 
   /**

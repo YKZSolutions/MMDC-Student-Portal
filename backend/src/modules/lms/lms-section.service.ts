@@ -1,16 +1,16 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { CreateModuleSectionDto } from './dto/create-module-section.dto';
-import { UpdateModuleSectionDto } from './dto/update-module-section.dto';
-import { DetailedModuleSectionDto } from './dto/detailed-module-section.dto';
 import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateModuleSectionDto } from './dto/create-module-section.dto';
+import { DetailedModuleSectionDto } from './dto/detailed-module-section.dto';
+import { UpdateModuleSectionDto } from './dto/update-module-section.dto';
 
 @Injectable()
 export class LmsSectionService {
@@ -44,8 +44,19 @@ export class LmsSectionService {
     @LogParam('moduleId') moduleId: string,
     dto: CreateModuleSectionDto,
   ): Promise<DetailedModuleSectionDto> {
+    // No order specified — append to the end.
+    const { _max } = await this.prisma.client.moduleSection.aggregate({
+      where: {
+        moduleId,
+        ...(dto.parentSectionId && { parentSectionId: dto.parentSectionId }),
+      },
+      _max: { order: true },
+    });
+
+    const appendOrder = (_max?.order ?? 0) + 1;
+
     return this.prisma.client.moduleSection.create({
-      data: { moduleId, ...dto },
+      data: { ...dto, moduleId, order: appendOrder },
     });
   }
 
@@ -88,6 +99,42 @@ export class LmsSectionService {
       },
       orderBy: {
         order: 'asc',
+      },
+    });
+  }
+
+  /**
+   * Retrieves a module section by its ID.
+   *
+   * @async
+   * @param {string} moduleSectionId - The UUID of the module section.
+   * @returns {Promise<DetailedModuleSectionDto>} - The module section record.
+   * @throws {NotFoundException} - If the specified module section is not found.
+   *
+   */
+  @Log({
+    logArgsMessage: ({ moduleSectionId }) =>
+      `Fetching module section ${moduleSectionId}`,
+    logSuccessMessage: (_, { moduleSectionId }) =>
+      `Fetched module section ${moduleSectionId}`,
+    logErrorMessage: (err, { moduleSectionId }) =>
+      `Fetching module section ${moduleSectionId} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { moduleSectionId }) =>
+      new NotFoundException(`Module section ${moduleSectionId} not found`),
+  })
+  async findById(
+    @LogParam('moduleSectionId') moduleSectionId: string,
+  ): Promise<DetailedModuleSectionDto> {
+    return this.prisma.client.moduleSection.findUniqueOrThrow({
+      where: { id: moduleSectionId },
+      include: {
+        subsections: {
+          include: {
+            subsections: true,
+          },
+        },
       },
     });
   }
