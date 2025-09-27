@@ -1,7 +1,10 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
+  IsBoolean,
   IsDateString,
+  IsDecimal,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -25,9 +28,11 @@ export class CreateQuizDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
   @IsNotEmpty()
-  content: Prisma.InputJsonValue;
+  @IsArray()
+  content: Prisma.InputJsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -38,6 +43,32 @@ export class CreateQuizDto {
   @IsInt()
   timeLimit?: number | null;
   @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  maxAttempts?: number | null;
+  @ApiProperty({
+    type: 'boolean',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowLateSubmission?: boolean | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDecimal()
+  latePenalty?: Prisma.Decimal | null;
+  @ApiProperty({
     type: 'string',
     format: 'date-time',
     required: false,
@@ -47,8 +78,20 @@ export class CreateQuizDto {
   @IsDateString()
   dueDate?: Date | null;
   @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  gracePeriodMinutes?: number | null;
+  @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
   @IsNotEmpty()
-  questions: Prisma.InputJsonValue;
+  @IsArray()
+  questions: Prisma.InputJsonValue[];
 }

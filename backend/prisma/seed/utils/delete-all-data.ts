@@ -6,26 +6,28 @@ import { stdin, stdout } from 'node:process';
 async function confirmDeletion(): Promise<boolean> {
   return new Promise((resolve) => {
     const rl = readline.createInterface({ input: stdin, output: stdout });
-    
+
     // Set raw mode to get keypresses immediately
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(true);
     }
-    
-    console.log('⚠️ WARNING: This will delete ALL data in the database. Are you sure you want to continue? (Y/N)');
-    
+
+    console.log(
+      '⚠️ WARNING: This will delete ALL data in the database. Are you sure you want to continue? (Y/N)',
+    );
+
     // Handle keypress events
     const onKeyPress = (str: string, key: any) => {
       // Clean up
       process.stdin.off('keypress', onKeyPress);
       process.stdin.setRawMode(false);
       rl.close();
-      
+
       const char = str.toLowerCase();
       console.log(char); // Echo the pressed key
       resolve(char === 'y');
     };
-    
+
     // Set up the keypress listener
     readline.emitKeypressEvents(process.stdin);
     process.stdin.on('keypress', onKeyPress);
@@ -47,11 +49,8 @@ export async function deleteAllData(
 
   // Order matters due to foreign key constraints!
   await prisma.$transaction([
-    // Grade-related records
-    prisma.assignmentGradeRecord.deleteMany(),
-    prisma.assignmentGrading.deleteMany(),
-
-    // Submission records
+    // Grades and submissions
+    prisma.gradeRecord.deleteMany(),
     prisma.assignmentSubmission.deleteMany(),
     prisma.quizSubmission.deleteMany(),
 
@@ -62,9 +61,14 @@ export async function deleteAllData(
     // Content progress tracking
     prisma.contentProgress.deleteMany(),
 
-    // Assignment and quiz questions
+    // Assignments
     prisma.assignment.deleteMany(),
+
+    // Quizzes
     prisma.quiz.deleteMany(),
+
+    // Grading configs
+    prisma.gradingConfig.deleteMany(),
 
     // Module content
     prisma.lesson.deleteMany(),
@@ -100,6 +104,7 @@ export async function deleteAllData(
     prisma.program.deleteMany(),
 
     // User-related data
+    prisma.notificationReceipt.deleteMany(),
     prisma.notification.deleteMany(),
     prisma.staffDetails.deleteMany(),
     prisma.studentDetails.deleteMany(),
@@ -108,9 +113,11 @@ export async function deleteAllData(
     prisma.user.deleteMany(),
 
     // Billing and payments
+    prisma.billPayment.deleteMany(),
+    prisma.billInstallment.deleteMany(),
+    prisma.bill.deleteMany(),
     prisma.pricing.deleteMany(),
     prisma.pricingGroup.deleteMany(),
-    prisma.bill.deleteMany(),
   ]);
 
   // 2. Delete Supabase auth users

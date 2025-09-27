@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateModuleSectionDto {
   @ApiProperty({
@@ -9,6 +9,16 @@ export class UpdateModuleSectionDto {
   @IsOptional()
   @IsString()
   title?: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  order?: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -21,7 +21,7 @@ export class DetailedContentProgressDto {
   completedAt: Date | null;
 
   @ApiProperty()
-  userId: string;
+  studentId: string;
 
   @ApiProperty({ type: () => ModuleContentInfoDto })
   moduleContent: ModuleContentInfoDto;

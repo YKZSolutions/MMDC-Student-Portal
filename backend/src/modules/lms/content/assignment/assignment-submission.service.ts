@@ -54,13 +54,13 @@ export class AssignmentSubmissionService {
         ...dto,
         assignmentId,
         studentId,
-        content: dto.content as Prisma.JsonValue,
+        content: dto.content as Prisma.JsonArray,
       },
     });
     return {
       ...submission,
-      content: submission.content as Prisma.JsonValue,
-      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
+      content: submission.content as Prisma.JsonArray,
+      groupSnapshot: submission.groupSnapshot as Prisma.JsonArray,
     };
   }
 
@@ -86,13 +86,13 @@ export class AssignmentSubmissionService {
       where: { id },
       data: {
         ...dto,
-        content: dto.content as Prisma.JsonValue,
+        content: dto.content as Prisma.JsonArray,
       },
     });
     return {
       ...submission,
-      content: submission.content as Prisma.JsonValue,
-      groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
+      content: submission.content as Prisma.JsonArray,
+      groupSnapshot: submission.groupSnapshot as Prisma.JsonArray,
     };
   }
 
@@ -117,8 +117,8 @@ export class AssignmentSubmissionService {
       });
     return {
       ...result,
-      content: result.content as Prisma.JsonValue,
-      groupSnapshot: result.groupSnapshot as Prisma.JsonValue,
+      content: result.content as Prisma.JsonArray,
+      groupSnapshot: result.groupSnapshot as Prisma.JsonArray,
     };
   }
 
@@ -143,8 +143,8 @@ export class AssignmentSubmissionService {
     });
     return results.map((r) => ({
       ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
+      content: r.content as Prisma.JsonArray,
+      groupSnapshot: r.groupSnapshot as Prisma.JsonArray,
     }));
   }
 
@@ -168,8 +168,8 @@ export class AssignmentSubmissionService {
     });
     return results.map((r) => ({
       ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
+      content: r.content as Prisma.JsonArray,
+      groupSnapshot: r.groupSnapshot as Prisma.JsonArray,
     }));
   }
 
@@ -193,8 +193,8 @@ export class AssignmentSubmissionService {
     });
     return results.map((r) => ({
       ...r,
-      content: r.content as Prisma.JsonValue,
-      groupSnapshot: r.groupSnapshot as Prisma.JsonValue,
+      content: r.content as Prisma.JsonArray,
+      groupSnapshot: r.groupSnapshot as Prisma.JsonArray,
     }));
   }
 

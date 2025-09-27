@@ -50,8 +50,9 @@ export class ModuleContent {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  order: number;
+  order: number | null;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
@@ -126,13 +127,13 @@ export class ModuleContent {
     required: false,
     nullable: true,
   })
-  externalUrl?: ExternalUrlAsType | null;
+  url?: ExternalUrlAsType | null;
   @ApiProperty({
     type: () => FileResource,
     required: false,
     nullable: true,
   })
-  fileResource?: FileResourceAsType | null;
+  file?: FileResourceAsType | null;
   @ApiProperty({
     type: () => ContentProgress,
     isArray: true,

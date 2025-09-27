@@ -26,6 +26,14 @@ export class NotificationReceipt {
   @ApiHideProperty()
   user?: UserAsType;
   @ApiProperty({
+    type: 'string',
+  })
+  title: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  content: string;
+  @ApiProperty({
     type: 'boolean',
   })
   isRead: boolean;

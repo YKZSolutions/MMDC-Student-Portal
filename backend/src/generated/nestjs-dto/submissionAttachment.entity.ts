@@ -3,18 +3,30 @@ import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
 } from './assignmentSubmission.entity';
+import {
+  QuizSubmission,
+  type QuizSubmission as QuizSubmissionAsType,
+} from './quizSubmission.entity';
 
-export class AssignmentAttachment {
+export class SubmissionAttachment {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiHideProperty()
-  submission?: AssignmentSubmissionAsType;
+  assignmentSubmission?: AssignmentSubmissionAsType | null;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  submissionId: string;
+  assignmentSubmissionId: string | null;
+  @ApiHideProperty()
+  quizSubmission?: QuizSubmissionAsType | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  quizSubmissionId: string | null;
   @ApiProperty({
     type: 'string',
   })
@@ -22,7 +34,7 @@ export class AssignmentAttachment {
   @ApiProperty({
     type: 'string',
   })
-  fileUrl: string;
+  url: string;
   @ApiProperty({
     type: 'string',
   })

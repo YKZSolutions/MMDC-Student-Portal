@@ -67,7 +67,7 @@ export class CourseEnrollmentService {
       include: {
         courseSection: {
           include: {
-            user: true,
+            mentor: true,
           },
         },
         courseOffering: {

@@ -1634,7 +1634,7 @@ export const courseOfferingControllerCreateCourseOfferingMutation = (options?: P
 export const courseOfferingControllerCreateCourseOfferingsByCurriculumIdQueryKey = (options: Options<CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData>) => createQueryKey('courseOfferingControllerCreateCourseOfferingsByCurriculumId', options);
 
 /**
- * Creates a course offerings given a curriculum
+ * Creates course offerings given a curriculum
  * Requires `ADMIN` role.
  */
 export const courseOfferingControllerCreateCourseOfferingsByCurriculumIdOptions = (options: Options<CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData>) => {
@@ -1653,7 +1653,7 @@ export const courseOfferingControllerCreateCourseOfferingsByCurriculumIdOptions 
 };
 
 /**
- * Creates a course offerings given a curriculum
+ * Creates course offerings given a curriculum
  * Requires `ADMIN` role.
  */
 export const courseOfferingControllerCreateCourseOfferingsByCurriculumIdMutation = (options?: Partial<Options<CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData>>): UseMutationOptions<CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponse, CourseOfferingControllerCreateCourseOfferingsByCurriculumIdError, Options<CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData>> => {
