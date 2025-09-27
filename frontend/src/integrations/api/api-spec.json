@@ -10040,7 +10040,7 @@
         "operationId": "LmsContentController_unpublish",
         "parameters": [
           {
-            "name": ":moduleContentId",
+            "name": "moduleContentId",
             "required": true,
             "in": "path",
             "schema": {
