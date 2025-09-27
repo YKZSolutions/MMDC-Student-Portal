@@ -1,38 +1,83 @@
 import { faker } from '@faker-js/faker';
 import { Prisma } from '@prisma/client';
+import {
+  PROGRAM_NAMES,
+  MAJOR_SPECIALIZATIONS,
+  COURSE_TITLES,
+  COURSE_SUBJECTS,
+  COURSE_TOPICS,
+} from '../constants/mockAcademics';
 
-export function createProgramData(): Prisma.ProgramCreateInput {
-  const name = faker.company.name();
+function getProgramCode(programName: string) {
+  if (programName.includes('Computer Science')) return 'CS';
+  if (programName.includes('Information Technology')) return 'IT';
+  if (programName.includes('Data Science')) return 'DS';
+  if (programName.includes('Cybersecurity')) return 'CY';
+  return 'GEN';
+}
+
+function getMajorCode(major: string) {
+  if (major.includes('Artificial Intelligence')) return 'AI';
+  if (major.includes('Web Development')) return 'WEB';
+  if (major.includes('Mobile Development')) return 'MOB';
+  if (major.includes('Software Development')) return 'SD';
+  if (major.includes('Data Analytics')) return 'DAT';
+  if (major.includes('Network & CyberSecurity')) return 'CS';
+  if (major.includes('Marketing Technology')) return 'MT';
+  if (major.includes('Entrepreneurship Technology')) return 'ET';
+  if (major.includes('Cloud Computing')) return 'CLOUD';
+  if (major.includes('Database Management')) return 'DB';
+  if (major.includes('Game Development')) return 'GAME';
+  if (major.includes('UX/UI Design')) return 'UI';
+  if (major.includes('DevOps')) return 'DEVOPS';
+}
+
+export function createProgramData(
+  programName: string,
+): Prisma.ProgramCreateInput {
   return {
-    programCode: name.substring(0, 4).toUpperCase(),
-    name: `Bachelor of Science in ${name}`,
-    description: faker.lorem.sentence(),
+    programCode: getProgramCode(programName),
+    name: programName,
+    description: `Comprehensive program focusing on ${programName.toLowerCase().replace('bachelor of science in ', '')} principles and practices.`,
     yearDuration: 4,
   };
 }
 
-export function createMajorData(programId: string): Prisma.MajorCreateInput {
-  const baseName = faker.person.jobArea();
-  const uniqueSuffix = faker.string.alphanumeric(4).toUpperCase();
-  const name = `${baseName} ${uniqueSuffix}`;
-  
+export function createMajorData(
+  specialization: string,
+  programId: string,
+  programCode: string,
+  programName: string,
+): Prisma.MajorCreateInput {
   return {
     program: { connect: { id: programId } },
-    majorCode: `${baseName.substring(0, 3).toUpperCase()}-${faker.string.alphanumeric(3).toUpperCase()}`,
-    name,
-    description: faker.lorem.sentence(),
+    majorCode: `${programCode}-${getMajorCode(specialization)}`,
+    name: `${programName} Specialization in ${specialization}`,
+    description: `Specialization in ${specialization} covering advanced topics and practical applications.`,
   };
 }
 
-export function createCourseData(index: number): Prisma.CourseCreateInput {
-  const dept = faker.commerce.department().substring(0, 3).toUpperCase();
-  // Generate a unique identifier for the course code
-  const uniqueId = faker.string.alphanumeric(3).toUpperCase();
+export function createCourseData(
+  index: number,
+  majorCode: string,
+): Prisma.CourseCreateInput {
+  const courseTitle =
+    COURSE_TITLES[index % COURSE_TITLES.length] ||
+    `${faker.helpers.arrayElement(COURSE_TOPICS)} ${faker.helpers.arrayElement(COURSE_SUBJECTS)}`;
+
+  const programCode = majorCode.split('-')[0];
+  const courseCode = `M0-${programCode}-${100 + index}`;
+
   return {
-    courseCode: `${dept}${100 + index}-${uniqueId}`,
-    name: faker.lorem.words(3),
-    description: faker.lorem.sentence(),
-    units: faker.number.int({ min: 1, max: 5 }),
-    type: faker.helpers.arrayElement(['Lecture', 'Lab', 'Seminar']),
+    courseCode,
+    name: courseTitle,
+    description: `This course covers fundamental concepts and practical applications of ${courseTitle.toLowerCase()}. Students will gain hands-on experience through projects and assignments.`,
+    units: faker.helpers.arrayElement([3, 4, 5]),
+    type: faker.helpers.arrayElement([
+      'Lecture',
+      'Lab',
+      'Seminar',
+      'Lecture/Lab',
+    ]),
   };
 }

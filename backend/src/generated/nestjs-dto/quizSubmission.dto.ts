@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class QuizSubmissionDto {
@@ -7,25 +7,15 @@ export class QuizSubmissionDto {
   })
   id: string;
   @ApiProperty({
-    type: () => Object,
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
   })
-  answers: Prisma.JsonValue;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    nullable: true,
-  })
-  rawScore: Prisma.Decimal | null;
+  state: SubmissionState;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  questionResults: Prisma.JsonValue | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-  })
-  submittedAt: Date;
+  answers: Prisma.JsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -37,6 +27,24 @@ export class QuizSubmissionDto {
     format: 'int32',
   })
   attemptNumber: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  lateDays: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    nullable: true,
+  })
+  rawScore: Prisma.Decimal | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

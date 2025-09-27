@@ -819,7 +819,7 @@ export const courseOfferingControllerCreateCourseOffering = <ThrowOnError extend
 };
 
 /**
- * Creates a course offerings given a curriculum
+ * Creates course offerings given a curriculum
  * Requires `ADMIN` role.
  */
 export const courseOfferingControllerCreateCourseOfferingsByCurriculumId = <ThrowOnError extends boolean = false>(options: Options<CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData, ThrowOnError>) => {

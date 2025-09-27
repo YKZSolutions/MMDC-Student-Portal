@@ -5,8 +5,10 @@ import {
   CourseEnrollment,
   ModuleContent,
   PrismaClient,
+  ProgressStatus,
   Quiz,
   QuizSubmission,
+  SubmissionState,
 } from '@prisma/client';
 import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
@@ -15,6 +17,7 @@ import {
   createContentProgressData,
   createQuizSubmissionData,
 } from '../factories/submission.factory';
+import { faker } from '@faker-js/faker';
 
 export async function seedSubmissions(
   prisma: PrismaClient,
@@ -25,40 +28,22 @@ export async function seedSubmissions(
 ) {
   log('Seeding submissions and progress...');
 
-  // Preload modules with both courseId and courseOfferingId
+  // Get all modules with their course offerings
   const modules = await prisma.module.findMany({
     select: {
       id: true,
       courseId: true,
       courseOfferingId: true,
-      moduleContents: true,
     },
   });
 
-  // Map modules by id for quick lookup
-  const moduleMap = new Map<
-    string,
-    { courseId: string | null; courseOfferingId: string | null }
-  >();
-  for (const m of modules) {
-    moduleMap.set(m.id, {
-      courseId: m.courseId,
-      courseOfferingId: m.courseOfferingId,
-    });
-  }
-
-  // Also preload courseOfferings to know which course they belong to
-  const offerings = await prisma.courseOffering.findMany({
-    select: { id: true, courseId: true },
-  });
-  const offeringMap = new Map<string, string>(); // offeringId -> courseId
-  for (const o of offerings) {
-    offeringMap.set(o.id, o.courseId);
-  }
-
-  // ---------------------------------------------------
-  // Seeding submissions & progress
-  // ---------------------------------------------------
+  // Create a map for quick lookup
+  const moduleMap = new Map(
+    modules.map((m) => [
+      m.id,
+      { courseId: m.courseId, courseOfferingId: m.courseOfferingId },
+    ]),
+  );
 
   const assignmentSubmissions: AssignmentSubmission[] = [];
   const quizSubmissions: QuizSubmission[] = [];
@@ -67,31 +52,23 @@ export async function seedSubmissions(
   for (const enrollment of enrollments) {
     const studentId = enrollment.studentId;
     const offeringId = enrollment.courseOfferingId;
-    const offeringCourseId = offeringMap.get(offeringId);
-    if (!offeringCourseId) continue;
 
-    // Get modules student can access (matching either offering or courseId)
+    // Get modules available for this enrollment
     const enrolledModules = modules.filter(
-      (m) =>
-        m.courseOfferingId === offeringId ||
-        (!m.courseOfferingId && m.courseId === offeringCourseId),
+      (m) => m.courseOfferingId === offeringId,
     );
 
-    if (enrolledModules.length === 0) {
-      log(
-        `⚠️ No modules found for student=${studentId}, offering=${offeringId}`,
-      );
-      continue;
-    }
+    if (enrolledModules.length === 0) continue;
 
-    // Assignments (submissions)
+    // Seed assignment submissions
     for (const assignment of assignments) {
-      const mod = moduleMap.get(assignment.moduleContentId);
-      if (!mod) continue;
-
-      // Student only allowed if assignment's module is in enrolledModules
-      if (!enrolledModules.some((em) => em.id === assignment.moduleContentId))
+      const moduleInfo = moduleMap.get(assignment.moduleContentId);
+      if (
+        !moduleInfo ||
+        !enrolledModules.some((m) => m.id === assignment.moduleContentId)
+      ) {
         continue;
+      }
 
       if (Math.random() < seedConfig.SUBMISSION_CHANCE) {
         const submission = await prisma.assignmentSubmission.create({
@@ -101,13 +78,15 @@ export async function seedSubmissions(
       }
     }
 
-    // Quiz (submissions)
+    // Seed quiz submissions
     for (const quiz of quizzes) {
-      const mod = moduleMap.get(quiz.moduleContentId);
-      if (!mod) continue;
-
-      if (!enrolledModules.some((em) => em.id === quiz.moduleContentId))
+      const moduleInfo = moduleMap.get(quiz.moduleContentId);
+      if (
+        !moduleInfo ||
+        !enrolledModules.some((m) => m.id === quiz.moduleContentId)
+      ) {
         continue;
+      }
 
       if (Math.random() < seedConfig.SUBMISSION_CHANCE) {
         const submission = await prisma.quizSubmission.create({
@@ -117,24 +96,43 @@ export async function seedSubmissions(
       }
     }
 
-    // Contents (progress)
+    // Seed content progress
     for (const content of contents) {
-      if (!enrolledModules.some((em) => em.id === content.moduleId)) continue;
+      if (!enrolledModules.some((m) => m.id === content.moduleId)) continue;
 
       if (Math.random() < seedConfig.PROGRESS_CHANCE) {
+        const status =
+          Math.random() > 0.3
+            ? ProgressStatus.COMPLETED
+            : ProgressStatus.IN_PROGRESS;
+
         const progress = await prisma.contentProgress.upsert({
           where: {
-            userId_moduleContentId: {
-              userId: studentId,
+            studentId_moduleContentId: {
+              studentId,
               moduleContentId: content.id,
             },
           },
-          update: {}, // no updates, just keep existing
-          create: createContentProgressData(
-            studentId,
-            content.moduleId,
-            content.id,
-          ),
+          update: {
+            status,
+            ...(status === ProgressStatus.COMPLETED && {
+              completedAt: new Date(),
+            }),
+            lastAccessedAt: new Date(),
+          },
+          create: {
+            ...createContentProgressData(
+              studentId,
+              content.moduleId,
+              content.id,
+            ),
+            status,
+            lastAccessedAt: new Date(),
+            timeSpent: faker.number.int({
+              min: seedConfig.MIN_TIME_SPENT,
+              max: seedConfig.MAX_TIME_SPENT,
+            }), // 5-60 minutes
+          },
         });
         contentProgress.push(progress);
       }
@@ -142,11 +140,12 @@ export async function seedSubmissions(
   }
 
   log(`-> Created ${assignmentSubmissions.length} assignment submissions.`);
+  log(`-> Created ${quizSubmissions.length} quiz submissions.`);
   log(`-> Created ${contentProgress.length} content progress records.`);
 
   return {
+    assignmentSubmissions,
     quizSubmissions,
     contentProgress,
-    assignmentSubmissions,
   };
 }

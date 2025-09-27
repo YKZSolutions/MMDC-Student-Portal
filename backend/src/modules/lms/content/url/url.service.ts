@@ -1,12 +1,24 @@
 // url.service.ts
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient, PrismaTransaction, } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { PrismaError, PrismaErrorCode, } from '@/common/decorators/prisma-error.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { CreateExternalUrlDto } from '@/generated/nestjs-dto/create-externalUrl.dto';
 import { ExternalUrlDto } from '@/generated/nestjs-dto/externalUrl.dto';
 import { UpdateExternalUrlDto } from '@/generated/nestjs-dto/update-externalUrl.dto';
@@ -55,7 +67,7 @@ export class UrlService {
 
     return {
       ...url,
-      content: url.content as Prisma.JsonValue,
+      content: url.content as Prisma.JsonArray,
     };
   }
 
@@ -92,7 +104,7 @@ export class UrlService {
 
     return {
       ...url,
-      content: url.content as Prisma.JsonValue,
+      content: url.content as Prisma.JsonArray,
     };
   }
 
@@ -124,7 +136,7 @@ export class UrlService {
 
     return {
       ...url,
-      content: url.content as Prisma.JsonValue,
+      content: url.content as Prisma.JsonArray,
     };
   }
 

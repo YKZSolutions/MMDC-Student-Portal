@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Assignment,
@@ -7,19 +7,19 @@ import {
 import { User, type User as UserAsType } from './user.entity';
 import { Group, type Group as GroupAsType } from './group.entity';
 import {
-  AssignmentAttachment,
-  type AssignmentAttachment as AssignmentAttachmentAsType,
-} from './assignmentAttachment.entity';
+  GradeRecord,
+  type GradeRecord as GradeRecordAsType,
+} from './gradeRecord.entity';
+import {
+  SubmissionAttachment,
+  type SubmissionAttachment as SubmissionAttachmentAsType,
+} from './submissionAttachment.entity';
 
 export class AssignmentSubmission {
   @ApiProperty({
     type: 'string',
   })
   id: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  assignmentId: string;
   @ApiProperty({
     type: () => Assignment,
     required: false,
@@ -28,9 +28,13 @@ export class AssignmentSubmission {
   @ApiProperty({
     type: 'string',
   })
-  studentId: string;
+  assignmentId: string;
   @ApiHideProperty()
   student?: UserAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  studentId: string;
   @ApiProperty({
     type: 'string',
     nullable: true,
@@ -48,10 +52,21 @@ export class AssignmentSubmission {
   })
   groupSnapshot: Prisma.JsonValue | null;
   @ApiProperty({
-    type: () => Object,
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
+  })
+  state: SubmissionState;
+  @ApiProperty({
+    type: () => GradeRecord,
+    required: false,
     nullable: true,
   })
-  content: Prisma.JsonValue | null;
+  gradeRecord?: GradeRecordAsType | null;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -61,9 +76,8 @@ export class AssignmentSubmission {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    nullable: true,
   })
-  attemptNumber: number | null;
+  attemptNumber: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -71,11 +85,11 @@ export class AssignmentSubmission {
   })
   lateDays: number | null;
   @ApiProperty({
-    type: () => AssignmentAttachment,
+    type: () => SubmissionAttachment,
     isArray: true,
     required: false,
   })
-  attachments?: AssignmentAttachmentAsType[];
+  attachments?: SubmissionAttachmentAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

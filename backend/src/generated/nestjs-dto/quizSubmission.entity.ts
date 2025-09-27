@@ -1,7 +1,15 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Quiz, type Quiz as QuizAsType } from './quiz.entity';
 import { User, type User as UserAsType } from './user.entity';
+import {
+  GradeRecord,
+  type GradeRecord as GradeRecordAsType,
+} from './gradeRecord.entity';
+import {
+  SubmissionAttachment,
+  type SubmissionAttachment as SubmissionAttachmentAsType,
+} from './submissionAttachment.entity';
 
 export class QuizSubmission {
   @ApiProperty({
@@ -21,25 +29,15 @@ export class QuizSubmission {
   })
   studentId: string;
   @ApiProperty({
-    type: () => Object,
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
   })
-  answers: Prisma.JsonValue;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    nullable: true,
-  })
-  rawScore: Prisma.Decimal | null;
+  state: SubmissionState;
   @ApiProperty({
     type: () => Object,
-    nullable: true,
+    isArray: true,
   })
-  questionResults: Prisma.JsonValue | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-  })
-  submittedAt: Date;
+  answers: Prisma.JsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -51,6 +49,36 @@ export class QuizSubmission {
     format: 'int32',
   })
   attemptNumber: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  lateDays: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    nullable: true,
+  })
+  rawScore: Prisma.Decimal | null;
+  @ApiProperty({
+    type: () => GradeRecord,
+    required: false,
+    nullable: true,
+  })
+  gradeRecord?: GradeRecordAsType | null;
+  @ApiProperty({
+    type: () => SubmissionAttachment,
+    isArray: true,
+    required: false,
+  })
+  attachments?: SubmissionAttachmentAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

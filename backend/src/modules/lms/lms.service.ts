@@ -133,7 +133,6 @@ export class LmsService {
                 lesson: true,
                 assignment: {
                   include: {
-                    grading: true,
                     submissions: false,
                   },
                 },
@@ -148,8 +147,8 @@ export class LmsService {
                   },
                 },
                 video: true,
-                externalUrl: true,
-                fileResource: true,
+                url: true,
+                file: true,
               },
             },
           },
@@ -219,24 +218,6 @@ export class LmsService {
 
               case 'ASSIGNMENT':
                 if (oldContent.assignment) {
-                  // Clone grading if it exists
-                  let gradingId: string | null = null;
-                  if (oldContent.assignment.grading) {
-                    const gradingSchema = oldContent.assignment.grading
-                      .gradingSchema as Prisma.JsonValue;
-                    const curveSettings = oldContent.assignment.grading
-                      .curveSettings as Prisma.JsonValue;
-                    const newGrading = await tx.assignmentGrading.create({
-                      data: {
-                        gradingSchema: gradingSchema ?? {},
-                        weight: oldContent.assignment.grading.weight,
-                        isCurved: oldContent.assignment.grading.isCurved,
-                        curveSettings: curveSettings ?? {},
-                      },
-                    });
-                    gradingId = newGrading.id;
-                  }
-
                   await tx.assignment.create({
                     data: {
                       moduleContentId: newContent.id,
@@ -249,7 +230,7 @@ export class LmsService {
                       allowLateSubmission:
                         oldContent.assignment.allowLateSubmission,
                       latePenalty: oldContent.assignment.latePenalty,
-                      gradingId,
+                      gradingId: oldContent.assignment.gradingId,
                     },
                   });
                 }
@@ -265,7 +246,9 @@ export class LmsService {
                       content: oldContent.quiz.content,
                       timeLimit: oldContent.quiz.timeLimit,
                       maxAttempts: oldContent.quiz.maxAttempts,
+                      allowLateSubmission: oldContent.quiz.allowLateSubmission,
                       questions: oldContent.quiz.questions,
+                      gradingId: oldContent.quiz.gradingId,
                     },
                   });
                 }
@@ -303,31 +286,32 @@ export class LmsService {
                 break;
 
               case 'URL':
-                if (oldContent.externalUrl) {
+                if (oldContent.url) {
                   await tx.externalUrl.create({
                     data: {
                       moduleContentId: newContent.id,
-                      title: oldContent.externalUrl.title,
-                      subtitle: oldContent.externalUrl.subtitle,
-                      content: oldContent.externalUrl.content,
-                      url: oldContent.externalUrl.url,
+                      title: oldContent.url.title,
+                      subtitle: oldContent.url.subtitle,
+                      content: oldContent.url.content,
+                      url: oldContent.url.url,
                     },
                   });
                 }
                 break;
 
               case 'FILE':
-                if (oldContent.fileResource) {
+                if (oldContent.file) {
                   await tx.fileResource.create({
                     data: {
                       moduleContentId: newContent.id,
-                      title: oldContent.fileResource.title,
-                      subtitle: oldContent.fileResource.subtitle,
-                      content: oldContent.fileResource.content,
-                      name: oldContent.fileResource.name,
-                      path: oldContent.fileResource.path,
-                      size: oldContent.fileResource.size,
-                      mimeType: oldContent.fileResource.mimeType,
+                      title: oldContent.file.title,
+                      subtitle: oldContent.file.subtitle,
+                      content: oldContent.file.content,
+                      name: oldContent.file.name,
+                      path: oldContent.file.path,
+                      size: oldContent.file.size,
+                      mimeType: oldContent.file.mimeType,
+                      url: oldContent.file.url,
                     },
                   });
                 }
@@ -359,7 +343,8 @@ export class LmsService {
   @Log({
     logArgsMessage: ({ id, role, userId }) =>
       `Fetching module ${id} for role=${role} user=${userId}`,
-    logSuccessMessage: (res, { id }) => `Fetched module ${id}`,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    logSuccessMessage: (result, { id }) => `Fetched module ${id}`,
     logErrorMessage: (err, { id }) =>
       `Fetching module ${id} | Error: ${err.message}`,
   })
@@ -396,7 +381,7 @@ export class LmsService {
     }
 
     // Always include course sections and their enrollments, then filter in JS
-    const moduleData = await this.prisma.client.module.findFirstOrThrow({
+    return await this.prisma.client.module.findFirstOrThrow({
       where,
       include: {
         courseOffering: {
@@ -408,7 +393,7 @@ export class LmsService {
                   ? { courseEnrollments: { some: { studentId: userId } } }
                   : undefined,
               include: {
-                user: true,
+                mentor: true,
               },
             },
             enrollmentPeriod: true,
@@ -416,8 +401,6 @@ export class LmsService {
         },
       },
     });
-
-    return moduleData;
   }
 
   /**
@@ -521,7 +504,7 @@ export class LmsService {
                 // Only include course sections that are relevant to the student
                 where: { courseEnrollments: { some: { studentId: userId } } },
                 include: {
-                  user: true,
+                  mentor: true,
                 },
               },
             },
@@ -632,7 +615,7 @@ export class LmsService {
               course: true,
               courseSections: {
                 include: {
-                  user: true,
+                  mentor: true,
                 },
               },
             },
@@ -723,7 +706,7 @@ export class LmsService {
               course: true,
               courseSections: {
                 include: {
-                  user: true,
+                  mentor: true,
                 },
               },
             },
@@ -774,7 +757,7 @@ export class LmsService {
    *
    * @async
    * @param {string} id - The UUID of the module to delete.
-   * @param {boolean} [directDelete=false] - Whether to premamnently delete the module.
+   * @param {boolean} [directDelete=false] - Whether to permanently delete the module.
    * @returns {Promise<{message: string}>} - Deletion confirmation message.
    *
    * @throws {NotFoundException} If no module is found with the given id.

@@ -1,20 +1,3 @@
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { Role } from '@/common/enums/roles.enum';
-import {
-  AuthUser,
-  CurrentAuthUser,
-} from '@/common/interfaces/auth.user-metadata';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -30,7 +13,36 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, OmitType } from '@nestjs/swagger';
+import { LmsContentService } from '@/modules/lms/lms-content.service';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiExtraModels,
+  ApiOkResponse,
+  getSchemaPath,
+  OmitType,
+} from '@nestjs/swagger';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { UpdateLessonItemDto } from '@/modules/lms/content/lesson/dto/update-lesson-item.dto';
+import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
+import { UpdateDiscussionItemDto } from '@/modules/lms/content/discussion/dto/update-discussion-item.dto';
+import { UpdateFileItemDto } from '@/modules/lms/content/file/dto/update-file-item.dto';
+import { UpdateExternalUrlItemDto } from '@/modules/lms/content/url/dto/update-external-url-item.dto';
+import { UpdateVideoItemDto } from '@/modules/lms/content/video/dto/update-video-item.dto';
+import { ContentType } from '@prisma/client';
+import { UpdateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/update-assignment-item.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -47,7 +59,7 @@ export class LmsContentController {
    *
    */
   @ApiCreatedResponse({
-    type: OmitType(ModuleContent, ['studentProgress'] as const),
+    type: ModuleContent,
   })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
@@ -55,7 +67,7 @@ export class LmsContentController {
   create(
     @Body() createModuleContentDto: CreateContentDto,
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
-  ): Promise<Omit<ModuleContent, 'studentProgress'>> {
+  ): Promise<ModuleContent> {
     return this.lmsContentService.create(createModuleContentDto, moduleId);
   }
 
@@ -90,7 +102,7 @@ export class LmsContentController {
    * Requires `ADMIN` role.
    */
   @ApiOkResponse({
-    type: OmitType(ModuleContent, ['studentProgress'] as const),
+    type: ModuleContent,
   })
   @ApiException(() => [
     NotFoundException,
@@ -98,11 +110,46 @@ export class LmsContentController {
     InternalServerErrorException,
   ])
   @Roles(Role.ADMIN)
+  @ApiBody({
+    // Define the overall schema type as oneOf the possible DTOs
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(UpdateLessonItemDto) },
+        { $ref: getSchemaPath(UpdateAssignmentItemDto) },
+        { $ref: getSchemaPath(UpdateQuizItemDto) },
+        { $ref: getSchemaPath(UpdateDiscussionItemDto) },
+        { $ref: getSchemaPath(UpdateFileItemDto) },
+        { $ref: getSchemaPath(UpdateExternalUrlItemDto) },
+        { $ref: getSchemaPath(UpdateVideoItemDto) },
+      ],
+      discriminator: {
+        propertyName: 'contentType',
+        mapping: {
+          [ContentType.LESSON]: getSchemaPath(UpdateLessonItemDto),
+          [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentItemDto),
+          [ContentType.QUIZ]: getSchemaPath(UpdateQuizItemDto),
+          [ContentType.DISCUSSION]: getSchemaPath(UpdateDiscussionItemDto),
+          [ContentType.FILE]: getSchemaPath(UpdateFileItemDto),
+          [ContentType.URL]: getSchemaPath(UpdateExternalUrlItemDto),
+          [ContentType.VIDEO]: getSchemaPath(UpdateVideoItemDto),
+        },
+      },
+    },
+  })
+  @ApiExtraModels(
+    UpdateLessonItemDto,
+    UpdateAssignmentItemDto,
+    UpdateQuizItemDto,
+    UpdateDiscussionItemDto,
+    UpdateFileItemDto,
+    UpdateExternalUrlItemDto,
+    UpdateVideoItemDto,
+  )
   @Patch(':moduleContentId')
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
     @Body() updateContentDto: UpdateContentDto,
-  ): Promise<Omit<ModuleContent, 'studentProgress'>> {
+  ): Promise<ModuleContent> {
     return this.lmsContentService.update(moduleContentId, updateContentDto);
   }
 
@@ -216,12 +263,13 @@ export class LmsContentController {
   createContentProgress(
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ) {
+    const { user_id } = user.user_metadata;
     return this.lmsContentService.createContentProgress(
       moduleId,
       moduleContentId,
-      user,
+      user_id,
     );
   }
 
@@ -241,14 +289,16 @@ export class LmsContentController {
   ])
   findAllContentProgress(
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
+    @CurrentUser() user: CurrentAuthUser,
     @Query('studentId', new ParseUUIDPipe({ optional: true }))
-    studentId: string | undefined,
-    @CurrentUser() user: AuthUser,
+    studentId?: string,
   ) {
+    const { role, user_id } = user.user_metadata;
     return this.lmsContentService.findAllContentProgress(
       moduleId,
+      user_id,
+      role,
       studentId,
-      user,
     );
   }
 }

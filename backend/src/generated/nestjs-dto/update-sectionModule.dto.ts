@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsArray, IsDateString, IsOptional } from 'class-validator';
 
 export class UpdateSectionModuleDto {
   @ApiProperty({
@@ -23,9 +23,10 @@ export class UpdateSectionModuleDto {
   toPublishAt?: Date | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
     required: false,
-    nullable: true,
   })
   @IsOptional()
-  classMeetings?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @IsArray()
+  classMeetings?: Prisma.InputJsonValue[];
 }

@@ -55,7 +55,7 @@ import {
   IconPlus,
   IconRubberStamp,
   IconRubberStampOff,
-  IconTrash
+  IconTrash,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
@@ -248,8 +248,6 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
     moduleContent.studentProgress?.every(
       (progress) => progress.status === 'COMPLETED',
     )
-
-  
 
   const navigateToItem = () => {
     navigate({
@@ -1253,9 +1251,7 @@ function AddSubsectionDrawer({
         },
         body: {
           contentType: form.getValues().contentType,
-          lesson: {
-            title: form.getValues().title,
-          },
+          title: form.getValues().title,
           sectionId: section.id,
         },
       })

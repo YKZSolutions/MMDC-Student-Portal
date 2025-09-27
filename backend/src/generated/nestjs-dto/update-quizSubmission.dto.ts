@@ -1,30 +1,31 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDecimal, IsInt, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsDecimal,
+  IsEnum,
+  IsInt,
+  IsOptional,
+} from 'class-validator';
 
 export class UpdateQuizSubmissionDto {
   @ApiProperty({
-    type: () => Object,
+    enum: SubmissionState,
+    enumName: 'SubmissionState',
     required: false,
   })
   @IsOptional()
-  answers?: Prisma.InputJsonValue;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDecimal()
-  rawScore?: Prisma.Decimal | null;
+  @IsEnum(SubmissionState)
+  state?: SubmissionState;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
     required: false,
-    nullable: true,
   })
   @IsOptional()
-  questionResults?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @IsArray()
+  answers?: Prisma.InputJsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -34,4 +35,32 @@ export class UpdateQuizSubmissionDto {
   @IsOptional()
   @IsInt()
   timeSpent?: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    default: new Date().toISOString(),
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDateString()
+  submittedAt?: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  lateDays?: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsDecimal()
+  rawScore?: Prisma.Decimal | null;
 }

@@ -17,8 +17,9 @@ export class QuizDto {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  content: Prisma.JsonValue;
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -28,17 +29,20 @@ export class QuizDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
+    nullable: true,
   })
-  maxAttempts: number;
+  maxAttempts: number | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  allowLateSubmission: boolean;
+  allowLateSubmission: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
+    nullable: true,
   })
-  latePenalty: Prisma.Decimal;
+  latePenalty: Prisma.Decimal | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -46,9 +50,16 @@ export class QuizDto {
   })
   dueDate: Date | null;
   @ApiProperty({
-    type: () => Object,
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
   })
-  questions: Prisma.JsonValue;
+  gracePeriodMinutes: number | null;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  questions: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

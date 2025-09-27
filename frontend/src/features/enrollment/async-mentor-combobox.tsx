@@ -67,7 +67,7 @@ function AsyncMentorCombobox({
   defaultSelectedUser,
 }: {
   form: UseFormReturnType<EditSectionFormValues>
-  defaultSelectedUser: DetailedCourseSectionDto['user']
+  defaultSelectedUser: DetailedCourseSectionDto['mentor']
 }) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -81,7 +81,7 @@ function AsyncMentorCombobox({
 
   const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
   const [selectedUser, setSelectedUser] =
-    useState<DetailedCourseSectionDto['user']>(defaultSelectedUser)
+    useState<DetailedCourseSectionDto['mentor']>(defaultSelectedUser)
 
   // Debounced Query Value
   const [debouncedQuery] = useDebouncedValue(query, 250)
@@ -224,7 +224,7 @@ function AsyncMentorCombobox({
 function UserComboboxCard({
   user,
 }: {
-  user: DetailedCourseSectionDto['user']
+  user: DetailedCourseSectionDto['mentor']
 }) {
   if (!user) return null
 
