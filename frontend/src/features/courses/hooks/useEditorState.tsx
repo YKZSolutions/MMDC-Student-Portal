@@ -4,11 +4,11 @@ import {
 } from '@/features/courses/modules/types.ts'
 import type { ModuleContent } from '@/integrations/api/client'
 import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { getModuleContent, toBlockArray } from '@/utils/helpers.tsx'
+import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { createContext, useContext, type ReactNode } from 'react'
 
 export type EditorView = 'content' | 'preview'
@@ -28,7 +28,6 @@ export interface EditorState {
   type: ContentNodeType
   data: ModuleContent
   content: BlockNoteEditor
-  parentId: string | null
   view: EditorView
 }
 
@@ -39,8 +38,7 @@ export interface EditorSearchParams
 
 interface EditorContextValue {
   editorState: EditorState
-  handleAdd: (parentId?: string, newType?: ContentNodeType) => void
-  handlePreview: (nodeType: ContentNodeType, nodeData: ContentNode) => void
+  handleAdd: (fn: (open: boolean) => void) => void
   handleNavigate: (nodeData: ContentNode) => void
 }
 
@@ -49,50 +47,37 @@ const EditorContext = createContext<EditorContextValue | null>(null)
 export function EditorProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const searchParams: EditorSearchParams = useSearch({ strict: false })
+  const { itemId } = useParams({ strict: false })
 
-  // const { data: moduleSectionData } = useSuspenseQuery(
-  //   lmsSectionControllerFindOneOptions({
-  //     path: {
-  //       moduleSectionId: searchParams.id || '',
-  //     },
-  //   }),
-  // )
+  const moduleContentId = searchParams.id ?? itemId ?? ''
 
   const { data: moduleContentData } = useSuspenseQuery(
     lmsContentControllerFindOneOptions({
-      path: {
-        moduleContentId: searchParams.id || '',
-      },
+      path: { moduleContentId },
     }),
   )
 
-  // console.log('Fetched Section Data:', moduleSectionData)
-  console.log('Fetched Content Data:', moduleContentData)
+  const { contentKey, existingContent } =
+    getContentKeyAndData(moduleContentData)
 
-  const editor = useCreateBlockNote({
-    initialContent: toBlockArray(getModuleContent(moduleContentData)?.content),
-  })
+  const editor = useCreateBlockNote(
+    {
+      initialContent: toBlockArray(existingContent?.content),
+    },
+    [moduleContentId],
+  )
 
   const editorState = {
     id: (searchParams.id as string) || null,
     type: (searchParams.type as ContentNodeType) || 'section',
-    parentId: (searchParams.parentId as string) || null,
     view: (searchParams.view as EditorView) || 'content',
     data: moduleContentData,
     content: editor,
   } satisfies EditorState
 
-  const handleAdd = (parentId: string = '0', newType?: ContentNodeType) => {
-    // TODO: Implement adding new nodes using mutation
-    // setEditorState({
-    //   type: newType || 'section',
-    //   data: null,
-    //   parentId,
-    //   view: 'content',
-    // })
+  const handleAdd = (fn: (open: boolean) => void) => {
+    fn(true)
   }
-
-  const handlePreview = (nodeType: ContentNodeType, nodeData: ContentNode) => {}
 
   const handleNavigate = (nodeData: ContentNode) => {
     navigate({
@@ -109,7 +94,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       value={{
         editorState,
         handleAdd,
-        handlePreview,
         handleNavigate,
       }}
     >

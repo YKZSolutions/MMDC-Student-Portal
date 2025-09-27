@@ -4216,7 +4216,7 @@ export type LmsContentControllerPublishResponses = {
 export type LmsContentControllerUnpublishData = {
     body?: never;
     path: {
-        ':moduleContentId': string;
+        moduleContentId: string;
     };
     query?: never;
     url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';

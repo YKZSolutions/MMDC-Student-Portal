@@ -1,3 +1,24 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { Role } from '@/common/enums/roles.enum';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { UpdateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/update-assignment-item.dto';
+import { UpdateDiscussionItemDto } from '@/modules/lms/content/discussion/dto/update-discussion-item.dto';
+import { UpdateFileItemDto } from '@/modules/lms/content/file/dto/update-file-item.dto';
+import { UpdateLessonItemDto } from '@/modules/lms/content/lesson/dto/update-lesson-item.dto';
+import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
+import { UpdateExternalUrlItemDto } from '@/modules/lms/content/url/dto/update-external-url-item.dto';
+import { UpdateVideoItemDto } from '@/modules/lms/content/video/dto/update-video-item.dto';
+import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
+import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
+import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
+import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
+import { LmsContentService } from '@/modules/lms/lms-content.service';
+import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
@@ -13,36 +34,14 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
 import {
   ApiBody,
   ApiCreatedResponse,
   ApiExtraModels,
   ApiOkResponse,
   getSchemaPath,
-  OmitType,
 } from '@nestjs/swagger';
-import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { Role } from '@/common/enums/roles.enum';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { UpdateLessonItemDto } from '@/modules/lms/content/lesson/dto/update-lesson-item.dto';
-import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
-import { UpdateDiscussionItemDto } from '@/modules/lms/content/discussion/dto/update-discussion-item.dto';
-import { UpdateFileItemDto } from '@/modules/lms/content/file/dto/update-file-item.dto';
-import { UpdateExternalUrlItemDto } from '@/modules/lms/content/url/dto/update-external-url-item.dto';
-import { UpdateVideoItemDto } from '@/modules/lms/content/video/dto/update-video-item.dto';
 import { ContentType } from '@prisma/client';
-import { UpdateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/update-assignment-item.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -241,7 +240,7 @@ export class LmsContentController {
   @Roles(Role.ADMIN)
   @Patch(':moduleContentId/unpublish')
   unpublish(
-    @Param(':moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
+    @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
   ) {
     return this.lmsPublishService.unpublishContent(moduleContentId);
   }
