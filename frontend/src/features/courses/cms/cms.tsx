@@ -18,6 +18,7 @@ import {
   lmsContentControllerFindOneQueryKey,
   lmsContentControllerPublishMutation,
   lmsContentControllerRemoveMutation,
+  lmsContentControllerUnpublishMutation,
   lmsContentControllerUpdateMutation,
   lmsControllerFindModuleTreeOptions,
   lmsControllerFindModuleTreeQueryKey,
@@ -58,7 +59,6 @@ import {
   Tree,
 } from '@minoru/react-dnd-treeview'
 import {
-  IconCalendar,
   IconChevronDown,
   IconChevronRight,
   IconDotsVertical,
@@ -66,6 +66,7 @@ import {
   IconList,
   IconPlus,
   IconRubberStamp,
+  IconRubberStampOff,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
@@ -97,6 +98,7 @@ export function CMS(props: CMSProps) {
 }
 
 function CMSWrapper({ courseCode }: CMSProps) {
+  const searchParams: EditorSearchParams = useSearch({ strict: false })
   const navigate = useNavigate()
   const theme = useMantineTheme()
 
@@ -123,7 +125,93 @@ function CMSWrapper({ courseCode }: CMSProps) {
     },
   )
 
-  const handleCourseChange = (course: CourseBasicDetails | undefined) => {}
+  const { mutateAsync: publishModuleContent } = useAppMutation(
+    lmsContentControllerPublishMutation,
+    {
+      loading: {
+        message: 'Publishing changes...',
+        title: 'Publishing Content',
+      },
+      success: {
+        message: 'Content published successfully',
+        title: 'Content Published',
+      },
+      error: {
+        title: 'Failed to publish content',
+        message: 'Please try again later',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleContentKey = lmsContentControllerFindOneQueryKey({
+          path: { moduleContentId: searchParams.id || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleContentKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleContentKey })
+      },
+    },
+  )
+
+  const { mutateAsync: unpublishModuleContent } = useAppMutation(
+    lmsContentControllerUnpublishMutation,
+    {
+      loading: {
+        message: 'Unpublishing changes...',
+        title: 'Unpublishing Content',
+      },
+      success: {
+        message: 'Content unpublished successfully',
+        title: 'Content Unpublished',
+      },
+      error: {
+        title: 'Failed to unpublish content',
+        message: 'Please try again later',
+      },
+    },
+    {
+      onSuccess: async () => {
+        const moduleContentKey = lmsContentControllerFindOneQueryKey({
+          path: { moduleContentId: searchParams.id || '' },
+        })
+
+        await queryClient.cancelQueries({ queryKey: moduleContentKey })
+
+        await queryClient.invalidateQueries({ queryKey: moduleContentKey })
+      },
+    },
+  )
+
+  const { mutateAsync: deleteModuleContent } = useAppMutation(
+    lmsContentControllerRemoveMutation,
+    {
+      loading: {
+        message: 'Deleting content...',
+        title: 'Deleting Content',
+      },
+      success: {
+        message: 'Content deleted successfully',
+        title: 'Content Deleted',
+      },
+      error: {
+        title: 'Failed to delete content',
+        message: 'Please try again later',
+      },
+    },
+  )
+
+  const handlePublish = async () => {
+    await publishModuleContent({
+      path: { moduleContentId: editorState.id || '' },
+    })
+  }
+
+  const handleUnpublish = async () => {
+    await unpublishModuleContent({
+      path: { moduleContentId: editorState.id || '' },
+    })
+  }
 
   const handleSave = async () => {
     const data = editorState.data
@@ -141,6 +229,14 @@ function CMSWrapper({ courseCode }: CMSProps) {
         content: editorState.content.document,
       },
     })
+  }
+
+  const handleDelete = async () => {
+    await deleteModuleContent({
+      path: { moduleContentId: editorState.id || '' },
+    })
+
+    navigate({ to: '..' })
   }
 
   const handleSegmentedControl = (value: EditorView) => {
@@ -233,30 +329,33 @@ function CMSWrapper({ courseCode }: CMSProps) {
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item
-                    leftSection={
-                      <IconRubberStamp
-                        size={16}
-                        stroke={1.5}
-                        color={theme.colors.blue[5]}
-                      />
-                    }
-                    component={Link}
-                    to={`../publish`}
-                  >
-                    Publish
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={
-                      <IconCalendar
-                        size={16}
-                        stroke={1.5}
-                        color={theme.colors.blue[5]}
-                      />
-                    }
-                  >
-                    Schedule publishing
-                  </Menu.Item>
+                  {editorState.data.publishedAt ? (
+                    <Menu.Item
+                      leftSection={
+                        <IconRubberStampOff
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.gray[6]}
+                        />
+                      }
+                      onClick={handleUnpublish}
+                    >
+                      Unpublish
+                    </Menu.Item>
+                  ) : (
+                    <Menu.Item
+                      leftSection={
+                        <IconRubberStamp
+                          size={16}
+                          stroke={1.5}
+                          color={theme.colors.blue[5]}
+                        />
+                      }
+                      onClick={handlePublish}
+                    >
+                      Publish
+                    </Menu.Item>
+                  )}
                   <Menu.Item
                     leftSection={
                       <IconTrash
@@ -265,6 +364,7 @@ function CMSWrapper({ courseCode }: CMSProps) {
                         color={theme.colors.red[5]}
                       />
                     }
+                    onClick={handleDelete}
                   >
                     Delete
                   </Menu.Item>
@@ -370,18 +470,22 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
     })
   }
 
+  console.log(existingContent)
+
   switch (editorState.view) {
     case 'content':
       return (
         <Stack gap={0}>
-          <Stack gap="md" px={rem(48)} py={'lg'}>
+          <Stack gap="md" px={rem(48)} py={'lg'} pb={'xl'}>
             <Group align="start" gap="sm" justify="space-between">
               <Box>
                 <TextInput
+                  key={existingContent?.id}
                   onBlur={(e) => handleOnBlur(e)}
                   placeholder="Title of the content"
                   defaultValue={existingContent?.title}
                   variant="unstyled"
+                  width={'100%'}
                   styles={{
                     input: {
                       fontSize: '24px',
@@ -398,7 +502,6 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
                   size="lg"
                 />
                 <Group gap="xs">
-                  {/* <Badge variant="light">{module?.courseCode || 'N/A'}</Badge> */}
                   <Badge variant="light" color={isPublished ? 'green' : 'red'}>
                     {isPublished ? 'Published' : 'Draft'}
                   </Badge>
@@ -406,6 +509,7 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
               </Box>
             </Group>
           </Stack>
+          <Divider />
           <RichTextEditor editor={editorState.content} />
         </Stack>
       )
@@ -607,6 +711,7 @@ function CMSNodeRow({
   const { handleAdd, editorState } = useEditorState()
 
   const { lmsCode } = useParams({ strict: false })
+  const navigate = useNavigate()
 
   const theme = useMantineTheme()
 
@@ -709,6 +814,8 @@ function CMSNodeRow({
                 directDelete: true,
               },
             })
+
+        navigate({ to: '..' })
       },
     })
   }
