@@ -17,9 +17,9 @@ export class QuizDto {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  content: Prisma.JsonValue[];
+  content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -57,9 +57,9 @@ export class QuizDto {
   gracePeriodMinutes: number | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  questions: Prisma.JsonValue[];
+  questions: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

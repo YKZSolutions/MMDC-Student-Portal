@@ -31,9 +31,9 @@ export class Discussion {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  content: Prisma.JsonValue[];
+  content: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'boolean',
     nullable: true,

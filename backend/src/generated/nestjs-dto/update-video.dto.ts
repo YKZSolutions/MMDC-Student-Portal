@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateVideoDto {
   @ApiProperty({
@@ -20,12 +20,11 @@ export class UpdateVideoDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
     required: false,
+    nullable: true,
   })
   @IsOptional()
-  @IsArray()
-  content?: Prisma.InputJsonValue[];
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
     required: false,

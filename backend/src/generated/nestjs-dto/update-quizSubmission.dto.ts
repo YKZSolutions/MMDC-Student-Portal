@@ -1,7 +1,6 @@
 import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsDateString,
   IsDecimal,
   IsEnum,
@@ -20,12 +19,10 @@ export class UpdateQuizSubmissionDto {
   state?: SubmissionState;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
     required: false,
   })
   @IsOptional()
-  @IsArray()
-  answers?: Prisma.InputJsonValue[];
+  answers?: Prisma.InputJsonValue;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

@@ -1,7 +1,6 @@
 import { Prisma, SubmissionState } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsDateString,
   IsEnum,
   IsInt,
@@ -26,11 +25,11 @@ export class CreateAssignmentSubmissionDto {
   state: SubmissionState;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
-  @IsArray()
-  content: Prisma.InputJsonValue[];
+  @IsOptional()
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

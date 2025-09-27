@@ -27,14 +27,14 @@ export class GradeRecordDto {
   feedback: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  rubricScores: Prisma.JsonValue[];
+  rubricScores: Prisma.JsonValue | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  questionScores: Prisma.JsonValue[];
+  questionScores: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

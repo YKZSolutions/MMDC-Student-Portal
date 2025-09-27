@@ -1,12 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateFileResourceDto {
   @ApiProperty({
@@ -25,11 +19,11 @@ export class CreateFileResourceDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
-  @IsArray()
-  content: Prisma.InputJsonValue[];
+  @IsOptional()
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'string',
     required: false,

@@ -17,9 +17,9 @@ export class AssignmentDto {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  content: Prisma.JsonValue[];
+  content: Prisma.JsonValue | null;
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',

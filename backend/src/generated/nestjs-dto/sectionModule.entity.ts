@@ -43,7 +43,7 @@ export class SectionModule {
   toPublishAt: Date | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  classMeetings: Prisma.JsonValue[];
+  classMeetings: Prisma.JsonValue | null;
 }

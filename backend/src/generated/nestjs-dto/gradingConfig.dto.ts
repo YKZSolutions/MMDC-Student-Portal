@@ -23,14 +23,14 @@ export class GradingConfigDto {
   curveSettings: Prisma.JsonValue | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  rubricSchema: Prisma.JsonValue[];
+  rubricSchema: Prisma.JsonValue | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
+    nullable: true,
   })
-  questionRules: Prisma.JsonValue[];
+  questionRules: Prisma.JsonValue | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -1,7 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsBoolean,
   IsDateString,
   IsDecimal,
@@ -28,12 +27,11 @@ export class UpdateQuizDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
     required: false,
+    nullable: true,
   })
   @IsOptional()
-  @IsArray()
-  content?: Prisma.InputJsonValue[];
+  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -90,10 +88,9 @@ export class UpdateQuizDto {
   gracePeriodMinutes?: number | null;
   @ApiProperty({
     type: () => Object,
-    isArray: true,
     required: false,
+    nullable: true,
   })
   @IsOptional()
-  @IsArray()
-  questions?: Prisma.InputJsonValue[];
+  questions?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }
