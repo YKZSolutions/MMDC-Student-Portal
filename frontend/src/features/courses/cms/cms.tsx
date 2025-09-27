@@ -121,10 +121,9 @@ function CMSWrapper({ courseCode }: CMSProps) {
         moduleContentId: editorState.id || '',
       },
       body: {
-        [contentKey]: {
-          ...(existingContent ?? {}),
-          content: editorState.content.document,
-        },
+        contentType: data.contentType,
+        ...(existingContent ?? {}),
+        content: editorState.content.document,
       },
     })
   }
