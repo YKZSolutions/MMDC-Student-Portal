@@ -225,7 +225,6 @@ function CMSWrapper({ courseCode }: CMSProps) {
       },
       body: {
         contentType: data.contentType,
-        ...(existingContent ?? {}),
         content: editorState.content.document,
       },
     })
