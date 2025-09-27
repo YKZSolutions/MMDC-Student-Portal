@@ -991,7 +991,7 @@ function AdminActionsModuleContent({
       onConfirm: async () => {
         await unpublishModuleContent({
           path: {
-            ':moduleContentId': moduleContent.id,
+            'moduleContentId': moduleContent.id,
           },
         })
       },
