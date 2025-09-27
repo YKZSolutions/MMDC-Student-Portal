@@ -6,6 +6,7 @@ import {
 import type { ModuleContent } from '@/integrations/api/client'
 import {
   getContentKeyAndData,
+  isEditorEmpty,
   toBlockArray,
   type ExistingContent,
 } from '@/utils/helpers.tsx'
@@ -27,7 +28,7 @@ import {
   Text,
   Timeline,
   Title,
-  useMantineTheme
+  useMantineTheme,
 } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import {
@@ -65,7 +66,7 @@ function ModuleContentView({
   const nextItem = null // TODO: Implement navigation when module context is available
 
   return (
-    <Container size="lg" py="xl" pt={'lg'}>
+    <Container size="lg" w={'100%'} py="xl" pt={'lg'}>
       {/* Main Content Area */}
       <Stack flex={1}>
         <Button
@@ -220,7 +221,7 @@ function HeaderSection({
   )
 }
 
-// 🔹 Content Section
+// Content Section
 type ContentAreaProps = {
   content: Block[]
   editor: BlockNoteEditor
@@ -235,11 +236,11 @@ function ContentArea({ content, editor, isPreview }: ContentAreaProps) {
       })
 
   return (
-    <Paper withBorder radius="md" p="xl">
-      {editor || content ? (
+    <Paper withBorder radius="md" py="xl">
+      {!isEditorEmpty(editorData) ? (
         <BlockNoteView editor={editorData} theme="light" editable={false} />
       ) : (
-        <Text c="dimmed" fs="italic">
+        <Text c="dimmed" fs="italic" px={'xl'}>
           No content available for this item.
         </Text>
       )}

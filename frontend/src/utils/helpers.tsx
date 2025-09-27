@@ -15,7 +15,7 @@ import type {
   ContentType,
   ModuleContent,
 } from '@/integrations/api/client'
-import type { Block } from '@blocknote/core'
+import type { Block, BlockNoteEditor } from '@blocknote/core'
 import {
   IconCalendarTime,
   IconClipboard,
@@ -342,4 +342,17 @@ export const getContentKeyAndData = <
     | undefined
 
   return { contentKey, existingContent }
+}
+
+export const isEditorEmpty = (editor: BlockNoteEditor) => {
+  if (editor.document.length !== 1) return false
+
+  const block = editor.document[0]
+  if (block.type !== 'paragraph') return false
+
+  // Ensure content array is empty or only contains empty text
+  return (
+    block.content.length === 0 ||
+    block.content.every((c) => c.type === 'text' && c.text.trim() === '')
+  )
 }
