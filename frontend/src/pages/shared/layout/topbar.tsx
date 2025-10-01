@@ -26,7 +26,6 @@ import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
 import { Fragment } from 'react'
 import dayjs from 'dayjs'
 import { useDisclosure } from '@mantine/hooks'
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import {
   notificationsControllerFindAllOptions,
   notificationsControllerFindAllQueryKey,
