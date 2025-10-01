@@ -20,7 +20,6 @@ export default function NotificationItemSkeleton({
             </Group>
 
             <Skeleton height={12} w="80%" my={2.5} />
-            {/* <Skeleton height={12} w="70%" /> */}
           </Stack>
         </Group>
       </Group>
