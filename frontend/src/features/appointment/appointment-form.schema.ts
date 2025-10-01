@@ -7,7 +7,7 @@ const zodAppointmentCreate = zAppointmentsControllerCreateData.shape.body.shape
 export const appointmentFormSchema = z.object({
   // ...zodAppointmentCreate,
   course: nullableInput(zodAppointmentCreate.courseId, 'Course is required'),
-  mentor: nullableInput(zodAppointmentCreate.courseId, 'Course is required'),
+  mentor: nullableInput(zodAppointmentCreate.mentorId, 'Mentor is required'),
   topic: zodAppointmentCreate.title.nonempty(),
   description: zodAppointmentCreate.title.nonempty(),
   date: z.string().nullable(),
