@@ -17,7 +17,7 @@ import {
 import { IconMessageCheck } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { Suspense } from 'react'
-import { Fragment } from 'react/jsx-runtime'
+import { Fragment } from 'react'
 
 const route = getRouteApi('/(protected)/notifications/')
 
