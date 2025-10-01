@@ -30,7 +30,6 @@ export class AuthGuard implements CanActivate {
 
     if (!token)
       throw new UnauthorizedException('Auth: Access token is missing');
-    console.log(token);
     const payload = await this.supabase.auth.getUser(token);
 
     if (payload.error) throw new UnauthorizedException('Invalid access token');
