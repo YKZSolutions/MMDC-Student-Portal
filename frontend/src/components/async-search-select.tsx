@@ -93,7 +93,12 @@ export default function AsyncSearchSelect<
   const { data: initialItemData, isFetching: isLoadingInitial } = useQuery({
     ...(getItemById && initialValue
       ? getItemById(initialValue)
-      : { queryKey: ['__placeholder__'] as any }),
+      : {
+          queryKey: ['__placeholder__'] as any,
+          queryFn: () => {
+            return {} as TItemData
+          },
+        }),
     enabled: !!getItemById && !!initialValue && !!initialValue.trim(),
   })
 

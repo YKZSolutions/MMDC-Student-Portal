@@ -1,0 +1,504 @@
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateAppointmentItemDto } from './dto/create-appointment.dto';
+import { UpdateAppointmentItemDto } from './dto/update-appointment.dto';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
+import { Prisma, Role } from '@prisma/client';
+import {
+  AppointmentItemDto,
+  PaginatedAppointmentDto,
+} from './dto/paginated-appointment.dto';
+import { BookedAppointmentDto } from './dto/booked-appointment.dto';
+import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
+import { FilterAppointmentDto } from './dto/filter-appointment.dto';
+
+@Injectable()
+export class AppointmentsService {
+  constructor(
+    @Inject('PrismaService')
+    private prisma: CustomPrismaService<ExtendedPrismaClient>,
+  ) {}
+
+  /**
+   * Creates a new appointment entry in the database.
+   *
+   * @param createAppointmentDto - The DTO containing the appointment data.
+   * @returns The newly created appointment object.
+   * @throws NotFoundException - If the related course, student, or mentor ID does not exist.
+   */
+  @Log({
+    logArgsMessage: ({ createDto }) =>
+      `Creating appointment for student ${createDto.studentId} with mentor ${createDto.mentorId}`,
+    logSuccessMessage: (result) => `Created appointment with ID: ${result.id}`,
+    logErrorMessage: (err) =>
+      `Failed to create appointment. Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(
+        'The specified course, student, or mentor ID was not found.',
+      ),
+  })
+  async create(
+    @LogParam('createDto') createAppointmentDto: CreateAppointmentItemDto,
+  ): Promise<AppointmentItemDto> {
+    const appointment = await this.prisma.client.appointment.create({
+      data: createAppointmentDto,
+      include: {
+        course: {
+          include: {
+            course: true,
+          },
+        },
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+        mentor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...appointment,
+      course: {
+        id: appointment.course.course.id,
+        courseCode: appointment.course.course.courseCode,
+        name: appointment.course.course.name,
+      },
+    };
+  }
+
+  /**
+   * Retrieves a paginated list of appointments from the database based on user role.
+   *
+   * @param filters - The filter, search, and pagination options for the query.
+   * @param role - The user's role (admin, student, or mentor).
+   * @param userId - The user's ID to filter appointments by.
+   * @returns A paginated list of appointments.
+   */
+  @Log({
+    logArgsMessage: ({ filters, role, userId }) =>
+      `Fetching appointments for role ${role} (user: ${userId}) with filters: ${JSON.stringify(
+        filters,
+      )}`,
+    logSuccessMessage: (result) =>
+      `Fetched ${result.meta.totalCount} appointments.`,
+    logErrorMessage: (err) =>
+      `Failed to fetch appointments. Error: ${err.message}`,
+  })
+  async findAll(
+    @LogParam('filters') filters: FilterAppointmentDto,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
+  ): Promise<PaginatedAppointmentDto> {
+    const where: Prisma.AppointmentWhereInput = {};
+    const page = filters.page || 1;
+
+    if (filters.search?.trim()) {
+      const searchTerms = filters.search.trim();
+
+      where.title = {
+        contains: searchTerms,
+        mode: Prisma.QueryMode.insensitive,
+      };
+    }
+
+    if (role === 'student') {
+      where.studentId = userId;
+    } else if (role === 'mentor') {
+      where.mentorId = userId;
+    }
+
+    where.OR = filters.status?.map((status) => ({
+      status: status,
+    }));
+
+    const [data, meta] = await this.prisma.client.appointment
+      .paginate({
+        where,
+        include: {
+          course: {
+            include: {
+              course: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              role: true,
+            },
+          },
+          mentor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              role: true,
+            },
+          },
+        },
+        orderBy: {
+          startAt: 'desc',
+        },
+      })
+      .withPages({ limit: 10, page, includePageCount: true });
+
+    const appointments: AppointmentItemDto[] = data.map((item) => ({
+      ...item,
+      course: {
+        id: item.course.course.id,
+        courseCode: item.course.course.courseCode,
+        name: item.course.course.name,
+      },
+    }));
+
+    return { appointments, meta };
+  }
+
+  /**
+   * Retrieves a list of booked appointments for a specific mentor within a date range.
+   *
+   * @param mentorId - The ID of the mentor.
+   * @param startDateRange - (Optional) The start of the date range to filter by.
+   * @param endDateRange - (Optional) The end of the date range to filter by.
+   * @returns A list of booked appointments.
+   */
+  @Log({
+    logArgsMessage: ({ mentorId, startDateRange, endDateRange }) =>
+      `Fetching booked appointments for mentor ${mentorId} from ${startDateRange} to ${endDateRange}`,
+    logSuccessMessage: (result) =>
+      `Fetched ${result.length} booked appointments.`,
+    logErrorMessage: (err) =>
+      `Failed to fetch booked appointments. Error: ${err.message}`,
+  })
+  async findAllBooked(
+    @LogParam('mentorId') mentorId: string,
+    @LogParam('startDateRange') startDateRange?: Date,
+    @LogParam('endDateRange') endDateRange?: Date,
+  ): Promise<BookedAppointmentDto[]> {
+    return await this.prisma.client.appointment.findMany({
+      where: {
+        mentorId,
+        startAt: {
+          gte: startDateRange,
+          lte: endDateRange,
+        },
+        OR: [
+          { status: 'booked' },
+          { status: 'approved' },
+          { status: 'rescheduled' },
+          { status: 'finished' },
+        ],
+      },
+      select: {
+        id: true,
+        startAt: true,
+        endAt: true,
+      },
+    });
+  }
+
+  /**
+   * Retrieves a single appointment by ID, with filtering based on user role.
+   *
+   * @param id - The ID of the appointment to retrieve.
+   * @param role - The user's role (admin, student, or mentor).
+   * @param userId - The user's ID to check ownership.
+   * @returns The appointment object if found.
+   * @throws NotFoundException - If the appointment with the specified ID is not found or the user is not authorized to view it.
+   */
+  @Log({
+    logArgsMessage: ({ id, role, userId }) =>
+      `Fetching appointment with ID ${id} for user ${userId} (${role})`,
+    logSuccessMessage: (result) =>
+      `Successfully fetched appointment with ID: ${result.id}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to fetch appointment with ID ${id}. Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Appointment with ID ${id} was not found.`),
+  })
+  async findOne(
+    @LogParam('id') id: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId: string,
+  ): Promise<AppointmentItemDto> {
+    const where: Prisma.AppointmentWhereInput = {};
+
+    where.id = id;
+
+    if (role === 'student') {
+      where.studentId = userId;
+    } else if (role === 'mentor') {
+      where.mentorId = userId;
+    }
+
+    const appointment = await this.prisma.client.appointment.findFirstOrThrow({
+      where: {
+        ...where,
+      },
+      include: {
+        course: {
+          include: {
+            course: true,
+          },
+        },
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+        mentor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...appointment,
+      course: {
+        id: appointment.course.course.id,
+        courseCode: appointment.course.course.courseCode,
+        name: appointment.course.course.name,
+      },
+    };
+  }
+
+  /**
+   * Updates the details of an appointment.
+   *
+   * @param id - The ID of the appointment to update.
+   * @param updateAppointmentDto - The DTO containing the updated appointment data.
+   * @returns The updated appointment object.
+   * @throws NotFoundException - If the appointment with the specified ID is not found.
+   */
+  @Log({
+    logArgsMessage: ({ id }) =>
+      `Updating details for appointment with ID ${id}`,
+    logSuccessMessage: (result) =>
+      `Successfully updated appointment with ID: ${result.id}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to update appointment with ID ${id}. Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Appointment with ID ${id} was not found.`),
+  })
+  async updateDetails(
+    @LogParam('id') id: string,
+    updateAppointmentDto: UpdateAppointmentItemDto,
+  ): Promise<AppointmentItemDto> {
+    const appointment = await this.prisma.client.appointment.update({
+      where: { id },
+      data: updateAppointmentDto,
+      include: {
+        course: {
+          include: {
+            course: true,
+          },
+        },
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+        mentor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...appointment,
+      course: {
+        id: appointment.course.course.id,
+        courseCode: appointment.course.course.courseCode,
+        name: appointment.course.course.name,
+      },
+    };
+  }
+
+  /**
+   * Updates the status of an appointment.
+   *
+   * @param id - The ID of the appointment to update.
+   * @param updateAppointmentDto - The DTO containing the new status and optional cancel reason.
+   * @param role - The user's role performing the update.
+   * @returns The updated appointment object.
+   * @throws BadRequestException - If the user's role is not allowed to change the status to the desired state.
+   * @throws NotFoundException - If the appointment with the specified ID is not found.
+   */
+  @Log({
+    logArgsMessage: ({ id, updateAppointmentDto }) =>
+      `Updating status for appointment ${id} to ${updateAppointmentDto.status}`,
+    logSuccessMessage: (result) =>
+      `Updated status for appointment ${result.id}`,
+    logErrorMessage: (err, { id }) =>
+      `Failed to update status for appointment ${id}. Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Appointment with ID ${id} was not found.`),
+  })
+  async updateStatus(
+    @LogParam('id') id: string,
+    @LogParam('updateAppointmentDto')
+    updateAppointmentDto: UpdateAppointmentStatusDto,
+    role: Role,
+  ): Promise<AppointmentItemDto> {
+    if (
+      (role === 'student' && updateAppointmentDto.status !== 'cancelled') ||
+      (role === 'mentor' && updateAppointmentDto.status === 'cancelled')
+    )
+      throw new BadRequestException(
+        `You are not allowed to change the status of this appointment to ${updateAppointmentDto.status}`,
+      );
+
+    const appointment = await this.prisma.client.appointment.update({
+      where: { id },
+      data: updateAppointmentDto,
+      include: {
+        course: {
+          include: {
+            course: true,
+          },
+        },
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+        mentor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            middleName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...appointment,
+      course: {
+        id: appointment.course.course.id,
+        courseCode: appointment.course.course.courseCode,
+        name: appointment.course.course.name,
+      },
+    };
+  }
+
+  /**
+   * Deletes an appointment (soft or permanent).
+   *
+   * This endpoint performs either a **soft delete** or a **permanent deletion** of an appointment.
+   * - If `directDelete` is true, the appointment is permanently deleted.
+   * - If `directDelete` is not provided or false:
+   * - If the appointment has not been soft-deleted yet, it will be soft-deleted by setting the `deletedAt` timestamp.
+   * - If the appointment has already been soft-deleted, it will be permanently deleted.
+   *
+   * @param id - The ID of the appointment to delete.
+   * @param directDelete - Whether to skip soft delete and directly remove the appointment.
+   * @returns A message indicating the result.
+   * @throws NotFoundException - If the appointment with the specified ID is not found.
+   */
+  @Log({
+    logArgsMessage: ({ id, directDelete }) =>
+      `Removing appointment with ID: ${id}. Direct delete: ${directDelete ?? 'false'}`,
+    logSuccessMessage: (result) => result.message,
+    logErrorMessage: (err, { id }) =>
+      `Failed to remove appointment with ID: ${id}. Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Appointment with ID: ${id} was not found.`),
+  })
+  async remove(
+    @LogParam('id') id: string,
+    @LogParam('directDelete') directDelete?: boolean,
+  ): Promise<{ message: string }> {
+    const prismaClient = this.prisma.client;
+
+    if (!directDelete) {
+      const payment = await prismaClient.appointment.findFirstOrThrow({
+        where: { id: id },
+      });
+      if (!payment.deletedAt) {
+        await prismaClient.appointment.updateMany({
+          where: { id: id },
+          data: {
+            deletedAt: new Date(),
+          },
+        });
+
+        return {
+          message: 'Appointment has been soft deleted',
+        };
+      }
+    }
+
+    await prismaClient.appointment.delete({
+      where: { id: id },
+    });
+
+    return {
+      message: 'Appointment has been permanently deleted',
+    };
+  }
+}

@@ -1500,6 +1500,75 @@ export type UpdateCurriculumWithCourseDto = {
     courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
+export type CreateAppointmentItemDto = {
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    gmeetLink?: string | null;
+    cancelReason?: string | null;
+    courseId: string;
+    studentId: string;
+    mentorId: string;
+};
+
+export type AppointmentStatus = 'booked' | 'approved' | 'cancelled' | 'rescheduled' | 'finished' | 'extended';
+
+export type AppointmentCourseDto = {
+    id: string;
+    courseCode: string;
+    name: string;
+};
+
+export type AppointmentUserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+};
+
+export type AppointmentItemDto = {
+    id: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    status: AppointmentStatus;
+    gmeetLink: string | null;
+    cancelReason: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: AppointmentCourseDto;
+    student: AppointmentUserDto;
+    mentor: AppointmentUserDto;
+};
+
+export type PaginatedAppointmentDto = {
+    meta: PaginationMetaDto;
+    appointments: Array<AppointmentItemDto>;
+};
+
+export type BookedAppointmentDto = {
+    id: string;
+    startAt: string;
+    endAt: string;
+};
+
+export type UpdateAppointmentItemDto = {
+    title?: string;
+    description?: string;
+    gmeetLink?: string | null;
+};
+
+export type UpdateAppointmentStatusDto = {
+    startAt?: string;
+    endAt?: string;
+    cancelReason?: string | null;
+    status: AppointmentStatus;
+};
+
 export type TestControllerTestStudentData = {
     body?: never;
     path?: never;
@@ -1860,7 +1929,9 @@ export type UsersControllerRemoveResponse = UsersControllerRemoveResponses[keyof
 
 export type UsersControllerFindOneData = {
     body?: never;
-    path?: never;
+    path: {
+        id: string;
+    };
     query?: never;
     url: '/users/{id}';
 };
@@ -1886,10 +1957,7 @@ export type UsersControllerFindOneErrors = {
 export type UsersControllerFindOneError = UsersControllerFindOneErrors[keyof UsersControllerFindOneErrors];
 
 export type UsersControllerFindOneResponses = {
-    /**
-     * User found successfully
-     */
-    200: User;
+    200: UserWithRelations;
 };
 
 export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
@@ -4768,6 +4836,248 @@ export type SwaggerControllerDownloadAllSpecsData = {
 export type SwaggerControllerDownloadAllSpecsResponses = {
     200: unknown;
 };
+
+export type AppointmentsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        status?: Array<AppointmentStatus>;
+    };
+    url: '/appointments';
+};
+
+export type AppointmentsControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindAllError = AppointmentsControllerFindAllErrors[keyof AppointmentsControllerFindAllErrors];
+
+export type AppointmentsControllerFindAllResponses = {
+    200: PaginatedAppointmentDto;
+};
+
+export type AppointmentsControllerFindAllResponse = AppointmentsControllerFindAllResponses[keyof AppointmentsControllerFindAllResponses];
+
+export type AppointmentsControllerCreateData = {
+    body: CreateAppointmentItemDto;
+    path?: never;
+    query?: never;
+    url: '/appointments';
+};
+
+export type AppointmentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerCreateError = AppointmentsControllerCreateErrors[keyof AppointmentsControllerCreateErrors];
+
+export type AppointmentsControllerCreateResponses = {
+    201: AppointmentItemDto;
+};
+
+export type AppointmentsControllerCreateResponse = AppointmentsControllerCreateResponses[keyof AppointmentsControllerCreateResponses];
+
+export type AppointmentsControllerFindMentorData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/appointments/mentors';
+};
+
+export type AppointmentsControllerFindMentorResponses = {
+    200: PaginatedUsersDto;
+};
+
+export type AppointmentsControllerFindMentorResponse = AppointmentsControllerFindMentorResponses[keyof AppointmentsControllerFindMentorResponses];
+
+export type AppointmentsControllerFindCoursesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/appointments/courses';
+};
+
+export type AppointmentsControllerFindCoursesResponses = {
+    200: Array<DetailedCourseEnrollmentDto>;
+};
+
+export type AppointmentsControllerFindCoursesResponse = AppointmentsControllerFindCoursesResponses[keyof AppointmentsControllerFindCoursesResponses];
+
+export type AppointmentsControllerFindAllBookedData = {
+    body?: never;
+    path: {
+        mentorId: string;
+    };
+    query?: {
+        startAt?: string;
+        endAt?: string;
+    };
+    url: '/appointments/{mentorId}/mentor';
+};
+
+export type AppointmentsControllerFindAllBookedErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindAllBookedError = AppointmentsControllerFindAllBookedErrors[keyof AppointmentsControllerFindAllBookedErrors];
+
+export type AppointmentsControllerFindAllBookedResponses = {
+    200: Array<BookedAppointmentDto>;
+};
+
+export type AppointmentsControllerFindAllBookedResponse = AppointmentsControllerFindAllBookedResponses[keyof AppointmentsControllerFindAllBookedResponses];
+
+export type AppointmentsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerRemoveError = AppointmentsControllerRemoveErrors[keyof AppointmentsControllerRemoveErrors];
+
+export type AppointmentsControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type AppointmentsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindOneError = AppointmentsControllerFindOneErrors[keyof AppointmentsControllerFindOneErrors];
+
+export type AppointmentsControllerFindOneResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerFindOneResponse = AppointmentsControllerFindOneResponses[keyof AppointmentsControllerFindOneResponses];
+
+export type AppointmentsControllerUpdateDetailsData = {
+    body: UpdateAppointmentItemDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerUpdateDetailsErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerUpdateDetailsError = AppointmentsControllerUpdateDetailsErrors[keyof AppointmentsControllerUpdateDetailsErrors];
+
+export type AppointmentsControllerUpdateDetailsResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerUpdateDetailsResponse = AppointmentsControllerUpdateDetailsResponses[keyof AppointmentsControllerUpdateDetailsResponses];
+
+export type AppointmentsControllerUpdateStatusData = {
+    body: UpdateAppointmentStatusDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}/status';
+};
+
+export type AppointmentsControllerUpdateStatusErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerUpdateStatusError = AppointmentsControllerUpdateStatusErrors[keyof AppointmentsControllerUpdateStatusErrors];
+
+export type AppointmentsControllerUpdateStatusResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerUpdateStatusResponses[keyof AppointmentsControllerUpdateStatusResponses];
 
 export type ClientOptions = {
     baseUrl: string;
