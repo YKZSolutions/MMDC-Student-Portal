@@ -422,7 +422,7 @@ function GroupedFeeForm() {
               : handleUpdatePricingGroup()
           }
         >
-          Save Changs
+          Save Changes
         </Button>
       </Group>
     </Stack>
