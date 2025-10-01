@@ -193,7 +193,7 @@ function AppointmentCalendarSection() {
   const handleCloseDrawer = () => {
     navigate({
       search: {
-        bookAppointment: true,
+        bookAppointment: undefined,
       },
     })
   }
