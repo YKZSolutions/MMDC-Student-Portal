@@ -95,10 +95,11 @@ export const SSEProvider = ({ children }: { children: ReactNode }) => {
     entry.handlers.add(handler)
 
     return () => {
-      entry?.handlers.delete(handler)
-      if (entry && entry.handlers.size === 0) {
-        entry.source.close()
-        sourcesRef.current.delete(url)
+      const entryRef = entry;
+      entryRef?.handlers.delete(handler);
+      if (entryRef && entryRef.handlers.size === 0) {
+        entryRef.source.close();
+        sourcesRef.current.delete(url);
       }
     }
   }
