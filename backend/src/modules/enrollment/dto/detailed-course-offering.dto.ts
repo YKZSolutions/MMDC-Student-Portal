@@ -5,7 +5,7 @@ import { IsOptional, IsUUID } from 'class-validator';
 
 export class DetailedCourseSectionDto extends CourseSectionDto {
   @ApiProperty({ type: UserDto, nullable: true })
-  user: UserDto | null;
+  mentor: UserDto | null;
 
   @IsUUID()
   @IsOptional()

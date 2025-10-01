@@ -1,6 +1,7 @@
 import { AssignmentMode, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsDecimal,
@@ -28,18 +29,20 @@ export class CreateAssignmentDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
+  })
+  @IsNotEmpty()
+  @IsArray()
+  content: Prisma.InputJsonValue[];
+  @ApiProperty({
+    enum: AssignmentMode,
+    enumName: 'AssignmentMode',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
-  @ApiProperty({
-    enum: AssignmentMode,
-    enumName: 'AssignmentMode',
-  })
-  @IsNotEmpty()
   @IsEnum(AssignmentMode)
-  mode: AssignmentMode;
+  mode?: AssignmentMode | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -51,10 +54,12 @@ export class CreateAssignmentDto {
   maxAttempts?: number | null;
   @ApiProperty({
     type: 'boolean',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsBoolean()
-  allowLateSubmission: boolean;
+  allowLateSubmission?: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

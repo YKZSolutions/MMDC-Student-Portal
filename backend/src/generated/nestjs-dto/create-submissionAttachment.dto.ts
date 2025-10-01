@@ -1,30 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
-export class AssignmentAttachmentDto {
+export class CreateSubmissionAttachmentDto {
   @ApiProperty({
     type: 'string',
   })
-  id: string;
-  @ApiProperty({
-    type: 'string',
-  })
+  @IsNotEmpty()
+  @IsString()
   name: string;
   @ApiProperty({
     type: 'string',
   })
-  fileUrl: string;
+  @IsNotEmpty()
+  @IsString()
+  url: string;
   @ApiProperty({
     type: 'string',
   })
+  @IsNotEmpty()
+  @IsString()
   type: string;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
+  @IsNotEmpty()
+  @IsInt()
   size: number;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-  })
-  createdAt: Date;
 }

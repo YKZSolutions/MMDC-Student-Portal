@@ -4024,7 +4024,7 @@
     },
     "/programs/{programId}/majors": {
       "get": {
-        "description": "Retrieves a paginated list of majors based on the program id and provided filters.\nRequires `ADMIN` role.",
+        "description": "Retrives a paginated list of majors based on the program id and provided filters.\nRequires `ADMIN` role.",
         "operationId": "ProgramController_findAllMajors",
         "parameters": [
           {
@@ -4190,7 +4190,7 @@
             "description": ""
           }
         },
-        "summary": "Retrieve all majors of a program",
+        "summary": "Retrive all majors of a program",
         "tags": [
           "Program"
         ]
@@ -5646,7 +5646,7 @@
             "description": ""
           }
         },
-        "summary": "Creates a course offerings given a curriculum",
+        "summary": "Creates course offerings given a curriculum",
         "tags": [
           "CourseOffering"
         ]
@@ -8195,7 +8195,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedTodosDto"
+                  "$ref": "#/components/schemas/ModuleContent"
                 }
               }
             }
@@ -8656,6 +8656,111 @@
       }
     },
     "/modules/{moduleId}/sections/{moduleSectionId}": {
+      "get": {
+        "operationId": "LmsSectionController_findOne",
+        "parameters": [
+          {
+            "name": "moduleSectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedModuleSectionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieves a module section by its ID",
+        "tags": [
+          "LmsSection"
+        ]
+      },
       "patch": {
         "description": "Requires `ADMIN` role",
         "operationId": "LmsSectionController_update",
@@ -9123,7 +9228,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OmitTypeClass"
+                  "$ref": "#/components/schemas/ModuleContent"
                 }
               }
             }
@@ -9485,7 +9590,41 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateContentDto"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateLessonItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateAssignmentItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateQuizItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateDiscussionItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateFileItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateExternalUrlItemDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UpdateVideoItemDto"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "contentType",
+                  "mapping": {
+                    "LESSON": "#/components/schemas/UpdateLessonItemDto",
+                    "ASSIGNMENT": "#/components/schemas/UpdateAssignmentItemDto",
+                    "QUIZ": "#/components/schemas/UpdateQuizItemDto",
+                    "DISCUSSION": "#/components/schemas/UpdateDiscussionItemDto",
+                    "FILE": "#/components/schemas/UpdateFileItemDto",
+                    "URL": "#/components/schemas/UpdateExternalUrlItemDto",
+                    "VIDEO": "#/components/schemas/UpdateVideoItemDto"
+                  }
+                }
               }
             }
           }
@@ -9496,7 +9635,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OmitTypeClass"
+                  "$ref": "#/components/schemas/ModuleContent"
                 }
               }
             }
@@ -9901,7 +10040,7 @@
         "operationId": "LmsContentController_unpublish",
         "parameters": [
           {
-            "name": ":moduleContentId",
+            "name": "moduleContentId",
             "required": true,
             "in": "path",
             "schema": {
@@ -10195,6 +10334,14 @@
             "name": "moduleId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "studentId",
+            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -15647,7 +15794,7 @@
             "nullable": true,
             "format": "date-time"
           },
-          "user": {
+          "mentor": {
             "nullable": true,
             "allOf": [
               {
@@ -15671,7 +15818,7 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
-          "user",
+          "mentor",
           "mentorId"
         ]
       },
@@ -16332,68 +16479,6 @@
           "deletedAt"
         ]
       },
-      "TodoDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "LESSON",
-              "ASSIGNMENT",
-              "QUIZ",
-              "DISCUSSION",
-              "VIDEO",
-              "URL",
-              "FILE"
-            ]
-          },
-          "title": {
-            "type": "string"
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "moduleName": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "title",
-          "dueDate",
-          "moduleName"
-        ]
-      },
-      "PaginatedTodosDto": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "additionalProperties": true,
-            "nullable": false,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationMetaDto"
-              }
-            ]
-          },
-          "todos": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TodoDto"
-            }
-          }
-        },
-        "required": [
-          "meta",
-          "todos"
-        ]
-      },
       "ContentType": {
         "type": "string",
         "enum": [
@@ -16404,6 +16489,837 @@
           "VIDEO",
           "URL",
           "FILE"
+        ]
+      },
+      "Lesson": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "AssignmentMode": {
+        "type": "string",
+        "enum": [
+          "INDIVIDUAL",
+          "GROUP"
+        ]
+      },
+      "Quiz": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "timeLimit": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "string",
+            "nullable": true,
+            "format": "Decimal.js"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "grading": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradingConfig"
+              }
+            ]
+          },
+          "gradingId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "timeLimit",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "questions",
+          "gradingId",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "GradingConfig": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "string",
+            "nullable": true,
+            "format": "Decimal.js"
+          },
+          "isCurved": {
+            "type": "boolean"
+          },
+          "curveSettings": {
+            "type": "object",
+            "nullable": true
+          },
+          "rubricSchema": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "questionRules": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "quizzes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Quiz"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "weight",
+          "isCurved",
+          "curveSettings",
+          "rubricSchema",
+          "questionRules",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "Assignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "mode": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "string",
+            "nullable": true,
+            "format": "Decimal.js"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "grading": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradingConfig"
+              }
+            ]
+          },
+          "gradingId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "mode",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "gradingId"
+        ]
+      },
+      "DiscussionPost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "discussionId": {
+            "type": "string"
+          },
+          "discussion": {
+            "$ref": "#/components/schemas/Discussion"
+          },
+          "authorId": {
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/User"
+          },
+          "content": {
+            "type": "object"
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parent": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DiscussionPost"
+              }
+            ]
+          },
+          "replies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscussionPost"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "discussionId",
+          "authorId",
+          "content",
+          "parentId",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "Discussion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "isThreaded": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "requirePost": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscussionPost"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "isThreaded",
+          "requirePost",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "Video": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "duration": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "transcript": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "url",
+          "duration",
+          "transcript",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "ExternalUrl": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "url",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "ProgressStatus": {
+        "type": "string",
+        "enum": [
+          "NOT_STARTED",
+          "IN_PROGRESS",
+          "COMPLETED"
+        ]
+      },
+      "ContentProgress": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProgressStatus"
+              }
+            ]
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "timeSpent": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "lastAccessedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "studentId",
+          "moduleId",
+          "moduleContentId",
+          "status",
+          "completedAt",
+          "timeSpent",
+          "lastAccessedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ModuleContent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleSectionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "contentType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "lesson": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Lesson"
+              }
+            ]
+          },
+          "assignment": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            ]
+          },
+          "quiz": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Quiz"
+              }
+            ]
+          },
+          "discussion": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Discussion"
+              }
+            ]
+          },
+          "video": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Video"
+              }
+            ]
+          },
+          "url": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExternalUrl"
+              }
+            ]
+          },
+          "file": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FileResource"
+              }
+            ]
+          },
+          "studentProgress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentProgress"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "moduleId",
+          "moduleSectionId",
+          "order",
+          "contentType",
+          "publishedAt",
+          "toPublishAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "FileResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "moduleContent": {
+            "$ref": "#/components/schemas/ModuleContent"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          },
+          "size": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "title",
+          "subtitle",
+          "content",
+          "url",
+          "name",
+          "path",
+          "size",
+          "mimeType",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
         ]
       },
       "BasicLessonDto": {
@@ -16442,13 +17358,6 @@
           "deletedAt"
         ]
       },
-      "AssignmentMode": {
-        "type": "string",
-        "enum": [
-          "INDIVIDUAL",
-          "GROUP"
-        ]
-      },
       "BasicAssignmentDto": {
         "type": "object",
         "properties": {
@@ -16463,6 +17372,7 @@
             "nullable": true
           },
           "mode": {
+            "nullable": true,
             "allOf": [
               {
                 "$ref": "#/components/schemas/AssignmentMode"
@@ -16475,7 +17385,8 @@
             "format": "int32"
           },
           "allowLateSubmission": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "latePenalty": {
             "type": "string",
@@ -16545,7 +17456,8 @@
             "format": "int32"
           },
           "allowLateSubmission": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "latePenalty": {
             "type": "string",
@@ -16651,7 +17563,8 @@
             "nullable": true
           },
           "url": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "duration": {
             "type": "integer",
@@ -16702,7 +17615,8 @@
             "nullable": true
           },
           "url": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -16741,14 +17655,21 @@
             "type": "string",
             "nullable": true
           },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
           "name": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "path": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "size": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "mimeType": {
@@ -16773,6 +17694,7 @@
           "id",
           "title",
           "subtitle",
+          "url",
           "name",
           "path",
           "size",
@@ -16780,73 +17702,6 @@
           "createdAt",
           "updatedAt",
           "deletedAt"
-        ]
-      },
-      "ProgressStatus": {
-        "type": "string",
-        "enum": [
-          "NOT_STARTED",
-          "IN_PROGRESS",
-          "COMPLETED"
-        ]
-      },
-      "ContentProgress": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "moduleId": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "status": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProgressStatus"
-              }
-            ]
-          },
-          "completedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "timeSpent": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "lastAccessedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "userId",
-          "moduleId",
-          "moduleContentId",
-          "status",
-          "completedAt",
-          "timeSpent",
-          "lastAccessedAt",
-          "createdAt",
-          "updatedAt"
         ]
       },
       "BasicModuleItemDto": {
@@ -16857,6 +17712,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "contentType": {
@@ -16985,6 +17841,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -17080,6 +17937,12 @@
           "title": {
             "type": "string"
           },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
           "publishedAt": {
             "type": "string",
             "nullable": true,
@@ -17119,6 +17982,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -17156,6 +18020,9 @@
           "parentSectionId": {
             "type": "string",
             "nullable": true
+          },
+          "moduleId": {
+            "type": "string"
           }
         },
         "required": [
@@ -17167,14 +18034,59 @@
           "unpublishedAt",
           "createdAt",
           "updatedAt",
-          "deletedAt"
+          "deletedAt",
+          "moduleId"
         ]
       },
       "UpdateModuleSectionDto": {
         "type": "object",
         "properties": {}
       },
-      "CreateAssignmentDto": {
+      "CreateContentDto": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contentType",
+          "title"
+        ]
+      },
+      "UpdateLessonItemDto": {
         "type": "object",
         "properties": {
           "title": {
@@ -17185,10 +18097,64 @@
             "nullable": true
           },
           "content": {
-            "type": "object",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "LESSON",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateAssignmentItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
             "nullable": true
           },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "mode": {
+            "nullable": true,
             "allOf": [
               {
                 "$ref": "#/components/schemas/AssignmentMode"
@@ -17201,7 +18167,8 @@
             "format": "int32"
           },
           "allowLateSubmission": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "latePenalty": {
             "type": "string",
@@ -17218,15 +18185,47 @@
             "nullable": true,
             "format": "int32",
             "default": 0
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "ASSIGNMENT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gradingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
           }
-        },
-        "required": [
-          "title",
-          "mode",
-          "allowLateSubmission"
-        ]
+        }
       },
-      "CreateQuizDto": {
+      "UpdateQuizItemDto": {
         "type": "object",
         "properties": {
           "title": {
@@ -17237,7 +18236,10 @@
             "nullable": true
           },
           "content": {
-            "type": "object"
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
           "timeLimit": {
             "type": "integer",
@@ -17250,7 +18252,8 @@
             "format": "int32"
           },
           "allowLateSubmission": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "latePenalty": {
             "type": "string",
@@ -17269,17 +18272,51 @@
             "default": 0
           },
           "questions": {
-            "type": "object"
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "QUIZ",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gradingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
           }
-        },
-        "required": [
-          "title",
-          "content",
-          "allowLateSubmission",
-          "questions"
-        ]
+        }
       },
-      "CreateLessonDto": {
+      "UpdateDiscussionItemDto": {
         "type": "object",
         "properties": {
           "title": {
@@ -17290,27 +18327,10 @@
             "nullable": true
           },
           "content": {
-            "type": "object",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateDiscussionDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
           "isThreaded": {
             "type": "boolean",
@@ -17321,107 +18341,15 @@
             "type": "boolean",
             "nullable": true,
             "default": false
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "CreateExternalUrlDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
           },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "title",
-          "url"
-        ]
-      },
-      "CreateFileResourceDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "name": {
-            "type": "string"
-          },
-          "path": {
-            "type": "string"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "mimeType": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title",
-          "name",
-          "path",
-          "size"
-        ]
-      },
-      "CreateVideoDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "url": {
-            "type": "string"
-          },
-          "duration": {
+          "order": {
             "type": "integer",
             "nullable": true,
-            "format": "int32"
+            "format": "int32",
+            "default": 0
           },
-          "transcript": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title",
-          "url"
-        ]
-      },
-      "CreateContentDto": {
-        "type": "object",
-        "properties": {
           "contentType": {
+            "default": "DISCUSSION",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ContentType"
@@ -17444,43 +18372,14 @@
             "format": "date-time"
           },
           "sectionId": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
-          },
-          "assignment": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
-          },
-          "quiz": {
-            "$ref": "#/components/schemas/CreateQuizDto"
-          },
-          "lesson": {
-            "$ref": "#/components/schemas/CreateLessonDto"
-          },
-          "discussion": {
-            "$ref": "#/components/schemas/CreateDiscussionDto"
-          },
-          "externalUrl": {
-            "$ref": "#/components/schemas/CreateExternalUrlDto"
-          },
-          "file": {
-            "$ref": "#/components/schemas/CreateFileResourceDto"
-          },
-          "video": {
-            "$ref": "#/components/schemas/CreateVideoDto"
+            "type": "string",
+            "format": "uuid"
           }
-        },
-        "required": [
-          "contentType"
-        ]
+        }
       },
-      "Lesson": {
+      "UpdateFileItemDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
           "title": {
             "type": "string"
           },
@@ -17489,811 +18388,40 @@
             "nullable": true
           },
           "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "AssignmentGrading": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "gradingSchema": {
-            "type": "object"
-          },
-          "weight": {
-            "type": "string",
-            "format": "Decimal.js"
-          },
-          "isCurved": {
-            "type": "boolean"
-          },
-          "curveSettings": {
-            "type": "object",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "gradingSchema",
-          "weight",
-          "isCurved",
-          "curveSettings",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "Assignment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "mode": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentMode"
-              }
-            ]
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean"
-          },
-          "latePenalty": {
-            "type": "string",
-            "nullable": true,
-            "format": "Decimal.js"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gradingId": {
-            "type": "string",
-            "nullable": true
-          },
-          "grading": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentGrading"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "mode",
-          "maxAttempts",
-          "allowLateSubmission",
-          "latePenalty",
-          "dueDate",
-          "gracePeriodMinutes",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
-          "gradingId"
-        ]
-      },
-      "Quiz": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object"
-          },
-          "timeLimit": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean"
-          },
-          "latePenalty": {
-            "type": "string",
-            "nullable": true,
-            "format": "Decimal.js"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "questions": {
-            "type": "object"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "timeLimit",
-          "maxAttempts",
-          "allowLateSubmission",
-          "latePenalty",
-          "dueDate",
-          "gracePeriodMinutes",
-          "questions",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "DiscussionPost": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "discussionId": {
-            "type": "string"
-          },
-          "discussion": {
-            "$ref": "#/components/schemas/Discussion"
-          },
-          "authorId": {
-            "type": "string"
-          },
-          "author": {
-            "$ref": "#/components/schemas/User"
-          },
-          "content": {
-            "type": "object"
-          },
-          "parentId": {
-            "type": "string",
-            "nullable": true
-          },
-          "parent": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DiscussionPost"
-              }
-            ]
-          },
-          "replies": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DiscussionPost"
+              "type": "object"
             }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "discussionId",
-          "authorId",
-          "content",
-          "parentId",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "Discussion": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "isThreaded": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "requirePost": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "posts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DiscussionPost"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "isThreaded",
-          "requirePost",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "Video": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
           },
           "url": {
-            "type": "string"
-          },
-          "duration": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "transcript": {
             "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "url",
-          "duration",
-          "transcript",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "ExternalUrl": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
-            "nullable": true
-          },
-          "url": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "url",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "ModuleContent": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleId": {
-            "type": "string"
-          },
-          "moduleSectionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "contentType": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentType"
-              }
-            ]
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "toPublishAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "lesson": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Lesson"
-              }
-            ]
-          },
-          "assignment": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Assignment"
-              }
-            ]
-          },
-          "quiz": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Quiz"
-              }
-            ]
-          },
-          "discussion": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Discussion"
-              }
-            ]
-          },
-          "video": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Video"
-              }
-            ]
-          },
-          "externalUrl": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ExternalUrl"
-              }
-            ]
-          },
-          "fileResource": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/FileResource"
-              }
-            ]
-          },
-          "studentProgress": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContentProgress"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "moduleId",
-          "moduleSectionId",
-          "order",
-          "contentType",
-          "publishedAt",
-          "toPublishAt",
-          "unpublishedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "FileResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "moduleContent": {
-            "$ref": "#/components/schemas/ModuleContent"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "object",
             "nullable": true
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "path": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "size": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "mimeType": {
             "type": "string",
             "nullable": true
           },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "title",
-          "subtitle",
-          "content",
-          "name",
-          "path",
-          "size",
-          "mimeType",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "OmitTypeClass": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleId": {
-            "type": "string"
-          },
-          "moduleSectionId": {
-            "type": "string",
-            "nullable": true
-          },
           "order": {
             "type": "integer",
-            "format": "int32"
+            "nullable": true,
+            "format": "int32",
+            "default": 0
           },
           "contentType": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentType"
-              }
-            ]
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "toPublishAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "lesson": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Lesson"
-              }
-            ]
-          },
-          "assignment": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Assignment"
-              }
-            ]
-          },
-          "quiz": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Quiz"
-              }
-            ]
-          },
-          "discussion": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Discussion"
-              }
-            ]
-          },
-          "video": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Video"
-              }
-            ]
-          },
-          "externalUrl": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ExternalUrl"
-              }
-            ]
-          },
-          "fileResource": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/FileResource"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "moduleId",
-          "moduleSectionId",
-          "order",
-          "contentType",
-          "publishedAt",
-          "toPublishAt",
-          "unpublishedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "UpdateContentDto": {
-        "type": "object",
-        "properties": {
-          "contentType": {
+            "default": "FILE",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ContentType"
@@ -18316,28 +18444,118 @@
             "format": "date-time"
           },
           "sectionId": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateExternalUrlItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
           },
-          "assignment": {
-            "$ref": "#/components/schemas/CreateAssignmentDto"
+          "subtitle": {
+            "type": "string",
+            "nullable": true
           },
-          "quiz": {
-            "$ref": "#/components/schemas/CreateQuizDto"
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
-          "lesson": {
-            "$ref": "#/components/schemas/CreateLessonDto"
+          "url": {
+            "type": "string",
+            "nullable": true
           },
-          "discussion": {
-            "$ref": "#/components/schemas/CreateDiscussionDto"
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
           },
-          "externalUrl": {
-            "$ref": "#/components/schemas/CreateExternalUrlDto"
+          "contentType": {
+            "default": "URL",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
           },
-          "file": {
-            "$ref": "#/components/schemas/CreateFileResourceDto"
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
           },
-          "video": {
-            "$ref": "#/components/schemas/CreateVideoDto"
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateVideoItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32",
+            "default": 0
+          },
+          "contentType": {
+            "default": "VIDEO",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "toPublishAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "sectionId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -18397,6 +18615,7 @@
           },
           "order": {
             "type": "integer",
+            "nullable": true,
             "format": "int32"
           },
           "contentType": {
@@ -18433,7 +18652,7 @@
             "type": "string",
             "nullable": true
           },
-          "userId": {
+          "studentId": {
             "type": "string"
           },
           "moduleContent": {
@@ -18443,7 +18662,7 @@
         "required": [
           "id",
           "completedAt",
-          "userId",
+          "studentId",
           "moduleContent"
         ]
       },

@@ -1,26 +1,20 @@
 import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import {
-  AssignmentGrading,
-  type AssignmentGrading as AssignmentGradingAsType,
-} from './assignmentGrading.entity';
 import { User, type User as UserAsType } from './user.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
 } from './assignmentSubmission.entity';
+import {
+  QuizSubmission,
+  type QuizSubmission as QuizSubmissionAsType,
+} from './quizSubmission.entity';
 
-export class AssignmentGradeRecord {
+export class GradeRecord {
   @ApiProperty({
     type: 'string',
   })
   id: string;
-  @ApiHideProperty()
-  grading?: AssignmentGradingAsType;
-  @ApiProperty({
-    type: 'string',
-  })
-  gradingId: string;
   @ApiHideProperty()
   student?: UserAsType;
   @ApiProperty({
@@ -28,16 +22,27 @@ export class AssignmentGradeRecord {
   })
   studentId: string;
   @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  assignmentSubmissionId: string | null;
+  @ApiProperty({
     type: () => AssignmentSubmission,
     required: false,
     nullable: true,
   })
-  submission?: AssignmentSubmissionAsType | null;
+  assignmentSubmission?: AssignmentSubmissionAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
-  submissionId: string | null;
+  quizSubmissionId: string | null;
+  @ApiProperty({
+    type: () => QuizSubmission,
+    required: false,
+    nullable: true,
+  })
+  quizSubmission?: QuizSubmissionAsType | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -59,8 +64,14 @@ export class AssignmentGradeRecord {
   feedback: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  rubricScores: Prisma.JsonValue;
+  rubricScores: Prisma.JsonValue[];
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  questionScores: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

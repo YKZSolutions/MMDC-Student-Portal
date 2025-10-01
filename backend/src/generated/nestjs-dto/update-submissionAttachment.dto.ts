@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsOptional, IsString } from 'class-validator';
 
-export class UpdateAssignmentAttachmentDto {
+export class UpdateSubmissionAttachmentDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -15,7 +15,7 @@ export class UpdateAssignmentAttachmentDto {
   })
   @IsOptional()
   @IsString()
-  fileUrl?: string;
+  url?: string;
   @ApiProperty({
     type: 'string',
     required: false,

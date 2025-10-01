@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateVideoDto {
   @ApiProperty({
@@ -19,17 +25,19 @@ export class CreateVideoDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
+  })
+  @IsNotEmpty()
+  @IsArray()
+  content: Prisma.InputJsonValue[];
+  @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
   @IsString()
-  url: string;
+  url?: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

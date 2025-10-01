@@ -1,5 +1,5 @@
-import { ModuleSectionDto } from "@/generated/nestjs-dto/moduleSection.dto";
-import { ApiProperty } from "@nestjs/swagger";
+import { ModuleSectionDto } from '@/generated/nestjs-dto/moduleSection.dto';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class DetailedModuleSectionDto extends ModuleSectionDto {
   @ApiProperty({
@@ -11,4 +11,8 @@ export class DetailedModuleSectionDto extends ModuleSectionDto {
   })
   parentSectionId?: string | null;
 
+  @ApiProperty({
+    type: 'string',
+  })
+  moduleId: string;
 }

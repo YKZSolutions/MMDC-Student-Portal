@@ -2,8 +2,9 @@ import type {
   AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
-import type { NodeModel } from '@minoru/react-dnd-treeview'
+import type { ModuleTreeSectionDto } from '@/integrations/api/client'
 import type { Block } from '@blocknote/core'
+import type { NodeModel } from '@minoru/react-dnd-treeview'
 
 export interface ContentProgress {
   contentId: string
@@ -13,8 +14,9 @@ export interface ContentProgress {
 
 export interface Published {
   isPublished: boolean
-  publishedAt?: string
-  toPublishAt?: string
+  publishedAt: string
+  toPublishAt: string
+  unpublishedAt: string
 }
 
 export interface Module {
@@ -26,15 +28,17 @@ export interface Module {
   published: Published
 }
 
-export interface ModuleSection {
+export interface ModuleSection extends Published {
   id: string
   parentId: string
+  moduleId: string
+  parentSectionId: string
+  prerequisiteSectionId: string
   title: string
   order: number
   items: ModuleItem[]
   subsections: ModuleSection[]
   prerequisites?: string[]
-  published: Published
 }
 
 export interface ModuleItem {
@@ -58,7 +62,7 @@ export type ContentType =
   | 'url'
   | 'file'
 
-export type ContentNode = ModuleSection | ModuleItem
+export type ContentNode = ModuleTreeSectionDto
 export type ContentNodeType = 'section' | 'subsection' | 'item' | 'add-button'
 
 export interface CourseNodeData {

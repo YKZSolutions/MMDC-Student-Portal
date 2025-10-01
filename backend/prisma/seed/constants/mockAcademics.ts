@@ -1,0 +1,76 @@
+export const PROGRAM_NAMES = [
+  // 'Bachelor of Science in Computer Science',
+  'Bachelor of Science in Information Technology',
+  // 'Bachelor of Science in Data Science',
+  // 'Bachelor of Science in Cybersecurity',
+  // 'Bachelor of Science in Software Engineering',
+];
+
+export const MAJOR_SPECIALIZATIONS = [
+  // 'Artificial Intelligence',
+  // 'Web Development',
+  // 'Mobile Development',
+  'Software Development',
+  'Data Analytics',
+  'Network & CyberSecurity',
+  'Marketing Technology',
+  'Entrepreneurship Technology',
+  // 'Cloud Computing',
+  // 'Database Management',
+  // 'Game Development',
+  // 'UX/UI Design',
+  // 'DevOps',
+];
+
+export const COURSE_SUBJECTS = [
+  'Programming',
+  'Database',
+  'Network',
+  'Web',
+  'Mobile',
+  'Data',
+  'Security',
+  'Algorithm',
+  'Software',
+  'System',
+  'Cloud',
+  'Machine Learning',
+];
+
+export const COURSE_TOPICS = [
+  'Fundamentals',
+  'Advanced',
+  'Introduction to',
+  'Principles of',
+  'Design and Analysis',
+  'Development',
+  'Administration',
+  'Security',
+  'Programming',
+  'Architecture',
+  'Engineering',
+  'Management',
+];
+
+export const COURSE_TITLES = [
+  'Introduction to Programming',
+  'Data Structures and Algorithms',
+  'Database Management Systems',
+  'Web Development Fundamentals',
+  'Network Security Principles',
+  'Software Engineering Practices',
+  'Mobile Application Development',
+  'Cloud Computing Infrastructure',
+  'Machine Learning Basics',
+  'Cybersecurity Fundamentals',
+  'User Interface Design',
+  'Operating Systems Concepts',
+  'Computer Networks',
+  'Object-Oriented Programming',
+  'Data Analytics Techniques',
+  'Artificial Intelligence',
+  'Big Data Technologies',
+  'DevOps Practices',
+  'Quality Assurance Testing',
+  'Project Management',
+];

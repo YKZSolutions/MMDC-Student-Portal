@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
-export class ConnectAssignmentGradeRecordDto {
+export class ConnectGradeRecordDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -15,5 +15,12 @@ export class ConnectAssignmentGradeRecordDto {
   })
   @IsOptional()
   @IsString()
-  submissionId?: string;
+  assignmentSubmissionId?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  quizSubmissionId?: string;
 }
