@@ -120,9 +120,9 @@ export function CourseListSuspense({
     return (
       <Stack>
         {items.map((_, i) => (
-          <div key={i}>
+          <Box key={i}>
             <RowSkeleton />
-          </div>
+          </Box>
         ))}
       </Stack>
     )
@@ -131,9 +131,9 @@ export function CourseListSuspense({
   return (
     <Group>
       {items.map((_, i) => (
-        <div key={i}>
+        <Box key={i}>
           {variant === 'card' ? <CardSkeleton /> : <RowSkeleton />}
-        </div>
+        </Box>
       ))}
     </Group>
   )
@@ -224,9 +224,9 @@ export function ModulePanelSuspense({
                         <Stack gap="xs">
                           {Array.from({ length: itemsPerSubsection }).map(
                             (_, ii) => (
-                              <div key={ii}>
+                              <Box key={ii}>
                                 <CardSkeleton />
-                              </div>
+                              </Box>
                             ),
                           )}
                         </Stack>
@@ -241,5 +241,85 @@ export function ModulePanelSuspense({
         </Fragment>
       ))}
     </Accordion>
+  )
+}
+
+type CMSContentTreeSuspenseProps = {
+  sections?: number
+  subsectionsPerSection?: number
+  itemsPerSubsection?: number
+}
+
+export function CMSContentTreeSuspense({
+  sections = 4,
+  subsectionsPerSection = 2,
+  itemsPerSubsection = 2,
+}: CMSContentTreeSuspenseProps) {
+  const sectionIndexes = Array.from({ length: sections })
+
+  return (
+    <Stack gap={0} h="100%">
+      <Box p="xs">
+        <Title order={5}>
+          <Skeleton height={18} width={240} />
+        </Title>
+      </Box>
+
+      <Divider />
+
+      <Stack p="xs" gap={6} style={{ overflow: 'auto' }}>
+        {sectionIndexes.map((_, si) => (
+          <Box key={si}>
+            <Group align="center" wrap="nowrap" style={{ padding: '6px 4px' }}>
+              <Skeleton height={18} width={18} />
+              <Skeleton circle height={20} width={20} />
+              <Skeleton height={14} width={220} />
+              <Skeleton height={12} width={60} style={{ marginLeft: 'auto' }} />
+            </Group>
+
+            <Stack ml={rem(24)} gap={6}>
+              {Array.from({ length: subsectionsPerSection }).map((_, subi) => (
+                <Box key={subi}>
+                  <Group
+                    align="center"
+                    wrap="nowrap"
+                    style={{ padding: '4px 4px' }}
+                  >
+                    <Skeleton height={14} width={14} />
+                    <Skeleton height={12} width={180} />
+                    <Skeleton
+                      height={10}
+                      width={48}
+                      style={{ marginLeft: 'auto' }}
+                    />
+                  </Group>
+
+                  <Stack ml={rem(20)} gap={6}>
+                    {Array.from({ length: itemsPerSubsection }).map((_, ii) => (
+                      <Group
+                        key={ii}
+                        align="center"
+                        wrap="nowrap"
+                        style={{ padding: '4px 4px' }}
+                      >
+                        <Skeleton circle height={12} width={12} />
+                        <Skeleton height={12} width={200} />
+                        <Skeleton
+                          height={10}
+                          width={40}
+                          style={{ marginLeft: 'auto' }}
+                        />
+                      </Group>
+                    ))}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+
+            <Divider mt={6} />
+          </Box>
+        ))}
+      </Stack>
+    </Stack>
   )
 }

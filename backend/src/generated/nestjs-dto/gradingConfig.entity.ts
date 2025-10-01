@@ -4,25 +4,19 @@ import {
   Assignment,
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
-import {
-  AssignmentGradeRecord,
-  type AssignmentGradeRecord as AssignmentGradeRecordAsType,
-} from './assignmentGradeRecord.entity';
+import { Quiz, type Quiz as QuizAsType } from './quiz.entity';
 
-export class AssignmentGrading {
+export class GradingConfig {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: () => Object,
-  })
-  gradingSchema: Prisma.JsonValue;
-  @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
+    nullable: true,
   })
-  weight: Prisma.Decimal;
+  weight: Prisma.Decimal | null;
   @ApiProperty({
     type: 'boolean',
   })
@@ -32,6 +26,24 @@ export class AssignmentGrading {
     nullable: true,
   })
   curveSettings: Prisma.JsonValue | null;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  rubricSchema: Prisma.JsonValue[];
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  questionRules: Prisma.JsonValue[];
+  @ApiHideProperty()
+  assignments?: AssignmentAsType[];
+  @ApiProperty({
+    type: () => Quiz,
+    isArray: true,
+    required: false,
+  })
+  quizzes?: QuizAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -48,8 +60,4 @@ export class AssignmentGrading {
     nullable: true,
   })
   deletedAt: Date | null;
-  @ApiHideProperty()
-  assignments?: AssignmentAsType[];
-  @ApiHideProperty()
-  gradeRecords?: AssignmentGradeRecordAsType[];
 }

@@ -1,39 +1,48 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDecimal, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateAssignmentGradeRecordDto {
+export class GradeRecordDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  id: string;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
   })
-  @IsNotEmpty()
-  @IsDecimal()
   rawScore: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
   })
-  @IsNotEmpty()
-  @IsDecimal()
   finalScore: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
   })
-  @IsNotEmpty()
-  @IsString()
   grade: string;
   @ApiProperty({
     type: 'string',
-    required: false,
     nullable: true,
   })
-  @IsOptional()
-  @IsString()
-  feedback?: string | null;
+  feedback: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  @IsNotEmpty()
-  rubricScores: Prisma.InputJsonValue;
+  rubricScores: Prisma.JsonValue[];
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  questionScores: Prisma.JsonValue[];
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  gradedAt: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  updatedAt: Date;
 }

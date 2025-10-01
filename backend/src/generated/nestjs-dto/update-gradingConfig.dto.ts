@@ -1,16 +1,17 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDecimal, IsOptional } from 'class-validator';
+import { IsArray, IsBoolean, IsDecimal, IsOptional } from 'class-validator';
 
-export class UpdateAssignmentGradingDto {
+export class UpdateGradingConfigDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsDecimal()
-  weight?: Prisma.Decimal;
+  weight?: Prisma.Decimal | null;
   @ApiProperty({
     type: 'boolean',
     required: false,
@@ -25,4 +26,20 @@ export class UpdateAssignmentGradingDto {
   })
   @IsOptional()
   curveSettings?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  rubricSchema?: Prisma.InputJsonValue[];
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  questionRules?: Prisma.InputJsonValue[];
 }

@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class UpdateExternalUrlDto {
   @ApiProperty({
@@ -20,16 +20,18 @@ export class UpdateExternalUrlDto {
   subtitle?: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  content?: Prisma.InputJsonValue[];
+  @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  content?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
   @IsString()
-  url?: string;
+  url?: string | null;
 }

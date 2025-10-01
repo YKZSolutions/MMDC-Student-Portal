@@ -222,7 +222,7 @@ export class LmsController {
    *
    */
   @ApiOkResponse({
-    type: PaginatedTodosDto,
+    type: ModuleContent,
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.STUDENT)

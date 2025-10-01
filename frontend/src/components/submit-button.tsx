@@ -2,7 +2,7 @@ import type {
   AssignmentStatus,
   SubmissionStatus,
 } from '@/features/courses/assignments/types.ts'
-import { isPastDueDate } from '@/utils/helpers.ts'
+import { isPastDueDate } from '@/utils/helpers.tsx'
 import { Button } from '@mantine/core'
 import { IconEye, IconSend } from '@tabler/icons-react'
 

@@ -1,3 +1,11 @@
+import { mockModule } from '@/features/courses/mocks.ts'
+import type {
+  ContentNode,
+  ContentNodeType,
+  Module,
+  ModuleSection,
+} from '@/features/courses/modules/types.ts'
+import { getAllModuleSections } from '@/utils/helpers.tsx'
 import {
   type BoxProps,
   Button,
@@ -9,6 +17,7 @@ import {
   TextInput,
   useMantineTheme,
 } from '@mantine/core'
+import { useForm } from '@mantine/form'
 import {
   IconCategory,
   IconHeading,
@@ -18,20 +27,11 @@ import {
   IconScoreboard,
   IconWriting,
 } from '@tabler/icons-react'
-import React, {
+import {
   type ComponentPropsWithoutRef,
   useEffect,
   useState,
 } from 'react'
-import type {
-  ContentNode,
-  ContentNodeType,
-  Module,
-  ModuleSection,
-} from '@/features/courses/modules/types.ts'
-import { useForm } from '@mantine/form'
-import { getAllModuleSections } from '@/utils/helpers.ts'
-import { mockModule } from '@/features/courses/mocks.ts'
 
 type ContentDetailsEditorProps = {
   opened: boolean

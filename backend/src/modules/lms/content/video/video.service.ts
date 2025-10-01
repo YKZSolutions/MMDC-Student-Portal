@@ -64,7 +64,7 @@ export class VideoService {
 
     return {
       ...video,
-      content: video.content as Prisma.JsonValue,
+      content: video.content as Prisma.JsonArray,
     };
   }
 
@@ -101,7 +101,7 @@ export class VideoService {
 
     return {
       ...video,
-      content: video.content as Prisma.JsonValue,
+      content: video.content as Prisma.JsonArray,
     };
   }
 
@@ -132,7 +132,7 @@ export class VideoService {
 
     return {
       ...video,
-      content: video.content as Prisma.JsonValue,
+      content: video.content as Prisma.JsonArray,
     };
   }
 

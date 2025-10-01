@@ -13,43 +13,9 @@ export class QuizSubmissionDto {
   state: SubmissionState;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  answers: Prisma.JsonValue;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    nullable: true,
-  })
-  rawScore: Prisma.Decimal | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  gradedAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-    nullable: true,
-  })
-  grade: Prisma.Decimal | null;
-  @ApiProperty({
-    type: () => Object,
-    nullable: true,
-  })
-  questionResults: Prisma.JsonValue | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  lateDays: number | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  submittedAt: Date | null;
+  answers: Prisma.JsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -61,6 +27,24 @@ export class QuizSubmissionDto {
     format: 'int32',
   })
   attemptNumber: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  submittedAt: Date | null;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    nullable: true,
+  })
+  lateDays: number | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    nullable: true,
+  })
+  rawScore: Prisma.Decimal | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

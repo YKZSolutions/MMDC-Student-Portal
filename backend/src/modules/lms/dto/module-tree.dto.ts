@@ -1,4 +1,4 @@
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Module } from '@/generated/nestjs-dto/module.entity';
 import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
 import { IsOptional, ValidateNested } from 'class-validator';

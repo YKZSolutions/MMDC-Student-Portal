@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AssignmentGradeRecordDto {
+export class GradingConfigDto {
   @ApiProperty({
     type: 'string',
   })
@@ -9,34 +9,42 @@ export class AssignmentGradeRecordDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
-  })
-  rawScore: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
-  })
-  finalScore: Prisma.Decimal;
-  @ApiProperty({
-    type: 'string',
-  })
-  grade: string;
-  @ApiProperty({
-    type: 'string',
     nullable: true,
   })
-  feedback: string | null;
+  weight: Prisma.Decimal | null;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isCurved: boolean;
   @ApiProperty({
     type: () => Object,
+    nullable: true,
   })
-  rubricScores: Prisma.JsonValue;
+  curveSettings: Prisma.JsonValue | null;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  rubricSchema: Prisma.JsonValue[];
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  questionRules: Prisma.JsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
-  gradedAt: Date;
+  createdAt: Date;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
   })
   updatedAt: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+    nullable: true,
+  })
+  deletedAt: Date | null;
 }

@@ -5,6 +5,10 @@ import {
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import {
+  GradingConfig,
+  type GradingConfig as GradingConfigAsType,
+} from './gradingConfig.entity';
+import {
   QuizSubmission,
   type QuizSubmission as QuizSubmissionAsType,
 } from './quizSubmission.entity';
@@ -31,8 +35,9 @@ export class Quiz {
   subtitle: string | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  content: Prisma.JsonValue;
+  content: Prisma.JsonValue[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -47,8 +52,9 @@ export class Quiz {
   maxAttempts: number | null;
   @ApiProperty({
     type: 'boolean',
+    nullable: true,
   })
-  allowLateSubmission: boolean;
+  allowLateSubmission: boolean | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -69,8 +75,20 @@ export class Quiz {
   gracePeriodMinutes: number | null;
   @ApiProperty({
     type: () => Object,
+    isArray: true,
   })
-  questions: Prisma.JsonValue;
+  questions: Prisma.JsonValue[];
+  @ApiProperty({
+    type: () => GradingConfig,
+    required: false,
+    nullable: true,
+  })
+  grading?: GradingConfigAsType | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  gradingId: string | null;
   @ApiHideProperty()
   submissions?: QuizSubmissionAsType[];
   @ApiProperty({

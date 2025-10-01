@@ -24,7 +24,7 @@ export class CourseSection {
   })
   name: string;
   @ApiHideProperty()
-  user?: UserAsType | null;
+  mentor?: UserAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
