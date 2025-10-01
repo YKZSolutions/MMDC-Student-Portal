@@ -395,14 +395,19 @@ function GroupedFeeForm() {
       <GroupedIncludedFeesForm
         disabled={isPending}
         defaultFees={form.getValues().pricings}
-        onAdd={(id) => {
-          form.setFieldValue('includedFees', [...form.getValues().pricings, id])
+        onAdd={(pricingDto) => {
+          const pricings = form.getValues().pricings;
+          // Only add if not already present by id
+          if (!pricings.some((item) => item.id === pricingDto.id)) {
+            form.setFieldValue('pricings', [...pricings, pricingDto]);
+          }
         }}
-        onRemove={(id) => {
+        onRemove={(pricingDto) => {
+          const pricings = form.getValues().pricings;
           form.setFieldValue(
-            'includedFees',
-            form.getValues().pricings.filter((item) => item !== id),
-          )
+            'pricings',
+            pricings.filter((item) => item.id !== pricingDto.id),
+          );
         }}
       />
       <Group justify="flex-end" mt="md">
