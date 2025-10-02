@@ -22,6 +22,8 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { CurriculumModule } from './modules/curriculum/curriculum.module';
 import { SwaggerModule } from './modules/swagger/swagger.module';
 import { LmsModule } from '@/modules/lms/lms.module';
+import { PricingModule } from '@/modules/pricing/pricing.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 
 @Module({
@@ -49,6 +51,8 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
     CurriculumModule,
     LmsModule,
     SwaggerModule,
+    PricingModule,
+    NotificationsModule,
     AppointmentsModule,
   ],
   controllers: [],

@@ -51,10 +51,12 @@ const login = async (
  * @returns {Promise<{error: Error | null}>} Error object if logout fails
  */
 const logout = async (): Promise<{ error: Error | null }> => {
+  const signout = await supabase.auth.signOut()
+
   // Clear TanStack cache if the user decides to logout
   queryClient.clear()
 
-  return await supabase.auth.signOut()
+  return signout
 }
 
 /**

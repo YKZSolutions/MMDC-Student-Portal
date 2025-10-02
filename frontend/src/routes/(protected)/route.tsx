@@ -1,5 +1,11 @@
 import { Loader } from '@/components/loader-component'
+import { useNotificationSubscription } from '@/features/notification/use-notification-subscription'
+import { SSEProvider } from '@/features/sse/sse-provider'
 import { type Role } from '@/integrations/api/client'
+import {
+  notificationsControllerFindAllOptions,
+  notificationsControllerGetCountOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import { client } from '@/integrations/api/client/client.gen'
 import { supabase } from '@/integrations/supabase/supabase-client'
 import Chatbot from '@/pages/shared/layout/chatbot'
@@ -30,14 +36,32 @@ export const Route = createFileRoute('/(protected)')({
     }
     return { authUser }
   },
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(
+      notificationsControllerGetCountOptions({}),
+    )
+    context.queryClient.ensureQueryData(
+      notificationsControllerFindAllOptions({}),
+    )
+  },
   pendingComponent: Loader,
 })
 
 function RouteComponent() {
+  return (
+    <SSEProvider>
+      <PageLayoutComponent />
+    </SSEProvider>
+  )
+}
+
+function PageLayoutComponent() {
   const [isChatbotOpen, setChatbotOpen] = useState(false)
   const [isChatbotFabHidden, setChatbotFabHidden] = useState(true)
   const [sidebarOpened, setSidebarOpened] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)')
+
+  useNotificationSubscription()
 
   return (
     <>

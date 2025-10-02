@@ -5,6 +5,7 @@ import TanStackQueryLayout from '@/integrations/tanstack-query/layout.tsx'
 
 import { client } from '@/integrations/api/client/client.gen'
 import type { QueryClient } from '@tanstack/react-query'
+import { Loader } from '@/components/loader-component'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -23,4 +24,5 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       baseUrl: import.meta.env.VITE_API_URL,
     })
   },
+  pendingComponent: Loader,
 })
