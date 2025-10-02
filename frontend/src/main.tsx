@@ -5,6 +5,8 @@ import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { modals } from './integrations/mantine/mantine-modals.ts'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
@@ -44,6 +46,8 @@ declare module '@tanstack/react-router' {
     router: typeof router
   }
 }
+
+dayjs.extend(relativeTime)
 
 // Render the app
 const rootElement = document.getElementById('app')

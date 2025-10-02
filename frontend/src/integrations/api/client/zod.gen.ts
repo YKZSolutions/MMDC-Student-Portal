@@ -681,6 +681,31 @@ export const zUpdateBillPaymentDto = z.object({
     ]))
 });
 
+export const zNotificationCountDto = z.object({
+    total: z.number(),
+    read: z.number(),
+    unread: z.number()
+});
+
+export const zNotificationItemDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    content: z.string(),
+    role: z.array(zRole),
+    createdAt: z.iso.datetime(),
+    userId: z.optional(z.string()),
+    isRead: z.boolean()
+});
+
+export const zPaginatedNotificationDto = z.object({
+    meta: zPaginationMetaDto,
+    notifications: z.array(zNotificationItemDto)
+});
+
+export const zNotificationMarkRead = z.object({
+    notificationIds: z.array(z.uuid())
+});
+
 export const zCreateProgramDto = z.object({
     programCode: z.string(),
     name: z.string(),
@@ -2908,6 +2933,60 @@ export const zPaymentsControllerUpdateData = z.object({
 });
 
 export const zPaymentsControllerUpdateResponse = zBillPaymentDto;
+
+export const zNotificationsControllerSubscribeData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerSubscribeResponse = z.object({});
+
+export const zNotificationsControllerGetCountData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerGetCountResponse = zNotificationCountDto;
+
+export const zNotificationsControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        type: z.optional(z.enum([
+            'read',
+            'unread'
+        ]))
+    }))
+});
+
+export const zNotificationsControllerFindAllResponse = zPaginatedNotificationDto;
+
+export const zNotificationsControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerFindOneResponse = zNotificationItemDto;
+
+export const zNotificationsControllerMarkAsReadData = z.object({
+    body: zNotificationMarkRead,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerMarkAllAsReadData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
 
 export const zProgramControllerFindAllData = z.object({
     body: z.optional(z.never()),

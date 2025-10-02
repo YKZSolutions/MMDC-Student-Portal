@@ -505,6 +505,31 @@ export type UpdateBillPaymentDto = {
     } | null;
 };
 
+export type NotificationCountDto = {
+    total: number;
+    read: number;
+    unread: number;
+};
+
+export type NotificationItemDto = {
+    id: string;
+    title: string;
+    content: string;
+    role: Array<Role>;
+    createdAt: string;
+    userId?: string;
+    isRead: boolean;
+};
+
+export type PaginatedNotificationDto = {
+    meta: PaginationMetaDto;
+    notifications: Array<NotificationItemDto>;
+};
+
+export type NotificationMarkRead = {
+    notificationIds: Array<string>;
+};
+
 export type CreateProgramDto = {
     programCode: string;
     name: string;
@@ -2602,6 +2627,89 @@ export type PaymentsControllerUpdateResponses = {
 };
 
 export type PaymentsControllerUpdateResponse = PaymentsControllerUpdateResponses[keyof PaymentsControllerUpdateResponses];
+
+export type NotificationsControllerSubscribeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/subscribe';
+};
+
+export type NotificationsControllerSubscribeResponses = {
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type NotificationsControllerSubscribeResponse = NotificationsControllerSubscribeResponses[keyof NotificationsControllerSubscribeResponses];
+
+export type NotificationsControllerGetCountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/count';
+};
+
+export type NotificationsControllerGetCountResponses = {
+    200: NotificationCountDto;
+};
+
+export type NotificationsControllerGetCountResponse = NotificationsControllerGetCountResponses[keyof NotificationsControllerGetCountResponses];
+
+export type NotificationsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        type?: 'read' | 'unread';
+    };
+    url: '/notifications';
+};
+
+export type NotificationsControllerFindAllResponses = {
+    200: PaginatedNotificationDto;
+};
+
+export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
+
+export type NotificationsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/notifications/{id}';
+};
+
+export type NotificationsControllerFindOneResponses = {
+    200: NotificationItemDto;
+};
+
+export type NotificationsControllerFindOneResponse = NotificationsControllerFindOneResponses[keyof NotificationsControllerFindOneResponses];
+
+export type NotificationsControllerMarkAsReadData = {
+    body: NotificationMarkRead;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read';
+};
+
+export type NotificationsControllerMarkAsReadResponses = {
+    201: unknown;
+};
+
+export type NotificationsControllerMarkAllAsReadData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read/all';
+};
+
+export type NotificationsControllerMarkAllAsReadResponses = {
+    201: unknown;
+};
 
 export type ProgramControllerFindAllData = {
     body?: never;
