@@ -2549,6 +2549,106 @@ export const zUpdatePricingGroupItemDto = z.object({
     pricings: z.optional(z.array(z.uuid()))
 });
 
+export const zCreateAppointmentItemDto = z.object({
+    title: z.string(),
+    description: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    gmeetLink: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    cancelReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    courseId: z.uuid(),
+    studentId: z.uuid(),
+    mentorId: z.uuid()
+});
+
+export const zAppointmentStatus = z.enum([
+    'booked',
+    'approved',
+    'cancelled',
+    'rescheduled',
+    'finished',
+    'extended'
+]);
+
+export const zAppointmentCourseDto = z.object({
+    id: z.string(),
+    courseCode: z.string(),
+    name: z.string()
+});
+
+export const zAppointmentUserDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole
+});
+
+export const zAppointmentItemDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    status: zAppointmentStatus,
+    gmeetLink: z.union([
+        z.string(),
+        z.null()
+    ]),
+    cancelReason: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zAppointmentCourseDto,
+    student: zAppointmentUserDto,
+    mentor: zAppointmentUserDto
+});
+
+export const zPaginatedAppointmentDto = z.object({
+    meta: zPaginationMetaDto,
+    appointments: z.array(zAppointmentItemDto)
+});
+
+export const zBookedAppointmentDto = z.object({
+    id: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime()
+});
+
+export const zUpdateAppointmentItemDto = z.object({
+    title: z.optional(z.string()),
+    description: z.optional(z.string()),
+    gmeetLink: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zUpdateAppointmentStatusDto = z.object({
+    startAt: z.optional(z.iso.datetime()),
+    endAt: z.optional(z.iso.datetime()),
+    cancelReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    status: zAppointmentStatus
+});
+
 export const zTestControllerTestStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -2690,14 +2790,13 @@ export const zUsersControllerRemoveResponse = z.object({
 
 export const zUsersControllerFindOneData = z.object({
     body: z.optional(z.never()),
-    path: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
     query: z.optional(z.never())
 });
 
-/**
- * User found successfully
- */
-export const zUsersControllerFindOneResponse = zUser;
+export const zUsersControllerFindOneResponse = zUserWithRelations;
 
 export const zUsersControllerUpdateUserStatusData = z.object({
     body: z.optional(z.never()),
@@ -3906,3 +4005,97 @@ export const zPricingGroupControllerUpdateData = z.object({
 });
 
 export const zPricingGroupControllerUpdateResponse = zPricingGroupItemDto;
+
+export const zAppointmentsControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        status: z.optional(z.array(zAppointmentStatus))
+    }))
+});
+
+export const zAppointmentsControllerFindAllResponse = zPaginatedAppointmentDto;
+
+export const zAppointmentsControllerCreateData = z.object({
+    body: zCreateAppointmentItemDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerCreateResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerFindMentorData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zAppointmentsControllerFindMentorResponse = zPaginatedUsersDto;
+
+export const zAppointmentsControllerFindCoursesData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerFindCoursesResponse = z.array(zDetailedCourseEnrollmentDto);
+
+export const zAppointmentsControllerFindAllBookedData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mentorId: z.string()
+    }),
+    query: z.optional(z.object({
+        startAt: z.optional(z.iso.datetime()),
+        endAt: z.optional(z.iso.datetime())
+    }))
+});
+
+export const zAppointmentsControllerFindAllBookedResponse = z.array(zBookedAppointmentDto);
+
+export const zAppointmentsControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zAppointmentsControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerFindOneResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerUpdateDetailsData = z.object({
+    body: zUpdateAppointmentItemDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerUpdateDetailsResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerUpdateStatusData = z.object({
+    body: zUpdateAppointmentStatusDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerUpdateStatusResponse = zAppointmentItemDto;

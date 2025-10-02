@@ -6,6 +6,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { modals } from './integrations/mantine/mantine-modals.ts'
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
@@ -48,6 +49,7 @@ declare module '@tanstack/react-router' {
 }
 
 dayjs.extend(relativeTime)
+dayjs.extend(customParseFormat)
 
 // Render the app
 const rootElement = document.getElementById('app')

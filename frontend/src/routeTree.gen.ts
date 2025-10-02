@@ -25,6 +25,7 @@ import { Route as protectedDashboardIndexRouteImport } from './routes/(protected
 import { Route as protectedCurriculumIndexRouteImport } from './routes/(protected)/curriculum/index'
 import { Route as protectedCmsIndexRouteImport } from './routes/(protected)/cms/index'
 import { Route as protectedBillingIndexRouteImport } from './routes/(protected)/billing/index'
+import { Route as protectedAppointmentIndexRouteImport } from './routes/(protected)/appointment/index'
 import { Route as protectedLmsLmsCodeRouteImport } from './routes/(protected)/lms/$lmsCode'
 import { Route as protectedEnrollmentCreateRouteImport } from './routes/(protected)/enrollment/create'
 import { Route as protectedEnrollmentPeriodIdRouteImport } from './routes/(protected)/enrollment/$periodId'
@@ -33,6 +34,7 @@ import { Route as protectedCurriculumCurriculumCodeRouteImport } from './routes/
 import { Route as protectedBillingRedirectRouteImport } from './routes/(protected)/billing/redirect'
 import { Route as protectedBillingCreateRouteImport } from './routes/(protected)/billing/create'
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
+import { Route as protectedAppointmentAppointmentIdRouteImport } from './routes/(protected)/appointment/$appointmentId'
 import { Route as protectedCurriculumProgramsIndexRouteImport } from './routes/(protected)/curriculum/programs/index'
 import { Route as protectedCurriculumMajorsIndexRouteImport } from './routes/(protected)/curriculum/majors/index'
 import { Route as protectedCurriculumCoursesIndexRouteImport } from './routes/(protected)/curriculum/courses/index'
@@ -134,6 +136,12 @@ const protectedBillingIndexRoute = protectedBillingIndexRouteImport.update({
   path: '/billing/',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const protectedAppointmentIndexRoute =
+  protectedAppointmentIndexRouteImport.update({
+    id: '/appointment/',
+    path: '/appointment/',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
 const protectedLmsLmsCodeRoute = protectedLmsLmsCodeRouteImport.update({
   id: '/lms/$lmsCode',
   path: '/lms/$lmsCode',
@@ -178,6 +186,12 @@ const protectedBillingBillingIdRoute =
   protectedBillingBillingIdRouteImport.update({
     id: '/billing/$billingId',
     path: '/billing/$billingId',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
+const protectedAppointmentAppointmentIdRoute =
+  protectedAppointmentAppointmentIdRouteImport.update({
+    id: '/appointment/$appointmentId',
+    path: '/appointment/$appointmentId',
     getParentRoute: () => protectedRouteRoute,
   } as any)
 const protectedCurriculumProgramsIndexRoute =
@@ -295,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof authResetPasswordRoute
   '/update-password': typeof authUpdatePasswordRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/appointment/$appointmentId': typeof protectedAppointmentAppointmentIdRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/billing/create': typeof protectedBillingCreateRoute
   '/billing/redirect': typeof protectedBillingRedirectRoute
@@ -303,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/enrollment/create': typeof protectedEnrollmentCreateRoute
   '/lms/$lmsCode': typeof protectedLmsLmsCodeRouteWithChildren
+  '/appointment': typeof protectedAppointmentIndexRoute
   '/billing': typeof protectedBillingIndexRoute
   '/cms': typeof protectedCmsIndexRoute
   '/curriculum': typeof protectedCurriculumIndexRoute
@@ -338,6 +354,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof authResetPasswordRoute
   '/update-password': typeof authUpdatePasswordRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/appointment/$appointmentId': typeof protectedAppointmentAppointmentIdRoute
   '/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/billing/create': typeof protectedBillingCreateRoute
   '/billing/redirect': typeof protectedBillingRedirectRoute
@@ -346,6 +363,7 @@ export interface FileRoutesByTo {
   '/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/enrollment/create': typeof protectedEnrollmentCreateRoute
   '/lms/$lmsCode': typeof protectedLmsLmsCodeRouteWithChildren
+  '/appointment': typeof protectedAppointmentIndexRoute
   '/billing': typeof protectedBillingIndexRoute
   '/cms': typeof protectedCmsIndexRoute
   '/curriculum': typeof protectedCurriculumIndexRoute
@@ -383,6 +401,7 @@ export interface FileRoutesById {
   '/(auth)/reset-password': typeof authResetPasswordRoute
   '/(auth)/update-password': typeof authUpdatePasswordRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/(protected)/appointment/$appointmentId': typeof protectedAppointmentAppointmentIdRoute
   '/(protected)/billing/$billingId': typeof protectedBillingBillingIdRoute
   '/(protected)/billing/create': typeof protectedBillingCreateRoute
   '/(protected)/billing/redirect': typeof protectedBillingRedirectRoute
@@ -391,6 +410,7 @@ export interface FileRoutesById {
   '/(protected)/enrollment/$periodId': typeof protectedEnrollmentPeriodIdRoute
   '/(protected)/enrollment/create': typeof protectedEnrollmentCreateRoute
   '/(protected)/lms/$lmsCode': typeof protectedLmsLmsCodeRouteWithChildren
+  '/(protected)/appointment/': typeof protectedAppointmentIndexRoute
   '/(protected)/billing/': typeof protectedBillingIndexRoute
   '/(protected)/cms/': typeof protectedCmsIndexRoute
   '/(protected)/curriculum/': typeof protectedCurriculumIndexRoute
@@ -428,6 +448,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/update-password'
     | '/demo/tanstack-query'
+    | '/appointment/$appointmentId'
     | '/billing/$billingId'
     | '/billing/create'
     | '/billing/redirect'
@@ -436,6 +457,7 @@ export interface FileRouteTypes {
     | '/enrollment/$periodId'
     | '/enrollment/create'
     | '/lms/$lmsCode'
+    | '/appointment'
     | '/billing'
     | '/cms'
     | '/curriculum'
@@ -471,6 +493,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/update-password'
     | '/demo/tanstack-query'
+    | '/appointment/$appointmentId'
     | '/billing/$billingId'
     | '/billing/create'
     | '/billing/redirect'
@@ -479,6 +502,7 @@ export interface FileRouteTypes {
     | '/enrollment/$periodId'
     | '/enrollment/create'
     | '/lms/$lmsCode'
+    | '/appointment'
     | '/billing'
     | '/cms'
     | '/curriculum'
@@ -515,6 +539,7 @@ export interface FileRouteTypes {
     | '/(auth)/reset-password'
     | '/(auth)/update-password'
     | '/demo/tanstack-query'
+    | '/(protected)/appointment/$appointmentId'
     | '/(protected)/billing/$billingId'
     | '/(protected)/billing/create'
     | '/(protected)/billing/redirect'
@@ -523,6 +548,7 @@ export interface FileRouteTypes {
     | '/(protected)/enrollment/$periodId'
     | '/(protected)/enrollment/create'
     | '/(protected)/lms/$lmsCode'
+    | '/(protected)/appointment/'
     | '/(protected)/billing/'
     | '/(protected)/cms/'
     | '/(protected)/curriculum/'
@@ -676,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedBillingIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/appointment/': {
+      id: '/(protected)/appointment/'
+      path: '/appointment'
+      fullPath: '/appointment'
+      preLoaderRoute: typeof protectedAppointmentIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/lms/$lmsCode': {
       id: '/(protected)/lms/$lmsCode'
       path: '/lms/$lmsCode'
@@ -730,6 +763,13 @@ declare module '@tanstack/react-router' {
       path: '/billing/$billingId'
       fullPath: '/billing/$billingId'
       preLoaderRoute: typeof protectedBillingBillingIdRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/appointment/$appointmentId': {
+      id: '/(protected)/appointment/$appointmentId'
+      path: '/appointment/$appointmentId'
+      fullPath: '/appointment/$appointmentId'
+      preLoaderRoute: typeof protectedAppointmentAppointmentIdRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/curriculum/programs/': {
@@ -893,6 +933,7 @@ const protectedLmsLmsCodeRouteWithChildren =
   protectedLmsLmsCodeRoute._addFileChildren(protectedLmsLmsCodeRouteChildren)
 
 interface protectedRouteRouteChildren {
+  protectedAppointmentAppointmentIdRoute: typeof protectedAppointmentAppointmentIdRoute
   protectedBillingBillingIdRoute: typeof protectedBillingBillingIdRoute
   protectedBillingCreateRoute: typeof protectedBillingCreateRoute
   protectedBillingRedirectRoute: typeof protectedBillingRedirectRoute
@@ -901,6 +942,7 @@ interface protectedRouteRouteChildren {
   protectedEnrollmentPeriodIdRoute: typeof protectedEnrollmentPeriodIdRoute
   protectedEnrollmentCreateRoute: typeof protectedEnrollmentCreateRoute
   protectedLmsLmsCodeRoute: typeof protectedLmsLmsCodeRouteWithChildren
+  protectedAppointmentIndexRoute: typeof protectedAppointmentIndexRoute
   protectedBillingIndexRoute: typeof protectedBillingIndexRoute
   protectedCmsIndexRoute: typeof protectedCmsIndexRoute
   protectedCurriculumIndexRoute: typeof protectedCurriculumIndexRoute
@@ -923,6 +965,8 @@ interface protectedRouteRouteChildren {
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
+  protectedAppointmentAppointmentIdRoute:
+    protectedAppointmentAppointmentIdRoute,
   protectedBillingBillingIdRoute: protectedBillingBillingIdRoute,
   protectedBillingCreateRoute: protectedBillingCreateRoute,
   protectedBillingRedirectRoute: protectedBillingRedirectRoute,
@@ -932,6 +976,7 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedEnrollmentPeriodIdRoute: protectedEnrollmentPeriodIdRoute,
   protectedEnrollmentCreateRoute: protectedEnrollmentCreateRoute,
   protectedLmsLmsCodeRoute: protectedLmsLmsCodeRouteWithChildren,
+  protectedAppointmentIndexRoute: protectedAppointmentIndexRoute,
   protectedBillingIndexRoute: protectedBillingIndexRoute,
   protectedCmsIndexRoute: protectedCmsIndexRoute,
   protectedCurriculumIndexRoute: protectedCurriculumIndexRoute,
