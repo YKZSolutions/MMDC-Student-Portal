@@ -127,7 +127,8 @@ export function useQuickForm<
       }
     }, [query?.data])
 
-    const isPending = query?.isLoading || create.isPending || update.isPending || false
+    const isPending =
+      query?.isLoading || create.isPending || update.isPending || false
 
     return {
       query,

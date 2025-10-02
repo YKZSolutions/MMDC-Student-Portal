@@ -154,13 +154,15 @@ export const adminLinks: NavItem[] = [
     Icon: IconCashBanknoteFilled,
     IconInactive: IconCashBanknote,
     fuzzy: true,
-  },
-  {
-    link: '/pricing',
-    label: 'Pricing',
-    Icon: IconGraphFilled,
-    IconInactive: IconGraph,
-    fuzzy: true,
+    subItems: [
+      {
+        link: '/pricing',
+        label: 'Pricing',
+        Icon: IconGraphFilled,
+        IconInactive: IconGraph,
+        fuzzy: true,
+      },
+    ],
   },
   {
     link: '/profile',
