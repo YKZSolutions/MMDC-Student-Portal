@@ -12206,6 +12206,1026 @@
           "Swagger"
         ]
       }
+    },
+    "/pricing": {
+      "post": {
+        "description": "This operation creates a new pricing entry in the database.",
+        "operationId": "PricingController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePricingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Create a new pricing fee",
+        "tags": [
+          "Pricing"
+        ]
+      },
+      "get": {
+        "description": "This operation retrieves a paginated list of all pricing entries.",
+        "operationId": "PricingController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedPricingDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch all pricings",
+        "tags": [
+          "Pricing"
+        ]
+      }
+    },
+    "/pricing/{id}": {
+      "get": {
+        "description": "This operation retrieves a single pricing entry by its id.",
+        "operationId": "PricingController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch a single pricing",
+        "tags": [
+          "Pricing"
+        ]
+      },
+      "patch": {
+        "description": "This operation updates the details of a single pricing fee by its ID.",
+        "operationId": "PricingController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePricingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Update a pricing entry",
+        "tags": [
+          "Pricing"
+        ]
+      },
+      "delete": {
+        "description": "This endpoint performs either a **soft delete** or a **permanent deletion** of a pricing.\n- If `directDelete` is true, the pricing is permanently deleted.\n- If `directDelete` is not provided or false:\n- If the pricing has not been soft-deleted yet, it will be soft-deleted by setting the `deletedAt` timestamp.\n- If the pricing has already been soft-deleted, it will be permanently deleted.",
+        "operationId": "PricingController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "directDelete",
+            "required": false,
+            "in": "query",
+            "description": "If set to true, will skip the soft delete process",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Delete a pricing (temporary or permanent)",
+        "tags": [
+          "Pricing"
+        ]
+      }
+    },
+    "/pricing-group": {
+      "post": {
+        "description": "This operation creates a new pricing group and links it to existing pricing entries.",
+        "operationId": "PricingGroupController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePricingGroupItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingGroupDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Create a new pricing group",
+        "tags": [
+          "PricingGroup"
+        ]
+      },
+      "get": {
+        "description": "This operation retrieves a paginated list of all pricing groups.",
+        "operationId": "PricingGroupController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedPricingGroupDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch all pricing groups",
+        "tags": [
+          "PricingGroup"
+        ]
+      }
+    },
+    "/pricing-group/{id}": {
+      "get": {
+        "description": "This operation retrieves a single pricing group by its ID, including its associated prices.",
+        "operationId": "PricingGroupController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingGroupItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch a single pricing group",
+        "tags": [
+          "PricingGroup"
+        ]
+      },
+      "patch": {
+        "description": "This operation updates an existing pricing group and its associated prices.",
+        "operationId": "PricingGroupController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePricingGroupItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingGroupItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Update a pricing group",
+        "tags": [
+          "PricingGroup"
+        ]
+      },
+      "delete": {
+        "description": "This endpoint soft or permanently deletes a pricing group based on its `deletedAt` status or a query parameter.",
+        "operationId": "PricingGroupController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "directDelete",
+            "required": false,
+            "in": "query",
+            "description": "If set to true, will skip the soft delete process",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Delete a pricing group (temporary or permanent)",
+        "tags": [
+          "PricingGroup"
+        ]
+      }
     }
   },
   "info": {
@@ -18179,6 +19199,306 @@
         "required": [
           "curriculum",
           "courses"
+        ]
+      },
+      "PricingType": {
+        "type": "string",
+        "enum": [
+          "tuition",
+          "lab",
+          "misc",
+          "other"
+        ]
+      },
+      "CreatePricingDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PricingType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "amount"
+        ]
+      },
+      "PricingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PricingType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "amount",
+          "enabled",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "PaginatedPricingDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "pricings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "pricings"
+        ]
+      },
+      "UpdatePricingDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PricingType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          }
+        }
+      },
+      "CreatePricingGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          }
+        },
+        "required": [
+          "name",
+          "amount"
+        ]
+      },
+      "CreatePricingGroupItemDto": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/CreatePricingGroupDto"
+          },
+          "pricings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "group",
+          "pricings"
+        ]
+      },
+      "PricingGroupDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "amount",
+          "enabled",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "PricingGroupItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "prices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "amount",
+          "enabled",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "prices"
+        ]
+      },
+      "PaginatedPricingGroupDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "pricingGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingGroupItemDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "pricingGroups"
+        ]
+      },
+      "UpdatePricingGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "format": "Decimal.js"
+          }
+        }
+      },
+      "UpdatePricingGroupItemDto": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/UpdatePricingGroupDto"
+          },
+          "pricings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "group"
         ]
       }
     }
