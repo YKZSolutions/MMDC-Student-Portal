@@ -12400,869 +12400,6 @@
         ]
       }
     },
-    "/appointments": {
-      "post": {
-        "description": "This operation allows a student to create a new appointment with a mentor.",
-        "operationId": "AppointmentsController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateAppointmentItemDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppointmentItemDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Create a new appointment",
-        "tags": [
-          "Appointments"
-        ]
-      },
-      "get": {
-        "description": "This operation retrieves a paginated list of courses.",
-        "operationId": "AppointmentsController_findAll",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AppointmentStatus"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedAppointmentDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Fetch courses (Temporary)",
-        "tags": [
-          "Appointments"
-        ]
-      }
-    },
-    "/appointments/mentors": {
-      "get": {
-        "description": "This operation retrieves a paginated list of mentors.",
-        "operationId": "AppointmentsController_findMentor",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedUsersDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Fetch mentors (Temporary)",
-        "tags": [
-          "Appointments"
-        ]
-      }
-    },
-    "/appointments/courses": {
-      "get": {
-        "operationId": "AppointmentsController_findCourses",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DetailedCourseEnrollmentDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Appointments"
-        ]
-      }
-    },
-    "/appointments/{mentorId}/mentor": {
-      "get": {
-        "description": "This operation retrieves a list of a mentor's booked appointments within a specified date range.",
-        "operationId": "AppointmentsController_findAllBooked",
-        "parameters": [
-          {
-            "name": "mentorId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "startAt",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "name": "endAt",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BookedAppointmentDto"
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Fetch all booked appointments for a mentor",
-        "tags": [
-          "Appointments"
-        ]
-      }
-    },
-    "/appointments/{id}": {
-      "get": {
-        "description": "This operation retrieves a single appointment by its ID, restricted to appointments associated with the authenticated user.",
-        "operationId": "AppointmentsController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppointmentItemDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Fetch a single appointment",
-        "tags": [
-          "Appointments"
-        ]
-      },
-      "patch": {
-        "description": "This operation allows a mentor to update the details of a specific appointment.",
-        "operationId": "AppointmentsController_updateDetails",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAppointmentItemDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppointmentItemDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Update appointment details",
-        "tags": [
-          "Appointments"
-        ]
-      },
-      "delete": {
-        "description": "This endpoint soft-deletes or permanently removes an appointment based on the `directDelete` query parameter.",
-        "operationId": "AppointmentsController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "directDelete",
-            "required": false,
-            "in": "query",
-            "description": "If set to true, will skip the soft delete process",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Delete an appointment (temporary or permanent)",
-        "tags": [
-          "Appointments"
-        ]
-      }
-    },
-    "/appointments/{id}/status": {
-      "patch": {
-        "description": "This operation allows a student or mentor to update the status of an appointment, with role-based restrictions on which status changes are allowed.",
-        "operationId": "AppointmentsController_updateStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAppointmentStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppointmentItemDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "BadRequestException": {
-                    "description": "Bad Request",
-                    "value": {
-                      "statusCode": 400,
-                      "message": "Bad Request",
-                      "error": "Bad Request"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 400
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Update appointment status",
-        "tags": [
-          "Appointments"
-        ]
-      }
-    },
     "/pricing": {
       "post": {
         "description": "This operation creates a new pricing entry in the database.",
@@ -14280,6 +13417,869 @@
         "summary": "Delete a pricing group (temporary or permanent)",
         "tags": [
           "PricingGroup"
+        ]
+      }
+    },
+    "/appointments": {
+      "post": {
+        "description": "This operation allows a student to create a new appointment with a mentor.",
+        "operationId": "AppointmentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppointmentItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Create a new appointment",
+        "tags": [
+          "Appointments"
+        ]
+      },
+      "get": {
+        "description": "This operation retrieves a paginated list of courses.",
+        "operationId": "AppointmentsController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/AppointmentStatus"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAppointmentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch courses (Temporary)",
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
+    "/appointments/mentors": {
+      "get": {
+        "description": "This operation retrieves a paginated list of mentors.",
+        "operationId": "AppointmentsController_findMentor",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedUsersDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Fetch mentors (Temporary)",
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
+    "/appointments/courses": {
+      "get": {
+        "operationId": "AppointmentsController_findCourses",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DetailedCourseEnrollmentDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
+    "/appointments/{mentorId}/mentor": {
+      "get": {
+        "description": "This operation retrieves a list of a mentor's booked appointments within a specified date range.",
+        "operationId": "AppointmentsController_findAllBooked",
+        "parameters": [
+          {
+            "name": "mentorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startAt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endAt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookedAppointmentDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch all booked appointments for a mentor",
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
+    "/appointments/{id}": {
+      "get": {
+        "description": "This operation retrieves a single appointment by its ID, restricted to appointments associated with the authenticated user.",
+        "operationId": "AppointmentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Fetch a single appointment",
+        "tags": [
+          "Appointments"
+        ]
+      },
+      "patch": {
+        "description": "This operation allows a mentor to update the details of a specific appointment.",
+        "operationId": "AppointmentsController_updateDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppointmentItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Update appointment details",
+        "tags": [
+          "Appointments"
+        ]
+      },
+      "delete": {
+        "description": "This endpoint soft-deletes or permanently removes an appointment based on the `directDelete` query parameter.",
+        "operationId": "AppointmentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "directDelete",
+            "required": false,
+            "in": "query",
+            "description": "If set to true, will skip the soft delete process",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Delete an appointment (temporary or permanent)",
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
+    "/appointments/{id}/status": {
+      "patch": {
+        "description": "This operation allows a student or mentor to update the status of an appointment, with role-based restrictions on which status changes are allowed.",
+        "operationId": "AppointmentsController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppointmentStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Update appointment status",
+        "tags": [
+          "Appointments"
         ]
       }
     }
@@ -20353,279 +20353,6 @@
           "courses"
         ]
       },
-      "CreateAppointmentItemDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "startAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "gmeetLink": {
-            "type": "string",
-            "nullable": true
-          },
-          "cancelReason": {
-            "type": "string",
-            "nullable": true
-          },
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "mentorId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "title",
-          "description",
-          "startAt",
-          "endAt",
-          "courseId",
-          "studentId",
-          "mentorId"
-        ]
-      },
-      "AppointmentStatus": {
-        "type": "string",
-        "enum": [
-          "booked",
-          "approved",
-          "cancelled",
-          "rescheduled",
-          "finished",
-          "extended"
-        ]
-      },
-      "AppointmentCourseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "courseCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "courseCode",
-          "name"
-        ]
-      },
-      "AppointmentUserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "middleName": {
-            "type": "string",
-            "nullable": true
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "role": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Role"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "firstName",
-          "middleName",
-          "lastName",
-          "role"
-        ]
-      },
-      "AppointmentItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "startAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AppointmentStatus"
-              }
-            ]
-          },
-          "gmeetLink": {
-            "type": "string",
-            "nullable": true
-          },
-          "cancelReason": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "course": {
-            "$ref": "#/components/schemas/AppointmentCourseDto"
-          },
-          "student": {
-            "$ref": "#/components/schemas/AppointmentUserDto"
-          },
-          "mentor": {
-            "$ref": "#/components/schemas/AppointmentUserDto"
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "description",
-          "startAt",
-          "endAt",
-          "status",
-          "gmeetLink",
-          "cancelReason",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
-          "course",
-          "student",
-          "mentor"
-        ]
-      },
-      "PaginatedAppointmentDto": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "additionalProperties": true,
-            "nullable": false,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationMetaDto"
-              }
-            ]
-          },
-          "appointments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AppointmentItemDto"
-            }
-          }
-        },
-        "required": [
-          "meta",
-          "appointments"
-        ]
-      },
-      "BookedAppointmentDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "startAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "startAt",
-          "endAt"
-        ]
-      },
-      "UpdateAppointmentItemDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "gmeetLink": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "UpdateAppointmentStatusDto": {
-        "type": "object",
-        "properties": {
-          "startAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "cancelReason": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AppointmentStatus"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      }
-      },
       "PricingType": {
         "type": "string",
         "enum": [
@@ -20924,6 +20651,278 @@
         },
         "required": [
           "group"
+        ]
+      },
+      "CreateAppointmentItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gmeetLink": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mentorId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "startAt",
+          "endAt",
+          "courseId",
+          "studentId",
+          "mentorId"
+        ]
+      },
+      "AppointmentStatus": {
+        "type": "string",
+        "enum": [
+          "booked",
+          "approved",
+          "cancelled",
+          "rescheduled",
+          "finished",
+          "extended"
+        ]
+      },
+      "AppointmentCourseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "courseCode",
+          "name"
+        ]
+      },
+      "AppointmentUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "middleName",
+          "lastName",
+          "role"
+        ]
+      },
+      "AppointmentItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AppointmentStatus"
+              }
+            ]
+          },
+          "gmeetLink": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "course": {
+            "$ref": "#/components/schemas/AppointmentCourseDto"
+          },
+          "student": {
+            "$ref": "#/components/schemas/AppointmentUserDto"
+          },
+          "mentor": {
+            "$ref": "#/components/schemas/AppointmentUserDto"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "startAt",
+          "endAt",
+          "status",
+          "gmeetLink",
+          "cancelReason",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "course",
+          "student",
+          "mentor"
+        ]
+      },
+      "PaginatedAppointmentDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "appointments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppointmentItemDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "appointments"
+        ]
+      },
+      "BookedAppointmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "startAt",
+          "endAt"
+        ]
+      },
+      "UpdateAppointmentItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "gmeetLink": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateAppointmentStatusDto": {
+        "type": "object",
+        "properties": {
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AppointmentStatus"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       }
     }
