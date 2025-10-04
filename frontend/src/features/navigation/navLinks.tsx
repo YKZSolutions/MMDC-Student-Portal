@@ -5,6 +5,8 @@ import {
   IconBook,
   IconBookFilled,
   IconBooks,
+  IconCalendarEvent,
+  IconCalendarEventFilled,
   IconCashBanknote,
   IconCashBanknoteFilled,
   IconClipboardList,
@@ -43,6 +45,13 @@ export const studentLinks: NavItem[] = [
     fuzzy: true,
   },
   {
+    link: '/appointment',
+    label: 'Appointment',
+    Icon: IconCalendarEventFilled,
+    IconInactive: IconCalendarEvent,
+    fuzzy: true,
+  },
+  {
     link: '/billing',
     label: 'Billing',
     Icon: IconCashBanknoteFilled,
@@ -78,6 +87,13 @@ export const mentorLinks: NavItem[] = [
     label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
+    fuzzy: true,
+  },
+  {
+    link: '/appointment',
+    label: 'Appointment',
+    Icon: IconCalendarEventFilled,
+    IconInactive: IconCalendarEvent,
     fuzzy: true,
   },
   {
@@ -154,13 +170,15 @@ export const adminLinks: NavItem[] = [
     Icon: IconCashBanknoteFilled,
     IconInactive: IconCashBanknote,
     fuzzy: true,
-  },
-  {
-    link: '/pricing',
-    label: 'Pricing',
-    Icon: IconGraphFilled,
-    IconInactive: IconGraph,
-    fuzzy: true,
+    subItems: [
+      {
+        link: '/pricing',
+        label: 'Pricing',
+        Icon: IconGraphFilled,
+        IconInactive: IconGraph,
+        fuzzy: true,
+      },
+    ],
   },
   {
     link: '/profile',

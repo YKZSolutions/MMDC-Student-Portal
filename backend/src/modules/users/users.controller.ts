@@ -256,15 +256,12 @@ export class UsersController {
    *
    */
   @Get(':id')
-  @ApiOkResponse({ description: 'User found successfully', type: User })
   @ApiException(() => [
     BadRequestException,
     NotFoundException,
     InternalServerErrorException,
   ])
-  async findOne(
-    @Param('id') id: UserWithRelations['id'],
-  ): Promise<UserWithRelations> {
+  async findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 

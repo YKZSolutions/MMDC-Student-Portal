@@ -20,6 +20,7 @@ import { CreateBillingDto } from './dto/create-billing.dto';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
 import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BillingService {
@@ -27,6 +28,7 @@ export class BillingService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
     private readonly installmentService: InstallmentService,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   /**
@@ -50,7 +52,7 @@ export class BillingService {
     dueDates: string[],
     @LogParam('userId') userId?: string,
   ): Promise<BillDto> {
-    const transaction = this.prisma.client.$transaction(async (tx) => {
+    const transaction = await this.prisma.client.$transaction(async (tx) => {
       const billing = await tx.bill.create({
         data: {
           ...createBillingDto,
@@ -70,6 +72,13 @@ export class BillingService {
 
       return billing;
     });
+
+    if (transaction.userId)
+      await this.notificationService.notifyUser(
+        transaction.userId,
+        `Invoice #${transaction.invoiceId}`,
+        'A new invoice has been issued in your account',
+      );
 
     return transaction;
   }

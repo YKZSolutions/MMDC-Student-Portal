@@ -505,6 +505,31 @@ export type UpdateBillPaymentDto = {
     } | null;
 };
 
+export type NotificationCountDto = {
+    total: number;
+    read: number;
+    unread: number;
+};
+
+export type NotificationItemDto = {
+    id: string;
+    title: string;
+    content: string;
+    role: Array<Role>;
+    createdAt: string;
+    userId?: string;
+    isRead: boolean;
+};
+
+export type PaginatedNotificationDto = {
+    meta: PaginationMetaDto;
+    notifications: Array<NotificationItemDto>;
+};
+
+export type NotificationMarkRead = {
+    notificationIds: Array<string>;
+};
+
 export type CreateProgramDto = {
     programCode: string;
     name: string;
@@ -1500,6 +1525,151 @@ export type UpdateCurriculumWithCourseDto = {
     courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
+export type PricingType = 'tuition' | 'lab' | 'misc' | 'other';
+
+export type CreatePricingDto = {
+    type: PricingType;
+    name: string;
+    amount: string;
+};
+
+export type PricingDto = {
+    id: string;
+    type: PricingType;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedPricingDto = {
+    meta: PaginationMetaDto;
+    pricings: Array<PricingDto>;
+};
+
+export type UpdatePricingDto = {
+    type?: PricingType;
+    name?: string;
+    amount?: string;
+};
+
+export type CreatePricingGroupDto = {
+    name: string;
+    amount: string;
+};
+
+export type CreatePricingGroupItemDto = {
+    group: CreatePricingGroupDto;
+    pricings: Array<string>;
+};
+
+export type PricingGroupDto = {
+    id: string;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PricingGroupItemDto = {
+    id: string;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    prices: Array<PricingDto>;
+};
+
+export type PaginatedPricingGroupDto = {
+    meta: PaginationMetaDto;
+    pricingGroups: Array<PricingGroupItemDto>;
+};
+
+export type UpdatePricingGroupDto = {
+    name?: string;
+    amount?: string;
+};
+
+export type UpdatePricingGroupItemDto = {
+    group: UpdatePricingGroupDto;
+    pricings?: Array<string>;
+};
+
+export type CreateAppointmentItemDto = {
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    gmeetLink?: string | null;
+    cancelReason?: string | null;
+    courseId: string;
+    studentId: string;
+    mentorId: string;
+};
+
+export type AppointmentStatus = 'booked' | 'approved' | 'cancelled' | 'rescheduled' | 'finished' | 'extended';
+
+export type AppointmentCourseDto = {
+    id: string;
+    courseCode: string;
+    name: string;
+};
+
+export type AppointmentUserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+};
+
+export type AppointmentItemDto = {
+    id: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    status: AppointmentStatus;
+    gmeetLink: string | null;
+    cancelReason: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: AppointmentCourseDto;
+    student: AppointmentUserDto;
+    mentor: AppointmentUserDto;
+};
+
+export type PaginatedAppointmentDto = {
+    meta: PaginationMetaDto;
+    appointments: Array<AppointmentItemDto>;
+};
+
+export type BookedAppointmentDto = {
+    id: string;
+    startAt: string;
+    endAt: string;
+};
+
+export type UpdateAppointmentItemDto = {
+    title?: string;
+    description?: string;
+    gmeetLink?: string | null;
+};
+
+export type UpdateAppointmentStatusDto = {
+    startAt?: string;
+    endAt?: string;
+    cancelReason?: string | null;
+    status: AppointmentStatus;
+};
+
 export type TestControllerTestStudentData = {
     body?: never;
     path?: never;
@@ -1860,7 +2030,9 @@ export type UsersControllerRemoveResponse = UsersControllerRemoveResponses[keyof
 
 export type UsersControllerFindOneData = {
     body?: never;
-    path?: never;
+    path: {
+        id: string;
+    };
     query?: never;
     url: '/users/{id}';
 };
@@ -1886,10 +2058,7 @@ export type UsersControllerFindOneErrors = {
 export type UsersControllerFindOneError = UsersControllerFindOneErrors[keyof UsersControllerFindOneErrors];
 
 export type UsersControllerFindOneResponses = {
-    /**
-     * User found successfully
-     */
-    200: User;
+    200: UserWithRelations;
 };
 
 export type UsersControllerFindOneResponse = UsersControllerFindOneResponses[keyof UsersControllerFindOneResponses];
@@ -2526,6 +2695,89 @@ export type PaymentsControllerUpdateResponses = {
 };
 
 export type PaymentsControllerUpdateResponse = PaymentsControllerUpdateResponses[keyof PaymentsControllerUpdateResponses];
+
+export type NotificationsControllerSubscribeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/subscribe';
+};
+
+export type NotificationsControllerSubscribeResponses = {
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type NotificationsControllerSubscribeResponse = NotificationsControllerSubscribeResponses[keyof NotificationsControllerSubscribeResponses];
+
+export type NotificationsControllerGetCountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/count';
+};
+
+export type NotificationsControllerGetCountResponses = {
+    200: NotificationCountDto;
+};
+
+export type NotificationsControllerGetCountResponse = NotificationsControllerGetCountResponses[keyof NotificationsControllerGetCountResponses];
+
+export type NotificationsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        type?: 'read' | 'unread';
+    };
+    url: '/notifications';
+};
+
+export type NotificationsControllerFindAllResponses = {
+    200: PaginatedNotificationDto;
+};
+
+export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
+
+export type NotificationsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/notifications/{id}';
+};
+
+export type NotificationsControllerFindOneResponses = {
+    200: NotificationItemDto;
+};
+
+export type NotificationsControllerFindOneResponse = NotificationsControllerFindOneResponses[keyof NotificationsControllerFindOneResponses];
+
+export type NotificationsControllerMarkAsReadData = {
+    body: NotificationMarkRead;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read';
+};
+
+export type NotificationsControllerMarkAsReadResponses = {
+    201: unknown;
+};
+
+export type NotificationsControllerMarkAllAsReadData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read/all';
+};
+
+export type NotificationsControllerMarkAllAsReadResponses = {
+    201: unknown;
+};
 
 export type ProgramControllerFindAllData = {
     body?: never;
@@ -4768,6 +5020,539 @@ export type SwaggerControllerDownloadAllSpecsData = {
 export type SwaggerControllerDownloadAllSpecsResponses = {
     200: unknown;
 };
+
+export type PricingControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/pricing';
+};
+
+export type PricingControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerFindAllError = PricingControllerFindAllErrors[keyof PricingControllerFindAllErrors];
+
+export type PricingControllerFindAllResponses = {
+    200: PaginatedPricingDto;
+};
+
+export type PricingControllerFindAllResponse = PricingControllerFindAllResponses[keyof PricingControllerFindAllResponses];
+
+export type PricingControllerCreateData = {
+    body: CreatePricingDto;
+    path?: never;
+    query?: never;
+    url: '/pricing';
+};
+
+export type PricingControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerCreateError = PricingControllerCreateErrors[keyof PricingControllerCreateErrors];
+
+export type PricingControllerCreateResponses = {
+    201: PricingDto;
+};
+
+export type PricingControllerCreateResponse = PricingControllerCreateResponses[keyof PricingControllerCreateResponses];
+
+export type PricingControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/pricing/{id}';
+};
+
+export type PricingControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerRemoveError = PricingControllerRemoveErrors[keyof PricingControllerRemoveErrors];
+
+export type PricingControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type PricingControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing/{id}';
+};
+
+export type PricingControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerFindOneError = PricingControllerFindOneErrors[keyof PricingControllerFindOneErrors];
+
+export type PricingControllerFindOneResponses = {
+    200: PricingDto;
+};
+
+export type PricingControllerFindOneResponse = PricingControllerFindOneResponses[keyof PricingControllerFindOneResponses];
+
+export type PricingControllerUpdateData = {
+    body: UpdatePricingDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing/{id}';
+};
+
+export type PricingControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingControllerUpdateError = PricingControllerUpdateErrors[keyof PricingControllerUpdateErrors];
+
+export type PricingControllerUpdateResponses = {
+    200: PricingDto;
+};
+
+export type PricingControllerUpdateResponse = PricingControllerUpdateResponses[keyof PricingControllerUpdateResponses];
+
+export type PricingGroupControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/pricing-group';
+};
+
+export type PricingGroupControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerFindAllError = PricingGroupControllerFindAllErrors[keyof PricingGroupControllerFindAllErrors];
+
+export type PricingGroupControllerFindAllResponses = {
+    200: PaginatedPricingGroupDto;
+};
+
+export type PricingGroupControllerFindAllResponse = PricingGroupControllerFindAllResponses[keyof PricingGroupControllerFindAllResponses];
+
+export type PricingGroupControllerCreateData = {
+    body: CreatePricingGroupItemDto;
+    path?: never;
+    query?: never;
+    url: '/pricing-group';
+};
+
+export type PricingGroupControllerCreateErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerCreateError = PricingGroupControllerCreateErrors[keyof PricingGroupControllerCreateErrors];
+
+export type PricingGroupControllerCreateResponses = {
+    201: PricingGroupDto;
+};
+
+export type PricingGroupControllerCreateResponse = PricingGroupControllerCreateResponses[keyof PricingGroupControllerCreateResponses];
+
+export type PricingGroupControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/pricing-group/{id}';
+};
+
+export type PricingGroupControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerRemoveError = PricingGroupControllerRemoveErrors[keyof PricingGroupControllerRemoveErrors];
+
+export type PricingGroupControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type PricingGroupControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing-group/{id}';
+};
+
+export type PricingGroupControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerFindOneError = PricingGroupControllerFindOneErrors[keyof PricingGroupControllerFindOneErrors];
+
+export type PricingGroupControllerFindOneResponses = {
+    200: PricingGroupItemDto;
+};
+
+export type PricingGroupControllerFindOneResponse = PricingGroupControllerFindOneResponses[keyof PricingGroupControllerFindOneResponses];
+
+export type PricingGroupControllerUpdateData = {
+    body: UpdatePricingGroupItemDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/pricing-group/{id}';
+};
+
+export type PricingGroupControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PricingGroupControllerUpdateError = PricingGroupControllerUpdateErrors[keyof PricingGroupControllerUpdateErrors];
+
+export type PricingGroupControllerUpdateResponses = {
+    200: PricingGroupItemDto;
+};
+
+export type PricingGroupControllerUpdateResponse = PricingGroupControllerUpdateResponses[keyof PricingGroupControllerUpdateResponses];
+
+export type AppointmentsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        status?: Array<AppointmentStatus>;
+    };
+    url: '/appointments';
+};
+
+export type AppointmentsControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindAllError = AppointmentsControllerFindAllErrors[keyof AppointmentsControllerFindAllErrors];
+
+export type AppointmentsControllerFindAllResponses = {
+    200: PaginatedAppointmentDto;
+};
+
+export type AppointmentsControllerFindAllResponse = AppointmentsControllerFindAllResponses[keyof AppointmentsControllerFindAllResponses];
+
+export type AppointmentsControllerCreateData = {
+    body: CreateAppointmentItemDto;
+    path?: never;
+    query?: never;
+    url: '/appointments';
+};
+
+export type AppointmentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerCreateError = AppointmentsControllerCreateErrors[keyof AppointmentsControllerCreateErrors];
+
+export type AppointmentsControllerCreateResponses = {
+    201: AppointmentItemDto;
+};
+
+export type AppointmentsControllerCreateResponse = AppointmentsControllerCreateResponses[keyof AppointmentsControllerCreateResponses];
+
+export type AppointmentsControllerFindMentorData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/appointments/mentors';
+};
+
+export type AppointmentsControllerFindMentorResponses = {
+    200: PaginatedUsersDto;
+};
+
+export type AppointmentsControllerFindMentorResponse = AppointmentsControllerFindMentorResponses[keyof AppointmentsControllerFindMentorResponses];
+
+export type AppointmentsControllerFindCoursesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/appointments/courses';
+};
+
+export type AppointmentsControllerFindCoursesResponses = {
+    200: Array<DetailedCourseEnrollmentDto>;
+};
+
+export type AppointmentsControllerFindCoursesResponse = AppointmentsControllerFindCoursesResponses[keyof AppointmentsControllerFindCoursesResponses];
+
+export type AppointmentsControllerFindAllBookedData = {
+    body?: never;
+    path: {
+        mentorId: string;
+    };
+    query?: {
+        startAt?: string;
+        endAt?: string;
+    };
+    url: '/appointments/{mentorId}/mentor';
+};
+
+export type AppointmentsControllerFindAllBookedErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindAllBookedError = AppointmentsControllerFindAllBookedErrors[keyof AppointmentsControllerFindAllBookedErrors];
+
+export type AppointmentsControllerFindAllBookedResponses = {
+    200: Array<BookedAppointmentDto>;
+};
+
+export type AppointmentsControllerFindAllBookedResponse = AppointmentsControllerFindAllBookedResponses[keyof AppointmentsControllerFindAllBookedResponses];
+
+export type AppointmentsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerRemoveError = AppointmentsControllerRemoveErrors[keyof AppointmentsControllerRemoveErrors];
+
+export type AppointmentsControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type AppointmentsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindOneError = AppointmentsControllerFindOneErrors[keyof AppointmentsControllerFindOneErrors];
+
+export type AppointmentsControllerFindOneResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerFindOneResponse = AppointmentsControllerFindOneResponses[keyof AppointmentsControllerFindOneResponses];
+
+export type AppointmentsControllerUpdateDetailsData = {
+    body: UpdateAppointmentItemDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerUpdateDetailsErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerUpdateDetailsError = AppointmentsControllerUpdateDetailsErrors[keyof AppointmentsControllerUpdateDetailsErrors];
+
+export type AppointmentsControllerUpdateDetailsResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerUpdateDetailsResponse = AppointmentsControllerUpdateDetailsResponses[keyof AppointmentsControllerUpdateDetailsResponses];
+
+export type AppointmentsControllerUpdateStatusData = {
+    body: UpdateAppointmentStatusDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}/status';
+};
+
+export type AppointmentsControllerUpdateStatusErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerUpdateStatusError = AppointmentsControllerUpdateStatusErrors[keyof AppointmentsControllerUpdateStatusErrors];
+
+export type AppointmentsControllerUpdateStatusResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerUpdateStatusResponses[keyof AppointmentsControllerUpdateStatusResponses];
 
 export type ClientOptions = {
     baseUrl: string;

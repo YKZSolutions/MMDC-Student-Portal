@@ -681,6 +681,31 @@ export const zUpdateBillPaymentDto = z.object({
     ]))
 });
 
+export const zNotificationCountDto = z.object({
+    total: z.number(),
+    read: z.number(),
+    unread: z.number()
+});
+
+export const zNotificationItemDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    content: z.string(),
+    role: z.array(zRole),
+    createdAt: z.iso.datetime(),
+    userId: z.optional(z.string()),
+    isRead: z.boolean()
+});
+
+export const zPaginatedNotificationDto = z.object({
+    meta: zPaginationMetaDto,
+    notifications: z.array(zNotificationItemDto)
+});
+
+export const zNotificationMarkRead = z.object({
+    notificationIds: z.array(z.uuid())
+});
+
 export const zCreateProgramDto = z.object({
     programCode: z.string(),
     name: z.string(),
@@ -2434,6 +2459,196 @@ export const zUpdateCurriculumWithCourseDto = z.object({
     courses: z.array(zUpdateCurriculumCourseItemDto)
 });
 
+export const zPricingType = z.enum([
+    'tuition',
+    'lab',
+    'misc',
+    'other'
+]);
+
+export const zCreatePricingDto = z.object({
+    type: zPricingType,
+    name: z.string(),
+    amount: z.string()
+});
+
+export const zPricingDto = z.object({
+    id: z.string(),
+    type: zPricingType,
+    name: z.string(),
+    amount: z.string(),
+    enabled: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPaginatedPricingDto = z.object({
+    meta: zPaginationMetaDto,
+    pricings: z.array(zPricingDto)
+});
+
+export const zUpdatePricingDto = z.object({
+    type: z.optional(zPricingType),
+    name: z.optional(z.string()),
+    amount: z.optional(z.string())
+});
+
+export const zCreatePricingGroupDto = z.object({
+    name: z.string(),
+    amount: z.string()
+});
+
+export const zCreatePricingGroupItemDto = z.object({
+    group: zCreatePricingGroupDto,
+    pricings: z.array(z.uuid())
+});
+
+export const zPricingGroupDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    amount: z.string(),
+    enabled: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPricingGroupItemDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    amount: z.string(),
+    enabled: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    prices: z.array(zPricingDto)
+});
+
+export const zPaginatedPricingGroupDto = z.object({
+    meta: zPaginationMetaDto,
+    pricingGroups: z.array(zPricingGroupItemDto)
+});
+
+export const zUpdatePricingGroupDto = z.object({
+    name: z.optional(z.string()),
+    amount: z.optional(z.string())
+});
+
+export const zUpdatePricingGroupItemDto = z.object({
+    group: zUpdatePricingGroupDto,
+    pricings: z.optional(z.array(z.uuid()))
+});
+
+export const zCreateAppointmentItemDto = z.object({
+    title: z.string(),
+    description: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    gmeetLink: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    cancelReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    courseId: z.uuid(),
+    studentId: z.uuid(),
+    mentorId: z.uuid()
+});
+
+export const zAppointmentStatus = z.enum([
+    'booked',
+    'approved',
+    'cancelled',
+    'rescheduled',
+    'finished',
+    'extended'
+]);
+
+export const zAppointmentCourseDto = z.object({
+    id: z.string(),
+    courseCode: z.string(),
+    name: z.string()
+});
+
+export const zAppointmentUserDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole
+});
+
+export const zAppointmentItemDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    status: zAppointmentStatus,
+    gmeetLink: z.union([
+        z.string(),
+        z.null()
+    ]),
+    cancelReason: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zAppointmentCourseDto,
+    student: zAppointmentUserDto,
+    mentor: zAppointmentUserDto
+});
+
+export const zPaginatedAppointmentDto = z.object({
+    meta: zPaginationMetaDto,
+    appointments: z.array(zAppointmentItemDto)
+});
+
+export const zBookedAppointmentDto = z.object({
+    id: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime()
+});
+
+export const zUpdateAppointmentItemDto = z.object({
+    title: z.optional(z.string()),
+    description: z.optional(z.string()),
+    gmeetLink: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zUpdateAppointmentStatusDto = z.object({
+    startAt: z.optional(z.iso.datetime()),
+    endAt: z.optional(z.iso.datetime()),
+    cancelReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    status: zAppointmentStatus
+});
+
 export const zTestControllerTestStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -2575,14 +2790,13 @@ export const zUsersControllerRemoveResponse = z.object({
 
 export const zUsersControllerFindOneData = z.object({
     body: z.optional(z.never()),
-    path: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
     query: z.optional(z.never())
 });
 
-/**
- * User found successfully
- */
-export const zUsersControllerFindOneResponse = zUser;
+export const zUsersControllerFindOneResponse = zUserWithRelations;
 
 export const zUsersControllerUpdateUserStatusData = z.object({
     body: z.optional(z.never()),
@@ -2818,6 +3032,60 @@ export const zPaymentsControllerUpdateData = z.object({
 });
 
 export const zPaymentsControllerUpdateResponse = zBillPaymentDto;
+
+export const zNotificationsControllerSubscribeData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerSubscribeResponse = z.object({});
+
+export const zNotificationsControllerGetCountData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerGetCountResponse = zNotificationCountDto;
+
+export const zNotificationsControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        type: z.optional(z.enum([
+            'read',
+            'unread'
+        ]))
+    }))
+});
+
+export const zNotificationsControllerFindAllResponse = zPaginatedNotificationDto;
+
+export const zNotificationsControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerFindOneResponse = zNotificationItemDto;
+
+export const zNotificationsControllerMarkAsReadData = z.object({
+    body: zNotificationMarkRead,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zNotificationsControllerMarkAllAsReadData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
 
 export const zProgramControllerFindAllData = z.object({
     body: z.optional(z.never()),
@@ -3637,3 +3905,197 @@ export const zSwaggerControllerDownloadAllSpecsData = z.object({
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
+
+export const zPricingControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zPricingControllerFindAllResponse = zPaginatedPricingDto;
+
+export const zPricingControllerCreateData = z.object({
+    body: zCreatePricingDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zPricingControllerCreateResponse = zPricingDto;
+
+export const zPricingControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zPricingControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingControllerFindOneResponse = zPricingDto;
+
+export const zPricingControllerUpdateData = z.object({
+    body: zUpdatePricingDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingControllerUpdateResponse = zPricingDto;
+
+export const zPricingGroupControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zPricingGroupControllerFindAllResponse = zPaginatedPricingGroupDto;
+
+export const zPricingGroupControllerCreateData = z.object({
+    body: zCreatePricingGroupItemDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zPricingGroupControllerCreateResponse = zPricingGroupDto;
+
+export const zPricingGroupControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zPricingGroupControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingGroupControllerFindOneResponse = zPricingGroupItemDto;
+
+export const zPricingGroupControllerUpdateData = z.object({
+    body: zUpdatePricingGroupItemDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zPricingGroupControllerUpdateResponse = zPricingGroupItemDto;
+
+export const zAppointmentsControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        status: z.optional(z.array(zAppointmentStatus))
+    }))
+});
+
+export const zAppointmentsControllerFindAllResponse = zPaginatedAppointmentDto;
+
+export const zAppointmentsControllerCreateData = z.object({
+    body: zCreateAppointmentItemDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerCreateResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerFindMentorData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zAppointmentsControllerFindMentorResponse = zPaginatedUsersDto;
+
+export const zAppointmentsControllerFindCoursesData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerFindCoursesResponse = z.array(zDetailedCourseEnrollmentDto);
+
+export const zAppointmentsControllerFindAllBookedData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mentorId: z.string()
+    }),
+    query: z.optional(z.object({
+        startAt: z.optional(z.iso.datetime()),
+        endAt: z.optional(z.iso.datetime())
+    }))
+});
+
+export const zAppointmentsControllerFindAllBookedResponse = z.array(zBookedAppointmentDto);
+
+export const zAppointmentsControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zAppointmentsControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerFindOneResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerUpdateDetailsData = z.object({
+    body: zUpdateAppointmentItemDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerUpdateDetailsResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerUpdateStatusData = z.object({
+    body: zUpdateAppointmentStatusDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerUpdateStatusResponse = zAppointmentItemDto;

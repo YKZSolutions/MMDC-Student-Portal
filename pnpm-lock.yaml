@@ -339,6 +339,9 @@ importers:
       react-resizable-panels:
         specifier: ^3.0.4
         version: 3.0.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      sse.js:
+        specifier: 2.7.2
+        version: 2.7.2
       tailwind-preset-mantine:
         specifier: ^2.1.0
         version: 2.1.0(@mantine/core@8.3.0(@mantine/hooks@8.3.0(react@19.1.1))(@types/react@19.1.12)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(tailwindcss@4.1.13)
@@ -6689,6 +6692,9 @@ packages:
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
+
+  sse.js@2.7.2:
+    resolution: {integrity: sha512-EDu2kt+A+HIagwUOCrDbKfsUrKxNWdoeKQVKfpruRSO34yL2xwS142Ad3AYhjCY81oWySeCsPs0wSu+c2QG14g==}
 
   ssh-remote-port-forward@1.0.4:
     resolution: {integrity: sha512-x0LV1eVDwjf1gmG7TTnfqIzf+3VPRz7vrNIjX6oYLbeCrf/PeVY6hkT68Mg+q02qXxQhrLjB0jfgvhevoCRmLQ==}
@@ -14990,6 +14996,8 @@ snapshots:
   split2@4.2.0: {}
 
   sprintf-js@1.0.3: {}
+
+  sse.js@2.7.2: {}
 
   ssh-remote-port-forward@1.0.4:
     dependencies:

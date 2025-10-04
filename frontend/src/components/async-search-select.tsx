@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import {
   Select,
   Loader,
   type SelectProps,
   type ComboboxItem,
+  type ComboboxLikeRenderOptionInput,
 } from '@mantine/core'
 import {
   useQuery,
@@ -45,7 +46,12 @@ type AsyncSelectProps<
   preloadOptions?: boolean
   /** Select first option automatically when dropdown changes */
   selectFirstOptionOnChange?: boolean
-} & Omit<SelectProps, 'data'>
+  /** Optional render component */
+  renderOption?: (
+    option: ComboboxLikeRenderOptionInput<ComboboxItem>,
+    data: TData,
+  ) => ReactNode
+} & Omit<SelectProps, 'data' | 'renderOption'>
 
 export default function AsyncSearchSelect<
   TQueryFnData = unknown,
@@ -65,6 +71,7 @@ export default function AsyncSearchSelect<
   preloadOptions = false,
   selectFirstOptionOnChange = false,
   onChange,
+  renderOption,
   ...props
 }: AsyncSelectProps<
   TQueryFnData,
@@ -93,7 +100,12 @@ export default function AsyncSearchSelect<
   const { data: initialItemData, isFetching: isLoadingInitial } = useQuery({
     ...(getItemById && initialValue
       ? getItemById(initialValue)
-      : { queryKey: ['__placeholder__'] as any }),
+      : {
+          queryKey: ['__placeholder__'] as any,
+          queryFn: () => {
+            return {} as TItemData
+          },
+        }),
     enabled: !!getItemById && !!initialValue && !!initialValue.trim(),
   })
 
@@ -160,6 +172,11 @@ export default function AsyncSearchSelect<
       onDropdownClose={() => setIsFocused(false)}
       placeholder={placeholder}
       selectFirstOptionOnChange={selectFirstOptionOnChange}
+      renderOption={
+        renderOption && searchData
+          ? (option) => renderOption(option, searchData)
+          : undefined
+      }
       {...props}
     />
   )
