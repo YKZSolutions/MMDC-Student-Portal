@@ -18,9 +18,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
+import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { EnrollmentService } from './enrollment.service';
+import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -36,7 +37,7 @@ export class EnrollmentController {
   @ApiException(() => [BadRequestException])
   @Roles(Role.ADMIN)
   @Post()
-  createEnrollment(@Body() dto: CreateEnrollmentPeriodDto) {
+  createEnrollment(@Body() dto: CreateEnrollmentPeriodItemDto) {
     return this.enrollmentService.createEnrollment(dto);
   }
 
@@ -99,7 +100,7 @@ export class EnrollmentController {
   @Patch(':enrollmentId')
   updateEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
-    @Body() updateEnrollmentDto: UpdateEnrollmentDto,
+    @Body() updateEnrollmentDto: UpdateEnrollmentPeriodItemDto,
   ) {
     return this.enrollmentService.updateEnrollment(
       enrollmentId,

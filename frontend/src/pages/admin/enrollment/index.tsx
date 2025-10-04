@@ -1,15 +1,28 @@
+import { AsyncSearchable } from '@/components/async-searchable'
+import { AsyncSelectList } from '@/components/async-select-list'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
+import { usePaginationSearch } from '@/features/pagination/use-pagination-search'
+import {
+  enrollmentPeriodFormSchema,
+  type EnrollmentPeriodFormInput,
+  type EnrollmentPeriodFormOutput,
+} from '@/features/validation/create-enrollment.schema'
+import { useQuickForm } from '@/hooks/use-quick-form'
 import type {
   BillDto,
   EnrollmentPeriodDto,
   PaginationMetaDto,
 } from '@/integrations/api/client'
 import {
+  enrollmentControllerCreateEnrollmentMutation,
   enrollmentControllerFindAllEnrollmentsOptions,
   enrollmentControllerFindAllEnrollmentsQueryKey,
+  enrollmentControllerFindOneEnrollmentOptions,
   enrollmentControllerRemoveEnrollmentMutation,
+  enrollmentControllerUpdateEnrollmentMutation,
+  pricingGroupControllerFindAllOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -19,18 +32,22 @@ import {
   Box,
   Button,
   Container,
+  Drawer,
   Flex,
   Group,
   Menu,
   Pagination,
   rem,
+  Select,
   Stack,
   Table,
   Text,
   TextInput,
   Title,
 } from '@mantine/core'
-import { useDebouncedCallback } from '@mantine/hooks'
+import { DatePickerInput, YearPickerInput } from '@mantine/dates'
+import { useForm } from '@mantine/form'
+import { useDebouncedState } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
@@ -45,21 +62,14 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { Suspense, useState } from 'react'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { Suspense } from 'react'
+import z from 'zod'
 
 const route = getRouteApi('/(protected)/enrollment/')
 
-interface IEnrollmentAdminQuery {
-  search: string
-  page: number
-}
-
 function EnrollmentAdminQueryProvider({
   children,
-  props = {
-    search: '',
-    page: 1,
-  },
 }: {
   children: (props: {
     enrollmentPeriods: EnrollmentPeriodDto[]
@@ -67,9 +77,8 @@ function EnrollmentAdminQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IEnrollmentAdminQuery
 }) {
-  const { search, page } = props
+  const { search, page } = route.useSearch()
 
   const { data } = useSuspenseQuery(
     enrollmentControllerFindAllEnrollmentsOptions({
@@ -87,7 +96,7 @@ function EnrollmentAdminQueryProvider({
   const total = meta.totalCount ?? 0
   const totalPages = meta.pageCount ?? 0
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const message = formatPaginationMessage({ limit, page: page || 1, total })
 
   return children({
     enrollmentPeriods,
@@ -97,51 +106,9 @@ function EnrollmentAdminQueryProvider({
   })
 }
 
-function EnrollmentAdminPage() {
-  const searchParam: {
-    search: string
-  } = route.useSearch()
-  const navigate = useNavigate()
-
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-  }
-
-  const [query, setQuery] = useState<IEnrollmentAdminQuery>(queryDefaultValues)
-
-  const debouncedQuery = {
-    search: searchParam.search || '',
-    page: query.page,
-  } as IEnrollmentAdminQuery
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-
-    setQuery((prev) => ({
-      ...prev,
-      search: value,
-    }))
-
-    handleNavigate(value)
-  }
-
-  const handleNavigate = useDebouncedCallback(async (value: string) => {
-    navigate({
-      to: '/enrollment',
-      search: (prev) => ({
-        ...prev,
-        search: value.trim() || undefined,
-      }),
-    })
-  }, 200)
-
-  const handlePage = (page: IEnrollmentAdminQuery['page']) => {
-    setQuery((prev) => ({
-      ...prev,
-      page,
-    }))
-  }
+export default function EnrollmentAdminPage() {
+  const { pagination, debouncedSearch, handlePage } = usePaginationSearch(route)
+  const navigate = route.useNavigate()
 
   return (
     <Container size={'md'} w="100%" pb={'xl'}>
@@ -176,9 +143,7 @@ function EnrollmentAdminPage() {
                 base: '100%',
                 xs: rem(250),
               }}
-              value={query.search}
-              // TODO: This feature is currently not implemented
-              onChange={(e) => {}}
+              onChange={(e) => debouncedSearch(e.target.value)}
             />
             <Button
               w={{
@@ -201,14 +166,23 @@ function EnrollmentAdminPage() {
               radius={'md'}
               leftSection={<IconPlus size={20} />}
               lts={rem(0.25)}
-              onClick={() => navigate({ to: '/enrollment/create' })}
+              // onClick={() => navigate({ to: '/enrollment/create' })}
+              onClick={() =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    create: true,
+                  }),
+                })
+              }
             >
               Create
             </Button>
+            <EnrollmentPeriodFormDrawer />
           </Flex>
 
           {/* Table */}
-          <EnrollmentTable props={debouncedQuery} />
+          <EnrollmentTable />
 
           {/* Pagination */}
           <Suspense fallback={<SuspendedPagination />}>
@@ -218,7 +192,7 @@ function EnrollmentAdminPage() {
                   <Text size="sm">{props.message}</Text>
                   <Pagination
                     total={props.totalPages}
-                    value={query.page}
+                    value={pagination.page}
                     onChange={handlePage}
                     withPages={false}
                   />
@@ -232,8 +206,8 @@ function EnrollmentAdminPage() {
   )
 }
 
-function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
-  const navigate = useNavigate()
+function EnrollmentTable() {
+  const navigate = route.useNavigate()
 
   const { mutateAsync: remove } = useAppMutation(
     enrollmentControllerRemoveEnrollmentMutation,
@@ -275,7 +249,14 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
             to: `/enrollment/${id}`,
           })
         },
-        edit: () => {},
+        edit: () => {
+          navigate({
+            search: (prev) => ({
+              ...prev,
+              update: id,
+            }),
+          })
+        },
         delete: () => {
           modals.openConfirmModal({
             title: (
@@ -342,7 +323,7 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
           }}
         >
           <Suspense fallback={<SuspendedAdminEnrollmentTableRows />}>
-            <EnrollmentAdminQueryProvider props={props}>
+            <EnrollmentAdminQueryProvider>
               {(props) =>
                 props.enrollmentPeriods.map((period) => (
                   <Table.Tr
@@ -432,4 +413,278 @@ function EnrollmentTable({ props }: { props: IEnrollmentAdminQuery }) {
   )
 }
 
-export default EnrollmentAdminPage
+function EnrollmentPeriodFormDrawer() {
+  const { create, update } = route.useSearch()
+  const navigate = route.useNavigate()
+
+  return (
+    <Drawer
+      opened={create === true || update !== undefined}
+      onClose={() =>
+        navigate({
+          search: (prev) => ({
+            ...prev,
+            create: undefined,
+            update: undefined,
+          }),
+        })
+      }
+      title={
+        <Text size="xl" fw={600}>
+          Create Enrollment Period
+        </Text>
+      }
+      position="right"
+      size="md"
+      padding="xl"
+    >
+      <EnrollmentPeriodForm />
+    </Drawer>
+  )
+}
+
+function EnrollmentPeriodForm() {
+  const { update: updateId } = route.useSearch()
+  const navigate = route.useNavigate()
+
+  const { create, update, form, isPending } = useQuickForm<
+    EnrollmentPeriodFormInput,
+    EnrollmentPeriodFormOutput
+  >()({
+    name: 'enrollment period',
+    formOptions: {
+      mode: 'uncontrolled',
+      initialValues: {
+        startDate: dayjs().startOf('day').toDate(),
+        startYear: dayjs().year(),
+        endDate: dayjs().startOf('day').toDate(),
+        endYear: dayjs().add(1, 'year').year(),
+        term: 1,
+        status: 'draft',
+        pricingGroup: null,
+      },
+      validate: zod4Resolver(enrollmentPeriodFormSchema),
+    },
+    transformQueryData: (enrollment) => ({
+      startDate: dayjs(enrollment.startDate).toDate(),
+      startYear: enrollment.startYear,
+      endDate: dayjs(enrollment.endDate).toDate(),
+      endYear: enrollment.endYear,
+      term: enrollment.term,
+      status: enrollment.status,
+      pricingGroup: enrollment.pricingGroup,
+    }),
+    queryOptions: {
+      ...enrollmentControllerFindOneEnrollmentOptions({
+        path: { enrollmentId: updateId || '' },
+      }),
+      enabled: z.uuidv4().safeParse(updateId).success,
+    },
+    createMutationOptions: enrollmentControllerCreateEnrollmentMutation({}),
+    updateMutationOptions: enrollmentControllerUpdateEnrollmentMutation({
+      path: { enrollmentId: updateId || '' },
+    }),
+    queryKeyInvalidation: enrollmentControllerFindAllEnrollmentsQueryKey({
+      // query: { page, search },
+    }),
+  })
+
+  const handleCreate = () => {
+    if (form.validate().hasErrors) return console.log(form.getValues())
+
+    const values = form.getValues()
+    if (!values.pricingGroup) return
+
+    create.mutateAsync({
+      body: {
+        startDate: values.startDate.toISOString(),
+        startYear: values.startYear,
+        endDate: values.endDate.toISOString(),
+        endYear: values.endYear,
+        term: values.term,
+        status: values.status,
+        pricingGroupId: values.pricingGroup.id,
+      },
+    })
+
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        create: undefined,
+      }),
+    })
+  }
+
+  const handleUpdate = () => {
+    if (form.validate().hasErrors) return console.log(form.getValues())
+
+    const values = form.getValues()
+    if (!values.pricingGroup || !updateId) return
+
+    update.mutateAsync({
+      path: { enrollmentId: updateId },
+      body: {
+        startDate: values.startDate.toISOString(),
+        startYear: values.startYear,
+        endDate: values.endDate.toISOString(),
+        endYear: values.endYear,
+        term: values.term,
+        pricingGroupId: values.pricingGroup.id,
+      },
+    })
+
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        update: undefined,
+      }),
+    })
+  }
+
+  return (
+    <Stack>
+      {/* <Box pb={'lg'}>
+        <Text c={'dark.3'} fw={500}>
+          Fill out the form below to create a new enrollment period.
+        </Text>
+      </Box> */}
+      <Stack gap="xl">
+        {/* <Group grow align="start"> */}
+        {/* Term */}
+        <Select
+          allowDeselect={false}
+          label="Term"
+          placeholder="Pick one"
+          data={[
+            { value: '1', label: '1' },
+            { value: '2', label: '2' },
+            { value: '3', label: '3' },
+          ]}
+          withAsterisk
+          key={form.key('term')}
+          {...form.getInputProps('term')}
+          defaultValue={form.values.term.toString()}
+          onChange={(value) => {
+            if (value) form.setFieldValue('term', Number(value))
+          }}
+        />
+
+        {/* Term Dates */}
+        <DatePickerInput
+          type="range"
+          label={'Term Duration'}
+          placeholder="Pick date"
+          withAsterisk
+          key={form.key(`startDate`)}
+          {...form.getInputProps(`startDate`)}
+          presets={[
+            {
+              value: [
+                dayjs(form.getValues().startDate).format('YYYY-MM-DD'),
+                dayjs(form.getValues().startDate)
+                  .add(3, 'months')
+                  .format('YYYY-MM-DD'),
+              ],
+              label: 'Next 3 months',
+            },
+            {
+              value: [
+                dayjs(form.getValues().startDate).format('YYYY-MM-DD'),
+                dayjs(form.getValues().startDate)
+                  .add(4, 'months')
+                  .format('YYYY-MM-DD'),
+              ],
+              label: 'Next 4 months',
+            },
+            {
+              value: [
+                dayjs(form.getValues().startDate).format('YYYY-MM-DD'),
+                dayjs(form.getValues().startDate)
+                  .add(5, 'months')
+                  .format('YYYY-MM-DD'),
+              ],
+              label: 'Next 5 months',
+            },
+          ]}
+          defaultValue={[form.getValues().startDate, form.getValues().endDate]}
+          onChange={(date) => {
+            if (date && date[0] && date[1]) {
+              form.setFieldValue('startDate', dayjs(date[0]).toDate())
+              form.setFieldValue('endDate', dayjs(date[1]).toDate())
+            }
+          }}
+          error={form.errors.startDate ? form.errors.startDate : undefined}
+        />
+        {/* </Group> */}
+
+        {/* School Year */}
+        <YearPickerInput
+          type="range"
+          label={'School Year'}
+          placeholder="Pick date"
+          withAsterisk
+          key={form.key(`startYear`)}
+          {...form.getInputProps(`startYear`)}
+          defaultValue={[
+            dayjs().year(form.getValues().startYear).toDate(),
+            dayjs().year(form.getValues().endYear).toDate(),
+          ]}
+          onChange={(date) => {
+            if (date && date[0] && date[1]) {
+              form.setFieldValue('startYear', dayjs(date[0]).year())
+              form.setFieldValue('endYear', dayjs(date[1]).year())
+            }
+          }}
+          error={form.errors.startYear ? form.errors.startYear : undefined}
+        />
+
+        <AsyncSearchable
+          getOptions={(search) =>
+            pricingGroupControllerFindAllOptions({ query: { search } })
+          }
+          mapData={(data) => data.pricingGroups}
+          getValue={(data) => data.id}
+          getLabel={(data) => data.name}
+          withAsterisk
+          // renderValue={(item) => <Card>{item?.name}</Card>}
+          renderOption={(item) => (
+            <Group justify="space-between">
+              <Text size="sm">{item.name}</Text>
+              <Text size="sm">₱{item.amount}</Text>
+            </Group>
+          )}
+          renderValue={(item) =>
+            item && (
+              <Group justify="space-between">
+                <Text size="sm">{item.name}</Text>
+                <Text size="sm">₱{item.amount}</Text>
+              </Group>
+            )
+          }
+          placeholder="Pick a Pricing Group"
+          selectFirstOption={true}
+          label="Pricing Group"
+          {...form.getInputProps('pricingGroup')}
+          value={form.getValues().pricingGroup}
+        />
+      </Stack>
+
+      {/* Action buttons */}
+      <Group mt="xl" justify="flex-end">
+        <Button
+          variant="subtle"
+          onClick={() => navigate({ to: '/enrollment' })}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="filled"
+          color="primary"
+          onClick={() => (updateId ? handleUpdate() : handleCreate())}
+        >
+          {updateId ? 'Update' : 'Create'}
+        </Button>
+      </Group>
+    </Stack>
+  )
+}

@@ -12,7 +12,7 @@ import { useLocation } from '@tanstack/react-router'
 import {
   zodStatusEnum,
   type EnrollmentStatus,
-} from '../validation/create-enrollment'
+} from '../validation/create-enrollment.schema'
 
 const STATUS_STYLES: Record<
   EnrollmentStatus,

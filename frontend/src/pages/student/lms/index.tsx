@@ -93,7 +93,7 @@ const StudentCourseDashboardPage = () => {
                       <CourseCard
                         key={moduleData.id}
                         url={`/lms/${moduleData.id}`}
-                        course={moduleData.courseOffering?.course!}
+                        course={moduleData.course!}
                         section={moduleData.courseOffering?.courseSections?.[0]}
                         currentMeeting={{
                           endTime: '2024-12-31T23:59:00Z',
@@ -105,7 +105,7 @@ const StudentCourseDashboardPage = () => {
                       <CourseListRow
                         key={moduleData.id}
                         url={`/lms/${moduleData.id}`}
-                        course={moduleData.courseOffering?.course!}
+                        course={moduleData.course!}
                         section={moduleData.courseOffering?.courseSections?.[0]}
                         currentMeeting={{
                           endTime: '2024-12-31T23:59:00Z',

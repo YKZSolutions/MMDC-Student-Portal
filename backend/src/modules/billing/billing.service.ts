@@ -18,7 +18,12 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
-import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
+import {
+  BillStatus,
+  FilterBillDto,
+  FilterBillSort,
+  SortOrder,
+} from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -116,8 +121,8 @@ export class BillingService {
     const billType = filters.type ? BillType[filters.type] : null;
     const status = filters.status || null;
     const search = filters.search || null;
-    const sort = filters.sort || null;
-    const sortDir = filters.sortOrder || 'desc';
+    const sort = filters.sort || FilterBillSort.createdAt;
+    const sortDir = filters.sortOrder || SortOrder.desc;
     const isDeleted = filters.isDeleted || false;
 
     const fetchedBills = await this.prisma.client.$queryRawTyped(

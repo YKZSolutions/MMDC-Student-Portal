@@ -8,9 +8,7 @@ import { CourseListSuspense } from '@/features/courses/suspense'
 import type { EnrolledCourse } from '@/features/courses/types.ts'
 import { type FilterConfig } from '@/hooks/useFilter.ts'
 import type { DetailedModulesDto } from '@/integrations/api/client'
-import {
-  lmsControllerFindAllForMentorOptions
-} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { lmsControllerFindAllForMentorOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -92,7 +90,7 @@ const MentorCourseDashboardPage = () => {
                     <CourseCard
                       key={moduleData.id}
                       url={`/lms/${moduleData.id}`}
-                      course={moduleData.courseOffering?.course}
+                      course={moduleData.course || undefined}
                       currentMeeting={{
                         endTime: '2024-12-31T23:59:00Z',
                         meetingLink: 'https://example.com/meeting',
@@ -103,7 +101,7 @@ const MentorCourseDashboardPage = () => {
                     <CourseListRow
                       key={moduleData.id}
                       url={`/lms/${moduleData.id}`}
-                      course={moduleData.courseOffering?.course!}
+                      course={moduleData.course!}
                       currentMeeting={{
                         endTime: '2024-12-31T23:59:00Z',
                         meetingLink: 'https://example.com/meeting',

@@ -1,21 +1,28 @@
-import { zCreateEnrollmentPeriodDto } from '@/integrations/api/client/zod.gen'
+import {
+  zCreateEnrollmentPeriodItemDto,
+  zPricingGroupDto,
+} from '@/integrations/api/client/zod.gen'
+import { nullableInput } from '@/integrations/zod/nullable-input'
 import z from 'zod'
 
-const zodEnrollmentPeriodCreate = zCreateEnrollmentPeriodDto.shape
+const zodEnrollmentPeriodCreate = zCreateEnrollmentPeriodItemDto.shape
 
 export const zodStatusEnum = z.enum(zodEnrollmentPeriodCreate.status.options, {
   error: 'Invalid enrollment status.',
 })
 
-export const CreateEnrollmentPeriodFormSchema = z
+export const enrollmentPeriodFormSchema = z
   .object({
-    ...zodEnrollmentPeriodCreate,
     endDate: z.date(),
     endYear: z.number(),
     startDate: z.date(),
     startYear: z.number(),
     term: z.number().min(1, 'Term must be at least 1'),
     status: zodStatusEnum,
+    pricingGroup: nullableInput(
+      zPricingGroupDto,
+      'Pricing Group should not be empty',
+    ),
   })
   .superRefine((data, ctx) => {
     if (data.startDate >= data.endDate) {
@@ -33,8 +40,11 @@ export const CreateEnrollmentPeriodFormSchema = z
     }
   })
 
-export type CreateEnrollmentPeriodFormValues = z.infer<
-  typeof CreateEnrollmentPeriodFormSchema
+export type EnrollmentPeriodFormInput = z.input<
+  typeof enrollmentPeriodFormSchema
+>
+export type EnrollmentPeriodFormOutput = z.output<
+  typeof enrollmentPeriodFormSchema
 >
 
 export type EnrollmentStatus = z.infer<typeof zodStatusEnum>

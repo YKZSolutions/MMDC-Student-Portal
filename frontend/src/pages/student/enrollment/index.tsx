@@ -10,6 +10,7 @@ import {
   type DetailedCourseOfferingDto,
   type DetailedCourseSectionDto,
   type EnrollmentPeriodDto,
+  type PaymentScheme,
 } from '@/integrations/api/client'
 import {
   courseEnrollmentControllerCreateCourseEnrollmentMutation,
@@ -106,7 +107,7 @@ const segmentedControlData = [
 ]
 
 interface IPaymentScheme {
-  paymentTypeId: string
+  paymentTypeId: PaymentScheme
   paymentType: string
   paymentDescription: string
   paymentBreakdown: string
@@ -114,20 +115,20 @@ interface IPaymentScheme {
 
 const paymentSchemeData = [
   {
-    paymentTypeId: 'full-payment',
+    paymentTypeId: 'full',
     paymentType: 'Full Payment',
     paymentDescription: 'No Interest • 1 Payment',
     paymentBreakdown: '100% at Enrollment',
   },
   {
-    paymentTypeId: 'installment-plan-1',
+    paymentTypeId: 'installment1',
     paymentType: 'Installment Plan 1',
     paymentDescription: '5% Interest • 3 Payments',
     paymentBreakdown:
       '40% at enrollment • 30% first payment • 30% second payment',
   },
   {
-    paymentTypeId: 'installment-plan-2',
+    paymentTypeId: 'installment2',
     paymentType: 'Installment Plan 2',
     paymentDescription: '7.5% Interest • 3 Payments',
     paymentBreakdown:
@@ -530,7 +531,8 @@ function CourseSelectionPanel() {
 }
 
 function FinalizationPanel() {
-  const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
+  const [selectedPaymentScheme, setSelectedPaymentScheme] =
+    useState<PaymentScheme | null>(null)
 
   const { mutateAsync: finalizeMutate } = useAppMutation(
     courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
@@ -572,9 +574,15 @@ function FinalizationPanel() {
         </Text>
       ),
       labels: { confirm: 'Finalize', cancel: 'Cancel' },
-      onConfirm: async () =>
+      onConfirm: async () => {
         // Call the mutation
-        await finalizeMutate({}),
+        if (!selectedPaymentScheme) return
+        await finalizeMutate({
+          body: {
+            paymentScheme: selectedPaymentScheme,
+          },
+        })
+      },
     })
   }
 
@@ -778,13 +786,15 @@ function PaymentPlanCard({
   props,
 }: {
   props: IPaymentScheme & {
-    selectedPaymentScheme: string
-    setSelectedPaymentScheme: React.Dispatch<React.SetStateAction<string>>
+    selectedPaymentScheme: PaymentScheme | null
+    setSelectedPaymentScheme: React.Dispatch<
+      React.SetStateAction<PaymentScheme | null>
+    >
   }
 }) {
   const handleSelectPaymentScheme = () => {
     props.setSelectedPaymentScheme((prev) =>
-      prev === props.paymentTypeId ? '' : props.paymentTypeId,
+      prev === props.paymentTypeId ? null : props.paymentTypeId,
     )
   }
 
