@@ -372,7 +372,7 @@ export class CourseEnrollmentService {
       }
 
       return {
-        message: `Successfilly finalized ${enslisted.length} course enrollment(s).`,
+        message: `Successfully finalized ${enslisted.length} course enrollment(s).`,
         studentId,
       };
     });
