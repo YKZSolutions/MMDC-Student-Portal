@@ -20,12 +20,14 @@ import { CourseDto } from './dto/course.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { LmsService } from '../lms/lms.service';
 
 @Injectable()
 export class CoursesService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly lmsService: LmsService,
   ) {}
 
   /**
@@ -71,7 +73,11 @@ export class CoursesService {
       data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
     }
 
-    return (await this.prisma.client.course.create({ data })) as CourseDto;
+    const course = await this.prisma.client.course.create({ data });
+
+    await this.lmsService.initializeCourseModule(course.id);
+
+    return course as CourseDto;
   }
 
   /**

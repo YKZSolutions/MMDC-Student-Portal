@@ -50,7 +50,7 @@ function RouteComponentQueryProvider({
     }),
   )
 
-  const course = data?.courseOffering?.course
+  const course = data?.course || undefined
   const enrollmentPeriod = data?.courseOffering?.enrollmentPeriod
 
   return children({

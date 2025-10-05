@@ -121,13 +121,13 @@ function AdminCourseDashboardPage() {
                     <CourseCard
                       key={moduleData.id}
                       url={`/lms/${moduleData.id}`}
-                      course={moduleData.courseOffering?.course}
+                      course={moduleData.course || undefined}
                     />
                   ) : (
                     <CourseListRow
                       key={moduleData.id}
                       url={`/lms/${moduleData.id}`}
-                      course={moduleData.courseOffering?.course}
+                      course={moduleData.course || undefined}
                     />
                   ),
                 )

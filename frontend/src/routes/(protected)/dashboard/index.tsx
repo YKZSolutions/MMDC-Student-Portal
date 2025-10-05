@@ -15,6 +15,7 @@ function RouteComponent() {
       currentRole={authUser.role}
       roleRender={{
         student: <StudentDashboard />,
+        admin: <StudentDashboard />,
       }}
     />
   )

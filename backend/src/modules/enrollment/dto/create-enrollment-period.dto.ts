@@ -1,3 +1,7 @@
-import { CreateEnrollmentPeriodDto as AutoCreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
+import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
+import { IsUUID } from 'class-validator';
 
-export class CreateEnrollmentPeriodDto extends AutoCreateEnrollmentPeriodDto {}
+export class CreateEnrollmentPeriodItemDto extends CreateEnrollmentPeriodDto {
+  @IsUUID()
+  pricingGroupId: string;
+}

@@ -301,319 +301,7 @@ export type UpdateCourseDto = {
     coreqIds?: Array<string>;
 };
 
-export type UserStatus = 'active' | 'disabled' | 'deleted';
-
-export type AuthMetadataDto = {
-    role?: Role;
-    status?: UserStatus;
-    user_id?: string;
-};
-
-export type BillType = 'academic' | 'administrative' | 'facilities' | 'studentServices' | 'activities' | 'penalties';
-
-export type PaymentScheme = 'full' | 'installment1' | 'installment2';
-
-export type BillingCostBreakdown = {
-    cost: string;
-    name: string;
-    category: string;
-};
-
-export type CreateBillingTypedBreakdownDto = {
-    payerName: string;
-    payerEmail: string;
-    billType: BillType;
-    paymentScheme: PaymentScheme;
-    totalAmount: string;
-    costBreakdown: Array<BillingCostBreakdown>;
-};
-
-export type CreateBillingDto = {
-    dueDates: Array<string>;
-    bill: CreateBillingTypedBreakdownDto;
-    userId?: string;
-};
-
-export type BillDto = {
-    id: string;
-    invoiceId: number;
-    payerName: string;
-    payerEmail: string;
-    billType: BillType;
-    paymentScheme: PaymentScheme;
-    totalAmount: string;
-    costBreakdown: {
-        [key: string]: unknown;
-    };
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BillItemDto = {
-    id: string;
-    invoiceId: number;
-    payerName: string;
-    payerEmail: string;
-    billType: BillType;
-    paymentScheme: PaymentScheme;
-    totalAmount: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    totalPaid: string;
-    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
-    totalInstallments: number;
-    paidInstallments: number;
-    installmentDueDates: Array<string>;
-};
-
-export type PaginatedBillsDto = {
-    meta: PaginationMetaDto;
-    bills: Array<BillItemDto>;
-};
-
-export type DetailedBillDto = {
-    id: string;
-    invoiceId: number;
-    payerName: string;
-    payerEmail: string;
-    billType: BillType;
-    paymentScheme: PaymentScheme;
-    totalAmount: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    totalPaid: string;
-    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
-    costBreakdown: Array<BillingCostBreakdown>;
-};
-
-export type UpdateBillDto = {
-    payerName?: string;
-    payerEmail?: string;
-    billType?: BillType;
-    paymentScheme?: PaymentScheme;
-    totalAmount?: string;
-    costBreakdown?: {
-        [key: string]: unknown;
-    };
-};
-
-export type BillInstallmentItemDto = {
-    id: string;
-    name: string;
-    installmentOrder: number;
-    amountToPay: string;
-    dueAt: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    totalPaid: string;
-    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
-};
-
-export type InitiatePaymentDto = {
-    installmentId: string;
-    installmentOrder: number;
-    description?: string;
-    statementDescriptor?: string;
-    amount: number;
-};
-
-export type PaymentIntentAttributesDto = {
-    amount: number;
-    capture_type: string;
-    client_key: string;
-    created_at: number;
-    currency: string;
-    description: string;
-    last_payment_error?: string | null;
-    livemode: boolean;
-    metadata?: {
-        [key: string]: unknown;
-    } | null;
-    next_action?: {
-        [key: string]: unknown;
-    } | null;
-    original_amount: number;
-    payment_method_allowed: Array<string>;
-    payment_method_options?: {
-        [key: string]: unknown;
-    } | null;
-    payments: Array<{
-        [key: string]: unknown;
-    }>;
-    setup_future_usage?: string | null;
-    statement_descriptor: string;
-    status: string;
-    updated_at: number;
-};
-
-export type PaymentIntentDataDto = {
-    id: string;
-    type: string;
-    attributes: PaymentIntentAttributesDto;
-};
-
-export type PaymentIntentResponseDto = {
-    data: PaymentIntentDataDto;
-};
-
-export type PaymentType = 'card' | 'paymaya' | 'gcash' | 'qrph' | 'manual';
-
-export type CreatePayment = {
-    amountPaid: string;
-    paymentType: PaymentType;
-    notes: string;
-    paymentDate: string;
-    paymongoData?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type CreatePaymentDto = {
-    payment: CreatePayment;
-    installmentId?: string;
-    description?: string;
-    statementDescriptor?: string;
-};
-
-export type BillPaymentDto = {
-    id: string;
-    installmentOrder: number;
-    amountPaid: string;
-    paymentType: PaymentType;
-    notes: string;
-    paymentDate: string;
-    paymongoData: {
-        [key: string]: unknown;
-    } | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type UpdateBillPaymentDto = {
-    installmentOrder?: number;
-    amountPaid?: string;
-    paymentType?: PaymentType;
-    notes?: string;
-    paymentDate?: string;
-    paymongoData?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type NotificationCountDto = {
-    total: number;
-    read: number;
-    unread: number;
-};
-
-export type NotificationItemDto = {
-    id: string;
-    title: string;
-    content: string;
-    role: Array<Role>;
-    createdAt: string;
-    userId?: string;
-    isRead: boolean;
-};
-
-export type PaginatedNotificationDto = {
-    meta: PaginationMetaDto;
-    notifications: Array<NotificationItemDto>;
-};
-
-export type NotificationMarkRead = {
-    notificationIds: Array<string>;
-};
-
-export type CreateProgramDto = {
-    programCode: string;
-    name: string;
-    description: string;
-    yearDuration: number;
-};
-
-export type Program = {
-    id: string;
-    programCode: string;
-    name: string;
-    description: string;
-    yearDuration: number;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type ProgramDto = {
-    id: string;
-    programCode: string;
-    name: string;
-    description: string;
-    yearDuration: number;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type PaginatedProgramsDto = {
-    meta: PaginationMetaDto;
-    programs: Array<ProgramDto>;
-};
-
-export type MajorItemDto = {
-    id: string;
-    majorCode: string;
-    name: string;
-    description: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    programId: string;
-};
-
-export type PaginatedMajorsDto = {
-    meta: PaginationMetaDto;
-    majors: Array<MajorItemDto>;
-};
-
-export type UpdateProgramDto = {
-    programCode?: string;
-    name?: string;
-    description?: string;
-    yearDuration?: number;
-};
-
-export type Turn = {
-    role: 'user' | 'model';
-    content: string;
-};
-
-export type PromptDto = {
-    question: string;
-    sessionHistory?: Array<Turn>;
-};
-
-export type ChatbotResponseDto = {
-    response: string;
-};
-
 export type EnrollmentStatus = 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
-
-export type CreateEnrollmentPeriodDto = {
-    startYear: number;
-    endYear: number;
-    term: number;
-    startDate: string;
-    endDate: string;
-    status: EnrollmentStatus;
-};
 
 export type EnrollmentPeriodDto = {
     id: string;
@@ -626,43 +314,6 @@ export type EnrollmentPeriodDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-};
-
-export type PaginatedEnrollmentPeriodsDto = {
-    meta: PaginationMetaDto;
-    /**
-     * List of enrollment periods for the current page
-     */
-    enrollments: Array<EnrollmentPeriodDto>;
-};
-
-export type UpdateEnrollmentDto = {
-    startYear?: number;
-    endYear?: number;
-    term?: number;
-    startDate?: string;
-    endDate?: string;
-};
-
-export type UpdateEnrollmentStatusDto = {
-    status: EnrollmentStatus;
-};
-
-export type CreateCourseOfferingDto = {
-    courseId: string;
-};
-
-export type CourseOffering = {
-    id: string;
-    courseId: string;
-    periodId: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type CreateCourseOfferingCurriculumDto = {
-    curriculumId: string;
 };
 
 export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
@@ -693,129 +344,12 @@ export type DetailedCourseSectionDto = {
     mentorId: string | null;
 };
 
-export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
-
-export type DetailedCourseOfferingSubsetDto = {
-    course: CourseDto;
-};
-
-export type DetailedCourseEnrollmentDto = {
-    id: string;
-    status: CourseEnrollmentStatus;
-    startedAt: string;
-    completedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    studentId: string;
-    courseOfferingId: string;
-    courseSectionId: string;
-    courseSection?: DetailedCourseSectionDto;
-    courseOffering?: DetailedCourseOfferingSubsetDto;
-};
-
-export type DetailedCourseOfferingDto = {
-    id: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    course: CourseDto;
-    courseSections: Array<DetailedCourseSectionDto>;
-    courseEnrollments: Array<DetailedCourseEnrollmentDto>;
-    periodId: string;
-};
-
-export type PaginatedCourseOfferingsDto = {
-    meta: PaginationMetaDto;
-    /**
-     * List of course offerings for the current page
-     */
-    courseOfferings: Array<DetailedCourseOfferingDto>;
-};
-
-export type CourseOfferingDto = {
-    id: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type CourseSectionDto = {
-    id: string;
-    name: string;
-    maxSlot: number;
-    startSched: string;
-    endSched: string;
-    days: Array<Days>;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type PaginatedCourseSectionsDto = {
-    meta: PaginationMetaDto;
-    /**
-     * List of course sections for the current page
-     */
-    courseSections: Array<CourseSectionDto>;
-};
-
-export type CreateCourseSectionFullDto = {
-    name: string;
-    maxSlot: number;
-    days: Array<Days>;
-    startSched: string;
-    endSched: string;
-    mentorId?: string;
-};
-
-export type CourseOfferingWithCourseAndPeriod = {
-    id: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    course: CourseDto;
-    enrollmentPeriod: EnrollmentPeriodDto;
-};
-
-export type CourseSectionWithCourseOfferingDto = {
-    id: string;
-    name: string;
-    maxSlot: number;
-    startSched: string;
-    endSched: string;
-    days: Array<Days>;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    courseOffering: CourseOfferingWithCourseAndPeriod;
-};
-
-export type UpdateCourseSectionDto = {
-    [key: string]: unknown;
-};
-
-export type StudentIdentifierDto = {
-    studentId?: string;
-};
-
-export type CourseEnrollmentDto = {
-    id: string;
-    status: CourseEnrollmentStatus;
-    startedAt: string;
-    completedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type CustomDetailedCourseOfferingDto = {
     id: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
     enrollmentPeriod?: EnrollmentPeriodDto | null;
-    course: CourseDto;
     courseSections: Array<DetailedCourseSectionDto>;
     periodId: string;
 };
@@ -830,6 +364,7 @@ export type DetailedModulesDto = {
     updatedAt: string;
     deletedAt: string | null;
     courseOffering: CustomDetailedCourseOfferingDto | null;
+    course: CourseDto | null;
 };
 
 export type PaginatedModulesDto = {
@@ -1409,6 +944,502 @@ export type UpdateGroupDto = {
     members?: Array<string>;
 };
 
+export type UserStatus = 'active' | 'disabled' | 'deleted';
+
+export type AuthMetadataDto = {
+    role?: Role;
+    status?: UserStatus;
+    user_id?: string;
+};
+
+export type BillType = 'academic' | 'administrative' | 'facilities' | 'studentServices' | 'activities' | 'penalties';
+
+export type PaymentScheme = 'full' | 'installment1' | 'installment2';
+
+export type BillingCostBreakdown = {
+    cost: string;
+    name: string;
+    category: string;
+};
+
+export type CreateBillingTypedBreakdownDto = {
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
+    costBreakdown: Array<BillingCostBreakdown>;
+};
+
+export type CreateBillingDto = {
+    dueDates: Array<string>;
+    bill: CreateBillingTypedBreakdownDto;
+    userId?: string;
+};
+
+export type BillDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
+    costBreakdown: {
+        [key: string]: unknown;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type BillItemDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+    totalInstallments: number;
+    paidInstallments: number;
+    installmentDueDates: Array<string>;
+};
+
+export type PaginatedBillsDto = {
+    meta: PaginationMetaDto;
+    bills: Array<BillItemDto>;
+};
+
+export type DetailedBillDto = {
+    id: string;
+    invoiceId: number;
+    payerName: string;
+    payerEmail: string;
+    billType: BillType;
+    paymentScheme: PaymentScheme;
+    totalAmount: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+    costBreakdown: Array<BillingCostBreakdown>;
+};
+
+export type UpdateBillDto = {
+    payerName?: string;
+    payerEmail?: string;
+    billType?: BillType;
+    paymentScheme?: PaymentScheme;
+    totalAmount?: string;
+    costBreakdown?: {
+        [key: string]: unknown;
+    };
+};
+
+export type BillInstallmentItemDto = {
+    id: string;
+    name: string;
+    installmentOrder: number;
+    amountToPay: string;
+    dueAt: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    totalPaid: string;
+    status: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+};
+
+export type InitiatePaymentDto = {
+    installmentId: string;
+    installmentOrder: number;
+    description?: string;
+    statementDescriptor?: string;
+    amount: number;
+};
+
+export type PaymentIntentAttributesDto = {
+    amount: number;
+    capture_type: string;
+    client_key: string;
+    created_at: number;
+    currency: string;
+    description: string;
+    last_payment_error?: string | null;
+    livemode: boolean;
+    metadata?: {
+        [key: string]: unknown;
+    } | null;
+    next_action?: {
+        [key: string]: unknown;
+    } | null;
+    original_amount: number;
+    payment_method_allowed: Array<string>;
+    payment_method_options?: {
+        [key: string]: unknown;
+    } | null;
+    payments: Array<{
+        [key: string]: unknown;
+    }>;
+    setup_future_usage?: string | null;
+    statement_descriptor: string;
+    status: string;
+    updated_at: number;
+};
+
+export type PaymentIntentDataDto = {
+    id: string;
+    type: string;
+    attributes: PaymentIntentAttributesDto;
+};
+
+export type PaymentIntentResponseDto = {
+    data: PaymentIntentDataDto;
+};
+
+export type PaymentType = 'card' | 'paymaya' | 'gcash' | 'qrph' | 'manual';
+
+export type CreatePayment = {
+    amountPaid: string;
+    paymentType: PaymentType;
+    notes: string;
+    paymentDate: string;
+    paymongoData?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+export type CreatePaymentDto = {
+    payment: CreatePayment;
+    installmentId?: string;
+    description?: string;
+    statementDescriptor?: string;
+};
+
+export type BillPaymentDto = {
+    id: string;
+    installmentOrder: number;
+    amountPaid: string;
+    paymentType: PaymentType;
+    notes: string;
+    paymentDate: string;
+    paymongoData: {
+        [key: string]: unknown;
+    } | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UpdateBillPaymentDto = {
+    installmentOrder?: number;
+    amountPaid?: string;
+    paymentType?: PaymentType;
+    notes?: string;
+    paymentDate?: string;
+    paymongoData?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+export type NotificationCountDto = {
+    total: number;
+    read: number;
+    unread: number;
+};
+
+export type NotificationItemDto = {
+    id: string;
+    title: string;
+    content: string;
+    role: Array<Role>;
+    createdAt: string;
+    userId?: string;
+    isRead: boolean;
+};
+
+export type PaginatedNotificationDto = {
+    meta: PaginationMetaDto;
+    notifications: Array<NotificationItemDto>;
+};
+
+export type NotificationMarkRead = {
+    notificationIds: Array<string>;
+};
+
+export type CreateProgramDto = {
+    programCode: string;
+    name: string;
+    description: string;
+    yearDuration: number;
+};
+
+export type Program = {
+    id: string;
+    programCode: string;
+    name: string;
+    description: string;
+    yearDuration: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ProgramDto = {
+    id: string;
+    programCode: string;
+    name: string;
+    description: string;
+    yearDuration: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedProgramsDto = {
+    meta: PaginationMetaDto;
+    programs: Array<ProgramDto>;
+};
+
+export type MajorItemDto = {
+    id: string;
+    majorCode: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    programId: string;
+};
+
+export type PaginatedMajorsDto = {
+    meta: PaginationMetaDto;
+    majors: Array<MajorItemDto>;
+};
+
+export type UpdateProgramDto = {
+    programCode?: string;
+    name?: string;
+    description?: string;
+    yearDuration?: number;
+};
+
+export type Turn = {
+    role: 'user' | 'model';
+    content: string;
+};
+
+export type PromptDto = {
+    question: string;
+    sessionHistory?: Array<Turn>;
+};
+
+export type ChatbotResponseDto = {
+    response: string;
+};
+
+export type CreateEnrollmentPeriodItemDto = {
+    startYear: number;
+    endYear: number;
+    term: number;
+    startDate: string;
+    endDate: string;
+    status: EnrollmentStatus;
+    pricingGroupId: string;
+};
+
+export type PaginatedEnrollmentPeriodsDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of enrollment periods for the current page
+     */
+    enrollments: Array<EnrollmentPeriodDto>;
+};
+
+export type PricingGroupDto = {
+    id: string;
+    name: string;
+    amount: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type EnrollmentPeriodItemDto = {
+    id: string;
+    startYear: number;
+    endYear: number;
+    term: number;
+    startDate: string;
+    endDate: string;
+    status: EnrollmentStatus;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    pricingGroup?: PricingGroupDto;
+};
+
+export type UpdateEnrollmentPeriodItemDto = {
+    startYear?: number;
+    endYear?: number;
+    term?: number;
+    startDate?: string;
+    endDate?: string;
+    pricingGroupId: string;
+};
+
+export type UpdateEnrollmentStatusDto = {
+    status: EnrollmentStatus;
+};
+
+export type CreateCourseOfferingDto = {
+    courseId: string;
+};
+
+export type CourseOffering = {
+    id: string;
+    courseId: string;
+    periodId: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CreateCourseOfferingCurriculumDto = {
+    curriculumId: string;
+};
+
+export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
+
+export type DetailedCourseOfferingSubsetDto = {
+    course: CourseDto;
+};
+
+export type DetailedCourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    studentId: string;
+    courseOfferingId: string;
+    courseSectionId: string;
+    courseSection?: DetailedCourseSectionDto;
+    courseOffering?: DetailedCourseOfferingSubsetDto;
+};
+
+export type DetailedCourseOfferingDto = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+    courseSections: Array<DetailedCourseSectionDto>;
+    courseEnrollments: Array<DetailedCourseEnrollmentDto>;
+    periodId: string;
+};
+
+export type PaginatedCourseOfferingsDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of course offerings for the current page
+     */
+    courseOfferings: Array<DetailedCourseOfferingDto>;
+};
+
+export type CourseOfferingDto = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type CourseSectionDto = {
+    id: string;
+    name: string;
+    maxSlot: number;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedCourseSectionsDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of course sections for the current page
+     */
+    courseSections: Array<CourseSectionDto>;
+};
+
+export type CreateCourseSectionFullDto = {
+    name: string;
+    maxSlot: number;
+    days: Array<Days>;
+    startSched: string;
+    endSched: string;
+    mentorId?: string;
+};
+
+export type CourseOfferingWithCourseAndPeriod = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: CourseDto;
+    enrollmentPeriod: EnrollmentPeriodDto;
+};
+
+export type CourseSectionWithCourseOfferingDto = {
+    id: string;
+    name: string;
+    maxSlot: number;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    courseOffering: CourseOfferingWithCourseAndPeriod;
+};
+
+export type UpdateCourseSectionDto = {
+    [key: string]: unknown;
+};
+
+export type StudentIdentifierDto = {
+    studentId?: string;
+};
+
+export type CourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type FinalizeEnrollmentDto = {
+    paymentScheme: PaymentScheme;
+    studentId?: string;
+};
+
 export type CreateMajorDto = {
     majorCode: string;
     name: string;
@@ -1563,16 +1594,6 @@ export type CreatePricingGroupDto = {
 export type CreatePricingGroupItemDto = {
     group: CreatePricingGroupDto;
     pricings: Array<string>;
-};
-
-export type PricingGroupDto = {
-    id: string;
-    name: string;
-    amount: string;
-    enabled: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
 };
 
 export type PricingGroupItemDto = {
@@ -2259,1441 +2280,6 @@ export type CoursesControllerUpdateResponses = {
 };
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
-
-export type AuthControllerGetMetadataData = {
-    body?: never;
-    path: {
-        uid: string;
-    };
-    query?: never;
-    url: '/auth/{uid}/metadata';
-};
-
-export type AuthControllerGetMetadataErrors = {
-    /**
-     * If the uid provided is invalid
-     */
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    /**
-     * If an unexpected server error has occured
-     */
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AuthControllerGetMetadataError = AuthControllerGetMetadataErrors[keyof AuthControllerGetMetadataErrors];
-
-export type AuthControllerGetMetadataResponses = {
-    200: AuthMetadataDto;
-};
-
-export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
-
-export type AuthControllerLoginData = {
-    body: UserCredentialsDto;
-    path?: never;
-    query?: never;
-    url: '/auth/login';
-};
-
-export type AuthControllerLoginErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    401: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AuthControllerLoginError = AuthControllerLoginErrors[keyof AuthControllerLoginErrors];
-
-export type AuthControllerLoginResponses = {
-    201: string;
-};
-
-export type AuthControllerLoginResponse = AuthControllerLoginResponses[keyof AuthControllerLoginResponses];
-
-export type BillingControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        sortOrder?: 'asc' | 'desc';
-        scheme?: PaymentScheme;
-        type?: BillType;
-        isDeleted?: boolean;
-        sort?: 'amountToPay' | 'totalPaid' | 'createdAt';
-        status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
-    };
-    url: '/billing';
-};
-
-export type BillingControllerFindAllErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type BillingControllerFindAllError = BillingControllerFindAllErrors[keyof BillingControllerFindAllErrors];
-
-export type BillingControllerFindAllResponses = {
-    200: PaginatedBillsDto;
-};
-
-export type BillingControllerFindAllResponse = BillingControllerFindAllResponses[keyof BillingControllerFindAllResponses];
-
-export type BillingControllerCreateData = {
-    body: CreateBillingDto;
-    path?: never;
-    query?: never;
-    url: '/billing';
-};
-
-export type BillingControllerCreateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type BillingControllerCreateError = BillingControllerCreateErrors[keyof BillingControllerCreateErrors];
-
-export type BillingControllerCreateResponses = {
-    201: BillDto;
-};
-
-export type BillingControllerCreateResponse = BillingControllerCreateResponses[keyof BillingControllerCreateResponses];
-
-export type BillingControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/billing/{id}';
-};
-
-export type BillingControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type BillingControllerRemoveError = BillingControllerRemoveErrors[keyof BillingControllerRemoveErrors];
-
-export type BillingControllerRemoveResponses = {
-    200: unknown;
-};
-
-export type BillingControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/billing/{id}';
-};
-
-export type BillingControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type BillingControllerFindOneError = BillingControllerFindOneErrors[keyof BillingControllerFindOneErrors];
-
-export type BillingControllerFindOneResponses = {
-    200: DetailedBillDto;
-};
-
-export type BillingControllerFindOneResponse = BillingControllerFindOneResponses[keyof BillingControllerFindOneResponses];
-
-export type BillingControllerUpdateData = {
-    body: UpdateBillDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/billing/{id}';
-};
-
-export type BillingControllerUpdateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type BillingControllerUpdateError = BillingControllerUpdateErrors[keyof BillingControllerUpdateErrors];
-
-export type BillingControllerUpdateResponses = {
-    200: BillDto;
-};
-
-export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
-
-export type InstallmentControllerFindAllData = {
-    body?: never;
-    path: {
-        billId: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/installments';
-};
-
-export type InstallmentControllerFindAllErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type InstallmentControllerFindAllError = InstallmentControllerFindAllErrors[keyof InstallmentControllerFindAllErrors];
-
-export type InstallmentControllerFindAllResponses = {
-    200: Array<BillInstallmentItemDto>;
-};
-
-export type InstallmentControllerFindAllResponse = InstallmentControllerFindAllResponses[keyof InstallmentControllerFindAllResponses];
-
-export type InstallmentControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/installments/{id}';
-};
-
-export type InstallmentControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type InstallmentControllerFindOneError = InstallmentControllerFindOneErrors[keyof InstallmentControllerFindOneErrors];
-
-export type InstallmentControllerFindOneResponses = {
-    200: BillInstallmentItemDto;
-};
-
-export type InstallmentControllerFindOneResponse = InstallmentControllerFindOneResponses[keyof InstallmentControllerFindOneResponses];
-
-export type PaymentsControllerPayData = {
-    body: InitiatePaymentDto;
-    path: {
-        billId: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/payments/pay';
-};
-
-export type PaymentsControllerPayErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type PaymentsControllerPayError = PaymentsControllerPayErrors[keyof PaymentsControllerPayErrors];
-
-export type PaymentsControllerPayResponses = {
-    201: PaymentIntentResponseDto;
-};
-
-export type PaymentsControllerPayResponse = PaymentsControllerPayResponses[keyof PaymentsControllerPayResponses];
-
-export type PaymentsControllerFindAllData = {
-    body?: never;
-    path: {
-        billId: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/payments';
-};
-
-export type PaymentsControllerFindAllErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type PaymentsControllerFindAllError = PaymentsControllerFindAllErrors[keyof PaymentsControllerFindAllErrors];
-
-export type PaymentsControllerFindAllResponses = {
-    200: Array<BillPaymentDto>;
-};
-
-export type PaymentsControllerFindAllResponse = PaymentsControllerFindAllResponses[keyof PaymentsControllerFindAllResponses];
-
-export type PaymentsControllerCreateData = {
-    body: CreatePaymentDto;
-    path: {
-        billId: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/payments';
-};
-
-export type PaymentsControllerCreateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type PaymentsControllerCreateError = PaymentsControllerCreateErrors[keyof PaymentsControllerCreateErrors];
-
-export type PaymentsControllerCreateResponses = {
-    201: BillPaymentDto;
-};
-
-export type PaymentsControllerCreateResponse = PaymentsControllerCreateResponses[keyof PaymentsControllerCreateResponses];
-
-export type PaymentsControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/billing/{billId}/payments/{id}';
-};
-
-export type PaymentsControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type PaymentsControllerRemoveError = PaymentsControllerRemoveErrors[keyof PaymentsControllerRemoveErrors];
-
-export type PaymentsControllerRemoveResponses = {
-    200: unknown;
-};
-
-export type PaymentsControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/payments/{id}';
-};
-
-export type PaymentsControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type PaymentsControllerFindOneError = PaymentsControllerFindOneErrors[keyof PaymentsControllerFindOneErrors];
-
-export type PaymentsControllerFindOneResponses = {
-    200: BillPaymentDto;
-};
-
-export type PaymentsControllerFindOneResponse = PaymentsControllerFindOneResponses[keyof PaymentsControllerFindOneResponses];
-
-export type PaymentsControllerUpdateData = {
-    body: UpdateBillPaymentDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/billing/{billId}/payments/{id}';
-};
-
-export type PaymentsControllerUpdateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type PaymentsControllerUpdateError = PaymentsControllerUpdateErrors[keyof PaymentsControllerUpdateErrors];
-
-export type PaymentsControllerUpdateResponses = {
-    200: BillPaymentDto;
-};
-
-export type PaymentsControllerUpdateResponse = PaymentsControllerUpdateResponses[keyof PaymentsControllerUpdateResponses];
-
-export type NotificationsControllerSubscribeData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/notifications/subscribe';
-};
-
-export type NotificationsControllerSubscribeResponses = {
-    200: {
-        [key: string]: unknown;
-    };
-};
-
-export type NotificationsControllerSubscribeResponse = NotificationsControllerSubscribeResponses[keyof NotificationsControllerSubscribeResponses];
-
-export type NotificationsControllerGetCountData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/notifications/count';
-};
-
-export type NotificationsControllerGetCountResponses = {
-    200: NotificationCountDto;
-};
-
-export type NotificationsControllerGetCountResponse = NotificationsControllerGetCountResponses[keyof NotificationsControllerGetCountResponses];
-
-export type NotificationsControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        type?: 'read' | 'unread';
-    };
-    url: '/notifications';
-};
-
-export type NotificationsControllerFindAllResponses = {
-    200: PaginatedNotificationDto;
-};
-
-export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
-
-export type NotificationsControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/notifications/{id}';
-};
-
-export type NotificationsControllerFindOneResponses = {
-    200: NotificationItemDto;
-};
-
-export type NotificationsControllerFindOneResponse = NotificationsControllerFindOneResponses[keyof NotificationsControllerFindOneResponses];
-
-export type NotificationsControllerMarkAsReadData = {
-    body: NotificationMarkRead;
-    path?: never;
-    query?: never;
-    url: '/notifications/mark-read';
-};
-
-export type NotificationsControllerMarkAsReadResponses = {
-    201: unknown;
-};
-
-export type NotificationsControllerMarkAllAsReadData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/notifications/mark-read/all';
-};
-
-export type NotificationsControllerMarkAllAsReadResponses = {
-    201: unknown;
-};
-
-export type ProgramControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/programs';
-};
-
-export type ProgramControllerFindAllErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ProgramControllerFindAllError = ProgramControllerFindAllErrors[keyof ProgramControllerFindAllErrors];
-
-export type ProgramControllerFindAllResponses = {
-    /**
-     * List of programs retrieved successfully
-     */
-    200: PaginatedProgramsDto;
-};
-
-export type ProgramControllerFindAllResponse = ProgramControllerFindAllResponses[keyof ProgramControllerFindAllResponses];
-
-export type ProgramControllerCreateData = {
-    body: CreateProgramDto;
-    path?: never;
-    query?: never;
-    url: '/programs';
-};
-
-export type ProgramControllerCreateErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ProgramControllerCreateError = ProgramControllerCreateErrors[keyof ProgramControllerCreateErrors];
-
-export type ProgramControllerCreateResponses = {
-    201: Program;
-};
-
-export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
-
-export type ProgramControllerFindAllMajorsData = {
-    body?: never;
-    path: {
-        programId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/programs/{programId}/majors';
-};
-
-export type ProgramControllerFindAllMajorsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ProgramControllerFindAllMajorsError = ProgramControllerFindAllMajorsErrors[keyof ProgramControllerFindAllMajorsErrors];
-
-export type ProgramControllerFindAllMajorsResponses = {
-    200: PaginatedMajorsDto;
-};
-
-export type ProgramControllerFindAllMajorsResponse = ProgramControllerFindAllMajorsResponses[keyof ProgramControllerFindAllMajorsResponses];
-
-export type ProgramControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/programs/{id}';
-};
-
-export type ProgramControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ProgramControllerRemoveError = ProgramControllerRemoveErrors[keyof ProgramControllerRemoveErrors];
-
-export type ProgramControllerRemoveResponses = {
-    /**
-     * Program deleted successfully
-     */
-    200: {
-        message?: string;
-    };
-};
-
-export type ProgramControllerRemoveResponse = ProgramControllerRemoveResponses[keyof ProgramControllerRemoveResponses];
-
-export type ProgramControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/programs/{id}';
-};
-
-export type ProgramControllerFindOneErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ProgramControllerFindOneError = ProgramControllerFindOneErrors[keyof ProgramControllerFindOneErrors];
-
-export type ProgramControllerFindOneResponses = {
-    /**
-     * Program retrieved successfully
-     */
-    200: Program;
-};
-
-export type ProgramControllerFindOneResponse = ProgramControllerFindOneResponses[keyof ProgramControllerFindOneResponses];
-
-export type ProgramControllerUpdateData = {
-    body: UpdateProgramDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/programs/{id}';
-};
-
-export type ProgramControllerUpdateErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ProgramControllerUpdateError = ProgramControllerUpdateErrors[keyof ProgramControllerUpdateErrors];
-
-export type ProgramControllerUpdateResponses = {
-    /**
-     * Program updated successfully
-     */
-    200: Program;
-};
-
-export type ProgramControllerUpdateResponse = ProgramControllerUpdateResponses[keyof ProgramControllerUpdateResponses];
-
-export type ChatbotControllerPromptData = {
-    body: PromptDto;
-    path?: never;
-    query?: never;
-    url: '/chatbot';
-};
-
-export type ChatbotControllerPromptErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type ChatbotControllerPromptError = ChatbotControllerPromptErrors[keyof ChatbotControllerPromptErrors];
-
-export type ChatbotControllerPromptResponses = {
-    201: ChatbotResponseDto;
-};
-
-export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
-
-export type EnrollmentControllerFindAllEnrollmentsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/enrollments';
-};
-
-export type EnrollmentControllerFindAllEnrollmentsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindAllEnrollmentsError = EnrollmentControllerFindAllEnrollmentsErrors[keyof EnrollmentControllerFindAllEnrollmentsErrors];
-
-export type EnrollmentControllerFindAllEnrollmentsResponses = {
-    200: PaginatedEnrollmentPeriodsDto;
-};
-
-export type EnrollmentControllerFindAllEnrollmentsResponse = EnrollmentControllerFindAllEnrollmentsResponses[keyof EnrollmentControllerFindAllEnrollmentsResponses];
-
-export type EnrollmentControllerCreateEnrollmentData = {
-    body: CreateEnrollmentPeriodDto;
-    path?: never;
-    query?: never;
-    url: '/enrollments';
-};
-
-export type EnrollmentControllerCreateEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerCreateEnrollmentError = EnrollmentControllerCreateEnrollmentErrors[keyof EnrollmentControllerCreateEnrollmentErrors];
-
-export type EnrollmentControllerCreateEnrollmentResponses = {
-    201: EnrollmentPeriodDto;
-};
-
-export type EnrollmentControllerCreateEnrollmentResponse = EnrollmentControllerCreateEnrollmentResponses[keyof EnrollmentControllerCreateEnrollmentResponses];
-
-export type EnrollmentControllerFindActiveEnrollmentData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/enrollments/active';
-};
-
-export type EnrollmentControllerFindActiveEnrollmentErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindActiveEnrollmentError = EnrollmentControllerFindActiveEnrollmentErrors[keyof EnrollmentControllerFindActiveEnrollmentErrors];
-
-export type EnrollmentControllerFindActiveEnrollmentResponses = {
-    200: EnrollmentPeriodDto;
-};
-
-export type EnrollmentControllerFindActiveEnrollmentResponse = EnrollmentControllerFindActiveEnrollmentResponses[keyof EnrollmentControllerFindActiveEnrollmentResponses];
-
-export type EnrollmentControllerRemoveEnrollmentData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/enrollments/{enrollmentId}';
-};
-
-export type EnrollmentControllerRemoveEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerRemoveEnrollmentError = EnrollmentControllerRemoveEnrollmentErrors[keyof EnrollmentControllerRemoveEnrollmentErrors];
-
-export type EnrollmentControllerRemoveEnrollmentResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type EnrollmentControllerRemoveEnrollmentResponse = EnrollmentControllerRemoveEnrollmentResponses[keyof EnrollmentControllerRemoveEnrollmentResponses];
-
-export type EnrollmentControllerFindOneEnrollmentData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}';
-};
-
-export type EnrollmentControllerFindOneEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerFindOneEnrollmentError = EnrollmentControllerFindOneEnrollmentErrors[keyof EnrollmentControllerFindOneEnrollmentErrors];
-
-export type EnrollmentControllerFindOneEnrollmentResponses = {
-    200: EnrollmentPeriodDto;
-};
-
-export type EnrollmentControllerFindOneEnrollmentResponse = EnrollmentControllerFindOneEnrollmentResponses[keyof EnrollmentControllerFindOneEnrollmentResponses];
-
-export type EnrollmentControllerUpdateEnrollmentData = {
-    body: UpdateEnrollmentDto;
-    path: {
-        enrollmentId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}';
-};
-
-export type EnrollmentControllerUpdateEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerUpdateEnrollmentError = EnrollmentControllerUpdateEnrollmentErrors[keyof EnrollmentControllerUpdateEnrollmentErrors];
-
-export type EnrollmentControllerUpdateEnrollmentResponses = {
-    200: EnrollmentPeriodDto;
-};
-
-export type EnrollmentControllerUpdateEnrollmentResponse = EnrollmentControllerUpdateEnrollmentResponses[keyof EnrollmentControllerUpdateEnrollmentResponses];
-
-export type EnrollmentControllerUpdateEnrollmentStatusData = {
-    body: UpdateEnrollmentStatusDto;
-    path: {
-        enrollmentId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/status';
-};
-
-export type EnrollmentControllerUpdateEnrollmentStatusErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type EnrollmentControllerUpdateEnrollmentStatusError = EnrollmentControllerUpdateEnrollmentStatusErrors[keyof EnrollmentControllerUpdateEnrollmentStatusErrors];
-
-export type EnrollmentControllerUpdateEnrollmentStatusResponses = {
-    200: EnrollmentPeriodDto;
-};
-
-export type EnrollmentControllerUpdateEnrollmentStatusResponse = EnrollmentControllerUpdateEnrollmentStatusResponses[keyof EnrollmentControllerUpdateEnrollmentStatusResponses];
-
-export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        periodId?: string;
-        status?: 'not enrolled' | 'enrolled';
-    };
-    url: '/enrollments/{enrollmentId}/offerings';
-};
-
-export type CourseOfferingControllerFindCourseOfferingsByPeriodResponses = {
-    200: PaginatedCourseOfferingsDto;
-};
-
-export type CourseOfferingControllerFindCourseOfferingsByPeriodResponse = CourseOfferingControllerFindCourseOfferingsByPeriodResponses[keyof CourseOfferingControllerFindCourseOfferingsByPeriodResponses];
-
-export type CourseOfferingControllerCreateCourseOfferingData = {
-    body: CreateCourseOfferingDto;
-    path: {
-        enrollmentId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings';
-};
-
-export type CourseOfferingControllerCreateCourseOfferingErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseOfferingControllerCreateCourseOfferingError = CourseOfferingControllerCreateCourseOfferingErrors[keyof CourseOfferingControllerCreateCourseOfferingErrors];
-
-export type CourseOfferingControllerCreateCourseOfferingResponses = {
-    201: CourseOffering;
-};
-
-export type CourseOfferingControllerCreateCourseOfferingResponse = CourseOfferingControllerCreateCourseOfferingResponses[keyof CourseOfferingControllerCreateCourseOfferingResponses];
-
-export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData = {
-    body: CreateCourseOfferingCurriculumDto;
-    path: {
-        enrollmentId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/curriculum';
-};
-
-export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdError = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors];
-
-export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses = {
-    201: Array<CourseOffering>;
-};
-
-export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponse = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses];
-
-export type CourseOfferingControllerRemoveCourseOfferingData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}';
-};
-
-export type CourseOfferingControllerRemoveCourseOfferingErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseOfferingControllerRemoveCourseOfferingError = CourseOfferingControllerRemoveCourseOfferingErrors[keyof CourseOfferingControllerRemoveCourseOfferingErrors];
-
-export type CourseOfferingControllerRemoveCourseOfferingResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type CourseOfferingControllerRemoveCourseOfferingResponse = CourseOfferingControllerRemoveCourseOfferingResponses[keyof CourseOfferingControllerRemoveCourseOfferingResponses];
-
-export type CourseOfferingControllerFindOneCourseOfferingData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}';
-};
-
-export type CourseOfferingControllerFindOneCourseOfferingErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseOfferingControllerFindOneCourseOfferingError = CourseOfferingControllerFindOneCourseOfferingErrors[keyof CourseOfferingControllerFindOneCourseOfferingErrors];
-
-export type CourseOfferingControllerFindOneCourseOfferingResponses = {
-    200: CourseOfferingDto;
-};
-
-export type CourseOfferingControllerFindOneCourseOfferingResponse = CourseOfferingControllerFindOneCourseOfferingResponses[keyof CourseOfferingControllerFindOneCourseOfferingResponses];
-
-export type CourseSectionControllerFindAllCourseSectionsData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/enrollments/{enrollmentId}/sections';
-};
-
-export type CourseSectionControllerFindAllCourseSectionsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerFindAllCourseSectionsError = CourseSectionControllerFindAllCourseSectionsErrors[keyof CourseSectionControllerFindAllCourseSectionsErrors];
-
-export type CourseSectionControllerFindAllCourseSectionsResponses = {
-    200: PaginatedCourseSectionsDto;
-};
-
-export type CourseSectionControllerFindAllCourseSectionsResponse = CourseSectionControllerFindAllCourseSectionsResponses[keyof CourseSectionControllerFindAllCourseSectionsResponses];
-
-export type CourseSectionControllerFindAllCourseSectionsForOfferingData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
-};
-
-export type CourseSectionControllerFindAllCourseSectionsForOfferingErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerFindAllCourseSectionsForOfferingError = CourseSectionControllerFindAllCourseSectionsForOfferingErrors[keyof CourseSectionControllerFindAllCourseSectionsForOfferingErrors];
-
-export type CourseSectionControllerFindAllCourseSectionsForOfferingResponses = {
-    200: PaginatedCourseSectionsDto;
-};
-
-export type CourseSectionControllerFindAllCourseSectionsForOfferingResponse = CourseSectionControllerFindAllCourseSectionsForOfferingResponses[keyof CourseSectionControllerFindAllCourseSectionsForOfferingResponses];
-
-export type CourseSectionControllerCreateCourseSectionData = {
-    body: CreateCourseSectionFullDto;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
-};
-
-export type CourseSectionControllerCreateCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerCreateCourseSectionError = CourseSectionControllerCreateCourseSectionErrors[keyof CourseSectionControllerCreateCourseSectionErrors];
-
-export type CourseSectionControllerCreateCourseSectionResponses = {
-    201: CourseSectionDto;
-};
-
-export type CourseSectionControllerCreateCourseSectionResponse = CourseSectionControllerCreateCourseSectionResponses[keyof CourseSectionControllerCreateCourseSectionResponses];
-
-export type CourseSectionControllerRemoveCourseSectionData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
-};
-
-export type CourseSectionControllerRemoveCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerRemoveCourseSectionError = CourseSectionControllerRemoveCourseSectionErrors[keyof CourseSectionControllerRemoveCourseSectionErrors];
-
-export type CourseSectionControllerRemoveCourseSectionResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type CourseSectionControllerRemoveCourseSectionResponse = CourseSectionControllerRemoveCourseSectionResponses[keyof CourseSectionControllerRemoveCourseSectionResponses];
-
-export type CourseSectionControllerFindOneCourseSectionData = {
-    body?: never;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
-};
-
-export type CourseSectionControllerFindOneCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerFindOneCourseSectionError = CourseSectionControllerFindOneCourseSectionErrors[keyof CourseSectionControllerFindOneCourseSectionErrors];
-
-export type CourseSectionControllerFindOneCourseSectionResponses = {
-    200: CourseSectionDto;
-};
-
-export type CourseSectionControllerFindOneCourseSectionResponse = CourseSectionControllerFindOneCourseSectionResponses[keyof CourseSectionControllerFindOneCourseSectionResponses];
-
-export type CourseSectionControllerUpdateCourseSectionData = {
-    body: UpdateCourseSectionDto;
-    path: {
-        enrollmentId: string;
-        offeringId: string;
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
-};
-
-export type CourseSectionControllerUpdateCourseSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerUpdateCourseSectionError = CourseSectionControllerUpdateCourseSectionErrors[keyof CourseSectionControllerUpdateCourseSectionErrors];
-
-export type CourseSectionControllerUpdateCourseSectionResponses = {
-    200: CourseSectionDto;
-};
-
-export type CourseSectionControllerUpdateCourseSectionResponse = CourseSectionControllerUpdateCourseSectionResponses[keyof CourseSectionControllerUpdateCourseSectionResponses];
-
-export type CourseSectionControllerFindOneCourseSectionByIdData = {
-    body?: never;
-    path: {
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollments/sections/{sectionId}/course';
-};
-
-export type CourseSectionControllerFindOneCourseSectionByIdErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseSectionControllerFindOneCourseSectionByIdError = CourseSectionControllerFindOneCourseSectionByIdErrors[keyof CourseSectionControllerFindOneCourseSectionByIdErrors];
-
-export type CourseSectionControllerFindOneCourseSectionByIdResponses = {
-    200: CourseSectionWithCourseOfferingDto;
-};
-
-export type CourseSectionControllerFindOneCourseSectionByIdResponse = CourseSectionControllerFindOneCourseSectionByIdResponses[keyof CourseSectionControllerFindOneCourseSectionByIdResponses];
-
-export type CourseEnrollmentControllerGetCourseEnrollmentsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/enrollment/student/sections';
-};
-
-export type CourseEnrollmentControllerGetCourseEnrollmentsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseEnrollmentControllerGetCourseEnrollmentsError = CourseEnrollmentControllerGetCourseEnrollmentsErrors[keyof CourseEnrollmentControllerGetCourseEnrollmentsErrors];
-
-export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
-    201: Array<DetailedCourseEnrollmentDto>;
-};
-
-export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];
-
-export type CourseEnrollmentControllerDropCourseEnrollmentData = {
-    body: StudentIdentifierDto;
-    path: {
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollment/student/sections/{sectionId}';
-};
-
-export type CourseEnrollmentControllerDropCourseEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseEnrollmentControllerDropCourseEnrollmentError = CourseEnrollmentControllerDropCourseEnrollmentErrors[keyof CourseEnrollmentControllerDropCourseEnrollmentErrors];
-
-export type CourseEnrollmentControllerDropCourseEnrollmentResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type CourseEnrollmentControllerDropCourseEnrollmentResponse = CourseEnrollmentControllerDropCourseEnrollmentResponses[keyof CourseEnrollmentControllerDropCourseEnrollmentResponses];
-
-export type CourseEnrollmentControllerCreateCourseEnrollmentData = {
-    body: StudentIdentifierDto;
-    path: {
-        sectionId: string;
-    };
-    query?: never;
-    url: '/enrollment/student/sections/{sectionId}';
-};
-
-export type CourseEnrollmentControllerCreateCourseEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseEnrollmentControllerCreateCourseEnrollmentError = CourseEnrollmentControllerCreateCourseEnrollmentErrors[keyof CourseEnrollmentControllerCreateCourseEnrollmentErrors];
-
-export type CourseEnrollmentControllerCreateCourseEnrollmentResponses = {
-    201: CourseEnrollmentDto;
-};
-
-export type CourseEnrollmentControllerCreateCourseEnrollmentResponse = CourseEnrollmentControllerCreateCourseEnrollmentResponses[keyof CourseEnrollmentControllerCreateCourseEnrollmentResponses];
-
-export type CourseEnrollmentControllerFinalizeCourseEnrollmentData = {
-    body?: StudentIdentifierDto;
-    path?: never;
-    query?: never;
-    url: '/enrollment/student/finalize';
-};
-
-export type CourseEnrollmentControllerFinalizeCourseEnrollmentErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type CourseEnrollmentControllerFinalizeCourseEnrollmentError = CourseEnrollmentControllerFinalizeCourseEnrollmentErrors[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentErrors];
-
-export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
-    200: {
-        message?: string;
-        studentId?: string;
-    };
-    201: unknown;
-};
-
-export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
 
 export type LmsControllerFindAllForStudentData = {
     body?: never;
@@ -4688,6 +3274,1441 @@ export type GroupControllerUpdateResponses = {
 };
 
 export type GroupControllerUpdateResponse = GroupControllerUpdateResponses[keyof GroupControllerUpdateResponses];
+
+export type AuthControllerGetMetadataData = {
+    body?: never;
+    path: {
+        uid: string;
+    };
+    query?: never;
+    url: '/auth/{uid}/metadata';
+};
+
+export type AuthControllerGetMetadataErrors = {
+    /**
+     * If the uid provided is invalid
+     */
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    /**
+     * If an unexpected server error has occured
+     */
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AuthControllerGetMetadataError = AuthControllerGetMetadataErrors[keyof AuthControllerGetMetadataErrors];
+
+export type AuthControllerGetMetadataResponses = {
+    200: AuthMetadataDto;
+};
+
+export type AuthControllerGetMetadataResponse = AuthControllerGetMetadataResponses[keyof AuthControllerGetMetadataResponses];
+
+export type AuthControllerLoginData = {
+    body: UserCredentialsDto;
+    path?: never;
+    query?: never;
+    url: '/auth/login';
+};
+
+export type AuthControllerLoginErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    401: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AuthControllerLoginError = AuthControllerLoginErrors[keyof AuthControllerLoginErrors];
+
+export type AuthControllerLoginResponses = {
+    201: string;
+};
+
+export type AuthControllerLoginResponse = AuthControllerLoginResponses[keyof AuthControllerLoginResponses];
+
+export type BillingControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        sortOrder?: 'asc' | 'desc';
+        scheme?: PaymentScheme;
+        type?: BillType;
+        isDeleted?: boolean;
+        sort?: 'amountToPay' | 'totalPaid' | 'createdAt';
+        status?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+    };
+    url: '/billing';
+};
+
+export type BillingControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerFindAllError = BillingControllerFindAllErrors[keyof BillingControllerFindAllErrors];
+
+export type BillingControllerFindAllResponses = {
+    200: PaginatedBillsDto;
+};
+
+export type BillingControllerFindAllResponse = BillingControllerFindAllResponses[keyof BillingControllerFindAllResponses];
+
+export type BillingControllerCreateData = {
+    body: CreateBillingDto;
+    path?: never;
+    query?: never;
+    url: '/billing';
+};
+
+export type BillingControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerCreateError = BillingControllerCreateErrors[keyof BillingControllerCreateErrors];
+
+export type BillingControllerCreateResponses = {
+    201: BillDto;
+};
+
+export type BillingControllerCreateResponse = BillingControllerCreateResponses[keyof BillingControllerCreateResponses];
+
+export type BillingControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/billing/{id}';
+};
+
+export type BillingControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerRemoveError = BillingControllerRemoveErrors[keyof BillingControllerRemoveErrors];
+
+export type BillingControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type BillingControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerFindOneError = BillingControllerFindOneErrors[keyof BillingControllerFindOneErrors];
+
+export type BillingControllerFindOneResponses = {
+    200: DetailedBillDto;
+};
+
+export type BillingControllerFindOneResponse = BillingControllerFindOneResponses[keyof BillingControllerFindOneResponses];
+
+export type BillingControllerUpdateData = {
+    body: UpdateBillDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{id}';
+};
+
+export type BillingControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type BillingControllerUpdateError = BillingControllerUpdateErrors[keyof BillingControllerUpdateErrors];
+
+export type BillingControllerUpdateResponses = {
+    200: BillDto;
+};
+
+export type BillingControllerUpdateResponse = BillingControllerUpdateResponses[keyof BillingControllerUpdateResponses];
+
+export type InstallmentControllerFindAllData = {
+    body?: never;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/installments';
+};
+
+export type InstallmentControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type InstallmentControllerFindAllError = InstallmentControllerFindAllErrors[keyof InstallmentControllerFindAllErrors];
+
+export type InstallmentControllerFindAllResponses = {
+    200: Array<BillInstallmentItemDto>;
+};
+
+export type InstallmentControllerFindAllResponse = InstallmentControllerFindAllResponses[keyof InstallmentControllerFindAllResponses];
+
+export type InstallmentControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/installments/{id}';
+};
+
+export type InstallmentControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type InstallmentControllerFindOneError = InstallmentControllerFindOneErrors[keyof InstallmentControllerFindOneErrors];
+
+export type InstallmentControllerFindOneResponses = {
+    200: BillInstallmentItemDto;
+};
+
+export type InstallmentControllerFindOneResponse = InstallmentControllerFindOneResponses[keyof InstallmentControllerFindOneResponses];
+
+export type PaymentsControllerPayData = {
+    body: InitiatePaymentDto;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/pay';
+};
+
+export type PaymentsControllerPayErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerPayError = PaymentsControllerPayErrors[keyof PaymentsControllerPayErrors];
+
+export type PaymentsControllerPayResponses = {
+    201: PaymentIntentResponseDto;
+};
+
+export type PaymentsControllerPayResponse = PaymentsControllerPayResponses[keyof PaymentsControllerPayResponses];
+
+export type PaymentsControllerFindAllData = {
+    body?: never;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments';
+};
+
+export type PaymentsControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerFindAllError = PaymentsControllerFindAllErrors[keyof PaymentsControllerFindAllErrors];
+
+export type PaymentsControllerFindAllResponses = {
+    200: Array<BillPaymentDto>;
+};
+
+export type PaymentsControllerFindAllResponse = PaymentsControllerFindAllResponses[keyof PaymentsControllerFindAllResponses];
+
+export type PaymentsControllerCreateData = {
+    body: CreatePaymentDto;
+    path: {
+        billId: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments';
+};
+
+export type PaymentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerCreateError = PaymentsControllerCreateErrors[keyof PaymentsControllerCreateErrors];
+
+export type PaymentsControllerCreateResponses = {
+    201: BillPaymentDto;
+};
+
+export type PaymentsControllerCreateResponse = PaymentsControllerCreateResponses[keyof PaymentsControllerCreateResponses];
+
+export type PaymentsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/billing/{billId}/payments/{id}';
+};
+
+export type PaymentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerRemoveError = PaymentsControllerRemoveErrors[keyof PaymentsControllerRemoveErrors];
+
+export type PaymentsControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type PaymentsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/{id}';
+};
+
+export type PaymentsControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerFindOneError = PaymentsControllerFindOneErrors[keyof PaymentsControllerFindOneErrors];
+
+export type PaymentsControllerFindOneResponses = {
+    200: BillPaymentDto;
+};
+
+export type PaymentsControllerFindOneResponse = PaymentsControllerFindOneResponses[keyof PaymentsControllerFindOneResponses];
+
+export type PaymentsControllerUpdateData = {
+    body: UpdateBillPaymentDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/billing/{billId}/payments/{id}';
+};
+
+export type PaymentsControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type PaymentsControllerUpdateError = PaymentsControllerUpdateErrors[keyof PaymentsControllerUpdateErrors];
+
+export type PaymentsControllerUpdateResponses = {
+    200: BillPaymentDto;
+};
+
+export type PaymentsControllerUpdateResponse = PaymentsControllerUpdateResponses[keyof PaymentsControllerUpdateResponses];
+
+export type NotificationsControllerSubscribeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/subscribe';
+};
+
+export type NotificationsControllerSubscribeResponses = {
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type NotificationsControllerSubscribeResponse = NotificationsControllerSubscribeResponses[keyof NotificationsControllerSubscribeResponses];
+
+export type NotificationsControllerGetCountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/count';
+};
+
+export type NotificationsControllerGetCountResponses = {
+    200: NotificationCountDto;
+};
+
+export type NotificationsControllerGetCountResponse = NotificationsControllerGetCountResponses[keyof NotificationsControllerGetCountResponses];
+
+export type NotificationsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        type?: 'read' | 'unread';
+    };
+    url: '/notifications';
+};
+
+export type NotificationsControllerFindAllResponses = {
+    200: PaginatedNotificationDto;
+};
+
+export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
+
+export type NotificationsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/notifications/{id}';
+};
+
+export type NotificationsControllerFindOneResponses = {
+    200: NotificationItemDto;
+};
+
+export type NotificationsControllerFindOneResponse = NotificationsControllerFindOneResponses[keyof NotificationsControllerFindOneResponses];
+
+export type NotificationsControllerMarkAsReadData = {
+    body: NotificationMarkRead;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read';
+};
+
+export type NotificationsControllerMarkAsReadResponses = {
+    201: unknown;
+};
+
+export type NotificationsControllerMarkAllAsReadData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read/all';
+};
+
+export type NotificationsControllerMarkAllAsReadResponses = {
+    201: unknown;
+};
+
+export type ProgramControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/programs';
+};
+
+export type ProgramControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindAllError = ProgramControllerFindAllErrors[keyof ProgramControllerFindAllErrors];
+
+export type ProgramControllerFindAllResponses = {
+    /**
+     * List of programs retrieved successfully
+     */
+    200: PaginatedProgramsDto;
+};
+
+export type ProgramControllerFindAllResponse = ProgramControllerFindAllResponses[keyof ProgramControllerFindAllResponses];
+
+export type ProgramControllerCreateData = {
+    body: CreateProgramDto;
+    path?: never;
+    query?: never;
+    url: '/programs';
+};
+
+export type ProgramControllerCreateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerCreateError = ProgramControllerCreateErrors[keyof ProgramControllerCreateErrors];
+
+export type ProgramControllerCreateResponses = {
+    201: Program;
+};
+
+export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
+
+export type ProgramControllerFindAllMajorsData = {
+    body?: never;
+    path: {
+        programId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/programs/{programId}/majors';
+};
+
+export type ProgramControllerFindAllMajorsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindAllMajorsError = ProgramControllerFindAllMajorsErrors[keyof ProgramControllerFindAllMajorsErrors];
+
+export type ProgramControllerFindAllMajorsResponses = {
+    200: PaginatedMajorsDto;
+};
+
+export type ProgramControllerFindAllMajorsResponse = ProgramControllerFindAllMajorsResponses[keyof ProgramControllerFindAllMajorsResponses];
+
+export type ProgramControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/programs/{id}';
+};
+
+export type ProgramControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerRemoveError = ProgramControllerRemoveErrors[keyof ProgramControllerRemoveErrors];
+
+export type ProgramControllerRemoveResponses = {
+    /**
+     * Program deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type ProgramControllerRemoveResponse = ProgramControllerRemoveResponses[keyof ProgramControllerRemoveResponses];
+
+export type ProgramControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/programs/{id}';
+};
+
+export type ProgramControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerFindOneError = ProgramControllerFindOneErrors[keyof ProgramControllerFindOneErrors];
+
+export type ProgramControllerFindOneResponses = {
+    /**
+     * Program retrieved successfully
+     */
+    200: Program;
+};
+
+export type ProgramControllerFindOneResponse = ProgramControllerFindOneResponses[keyof ProgramControllerFindOneResponses];
+
+export type ProgramControllerUpdateData = {
+    body: UpdateProgramDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/programs/{id}';
+};
+
+export type ProgramControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ProgramControllerUpdateError = ProgramControllerUpdateErrors[keyof ProgramControllerUpdateErrors];
+
+export type ProgramControllerUpdateResponses = {
+    /**
+     * Program updated successfully
+     */
+    200: Program;
+};
+
+export type ProgramControllerUpdateResponse = ProgramControllerUpdateResponses[keyof ProgramControllerUpdateResponses];
+
+export type ChatbotControllerPromptData = {
+    body: PromptDto;
+    path?: never;
+    query?: never;
+    url: '/chatbot';
+};
+
+export type ChatbotControllerPromptErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type ChatbotControllerPromptError = ChatbotControllerPromptErrors[keyof ChatbotControllerPromptErrors];
+
+export type ChatbotControllerPromptResponses = {
+    201: ChatbotResponseDto;
+};
+
+export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
+
+export type EnrollmentControllerFindAllEnrollmentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/enrollments';
+};
+
+export type EnrollmentControllerFindAllEnrollmentsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerFindAllEnrollmentsError = EnrollmentControllerFindAllEnrollmentsErrors[keyof EnrollmentControllerFindAllEnrollmentsErrors];
+
+export type EnrollmentControllerFindAllEnrollmentsResponses = {
+    200: PaginatedEnrollmentPeriodsDto;
+};
+
+export type EnrollmentControllerFindAllEnrollmentsResponse = EnrollmentControllerFindAllEnrollmentsResponses[keyof EnrollmentControllerFindAllEnrollmentsResponses];
+
+export type EnrollmentControllerCreateEnrollmentData = {
+    body: CreateEnrollmentPeriodItemDto;
+    path?: never;
+    query?: never;
+    url: '/enrollments';
+};
+
+export type EnrollmentControllerCreateEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerCreateEnrollmentError = EnrollmentControllerCreateEnrollmentErrors[keyof EnrollmentControllerCreateEnrollmentErrors];
+
+export type EnrollmentControllerCreateEnrollmentResponses = {
+    201: EnrollmentPeriodDto;
+};
+
+export type EnrollmentControllerCreateEnrollmentResponse = EnrollmentControllerCreateEnrollmentResponses[keyof EnrollmentControllerCreateEnrollmentResponses];
+
+export type EnrollmentControllerFindActiveEnrollmentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/enrollments/active';
+};
+
+export type EnrollmentControllerFindActiveEnrollmentErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerFindActiveEnrollmentError = EnrollmentControllerFindActiveEnrollmentErrors[keyof EnrollmentControllerFindActiveEnrollmentErrors];
+
+export type EnrollmentControllerFindActiveEnrollmentResponses = {
+    200: EnrollmentPeriodDto;
+};
+
+export type EnrollmentControllerFindActiveEnrollmentResponse = EnrollmentControllerFindActiveEnrollmentResponses[keyof EnrollmentControllerFindActiveEnrollmentResponses];
+
+export type EnrollmentControllerRemoveEnrollmentData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/enrollments/{enrollmentId}';
+};
+
+export type EnrollmentControllerRemoveEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerRemoveEnrollmentError = EnrollmentControllerRemoveEnrollmentErrors[keyof EnrollmentControllerRemoveEnrollmentErrors];
+
+export type EnrollmentControllerRemoveEnrollmentResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type EnrollmentControllerRemoveEnrollmentResponse = EnrollmentControllerRemoveEnrollmentResponses[keyof EnrollmentControllerRemoveEnrollmentResponses];
+
+export type EnrollmentControllerFindOneEnrollmentData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}';
+};
+
+export type EnrollmentControllerFindOneEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerFindOneEnrollmentError = EnrollmentControllerFindOneEnrollmentErrors[keyof EnrollmentControllerFindOneEnrollmentErrors];
+
+export type EnrollmentControllerFindOneEnrollmentResponses = {
+    200: EnrollmentPeriodItemDto;
+};
+
+export type EnrollmentControllerFindOneEnrollmentResponse = EnrollmentControllerFindOneEnrollmentResponses[keyof EnrollmentControllerFindOneEnrollmentResponses];
+
+export type EnrollmentControllerUpdateEnrollmentData = {
+    body: UpdateEnrollmentPeriodItemDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}';
+};
+
+export type EnrollmentControllerUpdateEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerUpdateEnrollmentError = EnrollmentControllerUpdateEnrollmentErrors[keyof EnrollmentControllerUpdateEnrollmentErrors];
+
+export type EnrollmentControllerUpdateEnrollmentResponses = {
+    200: EnrollmentPeriodDto;
+};
+
+export type EnrollmentControllerUpdateEnrollmentResponse = EnrollmentControllerUpdateEnrollmentResponses[keyof EnrollmentControllerUpdateEnrollmentResponses];
+
+export type EnrollmentControllerUpdateEnrollmentStatusData = {
+    body: UpdateEnrollmentStatusDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/status';
+};
+
+export type EnrollmentControllerUpdateEnrollmentStatusErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerUpdateEnrollmentStatusError = EnrollmentControllerUpdateEnrollmentStatusErrors[keyof EnrollmentControllerUpdateEnrollmentStatusErrors];
+
+export type EnrollmentControllerUpdateEnrollmentStatusResponses = {
+    200: EnrollmentPeriodDto;
+};
+
+export type EnrollmentControllerUpdateEnrollmentStatusResponse = EnrollmentControllerUpdateEnrollmentStatusResponses[keyof EnrollmentControllerUpdateEnrollmentStatusResponses];
+
+export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        periodId?: string;
+        status?: 'not enrolled' | 'enrolled';
+    };
+    url: '/enrollments/{enrollmentId}/offerings';
+};
+
+export type CourseOfferingControllerFindCourseOfferingsByPeriodResponses = {
+    200: PaginatedCourseOfferingsDto;
+};
+
+export type CourseOfferingControllerFindCourseOfferingsByPeriodResponse = CourseOfferingControllerFindCourseOfferingsByPeriodResponses[keyof CourseOfferingControllerFindCourseOfferingsByPeriodResponses];
+
+export type CourseOfferingControllerCreateCourseOfferingData = {
+    body: CreateCourseOfferingDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings';
+};
+
+export type CourseOfferingControllerCreateCourseOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerCreateCourseOfferingError = CourseOfferingControllerCreateCourseOfferingErrors[keyof CourseOfferingControllerCreateCourseOfferingErrors];
+
+export type CourseOfferingControllerCreateCourseOfferingResponses = {
+    201: CourseOffering;
+};
+
+export type CourseOfferingControllerCreateCourseOfferingResponse = CourseOfferingControllerCreateCourseOfferingResponses[keyof CourseOfferingControllerCreateCourseOfferingResponses];
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdData = {
+    body: CreateCourseOfferingCurriculumDto;
+    path: {
+        enrollmentId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/curriculum';
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdError = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors];
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses = {
+    201: Array<CourseOffering>;
+};
+
+export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponse = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdResponses];
+
+export type CourseOfferingControllerRemoveCourseOfferingData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}';
+};
+
+export type CourseOfferingControllerRemoveCourseOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerRemoveCourseOfferingError = CourseOfferingControllerRemoveCourseOfferingErrors[keyof CourseOfferingControllerRemoveCourseOfferingErrors];
+
+export type CourseOfferingControllerRemoveCourseOfferingResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type CourseOfferingControllerRemoveCourseOfferingResponse = CourseOfferingControllerRemoveCourseOfferingResponses[keyof CourseOfferingControllerRemoveCourseOfferingResponses];
+
+export type CourseOfferingControllerFindOneCourseOfferingData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}';
+};
+
+export type CourseOfferingControllerFindOneCourseOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseOfferingControllerFindOneCourseOfferingError = CourseOfferingControllerFindOneCourseOfferingErrors[keyof CourseOfferingControllerFindOneCourseOfferingErrors];
+
+export type CourseOfferingControllerFindOneCourseOfferingResponses = {
+    200: CourseOfferingDto;
+};
+
+export type CourseOfferingControllerFindOneCourseOfferingResponse = CourseOfferingControllerFindOneCourseOfferingResponses[keyof CourseOfferingControllerFindOneCourseOfferingResponses];
+
+export type CourseSectionControllerFindAllCourseSectionsData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/enrollments/{enrollmentId}/sections';
+};
+
+export type CourseSectionControllerFindAllCourseSectionsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindAllCourseSectionsError = CourseSectionControllerFindAllCourseSectionsErrors[keyof CourseSectionControllerFindAllCourseSectionsErrors];
+
+export type CourseSectionControllerFindAllCourseSectionsResponses = {
+    200: PaginatedCourseSectionsDto;
+};
+
+export type CourseSectionControllerFindAllCourseSectionsResponse = CourseSectionControllerFindAllCourseSectionsResponses[keyof CourseSectionControllerFindAllCourseSectionsResponses];
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
+};
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingError = CourseSectionControllerFindAllCourseSectionsForOfferingErrors[keyof CourseSectionControllerFindAllCourseSectionsForOfferingErrors];
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingResponses = {
+    200: PaginatedCourseSectionsDto;
+};
+
+export type CourseSectionControllerFindAllCourseSectionsForOfferingResponse = CourseSectionControllerFindAllCourseSectionsForOfferingResponses[keyof CourseSectionControllerFindAllCourseSectionsForOfferingResponses];
+
+export type CourseSectionControllerCreateCourseSectionData = {
+    body: CreateCourseSectionFullDto;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections';
+};
+
+export type CourseSectionControllerCreateCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerCreateCourseSectionError = CourseSectionControllerCreateCourseSectionErrors[keyof CourseSectionControllerCreateCourseSectionErrors];
+
+export type CourseSectionControllerCreateCourseSectionResponses = {
+    201: CourseSectionDto;
+};
+
+export type CourseSectionControllerCreateCourseSectionResponse = CourseSectionControllerCreateCourseSectionResponses[keyof CourseSectionControllerCreateCourseSectionResponses];
+
+export type CourseSectionControllerRemoveCourseSectionData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
+};
+
+export type CourseSectionControllerRemoveCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerRemoveCourseSectionError = CourseSectionControllerRemoveCourseSectionErrors[keyof CourseSectionControllerRemoveCourseSectionErrors];
+
+export type CourseSectionControllerRemoveCourseSectionResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type CourseSectionControllerRemoveCourseSectionResponse = CourseSectionControllerRemoveCourseSectionResponses[keyof CourseSectionControllerRemoveCourseSectionResponses];
+
+export type CourseSectionControllerFindOneCourseSectionData = {
+    body?: never;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
+};
+
+export type CourseSectionControllerFindOneCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindOneCourseSectionError = CourseSectionControllerFindOneCourseSectionErrors[keyof CourseSectionControllerFindOneCourseSectionErrors];
+
+export type CourseSectionControllerFindOneCourseSectionResponses = {
+    200: CourseSectionDto;
+};
+
+export type CourseSectionControllerFindOneCourseSectionResponse = CourseSectionControllerFindOneCourseSectionResponses[keyof CourseSectionControllerFindOneCourseSectionResponses];
+
+export type CourseSectionControllerUpdateCourseSectionData = {
+    body: UpdateCourseSectionDto;
+    path: {
+        enrollmentId: string;
+        offeringId: string;
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentId}/offerings/{offeringId}/sections/{sectionId}';
+};
+
+export type CourseSectionControllerUpdateCourseSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerUpdateCourseSectionError = CourseSectionControllerUpdateCourseSectionErrors[keyof CourseSectionControllerUpdateCourseSectionErrors];
+
+export type CourseSectionControllerUpdateCourseSectionResponses = {
+    200: CourseSectionDto;
+};
+
+export type CourseSectionControllerUpdateCourseSectionResponse = CourseSectionControllerUpdateCourseSectionResponses[keyof CourseSectionControllerUpdateCourseSectionResponses];
+
+export type CourseSectionControllerFindOneCourseSectionByIdData = {
+    body?: never;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollments/sections/{sectionId}/course';
+};
+
+export type CourseSectionControllerFindOneCourseSectionByIdErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseSectionControllerFindOneCourseSectionByIdError = CourseSectionControllerFindOneCourseSectionByIdErrors[keyof CourseSectionControllerFindOneCourseSectionByIdErrors];
+
+export type CourseSectionControllerFindOneCourseSectionByIdResponses = {
+    200: CourseSectionWithCourseOfferingDto;
+};
+
+export type CourseSectionControllerFindOneCourseSectionByIdResponse = CourseSectionControllerFindOneCourseSectionByIdResponses[keyof CourseSectionControllerFindOneCourseSectionByIdResponses];
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/enrollment/student/sections';
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsError = CourseEnrollmentControllerGetCourseEnrollmentsErrors[keyof CourseEnrollmentControllerGetCourseEnrollmentsErrors];
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
+    201: Array<DetailedCourseEnrollmentDto>;
+};
+
+export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];
+
+export type CourseEnrollmentControllerDropCourseEnrollmentData = {
+    body: StudentIdentifierDto;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollment/student/sections/{sectionId}';
+};
+
+export type CourseEnrollmentControllerDropCourseEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerDropCourseEnrollmentError = CourseEnrollmentControllerDropCourseEnrollmentErrors[keyof CourseEnrollmentControllerDropCourseEnrollmentErrors];
+
+export type CourseEnrollmentControllerDropCourseEnrollmentResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type CourseEnrollmentControllerDropCourseEnrollmentResponse = CourseEnrollmentControllerDropCourseEnrollmentResponses[keyof CourseEnrollmentControllerDropCourseEnrollmentResponses];
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentData = {
+    body: StudentIdentifierDto;
+    path: {
+        sectionId: string;
+    };
+    query?: never;
+    url: '/enrollment/student/sections/{sectionId}';
+};
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentError = CourseEnrollmentControllerCreateCourseEnrollmentErrors[keyof CourseEnrollmentControllerCreateCourseEnrollmentErrors];
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentResponses = {
+    201: CourseEnrollmentDto;
+};
+
+export type CourseEnrollmentControllerCreateCourseEnrollmentResponse = CourseEnrollmentControllerCreateCourseEnrollmentResponses[keyof CourseEnrollmentControllerCreateCourseEnrollmentResponses];
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentData = {
+    body: FinalizeEnrollmentDto;
+    path?: never;
+    query?: never;
+    url: '/enrollment/student/finalize';
+};
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentError = CourseEnrollmentControllerFinalizeCourseEnrollmentErrors[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentErrors];
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
+    200: {
+        message?: string;
+        studentId?: string;
+    };
+    201: unknown;
+};
+
+export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
 
 export type MajorControllerFindAllData = {
     body?: never;

@@ -16,6 +16,7 @@ import {
 import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
 import { CourseEnrollmentService } from './course-enrollment.service';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
+import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
 
 @Controller('enrollment/student')
 export class CourseEnrollmentController {
@@ -122,12 +123,11 @@ export class CourseEnrollmentController {
     },
   })
   @ApiException(() => [BadRequestException])
-  @ApiBody({ required: false, type: StudentIdentifierDto })
   @Roles(Role.STUDENT, Role.ADMIN)
   @Post('/finalize')
   finalizeCourseEnrollment(
     @CurrentUser() user: CurrentAuthUser,
-    @Body() dto?: StudentIdentifierDto,
+    @Body() dto: FinalizeEnrollmentDto,
   ) {
     return this.courseEnrollmentService.finalizeEnrollment(user, dto);
   }

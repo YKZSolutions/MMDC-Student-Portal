@@ -384,9 +384,9 @@ export class LmsService {
     return await this.prisma.client.module.findFirstOrThrow({
       where,
       include: {
+        course: true,
         courseOffering: {
           include: {
-            course: true,
             courseSections: {
               where:
                 role == Role.student && userId
@@ -497,9 +497,9 @@ export class LmsService {
           courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
         include: {
+          course: true,
           courseOffering: {
             include: {
-              course: true,
               courseSections: {
                 // Only include course sections that are relevant to the student
                 where: { courseEnrollments: { some: { studentId: userId } } },
@@ -610,9 +610,9 @@ export class LmsService {
           courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
         include: {
+          course: true,
           courseOffering: {
             include: {
-              course: true,
               courseSections: {
                 include: {
                   mentor: true,
@@ -701,9 +701,9 @@ export class LmsService {
           courseOffering: { enrollmentPeriod: { startDate: 'desc' } },
         },
         include: {
+          course: true,
           courseOffering: {
             include: {
-              course: true,
               courseSections: {
                 include: {
                   mentor: true,

@@ -14,12 +14,20 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
 import { Role } from '@prisma/client';
+import { BillingService } from '../billing/billing.service';
+import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
+import { addDays, addMonths } from 'date-fns';
+import {
+  BillingCostBreakdown,
+  CreateBillingTypedBreakdownDto,
+} from '../billing/dto/create-billing.dto';
 
 @Injectable()
 export class CourseEnrollmentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly billingService: BillingService,
   ) {}
 
   /**
@@ -255,11 +263,11 @@ export class CourseEnrollmentService {
    *
    * @throws BadRequestException - If no enlisted enrollments are found
    */
-  async finalizeEnrollment(user: CurrentAuthUser, dto?: StudentIdentifierDto) {
+  async finalizeEnrollment(user: CurrentAuthUser, dto: FinalizeEnrollmentDto) {
     const studentId =
       user.user_metadata.role === Role.student
         ? user.user_metadata.user_id
-        : dto?.studentId;
+        : dto.studentId;
 
     if (user.user_metadata.role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
@@ -283,7 +291,7 @@ export class CourseEnrollmentService {
         );
       }
 
-      await tx.courseEnrollment.updateMany({
+      const courseEnrollments = await tx.courseEnrollment.updateMany({
         where: {
           studentId,
           status: 'enlisted',
@@ -294,8 +302,77 @@ export class CourseEnrollmentService {
         },
       });
 
+      const student = await this.prisma.client.user.findFirstOrThrow({
+        where: { id: user.user_metadata.user_id },
+        include: {
+          userAccount: true,
+        },
+      });
+
+      const period = await this.prisma.client.enrollmentPeriod.findFirstOrThrow(
+        {
+          where: {
+            status: 'active',
+          },
+          include: {
+            pricingGroup: {
+              include: {
+                prices: true,
+              },
+            },
+          },
+        },
+      );
+
+      const { pricingGroup } = period;
+
+      if (pricingGroup) {
+        const { prices } = pricingGroup;
+
+        const tuitionFeeBase = prices.find((price) => price.type == 'tuition');
+        if (!tuitionFeeBase)
+          throw new BadRequestException(
+            "No tuition fee price for the enrollment period's pricing group",
+          );
+        const tuitionFee = tuitionFeeBase.amount.mul(courseEnrollments.count);
+        const miscFees = prices.filter((price) => price.type !== 'tuition');
+        const costBreakdown: BillingCostBreakdown[] = [
+          {
+            name: tuitionFeeBase.name,
+            category: tuitionFeeBase.type,
+            cost: tuitionFee,
+          },
+          ...miscFees.map((price) => ({
+            name: price.name,
+            cost: price.amount,
+            category: price.type,
+          })),
+        ];
+
+        const startDate = addDays(new Date(period.startDate), 10);
+        const dueDates =
+          dto.paymentScheme === 'full'
+            ? [startDate.toISOString()]
+            : [
+                startDate.toISOString(),
+                addMonths(startDate, 1).toISOString(),
+                addMonths(startDate, 2).toISOString(),
+              ];
+
+        const billDto: CreateBillingTypedBreakdownDto = {
+          payerEmail: student.userAccount?.email || '',
+          payerName: `${student.firstName} ${student.lastName}`,
+          costBreakdown,
+          billType: 'academic',
+          paymentScheme: dto?.paymentScheme,
+          totalAmount: pricingGroup.amount || 0,
+        };
+
+        await this.billingService.create(billDto, dueDates, student.id);
+      }
+
       return {
-        message: `Successfilly finalized ${enslisted.length} course enrollment(s).`,
+        message: `Successfully finalized ${enslisted.length} course enrollment(s).`,
         studentId,
       };
     });

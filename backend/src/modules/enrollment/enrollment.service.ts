@@ -16,8 +16,10 @@ import {
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollment-period.dto';
-import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
+import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
+import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
+import { EnrollmentPeriodItemDto } from './dto/enrollment-period-item.dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -44,7 +46,7 @@ export class EnrollmentService {
   })
   async createEnrollment(
     @LogParam('enrollment')
-    createEnrollmentPeriodDto: CreateEnrollmentPeriodDto,
+    createEnrollmentPeriodDto: CreateEnrollmentPeriodItemDto,
   ): Promise<EnrollmentPeriodDto> {
     return await this.prisma.client.enrollmentPeriod.create({
       data: { ...createEnrollmentPeriodDto },
@@ -71,7 +73,11 @@ export class EnrollmentService {
     const page = filters.page || 1;
 
     const [enrollments, meta] = await this.prisma.client.enrollmentPeriod
-      .paginate()
+      .paginate({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
       .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { enrollments, meta };
@@ -119,10 +125,18 @@ export class EnrollmentService {
   })
   async findOneEnrollment(
     @LogParam('id') id: string,
-  ): Promise<EnrollmentPeriodDto> {
-    return await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
-      where: { id },
-    });
+  ): Promise<EnrollmentPeriodItemDto> {
+    const enrollmentPeriod =
+      await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
+        where: { id },
+        include: {
+          pricingGroup: true,
+        },
+      });
+    return {
+      ...enrollmentPeriod,
+      pricingGroup: enrollmentPeriod.pricingGroup || undefined,
+    };
   }
 
   /**
@@ -189,7 +203,7 @@ export class EnrollmentService {
   })
   async updateEnrollment(
     @LogParam('id') id: string,
-    updateEnrollmentDto: UpdateEnrollmentDto,
+    updateEnrollmentDto: UpdateEnrollmentPeriodItemDto,
   ): Promise<EnrollmentPeriodDto> {
     const enrollment =
       await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
