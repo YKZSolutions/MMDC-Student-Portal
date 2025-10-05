@@ -194,19 +194,20 @@ function AppointmentCalendarSection() {
     authUser: { role },
   } = useAuth('protected')
 
-  const handleCloseDrawer = () => {
+  const handleOpenDrawer = () => {
     navigate({
       search: {
-        bookAppointment: undefined,
+        bookAppointment: true,
       },
     })
   }
+
   return (
     <Stack mr={50} align="end">
       {role === 'student' ? (
         <Button
           leftSection={<IconCalendarPlus size={20} />}
-          onClick={() => handleCloseDrawer()}
+          onClick={() => handleOpenDrawer()}
         >
           Book Appointment
         </Button>

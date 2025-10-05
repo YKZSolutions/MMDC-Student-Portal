@@ -39,7 +39,7 @@ export default function NotificationItemCard({
         <Group w="100%" align="start">
           <Avatar></Avatar>
           <Stack flex={1} gap={0}>
-            <Group align="start" justify="space-between">
+            <Group align="start" justify="space-between" wrap="nowrap">
               <Text
                 c={unread ? 'primary' : undefined}
                 fw={unread ? 500 : undefined}
@@ -47,7 +47,7 @@ export default function NotificationItemCard({
                 {title}
               </Text>
 
-              <Text size="sm" c="dimmed">
+              <Text size="sm" c="dimmed" ta="end">
                 {dayjs(date).fromNow()}
               </Text>
             </Group>
