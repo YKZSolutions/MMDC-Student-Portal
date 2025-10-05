@@ -4,6 +4,7 @@ import {
   type AppointmentFormInput,
   type AppointmentFormOutput,
 } from '@/features/appointment/appointment-form.schema'
+import { useAuth } from '@/features/auth/auth.hook'
 import { useQuickForm } from '@/hooks/use-quick-form'
 import type {
   AppointmentStatus,
@@ -189,6 +190,9 @@ function AppointmentList() {
 
 function AppointmentCalendarSection() {
   const navigate = route.useNavigate()
+  const {
+    authUser: { role },
+  } = useAuth('protected')
 
   const handleCloseDrawer = () => {
     navigate({
@@ -199,12 +203,17 @@ function AppointmentCalendarSection() {
   }
   return (
     <Stack mr={50} align="end">
-      <Button
-        leftSection={<IconCalendarPlus size={20} />}
-        onClick={() => handleCloseDrawer()}
-      >
-        Book Appointment
-      </Button>
+      {role === 'student' ? (
+        <Button
+          leftSection={<IconCalendarPlus size={20} />}
+          onClick={() => handleCloseDrawer()}
+        >
+          Book Appointment
+        </Button>
+      ) : (
+        <Stack h={34}></Stack>
+      )}
+
       <Calendar highlightToday />
       <AppointmentFormDrawer />
     </Stack>

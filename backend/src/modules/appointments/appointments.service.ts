@@ -9,8 +9,7 @@ import { UpdateAppointmentItemDto } from './dto/update-appointment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { Prisma, Role } from '@prisma/client';
+import { AppointmentStatus, Prisma, Role } from '@prisma/client';
 import {
   AppointmentItemDto,
   PaginatedAppointmentDto,
@@ -23,12 +22,14 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   /**
@@ -82,6 +83,12 @@ export class AppointmentsService {
         },
       },
     });
+
+    await this.notificationService.notifyUser(
+      createAppointmentDto.mentorId,
+      'Mentoring Appointment Booking',
+      `${appointment.student.firstName} ${appointment.student.lastName} has booked an appointment`,
+    );
 
     return {
       ...appointment,
@@ -397,8 +404,9 @@ export class AppointmentsService {
     role: Role,
   ): Promise<AppointmentItemDto> {
     if (
-      (role === 'student' && updateAppointmentDto.status !== 'cancelled') ||
-      (role === 'mentor' && updateAppointmentDto.status === 'cancelled')
+      role === 'student' &&
+      updateAppointmentDto.status !== 'cancelled'
+      // || (role === 'mentor' && updateAppointmentDto.status === 'cancelled')
     )
       throw new BadRequestException(
         `You are not allowed to change the status of this appointment to ${updateAppointmentDto.status}`,
@@ -433,6 +441,30 @@ export class AppointmentsService {
         },
       },
     });
+
+    const notificationMessage: Record<
+      Exclude<AppointmentStatus, 'booked' | 'finished' | 'extended'>,
+      { title: string; content: string }
+    > = {
+      approved: {
+        title: 'Appointment Accepted',
+        content: `Your appointment ${appointment.title} has been accepted`,
+      },
+      cancelled: {
+        title: 'Appointment Cancelled',
+        content: `The appointment ${appointment.title} has been cancelled`,
+      },
+      rescheduled: {
+        title: 'Appointment Rescheduled',
+        content: `Your appointment ${appointment.title} was rescheduled on another date`,
+      },
+    };
+
+    await this.notificationService.notifyUser(
+      role === 'student' ? appointment.mentor.id : appointment.student.id,
+      notificationMessage[updateAppointmentDto.status].title,
+      notificationMessage[updateAppointmentDto.status].content,
+    );
 
     return {
       ...appointment,
