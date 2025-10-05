@@ -485,7 +485,7 @@ function EnrollmentPeriodForm() {
       path: { enrollmentId: updateId || '' },
     }),
     queryKeyInvalidation: enrollmentControllerFindAllEnrollmentsQueryKey({
-      query: { page, search },
+      // query: { page, search },
     }),
   })
 
