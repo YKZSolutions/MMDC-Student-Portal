@@ -1,5 +1,6 @@
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
@@ -10,17 +11,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
-import { StudentIdentifierDto } from './dto/student-identifier.dto';
 import { Role } from '@prisma/client';
-import { BillingService } from '../billing/billing.service';
-import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
 import { addDays, addMonths } from 'date-fns';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { BillingService } from '../billing/billing.service';
 import {
   BillingCostBreakdown,
   CreateBillingTypedBreakdownDto,
 } from '../billing/dto/create-billing.dto';
+import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
+import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
+import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
+import { StudentIdentifierDto } from './dto/student-identifier.dto';
 
 @Injectable()
 export class CourseEnrollmentService {
@@ -87,6 +89,78 @@ export class CourseEnrollmentService {
     });
 
     return enrollments;
+  }
+
+  /**
+   * Retrieves all (enlisted or finalized) course enrollments across all students
+   * within the active enrollment period.
+   *
+   * This returns detailed enrollment records including the associated
+   * course offering and course section (with mentor/user data).
+   *
+   * @param filters - Optional filters for pagination and sorting
+   * @returns A list of {@link DetailedCourseEnrollmentDto} for all students
+   */
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Fetching all course enrollments with filters: ${JSON.stringify(
+        filters,
+      )}`,
+    logSuccessMessage: (result) =>
+      `Fetched ${result.enrollments.length} enrollment(s)`,
+    logErrorMessage: (err) =>
+      `Error fetching all course enrollments | Error: ${err.message}`,
+  })
+  async findAll(
+    @LogParam('filters') filters: BaseFilterDto,
+  ): Promise<PaginatedCourseEnrollmentsDto> {
+    const page: BaseFilterDto['page'] = Number(filters?.page) || 1;
+
+    const [enrollments, meta] = await this.prisma.client.courseEnrollment
+      .paginate({
+        where: {
+          status: { in: ['enlisted', 'finalized'] },
+          courseOffering: {
+            enrollmentPeriod: {
+              status: 'active',
+            },
+          },
+        },
+        include: {
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              role: true,
+            },
+          },
+          courseSection: {
+            include: {
+              mentor: true,
+            },
+          },
+          courseOffering: {
+            include: {
+              course: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+      .withPages({
+        limit: 10,
+        page: page,
+        includePageCount: true,
+      });
+
+    return {
+      enrollments,
+      meta,
+    };
   }
 
   /**
