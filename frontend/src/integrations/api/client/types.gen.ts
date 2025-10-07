@@ -1421,6 +1421,38 @@ export type UpdateCourseSectionDto = {
     [key: string]: unknown;
 };
 
+export type StudentDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+};
+
+export type CustomDetailedCourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    studentId: string;
+    courseOfferingId: string;
+    courseSectionId: string;
+    courseSection?: DetailedCourseSectionDto;
+    courseOffering?: DetailedCourseOfferingSubsetDto;
+    student: StudentDto;
+};
+
+export type PaginatedCourseEnrollmentsDto = {
+    meta: PaginationMetaDto;
+    /**
+     * List of course enrollments for the current page
+     */
+    enrollments: Array<CustomDetailedCourseEnrollmentDto>;
+};
+
 export type StudentIdentifierDto = {
     studentId?: string;
 };
@@ -4620,6 +4652,38 @@ export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
 };
 
 export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];
+
+export type CourseEnrollmentControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/enrollment/student';
+};
+
+export type CourseEnrollmentControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type CourseEnrollmentControllerFindAllError = CourseEnrollmentControllerFindAllErrors[keyof CourseEnrollmentControllerFindAllErrors];
+
+export type CourseEnrollmentControllerFindAllResponses = {
+    200: PaginatedCourseEnrollmentsDto;
+};
+
+export type CourseEnrollmentControllerFindAllResponse = CourseEnrollmentControllerFindAllResponses[keyof CourseEnrollmentControllerFindAllResponses];
 
 export type CourseEnrollmentControllerDropCourseEnrollmentData = {
     body: StudentIdentifierDto;

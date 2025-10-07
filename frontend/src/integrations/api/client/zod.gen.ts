@@ -2307,6 +2307,44 @@ export const zCourseSectionWithCourseOfferingDto = z.object({
 
 export const zUpdateCourseSectionDto = z.object({});
 
+export const zStudentDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole
+});
+
+export const zCustomDetailedCourseEnrollmentDto = z.object({
+    id: z.string(),
+    status: zCourseEnrollmentStatus,
+    startedAt: z.iso.datetime(),
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    studentId: z.uuid(),
+    courseOfferingId: z.uuid(),
+    courseSectionId: z.uuid(),
+    courseSection: z.optional(zDetailedCourseSectionDto),
+    courseOffering: z.optional(zDetailedCourseOfferingSubsetDto),
+    student: zStudentDto
+});
+
+export const zPaginatedCourseEnrollmentsDto = z.object({
+    meta: zPaginationMetaDto,
+    enrollments: z.array(zCustomDetailedCourseEnrollmentDto)
+});
+
 export const zStudentIdentifierDto = z.object({
     studentId: z.optional(z.uuid())
 });
@@ -3790,6 +3828,18 @@ export const zCourseEnrollmentControllerGetCourseEnrollmentsData = z.object({
 });
 
 export const zCourseEnrollmentControllerGetCourseEnrollmentsResponse = z.array(zDetailedCourseEnrollmentDto);
+
+export const zCourseEnrollmentControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zCourseEnrollmentControllerFindAllResponse = zPaginatedCourseEnrollmentsDto;
 
 export const zCourseEnrollmentControllerDropCourseEnrollmentData = z.object({
     body: zStudentIdentifierDto,
