@@ -1,5 +1,6 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import AdminDashboard from '@/pages/admin/dashboard/dashboard.admin'
 import StudentDashboard from '@/pages/student/dashboard/dasboard.student'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -15,7 +16,7 @@ function RouteComponent() {
       currentRole={authUser.role}
       roleRender={{
         student: <StudentDashboard />,
-        admin: <StudentDashboard />,
+        admin: <AdminDashboard />,
       }}
     />
   )
