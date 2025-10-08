@@ -1,3 +1,4 @@
+import DashboardSkeleton from '@/features/dashboard/suspense'
 import {
   billingControllerFindAllOptions,
   courseEnrollmentControllerFindAllOptions,
@@ -164,19 +165,19 @@ function AdminDashboardProvider({
 
 function AdminDashboard() {
   return (
-    <Container size="xl" w="100%" pb="xl">
+    <Container w="100%" size={'md'} pb={'xl'}>
       <Stack gap="xl">
-        {/* Header */}
-        <Box>
-          <Title order={1} fw={700} c="dark.7">
-            Dashboard
-          </Title>
-          <Text c="dimmed" size="lg" fw={500}>
-            Welcome back! Here's an overview of your system
-          </Text>
-        </Box>
-
         <Suspense fallback={<DashboardSkeleton />}>
+          {/* Header */}
+          <Box>
+            <Title c={'dark.7'} variant="hero" order={2} fw={700}>
+              Dashboard
+            </Title>
+            <Text c={'dark.3'} fw={500}>
+              Welcome back! Here's an overview of your system
+            </Text>
+          </Box>
+          
           <AdminDashboardProvider>
             {({ userStats, courseStats, enrollmentStats, billingStats }) => (
               <Stack gap="lg">
@@ -607,23 +608,6 @@ function EnrollmentCard({
         )}
       </Stack>
     </Card>
-  )
-}
-
-function DashboardSkeleton() {
-  return (
-    <Stack gap="lg">
-      <SimpleGrid cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 4 }} spacing="lg">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} p="lg" radius="md" withBorder h={120}>
-            <Stack gap="sm">
-              <Box h={20} bg="gray.2" style={{ borderRadius: rem(4) }} />
-              <Box h={32} bg="gray.2" style={{ borderRadius: rem(4) }} />
-            </Stack>
-          </Card>
-        ))}
-      </SimpleGrid>
-    </Stack>
   )
 }
 
