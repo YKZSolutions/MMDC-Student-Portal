@@ -1,11 +1,11 @@
 import {
-  Card,
-  Group,
-  rem,
-  SimpleGrid,
-  Skeleton,
-  Stack,
-  ThemeIcon,
+    Card,
+    Group,
+    rem,
+    SimpleGrid,
+    Skeleton,
+    Stack,
+    ThemeIcon,
 } from '@mantine/core'
 
 // A compact skeleton that mirrors the Admin Dashboard layout used in
@@ -13,15 +13,15 @@ import {
 // the page can use it as a Suspense fallback.
 export function DashboardSkeleton() {
   return (
-  <Stack gap="xl">
+    <Stack gap="xl">
       {/* Header */}
-  <Stack gap={4}>
+      <Stack gap={4}>
         <Skeleton height={rem(28)} width={rem(220)} />
         <Skeleton height={rem(14)} width={rem(320)} />
       </Stack>
 
       {/* Top Stats Row (3) */}
-  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
+      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i} p="lg" radius="md" withBorder h="100%">
             <Group justify="space-between" align="center">
@@ -41,7 +41,7 @@ export function DashboardSkeleton() {
 
       {/* Two large cards: Active Enrollment + Course Progress */}
       <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
-          <Card p="lg" radius="md" withBorder>
+        <Card p="lg" radius="md" withBorder>
           <Group justify="space-between" align="flex-start">
             <Group>
               <ThemeIcon size={36} radius="md" variant="light">
@@ -59,7 +59,7 @@ export function DashboardSkeleton() {
         </Card>
 
         <Card p="lg" radius="md" withBorder>
-            <Stack gap="md">
+          <Stack gap="md">
             <Group justify="space-between">
               <Group>
                 <ThemeIcon size={36} radius="md" variant="light">
@@ -128,7 +128,11 @@ export function DashboardSkeleton() {
                       <Skeleton height={rem(12)} width={rem(140)} />
                       <Skeleton height={rem(10)} width={rem(80)} />
                     </Stack>
-                    <Skeleton radius={rem(8)} height={rem(16)} width={rem(48)} />
+                    <Skeleton
+                      radius={rem(8)}
+                      height={rem(16)}
+                      width={rem(48)}
+                    />
                   </Group>
                 </Card>
               ))}
