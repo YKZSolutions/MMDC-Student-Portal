@@ -103,8 +103,6 @@ function AdminDashboardProvider({
     }),
   )
 
-  console.log(enrollmentFeedData)
-
   // Process user stats
   const users = usersData.users || []
   const userStats = {
@@ -544,7 +542,7 @@ function EnrollmentCard({
     <Card
       component={Link}
       to="/enrollment"
-      className='transition-all hover:scale-102 cursor-pointer'
+      className="transition-all hover:scale-102 cursor-pointer"
       p="lg"
       radius="md"
       withBorder
