@@ -1,32 +1,32 @@
 import {
-    billingControllerFindAllOptions,
-    courseEnrollmentControllerFindAllOptions,
-    enrollmentControllerFindActiveEnrollmentOptions,
-    lmsControllerFindAllForAdminOptions,
-    usersControllerFindAllOptions,
+  billingControllerFindAllOptions,
+  courseEnrollmentControllerFindAllOptions,
+  enrollmentControllerFindActiveEnrollmentOptions,
+  lmsControllerFindAllForAdminOptions,
+  usersControllerFindAllOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
-    ActionIcon,
-    Badge,
-    Box,
-    Card,
-    Container,
-    Group,
-    Progress,
-    rem,
-    SimpleGrid,
-    Stack,
-    Text,
-    ThemeIcon,
-    Title,
+  ActionIcon,
+  Badge,
+  Box,
+  Card,
+  Container,
+  Group,
+  Progress,
+  rem,
+  SimpleGrid,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
 } from '@mantine/core'
 import {
-    IconArrowRight,
-    IconBook,
-    IconCashBanknote,
-    IconChartBar,
-    IconClipboardList,
-    IconUsers,
+  IconArrowRight,
+  IconBook,
+  IconCashBanknote,
+  IconChartBar,
+  IconClipboardList,
+  IconUsers,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -219,7 +219,14 @@ function AdminDashboard() {
                 >
                   {/* Active Enrollment Section */}
                   {enrollmentStats.activeEnrollment && (
-                    <Card p="lg" radius="md" withBorder>
+                    <Card
+                      component={Link}
+                      to="/enrollment"
+                      p="lg"
+                      radius="md"
+                      withBorder
+                      className="transition-all hover:scale-102 cursor-pointer"
+                    >
                       <Group justify="space-between" wrap="nowrap">
                         <Group gap="md">
                           <ThemeIcon
@@ -248,22 +255,27 @@ function AdminDashboard() {
                             </Badge>
                           </Stack>
                         </Group>
-                        <Link to="/enrollment">
-                          <ActionIcon
-                            variant="light"
-                            color="cyan"
-                            size="lg"
-                            radius="md"
-                          >
-                            <IconArrowRight size={20} />
-                          </ActionIcon>
-                        </Link>
+                        <ActionIcon
+                          variant="light"
+                          color="cyan"
+                          size="lg"
+                          radius="md"
+                        >
+                          <IconArrowRight size={20} />
+                        </ActionIcon>
                       </Group>
                     </Card>
                   )}
 
                   {/* Course Progress Section */}
-                  <Card p="lg" radius="md" withBorder>
+                  <Card
+                    component={Link}
+                    to="/lms"
+                    className="transition-all hover:scale-102 cursor-pointer"
+                    p="lg"
+                    radius="md"
+                    withBorder
+                  >
                     <Stack gap="md">
                       <Group justify="space-between">
                         <Group gap="sm">
@@ -279,11 +291,9 @@ function AdminDashboard() {
                             Course Status Overview
                           </Title>
                         </Group>
-                        <Link to="/lms">
-                          <ActionIcon variant="subtle" color="violet">
-                            <IconArrowRight size={18} />
-                          </ActionIcon>
-                        </Link>
+                        <ActionIcon variant="subtle" color="violet">
+                          <IconArrowRight size={18} />
+                        </ActionIcon>
                       </Group>
 
                       <Group grow>
@@ -354,14 +364,12 @@ function AdminDashboard() {
                       },
                     }))}
                     emptyMessage="No recent bills"
-                    link="/billing"
                   />
 
                   <EnrollmentCard
                     title="Recent Enrollments"
                     enrollments={enrollmentStats.recentEnrollments}
                     emptyMessage="No recent enrollments"
-                    link="/enrollment"
                   />
                 </SimpleGrid>
               </Stack>
@@ -395,7 +403,7 @@ function StatCard({
       p="lg"
       radius="md"
       withBorder
-      className="hover:shadow-md transition-shadow cursor-pointer"
+      className="hover:scale-102 transition-all cursor-pointer"
       h="100%"
     >
       <Group justify="space-between" wrap="nowrap">
@@ -435,12 +443,19 @@ interface BillsCardProps {
   }>
   icon: React.ReactNode
   emptyMessage: string
-  link?: string
 }
 
-function BillsCard({ title, items, icon, emptyMessage, link }: BillsCardProps) {
+function BillsCard({ title, items, icon, emptyMessage }: BillsCardProps) {
   return (
-    <Card p="lg" radius="md" withBorder h="100%">
+    <Card
+      component={Link}
+      className="transition-all hover:scale-102 cursor-pointer"
+      to="/billing"
+      p="lg"
+      radius="md"
+      withBorder
+      h="100%"
+    >
       <Stack gap="md">
         <Group justify="space-between">
           <Group gap="sm">
@@ -451,13 +466,9 @@ function BillsCard({ title, items, icon, emptyMessage, link }: BillsCardProps) {
               {title}
             </Title>
           </Group>
-          {link && (
-            <Link to={link}>
-              <ActionIcon variant="subtle" color="blue">
-                <IconArrowRight size={18} />
-              </ActionIcon>
-            </Link>
-          )}
+          <ActionIcon variant="subtle" color="blue">
+            <IconArrowRight size={18} />
+          </ActionIcon>
         </Group>
 
         {items.length === 0 ? (
@@ -509,14 +520,12 @@ interface EnrollmentCardProps {
     status: string
   }>
   emptyMessage: string
-  link?: string
 }
 
 function EnrollmentCard({
   title,
   enrollments,
   emptyMessage,
-  link,
 }: EnrollmentCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -532,7 +541,15 @@ function EnrollmentCard({
   }
 
   return (
-    <Card p="lg" radius="md" withBorder h="100%">
+    <Card
+      component={Link}
+      to="/enrollment"
+      className='transition-all hover:scale-102 cursor-pointer'
+      p="lg"
+      radius="md"
+      withBorder
+      h="100%"
+    >
       <Stack gap="md">
         <Group justify="space-between">
           <Group gap="sm">
@@ -543,13 +560,9 @@ function EnrollmentCard({
               {title}
             </Title>
           </Group>
-          {link && (
-            <Link to={link}>
-              <ActionIcon variant="subtle" color="indigo">
-                <IconArrowRight size={18} />
-              </ActionIcon>
-            </Link>
-          )}
+          <ActionIcon variant="subtle" color="indigo">
+            <IconArrowRight size={18} />
+          </ActionIcon>
         </Group>
 
         {enrollments.length === 0 ? (
