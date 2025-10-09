@@ -25,7 +25,7 @@ interface ModulesStudentPageProps {
 function ModulesStudentPage() {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')
-  const [allExpanded, setAllExpanded] = useState(false)
+  const [allExpanded, setAllExpanded] = useState(true)
   const module = getMockModuleByRole(authUser.role) //TODO: replace with actual data
   const { studentProgress } = module as StudentModule
 
@@ -74,10 +74,7 @@ function ModulesStudentPage() {
       </Box>
 
       {/* Module Content */}
-      <ModulePanel
-        viewMode="student"
-        allExpanded={allExpanded}
-      />
+      <ModulePanel viewMode="student" allExpanded={allExpanded} />
     </Box>
   )
 }

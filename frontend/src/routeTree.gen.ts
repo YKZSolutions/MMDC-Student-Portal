@@ -48,11 +48,11 @@ import { Route as protectedLmsLmsCodeOverviewIndexRouteImport } from './routes/(
 import { Route as protectedLmsLmsCodeModulesIndexRouteImport } from './routes/(protected)/lms/$lmsCode/modules/index'
 import { Route as protectedLmsLmsCodeGradesIndexRouteImport } from './routes/(protected)/lms/$lmsCode/grades/index'
 import { Route as protectedLmsLmsCodeAssignmentsIndexRouteImport } from './routes/(protected)/lms/$lmsCode/assignments/index'
-import { Route as protectedLmsLmsCodeModulesEditRouteImport } from './routes/(protected)/lms/$lmsCode/modules/edit'
 import { Route as protectedLmsLmsCodeModulesCreateRouteImport } from './routes/(protected)/lms/$lmsCode/modules/create'
 import { Route as protectedLmsLmsCodeModulesItemIdIndexRouteImport } from './routes/(protected)/lms/$lmsCode/modules/$itemId/index'
 import { Route as protectedLmsLmsCodeModulesItemIdSubmitRouteImport } from './routes/(protected)/lms/$lmsCode/modules/$itemId/submit'
 import { Route as protectedLmsLmsCodeModulesItemIdPublishRouteImport } from './routes/(protected)/lms/$lmsCode/modules/$itemId/publish'
+import { Route as protectedLmsLmsCodeModulesItemIdEditRouteImport } from './routes/(protected)/lms/$lmsCode/modules/$itemId/edit'
 
 const protectedRouteRoute = protectedRouteRouteImport.update({
   id: '/(protected)',
@@ -272,12 +272,6 @@ const protectedLmsLmsCodeAssignmentsIndexRoute =
     path: '/assignments/',
     getParentRoute: () => protectedLmsLmsCodeRoute,
   } as any)
-const protectedLmsLmsCodeModulesEditRoute =
-  protectedLmsLmsCodeModulesEditRouteImport.update({
-    id: '/modules/edit',
-    path: '/modules/edit',
-    getParentRoute: () => protectedLmsLmsCodeRoute,
-  } as any)
 const protectedLmsLmsCodeModulesCreateRoute =
   protectedLmsLmsCodeModulesCreateRouteImport.update({
     id: '/modules/create',
@@ -300,6 +294,12 @@ const protectedLmsLmsCodeModulesItemIdPublishRoute =
   protectedLmsLmsCodeModulesItemIdPublishRouteImport.update({
     id: '/modules/$itemId/publish',
     path: '/modules/$itemId/publish',
+    getParentRoute: () => protectedLmsLmsCodeRoute,
+  } as any)
+const protectedLmsLmsCodeModulesItemIdEditRoute =
+  protectedLmsLmsCodeModulesItemIdEditRouteImport.update({
+    id: '/modules/$itemId/edit',
+    path: '/modules/$itemId/edit',
     getParentRoute: () => protectedLmsLmsCodeRoute,
   } as any)
 
@@ -339,11 +339,11 @@ export interface FileRoutesByFullPath {
   '/curriculum/majors': typeof protectedCurriculumMajorsIndexRoute
   '/curriculum/programs': typeof protectedCurriculumProgramsIndexRoute
   '/lms/$lmsCode/modules/create': typeof protectedLmsLmsCodeModulesCreateRoute
-  '/lms/$lmsCode/modules/edit': typeof protectedLmsLmsCodeModulesEditRoute
   '/lms/$lmsCode/assignments': typeof protectedLmsLmsCodeAssignmentsIndexRoute
   '/lms/$lmsCode/grades': typeof protectedLmsLmsCodeGradesIndexRoute
   '/lms/$lmsCode/modules': typeof protectedLmsLmsCodeModulesIndexRoute
   '/lms/$lmsCode/overview': typeof protectedLmsLmsCodeOverviewIndexRoute
+  '/lms/$lmsCode/modules/$itemId/edit': typeof protectedLmsLmsCodeModulesItemIdEditRoute
   '/lms/$lmsCode/modules/$itemId/publish': typeof protectedLmsLmsCodeModulesItemIdPublishRoute
   '/lms/$lmsCode/modules/$itemId/submit': typeof protectedLmsLmsCodeModulesItemIdSubmitRoute
   '/lms/$lmsCode/modules/$itemId': typeof protectedLmsLmsCodeModulesItemIdIndexRoute
@@ -384,11 +384,11 @@ export interface FileRoutesByTo {
   '/curriculum/majors': typeof protectedCurriculumMajorsIndexRoute
   '/curriculum/programs': typeof protectedCurriculumProgramsIndexRoute
   '/lms/$lmsCode/modules/create': typeof protectedLmsLmsCodeModulesCreateRoute
-  '/lms/$lmsCode/modules/edit': typeof protectedLmsLmsCodeModulesEditRoute
   '/lms/$lmsCode/assignments': typeof protectedLmsLmsCodeAssignmentsIndexRoute
   '/lms/$lmsCode/grades': typeof protectedLmsLmsCodeGradesIndexRoute
   '/lms/$lmsCode/modules': typeof protectedLmsLmsCodeModulesIndexRoute
   '/lms/$lmsCode/overview': typeof protectedLmsLmsCodeOverviewIndexRoute
+  '/lms/$lmsCode/modules/$itemId/edit': typeof protectedLmsLmsCodeModulesItemIdEditRoute
   '/lms/$lmsCode/modules/$itemId/publish': typeof protectedLmsLmsCodeModulesItemIdPublishRoute
   '/lms/$lmsCode/modules/$itemId/submit': typeof protectedLmsLmsCodeModulesItemIdSubmitRoute
   '/lms/$lmsCode/modules/$itemId': typeof protectedLmsLmsCodeModulesItemIdIndexRoute
@@ -431,11 +431,11 @@ export interface FileRoutesById {
   '/(protected)/curriculum/majors/': typeof protectedCurriculumMajorsIndexRoute
   '/(protected)/curriculum/programs/': typeof protectedCurriculumProgramsIndexRoute
   '/(protected)/lms/$lmsCode/modules/create': typeof protectedLmsLmsCodeModulesCreateRoute
-  '/(protected)/lms/$lmsCode/modules/edit': typeof protectedLmsLmsCodeModulesEditRoute
   '/(protected)/lms/$lmsCode/assignments/': typeof protectedLmsLmsCodeAssignmentsIndexRoute
   '/(protected)/lms/$lmsCode/grades/': typeof protectedLmsLmsCodeGradesIndexRoute
   '/(protected)/lms/$lmsCode/modules/': typeof protectedLmsLmsCodeModulesIndexRoute
   '/(protected)/lms/$lmsCode/overview/': typeof protectedLmsLmsCodeOverviewIndexRoute
+  '/(protected)/lms/$lmsCode/modules/$itemId/edit': typeof protectedLmsLmsCodeModulesItemIdEditRoute
   '/(protected)/lms/$lmsCode/modules/$itemId/publish': typeof protectedLmsLmsCodeModulesItemIdPublishRoute
   '/(protected)/lms/$lmsCode/modules/$itemId/submit': typeof protectedLmsLmsCodeModulesItemIdSubmitRoute
   '/(protected)/lms/$lmsCode/modules/$itemId/': typeof protectedLmsLmsCodeModulesItemIdIndexRoute
@@ -478,11 +478,11 @@ export interface FileRouteTypes {
     | '/curriculum/majors'
     | '/curriculum/programs'
     | '/lms/$lmsCode/modules/create'
-    | '/lms/$lmsCode/modules/edit'
     | '/lms/$lmsCode/assignments'
     | '/lms/$lmsCode/grades'
     | '/lms/$lmsCode/modules'
     | '/lms/$lmsCode/overview'
+    | '/lms/$lmsCode/modules/$itemId/edit'
     | '/lms/$lmsCode/modules/$itemId/publish'
     | '/lms/$lmsCode/modules/$itemId/submit'
     | '/lms/$lmsCode/modules/$itemId'
@@ -523,11 +523,11 @@ export interface FileRouteTypes {
     | '/curriculum/majors'
     | '/curriculum/programs'
     | '/lms/$lmsCode/modules/create'
-    | '/lms/$lmsCode/modules/edit'
     | '/lms/$lmsCode/assignments'
     | '/lms/$lmsCode/grades'
     | '/lms/$lmsCode/modules'
     | '/lms/$lmsCode/overview'
+    | '/lms/$lmsCode/modules/$itemId/edit'
     | '/lms/$lmsCode/modules/$itemId/publish'
     | '/lms/$lmsCode/modules/$itemId/submit'
     | '/lms/$lmsCode/modules/$itemId'
@@ -569,11 +569,11 @@ export interface FileRouteTypes {
     | '/(protected)/curriculum/majors/'
     | '/(protected)/curriculum/programs/'
     | '/(protected)/lms/$lmsCode/modules/create'
-    | '/(protected)/lms/$lmsCode/modules/edit'
     | '/(protected)/lms/$lmsCode/assignments/'
     | '/(protected)/lms/$lmsCode/grades/'
     | '/(protected)/lms/$lmsCode/modules/'
     | '/(protected)/lms/$lmsCode/overview/'
+    | '/(protected)/lms/$lmsCode/modules/$itemId/edit'
     | '/(protected)/lms/$lmsCode/modules/$itemId/publish'
     | '/(protected)/lms/$lmsCode/modules/$itemId/submit'
     | '/(protected)/lms/$lmsCode/modules/$itemId/'
@@ -863,13 +863,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedLmsLmsCodeAssignmentsIndexRouteImport
       parentRoute: typeof protectedLmsLmsCodeRoute
     }
-    '/(protected)/lms/$lmsCode/modules/edit': {
-      id: '/(protected)/lms/$lmsCode/modules/edit'
-      path: '/modules/edit'
-      fullPath: '/lms/$lmsCode/modules/edit'
-      preLoaderRoute: typeof protectedLmsLmsCodeModulesEditRouteImport
-      parentRoute: typeof protectedLmsLmsCodeRoute
-    }
     '/(protected)/lms/$lmsCode/modules/create': {
       id: '/(protected)/lms/$lmsCode/modules/create'
       path: '/modules/create'
@@ -898,16 +891,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedLmsLmsCodeModulesItemIdPublishRouteImport
       parentRoute: typeof protectedLmsLmsCodeRoute
     }
+    '/(protected)/lms/$lmsCode/modules/$itemId/edit': {
+      id: '/(protected)/lms/$lmsCode/modules/$itemId/edit'
+      path: '/modules/$itemId/edit'
+      fullPath: '/lms/$lmsCode/modules/$itemId/edit'
+      preLoaderRoute: typeof protectedLmsLmsCodeModulesItemIdEditRouteImport
+      parentRoute: typeof protectedLmsLmsCodeRoute
+    }
   }
 }
 
 interface protectedLmsLmsCodeRouteChildren {
   protectedLmsLmsCodeModulesCreateRoute: typeof protectedLmsLmsCodeModulesCreateRoute
-  protectedLmsLmsCodeModulesEditRoute: typeof protectedLmsLmsCodeModulesEditRoute
   protectedLmsLmsCodeAssignmentsIndexRoute: typeof protectedLmsLmsCodeAssignmentsIndexRoute
   protectedLmsLmsCodeGradesIndexRoute: typeof protectedLmsLmsCodeGradesIndexRoute
   protectedLmsLmsCodeModulesIndexRoute: typeof protectedLmsLmsCodeModulesIndexRoute
   protectedLmsLmsCodeOverviewIndexRoute: typeof protectedLmsLmsCodeOverviewIndexRoute
+  protectedLmsLmsCodeModulesItemIdEditRoute: typeof protectedLmsLmsCodeModulesItemIdEditRoute
   protectedLmsLmsCodeModulesItemIdPublishRoute: typeof protectedLmsLmsCodeModulesItemIdPublishRoute
   protectedLmsLmsCodeModulesItemIdSubmitRoute: typeof protectedLmsLmsCodeModulesItemIdSubmitRoute
   protectedLmsLmsCodeModulesItemIdIndexRoute: typeof protectedLmsLmsCodeModulesItemIdIndexRoute
@@ -915,12 +915,13 @@ interface protectedLmsLmsCodeRouteChildren {
 
 const protectedLmsLmsCodeRouteChildren: protectedLmsLmsCodeRouteChildren = {
   protectedLmsLmsCodeModulesCreateRoute: protectedLmsLmsCodeModulesCreateRoute,
-  protectedLmsLmsCodeModulesEditRoute: protectedLmsLmsCodeModulesEditRoute,
   protectedLmsLmsCodeAssignmentsIndexRoute:
     protectedLmsLmsCodeAssignmentsIndexRoute,
   protectedLmsLmsCodeGradesIndexRoute: protectedLmsLmsCodeGradesIndexRoute,
   protectedLmsLmsCodeModulesIndexRoute: protectedLmsLmsCodeModulesIndexRoute,
   protectedLmsLmsCodeOverviewIndexRoute: protectedLmsLmsCodeOverviewIndexRoute,
+  protectedLmsLmsCodeModulesItemIdEditRoute:
+    protectedLmsLmsCodeModulesItemIdEditRoute,
   protectedLmsLmsCodeModulesItemIdPublishRoute:
     protectedLmsLmsCodeModulesItemIdPublishRoute,
   protectedLmsLmsCodeModulesItemIdSubmitRoute:

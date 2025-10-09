@@ -3,6 +3,7 @@ import {
   SubmissionForm,
   type SubmissionPayload,
 } from '@/features/courses/modules/content/submission-form.tsx'
+import { useQuickForm } from '@/hooks/use-quick-form'
 import type { ModuleContent } from '@/integrations/api/client'
 import {
   getContentKeyAndData,
@@ -22,6 +23,8 @@ import {
   Divider,
   Grid,
   Group,
+  InputBase,
+  NumberInput,
   Paper,
   Progress,
   Stack,
@@ -30,6 +33,7 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core'
+import { DateTimePicker } from '@mantine/dates'
 import { useMediaQuery } from '@mantine/hooks'
 import {
   IconBookmark,
@@ -39,8 +43,33 @@ import {
   IconEdit,
   IconExternalLink,
   IconFileText,
+  IconLink,
 } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
+import { getRouteApi, Link } from '@tanstack/react-router'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
+import {
+  assignmentConfigFormSchema,
+  type AssignmentConfigFormInput,
+  type AssignmentConfigFormOutput,
+} from './assignment-config.schema'
+import {
+  lmsAssignmentControllerFindOneForStudentOptions,
+  lmsAssignmentControllerFindOneForStudentQueryKey,
+  lmsAssignmentControllerFindOneOptions,
+  lmsAssignmentControllerFindOneQueryKey,
+  lmsAssignmentControllerSubmitMutation,
+  lmsAssignmentControllerUpdateMutation,
+  lmsContentControllerFindOneOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import Decimal from 'decimal.js'
+import dayjs from 'dayjs'
+import { useForm } from '@mantine/form'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import { toastMessage } from '@/utils/toast-message'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+
+const route = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/edit')
 
 interface ModuleContentViewProps {
   moduleContentData: ModuleContent | null
@@ -53,6 +82,8 @@ function ModuleContentView({
   editor,
   isPreview = false,
 }: ModuleContentViewProps) {
+  const { authUser: user } = useAuth('protected')
+
   // Extract content data from moduleContentData
   const { existingContent, contentKey } = getContentKeyAndData(
     moduleContentData || ({} as ModuleContent),
@@ -73,7 +104,7 @@ function ModuleContentView({
           variant="default"
           radius={'md'}
           component={Link}
-          to="../"
+          to="/lms/$lmsCode/modules"
           maw={'fit-content'}
         >
           <Group>
@@ -108,9 +139,10 @@ function ModuleContentView({
                 isPreview={isPreview}
               />
 
-              {moduleContentData?.contentType === 'ASSIGNMENT' && (
-                <EmbeddedSubmissionBox assignmentData={existingContent} />
-              )}
+              {moduleContentData?.contentType === 'ASSIGNMENT' &&
+                user.role === 'student' && (
+                  <EmbeddedSubmissionBox assignmentData={existingContent} />
+                )}
             </Stack>
           </Grid.Col>
 
@@ -124,11 +156,17 @@ function ModuleContentView({
               lg: 2,
             }}
           >
-            <ProgressCard
-              allItems={allItems}
-              existingContent={existingContent}
-              progressPercentage={progressPercentage}
-            />
+            {user.role === 'student' && (
+              <ProgressCard
+                allItems={allItems}
+                existingContent={existingContent}
+                progressPercentage={progressPercentage}
+              />
+            )}
+
+            {user.role === 'admin' && contentKey === 'assignment' && (
+              <AssignmentConfigCard />
+            )}
           </Grid.Col>
         </Grid>
 
@@ -144,6 +182,106 @@ function ModuleContentView({
 /* ---------------------------------------------------
    Subcomponents
 --------------------------------------------------- */
+
+function AssignmentConfigCard() {
+  const { itemId } = route.useParams()
+  const { id } = route.useSearch()
+  const { data: moduleContent } = useSuspenseQuery(
+    lmsContentControllerFindOneOptions({
+      path: { moduleContentId: itemId },
+    }),
+  )
+
+  const { update, form, isPending } = useQuickForm<
+    AssignmentConfigFormInput,
+    AssignmentConfigFormOutput
+  >()({
+    name: 'config',
+    formOptions: {
+      initialValues: {
+        maxScore: null,
+        dueAt: null,
+        maxAttempt: null,
+      },
+      validate: zod4Resolver(assignmentConfigFormSchema),
+    },
+    transformQueryData: (config) => ({
+      maxScore: config.grading?.weight
+        ? new Decimal(config.grading.weight).toNumber()
+        : null,
+      dueAt: dayjs(config.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss'),
+      maxAttempt: config.maxAttempts,
+    }),
+    queryOptions: {
+      ...lmsAssignmentControllerFindOneOptions({
+        path: { moduleContentId: itemId },
+      }),
+    },
+    createMutationOptions: lmsAssignmentControllerUpdateMutation({}),
+    updateMutationOptions: lmsAssignmentControllerUpdateMutation({}),
+    queryKeyInvalidation: lmsAssignmentControllerFindOneQueryKey({
+      path: { moduleContentId: itemId },
+    }),
+  })
+
+  const handleSaveConfig = async (values: AssignmentConfigFormOutput) => {
+    console.log(values)
+    if (form.validate().hasErrors) return
+    const { maxScore, dueAt, maxAttempt } = values
+
+    update.mutateAsync({
+      path: { assignmentId: moduleContent.assignment?.id || '' },
+      body: {
+        maxScore: maxScore ? new Decimal(maxScore).toString() : undefined,
+        dueAt:
+          dayjs(dueAt, 'YYYY-MM-DD HH:mm:ss').format(
+            'YYYY-MM-DDTHH:mm:ss[Z]',
+          ) || undefined,
+        maxAttempt: maxAttempt || undefined,
+      },
+    })
+  }
+
+  return (
+    <Card withBorder>
+      <Stack>
+        <Text fw={500}>Assignment Config</Text>
+        <NumberInput
+          variant="filled"
+          label="Points"
+          placeholder="100"
+          allowDecimal
+          disabled={isPending}
+          key={form.key('maxScore')}
+          {...form.getInputProps('maxScore')}
+        />
+        <DateTimePicker
+          variant="filled"
+          label="Due"
+          placeholder="Select date and time"
+          disabled={isPending}
+          key={form.key('dueAt')}
+          {...form.getInputProps('dueAt')}
+        />
+        <NumberInput
+          variant="filled"
+          label="Attempts"
+          placeholder="1"
+          min={1}
+          disabled={isPending}
+          key={form.key('maxAttempt')}
+          {...form.getInputProps('maxAttempt')}
+        />
+        <Button
+          loading={isPending}
+          onClick={() => handleSaveConfig(form.getValues())}
+        >
+          Save
+        </Button>
+      </Stack>
+    </Card>
+  )
+}
 
 type HeaderSectionProps = {
   moduleContentData: ModuleContent | null
@@ -209,11 +347,11 @@ function HeaderSection({
                   ? 'Completed'
                   : 'Mark Complete'}
             </Button>
-            {moduleContentData?.contentType === 'ASSIGNMENT' && (
+            {/* {moduleContentData?.contentType === 'ASSIGNMENT' && (
               <Button color="blue" leftSection={<IconEdit size={16} />}>
                 Submit
               </Button>
-            )}
+            )} */}
           </Group>
         </Group>
       </Stack>
@@ -371,14 +509,74 @@ function ProgressCard({
   )
 }
 
+const routeView = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/')
+
+interface SubmissionContent {
+  type: 'link' | 'comment'
+  content?: string
+}
+
 function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
   // For now, we'll assume not submitted since we don't have submission status from editorState
-  const submitted = false
+  const { itemId } = routeView.useParams()
+
+  const { data: assignment } = useSuspenseQuery(
+    lmsAssignmentControllerFindOneForStudentOptions({
+      path: { moduleContentId: itemId },
+    }),
+  )
+
+  const submitted = assignment.submissions.length > 0
+  const graded = submitted && assignment.submissions[0].state === 'GRADED'
+
+  const submissionContent = assignment.submissions[0]
+    ? (assignment.submissions[0].content as unknown as SubmissionContent[])
+    : undefined
+
+  const attachments = assignment.submissions[0]
+    ? assignment.submissions[0].attachments
+    : undefined
+
+  const link = submissionContent?.find(
+    (submission) => submission.type === 'link',
+  )
+  const comment = submissionContent?.find(
+    (submission) => submission.type === 'comment',
+  )
+
+  const { mutateAsync: quickSubmit, isPending } = useAppMutation(
+    lmsAssignmentControllerSubmitMutation,
+    toastMessage('file', 'submitting', 'submitted'),
+    {
+      onSuccess: () => {
+        const { queryClient } = getContext()
+
+        queryClient.invalidateQueries({
+          queryKey: lmsAssignmentControllerFindOneForStudentQueryKey({
+            path: { moduleContentId: itemId },
+          }),
+        })
+      },
+    },
+  )
 
   const handleQuickSubmit = (payload: SubmissionPayload) => {
-    console.log('Quick submitting...', {
-      ...payload,
-      assignmentId: assignmentData?.id,
+    const content: SubmissionContent[] = []
+
+    if (payload.link) {
+      content.push({ type: 'link', content: payload.link })
+    }
+
+    if (payload.comments) {
+      content.push({ type: 'comment', content: payload.comments })
+    }
+
+    quickSubmit({
+      path: { assignmentId: assignment.id },
+      body: {
+        state: 'SUBMITTED',
+        content: content as any,
+      },
     })
     // TODO: mutation call
   }
@@ -389,8 +587,10 @@ function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
         {/* Header */}
         <Group justify="space-between">
           <Text fw={500}>Submission</Text>
-          {submitted ? (
-            <Badge color="green">Submitted</Badge>
+          {graded ? (
+            <Badge color=" green">Graded</Badge>
+          ) : submitted ? (
+            <Badge color="primary">Submitted</Badge>
           ) : (
             <Badge color="red" variant="light">
               Not Submitted
@@ -405,24 +605,54 @@ function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
               onSubmit={handleQuickSubmit}
               buttonLabel="Quick Submit"
               withSubmissionPageNavigation={true}
+              loading={isPending}
             />
           </>
         ) : (
           // Submitted State
-          <Group justify="flex-end">
-            <Link
-              from={'/lms/$lmsCode/modules'}
-              to={`$itemId/submit`}
-              params={{ itemId: assignmentData?.id || '' }}
-            >
-              <Button
-                variant="light"
-                rightSection={<IconExternalLink size={16} />}
+          // <Group justify="flex-end">
+          //   <Link
+          //     from={'/lms/$lmsCode/modules'}
+          //     to={`$itemId/submit`}
+          //     params={{ itemId: assignmentData?.id || '' }}
+          //   >
+          //     <Button
+          //       variant="light"
+          //       rightSection={<IconExternalLink size={16} />}
+          //     >
+          //       View Submission
+          //     </Button>
+          //   </Link>
+          // </Group>
+          <Stack>
+            <a href={link?.content} target="_blank">
+              <InputBase
+                component="button"
+                pointer
+                label="Link"
+                leftSection={<IconLink size={20} />}
               >
-                View Submission
-              </Button>
-            </Link>
-          </Group>
+                <Text c="dark.3">{link?.content}</Text>
+              </InputBase>
+            </a>
+
+            {attachments && attachments.length > 0 && (
+              <Card>
+                <Group>
+                  <Text>{attachments[0].name}</Text>
+                </Group>
+              </Card>
+            )}
+
+            {comment && (
+              <Stack gap={0}>
+                <Text fw={500} size="sm">
+                  Comments
+                </Text>
+                <Text>{comment?.content}</Text>
+              </Stack>
+            )}
+          </Stack>
         )}
       </Stack>
     </Card>

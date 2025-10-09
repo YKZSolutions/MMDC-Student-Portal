@@ -271,7 +271,12 @@ function CMSWrapper({ courseCode }: CMSProps) {
           <Group>
             <ActionIcon
               variant={'transparent'}
-              onClick={() => navigate({ to: '..' })}
+              onClick={() =>
+                navigate({
+                  from: '/lms/$lmsCode/modules',
+                  to: '/lms/$lmsCode/modules',
+                })
+              }
             >
               <IconX />
             </ActionIcon>

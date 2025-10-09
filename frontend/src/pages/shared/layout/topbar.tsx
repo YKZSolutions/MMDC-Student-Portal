@@ -126,6 +126,7 @@ function BreadcrumbItem({ isLast, path, label }: BreadcrumbItemProps) {
       fw="bold"
       className="capitalize truncate"
       title={label}
+      maw={100}
     >
       {label}
     </Text>
@@ -137,6 +138,8 @@ function BreadcrumbItem({ isLast, path, label }: BreadcrumbItemProps) {
       to={path}
       className="capitalize"
       style={{ textDecoration: 'none' }}
+      lineClamp={1}
+      maw={100}
     >
       {label}
     </Text>

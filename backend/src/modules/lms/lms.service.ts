@@ -461,10 +461,20 @@ export class LmsService {
       }));
     }
 
+    const enrollmentPeriod =
+      await this.prisma.client.enrollmentPeriod.findFirst({
+        orderBy: { createdAt: 'desc' },
+      });
+
     // Only include modules from courses the student is enrolled in
     where.courseOffering = {
       is: {
         courseEnrollments: { some: { studentId: userId } },
+        enrollmentPeriod: {
+          is: {
+            id: enrollmentPeriod?.id,
+          },
+        },
       },
     };
 
@@ -574,10 +584,19 @@ export class LmsService {
       }));
     }
 
-    //
+    const enrollmentPeriod =
+      await this.prisma.client.enrollmentPeriod.findFirst({
+        orderBy: { createdAt: 'desc' },
+      });
+
     where.courseOffering = {
       is: {
         courseSections: { some: { mentorId: userId } },
+        enrollmentPeriod: {
+          is: {
+            id: enrollmentPeriod?.id,
+          },
+        },
       },
     };
 
@@ -684,6 +703,16 @@ export class LmsService {
         ],
       }));
     }
+
+    const latestPerGroup = await this.prisma.client.module.groupBy({
+      by: ['courseId'],
+      _max: { createdAt: true },
+    });
+
+    where.OR = latestPerGroup.map((item) => ({
+      courseId: item.courseId,
+      createdAt: item._max.createdAt!,
+    }));
 
     // Apply year/term filters if provided
     if (filters.enrollmentPeriodId) {

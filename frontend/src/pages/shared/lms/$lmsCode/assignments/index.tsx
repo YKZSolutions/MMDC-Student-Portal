@@ -8,8 +8,23 @@ import {
   mockAssignmentSubmissionReports,
   mockStudentAssignments,
 } from '@/features/courses/mocks.ts'
-import type { Role } from '@/integrations/api/client'
+import {
+  lmsAssignmentControllerFindAllForAdmin,
+  type Role,
+} from '@/integrations/api/client'
+import {
+  lmsAssignmentControllerFindAllForAdminOptions,
+  lmsAssignmentControllerFindAllForMentorOptions,
+  lmsAssignmentControllerFindAllForStudentOptions,
+  lmsAssignmentControllerFindOneOptions,
+  lmsSubmissionControllerFindOneOptions,
+  lmsSubmissionControllerFindOneQueryKey,
+  lmsSubmissionControllerGradeMutation,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
+import { toastMessage } from '@/utils/toast-message'
 import {
   ActionIcon,
   Avatar,
@@ -19,13 +34,18 @@ import {
   Card,
   Collapse,
   Group,
+  InputBase,
   Modal,
+  NumberInput,
+  Paper,
   Progress,
   rem,
+  Select,
   Stack,
   Table,
   Tabs,
   Text,
+  Textarea,
   TextInput,
   Title,
   useMantineTheme,
@@ -37,10 +57,15 @@ import {
   IconChevronRight,
   IconEye,
   IconHistory,
+  IconLink,
   IconSearch,
   IconSend,
 } from '@tabler/icons-react'
-import React, { type ReactNode, useEffect, useState } from 'react'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
+import dayjs from 'dayjs'
+import Decimal from 'decimal.js'
+import React, { type ReactNode, Suspense, useEffect, useState } from 'react'
 
 type RoleBasedAssignmentConfig = {
   [K in Role]: {
@@ -55,6 +80,11 @@ type RoleBasedAssignmentConfig = {
 const roleConfig: RoleBasedAssignmentConfig = {
   student: {
     tabs: [
+      {
+        value: 'all',
+        label: 'All',
+        icon: <IconHistory size={12} />,
+      },
       { value: 'todo', label: 'Todo', icon: <IconSend size={12} /> },
       {
         value: 'completed',
@@ -85,6 +115,8 @@ const roleConfig: RoleBasedAssignmentConfig = {
     ],
   },
 }
+
+const route = getRouteApi('/(protected)/lms/$lmsCode/assignments/')
 
 function AssignmentPage() {
   const { authUser } = useAuth('protected')
@@ -131,28 +163,29 @@ function AssignmentPanelsFactory({ activeTab }: { activeTab: string }) {
 
   switch (authUser.role) {
     case 'student':
-      return <StudentAssignments activeTab={activeTab} />
+      return <StudentAssignments />
     case 'mentor':
-      return <MentorAssignments activeTab={activeTab} />
+      return <MentorAssignments />
     case 'admin':
-      return <AdminAssignments activeTab={activeTab} />
+      return <AdminAssignments />
     default:
       return null
   }
 }
 
 // Student view - keep card layout (friendly, task-oriented)
-function StudentAssignments({ activeTab }: { activeTab: string }) {
-  const [data, setData] = useState<StudentAssignment[]>(mockStudentAssignments)
-  const [filteredData, setFilteredData] = useState<StudentAssignment[]>()
+function StudentAssignments() {
+  const { lmsCode } = route.useParams()
 
-  useEffect(() => {
-    const assignments =
-      activeTab === 'todo'
-        ? data.filter((a) => a.submissionStatus === 'pending')
-        : data.filter((a) => a.submissionStatus === 'graded')
-    setFilteredData(assignments)
-  }, [activeTab, data])
+  const { data: paginated } = useSuspenseQuery(
+    lmsAssignmentControllerFindAllForStudentOptions({
+      path: { moduleId: lmsCode },
+    }),
+  )
+
+  const { assignments, meta } = paginated
+
+  console.log(assignments)
 
   return (
     <Stack>
@@ -162,39 +195,45 @@ function StudentAssignments({ activeTab }: { activeTab: string }) {
         leftSection={<IconSearch size={18} stroke={1} />}
       />
 
-      {filteredData?.map((assignment) => (
-        <AssignmentCard key={assignment.id} assignment={assignment} />
+      {assignments?.map((assignment) => (
+        <AssignmentCard
+          key={assignment.id}
+          title={assignment.title}
+          status={
+            assignment.submissions.length > 0
+              ? assignment.submissions[0].grade !== undefined
+                ? 'graded'
+                : 'submitted'
+              : 'pending'
+          }
+          type={'assignment'}
+          points={Number(assignment.grading?.weight) || 0}
+          submittedAt={
+            assignment.submissions.length > 0
+              ? assignment.submissions[0].submittedAt
+              : null
+          }
+          dueAt={assignment.dueDate}
+        />
       ))}
     </Stack>
   )
 }
 
 // Mentor view - table-first for grading queue
-function MentorAssignments({ activeTab }: { activeTab: string }) {
-  const [data, setData] = useState<AssignmentSubmissionReport[]>(
-    mockAssignmentSubmissionReports,
-  )
-  const [filteredData, setFilteredData] =
-    useState<AssignmentSubmissionReport[]>()
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
-  const [submissionModalData, setSubmissionModalData] = useState<{
-    assignment: AssignmentSubmissionReport
-    submission: any
-  } | null>(null)
+function MentorAssignments() {
+  const { lmsCode } = route.useParams()
+  const navigate = route.useNavigate()
 
-  useEffect(() => {
-    let filtered = data
-    if (activeTab === 'to-grade') {
-      filtered = data.filter((report) =>
-        report.submissions.some((s) => s.submissionStatus === 'submitted'),
-      )
-    } else if (activeTab === 'graded') {
-      filtered = data.filter((report) =>
-        report.submissions.some((s) => s.submissionStatus === 'graded'),
-      )
-    }
-    setFilteredData(filtered)
-  }, [activeTab, data])
+  const { data: paginated } = useSuspenseQuery(
+    lmsAssignmentControllerFindAllForMentorOptions({
+      path: { moduleId: lmsCode },
+    }),
+  )
+
+  const { assignments, meta } = paginated
+
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
   const toggleExpand = (assignmentId: string) => {
     const newExpanded = new Set(expandedRows)
@@ -255,8 +294,7 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {filteredData?.map((report) => {
-            const counts = getSubmissionCounts(report)
+          {assignments?.map((report) => {
             const isExpanded = expandedRows.has(report.id)
 
             return (
@@ -283,39 +321,45 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                           {report.title}
                         </Text>
                         <Text size="sm" c="dimmed">
-                          {report.points} points • {report.type}
+                          {report.grading?.weight} points • {'assignment'}
                         </Text>
                       </Box>
                     </Group>
                   </Table.Td>
                   <Table.Td>
                     <Text fw={500} size="sm" c={'dark.3'}>
-                      {formatTimestampToDateTimeText(report.dueDate, 'by')}
+                      {dayjs(report.dueDate).format('MMM D [by] H:mm A')}
                     </Text>
                     <Badge
-                      color={report.status === 'open' ? 'green' : 'red'}
                       variant="outline"
                       size="xs"
+                      color={
+                        dayjs().isBefore(dayjs(report.dueDate))
+                          ? 'green'
+                          : 'red'
+                      }
                     >
-                      {report.status}
+                      {dayjs().isBefore(dayjs(report.dueDate))
+                        ? 'open'
+                        : 'closed'}
                     </Badge>
                   </Table.Td>
                   <Table.Td>
                     <Group gap="xs">
                       <Badge color="blue" variant="light" size="sm">
-                        {counts.submitted} submitted
+                        {report.stats.submitted} submitted
                       </Badge>
                       <Badge color="green" variant="light" size="sm">
-                        {counts.graded} graded
+                        {report.stats.graded} graded
                       </Badge>
                     </Group>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm" fw={500} c={'dark.5'}>
-                      {counts.graded}/{counts.total} completed
+                      {report.stats.graded}/{report.stats.total} completed
                     </Text>
                     <Progress
-                      value={(counts.graded / counts.total) * 100}
+                      value={(report.stats.graded / report.stats.total) * 100}
                       color={'blue'}
                     />
                   </Table.Td>
@@ -332,11 +376,7 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                       <Stack gap="xs" p="md" bg="gray.0">
                         {report.submissions.map((submission) => (
                           <Card
-                            key={
-                              'studentId' in submission
-                                ? submission.studentId
-                                : submission.groupId
-                            }
+                            key={submission.id}
                             withBorder
                             p="sm"
                             radius={'md'}
@@ -344,17 +384,21 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                             <Group justify="space-between">
                               <Stack gap={2}>
                                 <Text fw={500} size="sm">
-                                  {'studentName' in submission
-                                    ? submission.studentName
-                                    : `Group ${submission.groupId}`}
+                                  {`${submission.student.firstName} ${submission.student.lastName}`}
                                 </Text>
                                 <Group gap="xs">
                                   <Badge
-                                    color={submission.submissionStatus}
+                                    color={
+                                      submission.grade !== undefined
+                                        ? 'green'
+                                        : 'primary'
+                                    }
                                     variant="filled"
                                     size="xs"
                                   >
-                                    {submission.submissionStatus}
+                                    {submission.grade !== undefined
+                                      ? 'graded'
+                                      : 'submitted'}
                                   </Badge>
                                   {submission.submittedAt && (
                                     <Text size="sm" c="dimmed">
@@ -368,7 +412,7 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                               <Group gap={rem(10)}>
                                 <Text size="xs" fw={500}>
                                   {submission.grade
-                                    ? `${submission.grade}/${report.points}`
+                                    ? `${submission.grade.finalScore}/${report.grading?.weight}`
                                     : 'Not graded'}
                                 </Text>
                                 <Button
@@ -377,20 +421,22 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                                   leftSection={<IconEye size={14} />}
                                   radius={'md'}
                                   onClick={() =>
-                                    setSubmissionModalData({
-                                      assignment: report,
-                                      submission,
+                                    navigate({
+                                      search: (prev) => ({
+                                        ...prev,
+                                        view: submission.id,
+                                      }),
                                     })
                                   }
                                 >
                                   View
                                 </Button>
-                                <SubmitButton
+                                {/* <SubmitButton
                                   submissionStatus={submission.submissionStatus}
                                   onClick={() => {}}
                                   dueDate={report.dueDate}
                                   assignmentStatus={report.status}
-                                />
+                                /> */}
                               </Group>
                             </Group>
                           </Card>
@@ -406,7 +452,7 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
       </Table>
 
       {/* Submission Detail Modal */}
-      <Modal
+      {/* <Modal
         opened={!!submissionModalData}
         onClose={() => setSubmissionModalData(null)}
         title="Submission Details"
@@ -424,59 +470,237 @@ function MentorAssignments({ activeTab }: { activeTab: string }) {
                 ? submissionModalData.submission.studentName
                 : `Group ${submissionModalData.submission.groupId}`}
             </Text>
-            {/* Add more submission details here */}
           </Stack>
         )}
-      </Modal>
+      </Modal> */}
+      <Suspense>
+        <SubmissionViewModal />
+      </Suspense>
     </Stack>
   )
 }
 
-// Admin view - summary/oversight focused
-function AdminAssignments({ activeTab }: { activeTab: string }) {
-  const [data, setData] = useState<AssignmentSubmissionReport[]>(
-    mockAssignmentSubmissionReports,
+interface SubmissionContent {
+  type: 'link' | 'comment'
+  content?: string
+}
+
+function SubmissionViewModal() {
+  const { view } = route.useSearch()
+  const navigate = route.useNavigate()
+
+  const { data: submission } = useQuery({
+    ...lmsSubmissionControllerFindOneOptions({
+      path: { submissionId: view || '' },
+    }),
+    enabled: view !== undefined,
+  })
+
+  const submissionContent =
+    submission?.content as unknown as SubmissionContent[]
+
+  const attachments = submission?.attachments
+
+  const link = submissionContent?.find(
+    (submission) => submission.type === 'link',
   )
-  const [filteredData, setFilteredData] =
-    useState<AssignmentSubmissionReport[]>(data)
+  const comment = submissionContent?.find(
+    (submission) => submission.type === 'comment',
+  )
+
+  return (
+    <Modal
+      // lockScroll={false}
+      styles={{
+        content: {
+          overflow: 'visible',
+        },
+      }}
+      size="lg"
+      opened={view !== undefined}
+      onClose={() =>
+        navigate({ search: (prev) => ({ ...prev, view: undefined }) })
+      }
+      title={
+        <>
+          <Text fw={700} size="xl">
+            Submission
+          </Text>
+        </>
+      }
+    >
+      <Stack
+      // mih={200}
+      >
+        <Stack>
+          <a href={link?.content} target="_blank">
+            <InputBase
+              component="button"
+              pointer
+              label="Link"
+              leftSection={<IconLink size={20} />}
+            >
+              <Text c="dark.3">{link?.content}</Text>
+            </InputBase>
+          </a>
+
+          {attachments && attachments.length > 0 && (
+            <Card>
+              <Group>
+                <Text>{attachments[0].name}</Text>
+              </Group>
+            </Card>
+          )}
+        </Stack>
+      </Stack>
+
+      <Paper pos="absolute" top={'calc(100% + 20px)'} left={0} miw={'100%'}>
+        <Stack p="md">
+          <Text fw={500}> Comments</Text>
+          <Textarea
+            placeholder="Add a comment..."
+            minRows={2}
+            autosize
+            leftSection={
+              <Group align="start" h="100%" pt={6}>
+                <Avatar size="sm" />
+              </Group>
+            }
+          />
+          {comment && (
+            <Stack gap={0}>
+              <Text fw={500} size="sm">
+                Comments
+              </Text>
+              <Text>{comment?.content}</Text>
+            </Stack>
+          )}
+        </Stack>
+      </Paper>
+
+      <SubmissionGradeForm />
+    </Modal>
+  )
+}
+
+function SubmissionGradeForm() {
+  const { view } = route.useSearch()
+
+  const { data: submission } = useQuery({
+    ...lmsSubmissionControllerFindOneOptions({
+      path: { submissionId: view || '' },
+    }),
+    enabled: view !== undefined,
+  })
+
+  const [grade, setGrade] = useState(
+    new Decimal(submission?.grade?.rawScore || 0).toNumber(),
+  )
 
   useEffect(() => {
-    let filtered = data
-    if (activeTab === 'needs-attention') {
-      filtered = data.filter((report) => {
-        const submittedCount = report.submissions.filter(
-          (s) => s.submissionStatus === 'submitted',
-        ).length
-        const gradedCount = report.submissions.filter(
-          (s) => s.submissionStatus === 'graded',
-        ).length
-        return submittedCount > gradedCount || report.status === 'closed'
-      })
-    }
-    setFilteredData(filtered)
-  }, [activeTab, data])
+    setGrade(new Decimal(submission?.grade?.rawScore || 0).toNumber())
+  }, [submission])
 
-  const getAssignmentStats = (report: AssignmentSubmissionReport) => {
-    const submittedCount = report.submissions.filter(
-      (s) => s.submissionStatus === 'submitted',
-    ).length
-    const gradedCount = report.submissions.filter(
-      (s) => s.submissionStatus === 'graded',
-    ).length
-    const pendingCount = report.submissions.filter(
-      (s) => s.submissionStatus === 'pending',
-    ).length
+  const { mutateAsync: gradeSubmission, isPending } = useAppMutation(
+    lmsSubmissionControllerGradeMutation,
+    toastMessage('submission', 'grading', 'graded'),
+    {
+      onSuccess: () => {
+        const { queryClient } = getContext()
 
-    return {
-      submitted: submittedCount,
-      graded: gradedCount,
-      pending: pendingCount,
-      total: report.submissions.length,
-      completionRate: Math.round(
-        (gradedCount / report.submissions.length) * 100,
-      ),
-    }
+        queryClient.invalidateQueries({
+          queryKey: lmsSubmissionControllerFindOneQueryKey({
+            path: { submissionId: view || '' },
+          }),
+        })
+      },
+    },
+  )
+
+  const handleGradeSubmission = () => {
+    if (!submission) return
+
+    gradeSubmission({
+      path: { submissionId: submission.id },
+      body: {
+        studentId: submission.student.id,
+        grade,
+      },
+    })
   }
+
+  return (
+    <Paper pos="absolute" top={0} left={'calc(100% + 10px)'} miw={300}>
+      <Stack p="md">
+        {/* <Select
+            label="Assignment"
+            defaultValue={submission?.assignment.title}
+          />
+          <Select label="Student" /> */}
+        <Card withBorder py="sm" px="sm">
+          <Group>
+            <Avatar size="sm" />
+            <Stack gap={0}>
+              <Text
+                fw={500}
+              >{`${submission?.student.firstName} ${submission?.student.lastName}`}</Text>
+            </Stack>
+          </Group>
+        </Card>
+
+        <Stack gap={4}>
+          <Text fw={500} size="sm">
+            Grade
+          </Text>
+          <Group gap="xs">
+            <NumberInput
+              flex={5}
+              placeholder="0"
+              max={Number(submission?.grading?.weight) || 0}
+              min={0}
+              value={grade}
+              onChange={(val) => setGrade(Number(val))}
+              disabled={isPending}
+            />
+            <Text>/</Text>
+            <TextInput
+              flex={4}
+              readOnly
+              defaultValue={submission?.grading?.weight || 'N/A'}
+            />
+            <Text>points</Text>
+          </Group>
+        </Stack>
+
+        <Group justify="end">
+          <Button
+            disabled={
+              submission?.grade?.rawScore
+                ? grade === new Decimal(submission.grade.rawScore).toNumber()
+                : false
+            }
+            loading={isPending}
+            onClick={() => handleGradeSubmission()}
+          >
+            Grade
+          </Button>
+        </Group>
+      </Stack>
+    </Paper>
+  )
+}
+
+// Admin view - summary/oversight focused
+function AdminAssignments() {
+  const { lmsCode } = route.useParams()
+
+  const { data: paginated } = useSuspenseQuery(
+    lmsAssignmentControllerFindAllForAdminOptions({
+      path: { moduleId: lmsCode },
+    }),
+  )
+
+  const { assignments, meta } = paginated
 
   return (
     <Stack>
@@ -514,8 +738,8 @@ function AdminAssignments({ activeTab }: { activeTab: string }) {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {filteredData?.map((report) => {
-              const stats = getAssignmentStats(report)
+            {assignments?.map((report) => {
+              // const stats = getAssignmentStats(report)
 
               return (
                 <Table.Tr key={report.id}>
@@ -524,27 +748,47 @@ function AdminAssignments({ activeTab }: { activeTab: string }) {
                       <Text fw={500} c={'dark.5'}>
                         {report.title}
                       </Text>
-                      <Text size="xs" c="dimmed">
-                        {report.points} points • {report.type}
-                      </Text>
+                      {report.grading && (
+                        <Text size="xs" c="dimmed">
+                          {report.grading.weight} points
+                        </Text>
+                      )}
                     </Box>
                   </Table.Td>
                   <Table.Td>
-                    <Text fw={500} size="sm" c={'dark.3'}>
-                      {formatTimestampToDateTimeText(report.dueDate, 'by')}
-                    </Text>
+                    {report.dueDate ? (
+                      <Stack gap={0}>
+                        <Text fw={500} size="sm" c={'dark.3'}>
+                          {/* {formatTimestampToDateTimeText(report.dueDate, 'by')} */}
+                          {dayjs(report.dueDate).format('MMM D YYYY')}
+                        </Text>
+                        <Text fw={500} size="xs" c={'dark.1'}>
+                          {dayjs(report.dueDate).format('HH:mm A')}
+                        </Text>
+                      </Stack>
+                    ) : (
+                      <Text fw={500} size="sm" c={'dark.3'}>
+                        N/A
+                      </Text>
+                    )}
                   </Table.Td>
                   <Table.Td>
                     <Badge
                       variant="outline"
                       size="sm"
-                      color={report.status === 'open' ? 'green' : 'red'}
+                      color={
+                        dayjs().isBefore(dayjs(report.dueDate))
+                          ? 'green'
+                          : 'red'
+                      }
                     >
-                      {report.status}
+                      {dayjs().isBefore(dayjs(report.dueDate))
+                        ? 'open'
+                        : 'closed'}
                     </Badge>
                   </Table.Td>
                   <Table.Td>
-                    <Text fw={500} c="dark.5">
+                    {/* <Text fw={500} c="dark.5">
                       {stats.completionRate || 0}%
                     </Text>
                     <Text size="xs" c="dimmed">
@@ -553,14 +797,26 @@ function AdminAssignments({ activeTab }: { activeTab: string }) {
                     <Progress
                       value={(stats.graded / stats.total) * 100}
                       color={'blue'}
+                    /> */}
+                    <Text fw={500} c="dark.5">
+                      {(report.stats.submitted / report.stats.total) * 100}%
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {report.stats.submitted}/{report.stats.total} completed
+                    </Text>
+                    <Progress
+                      value={
+                        (report.stats.submitted / report.stats.total) * 100
+                      }
+                      color={'blue'}
                     />
                   </Table.Td>
                   <Table.Td>
                     <Group gap="xs">
                       <Badge color="blue" variant="dot" size="xs">
-                        {report.mode === 'group' ? 'Group' : 'Individual'}
+                        {report.mode === 'GROUP' ? 'Group' : 'Individual'}
                       </Badge>
-                      {report.allowResubmission && (
+                      {report.maxAttempts && report.maxAttempts > 0 && (
                         <Badge color="orange" variant="dot" size="xs">
                           Resubmission
                         </Badge>
@@ -577,9 +833,16 @@ function AdminAssignments({ activeTab }: { activeTab: string }) {
   )
 }
 
-function AssignmentCard({ assignment }: { assignment: StudentAssignment }) {
-  const theme = useMantineTheme()
+interface AssignmentCardProps {
+  title: string
+  status: string
+  type: string
+  points: number
+  submittedAt: string | null
+  dueAt: string | null
+}
 
+function AssignmentCard(props: AssignmentCardProps) {
   return (
     <Card withBorder radius="md" p={'lg'}>
       <Group justify="space-between" align="center">
@@ -591,42 +854,38 @@ function AssignmentCard({ assignment }: { assignment: StudentAssignment }) {
           <Stack gap={rem(5)}>
             <Group align="center">
               <Title order={5} fw={600}>
-                {assignment.title}
+                {props.title}
               </Title>
-              <Badge
-                color={assignment.submissionStatus}
-                variant="outline"
-                size="sm"
-              >
-                {assignment.submissionStatus}
+              <Badge color={props.status} variant="outline" size="sm">
+                {props.status}
               </Badge>
             </Group>
 
             <Text size="sm" c="dimmed" lineClamp={2} tt={'capitalize'}>
-              {assignment.type} • {assignment.points} points
+              {props.type} • {props.points} points
             </Text>
 
             <Group gap="sm">
-              {assignment.submittedAt ? (
+              {props.submittedAt ? (
                 <Text size="sm" fw={600} c="dimmed">
                   Submitted:{' '}
-                  {formatTimestampToDateTimeText(assignment.submittedAt)}
+                  {dayjs(props.submittedAt).format('MMM D [by] H:mm A')}
                 </Text>
               ) : (
                 <Text size="sm" fw={600} c="dimmed">
-                  Due: {formatTimestampToDateTimeText(assignment.dueDate, 'by')}
+                  Due: {dayjs(props.dueAt).format('MMM D [by] H:mm A')}
                 </Text>
               )}
             </Group>
           </Stack>
         </Group>
 
-        <SubmitButton
-          submissionStatus={assignment.submissionStatus}
+        {/* <SubmitButton
+          submissionStatus={props.status}
           onClick={() => {}}
-          dueDate={assignment.dueDate}
-          assignmentStatus={assignment.status}
-        />
+          dueDate={props.dueAt}
+          assignmentStatus={props.status}
+        /> */}
       </Group>
     </Card>
   )
