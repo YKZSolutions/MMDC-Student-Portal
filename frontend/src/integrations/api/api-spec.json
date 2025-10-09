@@ -10797,6 +10797,134 @@
         ]
       }
     },
+    "/enrollment/student": {
+      "get": {
+        "description": "- `ADMIN` can retrieve all enrollments and apply filters.",
+        "operationId": "CourseEnrollmentController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCourseEnrollmentsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieve all course enrollments with optional filters.",
+        "tags": [
+          "CourseEnrollment"
+        ]
+      }
+    },
     "/enrollment/student/sections/{sectionId}": {
       "post": {
         "description": "- `STUDENT` can only enroll themselves.\n- `ADMIN` can enroll on behalf of another student (using `studentId` in body).",
@@ -19991,6 +20119,134 @@
       "UpdateCourseSectionDto": {
         "type": "object",
         "properties": {}
+      },
+      "StudentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "middleName",
+          "lastName",
+          "role"
+        ]
+      },
+      "CustomDetailedCourseEnrollmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CourseEnrollmentStatus"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "courseOfferingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "courseSectionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "courseSection": {
+            "$ref": "#/components/schemas/DetailedCourseSectionDto"
+          },
+          "courseOffering": {
+            "$ref": "#/components/schemas/DetailedCourseOfferingSubsetDto"
+          },
+          "student": {
+            "$ref": "#/components/schemas/StudentDto"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "startedAt",
+          "completedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "studentId",
+          "courseOfferingId",
+          "courseSectionId",
+          "student"
+        ]
+      },
+      "PaginatedCourseEnrollmentsDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "enrollments": {
+            "description": "List of course enrollments for the current page",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomDetailedCourseEnrollmentDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "enrollments"
+        ]
       },
       "StudentIdentifierDto": {
         "type": "object",
