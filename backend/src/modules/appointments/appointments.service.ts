@@ -58,7 +58,7 @@ export class AppointmentsService {
     const appointment = await this.prisma.client.appointment.create({
       data: createAppointmentDto,
       include: {
-        course: {
+        courseOffering: {
           include: {
             course: true,
           },
@@ -93,9 +93,9 @@ export class AppointmentsService {
     return {
       ...appointment,
       course: {
-        id: appointment.course.course.id,
-        courseCode: appointment.course.course.courseCode,
-        name: appointment.course.course.name,
+        id: appointment.courseOffering.course.id,
+        courseCode: appointment.courseOffering.course.courseCode,
+        name: appointment.courseOffering.course.name,
       },
     };
   }
@@ -149,7 +149,7 @@ export class AppointmentsService {
       .paginate({
         where,
         include: {
-          course: {
+          courseOffering: {
             include: {
               course: true,
             },
@@ -182,9 +182,9 @@ export class AppointmentsService {
     const appointments: AppointmentItemDto[] = data.map((item) => ({
       ...item,
       course: {
-        id: item.course.course.id,
-        courseCode: item.course.course.courseCode,
-        name: item.course.course.name,
+        id: item.courseOffering.course.id,
+        courseCode: item.courseOffering.course.courseCode,
+        name: item.courseOffering.course.name,
       },
     }));
 
@@ -275,7 +275,7 @@ export class AppointmentsService {
         ...where,
       },
       include: {
-        course: {
+        courseOffering: {
           include: {
             course: true,
           },
@@ -304,9 +304,9 @@ export class AppointmentsService {
     return {
       ...appointment,
       course: {
-        id: appointment.course.course.id,
-        courseCode: appointment.course.course.courseCode,
-        name: appointment.course.course.name,
+        id: appointment.courseOffering.course.id,
+        courseCode: appointment.courseOffering.course.courseCode,
+        name: appointment.courseOffering.course.name,
       },
     };
   }
@@ -339,7 +339,7 @@ export class AppointmentsService {
       where: { id },
       data: updateAppointmentDto,
       include: {
-        course: {
+        courseOffering: {
           include: {
             course: true,
           },
@@ -368,9 +368,9 @@ export class AppointmentsService {
     return {
       ...appointment,
       course: {
-        id: appointment.course.course.id,
-        courseCode: appointment.course.course.courseCode,
-        name: appointment.course.course.name,
+        id: appointment.courseOffering.course.id,
+        courseCode: appointment.courseOffering.course.courseCode,
+        name: appointment.courseOffering.course.name,
       },
     };
   }
@@ -416,7 +416,7 @@ export class AppointmentsService {
       where: { id },
       data: updateAppointmentDto,
       include: {
-        course: {
+        courseOffering: {
           include: {
             course: true,
           },
@@ -469,9 +469,9 @@ export class AppointmentsService {
     return {
       ...appointment,
       course: {
-        id: appointment.course.course.id,
-        courseCode: appointment.course.course.courseCode,
-        name: appointment.course.course.name,
+        id: appointment.courseOffering.course.id,
+        courseCode: appointment.courseOffering.course.courseCode,
+        name: appointment.courseOffering.course.name,
       },
     };
   }

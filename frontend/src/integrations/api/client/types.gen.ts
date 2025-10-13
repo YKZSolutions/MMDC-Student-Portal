@@ -1661,7 +1661,7 @@ export type CreateAppointmentItemDto = {
     endAt: string;
     gmeetLink?: string | null;
     cancelReason?: string | null;
-    courseId: string;
+    courseOfferingId: string;
     studentId: string;
     mentorId: string;
 };

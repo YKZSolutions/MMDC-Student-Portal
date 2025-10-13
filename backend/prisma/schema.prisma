@@ -1223,9 +1223,9 @@ enum AppointmentStatus {
 model Appointment {
   id String @id @default(uuid()) @db.Uuid
 
-  courseId  String         @db.Uuid
+  courseOfferingId  String         @db.Uuid
   /// @DtoApiHidden
-  course    CourseOffering @relation(fields: [courseId], references: [id])
+  courseOffering    CourseOffering @relation(fields: [courseOfferingId], references: [id])
   studentId String         @db.Uuid
   /// @DtoApiHidden
   student   User           @relation("AppointmentStudent", fields: [studentId], references: [id])

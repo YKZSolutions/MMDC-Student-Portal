@@ -3,7 +3,7 @@ import { IsUUID } from 'class-validator';
 
 export class CreateAppointmentItemDto extends CreateAppointmentDto {
   @IsUUID()
-  courseId: string;
+  courseOfferingId: string;
   @IsUUID()
   studentId: string;
   @IsUUID()
