@@ -413,7 +413,7 @@ function AppointmentForm() {
     : []
 
   const handleBookAppointment = async (values: AppointmentFormOutput) => {
-    if (form.validate().hasErrors) return console.log(form.validate().errors)
+    if (form.validate().hasErrors) return
     const {
       courseOfferingId,
       mentor,
