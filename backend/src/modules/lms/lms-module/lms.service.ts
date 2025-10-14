@@ -130,25 +130,11 @@ export class LmsService {
           include: {
             moduleContents: {
               include: {
-                lesson: true,
                 assignment: {
                   include: {
                     submissions: false,
                   },
                 },
-                quiz: {
-                  include: {
-                    submissions: false,
-                  },
-                },
-                discussion: {
-                  include: {
-                    posts: false,
-                  },
-                },
-                video: true,
-                url: true,
-                file: true,
               },
             },
           },
@@ -170,7 +156,6 @@ export class LmsService {
             courseId: latestModule.courseId,
             courseOfferingId: courseOffering.id,
             publishedAt: null,
-            toPublishAt: null,
             unpublishedAt: null,
           },
         });
@@ -182,7 +167,6 @@ export class LmsService {
               title: oldSection.title,
               order: oldSection.order,
               publishedAt: null, // Reset publication status
-              toPublishAt: null,
               unpublishedAt: null,
             },
           });
@@ -191,127 +175,31 @@ export class LmsService {
             // Create the base module content
             const newContent = await tx.moduleContent.create({
               data: {
-                moduleId: newModule.id,
                 moduleSectionId: newSection.id,
+                title: oldContent.title,
+                subtitle: oldContent.subtitle,
+                content: oldContent.content,
                 order: oldContent.order,
                 contentType: oldContent.contentType,
                 publishedAt: null, // Reset publication status
-                toPublishAt: null,
                 unpublishedAt: null,
               },
             });
 
             // Clone content-specific data based on type
             switch (oldContent.contentType) {
-              case 'LESSON':
-                if (oldContent.lesson) {
-                  await tx.lesson.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      title: oldContent.lesson.title,
-                      subtitle: oldContent.lesson.subtitle,
-                      content: oldContent.lesson.content,
-                    },
-                  });
-                }
-                break;
-
               case 'ASSIGNMENT':
                 if (oldContent.assignment) {
                   await tx.assignment.create({
                     data: {
                       moduleContentId: newContent.id,
-                      title: oldContent.assignment.title,
-                      subtitle: oldContent.assignment.subtitle,
-                      content: oldContent.assignment.content,
                       mode: oldContent.assignment.mode,
                       dueDate: oldContent.assignment.dueDate,
                       maxAttempts: oldContent.assignment.maxAttempts,
                       allowLateSubmission:
                         oldContent.assignment.allowLateSubmission,
                       latePenalty: oldContent.assignment.latePenalty,
-                      gradingId: oldContent.assignment.gradingId,
-                    },
-                  });
-                }
-                break;
-
-              case 'QUIZ':
-                if (oldContent.quiz) {
-                  await tx.quiz.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      title: oldContent.quiz.title,
-                      subtitle: oldContent.quiz.subtitle,
-                      content: oldContent.quiz.content,
-                      timeLimit: oldContent.quiz.timeLimit,
-                      maxAttempts: oldContent.quiz.maxAttempts,
-                      allowLateSubmission: oldContent.quiz.allowLateSubmission,
-                      questions: oldContent.quiz.questions,
-                      gradingId: oldContent.quiz.gradingId,
-                    },
-                  });
-                }
-                break;
-
-              case 'DISCUSSION':
-                if (oldContent.discussion) {
-                  await tx.discussion.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      title: oldContent.discussion.title,
-                      subtitle: oldContent.discussion.subtitle,
-                      content: oldContent.discussion.content,
-                      isThreaded: oldContent.discussion.isThreaded,
-                      requirePost: oldContent.discussion.requirePost,
-                    },
-                  });
-                }
-                break;
-
-              case 'VIDEO':
-                if (oldContent.video) {
-                  await tx.video.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      title: oldContent.video.title,
-                      subtitle: oldContent.video.subtitle,
-                      content: oldContent.video.content,
-                      url: oldContent.video.url,
-                      duration: oldContent.video.duration,
-                      transcript: oldContent.video.transcript,
-                    },
-                  });
-                }
-                break;
-
-              case 'URL':
-                if (oldContent.url) {
-                  await tx.externalUrl.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      title: oldContent.url.title,
-                      subtitle: oldContent.url.subtitle,
-                      content: oldContent.url.content,
-                      url: oldContent.url.url,
-                    },
-                  });
-                }
-                break;
-
-              case 'FILE':
-                if (oldContent.file) {
-                  await tx.fileResource.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      title: oldContent.file.title,
-                      subtitle: oldContent.file.subtitle,
-                      content: oldContent.file.content,
-                      name: oldContent.file.name,
-                      path: oldContent.file.path,
-                      size: oldContent.file.size,
-                      mimeType: oldContent.file.mimeType,
-                      url: oldContent.file.url,
+                      rubricTemplateId: oldContent.assignment.rubricTemplateId,
                     },
                   });
                 }
@@ -343,7 +231,7 @@ export class LmsService {
   @Log({
     logArgsMessage: ({ id, role, userId }) =>
       `Fetching module ${id} for role=${role} user=${userId}`,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     logSuccessMessage: (result, { id }) => `Fetched module ${id}`,
     logErrorMessage: (err, { id }) =>
       `Fetching module ${id} | Error: ${err.message}`,
@@ -654,7 +542,6 @@ export class LmsService {
    * - Results are sorted by the most recent enrollment period (startDate descending).
    *
    * @async
-   * @param {string} userId - The admin user ID making the request (not used for filtering).
    * @param {FilterModulesDto} filters - Filters for search, pagination, year, and term.
    * @returns {Promise<PaginatedModulesDto>} A list of all matching modules and pagination metadata.
    * @throws {NotFoundException} If no modules are found for the admin.
@@ -672,7 +559,6 @@ export class LmsService {
       new NotFoundException(`No modules found for admin ${userId}`),
   })
   async findAllForAdmin(
-    userId: string,
     filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
@@ -823,14 +709,20 @@ export class LmsService {
         });
 
         await tx.moduleSection.updateMany({
-          where: { moduleId: id },
+          where: {
+            moduleId: id,
+          },
           data: {
             deletedAt: now,
           },
         });
 
         await tx.moduleContent.updateMany({
-          where: { moduleId: id },
+          where: {
+            moduleSection: {
+              moduleId: id,
+            },
+          },
           data: {
             deletedAt: now,
           },
