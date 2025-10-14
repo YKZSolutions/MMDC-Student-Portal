@@ -8,14 +8,14 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
-import { LmsSubmissionService } from './lms-submission.service';
+import { SubmissionService } from './submission.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { GradeSubmissionDto } from './dto/grade-submission.dto';
 
 @Controller('modules/:moduleId/submissions')
-export class LmsSubmissionController {
-  constructor(private readonly lmsAssignmentService: LmsSubmissionService) {}
+export class SubmissionController {
+  constructor(private readonly lmsAssignmentService: SubmissionService) {}
 
   @Patch(':submissionId')
   @Roles(Role.MENTOR)
