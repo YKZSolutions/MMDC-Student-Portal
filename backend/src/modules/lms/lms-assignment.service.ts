@@ -315,7 +315,7 @@ export class LmsAssignmentService {
     studentId: string,
   ): Promise<StudentAssignmentItemDto> {
     const assignment = await this.prisma.client.assignment.findFirstOrThrow({
-      where: { moduleContent: { id }, submissions: { every: { studentId } } },
+      where: { moduleContent: { id }, submissions: { some: { studentId } } },
       include: {
         grading: true,
         submissions: { include: { attachments: true } },
