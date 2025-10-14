@@ -1,8 +1,10 @@
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import {
-  AssignmentItemDto,
   PaginatedAssignmentDto,
   PaginatedMentorAssignmentDto,
   PaginatedStudentAssignmentDto,
@@ -10,11 +12,13 @@ import {
 } from './dto/paginated-assignment.dto';
 import { AssignmentSubmission, Prisma } from '@prisma/client';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { UpdateAssignmentConfigDto } from './dto/update-assignment-config.dto';
-import { SubmitAssignmentDto } from './dto/submit-assignment.dto';
+import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
+import { MessageDto } from '@/common/dto/message.dto';
+import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
+import { UpdateAssignmentWithRubricDto } from '@/modules/lms/assignment/dto/update-assignment-item.dto';
 
 @Injectable()
-export class LmsAssignmentService {
+export class AssignmentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
@@ -25,7 +29,7 @@ export class LmsAssignmentService {
     studentId: string,
     submitAssignmentDto: SubmitAssignmentDto,
   ): Promise<AssignmentSubmission> {
-    const submission = await this.prisma.client.assignmentSubmission.create({
+    return await this.prisma.client.assignmentSubmission.create({
       data: {
         assignmentId,
         studentId,
@@ -35,8 +39,6 @@ export class LmsAssignmentService {
           submitAssignmentDto.state === 'SUBMITTED' ? new Date() : undefined,
       },
     });
-
-    return submission;
   }
 
   async findAllForAdmin(
@@ -47,7 +49,9 @@ export class LmsAssignmentService {
     const page = filters.page || 1;
 
     where.moduleContent = {
-      moduleId,
+      moduleSection: {
+        moduleId,
+      },
     };
 
     const studentCount = await this.prisma.client.courseEnrollment.count({
@@ -62,7 +66,6 @@ export class LmsAssignmentService {
       .paginate({
         where,
         include: {
-          grading: true,
           _count: {
             select: { submissions: true },
           },
@@ -91,18 +94,6 @@ export class LmsAssignmentService {
 
       return {
         ...assignment,
-        content: assignment.content as Prisma.JsonValue[],
-        grading: assignment.grading
-          ? {
-              ...assignment.grading,
-              rubricSchema: assignment.grading
-                .rubricSchema as Prisma.JsonValue[],
-              questionRules: assignment.grading
-                .questionRules as Prisma.JsonValue[],
-              curveSettings: assignment.grading
-                .curveSettings as Prisma.JsonValue,
-            }
-          : undefined,
         stats: {
           submitted: submitted,
           graded: graded,
@@ -126,11 +117,13 @@ export class LmsAssignmentService {
     const page = filters.page || 1;
 
     where.moduleContent = {
-      moduleId,
-      module: {
-        courseOffering: {
-          courseSections: {
-            every: { mentorId },
+      moduleSection: {
+        moduleId,
+        module: {
+          courseOffering: {
+            courseSections: {
+              every: { mentorId },
+            },
           },
         },
       },
@@ -151,7 +144,6 @@ export class LmsAssignmentService {
       .paginate({
         where,
         include: {
-          grading: true,
           _count: {
             select: { submissions: true },
           },
@@ -183,29 +175,13 @@ export class LmsAssignmentService {
 
       return {
         ...assignment,
-        content: assignment.content as Prisma.JsonValue[],
         submissions: assignment.submissions.map((submissionItem) => {
           const { gradeRecord, ...submission } = submissionItem;
           return {
             ...submission,
-            grade: gradeRecord
-              ? {
-                  ...gradeRecord,
-                }
-              : undefined,
+            grade: gradeRecord,
           };
         }),
-        grading: assignment.grading
-          ? {
-              ...assignment.grading,
-              rubricSchema: assignment.grading
-                .rubricSchema as Prisma.JsonValue[],
-              questionRules: assignment.grading
-                .questionRules as Prisma.JsonValue[],
-              curveSettings: assignment.grading
-                .curveSettings as Prisma.JsonValue,
-            }
-          : undefined,
 
         stats: {
           submitted: submitted,
@@ -230,7 +206,9 @@ export class LmsAssignmentService {
     const page = filters.page || 1;
 
     where.moduleContent = {
-      moduleId,
+      moduleSection: {
+        moduleId,
+      },
     };
 
     where.submissions = {
@@ -243,7 +221,6 @@ export class LmsAssignmentService {
       .paginate({
         where,
         include: {
-          grading: true,
           submissions: {
             include: {
               gradeRecord: true,
@@ -255,32 +232,15 @@ export class LmsAssignmentService {
 
     const assignments = data.map((assignment) => ({
       ...assignment,
-      content: assignment.content as Prisma.JsonValue[],
       submissions: assignment.submissions.map((submissionItem) => {
         const { gradeRecord, ...submission } = submissionItem;
         return {
           ...submission,
           content: submission.content as Prisma.JsonValue[],
           groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
-          grade: gradeRecord
-            ? {
-                ...gradeRecord,
-                rubricScores: gradeRecord.rubricScores as Prisma.JsonValue[],
-                questionScores:
-                  gradeRecord.questionScores as Prisma.JsonValue[],
-              }
-            : undefined,
+          grade: gradeRecord,
         };
       }),
-      grading: assignment.grading
-        ? {
-            ...assignment.grading,
-            rubricSchema: assignment.grading.rubricSchema as Prisma.JsonValue[],
-            questionRules: assignment.grading
-              .questionRules as Prisma.JsonValue[],
-            curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
-          }
-        : undefined,
     }));
 
     return {
@@ -289,25 +249,10 @@ export class LmsAssignmentService {
     };
   }
 
-  async findOne(id: string): Promise<AssignmentItemDto> {
-    const assignment = await this.prisma.client.assignment.findFirstOrThrow({
-      where: { moduleContent: { id } },
-      include: { grading: true },
+  async findOne(id: string): Promise<AssignmentDto> {
+    return await this.prisma.client.assignment.findFirstOrThrow({
+      where: { id },
     });
-
-    return {
-      ...assignment,
-      content: assignment.content as Prisma.JsonValue[],
-      grading: assignment.grading
-        ? {
-            ...assignment.grading,
-            rubricSchema: assignment.grading.rubricSchema as Prisma.JsonValue[],
-            questionRules: assignment.grading
-              .questionRules as Prisma.JsonValue[],
-            curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
-          }
-        : undefined,
-    };
   }
 
   async findOneForStudent(
@@ -315,25 +260,14 @@ export class LmsAssignmentService {
     studentId: string,
   ): Promise<StudentAssignmentItemDto> {
     const assignment = await this.prisma.client.assignment.findFirstOrThrow({
-      where: { moduleContent: { id }, submissions: { some: { studentId } } },
+      where: { id, submissions: { some: { studentId } } },
       include: {
-        grading: true,
         submissions: { include: { attachments: true } },
       },
     });
 
     return {
       ...assignment,
-      content: assignment.content as Prisma.JsonValue[],
-      grading: assignment.grading
-        ? {
-            ...assignment.grading,
-            rubricSchema: assignment.grading.rubricSchema as Prisma.JsonValue[],
-            questionRules: assignment.grading
-              .questionRules as Prisma.JsonValue[],
-            curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
-          }
-        : undefined,
       submissions: assignment.submissions.map((submission) => ({
         ...submission,
         content: submission.content as Prisma.JsonValue[],
@@ -344,40 +278,77 @@ export class LmsAssignmentService {
 
   async update(
     assignmentId: string,
-    updateAssignmentDto: UpdateAssignmentConfigDto,
-  ): Promise<{ message: string }> {
-    const assignment = await this.prisma.client.assignment.update({
-      where: { id: assignmentId },
-      data: {
-        maxAttempts: updateAssignmentDto.maxAttempt,
-        dueDate: updateAssignmentDto.dueAt,
-      },
-      include: { grading: true },
-    });
+    updateAssignmentDto: UpdateAssignmentWithRubricDto,
+    tx?: PrismaTransaction,
+  ): Promise<MessageDto> {
+    const client = tx ?? this.prisma.client;
+    const rubricId: string | null | undefined =
+      updateAssignmentDto?.rubricTemplateId;
 
-    if (updateAssignmentDto.maxScore) {
-      if (assignment.grading) {
-        // already has a grading config → update
-        await this.prisma.client.gradingConfig.update({
-          where: { id: assignment.grading.id },
-          data: { weight: updateAssignmentDto.maxScore },
-        });
-      } else {
-        const grading = await this.prisma.client.gradingConfig.create({
-          data: {
-            isCurved: false,
-            weight: updateAssignmentDto.maxScore,
-            assignments: { connect: { id: assignment.id } },
-          },
-        });
+    const data: Prisma.AssignmentUpdateInput = {
+      ...updateAssignmentDto,
+    };
 
-        await this.prisma.client.assignment.update({
-          where: { id: assignment.id },
-          data: { grading: { connect: { id: grading.id } } },
-        });
-      }
+    if (rubricId !== undefined) {
+      data.rubricTemplate =
+        rubricId === null
+          ? { disconnect: true }
+          : { connect: { id: rubricId } };
     }
 
+    await client.assignment.update({
+      where: { id: assignmentId },
+      data,
+    });
+
     return { message: 'Assignment config updated successfully' };
+  }
+
+  async remove(
+    directDelete: boolean,
+    assignmentId?: string,
+    moduleContentId?: string,
+    tx?: PrismaTransaction,
+  ): Promise<MessageDto> {
+    const whereCondition: Prisma.AssignmentWhereUniqueInput | null =
+      moduleContentId
+        ? { moduleContentId }
+        : assignmentId
+          ? { id: assignmentId }
+          : null;
+
+    if (!whereCondition)
+      throw new BadRequestException('Missing required id field');
+
+    const client = tx ?? this.prisma.client;
+    const assignment = await client.assignment.findUnique({
+      where: whereCondition,
+      include: { submissions: true },
+    });
+
+    if (!assignment) {
+      throw new BadRequestException('Assignment not found');
+    }
+
+    if (assignment.submissions.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete assignments with submissions',
+      );
+    }
+
+    if (directDelete) {
+      await client.assignment.delete({
+        where: {
+          ...(assignmentId ? { id: assignmentId } : { moduleContentId }),
+        },
+      });
+      return new MessageDto('Assignment permanently deleted');
+    }
+    await client.assignment.update({
+      where: { id: assignmentId },
+      data: { deletedAt: new Date() },
+    });
+
+    return new MessageDto('Assignment softly deleted');
   }
 }
