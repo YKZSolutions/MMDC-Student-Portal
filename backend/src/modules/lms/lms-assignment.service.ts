@@ -234,7 +234,7 @@ export class LmsAssignmentService {
     };
 
     where.submissions = {
-      every: {
+      some: {
         studentId,
       },
     };
