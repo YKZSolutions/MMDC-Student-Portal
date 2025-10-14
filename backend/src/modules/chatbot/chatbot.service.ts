@@ -20,10 +20,10 @@ import {
 import { CoursesService } from '@/modules/courses/courses.service';
 import { CourseEnrollmentService } from '@/modules/enrollment/course-enrollment.service';
 import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { FilterModulesDto } from '@/modules/lms/dto/filter-modules.dto';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { LmsService } from '@/modules/lms/lms.service';
+import { FilterModuleContentsDto } from '@/modules/lms/lms-content/dto/filter-module-contents.dto';
+import { FilterModulesDto } from '@/modules/lms/lms-module/dto/filter-modules.dto';
+import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
+import { LmsService } from '@/modules/lms/lms-module/lms.service';
 import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
 import {
   UserStaffDetailsDto,
@@ -36,6 +36,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import { PaginatedModulesDto } from '../lms/lms-module/dto/paginated-module.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -180,7 +181,7 @@ export class ChatbotService {
 
           case 'lms_my_modules': {
             const args = functionCall.args as FilterModulesDto;
-            let modules;
+            let modules: PaginatedModulesDto;
             switch (userContext.role) {
               case 'student':
                 modules = await this.lmsService.findAllForStudent(
@@ -195,10 +196,7 @@ export class ChatbotService {
                 );
                 break;
               case 'admin':
-                modules = await this.lmsService.findAllForAdmin(
-                  userContext.id,
-                  args,
-                );
+                modules = await this.lmsService.findAllForAdmin(args);
                 break;
             }
             return `My modules: ${JSON.stringify(modules)}`;
@@ -206,11 +204,7 @@ export class ChatbotService {
 
           case 'lms_module_contents': {
             const args = functionCall.args as FilterModuleContentsDto;
-            const contents = await this.lmsContentService.findAll(
-              args,
-              userContext.role,
-              userContext.id,
-            );
+            const contents = await this.lmsContentService.findAll(args);
             return `Module contents: ${JSON.stringify(contents)}`;
           }
 
@@ -257,13 +251,10 @@ export class ChatbotService {
               }
             }
 
-            const todos = await this.lmsContentService.findTodos(
-              userContext.id,
-              {
-                ...baseFiler,
-                ...dueFilter,
-              },
-            );
+            const todos = await this.lmsService.findTodos(userContext.id, {
+              ...baseFiler,
+              ...dueFilter,
+            });
             return `Todos: ${JSON.stringify(todos)}`;
           }
 
