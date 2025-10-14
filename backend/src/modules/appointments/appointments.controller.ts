@@ -26,6 +26,7 @@ import { BookedAppointmentFilterDto } from './dto/booked-appointment.dto';
 import { UsersService } from '../users/users.service';
 import { CourseEnrollmentService } from '../enrollment/course-enrollment.service';
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
+import { FilterBookedAppointment } from './dto/filter-booked-appointment.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -64,6 +65,19 @@ export class AppointmentsController {
     const { role, user_id } = user.user_metadata;
 
     return this.enrolledCoursesService.getCourseEnrollments(user_id, role);
+  }
+
+  @Get('booked')
+  @Roles(Role.STUDENT)
+  async findBookedRange(@Query() query: FilterBookedAppointment) {
+    const start = new Date(query.from);
+    const end = new Date(query.to);
+    return this.appointmentsService.findBookedRange(
+      query.courseId,
+      query.mentorId,
+      start,
+      end,
+    );
   }
 
   /**

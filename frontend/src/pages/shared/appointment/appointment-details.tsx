@@ -167,27 +167,38 @@ function AppointmentDetails() {
               <SimpleGrid cols={3}>
                 <Labeled
                   label="Date"
-                  text={dayjs(appointment.startAt).format('MMM D YYYY')}
+                  text={dayjs(appointment.startAt).utc().format('MMM D YYYY')}
                   icon={<IconCalendar size={16} />}
                 />
                 <Labeled
                   label="Time"
-                  text={dayjs(appointment.startAt).format('HH:mm A')}
+                  text={dayjs(appointment.startAt).utc().format('HH:mm A')}
                   icon={<IconClock size={16} />}
                 />
                 <Labeled
                   label="Estimated"
-                  text={sentenceCase(dayjs(appointment.startAt).fromNow())}
+                  text={sentenceCase(
+                    dayjs(appointment.startAt).utc().fromNow(),
+                  )}
                   icon={<IconHourglassEmpty size={16} />}
                 />
               </SimpleGrid>
-              <Stack mih={100}>
+              <Stack mih={50}>
                 <Labeled
                   label="Description"
                   text={appointment.description}
                   icon={<IconFileDescription size={16} />}
                 />
               </Stack>
+              {appointment.cancelReason && (
+                <Stack mih={50}>
+                  <Labeled
+                    label="Cancel Reason"
+                    text={appointment.cancelReason}
+                    icon={<IconFileDescription size={16} />}
+                  />
+                </Stack>
+              )}
             </Stack>
           </Stack>
         </Card>
@@ -250,22 +261,22 @@ function AppointmentActions() {
   }
 
   const handleReject = () => {
-    modals.openConfirmModal({
+    modals.open({
       title: 'Reject Appointment?',
       children: (
-        <Text>
-          This will change the status to rejected and cannot be undone.
-        </Text>
+        <ReasonModal
+          description="Are you sure you want to reject the appointment? Write your reason down below."
+          onConfirm={(reason) => {
+            updateStatus({
+              path: { id: appointmentId },
+              body: {
+                status: 'cancelled',
+                cancelReason: reason,
+              },
+            })
+          }}
+        />
       ),
-      labels: { confirm: 'Confirm', cancel: 'Cancel' },
-      onConfirm: () => {
-        updateStatus({
-          path: { id: appointmentId },
-          body: {
-            status: 'cancelled',
-          },
-        })
-      },
     })
   }
 
@@ -273,7 +284,8 @@ function AppointmentActions() {
     modals.open({
       title: 'Cancel Appointment?',
       children: (
-        <CancelModal
+        <ReasonModal
+          description="Are you sure you want to cancel the appointment? Write your reason down below."
           onConfirm={(reason) => {
             updateStatus({
               path: { id: appointmentId },
@@ -321,29 +333,48 @@ function AppointmentActions() {
   )
 }
 
-function CancelModal({ onConfirm }: { onConfirm: (reason: string) => void }) {
-  const [cancelReason, setCancelReason] = useInputState('')
+function ReasonModal({
+  description,
+  onConfirm,
+}: {
+  description: string
+  onConfirm: (reason: string) => void
+}) {
+  const [reason, setReason] = useInputState('')
 
   return (
     <Stack>
       <Text size="sm">
+        {description}
         Are you sure you want to cancel the appointment? Write your reason down
         below.
       </Text>
       <Textarea
-        label="Cancel Reason"
+        label="Reason"
         placeholder="Why you want to cancel the appointment"
         data-autofocus
         autosize
         minRows={4}
-        value={cancelReason}
-        onChange={setCancelReason}
+        value={reason}
+        onChange={setReason}
       />
       <Group justify="end">
-        <Button variant="outline" color="dark" className=" border-neutral-300">
+        <Button
+          variant="outline"
+          color="dark"
+          className=" border-neutral-300"
+          onClick={() => modals.closeAll()}
+        >
           Cancel
         </Button>
-        <Button onClick={() => onConfirm(cancelReason)}>Confirm</Button>
+        <Button
+          onClick={() => {
+            onConfirm(reason)
+            modals.closeAll()
+          }}
+        >
+          Confirm
+        </Button>
       </Group>
     </Stack>
   )

@@ -46,6 +46,7 @@ interface QuickFormHookOptions<
     TUpdateContext
   >
 }
+
 export function useQuickForm<
   TFormInput extends Record<string, any>,
   TFormOutput extends Record<string, any>,
@@ -117,8 +118,8 @@ export function useQuickForm<
     )
 
     const form = useForm<TFormInput>({
-      ...formOptions,
       mode: 'uncontrolled',
+      ...formOptions,
     })
 
     useEffect(() => {

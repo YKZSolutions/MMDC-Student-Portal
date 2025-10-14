@@ -11,6 +11,7 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { AppointmentStatus, Prisma, Role } from '@prisma/client';
 import {
+  AppointmentDetailsDto,
   AppointmentItemDto,
   PaginatedAppointmentDto,
 } from './dto/paginated-appointment.dto';
@@ -23,6 +24,7 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BookedAppointment } from './dto/booked-appointment-list';
 
 @Injectable()
 export class AppointmentsService {
@@ -98,6 +100,32 @@ export class AppointmentsService {
         name: appointment.courseOffering.course.name,
       },
     };
+  }
+
+  async findBookedRange(
+    courseOfferingId: string,
+    mentorId: string,
+    from: Date,
+    to: Date,
+  ): Promise<BookedAppointment[]> {
+    const appointments = this.prisma.client.appointment.findMany({
+      where: {
+        status: 'approved',
+        courseOfferingId,
+        mentorId,
+        startAt: {
+          gte: from,
+          lte: to,
+        },
+      },
+      select: {
+        id: true,
+        startAt: true,
+        endAt: true,
+      },
+    });
+
+    return appointments;
   }
 
   /**
@@ -259,7 +287,7 @@ export class AppointmentsService {
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
     @LogParam('userId') userId: string,
-  ): Promise<AppointmentItemDto> {
+  ): Promise<AppointmentDetailsDto> {
     const where: Prisma.AppointmentWhereInput = {};
 
     where.id = id;
@@ -301,13 +329,34 @@ export class AppointmentsService {
       },
     });
 
+    const schedule = await this.prisma.client.courseEnrollment.findFirstOrThrow(
+      {
+        where: {
+          courseOffering: {
+            course: { id: appointment.courseOffering.courseId },
+          },
+        },
+        include: {
+          courseSection: {
+            select: {
+              id: true,
+              startSched: true,
+              endSched: true,
+              days: true,
+            },
+          },
+        },
+      },
+    );
+
     return {
       ...appointment,
       course: {
-        id: appointment.courseOffering.course.id,
+        id: appointment.courseOffering.id,
         courseCode: appointment.courseOffering.course.courseCode,
         name: appointment.courseOffering.course.name,
       },
+      section: schedule.courseSection,
     };
   }
 

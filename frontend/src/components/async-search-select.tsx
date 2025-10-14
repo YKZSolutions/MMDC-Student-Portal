@@ -13,7 +13,14 @@ import {
 } from '@tanstack/react-query'
 import { useDebouncedValue } from '@mantine/hooks'
 
-type AsyncSelectProps<
+/** Option type with optional full data object */
+export type AsyncSelectOption<TItemData> = {
+  value: string
+  label: string
+  data?: TItemData
+}
+
+export type AsyncSelectProps<
   TQueryFnData = unknown,
   TError = Error,
   TData = TQueryFnData,
@@ -25,8 +32,8 @@ type AsyncSelectProps<
   getOptions: (
     search: string,
   ) => Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'enabled'>
-  /** Map results into Mantine { value, label } format */
-  mapData: (data: TData) => { value: string; label: string }[]
+  /** Map results into Mantine { value, label, data? } format */
+  mapData: (data: TData) => AsyncSelectOption<TItemData>[]
   /** For update forms: Initial value (ID) */
   initialValue?: string
   /** For update forms: Function to get a single item by ID */
@@ -37,7 +44,7 @@ type AsyncSelectProps<
     'enabled'
   >
   /** For update forms: Map single item to label */
-  mapItem?: (item: TItemData) => { value: string; label: string }
+  mapItem?: (item: TItemData) => AsyncSelectOption<TItemData>
   /** Minimum chars before fetching */
   minChars?: number
   /** Debounce ms */
@@ -51,7 +58,13 @@ type AsyncSelectProps<
     option: ComboboxLikeRenderOptionInput<ComboboxItem>,
     data: TData,
   ) => ReactNode
-} & Omit<SelectProps, 'data' | 'renderOption'>
+  /** onChange now returns full data object */
+  onChange?: (
+    value: string | null,
+    option: ComboboxItem,
+    data?: TItemData | null,
+  ) => void
+} & Omit<SelectProps, 'data' | 'renderOption' | 'onChange'>
 
 export default function AsyncSearchSelect<
   TQueryFnData = unknown,
@@ -109,35 +122,13 @@ export default function AsyncSearchSelect<
     enabled: !!getItemById && !!initialValue && !!initialValue.trim(),
   })
 
-  // Handle changes to the select
-  const handleChange = (value: string | null, option: ComboboxItem) => {
-    setSelectedValue(value)
-    if (onChange) {
-      onChange(value, option)
-    }
-  }
-
-  // Reset focus state when component unmounts
-  useEffect(() => {
-    return () => setIsFocused(false)
-  }, [])
-
-  // Update selectedValue when initialValue changes
-  useEffect(() => {
-    if (initialValue !== undefined) {
-      setSelectedValue(initialValue || null)
-    }
-  }, [initialValue])
-
   // Prepare data for the dropdown
-  let selectData: { value: string; label: string }[] = []
+  let selectData: AsyncSelectOption<TItemData>[] = []
 
-  // Include search results
   if (searchData) {
     selectData = mapData(searchData)
   }
 
-  // Include initial item if we have it and it's not already in search results
   if (initialValue && initialItemData && mapItem) {
     const initialOption = mapItem(initialItemData)
     if (!selectData.some((item) => item.value === initialOption.value)) {
@@ -145,7 +136,25 @@ export default function AsyncSearchSelect<
     }
   }
 
-  // Create placeholder text
+  // Handle selection changes
+  const handleChange = (value: string | null, option: ComboboxItem) => {
+    setSelectedValue(value)
+    if (onChange) {
+      const matchedOption = selectData.find((item) => item.value === value)
+      onChange(value, option, matchedOption?.data ?? null)
+    }
+  }
+
+  useEffect(() => {
+    return () => setIsFocused(false)
+  }, [])
+
+  useEffect(() => {
+    if (initialValue !== undefined) {
+      setSelectedValue(initialValue || null)
+    }
+  }, [initialValue])
+
   const placeholder = isLoadingInitial
     ? 'Loading initial value...'
     : props.placeholder

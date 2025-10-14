@@ -1,6 +1,7 @@
 import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { AppointmentDto } from '@/generated/nestjs-dto/appointment.dto';
 import { CourseDto } from '@/generated/nestjs-dto/course.dto';
+import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
 import { OmitType, PickType } from '@nestjs/swagger';
 
@@ -16,6 +17,20 @@ class AppointmentCourseDto extends PickType(CourseDto, [
   'courseCode',
   'name',
 ] as const) {}
+
+class AppointmentSectionDto extends PickType(CourseSectionDto, [
+  'id',
+  'startSched',
+  'endSched',
+  'days',
+]) {}
+
+export class AppointmentDetailsDto extends AppointmentDto {
+  course: AppointmentCourseDto;
+  section: AppointmentSectionDto;
+  student: AppointmentUserDto;
+  mentor: AppointmentUserDto;
+}
 
 export class AppointmentItemDto extends AppointmentDto {
   course: AppointmentCourseDto;
