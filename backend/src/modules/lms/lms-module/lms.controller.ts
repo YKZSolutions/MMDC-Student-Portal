@@ -5,13 +5,12 @@ import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
-import { FilterTodosDto } from '@/modules/lms/dto/filter-todos.dto';
-import { ModuleTreeDto } from '@/modules/lms/dto/module-tree.dto';
-import { PaginatedTodosDto } from '@/modules/lms/dto/paginated-todos.dto';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { LmsService } from '@/modules/lms/lms.service';
+import { FilterTodosDto } from '@/modules/lms/lms-content/dto/filter-todos.dto';
+import { ModuleTreeDto } from '@/modules/lms/lms-content/dto/module-tree.dto';
+import { PaginatedTodosDto } from '@/modules/lms/lms-content/dto/paginated-todos.dto';
+import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
+import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
+import { LmsService } from '@/modules/lms/lms-module/lms.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
@@ -95,12 +94,8 @@ export class LmsController {
   @Get('admin')
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAllForAdmin(
-    @Query() filters: FilterModulesDto,
-    @CurrentUser() user: CurrentAuthUser,
-  ) {
-    const { user_id } = user.user_metadata;
-    return this.lmsService.findAllForAdmin(user_id, filters);
+  findAllForAdmin(@Query() filters: FilterModulesDto) {
+    return this.lmsService.findAllForAdmin(filters);
   }
 
   /**
@@ -190,9 +185,8 @@ export class LmsController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   publish(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Query() query?: ToPublishAtDto,
   ): Promise<{ message: string }> {
-    return this.lmsPublishService.publishModule(id, query?.toPublishAt);
+    return this.lmsPublishService.publishModule(id);
   }
 
   /**
