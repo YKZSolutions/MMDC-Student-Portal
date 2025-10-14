@@ -333,7 +333,7 @@ function AppointmentForm() {
         mentorId: mentorData ? mentorData.id : '',
       },
     }),
-    enabled: currentMonth != null && courseData != null && mentorData != null,
+    enabled: courseData != null && mentorData != null,
   })
 
   const allowedDayIndexes = sectionData?.days.map((d) =>
