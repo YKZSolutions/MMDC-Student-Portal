@@ -17,10 +17,10 @@ import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import {
   ContentType,
+  GradeRecord as PrismaGradeRecord,
   Prisma,
   Role,
   SubmissionState,
-  GradeRecord as PrismaGradeRecord,
 } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { GradebookFilterDto } from '@/modules/lms/grading/dto/gradebook-filter.dto';
@@ -28,7 +28,6 @@ import {
   GradebookEntryDto,
   GradebookViewDto,
 } from '@/modules/lms/grading/dto/gradebook.dto';
-import { GradeQuizSubmissionDto } from '@/modules/lms/grading/dto/grade-quiz-submission.dto';
 import { GradeRecordDto } from '@/generated/nestjs-dto/gradeRecord.dto';
 import { UpdateGradeRecordDto } from '@/generated/nestjs-dto/update-gradeRecord.dto';
 import { GradeAssignmentSubmissionDto } from '@/modules/lms/grading/dto/grade-assignment-submission.dto';
@@ -74,61 +73,46 @@ export class GradingService {
     const rawGradableItemsFromPrisma =
       await this.prisma.client.moduleContent.findMany({
         where: {
-          moduleId,
-          contentType: { in: [ContentType.ASSIGNMENT, ContentType.QUIZ] },
+          moduleSection: {
+            moduleId,
+          },
+          contentType: { in: [ContentType.ASSIGNMENT] },
         },
         include: {
           assignment: {
             select: {
               id: true,
-              title: true,
               dueDate: true,
-              grading: { select: { weight: true } },
-            },
-          },
-          quiz: {
-            select: {
-              id: true,
-              title: true,
-              dueDate: true,
-              grading: { select: { weight: true } },
+              weightPercentage: true,
+              moduleContent: {
+                select: {
+                  title: true,
+                },
+              },
             },
           },
         },
       });
 
-    const gradableItems: GradableItem[] = rawGradableItemsFromPrisma
+    const gradableItems = rawGradableItemsFromPrisma
       .map((item) => {
         if (item.contentType === ContentType.ASSIGNMENT && item.assignment) {
           return {
             id: item.id,
-            title: item.assignment.title,
+            moduleId: moduleId,
+            title: item.assignment.moduleContent.title,
             dueDate: item.assignment.dueDate,
             order: item.order,
             contentType: ContentType.ASSIGNMENT,
             assignmentId: item.assignment.id,
             grading: {
-              weight: item.assignment.grading?.weight,
+              weight: item.assignment?.weightPercentage || 0,
             },
           };
         }
-        if (item.contentType === ContentType.QUIZ && item.quiz) {
-          return {
-            id: item.id,
-            title: item.quiz.title,
-            dueDate: item.quiz.dueDate,
-            order: item.order,
-            contentType: ContentType.QUIZ,
-            quizId: item.quiz.id,
-            grading: {
-              weight: item.quiz.grading?.weight,
-            },
-          };
-        }
-        // This case should ideally not be hit if the query is correct
         return null;
       })
-      .filter((item): item is GradableItem => item !== null);
+      .filter((item) => item !== null); // This filters out nulls and correctly types the result
 
     if (role === Role.student) {
       return this.getStudentGradebook(moduleId, userId, gradableItems);
@@ -206,8 +190,7 @@ export class GradingService {
           finalScore,
           grade,
           feedback: dto.feedback,
-          rubricScores: dto.rubricScores,
-          questionScores: null,
+          rubricEvaluationDetails: dto.rubricEvaluationDetails,
         },
       });
 
@@ -216,89 +199,7 @@ export class GradingService {
         data: { state: SubmissionState.GRADED },
       });
 
-      return {
-        ...gradeRecord,
-        rubricScores: gradeRecord.rubricScores as Prisma.JsonArray,
-        questionScores: [],
-      };
-    });
-  }
-
-  @Log({
-    logArgsMessage: ({ submissionId, graderId }) =>
-      `Grading quiz submission ${submissionId} by grader ${graderId}`,
-    logSuccessMessage: (record) =>
-      `Quiz submission graded successfully. Record ID: ${record.id}`,
-    logErrorMessage: (err, { submissionId }) =>
-      `Error grading quiz submission ${submissionId}: ${err.message}`,
-  })
-  @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: () =>
-      new ConflictException(
-        'A grade record already exists for this submission.',
-      ),
-  })
-  async gradeQuizSubmission(
-    @LogParam('submissionId') submissionId: string,
-    @LogParam('graderId') graderId: string,
-    @LogParam('dto') dto: GradeQuizSubmissionDto,
-  ): Promise<GradeRecord> {
-    if (!isUUID(submissionId) || !isUUID(graderId)) {
-      throw new BadRequestException('Invalid submission or grader ID format.');
-    }
-
-    const submission = await this.prisma.client.quizSubmission.findUnique({
-      where: { id: submissionId },
-      include: { quiz: true },
-    });
-
-    if (!submission) throw new NotFoundException('Quiz submission not found.');
-    if (submission.state !== SubmissionState.SUBMITTED) {
-      throw new ConflictException('Can only grade submitted quizzes.');
-    }
-
-    await this.checkMentorPermission(
-      graderId,
-      submission.studentId,
-      submission.quiz.moduleContentId,
-    );
-
-    const rawScore = dto.rawScore ?? submission.rawScore;
-    if (rawScore === null || rawScore === undefined) {
-      throw new BadRequestException(
-        'Quiz has not been auto-graded and no raw score was provided.',
-      );
-    }
-
-    const { finalScore, grade } = this.calculateFinalGrade(
-      rawScore,
-      submission.lateDays,
-      submission.quiz.latePenalty,
-    );
-
-    return this.prisma.client.$transaction(async (tx) => {
-      const gradeRecord = await tx.gradeRecord.create({
-        data: {
-          studentId: submission.studentId,
-          quizSubmissionId: submissionId,
-          rawScore: rawScore,
-          finalScore,
-          grade,
-          feedback: dto.feedback,
-          questionScores: dto.questionScores,
-        },
-      });
-
-      await tx.quizSubmission.update({
-        where: { id: submissionId },
-        data: { state: SubmissionState.GRADED },
-      });
-
-      return {
-        ...gradeRecord,
-        rubricScores: [],
-        questionScores: gradeRecord.questionScores as Prisma.JsonArray,
-      };
+      return gradeRecord;
     });
   }
 
@@ -323,21 +224,18 @@ export class GradingService {
       where: { id: recordId },
       include: {
         assignmentSubmission: { include: { assignment: true } },
-        quizSubmission: { include: { quiz: true } },
       },
     });
 
     if (!gradeRecord) throw new NotFoundException('Grade record not found.');
 
-    const submission =
-      gradeRecord.assignmentSubmission || gradeRecord.quizSubmission;
+    const submission = gradeRecord.assignmentSubmission;
 
     if (!submission) {
       throw new NotFoundException('Associated submission not found.');
     }
 
-    const content =
-      'assignment' in submission ? submission.assignment : submission.quiz;
+    const content = submission.assignment;
 
     await this.checkMentorPermission(
       graderId,
@@ -352,23 +250,16 @@ export class GradingService {
       content.latePenalty,
     );
 
-    const updated = await this.prisma.client.gradeRecord.update({
+    return await this.prisma.client.gradeRecord.update({
       where: { id: recordId },
       data: {
         ...dto,
         rawScore,
         finalScore: dto.finalScore ?? finalScore,
         grade: dto.grade ?? grade,
-        rubricScores: (dto.rubricScores as Prisma.JsonValue) ?? undefined,
-        questionScores: (dto.questionScores as Prisma.JsonValue) ?? undefined,
+        rubricEvaluationDetails: dto.rubricEvaluationDetails,
       },
     });
-
-    return {
-      ...updated,
-      rubricScores: updated.rubricScores as Prisma.JsonArray,
-      questionScores: updated.questionScores as Prisma.JsonArray,
-    };
   }
 
   // SECTION: Private Helper Methods
@@ -392,17 +283,15 @@ export class GradingService {
           OR: [
             {
               assignmentSubmission: {
-                assignment: { moduleContent: { moduleId } },
+                assignment: { moduleContent: { moduleSection: { moduleId } } },
               },
             },
-            { quizSubmission: { quiz: { moduleContent: { moduleId } } } },
           ],
         },
         include: {
           assignmentSubmission: {
             select: { id: true, state: true, assignmentId: true },
           },
-          quizSubmission: { select: { id: true, state: true, quizId: true } },
         },
       })
       .withPages({
@@ -426,16 +315,6 @@ export class GradingService {
             score = record.finalScore;
             status = record.assignmentSubmission?.state || 'SUBMITTED';
           }
-        } else if (item.contentType === ContentType.QUIZ) {
-          // QUIZ
-          const record = gradeRecords.find(
-            (s) => s.quizSubmission?.quizId === item.quizId,
-          );
-          if (record) {
-            submissionId = record.quizSubmissionId;
-            score = record.finalScore;
-            status = record.quizSubmission?.state || 'SUBMITTED';
-          }
         }
 
         return {
@@ -451,14 +330,10 @@ export class GradingService {
     const gradableAssignmentItems = gradableItems.filter(
       (item) => item.contentType === ContentType.ASSIGNMENT,
     );
-    const gradableQuizItems = gradableItems.filter(
-      (item) => item.contentType === ContentType.QUIZ,
-    );
 
     return {
       students: [student],
       gradableAssignmentItems,
-      gradableQuizItems,
       grades,
       meta,
     };
@@ -507,17 +382,15 @@ export class GradingService {
           OR: [
             {
               assignmentSubmission: {
-                assignment: { moduleContent: { moduleId } },
+                assignment: { moduleContent: { moduleSection: { moduleId } } },
               },
             },
-            { quizSubmission: { quiz: { moduleContent: { moduleId } } } },
           ],
         },
         include: {
           assignmentSubmission: {
             select: { id: true, state: true, assignmentId: true },
           },
-          quizSubmission: { select: { id: true, state: true, quizId: true } },
         },
       })
       .withPages({
@@ -532,21 +405,15 @@ export class GradingService {
         const record = allGradeRecords.find(
           (r) =>
             r.studentId === student.id &&
-            ('assignmentId' in item
-              ? r.assignmentSubmission?.assignmentId === item.assignmentId
-              : r.quizSubmission?.quizId === item.quizId),
+            r.assignmentSubmission?.assignmentId === item.assignmentId,
         );
 
         grades.push({
           studentId: student.id,
           gradableItemId: item.id,
-          submissionId:
-            record?.assignmentSubmissionId || record?.quizSubmissionId || null,
+          submissionId: record?.assignmentSubmissionId || null,
           score: record?.finalScore || null,
-          status:
-            record?.assignmentSubmission?.state ||
-            record?.quizSubmission?.state ||
-            'NOT_SUBMITTED',
+          status: record?.assignmentSubmission?.state || 'NOT_SUBMITTED',
         });
       }
     }
@@ -554,14 +421,10 @@ export class GradingService {
     const gradableAssignmentItems = gradableItems.filter(
       (item) => item.contentType === ContentType.ASSIGNMENT,
     );
-    const gradableQuizItems = gradableItems.filter(
-      (item) => item.contentType === ContentType.QUIZ,
-    );
 
     return {
       students,
       gradableAssignmentItems,
-      gradableQuizItems,
       grades,
       meta,
     };
@@ -574,10 +437,20 @@ export class GradingService {
   ): Promise<void> {
     const content = await this.prisma.client.moduleContent.findUnique({
       where: { id: moduleContentId },
-      select: { module: { select: { courseOfferingId: true } } },
+      select: {
+        moduleSection: {
+          select: {
+            module: {
+              select: {
+                courseOfferingId: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (!content?.module.courseOfferingId) {
+    if (!content?.moduleSection.module?.courseOfferingId) {
       throw new NotFoundException(
         'Could not determine course offering for this content.',
       );
@@ -586,7 +459,7 @@ export class GradingService {
     const enrollment = await this.prisma.client.courseEnrollment.findFirst({
       where: {
         studentId: studentId,
-        courseOfferingId: content.module.courseOfferingId,
+        courseOfferingId: content.moduleSection.module.courseOfferingId,
       },
       include: { courseSection: true },
     });

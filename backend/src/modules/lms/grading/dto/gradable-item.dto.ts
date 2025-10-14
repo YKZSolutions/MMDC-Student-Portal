@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ContentType, Prisma } from '@prisma/client';
+import { ContentType } from '@prisma/client';
 
 /**
  * A simplified representation of the grading configuration,
@@ -8,11 +8,10 @@ import { ContentType, Prisma } from '@prisma/client';
 class GradableItemGradingConfig {
   @ApiProperty({
     description: 'The weight of this item in the final grade calculation.',
-    type: String,
-    format: 'Decimal.js',
+    type: Number,
     nullable: true,
   })
-  weight: Prisma.Decimal | null;
+  weight: number | null;
 }
 
 /**
@@ -65,23 +64,7 @@ export class GradableAssignmentItem extends BaseGradableItem {
 }
 
 /**
- * Represents a gradable item that is a Quiz.
- */
-export class GradableQuizItem extends BaseGradableItem {
-  @ApiProperty({
-    enum: [ContentType.QUIZ],
-    description: 'The type of content, which is always QUIZ.',
-  })
-  contentType: 'QUIZ';
-
-  @ApiProperty({
-    description: 'The unique ID of the underlying quiz.',
-  })
-  quizId: string;
-}
-
-/**
  * A discriminated union type representing any kind of gradable item.
  * This allows for type-safe access to item-specific properties.
  */
-export type GradableItem = GradableAssignmentItem | GradableQuizItem;
+export type GradableItem = GradableAssignmentItem;

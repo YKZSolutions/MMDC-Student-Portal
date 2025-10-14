@@ -2,11 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
 import { Prisma, SubmissionState } from '@prisma/client';
 import { PaginatedDto } from '@/common/dto/paginated.dto';
-import {
-  GradableAssignmentItem,
-  GradableItem,
-  GradableQuizItem,
-} from '@/modules/lms/grading/dto/gradable-item.dto';
+import { GradableAssignmentItem } from '@/modules/lms/grading/dto/gradable-item.dto';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 
@@ -37,11 +33,6 @@ export class GradebookViewDto extends PaginatedDto {
   @Type(() => GradableAssignmentItem)
   @ValidateNested({ each: true })
   gradableAssignmentItems: GradableAssignmentItem[];
-
-  @ApiProperty({ type: [GradableQuizItem] })
-  @Type(() => GradableQuizItem)
-  @ValidateNested({ each: true })
-  gradableQuizItems: GradableQuizItem[];
 
   @ApiProperty({ type: [GradebookEntryDto] })
   @Type(() => GradebookEntryDto)
