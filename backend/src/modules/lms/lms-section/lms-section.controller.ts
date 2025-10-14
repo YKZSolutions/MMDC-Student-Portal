@@ -1,9 +1,7 @@
 import { Roles } from '@/common/decorators/roles.decorator';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
-import { LmsSectionService } from '@/modules/lms/lms-section.service';
+import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
@@ -20,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { CreateModuleSectionDto } from './dto/create-module-section.dto';
 import { UpdateModuleSectionDto } from './dto/update-module-section.dto';
+import { LmsSectionService } from '@/modules/lms/lms-section/lms-section.service';
 
 @Controller('modules/:moduleId/sections')
 export class LmsSectionController {
@@ -109,7 +108,6 @@ export class LmsSectionController {
    * Requires `ADMIN` role.
    *
    * @param id - The UUID of the section to publish.
-   * @param query - The optional date to publish the section at.
    * @returns A Promise that resolves to an object with a message.
    */
   @Post(':id/publish')
@@ -117,9 +115,8 @@ export class LmsSectionController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   publishSection(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Query() query?: ToPublishAtDto,
   ): Promise<{ message: string }> {
-    return this.lmsPublishService.publishSection(id, query?.toPublishAt);
+    return this.lmsPublishService.publishSection(id);
   }
 
   /**
