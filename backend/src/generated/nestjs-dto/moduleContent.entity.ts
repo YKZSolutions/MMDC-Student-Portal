@@ -18,12 +18,12 @@ export class ModuleContent {
     type: 'string',
   })
   id: string;
+  @ApiHideProperty()
+  moduleSection?: ModuleSectionAsType;
   @ApiProperty({
     type: 'string',
   })
   moduleSectionId: string;
-  @ApiHideProperty()
-  moduleSection?: ModuleSectionAsType;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
@@ -54,12 +54,6 @@ export class ModuleContent {
     nullable: true,
   })
   publishedAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  toPublishAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

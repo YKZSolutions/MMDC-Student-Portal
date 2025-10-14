@@ -3,7 +3,7 @@ import { Module } from '@/generated/nestjs-dto/module.entity';
 import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
 import { IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ModuleTreeContentItemDto } from '@/modules/lms/lms-content/dto/module-tree-content-item.dto';
+import { ModuleTreeContentItemDto } from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
 
 export class ModuleTreeDto extends PickType(Module, [
   'id',

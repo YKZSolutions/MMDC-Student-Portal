@@ -1,17 +1,13 @@
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
-export class ModuleContentInfoDto extends PickType(ModuleContentDto, [
+export class ModuleContentInfoDto extends PickType(ModuleContent, [
   'id',
   'contentType',
   'order',
-] as const) {
-  @ApiProperty({ nullable: true })
-  moduleSectionId: string | null;
-
-  @ApiProperty()
-  moduleId: string;
-}
+  'moduleSectionId',
+] as const) {}
 
 export class DetailedContentProgressDto {
   @ApiProperty()

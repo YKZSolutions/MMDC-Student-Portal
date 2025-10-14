@@ -1,15 +1,41 @@
 import { ContentType, Prisma } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiExtraModels, ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ConnectModuleSectionDto,
+  type ConnectModuleSectionDto as ConnectModuleSectionDtoAsType,
+} from './connect-moduleSection.dto';
 
+export class UpdateModuleContentModuleSectionRelationInputDto {
+  @ApiProperty({
+    type: ConnectModuleSectionDto,
+  })
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => ConnectModuleSectionDto)
+  connect: ConnectModuleSectionDtoAsType;
+}
+
+@ApiExtraModels(
+  ConnectModuleSectionDto,
+  UpdateModuleContentModuleSectionRelationInputDto,
+)
 export class UpdateModuleContentDto {
+  @ApiHideProperty()
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateModuleContentModuleSectionRelationInputDto)
+  moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
@@ -60,15 +86,6 @@ export class UpdateModuleContentDto {
   @IsOptional()
   @IsDateString()
   publishedAt?: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  toPublishAt?: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
