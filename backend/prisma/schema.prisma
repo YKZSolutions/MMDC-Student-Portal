@@ -772,6 +772,8 @@ model RubricTemplate {
   tags String[] // e.g., ["math", "writing", "project"]
 
   // Rubric structure fields (criteria and levels would typically be in related tables)
+  /// [RubricCriterion]
+  /// @DtoOverrideType(PrismaJson.RubricCriterion)
   criteriaJson Json? // Stores the actual structure of the rubric (criteria, levels, weigths)
 
   /// @DtoReadOnly
@@ -937,8 +939,9 @@ model GradeRecord {
   grade      String  @db.VarChar(10) // Pass, Fail etc.
   feedback   String?
 
-  // Flexible detail fields
-  rubricEvaluationDetails Json[]
+  /// [RubricEvaluationDetail]
+  /// @DtoOverrideType(PrismaJson.RubricEvaluationDetail)
+  rubricEvaluationDetails Json[] // Flexible detail fields
 
   /// @DtoReadOnly
   gradedAt  DateTime @default(now())
