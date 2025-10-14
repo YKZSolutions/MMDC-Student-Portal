@@ -22736,7 +22736,7 @@
             "type": "string",
             "nullable": true
           },
-          "courseId": {
+          "courseOfferingId": {
             "type": "string",
             "format": "uuid"
           },
@@ -22754,7 +22754,7 @@
           "description",
           "startAt",
           "endAt",
-          "courseId",
+          "courseOfferingId",
           "studentId",
           "mentorId"
         ]

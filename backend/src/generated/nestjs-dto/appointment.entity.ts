@@ -14,9 +14,9 @@ export class Appointment {
   @ApiProperty({
     type: 'string',
   })
-  courseId: string;
+  courseOfferingId: string;
   @ApiHideProperty()
-  course?: CourseOfferingAsType;
+  courseOffering?: CourseOfferingAsType;
   @ApiProperty({
     type: 'string',
   })

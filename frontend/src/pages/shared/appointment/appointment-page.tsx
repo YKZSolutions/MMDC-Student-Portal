@@ -316,7 +316,7 @@ function AppointmentForm() {
   const handleBookAppointment = async (values: AppointmentFormOutput) => {
     if (form.validate().hasErrors) return
     const {
-      course: courseId,
+      course: courseOfferingId,
       mentor: mentorId,
       topic: title,
       description,
@@ -337,7 +337,7 @@ function AppointmentForm() {
     await create.mutateAsync({
       body: {
         studentId: user.id,
-        courseId,
+        courseOfferingId,
         mentorId,
         title,
         description,

@@ -3001,7 +3001,7 @@ export const zCreateAppointmentItemDto = z.object({
         z.string(),
         z.null()
     ])),
-    courseId: z.uuid(),
+    courseOfferingId: z.uuid(),
     studentId: z.uuid(),
     mentorId: z.uuid()
 });
