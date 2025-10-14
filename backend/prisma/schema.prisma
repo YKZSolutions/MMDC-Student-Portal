@@ -639,8 +639,9 @@ model Module {
   /// @DtoApiHidden
   groups         Group[]
 
+  /// @DtoReadOnly
   publishedAt   DateTime?
-  toPublishAt   DateTime?
+  /// @DtoReadOnly
   unpublishedAt DateTime?
 
   /// @DtoReadOnly
@@ -658,9 +659,6 @@ model SectionModule {
 
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   moduleId String @db.Uuid
-
-  publishedAt DateTime?
-  toPublishAt DateTime?
 
   classMeetings Json[]
 
@@ -696,8 +694,9 @@ model ModuleSection {
   title String @db.VarChar(255)
   order Int?   @default(0)
 
+  /// @DtoReadOnly
   publishedAt   DateTime?
-  toPublishAt   DateTime?
+  /// @DtoReadOnly
   unpublishedAt DateTime?
 
   /// @DtoReadOnly
@@ -722,9 +721,11 @@ enum ContentType {
 model ModuleContent {
   id String @id @default(uuid()) @db.Uuid
 
-  moduleSectionId String        @db.Uuid
   /// @DtoApiHidden
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoRelationCanConnectOnUpdate
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
+  moduleSectionId String        @db.Uuid
 
   /// @DtoUpdateOptional
   contentType ContentType @default(LESSON)
@@ -738,7 +739,6 @@ model ModuleContent {
   order Int @default(1) @db.SmallInt
 
   publishedAt   DateTime?
-  toPublishAt   DateTime?
   unpublishedAt DateTime?
 
   /// @DtoReadOnly
@@ -787,6 +787,7 @@ model RubricTemplate {
   assignments Assignment[]
 
   @@index([name])
+  @@index([tags], type: Gin)
 }
 
 // enum RubricType {
@@ -807,7 +808,15 @@ model Assignment {
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
   moduleContentId String        @unique @db.Uuid
 
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoRelationCanConnectOnUpdate
+  rubricTemplate   RubricTemplate? @relation(fields: [rubricTemplateId], references: [id], onDelete: Restrict)
+  rubricTemplateId String?         @db.Uuid
+
   mode AssignmentMode?
+
+  maxScore         Decimal @default(0) @db.Decimal(5, 2)
+  weightPercentage Int     @default(0) @db.SmallInt
 
   maxAttempts         Int?      @db.SmallInt
   allowLateSubmission Boolean?
@@ -821,9 +830,6 @@ model Assignment {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
-
-  rubricTemplate   RubricTemplate? @relation(fields: [rubricTemplateId], references: [id], onDelete: Restrict)
-  rubricTemplateId String?         @db.Uuid
 
   /// @DtoApiHidden
   submissions AssignmentSubmission[]

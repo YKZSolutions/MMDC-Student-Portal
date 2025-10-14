@@ -1,11 +1,11 @@
 import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { BasicModuleItemDto } from '@/modules/lms/dto/basic-module-item.dto';
+import { ModuleTreeContentItemDto } from '@/modules/lms/lms-content/dto/module-tree-content-item.dto';
 
 export class PaginatedModuleContentDto extends PaginatedDto {
   @ApiProperty({
-    type: () => BasicModuleItemDto,
+    type: () => ModuleTreeContentItemDto,
     isArray: true,
   })
-  moduleContents: BasicModuleItemDto[];
+  moduleContents: ModuleTreeContentItemDto[];
 }

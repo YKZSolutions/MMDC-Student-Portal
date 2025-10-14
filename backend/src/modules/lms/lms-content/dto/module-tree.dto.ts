@@ -3,7 +3,7 @@ import { Module } from '@/generated/nestjs-dto/module.entity';
 import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
 import { IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BasicModuleItemDto } from '@/modules/lms/dto/basic-module-item.dto';
+import { ModuleTreeContentItemDto } from '@/modules/lms/lms-content/dto/module-tree-content-item.dto';
 
 export class ModuleTreeDto extends PickType(Module, [
   'id',
@@ -11,15 +11,13 @@ export class ModuleTreeDto extends PickType(Module, [
   'courseId',
   'progresses',
   'publishedAt',
-  'toPublishAt',
   'unpublishedAt',
 ] as const) {
   @ApiProperty({
     type: () => [ModuleTreeSectionDto],
     required: false,
-    nullable: true,
   })
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => ModuleTreeSectionDto)
   moduleSections: ModuleTreeSectionDto[];
 }
@@ -32,7 +30,6 @@ export class ModuleTreeSectionDto extends PickType(ModuleSection, [
   'title',
   'order',
   'publishedAt',
-  'toPublishAt',
   'unpublishedAt',
 ]) {
   @ApiProperty({
@@ -41,17 +38,17 @@ export class ModuleTreeSectionDto extends PickType(ModuleSection, [
     nullable: true,
   })
   @IsOptional()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => ModuleTreeSectionDto)
   subsections?: ModuleTreeSectionDto[];
 
   @ApiProperty({
-    type: () => [BasicModuleItemDto],
+    type: () => [ModuleTreeContentItemDto],
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @ValidateNested()
-  @Type(() => BasicModuleItemDto)
-  moduleContents?: BasicModuleItemDto[];
+  @ValidateNested({ each: true })
+  @Type(() => ModuleTreeContentItemDto)
+  moduleContents?: ModuleTreeContentItemDto[];
 }
