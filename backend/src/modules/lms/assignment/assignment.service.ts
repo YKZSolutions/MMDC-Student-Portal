@@ -15,7 +15,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
 import { MessageDto } from '@/common/dto/message.dto';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
-import { UpdateAssignmentWithRubricDto } from '@/modules/lms/assignment/dto/update-assignment-item.dto';
+import { UpdateAssignmentConfigDto } from '@/modules/lms/assignment/dto/update-assignment-item.dto';
 
 @Injectable()
 export class AssignmentService {
@@ -278,7 +278,7 @@ export class AssignmentService {
 
   async update(
     assignmentId: string,
-    updateAssignmentDto: UpdateAssignmentWithRubricDto,
+    updateAssignmentDto: UpdateAssignmentConfigDto,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
     const client = tx ?? this.prisma.client;

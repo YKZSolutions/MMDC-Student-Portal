@@ -20,6 +20,24 @@ export class CreateAssignmentDto {
   @IsEnum(AssignmentMode)
   mode?: AssignmentMode | null;
   @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+    default: 0,
+    required: false,
+  })
+  @IsOptional()
+  @IsDecimal()
+  maxScore?: Prisma.Decimal;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  weightPercentage?: number;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
     required: false,

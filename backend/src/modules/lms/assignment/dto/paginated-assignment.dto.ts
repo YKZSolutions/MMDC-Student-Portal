@@ -2,7 +2,6 @@ import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { AssignmentSubmissionDto } from '@/generated/nestjs-dto/assignmentSubmission.dto';
 import { GradeRecordDto } from '@/generated/nestjs-dto/gradeRecord.dto';
-import { GradingConfigDto } from '@/generated/nestjs-dto/gradingConfig.dto';
 import { SubmissionAttachmentDto } from '@/generated/nestjs-dto/submissionAttachment.dto';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
 import { PickType } from '@nestjs/swagger';
@@ -13,12 +12,8 @@ class AssignmentStatsDto {
   total: number;
 }
 
-export class AssignmentItemDto extends AssignmentDto {
-  grading?: GradingConfigDto;
-}
-
 // Admin
-class AdminAssignmentItemDto extends AssignmentItemDto {
+class AdminAssignmentItemDto extends AssignmentDto {
   stats: AssignmentStatsDto;
 }
 
@@ -41,11 +36,11 @@ class MentorAssignmentSubmissionItemDto extends PickType(
   ['id', 'submittedAt'],
 ) {
   attachments?: SubmissionAttachmentDto[];
-  grade?: GradeRecordItemDto;
+  grade?: GradeRecordItemDto | null;
   student: UserDto;
 }
 
-class MentorAssignmentItemDto extends AssignmentItemDto {
+class MentorAssignmentItemDto extends AssignmentDto {
   stats: AssignmentStatsDto;
   submissions: MentorAssignmentSubmissionItemDto[];
 }
@@ -57,10 +52,10 @@ export class PaginatedMentorAssignmentDto extends PaginatedDto {
 // Student
 class StudentAssignmentSubmissionItemDto extends AssignmentSubmissionDto {
   attachments?: SubmissionAttachmentDto[];
-  grade?: GradeRecordDto;
+  grade?: GradeRecordDto | null;
 }
 
-export class StudentAssignmentItemDto extends AssignmentItemDto {
+export class StudentAssignmentItemDto extends AssignmentDto {
   submissions: StudentAssignmentSubmissionItemDto[];
 }
 

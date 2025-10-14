@@ -9,19 +9,19 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { LmsAssignmentService } from './lms-assignment.service';
+import { AssignmentService } from './assignment.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { UpdateAssignmentConfigDto } from './dto/update-assignment-config.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
-import { SubmitAssignmentDto } from './dto/submit-assignment.dto';
+import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
+import { UpdateAssignmentConfigDto } from '@/modules/lms/assignment/dto/update-assignment-item.dto';
 
 @Controller('modules/:moduleId/assignments')
-export class LmsAssignmentController {
-  constructor(private readonly lmsAssignmentService: LmsAssignmentService) {}
+export class AssignmentController {
+  constructor(private readonly lmsAssignmentService: AssignmentService) {}
 
   @Post(':assignmentId')
   @ApiException(() => [InternalServerErrorException])
@@ -82,25 +82,22 @@ export class LmsAssignmentController {
     );
   }
 
-  @Get(':moduleContentId')
+  @Get(':assignmentId')
   @ApiException(() => [InternalServerErrorException])
-  findOne(@Param('moduleContentId') moduleContentId: string) {
-    return this.lmsAssignmentService.findOne(moduleContentId);
+  findOne(@Param('assignmentId') assignmentId: string) {
+    return this.lmsAssignmentService.findOne(assignmentId);
   }
 
-  @Get(':moduleContentId/student')
+  @Get(':assignmentId/student')
   @Roles(Role.STUDENT)
   @ApiException(() => [InternalServerErrorException])
   findOneForStudent(
-    @Param('moduleContentId') moduleContentId: string,
+    @Param('assignmentId') assignmentId: string,
     @CurrentUser() currentUser: CurrentAuthUser,
   ) {
     const { user_id } = currentUser.user_metadata;
 
-    return this.lmsAssignmentService.findOneForStudent(
-      moduleContentId,
-      user_id,
-    );
+    return this.lmsAssignmentService.findOneForStudent(assignmentId, user_id);
   }
 
   @Patch(':assignmentId')

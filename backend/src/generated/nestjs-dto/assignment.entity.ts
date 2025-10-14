@@ -25,11 +25,32 @@ export class Assignment {
   })
   moduleContentId: string;
   @ApiProperty({
+    type: () => RubricTemplate,
+    required: false,
+    nullable: true,
+  })
+  rubricTemplate?: RubricTemplateAsType | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  rubricTemplateId: string | null;
+  @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
     nullable: true,
   })
   mode: AssignmentMode | null;
+  @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+  })
+  maxScore: Prisma.Decimal;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  weightPercentage: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -75,17 +96,6 @@ export class Assignment {
     nullable: true,
   })
   deletedAt: Date | null;
-  @ApiProperty({
-    type: () => RubricTemplate,
-    required: false,
-    nullable: true,
-  })
-  rubricTemplate?: RubricTemplateAsType | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  rubricTemplateId: string | null;
   @ApiHideProperty()
   submissions?: AssignmentSubmissionAsType[];
 }

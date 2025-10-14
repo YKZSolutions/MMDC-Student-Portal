@@ -3,7 +3,7 @@ import { UpdateAssignmentDto } from '@/generated/nestjs-dto/update-assignment.dt
 import { UpdateModuleContentDto } from '@/generated/nestjs-dto/update-moduleContent.dto';
 import { ContentType } from '@prisma/client';
 
-export class UpdateAssignmentWithRubricDto extends UpdateAssignmentDto {
+export class UpdateAssignmentConfigDto extends UpdateAssignmentDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -13,7 +13,7 @@ export class UpdateAssignmentWithRubricDto extends UpdateAssignmentDto {
 }
 
 export class UpdateAssignmentItemDto extends IntersectionType(
-  UpdateAssignmentWithRubricDto,
+  UpdateAssignmentConfigDto,
   UpdateModuleContentDto,
 ) {
   @ApiProperty({

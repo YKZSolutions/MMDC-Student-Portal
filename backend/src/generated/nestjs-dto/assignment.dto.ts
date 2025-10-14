@@ -13,6 +13,16 @@ export class AssignmentDto {
   })
   mode: AssignmentMode | null;
   @ApiProperty({
+    type: 'string',
+    format: 'Decimal.js',
+  })
+  maxScore: Prisma.Decimal;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  weightPercentage: number;
+  @ApiProperty({
     type: 'integer',
     format: 'int32',
     nullable: true,
