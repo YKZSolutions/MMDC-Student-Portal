@@ -4,20 +4,11 @@ import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
-import { UpdateAssignmentItemDto } from '@/modules/lms/content/assignment/dto/update-assignment-item.dto';
-import { UpdateDiscussionItemDto } from '@/modules/lms/content/discussion/dto/update-discussion-item.dto';
-import { UpdateFileItemDto } from '@/modules/lms/content/file/dto/update-file-item.dto';
-import { UpdateLessonItemDto } from '@/modules/lms/content/lesson/dto/update-lesson-item.dto';
-import { UpdateQuizItemDto } from '@/modules/lms/content/quiz/dto/update-quiz-item.dto';
-import { UpdateExternalUrlItemDto } from '@/modules/lms/content/url/dto/update-external-url-item.dto';
-import { UpdateVideoItemDto } from '@/modules/lms/content/video/dto/update-video-item.dto';
-import { CreateContentDto } from '@/modules/lms/dto/create-content.dto';
-import { FilterModuleContentsDto } from '@/modules/lms/dto/filter-module-contents.dto';
-import { PaginatedModuleContentDto } from '@/modules/lms/dto/paginated-module-content.dto';
-import { ToPublishAtDto } from '@/modules/lms/dto/to-publish-at.dto';
-import { UpdateContentDto } from '@/modules/lms/dto/update-content.dto';
-import { LmsContentService } from '@/modules/lms/lms-content.service';
-import { LmsPublishService } from '@/modules/lms/lms-publish.service';
+import { FilterModuleContentsDto } from '@/modules/lms/lms-content/dto/filter-module-contents.dto';
+import { PaginatedModuleContentDto } from '@/modules/lms/lms-content/dto/paginated-module-content.dto';
+import { UpdateContentDto } from '@/modules/lms/lms-content/dto/update-content.dto';
+import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
+import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
@@ -42,6 +33,8 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { ContentType } from '@prisma/client';
+import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
+import { UpdateAssignmentItemDto } from '@/modules/lms/assignment/dto/update-assignment-item.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -64,10 +57,9 @@ export class LmsContentController {
   @Roles(Role.ADMIN)
   @Post()
   create(
-    @Body() createModuleContentDto: CreateContentDto,
-    @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
+    @Body() createModuleContentDto: CreateModuleContentDto,
   ): Promise<ModuleContent> {
-    return this.lmsContentService.create(createModuleContentDto, moduleId);
+    return this.lmsContentService.create(createModuleContentDto);
   }
 
   /**
@@ -112,38 +104,16 @@ export class LmsContentController {
   @ApiBody({
     // Define the overall schema type as oneOf the possible DTOs
     schema: {
-      oneOf: [
-        { $ref: getSchemaPath(UpdateLessonItemDto) },
-        { $ref: getSchemaPath(UpdateAssignmentItemDto) },
-        { $ref: getSchemaPath(UpdateQuizItemDto) },
-        { $ref: getSchemaPath(UpdateDiscussionItemDto) },
-        { $ref: getSchemaPath(UpdateFileItemDto) },
-        { $ref: getSchemaPath(UpdateExternalUrlItemDto) },
-        { $ref: getSchemaPath(UpdateVideoItemDto) },
-      ],
+      oneOf: [{ $ref: getSchemaPath(UpdateAssignmentItemDto) }],
       discriminator: {
         propertyName: 'contentType',
         mapping: {
-          [ContentType.LESSON]: getSchemaPath(UpdateLessonItemDto),
           [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentItemDto),
-          [ContentType.QUIZ]: getSchemaPath(UpdateQuizItemDto),
-          [ContentType.DISCUSSION]: getSchemaPath(UpdateDiscussionItemDto),
-          [ContentType.FILE]: getSchemaPath(UpdateFileItemDto),
-          [ContentType.URL]: getSchemaPath(UpdateExternalUrlItemDto),
-          [ContentType.VIDEO]: getSchemaPath(UpdateVideoItemDto),
         },
       },
     },
   })
-  @ApiExtraModels(
-    UpdateLessonItemDto,
-    UpdateAssignmentItemDto,
-    UpdateQuizItemDto,
-    UpdateDiscussionItemDto,
-    UpdateFileItemDto,
-    UpdateExternalUrlItemDto,
-    UpdateVideoItemDto,
-  )
+  @ApiExtraModels(UpdateAssignmentItemDto)
   @Patch(':moduleContentId')
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
@@ -195,10 +165,8 @@ export class LmsContentController {
   @Get()
   findAll(
     @Query() filters: FilterModuleContentsDto,
-    @CurrentUser() user: CurrentAuthUser,
   ): Promise<PaginatedModuleContentDto> {
-    const { role, user_id } = user.user_metadata;
-    return this.lmsContentService.findAll(filters, role, user_id);
+    return this.lmsContentService.findAll(filters);
   }
 
   /**
@@ -217,12 +185,8 @@ export class LmsContentController {
   @Patch(':moduleContentId/publish')
   publish(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @Query() query?: ToPublishAtDto,
   ) {
-    return this.lmsPublishService.publishContent(
-      moduleContentId,
-      query?.toPublishAt,
-    );
+    return this.lmsPublishService.publishContent(moduleContentId);
   }
 
   /**
