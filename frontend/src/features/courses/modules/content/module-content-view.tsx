@@ -209,14 +209,14 @@ function AssignmentConfigCard() {
       maxScore: config.grading?.weight
         ? new Decimal(config.grading.weight).toNumber()
         : null,
-      dueAt: dayjs(config.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss'),
+      dueAt: config.dueDate
+        ? dayjs(config.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss')
+        : null,
       maxAttempt: config.maxAttempts,
     }),
-    queryOptions: {
-      ...lmsAssignmentControllerFindOneOptions({
-        path: { moduleContentId: itemId },
-      }),
-    },
+    queryOptions: lmsAssignmentControllerFindOneOptions({
+      path: { moduleContentId: itemId },
+    }),
     createMutationOptions: lmsAssignmentControllerUpdateMutation({}),
     updateMutationOptions: lmsAssignmentControllerUpdateMutation({}),
     queryKeyInvalidation: lmsAssignmentControllerFindOneQueryKey({

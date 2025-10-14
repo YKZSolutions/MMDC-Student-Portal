@@ -4,7 +4,7 @@ import z from 'zod'
 const zAssignmentConfigSchema = zUpdateAssignmentConfigDto.shape
 
 export const assignmentConfigFormSchema = z.object({
-  ...zAssignmentConfigSchema,
+  // ...zAssignmentConfigSchema,
   maxScore: z.number().nullable(),
   dueAt: z.string().nullable(),
   maxAttempt: zAssignmentConfigSchema.maxAttempt.nullable(),
