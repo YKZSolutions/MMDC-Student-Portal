@@ -7,18 +7,6 @@ export class SectionModuleDto {
   })
   id: string;
   @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  publishedAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  toPublishAt: Date | null;
-  @ApiProperty({
     type: () => Object,
     isArray: true,
   })
