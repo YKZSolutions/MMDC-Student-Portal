@@ -22780,9 +22780,6 @@
           "title": {
             "type": "string"
           },
-          "description": {
-            "type": "string"
-          },
           "startAt": {
             "type": "string",
             "format": "date-time"
@@ -22810,16 +22807,19 @@
           "mentorId": {
             "type": "string",
             "format": "uuid"
+          },
+          "description": {
+            "type": "string"
           }
         },
         "required": [
           "title",
-          "description",
           "startAt",
           "endAt",
           "courseOfferingId",
           "studentId",
-          "mentorId"
+          "mentorId",
+          "description"
         ]
       },
       "AppointmentStatus": {
