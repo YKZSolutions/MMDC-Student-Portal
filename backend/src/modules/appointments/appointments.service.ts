@@ -108,7 +108,7 @@ export class AppointmentsService {
     from: Date,
     to: Date,
   ): Promise<BookedAppointment[]> {
-    const appointments = this.prisma.client.appointment.findMany({
+    const appointments = await this.prisma.client.appointment.findMany({
       where: {
         status: 'approved',
         courseOfferingId,
