@@ -5,10 +5,6 @@ import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
 } from './assignmentSubmission.entity';
-import {
-  QuizSubmission,
-  type QuizSubmission as QuizSubmissionAsType,
-} from './quizSubmission.entity';
 
 export class GradeRecord {
   @ApiProperty({
@@ -34,17 +30,6 @@ export class GradeRecord {
   assignmentSubmission?: AssignmentSubmissionAsType | null;
   @ApiProperty({
     type: 'string',
-    nullable: true,
-  })
-  quizSubmissionId: string | null;
-  @ApiProperty({
-    type: () => QuizSubmission,
-    required: false,
-    nullable: true,
-  })
-  quizSubmission?: QuizSubmissionAsType | null;
-  @ApiProperty({
-    type: 'string',
     format: 'Decimal.js',
   })
   rawScore: Prisma.Decimal;
@@ -66,12 +51,7 @@ export class GradeRecord {
     type: () => Object,
     isArray: true,
   })
-  rubricScores: Prisma.JsonValue[];
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  questionScores: Prisma.JsonValue[];
+  rubricEvaluationDetails: PrismaJson.RubricEvaluationDetail[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

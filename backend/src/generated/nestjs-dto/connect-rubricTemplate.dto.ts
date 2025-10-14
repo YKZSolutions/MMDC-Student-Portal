@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
-export class ConnectExternalUrlDto {
+export class ConnectRubricTemplateDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -15,5 +15,5 @@ export class ConnectExternalUrlDto {
   })
   @IsOptional()
   @IsString()
-  moduleContentId?: string;
+  name?: string;
 }

@@ -1,29 +1,13 @@
-import { ContentType } from '@prisma/client';
+import { ContentType, Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Module, type Module as ModuleAsType } from './module.entity';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
-import { Lesson, type Lesson as LessonAsType } from './lesson.entity';
 import {
   Assignment,
   type Assignment as AssignmentAsType,
 } from './assignment.entity';
-import { Quiz, type Quiz as QuizAsType } from './quiz.entity';
-import {
-  Discussion,
-  type Discussion as DiscussionAsType,
-} from './discussion.entity';
-import { Video, type Video as VideoAsType } from './video.entity';
-import {
-  ExternalUrl,
-  type ExternalUrl as ExternalUrlAsType,
-} from './externalUrl.entity';
-import {
-  FileResource,
-  type FileResource as FileResourceAsType,
-} from './fileResource.entity';
 import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
@@ -37,27 +21,33 @@ export class ModuleContent {
   @ApiProperty({
     type: 'string',
   })
-  moduleId: string;
+  moduleSectionId: string;
   @ApiHideProperty()
-  module?: ModuleAsType;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  moduleSectionId: string | null;
-  @ApiHideProperty()
-  moduleSection?: ModuleSectionAsType | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  order: number | null;
+  moduleSection?: ModuleSectionAsType;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',
   })
   contentType: ContentType;
+  @ApiProperty({
+    type: 'string',
+  })
+  title: string;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  subtitle: string | null;
+  @ApiProperty({
+    type: () => Object,
+    isArray: true,
+  })
+  content: Prisma.JsonValue[];
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  order: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -93,47 +83,11 @@ export class ModuleContent {
   })
   deletedAt: Date | null;
   @ApiProperty({
-    type: () => Lesson,
-    required: false,
-    nullable: true,
-  })
-  lesson?: LessonAsType | null;
-  @ApiProperty({
     type: () => Assignment,
     required: false,
     nullable: true,
   })
   assignment?: AssignmentAsType | null;
-  @ApiProperty({
-    type: () => Quiz,
-    required: false,
-    nullable: true,
-  })
-  quiz?: QuizAsType | null;
-  @ApiProperty({
-    type: () => Discussion,
-    required: false,
-    nullable: true,
-  })
-  discussion?: DiscussionAsType | null;
-  @ApiProperty({
-    type: () => Video,
-    required: false,
-    nullable: true,
-  })
-  video?: VideoAsType | null;
-  @ApiProperty({
-    type: () => ExternalUrl,
-    required: false,
-    nullable: true,
-  })
-  url?: ExternalUrlAsType | null;
-  @ApiProperty({
-    type: () => FileResource,
-    required: false,
-    nullable: true,
-  })
-  file?: FileResourceAsType | null;
   @ApiProperty({
     type: () => ContentProgress,
     isArray: true,

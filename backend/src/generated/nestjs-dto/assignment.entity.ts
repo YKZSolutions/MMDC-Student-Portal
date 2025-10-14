@@ -5,9 +5,9 @@ import {
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import {
-  GradingConfig,
-  type GradingConfig as GradingConfigAsType,
-} from './gradingConfig.entity';
+  RubricTemplate,
+  type RubricTemplate as RubricTemplateAsType,
+} from './rubricTemplate.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
@@ -24,20 +24,6 @@ export class Assignment {
     type: 'string',
   })
   moduleContentId: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  title: string;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  subtitle: string | null;
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  content: Prisma.JsonValue[];
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
@@ -90,16 +76,16 @@ export class Assignment {
   })
   deletedAt: Date | null;
   @ApiProperty({
-    type: () => GradingConfig,
+    type: () => RubricTemplate,
     required: false,
     nullable: true,
   })
-  grading?: GradingConfigAsType | null;
+  rubricTemplate?: RubricTemplateAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
-  gradingId: string | null;
+  rubricTemplateId: string | null;
   @ApiHideProperty()
   submissions?: AssignmentSubmissionAsType[];
 }

@@ -1,7 +1,10 @@
-import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  Assignment,
+  type Assignment as AssignmentAsType,
+} from './assignment.entity';
 
-export class VideoDto {
+export class RubricTemplate {
   @ApiProperty({
     type: 'string',
   })
@@ -9,33 +12,22 @@ export class VideoDto {
   @ApiProperty({
     type: 'string',
   })
-  title: string;
+  name: string;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
-  subtitle: string | null;
+  description: string | null;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
     isArray: true,
   })
-  content: Prisma.JsonValue[];
+  tags: string[];
   @ApiProperty({
-    type: 'string',
+    type: () => Object,
     nullable: true,
   })
-  url: string | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  duration: number | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  transcript: string | null;
+  criteriaJson: PrismaJson.RubricCriterion | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -52,4 +44,10 @@ export class VideoDto {
     nullable: true,
   })
   deletedAt: Date | null;
+  @ApiProperty({
+    type: () => Assignment,
+    isArray: true,
+    required: false,
+  })
+  assignments?: AssignmentAsType[];
 }

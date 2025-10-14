@@ -1,15 +1,14 @@
-import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsString } from 'class-validator';
 
-export class UpdateLessonDto {
+export class UpdateRubricTemplateDto {
   @ApiProperty({
     type: 'string',
     required: false,
   })
   @IsOptional()
   @IsString()
-  title?: string;
+  name?: string;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -17,13 +16,21 @@ export class UpdateLessonDto {
   })
   @IsOptional()
   @IsString()
-  subtitle?: string | null;
+  description?: string | null;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
     isArray: true,
     required: false,
   })
   @IsOptional()
   @IsArray()
-  content?: Prisma.InputJsonValue[];
+  @IsString({ each: true })
+  tags?: string[];
+  @ApiProperty({
+    type: () => Object,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  criteriaJson?: PrismaJson.RubricCriterion | null;
 }

@@ -18,12 +18,6 @@ export class ContentProgressDto {
   })
   completedAt: Date | null;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    nullable: true,
-  })
-  timeSpent: number | null;
-  @ApiProperty({
     type: 'string',
     format: 'date-time',
     nullable: true,

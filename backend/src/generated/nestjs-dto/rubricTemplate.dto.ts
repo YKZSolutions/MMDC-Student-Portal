@@ -1,7 +1,6 @@
-import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ExternalUrlDto {
+export class RubricTemplateDto {
   @ApiProperty({
     type: 'string',
   })
@@ -9,22 +8,22 @@ export class ExternalUrlDto {
   @ApiProperty({
     type: 'string',
   })
-  title: string;
+  name: string;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
-  subtitle: string | null;
+  description: string | null;
   @ApiProperty({
-    type: () => Object,
+    type: 'string',
     isArray: true,
   })
-  content: Prisma.JsonValue[];
+  tags: string[];
   @ApiProperty({
-    type: 'string',
+    type: () => Object,
     nullable: true,
   })
-  url: string | null;
+  criteriaJson: PrismaJson.RubricCriterion | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

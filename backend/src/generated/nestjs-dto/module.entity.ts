@@ -13,10 +13,6 @@ import {
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
 import {
-  ModuleContent,
-  type ModuleContent as ModuleContentAsType,
-} from './moduleContent.entity';
-import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
@@ -49,8 +45,6 @@ export class Module {
   sectionModules?: SectionModuleAsType[];
   @ApiHideProperty()
   moduleSections?: ModuleSectionAsType[];
-  @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
   @ApiHideProperty()
   progresses?: ContentProgressAsType[];
   @ApiHideProperty()

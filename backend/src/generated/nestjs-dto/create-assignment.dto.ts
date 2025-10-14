@@ -1,39 +1,15 @@
 import { AssignmentMode, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsBoolean,
   IsDateString,
   IsDecimal,
   IsEnum,
   IsInt,
-  IsNotEmpty,
   IsOptional,
-  IsString,
 } from 'class-validator';
 
 export class CreateAssignmentDto {
-  @ApiProperty({
-    type: 'string',
-  })
-  @IsNotEmpty()
-  @IsString()
-  title: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsString()
-  subtitle?: string | null;
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  @IsNotEmpty()
-  @IsArray()
-  content: Prisma.InputJsonValue[];
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
