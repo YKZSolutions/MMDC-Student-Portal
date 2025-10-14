@@ -17,14 +17,27 @@ import { UrlService } from '@/modules/lms/content/url/url.service';
 import { VideoService } from '@/modules/lms/content/video/video.service';
 import { GroupModule } from './group/group.module';
 import { GradingService } from '@/modules/lms/grading/grading.service';
+import { LmsAssignmentController } from './lms-assignment.controller';
+import { LmsAssignmentService } from './lms-assignment.service';
+import { LmsSubmissionController } from './lms-submission.controller';
+import { LmsSubmissionService } from './lms-submission.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  controllers: [LmsController, LmsSectionController, LmsContentController],
+  controllers: [
+    LmsController,
+    LmsSectionController,
+    LmsContentController,
+    LmsAssignmentController,
+    LmsSubmissionController,
+  ],
   providers: [
     LmsService,
     LmsSectionService,
     LmsContentService,
     LmsPublishService,
+    LmsAssignmentService,
+    LmsSubmissionService,
     AssignmentService,
     AssignmentSubmissionService,
     QuizService,
@@ -51,6 +64,6 @@ import { GradingService } from '@/modules/lms/grading/grading.service';
     UrlService,
     VideoService,
   ],
-  imports: [GroupModule],
+  imports: [GroupModule, NotificationsModule],
 })
 export class LmsModule {}

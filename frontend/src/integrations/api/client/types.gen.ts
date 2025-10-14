@@ -909,6 +909,245 @@ export type DetailedContentProgressDto = {
     moduleContent: ModuleContentInfoDto;
 };
 
+export type SubmissionState = 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'GRADED' | 'RETURNED';
+
+export type SubmitAssignmentDto = {
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type AssignmentStatsDto = {
+    submitted: number;
+    graded: number;
+    total: number;
+};
+
+export type GradingConfigDto = {
+    id: string;
+    weight: string | null;
+    isCurved: boolean;
+    curveSettings: {
+        [key: string]: unknown;
+    } | null;
+    rubricSchema: Array<{
+        [key: string]: unknown;
+    }>;
+    questionRules: Array<{
+        [key: string]: unknown;
+    }>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type AdminAssignmentItemDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    mode: AssignmentMode | null;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: string | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    stats: AssignmentStatsDto;
+    grading?: GradingConfigDto;
+};
+
+export type PaginatedAssignmentDto = {
+    meta: PaginationMetaDto;
+    assignments: Array<AdminAssignmentItemDto>;
+};
+
+export type SubmissionAttachmentDto = {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    createdAt: string;
+};
+
+export type GradeRecordItemDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    gradedAt: string;
+};
+
+export type MentorAssignmentSubmissionItemDto = {
+    id: string;
+    submittedAt: string | null;
+    attachments?: Array<SubmissionAttachmentDto>;
+    grade?: GradeRecordItemDto;
+    student: UserDto;
+};
+
+export type MentorAssignmentItemDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    mode: AssignmentMode | null;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: string | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    stats: AssignmentStatsDto;
+    submissions: Array<MentorAssignmentSubmissionItemDto>;
+    grading?: GradingConfigDto;
+};
+
+export type PaginatedMentorAssignmentDto = {
+    meta: PaginationMetaDto;
+    assignments: Array<MentorAssignmentItemDto>;
+};
+
+export type GradeRecordDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricScores: Array<{
+        [key: string]: unknown;
+    }>;
+    questionScores: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+    updatedAt: string;
+};
+
+export type StudentAssignmentSubmissionItemDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    attachments?: Array<SubmissionAttachmentDto>;
+    grade?: GradeRecordDto;
+};
+
+export type StudentAssignmentItemDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    mode: AssignmentMode | null;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: string | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    submissions: Array<StudentAssignmentSubmissionItemDto>;
+    grading?: GradingConfigDto;
+};
+
+export type PaginatedStudentAssignmentDto = {
+    meta: PaginationMetaDto;
+    assignments: Array<StudentAssignmentItemDto>;
+};
+
+export type AssignmentItemDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    mode: AssignmentMode | null;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: string | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    grading?: GradingConfigDto;
+};
+
+export type UpdateAssignmentConfigDto = {
+    maxScore?: string;
+    dueAt?: string;
+    maxAttempt?: number;
+};
+
+export type GradeSubmissionDto = {
+    studentId: string;
+    grade: number;
+};
+
+export type AssignmentDto = {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    mode: AssignmentMode | null;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: string | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type SubmissionDetailsDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    grade?: GradeRecordDto;
+    student: UserDto;
+    assignment: AssignmentDto;
+    grading?: GradingConfigDto;
+    attachments: Array<SubmissionAttachmentDto>;
+};
+
 export type CreateDetailedGroupDto = {
     groupNumber: number;
     groupName?: string | null;
@@ -942,6 +1181,31 @@ export type UpdateGroupDto = {
      * List of student IDs to assign as member
      */
     members?: Array<string>;
+};
+
+export type NotificationCountDto = {
+    total: number;
+    read: number;
+    unread: number;
+};
+
+export type NotificationItemDto = {
+    id: string;
+    title: string;
+    content: string;
+    role: Array<Role>;
+    createdAt: string;
+    userId?: string;
+    isRead: boolean;
+};
+
+export type PaginatedNotificationDto = {
+    meta: PaginationMetaDto;
+    notifications: Array<NotificationItemDto>;
+};
+
+export type NotificationMarkRead = {
+    notificationIds: Array<string>;
 };
 
 export type UserStatus = 'active' | 'disabled' | 'deleted';
@@ -1146,31 +1410,6 @@ export type UpdateBillPaymentDto = {
     paymongoData?: {
         [key: string]: unknown;
     } | null;
-};
-
-export type NotificationCountDto = {
-    total: number;
-    read: number;
-    unread: number;
-};
-
-export type NotificationItemDto = {
-    id: string;
-    title: string;
-    content: string;
-    role: Array<Role>;
-    createdAt: string;
-    userId?: string;
-    isRead: boolean;
-};
-
-export type PaginatedNotificationDto = {
-    meta: PaginationMetaDto;
-    notifications: Array<NotificationItemDto>;
-};
-
-export type NotificationMarkRead = {
-    notificationIds: Array<string>;
 };
 
 export type CreateProgramDto = {
@@ -3221,6 +3460,244 @@ export type LmsContentControllerCreateContentProgressResponses = {
 
 export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
 
+export type LmsAssignmentControllerUpdateData = {
+    body: UpdateAssignmentConfigDto;
+    path: {
+        assignmentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/assignments/{assignmentId}';
+};
+
+export type LmsAssignmentControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerUpdateError = LmsAssignmentControllerUpdateErrors[keyof LmsAssignmentControllerUpdateErrors];
+
+export type LmsAssignmentControllerUpdateResponses = {
+    200: unknown;
+};
+
+export type LmsAssignmentControllerSubmitData = {
+    body: SubmitAssignmentDto;
+    path: {
+        assignmentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/assignments/{assignmentId}';
+};
+
+export type LmsAssignmentControllerSubmitErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerSubmitError = LmsAssignmentControllerSubmitErrors[keyof LmsAssignmentControllerSubmitErrors];
+
+export type LmsAssignmentControllerSubmitResponses = {
+    201: unknown;
+};
+
+export type LmsAssignmentControllerFindAllForAdminData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/assignments';
+};
+
+export type LmsAssignmentControllerFindAllForAdminErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerFindAllForAdminError = LmsAssignmentControllerFindAllForAdminErrors[keyof LmsAssignmentControllerFindAllForAdminErrors];
+
+export type LmsAssignmentControllerFindAllForAdminResponses = {
+    200: PaginatedAssignmentDto;
+};
+
+export type LmsAssignmentControllerFindAllForAdminResponse = LmsAssignmentControllerFindAllForAdminResponses[keyof LmsAssignmentControllerFindAllForAdminResponses];
+
+export type LmsAssignmentControllerFindAllForMentorData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/assignments/mentor';
+};
+
+export type LmsAssignmentControllerFindAllForMentorErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerFindAllForMentorError = LmsAssignmentControllerFindAllForMentorErrors[keyof LmsAssignmentControllerFindAllForMentorErrors];
+
+export type LmsAssignmentControllerFindAllForMentorResponses = {
+    200: PaginatedMentorAssignmentDto;
+};
+
+export type LmsAssignmentControllerFindAllForMentorResponse = LmsAssignmentControllerFindAllForMentorResponses[keyof LmsAssignmentControllerFindAllForMentorResponses];
+
+export type LmsAssignmentControllerFindAllForStudentData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/assignments/student';
+};
+
+export type LmsAssignmentControllerFindAllForStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerFindAllForStudentError = LmsAssignmentControllerFindAllForStudentErrors[keyof LmsAssignmentControllerFindAllForStudentErrors];
+
+export type LmsAssignmentControllerFindAllForStudentResponses = {
+    200: PaginatedStudentAssignmentDto;
+};
+
+export type LmsAssignmentControllerFindAllForStudentResponse = LmsAssignmentControllerFindAllForStudentResponses[keyof LmsAssignmentControllerFindAllForStudentResponses];
+
+export type LmsAssignmentControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/assignments/{moduleContentId}';
+};
+
+export type LmsAssignmentControllerFindOneErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerFindOneError = LmsAssignmentControllerFindOneErrors[keyof LmsAssignmentControllerFindOneErrors];
+
+export type LmsAssignmentControllerFindOneResponses = {
+    200: AssignmentItemDto;
+};
+
+export type LmsAssignmentControllerFindOneResponse = LmsAssignmentControllerFindOneResponses[keyof LmsAssignmentControllerFindOneResponses];
+
+export type LmsAssignmentControllerFindOneForStudentData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/assignments/{moduleContentId}/student';
+};
+
+export type LmsAssignmentControllerFindOneForStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsAssignmentControllerFindOneForStudentError = LmsAssignmentControllerFindOneForStudentErrors[keyof LmsAssignmentControllerFindOneForStudentErrors];
+
+export type LmsAssignmentControllerFindOneForStudentResponses = {
+    200: StudentAssignmentItemDto;
+};
+
+export type LmsAssignmentControllerFindOneForStudentResponse = LmsAssignmentControllerFindOneForStudentResponses[keyof LmsAssignmentControllerFindOneForStudentResponses];
+
+export type LmsSubmissionControllerFindOneData = {
+    body?: never;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/{submissionId}';
+};
+
+export type LmsSubmissionControllerFindOneErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSubmissionControllerFindOneError = LmsSubmissionControllerFindOneErrors[keyof LmsSubmissionControllerFindOneErrors];
+
+export type LmsSubmissionControllerFindOneResponses = {
+    200: SubmissionDetailsDto;
+};
+
+export type LmsSubmissionControllerFindOneResponse = LmsSubmissionControllerFindOneResponses[keyof LmsSubmissionControllerFindOneResponses];
+
+export type LmsSubmissionControllerGradeData = {
+    body: GradeSubmissionDto;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/{submissionId}';
+};
+
+export type LmsSubmissionControllerGradeErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSubmissionControllerGradeError = LmsSubmissionControllerGradeErrors[keyof LmsSubmissionControllerGradeErrors];
+
+export type LmsSubmissionControllerGradeResponses = {
+    200: GradeRecordDto;
+};
+
+export type LmsSubmissionControllerGradeResponse = LmsSubmissionControllerGradeResponses[keyof LmsSubmissionControllerGradeResponses];
+
 export type GroupControllerFindAllData = {
     body?: never;
     path: {
@@ -3338,6 +3815,89 @@ export type GroupControllerUpdateResponses = {
 };
 
 export type GroupControllerUpdateResponse = GroupControllerUpdateResponses[keyof GroupControllerUpdateResponses];
+
+export type NotificationsControllerSubscribeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/subscribe';
+};
+
+export type NotificationsControllerSubscribeResponses = {
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type NotificationsControllerSubscribeResponse = NotificationsControllerSubscribeResponses[keyof NotificationsControllerSubscribeResponses];
+
+export type NotificationsControllerGetCountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/count';
+};
+
+export type NotificationsControllerGetCountResponses = {
+    200: NotificationCountDto;
+};
+
+export type NotificationsControllerGetCountResponse = NotificationsControllerGetCountResponses[keyof NotificationsControllerGetCountResponses];
+
+export type NotificationsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        type?: 'read' | 'unread';
+    };
+    url: '/notifications';
+};
+
+export type NotificationsControllerFindAllResponses = {
+    200: PaginatedNotificationDto;
+};
+
+export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
+
+export type NotificationsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/notifications/{id}';
+};
+
+export type NotificationsControllerFindOneResponses = {
+    200: NotificationItemDto;
+};
+
+export type NotificationsControllerFindOneResponse = NotificationsControllerFindOneResponses[keyof NotificationsControllerFindOneResponses];
+
+export type NotificationsControllerMarkAsReadData = {
+    body: NotificationMarkRead;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read';
+};
+
+export type NotificationsControllerMarkAsReadResponses = {
+    201: unknown;
+};
+
+export type NotificationsControllerMarkAllAsReadData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/mark-read/all';
+};
+
+export type NotificationsControllerMarkAllAsReadResponses = {
+    201: unknown;
+};
 
 export type AuthControllerGetMetadataData = {
     body?: never;
@@ -3774,89 +4334,6 @@ export type PaymentsControllerUpdateResponses = {
 };
 
 export type PaymentsControllerUpdateResponse = PaymentsControllerUpdateResponses[keyof PaymentsControllerUpdateResponses];
-
-export type NotificationsControllerSubscribeData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/notifications/subscribe';
-};
-
-export type NotificationsControllerSubscribeResponses = {
-    200: {
-        [key: string]: unknown;
-    };
-};
-
-export type NotificationsControllerSubscribeResponse = NotificationsControllerSubscribeResponses[keyof NotificationsControllerSubscribeResponses];
-
-export type NotificationsControllerGetCountData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/notifications/count';
-};
-
-export type NotificationsControllerGetCountResponses = {
-    200: NotificationCountDto;
-};
-
-export type NotificationsControllerGetCountResponse = NotificationsControllerGetCountResponses[keyof NotificationsControllerGetCountResponses];
-
-export type NotificationsControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        type?: 'read' | 'unread';
-    };
-    url: '/notifications';
-};
-
-export type NotificationsControllerFindAllResponses = {
-    200: PaginatedNotificationDto;
-};
-
-export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
-
-export type NotificationsControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/notifications/{id}';
-};
-
-export type NotificationsControllerFindOneResponses = {
-    200: NotificationItemDto;
-};
-
-export type NotificationsControllerFindOneResponse = NotificationsControllerFindOneResponses[keyof NotificationsControllerFindOneResponses];
-
-export type NotificationsControllerMarkAsReadData = {
-    body: NotificationMarkRead;
-    path?: never;
-    query?: never;
-    url: '/notifications/mark-read';
-};
-
-export type NotificationsControllerMarkAsReadResponses = {
-    201: unknown;
-};
-
-export type NotificationsControllerMarkAllAsReadData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/notifications/mark-read/all';
-};
-
-export type NotificationsControllerMarkAllAsReadResponses = {
-    201: unknown;
-};
 
 export type ProgramControllerFindAllData = {
     body?: never;

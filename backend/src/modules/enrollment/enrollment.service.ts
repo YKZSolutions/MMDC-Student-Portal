@@ -20,12 +20,14 @@ import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 import { EnrollmentPeriodItemDto } from './dto/enrollment-period-item.dto';
+import { LmsService } from '../lms/lms.service';
 
 @Injectable()
 export class EnrollmentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly lmsService: LmsService,
   ) {}
 
   /**
@@ -173,10 +175,16 @@ export class EnrollmentService {
       }
 
       // Then update the requested one
-      return tx.enrollmentPeriod.update({
+      const enrollmentPeriod = await tx.enrollmentPeriod.update({
         where: { id },
         data: { ...updateEnrollmentStatusDto },
       });
+
+      if (updateEnrollmentStatusDto.status === 'active') {
+        await this.lmsService.cloneMostRecentModules(enrollmentPeriod.id);
+      }
+
+      return enrollmentPeriod;
     });
   }
 
