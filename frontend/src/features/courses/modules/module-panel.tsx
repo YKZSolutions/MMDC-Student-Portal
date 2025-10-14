@@ -247,7 +247,8 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
     if (role == 'admin') {
       return navigate({
         from: '/lms/$lmsCode/modules',
-        to: `edit`,
+        to: '$itemId/edit',
+        params: { itemId: moduleContent.id },
         search: { id: moduleContent.id, view: 'preview' },
       })
     }
@@ -991,7 +992,7 @@ function AdminActionsModuleContent({
       onConfirm: async () => {
         await unpublishModuleContent({
           path: {
-            'moduleContentId': moduleContent.id,
+            moduleContentId: moduleContent.id,
           },
         })
       },
@@ -1103,7 +1104,8 @@ function AdminActionsModuleContent({
               e.stopPropagation()
               navigate({
                 from: '/lms/$lmsCode/modules',
-                to: `edit`,
+                to: '$itemId/edit',
+                params: { itemId: moduleContent.id },
                 search: { id: moduleContent.id },
               })
             }}

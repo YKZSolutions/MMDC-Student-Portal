@@ -422,6 +422,9 @@ export class CourseEnrollmentService {
             category: price.type,
           })),
         ];
+        const totalAmount = tuitionFee.add(
+          pricingGroup.amount.sub(tuitionFeeBase.amount),
+        );
 
         const startDate = addDays(new Date(period.startDate), 10);
         const dueDates =
@@ -439,7 +442,7 @@ export class CourseEnrollmentService {
           costBreakdown,
           billType: 'academic',
           paymentScheme: dto?.paymentScheme,
-          totalAmount: pricingGroup.amount || 0,
+          totalAmount: totalAmount,
         };
 
         await this.billingService.create(billDto, dueDates, student.id);

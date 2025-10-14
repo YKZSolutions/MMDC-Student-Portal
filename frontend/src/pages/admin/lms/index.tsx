@@ -10,10 +10,7 @@ import type {
   DetailedModulesDto,
   EnrollmentPeriodDto,
 } from '@/integrations/api/client'
-import {
-  enrollmentControllerFindActiveEnrollmentOptions,
-  lmsControllerFindAllForAdminOptions,
-} from '@/integrations/api/client/@tanstack/react-query.gen'
+import { lmsControllerFindAllForAdminOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatPaginationMessage } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -43,7 +40,6 @@ function AdminCourseDashboardProvider({
   },
 }: {
   children: (props: {
-    enrollmentPeriodData: EnrollmentPeriodDto
     modules: DetailedModulesDto[]
     message: string
     totalPages: number
@@ -55,10 +51,6 @@ function AdminCourseDashboardProvider({
   }
 }) {
   const { search, term, page } = props
-
-  const { data: enrollmentPeriodData } = useSuspenseQuery(
-    enrollmentControllerFindActiveEnrollmentOptions(),
-  )
 
   const { data: moduleData } = useSuspenseQuery(
     lmsControllerFindAllForAdminOptions({
@@ -83,7 +75,6 @@ function AdminCourseDashboardProvider({
   })
 
   return children({
-    enrollmentPeriodData,
     modules,
     message,
     totalPages,

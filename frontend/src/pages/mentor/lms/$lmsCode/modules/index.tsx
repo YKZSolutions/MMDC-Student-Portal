@@ -26,7 +26,7 @@ function ModulesMentorPage() {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
-  const [allExpanded, setAllExpanded] = useState(false)
+  const [allExpanded, setAllExpanded] = useState(true)
   const module = getMockModuleByRole(authUser.role) as MentorModule
 
   return (
@@ -72,10 +72,7 @@ function ModulesMentorPage() {
       </Box>
 
       {/* Module Content with mentor-specific actions */}
-      <ModulePanel
-        viewMode="mentor"
-        allExpanded={allExpanded}
-      />
+      <ModulePanel viewMode="mentor" allExpanded={allExpanded} />
     </Box>
   )
 }
