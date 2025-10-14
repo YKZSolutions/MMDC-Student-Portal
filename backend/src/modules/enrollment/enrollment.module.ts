@@ -8,7 +8,7 @@ import { CourseSectionController } from './course-section.controller';
 import { CourseEnrollmentService } from './course-enrollment.service';
 import { CourseEnrollmentController } from './course-enrollment.controller';
 import { BillingModule } from '../billing/billing.module';
-import { LmsModule } from '../lms/lms.module';
+import { LmsModule } from '../lms/lms-module/lms.module';
 
 @Module({
   controllers: [

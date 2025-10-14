@@ -20,7 +20,7 @@ import { CourseDto } from './dto/course.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { LmsService } from '../lms/lms.service';
+import { LmsService } from '../lms/lms-module/lms.service';
 
 @Injectable()
 export class CoursesService {

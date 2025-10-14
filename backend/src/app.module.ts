@@ -21,10 +21,12 @@ import { InstallmentModule } from './modules/installment/installment.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { CurriculumModule } from './modules/curriculum/curriculum.module';
 import { SwaggerModule } from './modules/swagger/swagger.module';
-import { LmsModule } from '@/modules/lms/lms.module';
+import { LmsModule } from '@/modules/lms/lms-module/lms.module';
 import { PricingModule } from '@/modules/pricing/pricing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { LmsContentModule } from '@/modules/lms/lms-content/lms-content.module';
+import { LmsSectionModule } from '@/modules/lms/lms-section/lms-section.module';
 
 @Module({
   imports: [
@@ -50,6 +52,8 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
     EnrollmentModule,
     CurriculumModule,
     LmsModule,
+    LmsSectionModule,
+    LmsContentModule,
     SwaggerModule,
     PricingModule,
     NotificationsModule,

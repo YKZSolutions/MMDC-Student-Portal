@@ -20,7 +20,7 @@ import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 import { EnrollmentPeriodItemDto } from './dto/enrollment-period-item.dto';
-import { LmsService } from '../lms/lms.service';
+import { LmsService } from '../lms/lms-module/lms.service';
 
 @Injectable()
 export class EnrollmentService {
