@@ -2991,7 +2991,6 @@ export const zUpdatePricingGroupItemDto = z.object({
 
 export const zCreateAppointmentItemDto = z.object({
     title: z.string(),
-    description: z.string(),
     startAt: z.iso.datetime(),
     endAt: z.iso.datetime(),
     gmeetLink: z.optional(z.union([
@@ -3004,7 +3003,8 @@ export const zCreateAppointmentItemDto = z.object({
     ])),
     courseOfferingId: z.uuid(),
     studentId: z.uuid(),
-    mentorId: z.uuid()
+    mentorId: z.uuid(),
+    description: z.string()
 });
 
 export const zAppointmentStatus = z.enum([
