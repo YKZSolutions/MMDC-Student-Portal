@@ -346,8 +346,6 @@ function ReasonModal({
     <Stack>
       <Text size="sm">
         {description}
-        Are you sure you want to cancel the appointment? Write your reason down
-        below.
       </Text>
       <Textarea
         label="Reason"
