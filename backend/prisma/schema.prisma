@@ -808,14 +808,16 @@ model Assignment {
   moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
   moduleContentId String        @unique @db.Uuid
 
-  /// @DtoRelationCanConnectOnCreate
-  /// @DtoRelationCanConnectOnUpdate
   rubricTemplate   RubricTemplate? @relation(fields: [rubricTemplateId], references: [id], onDelete: Restrict)
   rubricTemplateId String?         @db.Uuid
 
   mode AssignmentMode?
 
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   maxScore         Decimal @default(0) @db.Decimal(5, 2)
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   weightPercentage Int     @default(0) @db.SmallInt
 
   maxAttempts         Int?      @db.SmallInt
