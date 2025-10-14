@@ -799,14 +799,19 @@ function AdminAssignments() {
                       color={'blue'}
                     /> */}
                     <Text fw={500} c="dark.5">
-                      {(report.stats.submitted / report.stats.total) * 100}%
+                      {report.stats.total > 0
+                        ? ((report.stats.submitted / report.stats.total) * 100).toFixed(0)
+                        : 0
+                      }%
                     </Text>
                     <Text size="xs" c="dimmed">
                       {report.stats.submitted}/{report.stats.total} completed
                     </Text>
                     <Progress
                       value={
-                        (report.stats.submitted / report.stats.total) * 100
+                        report.stats.total > 0
+                          ? (report.stats.submitted / report.stats.total) * 100
+                          : 0
                       }
                       color={'blue'}
                     />
