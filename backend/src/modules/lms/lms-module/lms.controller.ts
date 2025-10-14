@@ -5,8 +5,8 @@ import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
-import { FilterTodosDto } from '@/modules/lms/lms-content/dto/filter-todos.dto';
-import { ModuleTreeDto } from '@/modules/lms/lms-content/dto/module-tree.dto';
+import { FilterTodosDto } from '@/modules/lms/lms-module/dto/filter-todos.dto';
+import { ModuleTreeDto } from '@/modules/lms/lms-module/dto/module-tree.dto';
 import { PaginatedTodosDto } from '@/modules/lms/lms-content/dto/paginated-todos.dto';
 import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
 import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
@@ -34,7 +34,6 @@ export class LmsController {
   constructor(
     private readonly lmsService: LmsService,
     private readonly lmsPublishService: LmsPublishService,
-    private readonly lmsContentService: LmsContentService,
   ) {}
 
   /**
@@ -88,7 +87,6 @@ export class LmsController {
    * Returns a paginated list of all modules across all courses.
    * Requires `ADMIN` role.
    *
-   * @param user - The authenticated user
    * @param filters - Query filters for pagination and search
    */
   @Get('admin')
@@ -177,7 +175,6 @@ export class LmsController {
    * Requires `ADMIN` role.
    *
    * @param id - The UUID of the module to publish.
-   * @param query - The optional date to publish the module at.
    * @returns A Promise that resolves to an object with a message.
    */
   @Post(':id/publish')
@@ -226,7 +223,7 @@ export class LmsController {
     @Query() filters: FilterTodosDto,
   ): Promise<PaginatedTodosDto> {
     const { user_id } = user.user_metadata;
-    return this.lmsContentService.findTodos(user_id, filters);
+    return this.lmsService.findTodos(user_id, filters);
   }
 
   /**
@@ -262,6 +259,6 @@ export class LmsController {
     @CurrentUser() user: CurrentAuthUser,
   ): Promise<ModuleTreeDto> {
     const { role, user_id } = user.user_metadata;
-    return this.lmsContentService.findModuleTree(id, role, user_id);
+    return this.lmsService.findModuleTree(id, role, user_id);
   }
 }

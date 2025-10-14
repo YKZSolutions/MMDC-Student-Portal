@@ -13,7 +13,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import {
+  ContentType,
+  CourseEnrollmentStatus,
+  EnrollmentStatus,
+  Prisma,
+  ProgressStatus,
+  Role,
+} from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterModulesDto } from './dto/filter-modules.dto';
@@ -21,6 +28,13 @@ import {
   DetailedModulesDto,
   PaginatedModulesDto,
 } from './dto/paginated-module.dto';
+import { FilterTodosDto } from '@/modules/lms/lms-module/dto/filter-todos.dto';
+import { PaginatedTodosDto } from '@/modules/lms/lms-content/dto/paginated-todos.dto';
+import {
+  ModuleTreeDto,
+  ModuleTreeSectionDto,
+} from '@/modules/lms/lms-module/dto/module-tree.dto';
+import { ModuleTreeContentItemDto } from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
 
 @Injectable()
 export class LmsService {
@@ -738,5 +752,309 @@ export class LmsService {
     return {
       message: `Module "${module.title}" and all related sections and contents were permanently deleted.`,
     };
+  }
+
+  @Log({
+    logArgsMessage: ({ studentId, filters }) =>
+      `Fetching todos for student ${studentId} in active term with filters ${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) =>
+      `Successfully fetched ${result.todos.length} todos`,
+    logErrorMessage: (err, { studentId }) =>
+      `Error fetching todos for user ${studentId}: ${err.message}`,
+  })
+  async findTodos(
+    @LogParam('studentId') studentId: string,
+    @LogParam('filters') filters: FilterTodosDto,
+  ): Promise<PaginatedTodosDto> {
+    // First, get the active enrollment period
+    const activeTerm = await this.prisma.client.enrollmentPeriod.findFirst({
+      where: {
+        status: EnrollmentStatus.active,
+      },
+    });
+
+    if (!activeTerm) {
+      return {
+        todos: [],
+        meta: {
+          isFirstPage: true,
+          isLastPage: true,
+          currentPage: 1,
+          previousPage: 0,
+          nextPage: 0,
+          pageCount: 1,
+          totalCount: 0,
+        },
+      };
+    }
+
+    // Get user's enrolled courses in active term
+    const userEnrollments = await this.prisma.client.courseEnrollment.findMany({
+      where: {
+        studentId,
+        status: CourseEnrollmentStatus.enrolled,
+        courseOffering: {
+          periodId: activeTerm.id,
+        },
+      },
+      include: {
+        courseOffering: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    const courseOfferingIds = userEnrollments.map(
+      (enrollment) => enrollment.courseOfferingId,
+    );
+
+    // Get todos (assignments with due dates)
+    const whereCondition: Prisma.ModuleContentWhereInput = {
+      moduleSection: {
+        module: {
+          courseOfferingId: { in: courseOfferingIds },
+        },
+      },
+      studentProgress: {
+        every: {
+          studentId,
+          status: { not: ProgressStatus.COMPLETED },
+        },
+      },
+      OR: [
+        {
+          contentType: ContentType.ASSIGNMENT,
+          assignment: {
+            dueDate: { gte: new Date() },
+          },
+        },
+        {
+          contentType: ContentType.ASSIGNMENT,
+          assignment: {
+            dueDate: null,
+          },
+        },
+      ],
+      publishedAt: { lte: new Date() },
+    };
+
+    const [todos, meta] = await this.prisma.client.moduleContent
+      .paginate({
+        where: whereCondition,
+        select: {
+          id: true,
+          title: true,
+          contentType: true,
+          assignment: {
+            select: {
+              dueDate: true,
+            },
+          },
+          moduleSection: {
+            select: {
+              module: {
+                select: {
+                  title: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [
+          {
+            assignment: {
+              dueDate: 'asc',
+            },
+          },
+        ],
+      })
+      .withPages({
+        limit: filters.limit ?? 10,
+        page: filters.page ?? 1,
+        includePageCount: true,
+      });
+
+    // Transform the results to include progress status
+    const items = todos.map((todo) => {
+      const title = todo?.title;
+      const dueDate = todo?.assignment?.dueDate;
+
+      if (!title) {
+        throw new Error(`Content ${todo.id} is missing a title`);
+      }
+      if (!dueDate) {
+        throw new Error(`Content ${todo.id} is missing a due date`);
+      }
+
+      return {
+        id: todo.id,
+        type: todo.contentType,
+        title,
+        dueDate,
+        moduleName: todo.moduleSection.module.title,
+      };
+    });
+
+    return { todos: items, meta };
+  }
+
+  /**
+   * Finds ModuleContent tree for a given Module.
+   *
+   * @param moduleId The ID of the Module.
+   * @param role The role of the user.
+   * @param userId The ID of the user. Used for students to filter by their progress.
+   * @returns An object containing the ModuleContent records and pagination metadata.
+   */
+  @Log({
+    logArgsMessage: ({ moduleId, role, userId }) =>
+      `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
+    logSuccessMessage: (_, { userId }) =>
+      `Successfully fetched module content tree for user ${userId}`,
+    logErrorMessage: (err: any, { moduleId, userId, role }) =>
+      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role}: ${err.message}`,
+  })
+  async findModuleTree(
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('role') role: Role,
+    @LogParam('userId') userId?: string,
+  ): Promise<ModuleTreeDto> {
+    if (!isUUID(moduleId)) {
+      throw new BadRequestException('Invalid module ID format');
+    }
+
+    // Define a single query to get the Module, ALL Sections, and ALL Contents
+    const [module, flatSections, flatContents] =
+      await this.prisma.client.$transaction([
+        // 1. Fetch the Module (same as your current query's top level)
+        this.prisma.client.module.findUniqueOrThrow({
+          where: {
+            id: moduleId,
+            ...(role !== Role.admin && { publishedAt: { not: null } }),
+            deletedAt: null,
+          },
+          select: {
+            id: true,
+            courseId: true,
+            title: true,
+            ...(role === Role.admin && {
+              publishedAt: true,
+              unpublishedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            }),
+            ...(role === Role.student &&
+              userId && {
+                progresses: {
+                  where: { studentId: userId },
+                  select: {
+                    id: true,
+                    moduleContentId: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              }),
+          },
+        }),
+
+        // 2. Fetch ALL Sections for this Module (flat list)
+        this.prisma.client.moduleSection.findMany({
+          where: {
+            moduleId: moduleId,
+            ...(role !== Role.admin && { publishedAt: { not: null } }),
+            deletedAt: null,
+          },
+          orderBy: { order: 'asc' },
+          select: {
+            id: true,
+            moduleId: true,
+            parentSectionId: true,
+            prerequisiteSectionId: true,
+            title: true,
+            order: true,
+            ...(role === Role.admin && {
+              publishedAt: true,
+              unpublishedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            }),
+          },
+        }),
+
+        // 3. Fetch ALL ModuleContents for this Module (flat list)
+        this.prisma.client.moduleContent.findMany({
+          where: {
+            moduleSection: { moduleId: moduleId },
+            ...(role !== Role.admin && { publishedAt: { not: null } }),
+            deletedAt: null,
+          },
+          orderBy: { order: 'asc' },
+          select: {
+            id: true,
+            moduleSectionId: true,
+            title: true,
+            subtitle: true,
+            order: true,
+            contentType: true,
+            assignment: true,
+            ...(role === Role.admin && {
+              publishedAt: true,
+              unpublishedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            }),
+            ...(role === Role.student && userId
+              ? { studentProgress: { where: { studentId: userId } } }
+              : { studentProgress: true }),
+          },
+        }),
+      ]);
+
+    return {
+      ...module,
+      moduleSections: this.buildTree(flatSections, flatContents),
+    };
+  }
+
+  private buildTree(
+    flatSections: ModuleTreeSectionDto[],
+    flatContents: ModuleTreeContentItemDto[],
+  ): ModuleTreeSectionDto[] {
+    const sectionsMap = new Map();
+    const rootSections: ModuleTreeSectionDto[] = [];
+
+    // Map contents to sections
+    const contentMap = flatContents.reduce((acc, content) => {
+      (acc[content.moduleSectionId] = acc[content.moduleSectionId] || []).push(
+        content,
+      );
+      return acc;
+    }, {});
+
+    // First pass: create a map of all sections and attach contents
+    for (const section of flatSections) {
+      section.subsections = []; // Initialize subsections array
+      section.moduleContents = contentMap[section.id] || []; // Attach contents
+      sectionsMap.set(section.id, section);
+    }
+
+    // Second pass: build the hierarchy
+    for (const section of flatSections) {
+      if (section.parentSectionId) {
+        const parent = sectionsMap.get(section.parentSectionId);
+        if (parent) {
+          parent.subsections.push(section);
+        }
+        // Handle "orphaned" sections if parent is deleted/filtered out
+      } else {
+        rootSections.push(section); // Add top-level sections
+      }
+    }
+
+    return rootSections;
   }
 }
