@@ -1561,6 +1561,7 @@ export type CreateCourseOfferingCurriculumDto = {
 export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
 
 export type DetailedCourseOfferingSubsetDto = {
+    id: string;
     course: CourseDto;
 };
 
@@ -1938,6 +1939,12 @@ export type AppointmentItemDto = {
     mentor: AppointmentUserDto;
 };
 
+export type BookedAppointment = {
+    id: string;
+    startAt: string;
+    endAt: string;
+};
+
 export type PaginatedAppointmentDto = {
     meta: PaginationMetaDto;
     appointments: Array<AppointmentItemDto>;
@@ -1947,6 +1954,31 @@ export type BookedAppointmentDto = {
     id: string;
     startAt: string;
     endAt: string;
+};
+
+export type AppointmentSectionDto = {
+    id: string;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+};
+
+export type AppointmentDetailsDto = {
+    id: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    status: AppointmentStatus;
+    gmeetLink: string | null;
+    cancelReason: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: AppointmentCourseDto;
+    section: AppointmentSectionDto;
+    student: AppointmentUserDto;
+    mentor: AppointmentUserDto;
 };
 
 export type UpdateAppointmentItemDto = {
@@ -5960,6 +5992,24 @@ export type AppointmentsControllerFindCoursesResponses = {
 
 export type AppointmentsControllerFindCoursesResponse = AppointmentsControllerFindCoursesResponses[keyof AppointmentsControllerFindCoursesResponses];
 
+export type AppointmentsControllerFindBookedRangeData = {
+    body?: never;
+    path?: never;
+    query: {
+        from: string;
+        to: string;
+        courseId: string;
+        mentorId: string;
+    };
+    url: '/appointments/booked';
+};
+
+export type AppointmentsControllerFindBookedRangeResponses = {
+    200: Array<BookedAppointment>;
+};
+
+export type AppointmentsControllerFindBookedRangeResponse = AppointmentsControllerFindBookedRangeResponses[keyof AppointmentsControllerFindBookedRangeResponses];
+
 export type AppointmentsControllerFindAllBookedData = {
     body?: never;
     path: {
@@ -6046,7 +6096,7 @@ export type AppointmentsControllerFindOneErrors = {
 export type AppointmentsControllerFindOneError = AppointmentsControllerFindOneErrors[keyof AppointmentsControllerFindOneErrors];
 
 export type AppointmentsControllerFindOneResponses = {
-    200: AppointmentItemDto;
+    200: AppointmentDetailsDto;
 };
 
 export type AppointmentsControllerFindOneResponse = AppointmentsControllerFindOneResponses[keyof AppointmentsControllerFindOneResponses];

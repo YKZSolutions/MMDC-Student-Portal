@@ -6,7 +6,7 @@ import { DetailedCourseOfferingDto } from './paginated-course-offering.dto';
 
 export class DetailedCourseOfferingSubsetDto extends PickType(
   DetailedCourseOfferingDto,
-  ['course'],
+  ['id', 'course'],
 ) {}
 
 export class DetailedCourseEnrollmentDto extends CourseEnrollmentDto {

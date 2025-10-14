@@ -14578,6 +14578,65 @@
         ]
       }
     },
+    "/appointments/booked": {
+      "get": {
+        "operationId": "AppointmentsController_findBookedRange",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "mentorId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookedAppointment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
     "/appointments/{mentorId}/mentor": {
       "get": {
         "description": "This operation retrieves a list of a mentor's booked appointments within a specified date range.",
@@ -14689,7 +14748,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppointmentItemDto"
+                  "$ref": "#/components/schemas/AppointmentDetailsDto"
                 }
               }
             }
@@ -21440,11 +21499,15 @@
       "DetailedCourseOfferingSubsetDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "course": {
             "$ref": "#/components/schemas/CourseDto"
           }
         },
         "required": [
+          "id",
           "course"
         ]
       },
@@ -22896,6 +22959,27 @@
           "mentor"
         ]
       },
+      "BookedAppointment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "startAt",
+          "endAt"
+        ]
+      },
       "PaginatedAppointmentDto": {
         "type": "object",
         "properties": {
@@ -22939,6 +23023,111 @@
           "id",
           "startAt",
           "endAt"
+        ]
+      },
+      "AppointmentSectionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "startSched": {
+            "type": "string"
+          },
+          "endSched": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Days"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "startSched",
+          "endSched",
+          "days"
+        ]
+      },
+      "AppointmentDetailsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AppointmentStatus"
+              }
+            ]
+          },
+          "gmeetLink": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "course": {
+            "$ref": "#/components/schemas/AppointmentCourseDto"
+          },
+          "section": {
+            "$ref": "#/components/schemas/AppointmentSectionDto"
+          },
+          "student": {
+            "$ref": "#/components/schemas/AppointmentUserDto"
+          },
+          "mentor": {
+            "$ref": "#/components/schemas/AppointmentUserDto"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "startAt",
+          "endAt",
+          "status",
+          "gmeetLink",
+          "cancelReason",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "course",
+          "section",
+          "student",
+          "mentor"
         ]
       },
       "UpdateAppointmentItemDto": {
