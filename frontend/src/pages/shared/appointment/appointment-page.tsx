@@ -330,7 +330,7 @@ function AppointmentForm() {
         from: base.startOf('month').format('YYYY-MM-DDTHH:mm:ss[Z]'),
         to: base.endOf('month').format('YYYY-MM-DDTHH:mm:ss[Z]'),
         courseId: courseData ? courseData.id : '',
-        mentorId: courseData ? mentorData.id : '',
+        mentorId: mentorData ? mentorData.id : '',
       },
     }),
     enabled: currentMonth != null && courseData != null && mentorData != null,
