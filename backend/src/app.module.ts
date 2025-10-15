@@ -25,6 +25,7 @@ import { LmsModule } from '@/modules/lms/lms.module';
 import { PricingModule } from '@/modules/pricing/pricing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { TranscriptModule } from './modules/transcript/transcript.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
     PricingModule,
     NotificationsModule,
     AppointmentsModule,
+    TranscriptModule,
   ],
   controllers: [],
   providers: [
