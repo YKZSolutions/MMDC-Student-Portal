@@ -3133,6 +3133,10 @@ export const zUpdateAppointmentStatusDto = z.object({
     status: zAppointmentStatus
 });
 
+export const zCreateTranscriptDto = z.object({});
+
+export const zUpdateTranscriptDto = z.object({});
+
 export const zTestControllerTestStudentData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -4706,3 +4710,49 @@ export const zAppointmentsControllerUpdateStatusData = z.object({
 });
 
 export const zAppointmentsControllerUpdateStatusResponse = zAppointmentItemDto;
+
+export const zTranscriptControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zTranscriptControllerFindAllResponse = z.string();
+
+export const zTranscriptControllerCreateData = z.object({
+    body: zCreateTranscriptDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zTranscriptControllerCreateResponse = z.string();
+
+export const zTranscriptControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zTranscriptControllerRemoveResponse = z.string();
+
+export const zTranscriptControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zTranscriptControllerFindOneResponse = z.string();
+
+export const zTranscriptControllerUpdateData = z.object({
+    body: zUpdateTranscriptDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zTranscriptControllerUpdateResponse = z.string();
