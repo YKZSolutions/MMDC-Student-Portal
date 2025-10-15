@@ -72,6 +72,8 @@ model User {
   appointmentMentors   Appointment[]          @relation("AppointmentMentor")
   /// @DtoApiHidden
   notifications        NotificationReceipt[]
+  /// @DtoApiHidden
+  transcripts          Transcript[]
 
   firstName  String
   middleName String?
@@ -356,6 +358,8 @@ model CourseOffering {
   modules           Module[]
   /// @DtoApiHidden
   appointments      Appointment[]
+  /// @DtoApiHidden
+  transcripts       Transcript[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -1223,15 +1227,15 @@ enum AppointmentStatus {
 model Appointment {
   id String @id @default(uuid()) @db.Uuid
 
-  courseOfferingId  String         @db.Uuid
+  courseOfferingId String         @db.Uuid
   /// @DtoApiHidden
-  courseOffering    CourseOffering @relation(fields: [courseOfferingId], references: [id])
-  studentId String         @db.Uuid
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  studentId        String         @db.Uuid
   /// @DtoApiHidden
-  student   User           @relation("AppointmentStudent", fields: [studentId], references: [id])
-  mentorId  String         @db.Uuid
+  student          User           @relation("AppointmentStudent", fields: [studentId], references: [id])
+  mentorId         String         @db.Uuid
   /// @DtoApiHidden
-  mentor    User           @relation("AppointmentMentor", fields: [mentorId], references: [id])
+  mentor           User           @relation("AppointmentMentor", fields: [mentorId], references: [id])
 
   title        String
   description  String
@@ -1273,10 +1277,36 @@ model NotificationReceipt {
   /// @DtoApiHidden
   user           User         @relation(fields: [userId], references: [id])
 
-  isRead  Boolean @default(false)
+  isRead Boolean @default(false)
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
   /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
+enum GradeLetter {
+  pass
+  fail
+  incomplete
+}
+
+model Transcript {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @unique @db.Uuid
+  /// @DtoApiHidden
+  user   User   @relation(fields: [userId], references: [id])
+
+  courseOfferingId String         @db.Uuid
+  /// @DtoApiHidden
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+
+  grade       Decimal      @db.Decimal(5, 2)
+  gradeLetter GradeLetter?
+  gradePoints Decimal      @db.Decimal(5, 2)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 }
