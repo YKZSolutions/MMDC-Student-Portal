@@ -57,6 +57,10 @@ import {
   NotificationReceipt,
   type NotificationReceipt as NotificationReceiptAsType,
 } from './notificationReceipt.entity';
+import {
+  Transcript,
+  type Transcript as TranscriptAsType,
+} from './transcript.entity';
 
 export class User {
   @ApiProperty({
@@ -95,6 +99,8 @@ export class User {
   appointmentMentors?: AppointmentAsType[];
   @ApiHideProperty()
   notifications?: NotificationReceiptAsType[];
+  @ApiHideProperty()
+  transcripts?: TranscriptAsType[];
   @ApiProperty({
     type: 'string',
   })
