@@ -1,7 +1,7 @@
 import { ContentType, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ModuleContentBaseDto {
+export class ModuleContentDto {
   @ApiProperty({
     type: 'string',
   })

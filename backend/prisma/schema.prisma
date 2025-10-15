@@ -693,7 +693,7 @@ model ModuleSection {
   dependentSections ModuleSection[] @relation("ModulePrerequisite")
 
   /// @DtoApiHidden
-  moduleContents ModuleContentBase[]
+  moduleContents ModuleContent[]
 
   title String @db.VarChar(255)
   order Int?   @default(0)
@@ -722,7 +722,7 @@ enum ContentType {
   ASSIGNMENT
 }
 
-model ModuleContentBase {
+model ModuleContent {
   id String @id @default(uuid()) @db.Uuid
 
   /// @DtoApiHidden
@@ -810,8 +810,8 @@ model Assignment {
   id String @id @default(uuid()) @db.Uuid
 
   /// @DtoApiHidden
-  moduleContent   ModuleContentBase @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
-  moduleContentId String            @unique @db.Uuid
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String        @unique @db.Uuid
 
   rubricTemplate   RubricTemplate? @relation(fields: [rubricTemplateId], references: [id], onDelete: Restrict)
   rubricTemplateId String?         @db.Uuid
@@ -984,8 +984,8 @@ model ContentProgress {
   moduleId String @db.Uuid
 
   /// @DtoApiHidden
-  moduleContent   ModuleContentBase @relation(fields: [moduleContentId], references: [id])
-  moduleContentId String            @db.Uuid
+  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
+  moduleContentId String        @db.Uuid
 
   status         ProgressStatus @default(NOT_STARTED)
   completedAt    DateTime?
