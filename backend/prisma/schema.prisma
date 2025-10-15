@@ -730,7 +730,7 @@ model ModuleContent {
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
   moduleSectionId String        @db.Uuid
 
-  /// @DtoUpdateOptional
+  /// @DtoCreateOptional
   contentType ContentType @default(LESSON)
 
   title    String  @db.VarChar(255)

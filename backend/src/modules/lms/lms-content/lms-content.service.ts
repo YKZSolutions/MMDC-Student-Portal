@@ -15,16 +15,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ContentType, Prisma, Role } from '@prisma/client';
+import { ContentType, Prisma, ProgressStatus, Role } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
 import { AssignmentService } from '../assignment/assignment.service';
 import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
-import {
-  mapModuleContentToFullModuleContent,
-  mapModuleContentToModuleTreeItem,
-} from '@/modules/lms/lms-content/helper/mapper';
+import { mapModuleContentToFullModuleContent } from '@/modules/lms/lms-content/helper/mapper';
 import {
   FullModuleContent,
   UpdateFullModuleContent,
@@ -67,6 +64,7 @@ export class LmsContentService {
       ),
   })
   async create(
+    @LogParam('moduleId') moduleId: string,
     @LogParam('content') createModuleContentDto: CreateModuleContentDto,
   ): Promise<FullModuleContent> {
     const result = await this.prisma.client.$transaction(async (tx) => {
@@ -81,12 +79,44 @@ export class LmsContentService {
       const appendOrder = (_max.order ?? 0) + 1;
 
       // 2. Create the base module content
-      return await tx.moduleContent.create({
+      const newContent = await tx.moduleContent.create({
         data: {
           ...createModuleContentDto,
           order: appendOrder,
+          ...(createModuleContentDto.contentType === ContentType.ASSIGNMENT && {
+            assignment: {
+              create: {
+                mode: 'INDIVIDUAL',
+                maxScore: new Prisma.Decimal(0),
+                weightPercentage: 0,
+              },
+            }, // Create an empty assignment object
+          }),
         },
       });
+
+      // 3. Fetch the studentIds enrolled in the module and initialize their progress
+      const studentIds = await tx.user.findMany({
+        where: {
+          courseEnrollment: {
+            some: { courseOffering: { modules: { some: { id: moduleId } } } },
+          },
+        },
+        select: { id: true },
+      });
+
+      if (studentIds.length > 0) {
+        await tx.contentProgress.createMany({
+          data: studentIds.map(({ id }) => ({
+            studentId: id,
+            moduleId,
+            moduleContentId: newContent.id,
+            status: ProgressStatus.NOT_STARTED,
+          })),
+        });
+      }
+
+      return newContent;
     });
 
     // 4. Always return fresh with relations

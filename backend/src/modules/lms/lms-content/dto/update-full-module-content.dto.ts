@@ -28,5 +28,5 @@ export class UpdateAssignmentItemDto extends IntersectionType(
     enum: [ContentType.ASSIGNMENT],
     default: ContentType.ASSIGNMENT,
   })
-  declare contentType: 'ASSIGNMENT';
+  contentType: 'ASSIGNMENT';
 }

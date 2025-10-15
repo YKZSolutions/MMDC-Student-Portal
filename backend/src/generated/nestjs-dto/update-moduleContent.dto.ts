@@ -1,9 +1,8 @@
-import { ContentType, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
-  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -39,15 +38,6 @@ export class UpdateModuleContentDto {
   @ValidateNested()
   @Type(() => UpdateModuleContentModuleSectionRelationInputDto)
   moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
-  @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
-    default: 'LESSON',
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(ContentType)
-  contentType?: ContentType;
   @ApiProperty({
     type: 'string',
     required: false,

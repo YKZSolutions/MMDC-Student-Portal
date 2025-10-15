@@ -80,9 +80,10 @@ export class LmsContentController {
   @Roles(Role.ADMIN)
   @Post()
   create(
+    @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
     @Body() createModuleContentDto: CreateModuleContentDto,
   ): Promise<FullModuleContent> {
-    return this.lmsContentService.create(createModuleContentDto);
+    return this.lmsContentService.create(moduleId, createModuleContentDto);
   }
 
   /**
