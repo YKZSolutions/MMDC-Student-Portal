@@ -16548,6 +16548,10 @@
             "type": "string",
             "nullable": true,
             "format": "uuid"
+          },
+          "availableSlots": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [

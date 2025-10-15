@@ -496,7 +496,11 @@ export const zDetailedCourseSectionDto = z.object({
     mentorId: z.union([
         z.uuid(),
         z.null()
-    ])
+    ]),
+    availableSlots: z.optional(z.union([
+        z.number(),
+        z.null()
+    ]))
 });
 
 export const zCustomDetailedCourseOfferingDto = z.object({
