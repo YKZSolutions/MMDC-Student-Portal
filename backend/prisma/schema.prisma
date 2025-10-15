@@ -725,7 +725,6 @@ enum ContentType {
 model ModuleContent {
   id String @id @default(uuid()) @db.Uuid
 
-  /// @DtoApiHidden
   /// @DtoRelationCanConnectOnCreate
   /// @DtoRelationCanConnectOnUpdate
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
@@ -816,7 +815,9 @@ model Assignment {
   rubricTemplate   RubricTemplate? @relation(fields: [rubricTemplateId], references: [id], onDelete: Restrict)
   rubricTemplateId String?         @db.Uuid
 
-  mode AssignmentMode?
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  mode AssignmentMode @default(INDIVIDUAL)
 
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
