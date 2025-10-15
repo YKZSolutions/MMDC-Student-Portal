@@ -13,16 +13,15 @@ export class CreateAssignmentDto {
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
+    default: 'INDIVIDUAL',
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsEnum(AssignmentMode)
-  mode?: AssignmentMode | null;
+  mode?: AssignmentMode;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
-    default: 0,
     required: false,
   })
   @IsOptional()
@@ -48,6 +47,7 @@ export class CreateAssignmentDto {
   maxAttempts?: number | null;
   @ApiProperty({
     type: 'boolean',
+    default: false,
     required: false,
     nullable: true,
   })
@@ -55,14 +55,14 @@ export class CreateAssignmentDto {
   @IsBoolean()
   allowLateSubmission?: boolean | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDecimal()
-  latePenalty?: Prisma.Decimal | null;
+  @IsInt()
+  latePenalty?: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

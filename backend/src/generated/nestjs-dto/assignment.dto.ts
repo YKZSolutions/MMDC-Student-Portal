@@ -9,9 +9,8 @@ export class AssignmentDto {
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
-    nullable: true,
   })
-  mode: AssignmentMode | null;
+  mode: AssignmentMode;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
@@ -34,11 +33,11 @@ export class AssignmentDto {
   })
   allowLateSubmission: boolean | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
     nullable: true,
   })
-  latePenalty: Prisma.Decimal | null;
+  latePenalty: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

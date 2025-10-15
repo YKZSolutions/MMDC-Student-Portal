@@ -15,7 +15,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
 import { MessageDto } from '@/common/dto/message.dto';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
-import { UpdateAssignmentConfigDto } from '@/modules/lms/lms-content/dto/update-assignment-item.dto';
+import { UpdateAssignmentConfigDto } from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
 
 @Injectable()
 export class AssignmentService {
@@ -25,14 +25,14 @@ export class AssignmentService {
   ) {}
 
   async submit(
-    assignmentId: string,
+    moduleContentId: string,
     studentId: string,
     submitAssignmentDto: SubmitAssignmentDto,
   ): Promise<AssignmentSubmission> {
     return await this.prisma.client.assignmentSubmission.create({
       data: {
-        assignmentId,
-        studentId,
+        assignment: { connect: { moduleContentId } },
+        student: { connect: { id: studentId } },
         state: submitAssignmentDto.state,
         content: submitAssignmentDto.content,
         submittedAt:
@@ -90,10 +90,8 @@ export class AssignmentService {
         (item) => item.gradeRecord !== null,
       ).length;
 
-      const { submissions, _count, ...assignment } = assignmentItem;
-
       return {
-        ...assignment,
+        ...assignmentItem,
         stats: {
           submitted: submitted,
           graded: graded,
@@ -277,7 +275,7 @@ export class AssignmentService {
   }
 
   async update(
-    assignmentId: string,
+    moduleContentId: string,
     updateAssignmentDto: UpdateAssignmentConfigDto,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
@@ -297,7 +295,7 @@ export class AssignmentService {
     }
 
     await client.assignment.update({
-      where: { id: assignmentId },
+      where: { moduleContentId },
       data,
     });
 
@@ -306,23 +304,12 @@ export class AssignmentService {
 
   async remove(
     directDelete: boolean,
-    assignmentId?: string,
-    moduleContentId?: string,
+    moduleContentId: string,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
-    const whereCondition: Prisma.AssignmentWhereUniqueInput | null =
-      moduleContentId
-        ? { moduleContentId }
-        : assignmentId
-          ? { id: assignmentId }
-          : null;
-
-    if (!whereCondition)
-      throw new BadRequestException('Missing required id field');
-
     const client = tx ?? this.prisma.client;
     const assignment = await client.assignment.findUnique({
-      where: whereCondition,
+      where: { moduleContentId },
       include: { submissions: true },
     });
 
@@ -338,14 +325,12 @@ export class AssignmentService {
 
     if (directDelete) {
       await client.assignment.delete({
-        where: {
-          ...(assignmentId ? { id: assignmentId } : { moduleContentId }),
-        },
+        where: { moduleContentId },
       });
       return new MessageDto('Assignment permanently deleted');
     }
     await client.assignment.update({
-      where: { id: assignmentId },
+      where: { moduleContentId },
       data: { deletedAt: new Date() },
     });
 

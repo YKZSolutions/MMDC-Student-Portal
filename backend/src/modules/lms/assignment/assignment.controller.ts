@@ -17,23 +17,23 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
-import { UpdateAssignmentConfigDto } from '@/modules/lms/lms-content/dto/update-assignment-item.dto';
+import { UpdateAssignmentConfigDto } from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
 
-@Controller('modules/:moduleId/assignments')
+@Controller('modules/:moduleId/:moduleContentId/assignments')
 export class AssignmentController {
   constructor(private readonly lmsAssignmentService: AssignmentService) {}
 
-  @Post(':assignmentId')
+  @Post()
   @ApiException(() => [InternalServerErrorException])
   submit(
-    @Param('assignmentId') assignmentId: string,
+    @Param('moduleContentId') moduleContentId: string,
     @Body() submitAssignmentDto: SubmitAssignmentDto,
     @CurrentUser() currentUser: CurrentAuthUser,
   ) {
     const { user_id } = currentUser.user_metadata;
 
     return this.lmsAssignmentService.submit(
-      assignmentId,
+      moduleContentId,
       user_id,
       submitAssignmentDto,
     );
@@ -82,32 +82,38 @@ export class AssignmentController {
     );
   }
 
-  @Get(':assignmentId')
+  @Get()
   @ApiException(() => [InternalServerErrorException])
-  findOne(@Param('assignmentId') assignmentId: string) {
-    return this.lmsAssignmentService.findOne(assignmentId);
+  findOne(@Param('moduleContentId') moduleContentId: string) {
+    return this.lmsAssignmentService.findOne(moduleContentId);
   }
 
-  @Get(':assignmentId/student')
+  @Get('/student')
   @Roles(Role.STUDENT)
   @ApiException(() => [InternalServerErrorException])
   findOneForStudent(
-    @Param('assignmentId') assignmentId: string,
+    @Param('moduleContentId') moduleContentId: string,
     @CurrentUser() currentUser: CurrentAuthUser,
   ) {
     const { user_id } = currentUser.user_metadata;
 
-    return this.lmsAssignmentService.findOneForStudent(assignmentId, user_id);
+    return this.lmsAssignmentService.findOneForStudent(
+      moduleContentId,
+      user_id,
+    );
   }
 
-  @Patch(':assignmentId')
+  @Patch()
   @Roles(Role.ADMIN)
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   update(
-    @Param('assignmentId') assignmentId: string,
+    @Param('moduleContentId') moduleContentId: string,
     @Body() updateAssignmentDto: UpdateAssignmentConfigDto,
   ): Promise<{ message: string }> {
-    return this.lmsAssignmentService.update(assignmentId, updateAssignmentDto);
+    return this.lmsAssignmentService.update(
+      moduleContentId,
+      updateAssignmentDto,
+    );
   }
 
   // @Get()
