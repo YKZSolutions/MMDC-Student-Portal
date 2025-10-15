@@ -45,7 +45,10 @@ function LoginPage() {
     }
 
     await navigate({
-      to: '/dashboard',
+      to:
+        response.data.user?.user_metadata.role === 'admin' // has no intellisense btw
+          ? '/dashboard'
+          : '/lms',
     })
   }
 

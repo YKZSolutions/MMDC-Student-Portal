@@ -342,6 +342,7 @@ export type DetailedCourseSectionDto = {
     deletedAt: string | null;
     mentor: UserDto | null;
     mentorId: string | null;
+    availableSlots?: number | null;
 };
 
 export type CustomDetailedCourseOfferingDto = {
@@ -1896,7 +1897,6 @@ export type UpdatePricingGroupItemDto = {
 
 export type CreateAppointmentItemDto = {
     title: string;
-    description: string;
     startAt: string;
     endAt: string;
     gmeetLink?: string | null;
@@ -1904,6 +1904,7 @@ export type CreateAppointmentItemDto = {
     courseOfferingId: string;
     studentId: string;
     mentorId: string;
+    description: string;
 };
 
 export type AppointmentStatus = 'booked' | 'approved' | 'cancelled' | 'rescheduled' | 'finished' | 'extended';

@@ -1080,7 +1080,7 @@ function CourseOfferingSubjectCard({
                 variant="light"
                 radius="sm"
               >
-                {section.maxSlot} / {section.maxSlot} slots
+                {section.availableSlots} / {section.maxSlot} slots
               </Badge>
             </Flex>
           </Grid.Col>

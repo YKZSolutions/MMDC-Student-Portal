@@ -68,6 +68,8 @@ model User {
   appointmentMentors   Appointment[]          @relation("AppointmentMentor")
   /// @DtoApiHidden
   notifications        NotificationReceipt[]
+  /// @DtoApiHidden
+  transcripts          Transcript[]
 
   firstName  String
   middleName String?
@@ -352,6 +354,8 @@ model CourseOffering {
   modules           Module[]
   /// @DtoApiHidden
   appointments      Appointment[]
+  /// @DtoApiHidden
+  transcripts       Transcript[]
 
   /// @DtoReadOnly
   createdAt DateTime  @default(now())
@@ -1067,3 +1071,30 @@ model NotificationReceipt {
   /// @DtoReadOnly
   deletedAt DateTime?
 }
+
+enum GradeLetter {
+  pass
+  fail
+  incomplete
+}
+
+model Transcript {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @unique @db.Uuid
+  /// @DtoApiHidden
+  user   User   @relation(fields: [userId], references: [id])
+
+  courseOfferingId String         @db.Uuid
+  /// @DtoApiHidden
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+
+  grade       Decimal      @db.Decimal(5, 2)
+  gradeLetter GradeLetter?
+  gradePoints Decimal      @db.Decimal(5, 2)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
