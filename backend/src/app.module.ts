@@ -27,6 +27,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { LmsContentModule } from '@/modules/lms/lms-content/lms-content.module';
 import { LmsSectionModule } from '@/modules/lms/lms-section/lms-section.module';
+import { AssignmentModule } from '@/modules/lms/assignment/assignment.module';
+import { GroupModule } from '@/modules/lms/group/group.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { LmsSectionModule } from '@/modules/lms/lms-section/lms-section.module';
     InstallmentModule,
     EnrollmentModule,
     CurriculumModule,
+    GroupModule,
+    AssignmentModule,
     LmsModule,
     LmsSectionModule,
     LmsContentModule,
