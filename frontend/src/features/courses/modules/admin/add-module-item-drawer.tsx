@@ -140,8 +140,9 @@ function AddModuleItemDrawer({
         },
         body: {
           contentType: values.contentType,
+          content: [],
           title: values.title,
-          sectionId: section.id,
+          moduleSection: { connect: { id: section.id } },
         },
       })
     } else {
@@ -177,7 +178,7 @@ function AddModuleItemDrawer({
     <Fragment>
       {children({ setDrawer })}
 
-      {/* Drawer for creating new subsection or item */}
+      {/* Drawer for creating a new subsection or item */}
       <Drawer
         opened={drawerOpened}
         onClick={(e) => e.stopPropagation()}

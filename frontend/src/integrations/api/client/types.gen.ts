@@ -1147,6 +1147,7 @@ export type CreateModuleContentModuleSectionRelationInputDto = {
 
 export type CreateModuleContentDto = {
     moduleSection: CreateModuleContentModuleSectionRelationInputDto;
+    contentType?: ContentType;
     title: string;
     subtitle?: string | null;
     content: Array<{
@@ -1171,7 +1172,6 @@ export type UpdateAssignmentItemDto = {
     gracePeriodMinutes?: number | null;
     rubricTemplateId?: string | null;
     moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
-    contentType?: ContentType;
     title?: string;
     subtitle?: string | null;
     content?: Array<{
@@ -1180,11 +1180,11 @@ export type UpdateAssignmentItemDto = {
     order?: number;
     publishedAt?: string | null;
     unpublishedAt?: string | null;
+    contentType: 'ASSIGNMENT';
 };
 
 export type UpdateLessonItemDto = {
     moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
-    contentType?: ContentType;
     title?: string;
     subtitle?: string | null;
     content?: Array<{
@@ -1193,6 +1193,7 @@ export type UpdateLessonItemDto = {
     order?: number;
     publishedAt?: string | null;
     unpublishedAt?: string | null;
+    contentType: 'LESSON';
 };
 
 export type PaginatedModuleContentDto = {
@@ -4244,7 +4245,9 @@ export type LmsContentControllerFindAllResponse = LmsContentControllerFindAllRes
 
 export type LmsContentControllerCreateData = {
     body: CreateModuleContentDto;
-    path?: never;
+    path: {
+        moduleId: string;
+    };
     query?: never;
     url: '/modules/{moduleId}/contents';
 };

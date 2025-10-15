@@ -9,14 +9,14 @@ import {
   mockStudentAssignments,
 } from '@/features/courses/mocks.ts'
 import {
-  lmsAssignmentControllerFindAllForAdmin,
+  assignmentControllerFindAllForAdmin,
   type Role,
 } from '@/integrations/api/client'
 import {
-  lmsAssignmentControllerFindAllForAdminOptions,
-  lmsAssignmentControllerFindAllForMentorOptions,
-  lmsAssignmentControllerFindAllForStudentOptions,
-  lmsAssignmentControllerFindOneOptions,
+  assignmentControllerFindAllForAdminOptions,
+  assignmentControllerFindAllForMentorOptions,
+  assignmentControllerFindAllForStudentOptions,
+  assignmentControllerFindOneOptions,
   lmsSubmissionControllerFindOneOptions,
   lmsSubmissionControllerFindOneQueryKey,
   lmsSubmissionControllerGradeMutation,
@@ -178,7 +178,7 @@ function StudentAssignments() {
   const { lmsCode } = route.useParams()
 
   const { data: paginated } = useSuspenseQuery(
-    lmsAssignmentControllerFindAllForStudentOptions({
+    assignmentControllerFindAllForStudentOptions({
       path: { moduleId: lmsCode },
     }),
   )
@@ -226,7 +226,7 @@ function MentorAssignments() {
   const navigate = route.useNavigate()
 
   const { data: paginated } = useSuspenseQuery(
-    lmsAssignmentControllerFindAllForMentorOptions({
+    assignmentControllerFindAllForMentorOptions({
       path: { moduleId: lmsCode },
     }),
   )
@@ -695,7 +695,7 @@ function AdminAssignments() {
   const { lmsCode } = route.useParams()
 
   const { data: paginated } = useSuspenseQuery(
-    lmsAssignmentControllerFindAllForAdminOptions({
+    assignmentControllerFindAllForAdminOptions({
       path: { moduleId: lmsCode },
     }),
   )
@@ -800,9 +800,12 @@ function AdminAssignments() {
                     /> */}
                     <Text fw={500} c="dark.5">
                       {report.stats.total > 0
-                        ? ((report.stats.submitted / report.stats.total) * 100).toFixed(0)
-                        : 0
-                      }%
+                        ? (
+                            (report.stats.submitted / report.stats.total) *
+                            100
+                          ).toFixed(0)
+                        : 0}
+                      %
                     </Text>
                     <Text size="xs" c="dimmed">
                       {report.stats.submitted}/{report.stats.total} completed

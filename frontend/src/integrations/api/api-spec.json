@@ -9188,7 +9188,16 @@
       "post": {
         "description": "This operation creates a new module content.\nRequires `ADMIN` role.",
         "operationId": "LmsContentController_create",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -19437,6 +19446,14 @@
           "moduleSection": {
             "$ref": "#/components/schemas/CreateModuleContentModuleSectionRelationInputDto"
           },
+          "contentType": {
+            "default": "LESSON",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
           "title": {
             "type": "string"
           },
@@ -19531,14 +19548,6 @@
           "moduleSection": {
             "$ref": "#/components/schemas/UpdateModuleContentModuleSectionRelationInputDto"
           },
-          "contentType": {
-            "default": "ASSIGNMENT",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentType"
-              }
-            ]
-          },
           "title": {
             "type": "string"
           },
@@ -19566,8 +19575,18 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "ASSIGNMENT"
+            ],
+            "default": "ASSIGNMENT"
           }
-        }
+        },
+        "required": [
+          "contentType"
+        ]
       },
       "UpdateLessonItemDto": {
         "type": "object",
@@ -19575,14 +19594,6 @@
           "moduleSection": {
             "$ref": "#/components/schemas/UpdateModuleContentModuleSectionRelationInputDto"
           },
-          "contentType": {
-            "default": "LESSON",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentType"
-              }
-            ]
-          },
           "title": {
             "type": "string"
           },
@@ -19610,8 +19621,18 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "LESSON"
+            ],
+            "default": "LESSON"
           }
-        }
+        },
+        "required": [
+          "contentType"
+        ]
       },
       "PaginatedModuleContentDto": {
         "type": "object",

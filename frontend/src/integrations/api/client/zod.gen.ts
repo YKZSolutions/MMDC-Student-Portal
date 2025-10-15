@@ -1630,6 +1630,7 @@ export const zCreateModuleContentModuleSectionRelationInputDto = z.object({
 
 export const zCreateModuleContentDto = z.object({
     moduleSection: zCreateModuleContentModuleSectionRelationInputDto,
+    contentType: z.optional(zContentType),
     title: z.string(),
     subtitle: z.optional(z.union([
         z.string(),
@@ -1679,7 +1680,6 @@ export const zUpdateAssignmentItemDto = z.object({
         z.null()
     ])),
     moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
-    contentType: z.optional(zContentType),
     title: z.optional(z.string()),
     subtitle: z.optional(z.union([
         z.string(),
@@ -1694,12 +1694,14 @@ export const zUpdateAssignmentItemDto = z.object({
     unpublishedAt: z.optional(z.union([
         z.iso.datetime(),
         z.null()
-    ]))
+    ])),
+    contentType: z.enum([
+        'ASSIGNMENT'
+    ])
 });
 
 export const zUpdateLessonItemDto = z.object({
     moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
-    contentType: z.optional(zContentType),
     title: z.optional(z.string()),
     subtitle: z.optional(z.union([
         z.string(),
@@ -1714,7 +1716,10 @@ export const zUpdateLessonItemDto = z.object({
     unpublishedAt: z.optional(z.union([
         z.iso.datetime(),
         z.null()
-    ]))
+    ])),
+    contentType: z.enum([
+        'LESSON'
+    ])
 });
 
 export const zPaginatedModuleContentDto = z.object({
@@ -3437,7 +3442,9 @@ export const zLmsContentControllerFindAllResponse = zPaginatedModuleContentDto;
 
 export const zLmsContentControllerCreateData = z.object({
     body: zCreateModuleContentDto,
-    path: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
     query: z.optional(z.never())
 });
 
