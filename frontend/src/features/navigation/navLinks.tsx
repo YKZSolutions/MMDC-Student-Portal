@@ -13,23 +13,14 @@ import {
   IconClipboardListFilled,
   IconGraph,
   IconGraphFilled,
-  IconHome,
-  IconHomeFilled,
   IconSchool,
   IconUser,
   IconUserCog,
   IconUserFilled,
-  IconVocabulary,
+  IconVocabulary
 } from '@tabler/icons-react'
 
 export const studentLinks: NavItem[] = [
-  {
-    link: '/dashboard',
-    label: 'Dashboard',
-    Icon: IconHomeFilled,
-    IconInactive: IconHome,
-    fuzzy: true,
-  },
   {
     link: '/lms',
     label: 'LMS',
@@ -75,13 +66,6 @@ export const studentLinks: NavItem[] = [
 ]
 
 export const mentorLinks: NavItem[] = [
-  {
-    link: '/dashboard',
-    label: 'Dashboard',
-    Icon: IconHomeFilled,
-    IconInactive: IconHome,
-    fuzzy: true,
-  },
   {
     link: '/lms',
     label: 'LMS',
