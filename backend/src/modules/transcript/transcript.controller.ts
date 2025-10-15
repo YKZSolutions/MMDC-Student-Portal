@@ -1,3 +1,5 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
   Body,
   Controller,
@@ -6,8 +8,10 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateTranscriptDto } from './dto/create-transcript.dto';
+import { FilterTranscriptDto } from './dto/filter-transcript.dto';
 import { UpdateTranscriptDto } from './dto/update-transcript.dto';
 import { TranscriptService } from './transcript.service';
 
@@ -21,21 +25,19 @@ export class TranscriptController {
   }
 
   @Get()
-  findAll() {
-    return this.transcriptService.findAll();
+  findAll(
+    @Query() filters: FilterTranscriptDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ) {
+    return this.transcriptService.findAll(filters, user);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transcriptService.findOne(+id);
-  }
-
-  @Patch(':id')
+  @Patch(':transcriptId')
   update(
-    @Param('id') id: string,
+    @Param('transcriptId') transcriptId: string,
     @Body() updateTranscriptDto: UpdateTranscriptDto,
   ) {
-    return this.transcriptService.update(+id, updateTranscriptDto);
+    return this.transcriptService.update(transcriptId, updateTranscriptDto);
   }
 
   @Delete(':id')

@@ -1,9 +1,14 @@
 import { convertToStandardGrade } from '@/common/helpers/grades';
+import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
+import { TranscriptDto } from '@/generated/nestjs-dto/transcript.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { CreateTranscriptDto } from './dto/create-transcript.dto';
+import { DetailedTranscriptDto } from './dto/detailed-transcript.dto';
+import { FilterTranscriptDto } from './dto/filter-transcript.dto';
 import { UpdateTranscriptDto } from './dto/update-transcript.dto';
 
 @Injectable()
@@ -13,7 +18,9 @@ export class TranscriptService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
-  async create(createTranscriptDto: CreateTranscriptDto) {
+  async create(
+    createTranscriptDto: CreateTranscriptDto,
+  ): Promise<TranscriptDto> {
     const { courseOfferingId, studentId } = createTranscriptDto;
 
     return await this.prisma.client.$transaction(async (tx) => {
@@ -96,16 +103,76 @@ export class TranscriptService {
     });
   }
 
-  async findAll() {
-    return `This action returns all transcript`;
+  async findAll(
+    filters: FilterTranscriptDto,
+    user: CurrentAuthUser,
+  ): Promise<DetailedTranscriptDto[]> {
+    return this.prisma.client.$transaction(async (tx) => {
+      const { enrollmentPeriodId, studentId } = filters;
+      const role = user.user_metadata.role;
+      const where: Prisma.TranscriptWhereInput = {};
+
+      // Assign the enrollmentPeriodId may it be provided or not
+      where.courseOffering = {
+        enrollmentPeriod: {
+          id: enrollmentPeriodId,
+        },
+      };
+
+      // If enrollmentPeriodId is not provided, fetch the active enrollment period
+      if (!enrollmentPeriodId) {
+        const fetchedEnrollmentPeriodId = (
+          await tx.enrollmentPeriod.findFirstOrThrow().catch(() => {
+            throw new NotFoundException(
+              'No enrollment periods found in the system',
+            );
+          })
+        ).id;
+
+        where.courseOffering.enrollmentPeriod = {
+          id: fetchedEnrollmentPeriodId,
+        };
+      }
+
+      // Ensure that non-admin users can only access their own transcripts
+      // Assign the user.id may it be provided or not
+      where.userId = user.id;
+
+      if (role !== 'student') {
+        where.userId =
+          studentId ??
+          (
+            await tx.user
+              .findFirstOrThrow({
+                where: {
+                  role: 'student',
+                },
+                select: { id: true },
+              })
+              .catch(() => {
+                throw new NotFoundException('No students found in the system');
+              })
+          ).id;
+      }
+
+      return await tx.transcript.findMany({
+        where: {
+          ...where,
+        },
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              enrollmentPeriod: true,
+            },
+          },
+        },
+      });
+    });
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} transcript`;
-  }
-
-  async update(id: number, updateTranscriptDto: UpdateTranscriptDto) {
-    return `This action updates a #${id} transcript`;
+  async update(transcriptId: string, dto: UpdateTranscriptDto) {
+    return `This action updates a #${transcriptId} transcript`;
   }
 
   async remove(id: number) {
