@@ -960,10 +960,6 @@ function CourseOfferingSectionEditForm({
         title: 'Saved',
         message: 'Section updated successfully.',
       },
-      error: {
-        title: 'Failed',
-        message: 'Unable to update section.',
-      },
     },
     {
       onSuccess: async () => {

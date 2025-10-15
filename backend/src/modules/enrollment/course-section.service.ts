@@ -159,8 +159,10 @@ export class CourseSectionService {
    * using only the section id.
    */
   @Log({
-    logArgsMessage: ({ sectionId }) => `Fetching course section for id ${sectionId}`,
-    logSuccessMessage: (section) => `Successfully fetched course section ${section.id}`,
+    logArgsMessage: ({ sectionId }) =>
+      `Fetching course section for id ${sectionId}`,
+    logSuccessMessage: (section) =>
+      `Successfully fetched course section ${section.id}`,
     logErrorMessage: (err, { sectionId }) =>
       `Error fetching course section ${sectionId} | Error: ${err.message}`,
   })
@@ -220,26 +222,55 @@ export class CourseSectionService {
     @LogParam('sectionId') sectionId: string,
     updateCourseSectionDto: UpdateCourseSectionDto,
   ): Promise<CourseSectionDto> {
-    const section = await this.prisma.client.courseSection.findFirstOrThrow({
-      where: {
-        id: sectionId,
-        courseOfferingId: offeringId,
-        courseOffering: {
-          periodId: enrollmentId,
+    return await this.prisma.client.$transaction(async (tx) => {
+      const section = await tx.courseSection.findFirstOrThrow({
+        where: {
+          id: sectionId,
+          courseOfferingId: offeringId,
+          courseOffering: {
+            periodId: enrollmentId,
+          },
         },
-      },
-      include: { courseOffering: { include: { enrollmentPeriod: true } } },
-    });
+        include: { courseOffering: { include: { enrollmentPeriod: true } } },
+      });
 
-    if (section.courseOffering.enrollmentPeriod.status === 'closed') {
-      throw new BadRequestException(
-        `Enrollment period for this course section is closed and cannot be updated.`,
-      );
-    }
+      if (section.courseOffering.enrollmentPeriod.status === 'closed') {
+        throw new BadRequestException(
+          `Enrollment period for this course section is closed and cannot be updated.`,
+        );
+      }
 
-    return await this.prisma.client.courseSection.update({
-      where: { id: sectionId },
-      data: { ...updateCourseSectionDto },
+      // Check first if the mentor has another section with overlapping schedule
+      // NOTE: This only checks within the same enrollment period
+      const { mentorId, startSched, endSched, days } = updateCourseSectionDto;
+
+      if (mentorId) {
+        const overlappingSection = await tx.courseSection.findFirst({
+          where: {
+            mentorId,
+            id: { not: sectionId },
+            courseOffering: {
+              periodId: enrollmentId,
+            },
+            AND: [
+              { startSched: { lt: endSched } },
+              { endSched: { gt: startSched } },
+              { days: { hasSome: days } },
+            ],
+          },
+        });
+
+        if (overlappingSection) {
+          throw new BadRequestException(
+            'The selected mentor is already assigned to another section with an overlapping schedule.',
+          );
+        }
+      }
+
+      return await tx.courseSection.update({
+        where: { id: sectionId },
+        data: { ...updateCourseSectionDto },
+      });
     });
   }
 
