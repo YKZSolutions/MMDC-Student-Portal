@@ -693,7 +693,7 @@ model ModuleSection {
   dependentSections ModuleSection[] @relation("ModulePrerequisite")
 
   /// @DtoApiHidden
-  moduleContents ModuleContent[]
+  moduleContents ModuleContentBase[]
 
   title String @db.VarChar(255)
   order Int?   @default(0)
@@ -722,7 +722,7 @@ enum ContentType {
   ASSIGNMENT
 }
 
-model ModuleContent {
+model ModuleContentBase {
   id String @id @default(uuid()) @db.Uuid
 
   /// @DtoApiHidden
@@ -788,6 +788,7 @@ model RubricTemplate {
   deletedAt DateTime?
 
   // Relationship back to Assignments that use this template
+  /// @DtoApiHidden
   assignments Assignment[]
 
   @@index([name])
@@ -809,8 +810,8 @@ model Assignment {
   id String @id @default(uuid()) @db.Uuid
 
   /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
-  moduleContentId String        @unique @db.Uuid
+  moduleContent   ModuleContentBase @relation(fields: [moduleContentId], references: [id], onDelete: Cascade)
+  moduleContentId String            @unique @db.Uuid
 
   rubricTemplate   RubricTemplate? @relation(fields: [rubricTemplateId], references: [id], onDelete: Restrict)
   rubricTemplateId String?         @db.Uuid
@@ -819,14 +820,14 @@ model Assignment {
 
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  maxScore         Decimal @default(0) @db.Decimal(5, 2)
+  maxScore         Decimal @db.Decimal(5, 2)
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
   weightPercentage Int     @default(0) @db.SmallInt
 
   maxAttempts         Int?      @db.SmallInt
-  allowLateSubmission Boolean?
-  latePenalty         Decimal?  @db.Decimal(5, 2)
+  allowLateSubmission Boolean?  @default(false)
+  latePenalty         Int?      @db.SmallInt // Percentage penalty per late day
   dueDate             DateTime?
   gracePeriodMinutes  Int?      @default(0) // Grace period in minutes
 
@@ -983,8 +984,8 @@ model ContentProgress {
   moduleId String @db.Uuid
 
   /// @DtoApiHidden
-  moduleContent   ModuleContent @relation(fields: [moduleContentId], references: [id])
-  moduleContentId String        @db.Uuid
+  moduleContent   ModuleContentBase @relation(fields: [moduleContentId], references: [id])
+  moduleContentId String            @db.Uuid
 
   status         ProgressStatus @default(NOT_STARTED)
   completedAt    DateTime?
@@ -1097,4 +1098,3 @@ model Transcript {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 }
-

@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ModuleContentModuleSectionIdOrderUniqueInputDto {
+export class ModuleContentBaseModuleSectionIdOrderUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -25,8 +25,8 @@ export class ModuleContentModuleSectionIdOrderUniqueInputDto {
   order: number;
 }
 
-@ApiExtraModels(ModuleContentModuleSectionIdOrderUniqueInputDto)
-export class ConnectModuleContentDto {
+@ApiExtraModels(ModuleContentBaseModuleSectionIdOrderUniqueInputDto)
+export class ConnectModuleContentBaseDto {
   @ApiProperty({
     type: 'string',
     required: false,
@@ -35,11 +35,11 @@ export class ConnectModuleContentDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: ModuleContentModuleSectionIdOrderUniqueInputDto,
+    type: ModuleContentBaseModuleSectionIdOrderUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => ModuleContentModuleSectionIdOrderUniqueInputDto)
-  moduleSectionId_order?: ModuleContentModuleSectionIdOrderUniqueInputDto;
+  @Type(() => ModuleContentBaseModuleSectionIdOrderUniqueInputDto)
+  moduleSectionId_order?: ModuleContentBaseModuleSectionIdOrderUniqueInputDto;
 }

@@ -476,11 +476,13 @@ export class GradingService {
   private calculateFinalGrade(
     rawScore: Prisma.Decimal,
     lateDays?: number | null,
-    latePenalty?: Prisma.Decimal | null,
+    latePenalty?: number | null,
   ): { finalScore: Prisma.Decimal; grade: string } {
     const penalty =
       lateDays && latePenalty
-        ? new Prisma.Decimal(lateDays).times(latePenalty)
+        ? new Prisma.Decimal(lateDays).times(
+            Prisma.Decimal(latePenalty).div(100),
+          )
         : new Prisma.Decimal(0);
     const finalScore = Prisma.Decimal.max(
       0,

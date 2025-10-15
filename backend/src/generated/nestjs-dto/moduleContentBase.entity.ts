@@ -13,7 +13,7 @@ import {
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
 
-export class ModuleContent {
+export class ModuleContentBase {
   @ApiProperty({
     type: 'string',
   })

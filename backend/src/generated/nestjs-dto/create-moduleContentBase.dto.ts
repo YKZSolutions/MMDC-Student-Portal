@@ -1,10 +1,8 @@
-import { ContentType, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiExtraModels, ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
-  IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -16,7 +14,7 @@ import {
   type ConnectModuleSectionDto as ConnectModuleSectionDtoAsType,
 } from './connect-moduleSection.dto';
 
-export class UpdateModuleContentModuleSectionRelationInputDto {
+export class CreateModuleContentBaseModuleSectionRelationInputDto {
   @ApiProperty({
     type: ConnectModuleSectionDto,
   })
@@ -28,30 +26,20 @@ export class UpdateModuleContentModuleSectionRelationInputDto {
 
 @ApiExtraModels(
   ConnectModuleSectionDto,
-  UpdateModuleContentModuleSectionRelationInputDto,
+  CreateModuleContentBaseModuleSectionRelationInputDto,
 )
-export class UpdateModuleContentDto {
+export class CreateModuleContentBaseDto {
   @ApiHideProperty()
-  @IsOptional()
+  @IsNotEmpty()
   @ValidateNested()
-  @Type(() => UpdateModuleContentModuleSectionRelationInputDto)
-  moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
-  @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
-    default: 'LESSON',
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(ContentType)
-  contentType?: ContentType;
+  @Type(() => CreateModuleContentBaseModuleSectionRelationInputDto)
+  moduleSection: CreateModuleContentBaseModuleSectionRelationInputDto;
   @ApiProperty({
     type: 'string',
-    required: false,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  title?: string;
+  title: string;
   @ApiProperty({
     type: 'string',
     required: false,
@@ -63,20 +51,10 @@ export class UpdateModuleContentDto {
   @ApiProperty({
     type: () => Object,
     isArray: true,
-    required: false,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsArray()
-  content?: Prisma.InputJsonValue[];
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    default: 1,
-    required: false,
-  })
-  @IsOptional()
-  @IsInt()
-  order?: number;
+  content: Prisma.InputJsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
