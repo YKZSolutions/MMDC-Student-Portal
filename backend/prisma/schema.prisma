@@ -1297,6 +1297,7 @@ model Transcript {
   courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
 
   grade       Decimal @db.Decimal(5, 2)
+  gradeLetter String  @db.VarChar(10)
   gradePoints Decimal @db.Decimal(5, 2)
 
   createdAt DateTime  @default(now())
