@@ -1,9 +1,19 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import {
+  ApiExtraModels,
+  ApiProperty,
+  getSchemaPath,
+  PickType,
+} from '@nestjs/swagger';
 import { Module } from '@/generated/nestjs-dto/module.entity';
 import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
 import { IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ModuleTreeContentItemDto } from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
+import {
+  ModuleTreeAssignmentItemDto,
+  ModuleTreeLessonItemDto,
+} from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
+import { ContentType } from '@prisma/client';
+import { ModuleTreeContentItem } from '@/modules/lms/lms-content/types';
 
 export class ModuleTreeDto extends PickType(Module, [
   'id',
@@ -43,12 +53,21 @@ export class ModuleTreeSectionDto extends PickType(ModuleSection, [
   subsections?: ModuleTreeSectionDto[];
 
   @ApiProperty({
-    type: () => [ModuleTreeContentItemDto],
-    required: false,
-    nullable: true,
+    oneOf: [
+      { $ref: getSchemaPath(ModuleTreeLessonItemDto) },
+      { $ref: getSchemaPath(ModuleTreeAssignmentItemDto) },
+    ],
+    discriminator: {
+      propertyName: 'contentType',
+      mapping: {
+        [ContentType.LESSON]: getSchemaPath(ModuleTreeLessonItemDto),
+        [ContentType.ASSIGNMENT]: getSchemaPath(ModuleTreeAssignmentItemDto),
+      },
+    },
+    isArray: true,
   })
+  @ApiExtraModels(ModuleTreeLessonItemDto, ModuleTreeAssignmentItemDto)
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ModuleTreeContentItemDto)
-  moduleContents?: ModuleTreeContentItemDto[];
+  moduleContents?: ModuleTreeContentItem[];
 }

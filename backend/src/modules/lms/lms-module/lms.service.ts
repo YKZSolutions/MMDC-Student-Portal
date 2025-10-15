@@ -34,7 +34,8 @@ import {
   ModuleTreeDto,
   ModuleTreeSectionDto,
 } from '@/modules/lms/lms-module/dto/module-tree.dto';
-import { ModuleTreeContentItemDto } from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
+import { mapModuleContentToModuleTreeItem } from '@/modules/lms/lms-content/helper/mapper';
+import { ModuleTreeContentItem } from '@/modules/lms/lms-content/types';
 
 @Injectable()
 export class LmsService {
@@ -87,19 +88,13 @@ export class LmsService {
   }
 
   /**
-   * Clones learning modules from the most recent past course offering into the given enrollment period.
+   * Clones learning modules into the given enrollment period.
    *
    * This includes:
    * - Modules
    * - Module sections
    * - Module contents
    *
-   * The "previous course offering" is determined by finding the most
-   * recently created course offering (`createdAt` descending) for the
-   * same course, where its enrollment period started before the current
-   * enrollment period. If found, the entire module structure
-   * (module → sections → contents) is duplicated and linked to the
-   * new course offering.
    *
    * @async
    * @param {string} enrollmentPeriodId - The UUID of the target enrollment period
@@ -157,24 +152,30 @@ export class LmsService {
     });
 
     await this.prisma.client.$transaction(async (tx) => {
-      for (const courseOffering of currentEnrollment.courseOfferings) {
-        const latestModule = latestModules.find(
-          (m) => m.courseId === courseOffering.courseId,
+      for (const module of latestModules) {
+        // Find the course offering for the current enrollment period
+        const courseOffering = currentEnrollment.courseOfferings.find(
+          (co) => co.courseId === module.courseId,
         );
-        if (!latestModule) continue;
+
+        if (!courseOffering) {
+          throw new Error(
+            `Course offering not found for courseId ${module.courseId}`,
+          );
+        }
 
         // Create the new module
         const newModule = await tx.module.create({
           data: {
-            title: latestModule.title,
-            courseId: latestModule.courseId,
+            title: module.title,
+            courseId: module.courseId,
             courseOfferingId: courseOffering.id,
             publishedAt: null,
             unpublishedAt: null,
           },
         });
 
-        for (const oldSection of latestModule.moduleSections) {
+        for (const oldSection of module.moduleSections) {
           const newSection = await tx.moduleSection.create({
             data: {
               moduleId: newModule.id,
@@ -209,10 +210,13 @@ export class LmsService {
                       moduleContentId: newContent.id,
                       mode: oldContent.assignment.mode,
                       dueDate: oldContent.assignment.dueDate,
+                      maxScore: oldContent.assignment.maxScore,
                       maxAttempts: oldContent.assignment.maxAttempts,
                       allowLateSubmission:
                         oldContent.assignment.allowLateSubmission,
                       latePenalty: oldContent.assignment.latePenalty,
+                      gracePeriodMinutes:
+                        oldContent.assignment.gracePeriodMinutes,
                       rubricTemplateId: oldContent.assignment.rubricTemplateId,
                     },
                   });
@@ -1014,15 +1018,19 @@ export class LmsService {
         }),
       ]);
 
+    const moduleContents = flatContents.map((item) => {
+      return mapModuleContentToModuleTreeItem(item);
+    });
+
     return {
       ...module,
-      moduleSections: this.buildTree(flatSections, flatContents),
+      moduleSections: this.buildTree(flatSections, moduleContents),
     };
   }
 
   private buildTree(
     flatSections: ModuleTreeSectionDto[],
-    flatContents: ModuleTreeContentItemDto[],
+    flatContents: ModuleTreeContentItem[],
   ): ModuleTreeSectionDto[] {
     const sectionsMap = new Map();
     const rootSections: ModuleTreeSectionDto[] = [];
@@ -1037,7 +1045,7 @@ export class LmsService {
 
     // First pass: create a map of all sections and attach contents
     for (const section of flatSections) {
-      section.subsections = []; // Initialize subsections array
+      section.subsections = []; // Initialize subsections' array
       section.moduleContents = contentMap[section.id] || []; // Attach contents
       sectionsMap.set(section.id, section);
     }
@@ -1049,7 +1057,7 @@ export class LmsService {
         if (parent) {
           parent.subsections.push(section);
         }
-        // Handle "orphaned" sections if parent is deleted/filtered out
+        // Handle "orphaned" sections if the parent is deleted/filtered out
       } else {
         rootSections.push(section); // Add top-level sections
       }

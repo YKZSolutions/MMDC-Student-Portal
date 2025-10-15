@@ -8,7 +8,6 @@ import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
 import { FilterTodosDto } from '@/modules/lms/lms-module/dto/filter-todos.dto';
 import { ModuleTreeDto } from '@/modules/lms/lms-module/dto/module-tree.dto';
 import { PaginatedTodosDto } from '@/modules/lms/lms-content/dto/paginated-todos.dto';
-import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
 import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
 import { LmsService } from '@/modules/lms/lms-module/lms.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -26,8 +25,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiExtraModels, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { FilterModulesDto } from './dto/filter-modules.dto';
+import {
+  ModuleTreeAssignmentItemDto,
+  ModuleTreeLessonItemDto,
+} from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
 
 @Controller('modules')
 export class LmsController {
@@ -249,6 +252,7 @@ export class LmsController {
     description: 'Module tree retrieved successfully',
     type: ModuleTreeDto,
   })
+  @ApiExtraModels(ModuleTreeLessonItemDto, ModuleTreeAssignmentItemDto)
   @ApiException(() => [
     BadRequestException,
     NotFoundException,

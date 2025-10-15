@@ -1,28 +1,31 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
-import { IsOptional, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { ContentType } from '@prisma/client';
 
-export class ModuleTreeContentItemDto extends PickType(ModuleContent, [
-  'id',
-  'moduleSectionId',
+class ModuleTreeBase extends OmitType(ModuleContent, [
+  'content',
   'contentType',
-  'title',
-  'subtitle',
-  'order',
-  'publishedAt',
-  'unpublishedAt',
-  'createdAt',
-  'updatedAt',
-  'studentProgress',
-]) {
+  'moduleSection',
+  'assignment',
+  'deletedAt',
+]) {}
+
+export class ModuleTreeAssignmentItemDto extends IntersectionType(
+  ModuleTreeBase,
+  AssignmentDto,
+) {
   @ApiProperty({
-    type: () => AssignmentDto,
-    nullable: true,
+    default: ContentType.ASSIGNMENT,
+    readOnly: true,
   })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => AssignmentDto)
-  assignment: AssignmentDto | null;
+  declare contentType: 'ASSIGNMENT';
+}
+
+export class ModuleTreeLessonItemDto extends ModuleTreeBase {
+  @ApiProperty({
+    default: ContentType.LESSON,
+    readOnly: true,
+  })
+  declare contentType: 'LESSON';
 }
