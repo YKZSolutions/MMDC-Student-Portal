@@ -15,13 +15,13 @@ import {
 } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { CreateCourseOfferingCurriculumDto } from './dto/create-course-offering-curriculum.dto';
 import { CreateCourseOfferingDto } from './dto/create-course-offering.dto';
 import {
   CourseOfferingStatus,
   FilterCourseOfferingDto,
 } from './dto/filter-course-offering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-course-offering.dto';
-import { CreateCourseOfferingCurriculumDto } from './dto/create-course-offering-curriculum.dto';
 
 @Injectable()
 export class CourseOfferingService {
@@ -229,6 +229,13 @@ export class CourseOfferingService {
       courseSections: {
         include: {
           mentor: true,
+          _count: {
+            select: {
+              courseEnrollments: {
+                where: { status: { not: 'dropped' } },
+              },
+            },
+          },
         },
       },
 
@@ -248,7 +255,16 @@ export class CourseOfferingService {
       })
       .withPages({ limit: 10, page, includePageCount: true });
 
-    return { courseOfferings, meta };
+    // Calculate available slots for each course section
+    const offeringWithAvailableSlots = courseOfferings.map((offering) => ({
+      ...offering,
+      courseSections: offering.courseSections.map((section) => ({
+        ...section,
+        availableSlots: section.maxSlot - section._count.courseEnrollments,
+      })),
+    }));
+
+    return { courseOfferings: offeringWithAvailableSlots, meta };
   }
 
   /**

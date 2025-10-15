@@ -907,7 +907,7 @@ function CourseOfferingSubjectCard({
                 variant="light"
                 radius="sm"
               >
-                {section.maxSlot} / {section.maxSlot} slots
+                {section.availableSlots} / {section.maxSlot} slots
               </Badge>
             </Flex>
           </Grid.Col>
@@ -959,10 +959,6 @@ function CourseOfferingSectionEditForm({
       success: {
         title: 'Saved',
         message: 'Section updated successfully.',
-      },
-      error: {
-        title: 'Failed',
-        message: 'Unable to update section.',
       },
     },
     {

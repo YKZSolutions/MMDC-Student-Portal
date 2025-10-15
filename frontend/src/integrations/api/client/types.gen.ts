@@ -342,6 +342,7 @@ export type DetailedCourseSectionDto = {
     deletedAt: string | null;
     mentor: UserDto | null;
     mentorId: string | null;
+    availableSlots?: number | null;
 };
 
 export type CustomDetailedCourseOfferingDto = {

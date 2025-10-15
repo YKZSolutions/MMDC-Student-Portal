@@ -61,11 +61,14 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
       }
     },
     onError: (error, variables, context) => {
+      const err = error as TError & { error?: string }
+
       notifications.update({
         id: notifId.current,
         color: 'red',
         title: messages.error?.title ?? 'Something went wrong',
-        message: messages.error?.message ?? 'Please try again later.',
+        message:
+          messages.error?.message ?? err.error ?? 'Please try again later.',
         icon: <IconX size={18} />,
         loading: false,
         autoClose: 3000,
