@@ -19,10 +19,12 @@ export class CreateTranscriptDto {
   @ApiProperty({
     enum: GradeLetter,
     enumName: 'GradeLetter',
+    required: false,
+    nullable: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(GradeLetter)
-  gradeLetter: GradeLetter;
+  gradeLetter?: GradeLetter | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

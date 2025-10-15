@@ -31,8 +31,9 @@ export class Transcript {
   @ApiProperty({
     enum: GradeLetter,
     enumName: 'GradeLetter',
+    nullable: true,
   })
-  gradeLetter: GradeLetter;
+  gradeLetter: GradeLetter | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
