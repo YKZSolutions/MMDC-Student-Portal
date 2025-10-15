@@ -29,7 +29,7 @@ import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
   convertModuleSectionsToTreeData,
-  getContentKeyAndData,
+  resolveContentDetails,
   getTypeFromLevel,
   injectAddButtons,
 } from '@/utils/helpers'
@@ -73,7 +73,7 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { Suspense } from 'react'
+import React, { Suspense, type ReactNode } from 'react'
 import AddModuleDrawer from '../modules/admin/add-module-drawer'
 import AddModuleItemDrawer from '../modules/admin/add-module-item-drawer'
 import ModuleContentView from '../modules/content/module-content-view'
@@ -217,8 +217,6 @@ function CMSWrapper({ courseCode }: CMSProps) {
     const data = editorState.data
     if (!data) return
 
-    const { contentKey, existingContent } = getContentKeyAndData(data)
-
     await updateModuleContent({
       path: {
         moduleContentId: editorState.id || '',
@@ -235,7 +233,7 @@ function CMSWrapper({ courseCode }: CMSProps) {
       path: { moduleContentId: editorState.id || '' },
     })
 
-    navigate({ to: '..' })
+    await navigate({ to: '..' })
   }
 
   const handleSegmentedControl = (value: EditorView) => {
@@ -287,10 +285,7 @@ function CMSWrapper({ courseCode }: CMSProps) {
               data={editorViewOptions.map((option) => ({
                 label: option.label,
                 value: option.value,
-                disabled:
-                  option.value === 'preview' && !editorState.data?.id
-                    ? true
-                    : false,
+                disabled: option.value === 'preview' && !editorState.data?.id,
               }))}
             />
           </Group>
@@ -423,7 +418,7 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
 
   const { editorState } = useEditorState()
 
-  const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
+  const existingContent = editorState.data
 
   const isPublished = editorState.data.publishedAt || false
 
@@ -468,7 +463,7 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
         moduleContentId: editorState.id || '',
       },
       body: {
-        contentType: editorState.data.contentType,
+        contentType: existingContent.contentType,
         title: title,
       },
     })
@@ -533,7 +528,7 @@ function CMSCourseStructureQueryProvider({
 }: {
   children: (props: {
     moduleTree: ModuleTreeSectionDto[] | null | undefined
-  }) => React.ReactNode
+  }) => ReactNode
 }) {
   const { lmsCode } = useParams({ strict: false })
 
@@ -599,7 +594,7 @@ function CMSStatusBar({}: StatusBarProps) {
 
   const { editorState } = useEditorState()
 
-  const { contentKey, existingContent } = getContentKeyAndData(editorState.data)
+  const existingContent = editorState.data
 
   return (
     <Group
@@ -675,12 +670,12 @@ function CMSContentTree({ moduleTree, handleNodeSelect }: ContentTreeProps) {
   )
 }
 
-// Get appropriate icon for node type
+// Get the appropriate icon for the node type
 function CMSNodeIcon({
   type,
   size = 16,
 }: {
-  type: ContentNodeType | 'add-button'
+  type: ContentNodeType
   size?: number
 }) {
   switch (type) {
@@ -819,7 +814,7 @@ function CMSNodeRow({
               },
             })
 
-        navigate({ to: '..' })
+        await navigate({ to: '..' })
       },
     })
   }
@@ -831,7 +826,6 @@ function CMSNodeRow({
           <AddModuleItemDrawer
             props={{
               section: {
-                ...node.data.contentData,
                 id: node.parent as string,
                 parentSectionId:
                   node.parent === 'root' ||

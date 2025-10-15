@@ -5,25 +5,21 @@ import type {
 import type {
   ContentNode,
   CourseNodeModel,
+  FullModuleContent,
   Module,
   ModuleItem,
   ModuleSection,
+  ModuleTreeContentItem,
+  SectionNodeData,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
-  BasicModuleItemDto,
   ContentType,
   ModuleContent,
+  ModuleTreeSectionDto,
 } from '@/integrations/api/client'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
-import {
-  IconCalendarTime,
-  IconClipboard,
-  IconExternalLink,
-  IconFileText,
-  IconMessageCircle,
-  IconPaperclip,
-} from '@tabler/icons-react'
+import { IconClipboard, IconFileText } from '@tabler/icons-react'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -105,29 +101,32 @@ export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
 
 // Convert API DTO sections into CourseNodeModel[] for the Tree component
 export function convertModuleSectionsToTreeData(
-  sections: ContentNode[],
+  sections: ModuleTreeSectionDto[],
 ): CourseNodeModel[] {
   return convertSectionsToTreeData(sections)
 }
 
 // Shared implementation: simple, non-mutating traversal that flattens
 // sections, subsections and items into the node list expected by the Tree.
-function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
+function convertSectionsToTreeData(
+  sections: ModuleTreeSectionDto[],
+): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
-  function processSection(section: ContentNode, parentId = 'root', level = 1) {
+  function processSection(section: ModuleTreeSectionDto, parentId = 'root') {
     if (!section) return
 
+    // Push the section or subsection node
     treeData.push({
       id: section.id,
       parent: parentId,
       text: section.title ?? 'Untitled Section',
-      droppable: getTypeFromLevel(level) !== 'item',
+      droppable: true,
       data: {
-        level,
-        type: getTypeFromLevel(level),
+        level: parentId === 'root' ? 1 : 2,
+        type: 'section',
         contentData: section,
-      },
+      } satisfies SectionNodeData,
     })
 
     // This is still needed for the mock items.
@@ -159,26 +158,21 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
     //   }
     // }
 
-    if ('moduleContents' in section) {
-      const items = section.moduleContents ?? []
+    if (parentId !== 'root') {
+      const items: ModuleTreeContentItem[] = section.moduleContents ?? []
       for (const item of items) {
         if (!item) continue
         treeData.push({
           id: item.id,
           parent: section.id,
-          text:
-            getContentKeyAndData(item).existingContent?.title ??
-            'Untitled Item',
+          text: item.title ?? 'Untitled Item',
           droppable: false,
           data: {
             level: 3,
             type: 'item',
             contentData: {
               ...item,
-              title: getContentKeyAndData(item).existingContent?.title ?? '',
-              moduleId: section.moduleId,
-              parentSectionId: '',
-              prerequisiteSectionId: '',
+              title: item.title ?? '',
             },
           },
         })
@@ -187,7 +181,7 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
 
     const subs = section.subsections ?? []
     for (const sub of subs) {
-      processSection(sub, section.id, level + 1)
+      processSection(sub, section.id)
     }
   }
 
@@ -294,16 +288,6 @@ export const getContentTypeIcon = (contentType: ContentType) => {
       return <IconFileText size={16} />
     case 'ASSIGNMENT':
       return <IconClipboard size={16} />
-    case 'QUIZ':
-      return <IconPaperclip size={16} />
-    case 'DISCUSSION':
-      return <IconMessageCircle size={16} />
-    case 'FILE':
-      return <IconPaperclip size={16} />
-    case 'URL':
-      return <IconExternalLink size={16} />
-    case 'VIDEO':
-      return <IconCalendarTime size={16} />
     default:
       return 'Untitled Item'
   }
@@ -311,7 +295,7 @@ export const getContentTypeIcon = (contentType: ContentType) => {
 
 // Helper type: maps ModuleContent.contentType (e.g. 'LESSON') to the corresponding
 // lowercased key on the ModuleContent object (e.g. 'lesson').
-type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
+type DetailKeyForContent<U extends FullModuleContent | ModuleTreeContentItem> =
   U extends {
     contentType: infer CT
   }
@@ -322,26 +306,26 @@ type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
       : never
     : never
 
-export type ExistingContent<T extends ModuleContent | BasicModuleItemDto> =
-  | NonNullable<T[ModuleContentKeyFor<T>]>
-  | undefined
+export type ContentDetailOf<
+  T extends FullModuleContent | ModuleTreeContentItem,
+> = NonNullable<T[DetailKeyForContent<T>]> | undefined
 
-export const getContentKeyAndData = <
-  T extends ModuleContent | BasicModuleItemDto,
+export const resolveContentDetails = <
+  T extends FullModuleContent | ModuleTreeContentItem,
 >(
   data: T,
 ): {
-  contentKey: ModuleContentKeyFor<T>
-  existingContent: NonNullable<T[ModuleContentKeyFor<T>]> | undefined
+  contentKey: DetailKeyForContent<T>
+  contentDetails: NonNullable<T[DetailKeyForContent<T>]> | undefined
 } => {
-  const contentKey = data.contentType.toLowerCase() as ModuleContentKeyFor<T>
+  const contentKey = data.contentType.toLowerCase() as DetailKeyForContent<T>
 
   // Read the property and cast to the precise type so callers get IntelliSense.
-  const existingContent = (data[contentKey] ?? undefined) as
-    | NonNullable<T[ModuleContentKeyFor<T>]>
+  const contentDetails = (data[contentKey] ?? undefined) as
+    | NonNullable<T[DetailKeyForContent<T>]>
     | undefined
 
-  return { contentKey, existingContent }
+  return { contentKey, contentDetails }
 }
 
 export const isEditorEmpty = (editor: BlockNoteEditor) => {
@@ -350,7 +334,7 @@ export const isEditorEmpty = (editor: BlockNoteEditor) => {
   const block = editor.document[0]
   if (block.type !== 'paragraph') return false
 
-  // Ensure content array is empty or only contains empty text
+  // Ensure the content array is empty or only contains empty text
   return (
     block.content.length === 0 ||
     block.content.every((c) => c.type === 'text' && c.text.trim() === '')

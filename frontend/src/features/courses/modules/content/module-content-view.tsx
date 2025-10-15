@@ -6,10 +6,10 @@ import {
 import { useQuickForm } from '@/hooks/use-quick-form'
 import type { ModuleContent } from '@/integrations/api/client'
 import {
-  getContentKeyAndData,
+  resolveContentDetails,
   isEditorEmpty,
   toBlockArray,
-  type ExistingContent,
+  type ContentDetailOf,
 } from '@/utils/helpers.tsx'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
 import { BlockNoteView } from '@blocknote/mantine'
@@ -48,17 +48,12 @@ import {
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import {
-  assignmentConfigFormSchema,
-  type AssignmentConfigFormInput,
-  type AssignmentConfigFormOutput,
-} from './assignment-config.schema'
-import {
-  lmsAssignmentControllerFindOneForStudentOptions,
-  lmsAssignmentControllerFindOneForStudentQueryKey,
-  lmsAssignmentControllerFindOneOptions,
-  lmsAssignmentControllerFindOneQueryKey,
-  lmsAssignmentControllerSubmitMutation,
-  lmsAssignmentControllerUpdateMutation,
+  assignmentControllerFindOneForStudentOptions,
+  assignmentControllerFindOneForStudentQueryKey,
+  assignmentControllerFindOneOptions,
+  assignmentControllerFindOneQueryKey,
+  assignmentControllerSubmitMutation,
+  assignmentControllerUpdateMutation,
   lmsContentControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -68,11 +63,17 @@ import { useForm } from '@mantine/form'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { toastMessage } from '@/utils/toast-message'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
+import {
+  assignmentConfigFormSchema,
+  type AssignmentConfigFormInput,
+  type AssignmentConfigFormOutput,
+} from '@/features/courses/modules/content/assignment-config.schema.ts'
+import type { FullModuleContent } from '@/features/courses/modules/types.ts'
 
 const route = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/edit')
 
 interface ModuleContentViewProps {
-  moduleContentData: ModuleContent | null
+  moduleContentData: FullModuleContent | null
   editor: BlockNoteEditor
   isPreview?: boolean
 }
@@ -84,12 +85,7 @@ function ModuleContentView({
 }: ModuleContentViewProps) {
   const { authUser: user } = useAuth('protected')
 
-  // Extract content data from moduleContentData
-  const { existingContent, contentKey } = getContentKeyAndData(
-    moduleContentData || ({} as ModuleContent),
-  )
-
-  // For now, we'll disable some features that depend on full module structure
+  // For now, we'll disable some features that depend on the full module structure
   // until we have proper integration with the module context
   const allItems: any[] = [] // TODO: Implement when module context is available
   const progressPercentage = 0 // TODO: Implement when progress tracking is available
@@ -128,20 +124,19 @@ function ModuleContentView({
             <Stack flex={1}>
               <HeaderSection
                 moduleContentData={moduleContentData}
-                existingContent={existingContent}
                 onMarkComplete={() => {}}
                 onPublish={() => {}}
               />
 
               <ContentArea
-                content={toBlockArray(existingContent?.content)}
+                content={toBlockArray(moduleContentData?.content)}
                 editor={editor}
                 isPreview={isPreview}
               />
 
               {moduleContentData?.contentType === 'ASSIGNMENT' &&
                 user.role === 'student' && (
-                  <EmbeddedSubmissionBox assignmentData={existingContent} />
+                  <EmbeddedSubmissionBox assignmentData={moduleContentData} />
                 )}
             </Stack>
           </Grid.Col>
@@ -159,14 +154,15 @@ function ModuleContentView({
             {user.role === 'student' && (
               <ProgressCard
                 allItems={allItems}
-                existingContent={existingContent}
+                existingContent={moduleContentData}
                 progressPercentage={progressPercentage}
               />
             )}
 
-            {user.role === 'admin' && contentKey === 'assignment' && (
-              <AssignmentConfigCard />
-            )}
+            {user.role === 'admin' &&
+              moduleContentData?.contentType === 'ASSIGNMENT' && (
+                <AssignmentConfigCard />
+              )}
           </Grid.Col>
         </Grid>
 
@@ -200,26 +196,27 @@ function AssignmentConfigCard() {
     formOptions: {
       initialValues: {
         maxScore: null,
-        dueAt: null,
-        maxAttempt: null,
+        maxAttempts: null,
+        dueDate: null,
+        weightPercentage: null,
       },
       validate: zod4Resolver(assignmentConfigFormSchema),
     },
     transformQueryData: (config) => ({
-      maxScore: config.grading?.weight
-        ? new Decimal(config.grading.weight).toNumber()
+      maxScore: config?.weightPercentage
+        ? new Decimal(config.weightPercentage).toNumber()
         : null,
       dueAt: config.dueDate
         ? dayjs(config.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss')
         : null,
       maxAttempt: config.maxAttempts,
     }),
-    queryOptions: lmsAssignmentControllerFindOneOptions({
+    queryOptions: assignmentControllerFindOneOptions({
       path: { moduleContentId: itemId },
     }),
-    createMutationOptions: lmsAssignmentControllerUpdateMutation({}),
-    updateMutationOptions: lmsAssignmentControllerUpdateMutation({}),
-    queryKeyInvalidation: lmsAssignmentControllerFindOneQueryKey({
+    createMutationOptions: assignmentControllerUpdateMutation({}),
+    updateMutationOptions: assignmentControllerUpdateMutation({}),
+    queryKeyInvalidation: assignmentControllerFindOneQueryKey({
       path: { moduleContentId: itemId },
     }),
   })
@@ -227,17 +224,17 @@ function AssignmentConfigCard() {
   const handleSaveConfig = async (values: AssignmentConfigFormOutput) => {
     console.log(values)
     if (form.validate().hasErrors) return
-    const { maxScore, dueAt, maxAttempt } = values
+    const { maxScore, dueDate, maxAttempts } = values
 
-    update.mutateAsync({
-      path: { assignmentId: moduleContent.assignment?.id || '' },
+    await update.mutateAsync({
+      path: { moduleContentId: moduleContent?.id || '' },
       body: {
         maxScore: maxScore ? new Decimal(maxScore).toString() : undefined,
-        dueAt:
-          dayjs(dueAt, 'YYYY-MM-DD HH:mm:ss').format(
+        dueDate:
+          dayjs(dueDate, 'YYYY-MM-DD HH:mm:ss').format(
             'YYYY-MM-DDTHH:mm:ss[Z]',
           ) || undefined,
-        maxAttempt: maxAttempt || undefined,
+        maxAttempts: maxAttempts || undefined,
       },
     })
   }
@@ -284,21 +281,19 @@ function AssignmentConfigCard() {
 }
 
 type HeaderSectionProps = {
-  moduleContentData: ModuleContent | null
-  existingContent: ExistingContent<ModuleContent> | undefined
+  moduleContentData: FullModuleContent | null
   onMarkComplete: () => void
   onPublish: () => void
 }
 
 function HeaderSection({
   moduleContentData,
-  existingContent,
   onMarkComplete,
   onPublish,
 }: HeaderSectionProps) {
   const { authUser } = useAuth('protected')
 
-  if (!existingContent) {
+  if (!moduleContentData) {
     return (
       <Paper withBorder radius="md" p="xl">
         <Text c="dimmed">No content data available.</Text>
@@ -314,7 +309,7 @@ function HeaderSection({
         <Group align="start" gap="sm" justify="space-between">
           <Box>
             <Title order={1} size="h2" mb="xs">
-              {existingContent.title}
+              {moduleContentData?.title}
             </Title>
             <Group gap="xs">
               {/* <Badge variant="light">{module?.courseCode || 'N/A'}</Badge> */}
@@ -451,7 +446,7 @@ function ProgressCard({
   progressPercentage,
 }: {
   allItems: any[]
-  existingContent: ExistingContent<ModuleContent> | undefined
+  existingContent: FullModuleContent | null
   progressPercentage: number
 }) {
   const theme = useMantineTheme()
@@ -517,11 +512,11 @@ interface SubmissionContent {
 }
 
 function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
-  // For now, we'll assume not submitted since we don't have submission status from editorState
+  // For now, we'll assume it not submitted since we don't have submission status from editorState
   const { itemId } = routeView.useParams()
 
   const { data: assignment } = useSuspenseQuery(
-    lmsAssignmentControllerFindOneForStudentOptions({
+    assignmentControllerFindOneForStudentOptions({
       path: { moduleContentId: itemId },
     }),
   )
@@ -545,14 +540,14 @@ function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
   )
 
   const { mutateAsync: quickSubmit, isPending } = useAppMutation(
-    lmsAssignmentControllerSubmitMutation,
+    assignmentControllerSubmitMutation,
     toastMessage('file', 'submitting', 'submitted'),
     {
       onSuccess: () => {
         const { queryClient } = getContext()
 
         queryClient.invalidateQueries({
-          queryKey: lmsAssignmentControllerFindOneForStudentQueryKey({
+          queryKey: assignmentControllerFindOneForStudentQueryKey({
             path: { moduleContentId: itemId },
           }),
         })
@@ -572,7 +567,7 @@ function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
     }
 
     quickSubmit({
-      path: { assignmentId: assignment.id },
+      path: { moduleContentId: assignment.id },
       body: {
         state: 'SUBMITTED',
         content: content as any,

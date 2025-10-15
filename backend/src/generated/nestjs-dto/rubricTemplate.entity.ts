@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Assignment,
   type Assignment as AssignmentAsType,
@@ -44,10 +44,6 @@ export class RubricTemplate {
     nullable: true,
   })
   deletedAt: Date | null;
-  @ApiProperty({
-    type: () => Assignment,
-    isArray: true,
-    required: false,
-  })
+  @ApiHideProperty()
   assignments?: AssignmentAsType[];
 }
