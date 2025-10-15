@@ -1,7 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { TranscriptService } from './transcript.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { CreateTranscriptDto } from './dto/create-transcript.dto';
 import { UpdateTranscriptDto } from './dto/update-transcript.dto';
+import { TranscriptService } from './transcript.service';
 
 @Controller('transcript')
 export class TranscriptController {
@@ -23,7 +31,10 @@ export class TranscriptController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTranscriptDto: UpdateTranscriptDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateTranscriptDto: UpdateTranscriptDto,
+  ) {
     return this.transcriptService.update(+id, updateTranscriptDto);
   }
 
