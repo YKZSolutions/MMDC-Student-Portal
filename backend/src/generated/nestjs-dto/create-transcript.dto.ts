@@ -1,11 +1,11 @@
-import { Prisma } from '@prisma/client';
+import { GradeLetter, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
   IsDecimal,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
-  IsString,
 } from 'class-validator';
 
 export class CreateTranscriptDto {
@@ -17,11 +17,12 @@ export class CreateTranscriptDto {
   @IsDecimal()
   grade: Prisma.Decimal;
   @ApiProperty({
-    type: 'string',
+    enum: GradeLetter,
+    enumName: 'GradeLetter',
   })
   @IsNotEmpty()
-  @IsString()
-  gradeLetter: string;
+  @IsEnum(GradeLetter)
+  gradeLetter: GradeLetter;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

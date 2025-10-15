@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { GradeLetter, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TranscriptDto {
@@ -12,9 +12,10 @@ export class TranscriptDto {
   })
   grade: Prisma.Decimal;
   @ApiProperty({
-    type: 'string',
+    enum: GradeLetter,
+    enumName: 'GradeLetter',
   })
-  gradeLetter: string;
+  gradeLetter: GradeLetter;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

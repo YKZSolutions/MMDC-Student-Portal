@@ -1,6 +1,6 @@
-import { Prisma } from '@prisma/client';
+import { GradeLetter, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsDecimal, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsDecimal, IsEnum, IsOptional } from 'class-validator';
 
 export class UpdateTranscriptDto {
   @ApiProperty({
@@ -12,12 +12,13 @@ export class UpdateTranscriptDto {
   @IsDecimal()
   grade?: Prisma.Decimal;
   @ApiProperty({
-    type: 'string',
+    enum: GradeLetter,
+    enumName: 'GradeLetter',
     required: false,
   })
   @IsOptional()
-  @IsString()
-  gradeLetter?: string;
+  @IsEnum(GradeLetter)
+  gradeLetter?: GradeLetter;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
