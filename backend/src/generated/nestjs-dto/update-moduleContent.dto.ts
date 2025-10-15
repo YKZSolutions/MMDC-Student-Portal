@@ -1,5 +1,5 @@
 import { ContentType, Prisma } from '@prisma/client';
-import { ApiExtraModels, ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
@@ -31,7 +31,10 @@ export class UpdateModuleContentModuleSectionRelationInputDto {
   UpdateModuleContentModuleSectionRelationInputDto,
 )
 export class UpdateModuleContentDto {
-  @ApiHideProperty()
+  @ApiProperty({
+    required: false,
+    type: UpdateModuleContentModuleSectionRelationInputDto,
+  })
   @IsOptional()
   @ValidateNested()
   @Type(() => UpdateModuleContentModuleSectionRelationInputDto)

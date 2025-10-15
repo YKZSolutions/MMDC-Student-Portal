@@ -5,11 +5,9 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { omitAuditDates, omitPublishFields } from '@/config/prisma_omit.config';
-import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { FilterModuleContentsDto } from '@/modules/lms/lms-content/dto/filter-module-contents.dto';
 import { PaginatedModuleContentDto } from '@/modules/lms/lms-content/dto/paginated-module-content.dto';
-import { UpdateContentDto } from '@/modules/lms/lms-content/dto/update-content.dto';
 import {
   BadRequestException,
   ConflictException,
@@ -23,6 +21,15 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
 import { AssignmentService } from '../assignment/assignment.service';
 import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
+import {
+  mapModuleContentToFullModuleContent,
+  mapModuleContentToModuleTreeItem,
+} from '@/modules/lms/lms-content/helper/mapper';
+import {
+  FullModuleContent,
+  UpdateFullModuleContent,
+} from '@/modules/lms/lms-content/types';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
 @Injectable()
 export class LmsContentService {
@@ -61,7 +68,7 @@ export class LmsContentService {
   })
   async create(
     @LogParam('content') createModuleContentDto: CreateModuleContentDto,
-  ): Promise<ModuleContent> {
+  ): Promise<FullModuleContent> {
     const result = await this.prisma.client.$transaction(async (tx) => {
       // 1. Determine the order within the section
       const { _max } = await tx.moduleContent.aggregate({
@@ -74,14 +81,12 @@ export class LmsContentService {
       const appendOrder = (_max.order ?? 0) + 1;
 
       // 2. Create the base module content
-      const content = await tx.moduleContent.create({
+      return await tx.moduleContent.create({
         data: {
           ...createModuleContentDto,
           order: appendOrder,
         },
       });
-
-      return content;
     });
 
     // 4. Always return fresh with relations
@@ -103,7 +108,7 @@ export class LmsContentService {
     @LogParam('id') id: string,
     @LogParam('role') role: Role,
     @LogParam('userId') userId: string | null,
-  ): Promise<ModuleContent> {
+  ): Promise<FullModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
@@ -140,7 +145,7 @@ export class LmsContentService {
       }
     }
 
-    // Apply security filters based on role
+    // Apply security filters based on the role
     const queryOptions: Prisma.ModuleContentFindUniqueOrThrowArgs = {
       where: { id },
       include: baseInclude,
@@ -152,7 +157,7 @@ export class LmsContentService {
 
     return (await this.prisma.client.moduleContent.findUniqueOrThrow(
       queryOptions,
-    )) as ModuleContent;
+    )) as FullModuleContent;
   }
 
   @Log({
@@ -173,18 +178,27 @@ export class LmsContentService {
   })
   async update(
     @LogParam('id') id: string,
-    @LogParam('dto') dto: UpdateContentDto,
-  ): Promise<ModuleContent> {
+    @LogParam('dto') dto: UpdateFullModuleContent,
+  ): Promise<FullModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    const { contentType, ...rest } = dto;
-
-    const destructuredDto = rest;
+    // Extract common fields
+    const {
+      contentType,
+      order,
+      content,
+      publishedAt,
+      unpublishedAt,
+      moduleSection,
+      title,
+      subtitle,
+      ...rest
+    } = dto;
 
     return this.prisma.client.$transaction(async (tx) => {
-      // 1. Get current content type inside the transaction
+      // 1. Get the current content type inside the transaction
       const currentContent = await tx.moduleContent.findUnique({
         where: { id },
         select: { contentType: true },
@@ -194,14 +208,20 @@ export class LmsContentService {
         throw new NotFoundException(`Module content with ID ${id} not found`);
       }
 
-      if (dto.contentType !== currentContent.contentType) {
+      if (contentType !== currentContent.contentType) {
         throw new BadRequestException(
           'Changing contentType is not allowed. Please remove and recreate the content.',
         );
       }
 
       const data: Prisma.ModuleContentUpdateInput = {
-        order: dto.order,
+        order,
+        moduleSection,
+        title,
+        subtitle,
+        content,
+        publishedAt,
+        unpublishedAt,
       };
 
       // 2. Update the base module content
@@ -211,9 +231,11 @@ export class LmsContentService {
       });
 
       // 3. Delegate to specialized services (pass `tx`)
-      switch (currentContent.contentType) {
+      switch (contentType) {
         case ContentType.ASSIGNMENT:
-          await this.assignmentService.update(id, destructuredDto, tx);
+          await this.assignmentService.update(id, rest, tx);
+          break;
+        default:
           break;
       }
 
@@ -259,9 +281,8 @@ export class LmsContentService {
       // 2. Delegate child deletion/soft-delete (pass tx)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
-          message = (
-            await this.assignmentService.remove(directDelete, undefined, id, tx)
-          ).message;
+          message = (await this.assignmentService.remove(directDelete, id, tx))
+            .message;
           break;
       }
 
@@ -308,14 +329,13 @@ export class LmsContentService {
     };
 
     // ----- Final Query -----
-    const [moduleContents, meta] = await this.prisma.client.moduleContent
+    const [items, meta] = await this.prisma.client.moduleContent
       .paginate({
         where: whereCondition,
         include: {
           studentProgress: true,
           assignment: true,
         },
-        omit: { content: true },
         orderBy: [{ assignment: { dueDate: 'asc' } }],
       })
       .withPages({
@@ -323,6 +343,10 @@ export class LmsContentService {
         page: filters.page,
         includePageCount: true,
       });
+
+    const moduleContents = items.map((item) => {
+      return mapModuleContentToFullModuleContent(item as ModuleContent);
+    });
 
     return { moduleContents, meta };
   }

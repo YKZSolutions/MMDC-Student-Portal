@@ -6,7 +6,10 @@ import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { FilterModuleContentsDto } from '@/modules/lms/lms-content/dto/filter-module-contents.dto';
 import { PaginatedModuleContentDto } from '@/modules/lms/lms-content/dto/paginated-module-content.dto';
-import { UpdateContentDto } from '@/modules/lms/lms-content/dto/update-content.dto';
+import {
+  UpdateAssignmentItemDto,
+  UpdateLessonItemDto,
+} from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
 import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
 import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -34,7 +37,14 @@ import {
 } from '@nestjs/swagger';
 import { ContentType } from '@prisma/client';
 import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
-import { UpdateAssignmentItemDto } from '@/modules/lms/assignment/dto/update-assignment-item.dto';
+import {
+  AssignmentItemDto,
+  LessonItemDto,
+} from './dto/full-module-content.dto';
+import {
+  FullModuleContent,
+  UpdateFullModuleContent,
+} from '@/modules/lms/lms-content/types';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -51,36 +61,58 @@ export class LmsContentController {
    *
    */
   @ApiCreatedResponse({
-    type: ModuleContent,
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(LessonItemDto) },
+        { $ref: getSchemaPath(AssignmentItemDto) },
+      ],
+      discriminator: {
+        propertyName: 'contentType',
+        mapping: {
+          [ContentType.LESSON]: getSchemaPath(LessonItemDto),
+          [ContentType.ASSIGNMENT]: getSchemaPath(AssignmentItemDto),
+        },
+      },
+    },
   })
+  @ApiExtraModels(AssignmentItemDto, LessonItemDto)
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Post()
   create(
     @Body() createModuleContentDto: CreateModuleContentDto,
-  ): Promise<ModuleContent> {
+  ): Promise<FullModuleContent> {
     return this.lmsContentService.create(createModuleContentDto);
   }
 
   /**
    * Retrieve a specific module content by ID
    *
-   * @remarks Requires `ADMIN` or `MENTOR` role.
-   *
-   * @returns ModuleContent if role is `ADMIN` or `MENTOR`
-   * @returns StudentContentDto if role is `STUDENT`
    *
    */
   @ApiOkResponse({
-    type: ModuleContent,
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(LessonItemDto) },
+        { $ref: getSchemaPath(AssignmentItemDto) },
+      ],
+      discriminator: {
+        propertyName: 'contentType',
+        mapping: {
+          [ContentType.LESSON]: getSchemaPath(LessonItemDto),
+          [ContentType.ASSIGNMENT]: getSchemaPath(AssignmentItemDto),
+        },
+      },
+    },
   })
+  @ApiExtraModels(AssignmentItemDto, LessonItemDto)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get(':moduleContentId')
   findOne(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
     @CurrentUser() user: CurrentAuthUser,
-  ): Promise<ModuleContent> {
+  ): Promise<FullModuleContent> {
     const { role, user_id } = user.user_metadata;
     return this.lmsContentService.findOne(moduleContentId, role, user_id);
   }
@@ -104,21 +136,25 @@ export class LmsContentController {
   @ApiBody({
     // Define the overall schema type as oneOf the possible DTOs
     schema: {
-      oneOf: [{ $ref: getSchemaPath(UpdateAssignmentItemDto) }],
+      oneOf: [
+        { $ref: getSchemaPath(UpdateLessonItemDto) },
+        { $ref: getSchemaPath(UpdateAssignmentItemDto) },
+      ],
       discriminator: {
         propertyName: 'contentType',
         mapping: {
+          [ContentType.LESSON]: getSchemaPath(UpdateLessonItemDto),
           [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentItemDto),
         },
       },
     },
   })
-  @ApiExtraModels(UpdateAssignmentItemDto)
+  @ApiExtraModels(UpdateAssignmentItemDto, UpdateLessonItemDto)
   @Patch(':moduleContentId')
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @Body() updateContentDto: UpdateContentDto,
-  ): Promise<ModuleContent> {
+    @Body() updateContentDto: UpdateFullModuleContent,
+  ): Promise<FullModuleContent> {
     return this.lmsContentService.update(moduleContentId, updateContentDto);
   }
 
@@ -160,6 +196,7 @@ export class LmsContentController {
   @ApiOkResponse({
     type: PaginatedModuleContentDto,
   })
+  @ApiExtraModels(UpdateAssignmentItemDto, UpdateLessonItemDto)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get()

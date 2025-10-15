@@ -1,5 +1,5 @@
 import { ContentType, Prisma } from '@prisma/client';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ModuleSection,
   type ModuleSection as ModuleSectionAsType,
@@ -18,7 +18,10 @@ export class ModuleContent {
     type: 'string',
   })
   id: string;
-  @ApiHideProperty()
+  @ApiProperty({
+    type: () => ModuleSection,
+    required: false,
+  })
   moduleSection?: ModuleSectionAsType;
   @ApiProperty({
     type: 'string',

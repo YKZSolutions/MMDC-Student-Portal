@@ -1,4 +1,3 @@
-import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 

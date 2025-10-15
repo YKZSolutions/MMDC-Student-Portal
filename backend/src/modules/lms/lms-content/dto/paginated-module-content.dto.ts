@@ -1,11 +1,27 @@
 import { PaginatedDto } from '@/common/dto/paginated.dto';
-import { ApiProperty } from '@nestjs/swagger';
-import { ModuleTreeContentItemDto } from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
+import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
+import { ContentType } from '@prisma/client';
+import {
+  AssignmentItemDto,
+  LessonItemDto,
+} from '@/modules/lms/lms-content/dto/full-module-content.dto';
+import { FullModuleContent } from '@/modules/lms/lms-content/types';
 
 export class PaginatedModuleContentDto extends PaginatedDto {
   @ApiProperty({
-    type: () => ModuleTreeContentItemDto,
+    oneOf: [
+      { $ref: getSchemaPath(LessonItemDto) },
+      { $ref: getSchemaPath(AssignmentItemDto) },
+    ],
+    discriminator: {
+      propertyName: 'contentType',
+      mapping: {
+        [ContentType.LESSON]: getSchemaPath(LessonItemDto),
+        [ContentType.ASSIGNMENT]: getSchemaPath(AssignmentItemDto),
+      },
+    },
     isArray: true,
   })
-  moduleContents: ModuleTreeContentItemDto[];
+  @ApiExtraModels(LessonItemDto, AssignmentItemDto)
+  moduleContents: FullModuleContent[];
 }
