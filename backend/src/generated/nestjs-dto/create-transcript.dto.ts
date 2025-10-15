@@ -5,6 +5,7 @@ import {
   IsDecimal,
   IsNotEmpty,
   IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class CreateTranscriptDto {
@@ -15,6 +16,12 @@ export class CreateTranscriptDto {
   @IsNotEmpty()
   @IsDecimal()
   grade: Prisma.Decimal;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  gradeLetter: string;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

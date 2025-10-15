@@ -13,6 +13,10 @@ export class TranscriptDto {
   grade: Prisma.Decimal;
   @ApiProperty({
     type: 'string',
+  })
+  gradeLetter: string;
+  @ApiProperty({
+    type: 'string',
     format: 'Decimal.js',
   })
   gradePoints: Prisma.Decimal;
