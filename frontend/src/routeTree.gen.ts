@@ -16,6 +16,7 @@ import { Route as authUpdatePasswordRouteImport } from './routes/(auth)/update-p
 import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as protectedUsersIndexRouteImport } from './routes/(protected)/users/index'
+import { Route as protectedTranscriptIndexRouteImport } from './routes/(protected)/transcript/index'
 import { Route as protectedProfileIndexRouteImport } from './routes/(protected)/profile/index'
 import { Route as protectedPricingIndexRouteImport } from './routes/(protected)/pricing/index'
 import { Route as protectedNotificationsIndexRouteImport } from './routes/(protected)/notifications/index'
@@ -88,6 +89,12 @@ const protectedUsersIndexRoute = protectedUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const protectedTranscriptIndexRoute =
+  protectedTranscriptIndexRouteImport.update({
+    id: '/transcript/',
+    path: '/transcript/',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
 const protectedProfileIndexRoute = protectedProfileIndexRouteImport.update({
   id: '/profile/',
   path: '/profile/',
@@ -328,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof protectedNotificationsIndexRoute
   '/pricing': typeof protectedPricingIndexRoute
   '/profile': typeof protectedProfileIndexRoute
+  '/transcript': typeof protectedTranscriptIndexRoute
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/curriculum/$curriculumCode/edit': typeof protectedCurriculumCurriculumCodeEditRoute
@@ -373,6 +381,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof protectedNotificationsIndexRoute
   '/pricing': typeof protectedPricingIndexRoute
   '/profile': typeof protectedProfileIndexRoute
+  '/transcript': typeof protectedTranscriptIndexRoute
   '/users': typeof protectedUsersIndexRoute
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/curriculum/$curriculumCode/edit': typeof protectedCurriculumCurriculumCodeEditRoute
@@ -420,6 +429,7 @@ export interface FileRoutesById {
   '/(protected)/notifications/': typeof protectedNotificationsIndexRoute
   '/(protected)/pricing/': typeof protectedPricingIndexRoute
   '/(protected)/profile/': typeof protectedProfileIndexRoute
+  '/(protected)/transcript/': typeof protectedTranscriptIndexRoute
   '/(protected)/users/': typeof protectedUsersIndexRoute
   '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
   '/(protected)/curriculum/$curriculumCode_/edit': typeof protectedCurriculumCurriculumCodeEditRoute
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/pricing'
     | '/profile'
+    | '/transcript'
     | '/users'
     | '/billing/$billingId/edit'
     | '/curriculum/$curriculumCode/edit'
@@ -512,6 +523,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/pricing'
     | '/profile'
+    | '/transcript'
     | '/users'
     | '/billing/$billingId/edit'
     | '/curriculum/$curriculumCode/edit'
@@ -558,6 +570,7 @@ export interface FileRouteTypes {
     | '/(protected)/notifications/'
     | '/(protected)/pricing/'
     | '/(protected)/profile/'
+    | '/(protected)/transcript/'
     | '/(protected)/users/'
     | '/(protected)/billing/$billingId_/edit'
     | '/(protected)/curriculum/$curriculumCode_/edit'
@@ -637,6 +650,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof protectedUsersIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/transcript/': {
+      id: '/(protected)/transcript/'
+      path: '/transcript'
+      fullPath: '/transcript'
+      preLoaderRoute: typeof protectedTranscriptIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/profile/': {
@@ -953,6 +973,7 @@ interface protectedRouteRouteChildren {
   protectedNotificationsIndexRoute: typeof protectedNotificationsIndexRoute
   protectedPricingIndexRoute: typeof protectedPricingIndexRoute
   protectedProfileIndexRoute: typeof protectedProfileIndexRoute
+  protectedTranscriptIndexRoute: typeof protectedTranscriptIndexRoute
   protectedUsersIndexRoute: typeof protectedUsersIndexRoute
   protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
   protectedCurriculumCurriculumCodeEditRoute: typeof protectedCurriculumCurriculumCodeEditRoute
@@ -987,6 +1008,7 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedNotificationsIndexRoute: protectedNotificationsIndexRoute,
   protectedPricingIndexRoute: protectedPricingIndexRoute,
   protectedProfileIndexRoute: protectedProfileIndexRoute,
+  protectedTranscriptIndexRoute: protectedTranscriptIndexRoute,
   protectedUsersIndexRoute: protectedUsersIndexRoute,
   protectedBillingBillingIdEditRoute: protectedBillingBillingIdEditRoute,
   protectedCurriculumCurriculumCodeEditRoute:
