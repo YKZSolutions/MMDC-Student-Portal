@@ -2247,6 +2247,97 @@ export const zDetailedModuleSectionDto = z.object({
 
 export const zUpdateModuleSectionDto = z.object({});
 
+export const zCreateSubmissionAttachmentDto = z.object({
+    name: z.string(),
+    url: z.string(),
+    type: z.string(),
+    size: z.int()
+});
+
+export const zCreateAssignmentSubmissionAttachmentsRelationInputDto = z.object({
+    create: z.array(zCreateSubmissionAttachmentDto)
+});
+
+export const zCreateAssignmentSubmissionDto = z.object({
+    groupSnapshot: z.optional(z.union([
+        z.object({}),
+        z.null()
+    ])),
+    state: zSubmissionState,
+    content: z.array(z.object({})),
+    submittedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    lateDays: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    attachments: z.optional(zCreateAssignmentSubmissionAttachmentsRelationInputDto)
+});
+
+export const zAssignmentSubmissionDto = z.object({
+    id: z.string(),
+    groupSnapshot: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    state: zSubmissionState,
+    content: z.array(z.object({})),
+    submittedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    attemptNumber: z.int(),
+    lateDays: z.union([
+        z.int(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zGradeSubmissionDto = z.object({
+    studentId: z.uuid(),
+    grade: z.number().gte(1)
+});
+
+export const zAssignmentSubmissionDetailsDto = z.object({
+    id: z.string(),
+    groupSnapshot: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    state: zSubmissionState,
+    content: z.array(z.object({})),
+    submittedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    attemptNumber: z.int(),
+    lateDays: z.union([
+        z.int(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    gradeRecord: z.optional(z.union([
+        zGradeRecordDto,
+        z.null()
+    ])),
+    student: zUserDto,
+    assignment: z.optional(zAssignment),
+    attachments: z.optional(z.array(zSubmissionAttachmentDto))
+});
+
 export const zPricingType = z.enum([
     'tuition',
     'lab',
@@ -3763,6 +3854,67 @@ export const zLmsSectionControllerUnpublishSectionData = z.object({
     }),
     query: z.optional(z.never())
 });
+
+export const zSubmissionControllerFindAssignmentSubmissionsForAssignmentData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zSubmissionControllerFindAssignmentSubmissionsForAssignmentResponse = z.array(zAssignmentSubmissionDetailsDto);
+
+export const zSubmissionControllerSubmitAssignmentData = z.object({
+    body: zCreateAssignmentSubmissionDto,
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zSubmissionControllerSubmitAssignmentResponse = zAssignmentSubmissionDto;
+
+export const zSubmissionControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        submissionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zSubmissionControllerFindOneResponse = zAssignmentSubmissionDetailsDto;
+
+export const zSubmissionControllerGradeData = z.object({
+    body: zGradeSubmissionDto,
+    path: z.object({
+        submissionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zSubmissionControllerGradeResponse = zGradeRecordDto;
+
+export const zSubmissionControllerFindAssignmentSubmissionsOfStudentData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        studentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zSubmissionControllerFindAssignmentSubmissionsOfStudentResponse = z.array(zAssignmentSubmissionDetailsDto);
+
+export const zSubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string(),
+        studentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zSubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponse = z.array(zAssignmentSubmissionDetailsDto);
 
 export const zSwaggerControllerDownloadAllSpecsData = z.object({
     body: z.optional(z.never()),

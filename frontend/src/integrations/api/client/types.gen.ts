@@ -1527,6 +1527,73 @@ export type UpdateModuleSectionDto = {
     [key: string]: unknown;
 };
 
+export type CreateSubmissionAttachmentDto = {
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+};
+
+export type CreateAssignmentSubmissionAttachmentsRelationInputDto = {
+    create: Array<CreateSubmissionAttachmentDto>;
+};
+
+export type CreateAssignmentSubmissionDto = {
+    groupSnapshot?: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt?: string | null;
+    lateDays?: number | null;
+    attachments?: CreateAssignmentSubmissionAttachmentsRelationInputDto;
+};
+
+export type AssignmentSubmissionDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type GradeSubmissionDto = {
+    studentId: string;
+    grade: number;
+};
+
+export type AssignmentSubmissionDetailsDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    gradeRecord?: GradeRecordDto | null;
+    student: UserDto;
+    assignment?: Assignment;
+    attachments?: Array<SubmissionAttachmentDto>;
+};
+
 export type PricingType = 'tuition' | 'lab' | 'misc' | 'other';
 
 export type CreatePricingDto = {
@@ -5189,6 +5256,157 @@ export type LmsSectionControllerUnpublishSectionError = LmsSectionControllerUnpu
 export type LmsSectionControllerUnpublishSectionResponses = {
     201: unknown;
 };
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/{moduleContentId}';
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentError = SubmissionControllerFindAssignmentSubmissionsForAssignmentErrors[keyof SubmissionControllerFindAssignmentSubmissionsForAssignmentErrors];
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentResponses = {
+    200: Array<AssignmentSubmissionDetailsDto>;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentResponse = SubmissionControllerFindAssignmentSubmissionsForAssignmentResponses[keyof SubmissionControllerFindAssignmentSubmissionsForAssignmentResponses];
+
+export type SubmissionControllerSubmitAssignmentData = {
+    body: CreateAssignmentSubmissionDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/{moduleContentId}';
+};
+
+export type SubmissionControllerSubmitAssignmentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerSubmitAssignmentError = SubmissionControllerSubmitAssignmentErrors[keyof SubmissionControllerSubmitAssignmentErrors];
+
+export type SubmissionControllerSubmitAssignmentResponses = {
+    201: AssignmentSubmissionDto;
+};
+
+export type SubmissionControllerSubmitAssignmentResponse = SubmissionControllerSubmitAssignmentResponses[keyof SubmissionControllerSubmitAssignmentResponses];
+
+export type SubmissionControllerFindOneData = {
+    body?: never;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/{submissionId}';
+};
+
+export type SubmissionControllerFindOneErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindOneError = SubmissionControllerFindOneErrors[keyof SubmissionControllerFindOneErrors];
+
+export type SubmissionControllerFindOneResponses = {
+    200: AssignmentSubmissionDetailsDto;
+};
+
+export type SubmissionControllerFindOneResponse = SubmissionControllerFindOneResponses[keyof SubmissionControllerFindOneResponses];
+
+export type SubmissionControllerGradeData = {
+    body: GradeSubmissionDto;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/{submissionId}';
+};
+
+export type SubmissionControllerGradeErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerGradeError = SubmissionControllerGradeErrors[keyof SubmissionControllerGradeErrors];
+
+export type SubmissionControllerGradeResponses = {
+    200: GradeRecordDto;
+};
+
+export type SubmissionControllerGradeResponse = SubmissionControllerGradeResponses[keyof SubmissionControllerGradeResponses];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentData = {
+    body?: never;
+    path: {
+        studentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/student/{studentId}';
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentError = SubmissionControllerFindAssignmentSubmissionsOfStudentErrors[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentErrors];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentResponses = {
+    200: Array<AssignmentSubmissionDetailsDto>;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentResponse = SubmissionControllerFindAssignmentSubmissionsOfStudentResponses[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentResponses];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+        studentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/{moduleContentId}/student/{studentId}';
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentError = SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentErrors[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentErrors];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses = {
+    200: Array<AssignmentSubmissionDetailsDto>;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponse = SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses];
 
 export type SwaggerControllerDownloadAllSpecsData = {
     body?: never;
