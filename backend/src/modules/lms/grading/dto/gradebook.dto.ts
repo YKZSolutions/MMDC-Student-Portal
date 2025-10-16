@@ -1,41 +1,50 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType, PickType } from '@nestjs/swagger';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
-import { Prisma, SubmissionState } from '@prisma/client';
 import { PaginatedDto } from '@/common/dto/paginated.dto';
 import { GradableAssignmentItem } from '@/modules/lms/grading/dto/gradable-item.dto';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
+import { GradeRecord } from '@/generated/nestjs-dto/gradeRecord.entity';
 
-export class GradebookEntryDto {
-  @ApiProperty()
-  studentId: string;
-
-  @ApiProperty()
-  gradableItemId: string;
-
-  @ApiProperty({ nullable: true })
-  submissionId: string | null;
-
-  @ApiProperty({ type: String, nullable: true, format: 'Decimal.js' })
-  score: Prisma.Decimal | null;
-
-  @ApiProperty({ enum: SubmissionState, nullable: true })
-  status: SubmissionState | 'NOT_SUBMITTED';
+export class GradeEntryDto extends PickType(GradeRecord, [
+  'id',
+  'rawScore',
+  'finalScore',
+  'grade',
+  'gradedAt',
+  'feedback',
+  'rubricEvaluationDetails',
+]) {
+  @ApiProperty({
+    type: GradableAssignmentItem,
+    required: false,
+    nullable: true,
+  })
+  submission: GradableAssignmentItem;
 }
 
-export class GradebookViewDto extends PaginatedDto {
-  @ApiProperty({ type: [UserDto] })
-  @Type(() => UserDto)
-  @ValidateNested({ each: true })
-  students: UserDto[];
+export class GradebookDto {
+  @ApiProperty({
+    type: UserDto,
+  })
+  student: UserDto;
 
-  @ApiProperty({ type: [GradableAssignmentItem] })
-  @Type(() => GradableAssignmentItem)
+  @ApiProperty({
+    type: [GradeEntryDto],
+  })
+  @Type(() => GradeEntryDto)
   @ValidateNested({ each: true })
-  gradableAssignmentItems: GradableAssignmentItem[];
+  grades: GradeEntryDto[];
+}
 
-  @ApiProperty({ type: [GradebookEntryDto] })
-  @Type(() => GradebookEntryDto)
+export class GradebookForStudentDto extends IntersectionType(
+  GradebookDto,
+  PaginatedDto,
+) {}
+
+export class GradebookForMentorDto extends PaginatedDto {
+  @ApiProperty({ type: [GradebookDto] })
+  @Type(() => GradebookDto)
   @ValidateNested({ each: true })
-  grades: GradebookEntryDto[];
+  grades: GradebookDto[];
 }

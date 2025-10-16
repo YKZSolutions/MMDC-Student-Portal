@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { User, type User as UserAsType } from './user.entity';
+import { type User as UserAsType } from './user.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,

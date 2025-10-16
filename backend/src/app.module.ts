@@ -30,6 +30,7 @@ import { LmsSectionModule } from '@/modules/lms/lms-section/lms-section.module';
 import { AssignmentModule } from '@/modules/lms/assignment/assignment.module';
 import { GroupModule } from '@/modules/lms/group/group.module';
 import { SubmissionModule } from '@/modules/lms/submission/submission.module';
+import { GradingModule } from '@/modules/lms/grading/grading.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { SubmissionModule } from '@/modules/lms/submission/submission.module';
     LmsSectionModule,
     LmsContentModule,
     SubmissionModule,
+    GradingModule,
     SwaggerModule,
     PricingModule,
     NotificationsModule,
