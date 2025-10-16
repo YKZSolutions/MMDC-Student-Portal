@@ -1,4 +1,4 @@
-import { AssignmentMode, Prisma } from '@prisma/client';
+import { AssignmentMode } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AssignmentDto {
@@ -12,10 +12,10 @@ export class AssignmentDto {
   })
   mode: AssignmentMode;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
   })
-  maxScore: Prisma.Decimal;
+  maxScore: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

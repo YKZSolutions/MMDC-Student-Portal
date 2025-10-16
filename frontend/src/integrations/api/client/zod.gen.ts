@@ -648,7 +648,7 @@ export const zAssignment = z.object({
         z.null()
     ]),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -779,7 +779,7 @@ export const zModuleTreeAssignmentItemDto = z.object({
     updatedAt: z.iso.datetime(),
     studentProgress: z.optional(z.array(zContentProgress)),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -1544,7 +1544,7 @@ export const zFinalizeEnrollmentDto = z.object({
 export const zAssignmentItemDto = z.object({
     id: z.string(),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -1653,7 +1653,7 @@ export const zUpdateModuleContentModuleSectionRelationInputDto = z.object({
 
 export const zUpdateAssignmentItemDto = z.object({
     mode: z.optional(zAssignmentMode),
-    maxScore: z.optional(z.string()),
+    maxScore: z.optional(z.int()).default(0),
     weightPercentage: z.optional(z.int()).default(0),
     maxAttempts: z.optional(z.union([
         z.int(),
@@ -1944,7 +1944,7 @@ export const zAssignmentStatsDto = z.object({
 export const zAdminAssignmentItemDto = z.object({
     id: z.string(),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -2024,7 +2024,7 @@ export const zMentorAssignmentSubmissionItemDto = z.object({
 export const zMentorAssignmentItemDto = z.object({
     id: z.string(),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -2118,7 +2118,7 @@ export const zStudentAssignmentSubmissionItemDto = z.object({
 export const zStudentAssignmentItemDto = z.object({
     id: z.string(),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -2167,7 +2167,7 @@ export const zPaginatedStudentAssignmentDto = z.object({
 export const zAssignmentDto = z.object({
     id: z.string(),
     mode: zAssignmentMode,
-    maxScore: z.string(),
+    maxScore: z.int(),
     weightPercentage: z.int(),
     maxAttempts: z.union([
         z.int(),
@@ -2199,7 +2199,7 @@ export const zAssignmentDto = z.object({
 
 export const zUpdateAssignmentConfigDto = z.object({
     mode: z.optional(zAssignmentMode),
-    maxScore: z.optional(z.string()),
+    maxScore: z.optional(z.int()).default(0),
     weightPercentage: z.optional(z.int()).default(0),
     maxAttempts: z.optional(z.union([
         z.int(),

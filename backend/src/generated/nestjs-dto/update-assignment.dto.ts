@@ -1,9 +1,8 @@
-import { AssignmentMode, Prisma } from '@prisma/client';
+import { AssignmentMode } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsDateString,
-  IsDecimal,
   IsEnum,
   IsInt,
   IsOptional,
@@ -20,13 +19,14 @@ export class UpdateAssignmentDto {
   @IsEnum(AssignmentMode)
   mode?: AssignmentMode;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
+    default: 0,
     required: false,
   })
   @IsOptional()
-  @IsDecimal()
-  maxScore?: Prisma.Decimal;
+  @IsInt()
+  maxScore?: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

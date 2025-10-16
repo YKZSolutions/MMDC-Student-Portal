@@ -832,10 +832,10 @@ model Assignment {
 
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  maxScore         Decimal @db.Decimal(5, 2)
+  maxScore         Int @default(0) @db.SmallInt
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  weightPercentage Int     @default(0) @db.SmallInt
+  weightPercentage Int @default(0) @db.SmallInt
 
   maxAttempts         Int?      @db.SmallInt
   allowLateSubmission Boolean?  @default(false)

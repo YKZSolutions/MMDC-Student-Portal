@@ -17182,8 +17182,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -17509,8 +17509,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -19876,8 +19876,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -20140,8 +20140,9 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           },
           "weightPercentage": {
             "type": "integer",
@@ -20865,8 +20866,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -21086,8 +21087,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -21341,8 +21342,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -21467,8 +21468,8 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32"
           },
           "weightPercentage": {
             "type": "integer",
@@ -21539,8 +21540,9 @@
             ]
           },
           "maxScore": {
-            "type": "string",
-            "format": "Decimal.js"
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           },
           "weightPercentage": {
             "type": "integer",

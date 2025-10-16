@@ -423,7 +423,7 @@ export type Assignment = {
     rubricTemplate?: RubricTemplate | null;
     rubricTemplateId: string | null;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -495,7 +495,7 @@ export type ModuleTreeAssignmentItemDto = {
     updatedAt: string;
     studentProgress?: Array<ContentProgress>;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -1099,7 +1099,7 @@ export type FinalizeEnrollmentDto = {
 export type AssignmentItemDto = {
     id: string;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -1163,7 +1163,7 @@ export type UpdateModuleContentModuleSectionRelationInputDto = {
 
 export type UpdateAssignmentItemDto = {
     mode?: AssignmentMode;
-    maxScore?: string;
+    maxScore?: number;
     weightPercentage?: number;
     maxAttempts?: number | null;
     allowLateSubmission?: boolean | null;
@@ -1357,7 +1357,7 @@ export type AssignmentStatsDto = {
 export type AdminAssignmentItemDto = {
     id: string;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -1409,7 +1409,7 @@ export type MentorAssignmentSubmissionItemDto = {
 export type MentorAssignmentItemDto = {
     id: string;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -1469,7 +1469,7 @@ export type StudentAssignmentSubmissionItemDto = {
 export type StudentAssignmentItemDto = {
     id: string;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -1496,7 +1496,7 @@ export type PaginatedStudentAssignmentDto = {
 export type AssignmentDto = {
     id: string;
     mode: AssignmentMode;
-    maxScore: string;
+    maxScore: number;
     weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
@@ -1510,7 +1510,7 @@ export type AssignmentDto = {
 
 export type UpdateAssignmentConfigDto = {
     mode?: AssignmentMode;
-    maxScore?: string;
+    maxScore?: number;
     weightPercentage?: number;
     maxAttempts?: number | null;
     allowLateSubmission?: boolean | null;
