@@ -39,7 +39,8 @@ export class AssignmentController {
     );
   }
 
-  @Get()
+  @Get('/admin/all')
+  @Roles(Role.ADMIN)
   @ApiException(() => [InternalServerErrorException])
   findAllForAdmin(
     @Param('moduleId') moduleId: string,
@@ -48,7 +49,7 @@ export class AssignmentController {
     return this.lmsAssignmentService.findAllForAdmin(moduleId, filters);
   }
 
-  @Get('mentor')
+  @Get('/mentor/all')
   @Roles(Role.MENTOR)
   @ApiException(() => [InternalServerErrorException])
   findAllForMentor(
@@ -65,7 +66,7 @@ export class AssignmentController {
     );
   }
 
-  @Get('student')
+  @Get('/student/all')
   @Roles(Role.STUDENT)
   @ApiException(() => [InternalServerErrorException])
   findAllForStudent(

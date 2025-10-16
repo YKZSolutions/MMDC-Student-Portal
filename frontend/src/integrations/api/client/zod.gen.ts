@@ -3765,6 +3765,20 @@ export const zAssignmentControllerSubmitData = z.object({
     query: z.optional(z.never())
 });
 
+export const zAssignmentControllerFindAllForAdminData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zAssignmentControllerFindAllForAdminResponse = zPaginatedAssignmentDto;
+
 export const zAssignmentControllerFindAllForMentorData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3778,6 +3792,20 @@ export const zAssignmentControllerFindAllForMentorData = z.object({
 });
 
 export const zAssignmentControllerFindAllForMentorResponse = zPaginatedMentorAssignmentDto;
+
+export const zAssignmentControllerFindAllForStudentData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zAssignmentControllerFindAllForStudentResponse = zPaginatedStudentAssignmentDto;
 
 export const zAssignmentControllerFindOneForStudentData = z.object({
     body: z.optional(z.never()),

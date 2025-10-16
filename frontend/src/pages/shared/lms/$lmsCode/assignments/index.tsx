@@ -1,25 +1,16 @@
-import SubmitButton from '@/components/submit-button.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import type {
-  AssignmentSubmissionReport,
-  StudentAssignment,
-} from '@/features/courses/assignments/types.ts'
+import type { AssignmentSubmissionReport } from '@/features/courses/assignments/types.ts'
 import {
-  mockAssignmentSubmissionReports,
-  mockStudentAssignments,
-} from '@/features/courses/mocks.ts'
-import {
-  assignmentControllerFindAllForAdmin,
+  assignmentControllerFindAllForStudent,
   type Role,
 } from '@/integrations/api/client'
 import {
   assignmentControllerFindAllForAdminOptions,
   assignmentControllerFindAllForMentorOptions,
   assignmentControllerFindAllForStudentOptions,
-  assignmentControllerFindOneOptions,
-  lmsSubmissionControllerFindOneOptions,
-  lmsSubmissionControllerFindOneQueryKey,
-  lmsSubmissionControllerGradeMutation,
+  submissionControllerFindOneOptions,
+  submissionControllerFindOneQueryKey,
+  submissionControllerGradeMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -490,7 +481,7 @@ function SubmissionViewModal() {
   const navigate = route.useNavigate()
 
   const { data: submission } = useQuery({
-    ...lmsSubmissionControllerFindOneOptions({
+    ...submissionControllerFindOneOptions({
       path: { submissionId: view || '' },
     }),
     enabled: view !== undefined,
@@ -587,7 +578,7 @@ function SubmissionGradeForm() {
   const { view } = route.useSearch()
 
   const { data: submission } = useQuery({
-    ...lmsSubmissionControllerFindOneOptions({
+    ...submissionControllerFindOneOptions({
       path: { submissionId: view || '' },
     }),
     enabled: view !== undefined,
@@ -602,14 +593,14 @@ function SubmissionGradeForm() {
   }, [submission])
 
   const { mutateAsync: gradeSubmission, isPending } = useAppMutation(
-    lmsSubmissionControllerGradeMutation,
+    submissionControllerGradeMutation,
     toastMessage('submission', 'grading', 'graded'),
     {
       onSuccess: () => {
         const { queryClient } = getContext()
 
         queryClient.invalidateQueries({
-          queryKey: lmsSubmissionControllerFindOneQueryKey({
+          queryKey: submissionControllerFindOneQueryKey({
             path: { submissionId: view || '' },
           }),
         })

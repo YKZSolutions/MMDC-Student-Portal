@@ -4994,6 +4994,35 @@ export type AssignmentControllerSubmitResponses = {
     201: unknown;
 };
 
+export type AssignmentControllerFindAllForAdminData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/admin/all';
+};
+
+export type AssignmentControllerFindAllForAdminErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindAllForAdminError = AssignmentControllerFindAllForAdminErrors[keyof AssignmentControllerFindAllForAdminErrors];
+
+export type AssignmentControllerFindAllForAdminResponses = {
+    200: PaginatedAssignmentDto;
+};
+
+export type AssignmentControllerFindAllForAdminResponse = AssignmentControllerFindAllForAdminResponses[keyof AssignmentControllerFindAllForAdminResponses];
+
 export type AssignmentControllerFindAllForMentorData = {
     body?: never;
     path: {
@@ -5004,7 +5033,7 @@ export type AssignmentControllerFindAllForMentorData = {
         page?: number;
         limit?: number;
     };
-    url: '/modules/{moduleId}/{moduleContentId}/assignments/mentor';
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/mentor/all';
 };
 
 export type AssignmentControllerFindAllForMentorErrors = {
@@ -5022,6 +5051,35 @@ export type AssignmentControllerFindAllForMentorResponses = {
 };
 
 export type AssignmentControllerFindAllForMentorResponse = AssignmentControllerFindAllForMentorResponses[keyof AssignmentControllerFindAllForMentorResponses];
+
+export type AssignmentControllerFindAllForStudentData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/student/all';
+};
+
+export type AssignmentControllerFindAllForStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindAllForStudentError = AssignmentControllerFindAllForStudentErrors[keyof AssignmentControllerFindAllForStudentErrors];
+
+export type AssignmentControllerFindAllForStudentResponses = {
+    200: PaginatedStudentAssignmentDto;
+};
+
+export type AssignmentControllerFindAllForStudentResponse = AssignmentControllerFindAllForStudentResponses[keyof AssignmentControllerFindAllForStudentResponses];
 
 export type AssignmentControllerFindOneForStudentData = {
     body?: never;
