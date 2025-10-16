@@ -1,3 +1,9 @@
+import { LogParam } from '@/common/decorators/log-param.decorator';
+import { Log } from '@/common/decorators/log.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 import { convertToStandardGrade } from '@/common/helpers/grades';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { TranscriptDto } from '@/generated/nestjs-dto/transcript.dto';
@@ -18,8 +24,22 @@ export class TranscriptService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
-  async upsert(
-    createTranscriptDto: UpsertTranscriptDto,
+  @Log({
+    logArgsMessage: ({ createTranscriptDto }) =>
+      `Creating transcript for student [${createTranscriptDto.studentId}]`,
+    logSuccessMessage: (_, { createTranscriptDto }) =>
+      `Transcript successfully created for student [${createTranscriptDto.studentId}]`,
+    logErrorMessage: (err, { createTranscriptDto }) =>
+      `Error creating transcript for student [${createTranscriptDto.studentId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { createTranscriptDto }) =>
+      new NotFoundException(
+        `The specified courseOfferingId [${createTranscriptDto.courseOfferingId}] or studentId [${createTranscriptDto.studentId}] was not found.`,
+      ),
+  })
+  async upsertTranscript(
+    @LogParam('createTranscriptDto') createTranscriptDto: UpsertTranscriptDto,
   ): Promise<TranscriptDto> {
     const { courseOfferingId, studentId } = createTranscriptDto;
 
@@ -111,9 +131,21 @@ export class TranscriptService {
     });
   }
 
-  async findAll(
-    filters: FilterTranscriptDto,
-    user: CurrentAuthUser,
+  @Log({
+    logArgsMessage: ({ filters, user }) =>
+      `Fetching transcripts with filters [${filters}] for student [${user.id}]`,
+    logSuccessMessage: (_, { user }) =>
+      `Transcript successfully created for student [${user.id}]`,
+    logErrorMessage: (err, { user }) =>
+      `Error creating transcript for student [${user.id}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException('Transcripts not found'),
+  })
+  async findAllTranscript(
+    @LogParam('filters') filters: FilterTranscriptDto,
+    @LogParam('user') user: CurrentAuthUser,
   ): Promise<DetailedTranscriptDto[]> {
     return this.prisma.client.$transaction(async (tx) => {
       const { enrollmentPeriodId, studentId } = filters;
@@ -179,12 +211,90 @@ export class TranscriptService {
     });
   }
 
-  async update(transcriptId: string, dto: UpdateTranscriptDto) {
+  @Log({
+    logArgsMessage: ({ transcriptId, updateTranscriptDto }) =>
+      `Updating transcript [${transcriptId}] with data [${updateTranscriptDto}]`,
+    logSuccessMessage: (_, { transcriptId }) =>
+      `Transcript [${transcriptId}] successfully updated.`,
+    logErrorMessage: (err, { transcriptId }) =>
+      `Error updating transcript [${transcriptId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { transcriptId }) =>
+      new NotFoundException(`Transcript [${transcriptId}] not found`),
+  })
+  async updateTranscript(
+    @LogParam('transcriptId') transcriptId: string,
+    @LogParam('updateTranscriptDto') updateTranscriptDto: UpdateTranscriptDto,
+  ): Promise<TranscriptDto> {
     return this.prisma.client.$transaction(async (tx) => {
-    })
+      const { grade, gradeLetter } = updateTranscriptDto;
+
+      // Fetch the course units for grade points calculation
+      const {
+        course: { units },
+      } = await tx.courseOffering.findFirstOrThrow({
+        where: {
+          transcripts: {
+            some: { id: transcriptId },
+          },
+        },
+        select: { course: { select: { units: true } } },
+      });
+
+      // Compute grade points
+      // Also ensure grade is a Decimal instance
+      const computedGradePoints = Decimal(grade).mul(Decimal(units));
+
+      // Update the transcript record
+      return await tx.transcript.update({
+        where: {
+          id: transcriptId,
+        },
+        data: {
+          grade: grade,
+          gradePoints: computedGradePoints,
+          gradeLetter: gradeLetter ?? null,
+        },
+      });
+    });
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} transcript`;
+  @Log({
+    logArgsMessage: ({ transcriptId }) =>
+      `Removing transcript [${transcriptId}]`,
+    logSuccessMessage: (_, { transcriptId }) =>
+      `Transcript [${transcriptId}] successfully removed.`,
+    logErrorMessage: (err, { transcriptId }) =>
+      `Error removing transcript [${transcriptId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { transcriptId }) =>
+      new NotFoundException(`Transcript [${transcriptId}] not found`),
+  })
+  async removeTranscript(
+    @LogParam('transcriptId') transcriptId: string,
+    @LogParam('directDelete') directDelete?: boolean,
+  ) {
+    return await this.prisma.client.$transaction(async (tx) => {
+      const transcript = await tx.transcript.findUniqueOrThrow({
+        where: { id: transcriptId },
+      });
+
+      if (!directDelete && !transcript?.deletedAt) {
+        await this.prisma.client.transcript.update({
+          where: { id: transcriptId },
+          data: { deletedAt: new Date() },
+        });
+
+        return { message: 'Transcript marked for deletion' };
+      }
+
+      await this.prisma.client.transcript.delete({
+        where: { id: transcriptId },
+      });
+
+      return { message: 'Transcript permanently deleted' };
+    });
   }
 }

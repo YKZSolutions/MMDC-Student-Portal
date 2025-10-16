@@ -1,4 +1,5 @@
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
   Body,
@@ -6,6 +7,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Put,
   Query,
@@ -21,7 +23,7 @@ export class TranscriptController {
 
   @Put()
   upsert(@Body() createTranscriptDto: UpsertTranscriptDto) {
-    return this.transcriptService.upsert(createTranscriptDto);
+    return this.transcriptService.upsertTranscript(createTranscriptDto);
   }
 
   @Get()
@@ -29,7 +31,7 @@ export class TranscriptController {
     @Query() filters: FilterTranscriptDto,
     @CurrentUser() user: CurrentAuthUser,
   ) {
-    return this.transcriptService.findAll(filters, user);
+    return this.transcriptService.findAllTranscript(filters, user);
   }
 
   @Patch(':transcriptId')
@@ -37,11 +39,20 @@ export class TranscriptController {
     @Param('transcriptId') transcriptId: string,
     @Body() updateTranscriptDto: UpdateTranscriptDto,
   ) {
-    return this.transcriptService.update(transcriptId, updateTranscriptDto);
+    return this.transcriptService.updateTranscript(
+      transcriptId,
+      updateTranscriptDto,
+    );
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transcriptService.remove(+id);
+  @Delete(':transcriptId')
+  remove(
+    @Param('transcriptId', new ParseUUIDPipe()) transcriptId: string,
+    @Query() query?: DeleteQueryDto,
+  ) {
+    return this.transcriptService.removeTranscript(
+      transcriptId,
+      query?.directDelete,
+    );
   }
 }
