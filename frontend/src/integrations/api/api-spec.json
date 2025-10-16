@@ -15217,21 +15217,22 @@
       }
     },
     "/transcript": {
-      "post": {
-        "operationId": "TranscriptController_create",
+      "put": {
+        "description": "Creates or updates a transcript record for a student in a specific course offering.\nIf a transcript for the given student and course offering already exists, it will be updated.\nIf not, a new transcript record will be created.\nRequires `ADMIN` or `MENTOR` role.",
+        "operationId": "TranscriptController_upsert",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTranscriptDto"
+                "$ref": "#/components/schemas/UpsertTranscriptDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -15240,13 +15241,91 @@
                 }
               }
             }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
           }
         },
+        "summary": "Upsert a transcript record",
         "tags": [
           "Transcript"
         ]
       },
       "get": {
+        "description": "Fetch transcripts with the option to filter them.\nRequires `ADMIN`, `MENTOR`, or `STUDENT` role.\nReturns a list of transcripts.",
         "operationId": "TranscriptController_findAll",
         "parameters": [
           {
@@ -15281,8 +15360,85 @@
                 }
               }
             }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
           }
         },
+        "summary": "Fetch transcripts",
         "tags": [
           "Transcript"
         ]
@@ -15290,6 +15446,7 @@
     },
     "/transcript/{transcriptId}": {
       "patch": {
+        "description": "Updates the details of an existing transcript record identified by its ID.\nRequires `ADMIN` or `MENTOR` role.",
         "operationId": "TranscriptController_update",
         "parameters": [
           {
@@ -15317,42 +15474,197 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/TranscriptDto"
                 }
               }
             }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
           }
         },
+        "summary": "Update a transcript record",
         "tags": [
           "Transcript"
         ]
-      }
-    },
-    "/transcript/{id}": {
+      },
       "delete": {
+        "description": "Deletes a transcript record identified by its ID.\nIf `directDelete` query parameter is set to true, the record will be permanently deleted.\nOtherwise, it may be soft-deleted based on the service implementation.\nRequires `ADMIN` role.",
         "operationId": "TranscriptController_remove",
         "parameters": [
           {
-            "name": "id",
+            "name": "transcriptId",
             "required": true,
             "in": "path",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "directDelete",
+            "required": false,
+            "in": "query",
+            "description": "If set to true, will skip the soft delete process",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": ""
+          },
+          "404": {
             "content": {
               "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
                 "schema": {
-                  "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
                 }
               }
-            }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
           }
         },
+        "summary": "Delete a transcript record",
         "tags": [
           "Transcript"
         ]
@@ -23318,7 +23630,7 @@
           "status"
         ]
       },
-      "CreateTranscriptDto": {
+      "UpsertTranscriptDto": {
         "type": "object",
         "properties": {
           "courseOfferingId": {
@@ -23457,13 +23769,17 @@
       "UpdateTranscriptDto": {
         "type": "object",
         "properties": {
-          "courseOfferingId": {
+          "grade": {
             "type": "string",
-            "format": "uuid"
+            "format": "Decimal.js"
           },
-          "studentId": {
+          "gradeLetter": {
             "type": "string",
-            "format": "uuid"
+            "enum": [
+              "pass",
+              "fail",
+              "incomplete"
+            ]
           }
         }
       }

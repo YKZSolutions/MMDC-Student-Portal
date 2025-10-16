@@ -1995,7 +1995,7 @@ export type UpdateAppointmentStatusDto = {
     status: AppointmentStatus;
 };
 
-export type CreateTranscriptDto = {
+export type UpsertTranscriptDto = {
     courseOfferingId: string;
     studentId: string;
 };
@@ -2029,8 +2029,8 @@ export type DetailedTranscriptDto = {
 };
 
 export type UpdateTranscriptDto = {
-    courseOfferingId?: string;
-    studentId?: string;
+    grade?: string;
+    gradeLetter?: 'pass' | 'fail' | 'incomplete';
 };
 
 export type TestControllerTestStudentData = {
@@ -6215,24 +6215,87 @@ export type TranscriptControllerFindAllData = {
     url: '/transcript';
 };
 
+export type TranscriptControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerFindAllError = TranscriptControllerFindAllErrors[keyof TranscriptControllerFindAllErrors];
+
 export type TranscriptControllerFindAllResponses = {
     200: Array<DetailedTranscriptDto>;
 };
 
 export type TranscriptControllerFindAllResponse = TranscriptControllerFindAllResponses[keyof TranscriptControllerFindAllResponses];
 
-export type TranscriptControllerCreateData = {
-    body: CreateTranscriptDto;
+export type TranscriptControllerUpsertData = {
+    body: UpsertTranscriptDto;
     path?: never;
     query?: never;
     url: '/transcript';
 };
 
-export type TranscriptControllerCreateResponses = {
-    201: TranscriptDto;
+export type TranscriptControllerUpsertErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
 };
 
-export type TranscriptControllerCreateResponse = TranscriptControllerCreateResponses[keyof TranscriptControllerCreateResponses];
+export type TranscriptControllerUpsertError = TranscriptControllerUpsertErrors[keyof TranscriptControllerUpsertErrors];
+
+export type TranscriptControllerUpsertResponses = {
+    200: TranscriptDto;
+};
+
+export type TranscriptControllerUpsertResponse = TranscriptControllerUpsertResponses[keyof TranscriptControllerUpsertResponses];
+
+export type TranscriptControllerRemoveData = {
+    body?: never;
+    path: {
+        transcriptId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/transcript/{transcriptId}';
+};
+
+export type TranscriptControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerRemoveError = TranscriptControllerRemoveErrors[keyof TranscriptControllerRemoveErrors];
+
+export type TranscriptControllerRemoveResponses = {
+    200: unknown;
+};
 
 export type TranscriptControllerUpdateData = {
     body: UpdateTranscriptDto;
@@ -6243,26 +6306,26 @@ export type TranscriptControllerUpdateData = {
     url: '/transcript/{transcriptId}';
 };
 
+export type TranscriptControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerUpdateError = TranscriptControllerUpdateErrors[keyof TranscriptControllerUpdateErrors];
+
 export type TranscriptControllerUpdateResponses = {
-    200: string;
+    200: TranscriptDto;
 };
 
 export type TranscriptControllerUpdateResponse = TranscriptControllerUpdateResponses[keyof TranscriptControllerUpdateResponses];
-
-export type TranscriptControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/transcript/{id}';
-};
-
-export type TranscriptControllerRemoveResponses = {
-    200: string;
-};
-
-export type TranscriptControllerRemoveResponse = TranscriptControllerRemoveResponses[keyof TranscriptControllerRemoveResponses];
 
 export type ClientOptions = {
     baseUrl: string;

@@ -3133,7 +3133,7 @@ export const zUpdateAppointmentStatusDto = z.object({
     status: zAppointmentStatus
 });
 
-export const zCreateTranscriptDto = z.object({
+export const zUpsertTranscriptDto = z.object({
     courseOfferingId: z.uuid(),
     studentId: z.uuid()
 });
@@ -3183,8 +3183,12 @@ export const zDetailedTranscriptDto = z.object({
 });
 
 export const zUpdateTranscriptDto = z.object({
-    courseOfferingId: z.optional(z.uuid()),
-    studentId: z.optional(z.uuid())
+    grade: z.optional(z.string()),
+    gradeLetter: z.optional(z.enum([
+        'pass',
+        'fail',
+        'incomplete'
+    ]))
 });
 
 export const zTestControllerTestStudentData = z.object({
@@ -4772,13 +4776,23 @@ export const zTranscriptControllerFindAllData = z.object({
 
 export const zTranscriptControllerFindAllResponse = z.array(zDetailedTranscriptDto);
 
-export const zTranscriptControllerCreateData = z.object({
-    body: zCreateTranscriptDto,
+export const zTranscriptControllerUpsertData = z.object({
+    body: zUpsertTranscriptDto,
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
-export const zTranscriptControllerCreateResponse = zTranscriptDto;
+export const zTranscriptControllerUpsertResponse = zTranscriptDto;
+
+export const zTranscriptControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        transcriptId: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
 
 export const zTranscriptControllerUpdateData = z.object({
     body: zUpdateTranscriptDto,
@@ -4788,14 +4802,4 @@ export const zTranscriptControllerUpdateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zTranscriptControllerUpdateResponse = z.string();
-
-export const zTranscriptControllerRemoveData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zTranscriptControllerRemoveResponse = z.string();
+export const zTranscriptControllerUpdateResponse = zTranscriptDto;
