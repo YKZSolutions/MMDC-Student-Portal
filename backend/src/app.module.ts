@@ -29,6 +29,7 @@ import { LmsContentModule } from '@/modules/lms/lms-content/lms-content.module';
 import { LmsSectionModule } from '@/modules/lms/lms-section/lms-section.module';
 import { AssignmentModule } from '@/modules/lms/assignment/assignment.module';
 import { GroupModule } from '@/modules/lms/group/group.module';
+import { SubmissionModule } from '@/modules/lms/submission/submission.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { GroupModule } from '@/modules/lms/group/group.module';
     LmsModule,
     LmsSectionModule,
     LmsContentModule,
+    SubmissionModule,
     SwaggerModule,
     PricingModule,
     NotificationsModule,
