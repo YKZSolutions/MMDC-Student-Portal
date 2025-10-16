@@ -1,98 +1,34 @@
 import { useAuth } from '@/features/auth/auth.hook'
+import type {
+    DetailedTranscriptDto,
+    EnrollmentPeriodDto,
+    UserWithRelations,
+} from '@/integrations/api/client'
 import {
-  transcriptControllerFindAllOptions,
-  usersControllerFindAllOptions,
-  enrollmentsControllerFindAllEnrollmentsOptions,
+    enrollmentControllerFindAllEnrollmentsOptions,
+    transcriptControllerFindAllOptions,
+    usersControllerFindAllOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { formatPaginationMessage } from '@/utils/formatters'
 import {
-  Box,
-  Center,
-  Container,
-  Flex,
-  Group,
-  MultiSelect,
-  rem,
-  Select,
-  Skeleton,
-  Stack,
-  Table,
-  Text,
-  Title,
+    Box,
+    Center,
+    Container,
+    Flex,
+    Group,
+    rem,
+    Select,
+    Skeleton,
+    Stack,
+    Table,
+    Text,
+    Title,
 } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import React, { Suspense, useMemo, useState } from 'react'
-import type { DetailedTranscriptDto, EnrollmentPeriodDto, UserWithRelations } from '@/integrations/api/client'
 
 interface TranscriptQueryFilters {
   enrollmentPeriodId: string | null
   studentId: string | null
-}
-
-function EnrollmentPeriodsSelector({
-  value,
-  onChange,
-}: {
-  value: string | null
-  onChange: (value: string | null) => void
-}) {
-  const { data } = useSuspenseQuery(
-    enrollmentsControllerFindAllEnrollmentsOptions({
-      query: { page: 1, limit: 100 },
-    }),
-  )
-
-  const enrollments = data?.enrollments ?? []
-  const options = enrollments.map((enrollment: EnrollmentPeriodDto) => ({
-    value: enrollment.id,
-    label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
-  }))
-
-  return (
-    <Select
-      label="Enrollment Period"
-      placeholder="Select an enrollment period"
-      data={options}
-      value={value}
-      onChange={onChange}
-      searchable
-      clearable
-      radius={'md'}
-    />
-  )
-}
-
-function StudentSelector({
-  value,
-  onChange,
-}: {
-  value: string | null
-  onChange: (value: string | null) => void
-}) {
-  const { data } = useSuspenseQuery(
-    usersControllerFindAllOptions({
-      query: { search: '', page: 1, role: 'student' },
-    }),
-  )
-
-  const students = data?.users ?? []
-  const options = students.map((student: UserWithRelations) => ({
-    value: student.id,
-    label: `${student.firstName} ${student.lastName}`,
-  }))
-
-  return (
-    <Select
-      label="Student"
-      placeholder="Select a student"
-      data={options}
-      value={value}
-      onChange={onChange}
-      searchable
-      clearable
-      radius={'md'}
-    />
-  )
 }
 
 function TranscriptQueryProvider({
@@ -109,9 +45,7 @@ function TranscriptQueryProvider({
       query: {
         enrollmentPeriodId: filters.enrollmentPeriodId || undefined,
         studentId:
-          authUser.role === 'student'
-            ? authUser.id
-            : filters.studentId || undefined,
+          (authUser.role !== 'student' && filters.studentId) || undefined,
       },
     }),
   )
@@ -121,7 +55,80 @@ function TranscriptQueryProvider({
   return children(transcripts)
 }
 
-function TranscriptTable({ transcripts }: { transcripts: DetailedTranscriptDto[] }) {
+function TranscriptPage() {
+  const { authUser } = useAuth('protected')
+  const [filters, setFilters] = useState<TranscriptQueryFilters>({
+    enrollmentPeriodId: null,
+    studentId: null,
+  })
+
+  const handleEnrollmentPeriodChange = (value: string | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      enrollmentPeriodId: value,
+    }))
+  }
+
+  const handleStudentChange = (value: string | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      studentId: value,
+    }))
+  }
+
+  return (
+    <Container size={'md'} w="100%" pb={'xl'}>
+      <Box pb={'xl'}>
+        <Title c={'dark.7'} variant="hero" order={2} fw={700}>
+          Transcript
+        </Title>
+        <Text c={'dark.3'} fw={500}>
+          View and manage transcripts here.
+        </Text>
+      </Box>
+
+      <Flex gap={'md'} direction={'column'}>
+        <Stack gap={'md'}>
+          <Group grow>
+            <Suspense
+              fallback={<Skeleton visible h={rem(40)} w="100%" radius={'md'} />}
+            >
+              <EnrollmentPeriodsSelector
+                value={filters.enrollmentPeriodId}
+                onChange={handleEnrollmentPeriodChange}
+              />
+            </Suspense>
+
+            {authUser.role !== 'student' && (
+              <Suspense
+                fallback={
+                  <Skeleton visible h={rem(40)} w="100%" radius={'md'} />
+                }
+              >
+                <StudentSelector
+                  value={filters.studentId}
+                  onChange={handleStudentChange}
+                />
+              </Suspense>
+            )}
+          </Group>
+        </Stack>
+
+        <Suspense fallback={<Skeleton visible h={rem(200)} radius={'md'} />}>
+          <TranscriptQueryProvider filters={filters}>
+            {(transcripts) => <TranscriptTable transcripts={transcripts} />}
+          </TranscriptQueryProvider>
+        </Suspense>
+      </Flex>
+    </Container>
+  )
+}
+
+function TranscriptTable({
+  transcripts,
+}: {
+  transcripts: DetailedTranscriptDto[]
+}) {
   if (transcripts.length === 0) {
     return (
       <Center py={rem(40)}>
@@ -212,74 +219,67 @@ function TranscriptTable({ transcripts }: { transcripts: DetailedTranscriptDto[]
   )
 }
 
-function TranscriptPage() {
-  const { authUser } = useAuth('protected')
-  const [filters, setFilters] = useState<TranscriptQueryFilters>({
-    enrollmentPeriodId: null,
-    studentId: null,
-  })
+function EnrollmentPeriodsSelector({
+  value,
+  onChange,
+}: {
+  value: string | null
+  onChange: (value: string | null) => void
+}) {
+  const { data } = useSuspenseQuery(
+    enrollmentControllerFindAllEnrollmentsOptions(),
+  )
 
-  const handleEnrollmentPeriodChange = (value: string | null) => {
-    setFilters((prev) => ({
-      ...prev,
-      enrollmentPeriodId: value,
-    }))
-  }
-
-  const handleStudentChange = (value: string | null) => {
-    setFilters((prev) => ({
-      ...prev,
-      studentId: value,
-    }))
-  }
+  const enrollments = data?.enrollments ?? []
+  const options = enrollments.map((enrollment: EnrollmentPeriodDto) => ({
+    value: enrollment.id,
+    label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
+  }))
 
   return (
-    <Container size={'md'} w="100%" pb={'xl'}>
-      <Box pb={'xl'}>
-        <Title c={'dark.7'} variant="hero" order={2} fw={700}>
-          Transcript
-        </Title>
-        <Text c={'dark.3'} fw={500}>
-          View and manage transcripts here.
-        </Text>
-      </Box>
+    <Select
+      label="Enrollment Period"
+      placeholder="Select an enrollment period"
+      data={options}
+      value={value}
+      onChange={onChange}
+      searchable
+      clearable
+      radius={'md'}
+    />
+  )
+}
 
-      <Flex gap={'md'} direction={'column'}>
-        <Stack gap={'md'}>
-          <Group grow>
-            <Suspense
-              fallback={
-                <Skeleton visible h={rem(40)} w="100%" radius={'md'} />
-              }
-            >
-              <EnrollmentPeriodsSelector
-                value={filters.enrollmentPeriodId}
-                onChange={handleEnrollmentPeriodChange}
-              />
-            </Suspense>
+function StudentSelector({
+  value,
+  onChange,
+}: {
+  value: string | null
+  onChange: (value: string | null) => void
+}) {
+  const { data } = useSuspenseQuery(
+    usersControllerFindAllOptions({
+      query: { search: '', page: 1, role: 'student' },
+    }),
+  )
 
-            {authUser.role !== 'student' && (
-              <Suspense
-                fallback={
-                  <Skeleton visible h={rem(40)} w="100%" radius={'md'} />
-                }
-              >
-                <StudentSelector
-                  value={filters.studentId}
-                  onChange={handleStudentChange}
-                />
-              </Suspense>
-            )}
-          </Group>
-        </Stack>
+  const students = data?.users ?? []
+  const options = students.map((student: UserWithRelations) => ({
+    value: student.id,
+    label: `${student.firstName} ${student.lastName}`,
+  }))
 
-        <Suspense fallback={<Skeleton visible h={rem(200)} radius={'md'} />}>
-          <TranscriptQueryProvider filters={filters}>
-            {(transcripts) => <TranscriptTable transcripts={transcripts} />}
-          </TranscriptQueryProvider>
-        </Suspense>
-      </Flex>
-    </Container>
+  return (
+    <Select
+      label="Student"
+      placeholder="Select a student"
+      data={options}
+      value={value}
+      onChange={onChange}
+      searchable
+      clearable
+      radius={'md'}
+    />
   )
 }
 
