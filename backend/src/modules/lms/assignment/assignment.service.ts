@@ -271,18 +271,18 @@ export class AssignmentService {
     };
   }
 
-  async findOne(id: string): Promise<AssignmentDto> {
+  async findOne(moduleContentId: string): Promise<AssignmentDto> {
     return await this.prisma.client.assignment.findFirstOrThrow({
-      where: { id },
+      where: { moduleContentId },
     });
   }
 
   async findOneForStudent(
-    id: string,
+    moduleContentId: string,
     studentId: string,
   ): Promise<StudentAssignmentItemDto> {
     const assignment = await this.prisma.client.assignment.findFirstOrThrow({
-      where: { id, submissions: { some: { studentId } } },
+      where: { moduleContentId, submissions: { some: { studentId } } },
       include: {
         moduleContent: true,
         submissions: { include: { attachments: true } },
