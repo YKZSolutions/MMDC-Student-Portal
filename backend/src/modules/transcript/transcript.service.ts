@@ -24,6 +24,16 @@ export class TranscriptService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
+  /**
+   * Upserts a transcript record.
+   *
+   * @param createTranscriptDto - The transcript data to create or update.
+   *
+   * @returns The created or updated transcript.
+   *
+   * @throws NotFoundException - If the specified course offering or student does not exist.
+   * @throws InternalServerErrorException - If there is an error during the upsert operation.
+   */
   @Log({
     logArgsMessage: ({ createTranscriptDto }) =>
       `Creating transcript for student [${createTranscriptDto.studentId}]`,
@@ -131,6 +141,17 @@ export class TranscriptService {
     });
   }
 
+  /**
+   * Fetches all transcripts for a student.
+   *
+   * @param filters - The filters to apply when fetching transcripts.
+   * @param user - The current user making the request.
+   *
+   * @returns A list of detailed transcripts for the student.
+   *
+   * @throws NotFoundException - If no transcripts are found.
+   * @throws InternalServerErrorException - If there is an error during the fetch operation.
+   */
   @Log({
     logArgsMessage: ({ filters, user }) =>
       `Fetching transcripts with filters [${filters}] for student [${user.id}]`,
@@ -211,6 +232,17 @@ export class TranscriptService {
     });
   }
 
+  /**
+   * Updates a transcript record.
+   *
+   * @param transcriptId - The ID of the transcript to update.
+   * @param updateTranscriptDto - The data to update the transcript with.
+   *
+   * @returns The updated transcript.
+   *
+   * @throws NotFoundException - If the transcript does not exist.
+   * @throws InternalServerErrorException - If there is an error during the update operation.
+   */
   @Log({
     logArgsMessage: ({ transcriptId, updateTranscriptDto }) =>
       `Updating transcript [${transcriptId}] with data [${updateTranscriptDto}]`,
@@ -260,6 +292,16 @@ export class TranscriptService {
     });
   }
 
+  /**
+   * Removes a transcript record.
+   * @param transcriptId - The ID of the transcript to remove.
+   * @param directDelete - If true, permanently deletes the record; otherwise, may soft-delete based on implementation.
+   *
+   * @returns A message indicating the result of the deletion operation.
+   *
+   * @throws NotFoundException - If the transcript does not exist.
+   * @throws InternalServerErrorException - If there is an error during the deletion operation.
+   */
   @Log({
     logArgsMessage: ({ transcriptId }) =>
       `Removing transcript [${transcriptId}]`,
