@@ -36,17 +36,35 @@ export async function seedModules(
       (offering) => offering.courseId === course.id,
     );
 
-    for (let i = 0; i < seedConfig.MODULES_PER_COURSE; i++) {
+    // Create one module per course offering instead of multiple modules per course
+    for (const offering of courseOfferingsForCourse) {
       const module = await prisma.module.create({
         data: createModuleData(
           course.id,
-          pickRandom(courseOfferingsForCourse).id,
-          i,
+          offering.id,
+          allModules.length, // Use overall module count for ordering
         ),
       });
       courseModules.push(module);
+      allModules.push(module);
     }
-    allModules.push(...courseModules);
+
+    // If we need more modules than offerings, create additional modules without course offerings
+    const remainingModules =
+      seedConfig.MODULES_PER_COURSE - courseOfferingsForCourse.length;
+    if (remainingModules > 0) {
+      for (let i = 0; i < remainingModules; i++) {
+        const module = await prisma.module.create({
+          data: createModuleData(
+            course.id,
+            null, // No course offering for these additional modules
+            allModules.length + i,
+          ),
+        });
+        courseModules.push(module);
+        allModules.push(module);
+      }
+    }
 
     for (let i = 0; i < courseModules.length; i++) {
       const module = courseModules[i];
@@ -75,7 +93,7 @@ export async function seedModules(
             if (rand < seedConfig.ASSIGNMENT_CHANCE) {
               contentType = ContentType.ASSIGNMENT;
             } else {
-              contentType = ContentType.LESSON; // Added default value
+              contentType = ContentType.LESSON;
             }
 
             const content = await prisma.moduleContent.create({
@@ -94,7 +112,7 @@ export async function seedModules(
               }
               case ContentType.LESSON: {
                 allLessons.push(content);
-                break; // Added break for consistency
+                break;
               }
             }
           }

@@ -22,15 +22,20 @@ const SECTION_TITLES = [
 
 export function createModuleData(
   courseId: string,
-  courseOfferingId: string,
+  courseOfferingId: string | null,
   index: number,
 ): Prisma.ModuleCreateInput {
-  return {
+  const baseData: Prisma.ModuleCreateInput = {
     title: `Module ${index + 1}: ${MODULE_TITLES[index] || faker.helpers.arrayElement(MODULE_TITLES)}`,
     course: { connect: { id: courseId } },
-    courseOffering: { connect: { id: courseOfferingId } },
     publishedAt: faker.date.recent({ days: 30 }),
   };
+
+  if (courseOfferingId) {
+    baseData.courseOffering = { connect: { id: courseOfferingId } };
+  }
+
+  return baseData;
 }
 
 export function createModuleSectionData(
