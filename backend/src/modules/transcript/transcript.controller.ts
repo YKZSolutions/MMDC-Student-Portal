@@ -7,21 +7,21 @@ import {
   Get,
   Param,
   Patch,
-  Post,
+  Put,
   Query,
 } from '@nestjs/common';
-import { CreateTranscriptDto } from './dto/create-transcript.dto';
 import { FilterTranscriptDto } from './dto/filter-transcript.dto';
 import { UpdateTranscriptDto } from './dto/update-transcript.dto';
+import { UpsertTranscriptDto } from './dto/upsert-transcript.dto';
 import { TranscriptService } from './transcript.service';
 
 @Controller('transcript')
 export class TranscriptController {
   constructor(private readonly transcriptService: TranscriptService) {}
 
-  @Post()
-  create(@Body() createTranscriptDto: CreateTranscriptDto) {
-    return this.transcriptService.create(createTranscriptDto);
+  @Put()
+  upsert(@Body() createTranscriptDto: UpsertTranscriptDto) {
+    return this.transcriptService.upsert(createTranscriptDto);
   }
 
   @Get()

@@ -6,10 +6,10 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CreateTranscriptDto } from './dto/create-transcript.dto';
 import { DetailedTranscriptDto } from './dto/detailed-transcript.dto';
 import { FilterTranscriptDto } from './dto/filter-transcript.dto';
 import { UpdateTranscriptDto } from './dto/update-transcript.dto';
+import { UpsertTranscriptDto } from './dto/upsert-transcript.dto';
 
 @Injectable()
 export class TranscriptService {
@@ -18,8 +18,8 @@ export class TranscriptService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
-  async create(
-    createTranscriptDto: CreateTranscriptDto,
+  async upsert(
+    createTranscriptDto: UpsertTranscriptDto,
   ): Promise<TranscriptDto> {
     const { courseOfferingId, studentId } = createTranscriptDto;
 
@@ -89,9 +89,17 @@ export class TranscriptService {
       // Compute grade points
       const computedGradePoints = computedGrade.mul(Decimal(units));
 
-      // Now, create the transcript record
-      const transcript = await tx.transcript.create({
-        data: {
+      // Now, insert or update the transcript record
+      const transcript = await tx.transcript.upsert({
+        where: {
+          userId: studentId,
+          courseOfferingId: courseOfferingId,
+        },
+        update: {
+          grade: computedGrade,
+          gradePoints: computedGradePoints,
+        },
+        create: {
           user: { connect: { id: studentId } },
           courseOffering: { connect: { id: courseOfferingId } },
           grade: computedGrade,
@@ -172,7 +180,8 @@ export class TranscriptService {
   }
 
   async update(transcriptId: string, dto: UpdateTranscriptDto) {
-    return `This action updates a #${transcriptId} transcript`;
+    return this.prisma.client.$transaction(async (tx) => {
+    })
   }
 
   async remove(id: number) {

@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
 
-export class CreateTranscriptDto {
+export class UpsertTranscriptDto {
   @IsUUID()
   @IsNotEmpty()
   courseOfferingId: string;
