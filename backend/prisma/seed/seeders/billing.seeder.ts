@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
 import { log } from '../utils/helpers';
 import {
@@ -7,8 +7,9 @@ import {
   createBillPaymentData,
 } from '../factories/billing.factory';
 import { seedConfig } from '../seed.config';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
-export async function seedBilling(prisma: PrismaClient, students: User[]) {
+export async function seedBilling(prisma: PrismaTransaction, students: User[]) {
   log('Seeding billing...');
 
   for (const student of students) {

@@ -5,57 +5,30 @@ import {
   Module,
   ModuleContent,
   ModuleSection,
-  PrismaClient,
 } from '@prisma/client';
-import { log, pickRandom, pickRandomEnum } from '../utils/helpers';
+import { log, pickRandom } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import {
   createAssignmentData,
-  createDiscussionData,
-  createExternalUrlData,
-  createFileResourceData,
-  createGradingConfigData,
-  createLessonData,
   createModuleContentData,
   createModuleData,
   createModuleSectionData,
-  createQuizData,
-  createVideoData,
 } from '../factories/module.factory';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 export async function seedModules(
-  prisma: PrismaClient,
+  prisma: PrismaTransaction,
   courses: Course[],
   courseOfferings: CourseOffering[],
 ) {
   log('Seeding modules and course content...');
-
-  // Create shared grading configurations
-  log('Creating shared grading configurations...');
-  const assignmentGradingConfig = await prisma.gradingConfig.create({
-    data: createGradingConfigData(true), // For assignments
-  });
-
-  const quizGradingConfig = await prisma.gradingConfig.create({
-    data: createGradingConfigData(false), // For quizzes
-  });
-
-  log(
-    `-> Created shared grading config for assignments (ID: ${assignmentGradingConfig.id})`,
-  );
-  log(
-    `-> Created shared grading config for quizzes (ID: ${quizGradingConfig.id})`,
-  );
 
   const allModules: Module[] = [];
   const allSections: ModuleSection[] = [];
   const allSubsections: ModuleSection[] = [];
   const allContents: ModuleContent[] = [];
   const allAssignments: any[] = [];
-  const allQuizzes: any[] = [];
   const allLessons: any[] = [];
-  const allDiscussions: any[] = [];
-  const allGradings = [assignmentGradingConfig, quizGradingConfig]; // Track the shared grading configs
 
   for (const course of courses) {
     const courseModules: Module[] = [];
@@ -77,7 +50,6 @@ export async function seedModules(
 
     for (let i = 0; i < courseModules.length; i++) {
       const module = courseModules[i];
-      const moduleIndex = i;
 
       const moduleSections: ModuleSection[] = [];
 
@@ -102,28 +74,12 @@ export async function seedModules(
 
             if (rand < seedConfig.ASSIGNMENT_CHANCE) {
               contentType = ContentType.ASSIGNMENT;
-            } else if (
-              rand <
-              seedConfig.ASSIGNMENT_CHANCE + seedConfig.QUIZ_CHANCE
-            ) {
-              contentType = ContentType.QUIZ;
             } else {
-              contentType = pickRandomEnum(
-                Object.values(ContentType).filter(
-                  (type) =>
-                    type !== ContentType.ASSIGNMENT &&
-                    type !== ContentType.QUIZ,
-                ),
-              );
+              contentType = ContentType.LESSON; // Added default value
             }
 
             const content = await prisma.moduleContent.create({
-              data: createModuleContentData(
-                module.id,
-                subsection.id,
-                k + 1,
-                contentType,
-              ),
+              data: createModuleContentData(subsection.id, k + 1, contentType),
             });
             allContents.push(content);
 
@@ -131,57 +87,14 @@ export async function seedModules(
             switch (contentType) {
               case ContentType.ASSIGNMENT: {
                 const assignment = await prisma.assignment.create({
-                  data: createAssignmentData(
-                    content.id,
-                    assignmentGradingConfig.id, // Use shared assignment grading config
-                    moduleIndex,
-                  ),
+                  data: createAssignmentData(content.id),
                 });
                 allAssignments.push(assignment);
                 break;
               }
-              case ContentType.QUIZ: {
-                const quiz = await prisma.quiz.create({
-                  data: createQuizData(
-                    content.id,
-                    quizGradingConfig.id, // Use shared quiz grading config
-                    moduleIndex,
-                  ),
-                });
-                allQuizzes.push(quiz);
-                break;
-              }
               case ContentType.LESSON: {
-                const lesson = await prisma.lesson.create({
-                  data: createLessonData(content.id, j),
-                });
-                allLessons.push(lesson);
-                break;
-              }
-              case ContentType.VIDEO: {
-                await prisma.video.create({
-                  data: createVideoData(content.id),
-                });
-                break;
-              }
-              case ContentType.URL: {
-                await prisma.externalUrl.create({
-                  data: createExternalUrlData(content.id),
-                });
-                break;
-              }
-              case ContentType.FILE: {
-                await prisma.fileResource.create({
-                  data: createFileResourceData(content.id),
-                });
-                break;
-              }
-              case ContentType.DISCUSSION: {
-                const discussion = await prisma.discussion.create({
-                  data: createDiscussionData(content.id),
-                });
-                allDiscussions.push(discussion);
-                break;
+                allLessons.push(content);
+                break; // Added break for consistency
               }
             }
           }
@@ -196,10 +109,7 @@ export async function seedModules(
   log(`-> Created ${allSubsections.length} module subsections.`);
   log(`-> Created ${allContents.length} module contents.`);
   log(`-> Created ${allAssignments.length} assignments.`);
-  log(`-> Created ${allQuizzes.length} quizzes.`);
   log(`-> Created ${allLessons.length} lessons.`);
-  log(`-> Created ${allDiscussions.length} discussions.`);
-  log(`-> Created ${allGradings.length} shared grading configurations.`);
 
   return {
     modules: allModules,
@@ -207,9 +117,6 @@ export async function seedModules(
     subsections: allSubsections,
     contents: allContents,
     assignments: allAssignments,
-    quizzes: allQuizzes,
     lessons: allLessons,
-    discussions: allDiscussions,
-    gradings: allGradings,
   };
 }

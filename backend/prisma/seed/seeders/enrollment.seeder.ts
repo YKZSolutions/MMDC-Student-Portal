@@ -1,4 +1,4 @@
-import { Course, CourseEnrollment, PrismaClient, User } from '@prisma/client';
+import { Course, CourseEnrollment, User } from '@prisma/client';
 import { log, pickRandom } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import {
@@ -6,9 +6,10 @@ import {
   createCourseSectionData,
   createEnrollmentPeriodData,
 } from '../factories/enrollment.factory';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 export async function seedEnrollments(
-  prisma: PrismaClient,
+  prisma: PrismaTransaction,
   courses: Course[],
   mentors: User[],
   students: User[],

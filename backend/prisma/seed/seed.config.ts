@@ -33,10 +33,6 @@ export const seedConfig = {
   // --- Mentoring ---
   APPOINTMENTS_PER_STUDENT: 1,
 
-  // --- Discussion ---
-  DISCUSSIONS_PER_MODULE: 2,
-  POSTS_PER_DISCUSSION: 3,
-
   // --- Probabilities ---
   // Likelihood of a student being enrolled in an available course offering
   ENROLLMENT_CHANCE: 0.6,
@@ -44,8 +40,6 @@ export const seedConfig = {
   MAX_STUDENTS_PER_SECTION: 25,
   // Likelihood of a content item being an assignment
   ASSIGNMENT_CHANCE: 0.3,
-  // Likelihood of a content item being a quiz
-  QUIZ_CHANCE: 0.2,
   // Likelihood of an enrolled student submitting their assignment
   SUBMISSION_CHANCE: 0.4,
   // Likelihood of a student submitting their assignment late
