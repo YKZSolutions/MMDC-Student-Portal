@@ -15236,7 +15236,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/TranscriptDto"
                 }
               }
             }
@@ -15248,33 +15248,22 @@
       },
       "get": {
         "operationId": "TranscriptController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Transcript"
-        ]
-      }
-    },
-    "/transcript/{id}": {
-      "get": {
-        "operationId": "TranscriptController_findOne",
         "parameters": [
           {
-            "name": "id",
-            "required": true,
-            "in": "path",
+            "name": "enrollmentPeriodId",
+            "required": false,
+            "in": "query",
             "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -15285,7 +15274,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DetailedTranscriptDto"
+                  }
                 }
               }
             }
@@ -15294,12 +15286,14 @@
         "tags": [
           "Transcript"
         ]
-      },
+      }
+    },
+    "/transcript/{transcriptId}": {
       "patch": {
         "operationId": "TranscriptController_update",
         "parameters": [
           {
-            "name": "id",
+            "name": "transcriptId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15332,7 +15326,9 @@
         "tags": [
           "Transcript"
         ]
-      },
+      }
+    },
+    "/transcript/{id}": {
       "delete": {
         "operationId": "TranscriptController_remove",
         "parameters": [
@@ -23324,11 +23320,152 @@
       },
       "CreateTranscriptDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "courseOfferingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "courseOfferingId",
+          "studentId"
+        ]
+      },
+      "GradeLetter": {
+        "type": "string",
+        "enum": [
+          "pass",
+          "fail",
+          "incomplete"
+        ]
+      },
+      "TranscriptDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "gradeLetter": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradeLetter"
+              }
+            ]
+          },
+          "gradePoints": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "grade",
+          "gradeLetter",
+          "gradePoints",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "TranscriptCourseOfferingDto": {
+        "type": "object",
+        "properties": {
+          "course": {
+            "$ref": "#/components/schemas/CourseDto"
+          },
+          "enrollmentPeriod": {
+            "$ref": "#/components/schemas/EnrollmentPeriodDto"
+          }
+        },
+        "required": [
+          "course",
+          "enrollmentPeriod"
+        ]
+      },
+      "DetailedTranscriptDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "gradeLetter": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradeLetter"
+              }
+            ]
+          },
+          "gradePoints": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "courseOffering": {
+            "$ref": "#/components/schemas/TranscriptCourseOfferingDto"
+          }
+        },
+        "required": [
+          "id",
+          "grade",
+          "gradeLetter",
+          "gradePoints",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "courseOffering"
+        ]
       },
       "UpdateTranscriptDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "courseOfferingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
       }
     }
   }

@@ -1996,11 +1996,41 @@ export type UpdateAppointmentStatusDto = {
 };
 
 export type CreateTranscriptDto = {
-    [key: string]: unknown;
+    courseOfferingId: string;
+    studentId: string;
+};
+
+export type GradeLetter = 'pass' | 'fail' | 'incomplete';
+
+export type TranscriptDto = {
+    id: string;
+    grade: string;
+    gradeLetter: GradeLetter | null;
+    gradePoints: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type TranscriptCourseOfferingDto = {
+    course: CourseDto;
+    enrollmentPeriod: EnrollmentPeriodDto;
+};
+
+export type DetailedTranscriptDto = {
+    id: string;
+    grade: string;
+    gradeLetter: GradeLetter | null;
+    gradePoints: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    courseOffering: TranscriptCourseOfferingDto;
 };
 
 export type UpdateTranscriptDto = {
-    [key: string]: unknown;
+    courseOfferingId?: string;
+    studentId?: string;
 };
 
 export type TestControllerTestStudentData = {
@@ -6178,12 +6208,15 @@ export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerU
 export type TranscriptControllerFindAllData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        enrollmentPeriodId?: string;
+        studentId?: string;
+    };
     url: '/transcript';
 };
 
 export type TranscriptControllerFindAllResponses = {
-    200: string;
+    200: Array<DetailedTranscriptDto>;
 };
 
 export type TranscriptControllerFindAllResponse = TranscriptControllerFindAllResponses[keyof TranscriptControllerFindAllResponses];
@@ -6196,10 +6229,25 @@ export type TranscriptControllerCreateData = {
 };
 
 export type TranscriptControllerCreateResponses = {
-    201: string;
+    201: TranscriptDto;
 };
 
 export type TranscriptControllerCreateResponse = TranscriptControllerCreateResponses[keyof TranscriptControllerCreateResponses];
+
+export type TranscriptControllerUpdateData = {
+    body: UpdateTranscriptDto;
+    path: {
+        transcriptId: string;
+    };
+    query?: never;
+    url: '/transcript/{transcriptId}';
+};
+
+export type TranscriptControllerUpdateResponses = {
+    200: string;
+};
+
+export type TranscriptControllerUpdateResponse = TranscriptControllerUpdateResponses[keyof TranscriptControllerUpdateResponses];
 
 export type TranscriptControllerRemoveData = {
     body?: never;
@@ -6215,36 +6263,6 @@ export type TranscriptControllerRemoveResponses = {
 };
 
 export type TranscriptControllerRemoveResponse = TranscriptControllerRemoveResponses[keyof TranscriptControllerRemoveResponses];
-
-export type TranscriptControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/transcript/{id}';
-};
-
-export type TranscriptControllerFindOneResponses = {
-    200: string;
-};
-
-export type TranscriptControllerFindOneResponse = TranscriptControllerFindOneResponses[keyof TranscriptControllerFindOneResponses];
-
-export type TranscriptControllerUpdateData = {
-    body: UpdateTranscriptDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/transcript/{id}';
-};
-
-export type TranscriptControllerUpdateResponses = {
-    200: string;
-};
-
-export type TranscriptControllerUpdateResponse = TranscriptControllerUpdateResponses[keyof TranscriptControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;
