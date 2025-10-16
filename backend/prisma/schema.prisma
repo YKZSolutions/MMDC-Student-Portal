@@ -905,6 +905,9 @@ model AssignmentSubmission {
   // Late submission tracking
   lateDays Int? @db.SmallInt
 
+  /// @DtoCreateOptional
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanCreateOnUpdate
   attachments SubmissionAttachment[]
 
   /// @DtoReadOnly
