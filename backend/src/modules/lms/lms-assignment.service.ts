@@ -315,11 +315,13 @@ export class LmsAssignmentService {
     studentId: string,
   ): Promise<StudentAssignmentItemDto> {
     const assignment = await this.prisma.client.assignment.findFirstOrThrow({
-      where: { moduleContent: { id }, submissions: { some: { studentId } } },
-      include: {
-        grading: true,
-        submissions: { include: { attachments: true } },
-      },
+      where: { moduleContent: { id } },
+      include: { grading: true },
+    });
+
+    const submissions = await this.prisma.client.assignmentSubmission.findMany({
+      where: { assignmentId: assignment.id, studentId },
+      include: { attachments: true },
     });
 
     return {
@@ -334,7 +336,7 @@ export class LmsAssignmentService {
             curveSettings: assignment.grading.curveSettings as Prisma.JsonValue,
           }
         : undefined,
-      submissions: assignment.submissions.map((submission) => ({
+      submissions: submissions.map((submission) => ({
         ...submission,
         content: submission.content as Prisma.JsonValue[],
         groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
