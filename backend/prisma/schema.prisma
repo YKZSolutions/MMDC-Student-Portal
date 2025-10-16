@@ -160,7 +160,7 @@ model StaffDetails {
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  employeeNumber Int
+  employeeNumber Int    @unique
   department     String
   position       String
   otherDetails   Json
@@ -235,7 +235,7 @@ model Course {
   curriculumCourses CurriculumCourse[]
 
   courseCode  String  @unique
-  name        String
+  name        String  @unique
   description String
   units       Int
   type        String
@@ -333,6 +333,8 @@ model EnrollmentPeriod {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([startYear, endYear, term])
 }
 
 model CourseOffering {
@@ -363,6 +365,8 @@ model CourseOffering {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([courseId, periodId])
 }
 
 enum Days {
@@ -405,6 +409,8 @@ model CourseSection {
 
   /// @DtoApiHidden
   sectionModules SectionModule[]
+
+  @@unique([courseOfferingId, name])
 }
 
 enum CourseEnrollmentStatus {
@@ -442,6 +448,8 @@ model CourseEnrollment {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([courseOfferingId, studentId])
 }
 
 enum BillType {
@@ -469,7 +477,7 @@ model Bill {
   /// @DtoApiHidden
   billPayments     BillPayment[]
 
-  invoiceId     Int           @default(autoincrement())
+  invoiceId     Int           @unique @default(autoincrement())
   payerName     String
   payerEmail    String
   billType      BillType
@@ -574,7 +582,7 @@ model PricingGroup {
   /// @DtoApiHidden
   enrollmentPeriods EnrollmentPeriod[]
 
-  name    String
+  name    String  @unique
   amount  Decimal @db.Decimal(10, 2)
   enabled Boolean @default(true)
 
@@ -654,6 +662,9 @@ model Module {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([courseId, courseOfferingId])
+  @@unique([courseId, courseOfferingId, title])
 }
 
 model SectionModule {
@@ -1043,6 +1054,8 @@ model Appointment {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([studentId, mentorId, startAt])
 }
 
 model Notification {
@@ -1075,6 +1088,8 @@ model NotificationReceipt {
   createdAt DateTime  @default(now())
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([notificationId, userId])
 }
 
 enum GradeLetter {
