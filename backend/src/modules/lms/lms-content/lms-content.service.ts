@@ -87,7 +87,7 @@ export class LmsContentService {
             assignment: {
               create: {
                 mode: 'INDIVIDUAL',
-                maxScore: new Prisma.Decimal(0),
+                maxScore: 0,
                 weightPercentage: 0,
               },
             }, // Create an empty assignment object
@@ -451,13 +451,12 @@ export class LmsContentService {
    * @param {string} moduleId - The UUID of the module for which content progress is being fetched.
    * @param {string} userId - The UUID of the user making this request.
    * @param {Role} role - The role of the user making this request.
-   * @param {string} studentId - The UUID of the student owning the content progress.
    * @returns {Promise<DetailedContentProgressDto[]>} - An array of content progress records with related module content details.
    * @throws {BadRequestException} - If the student ID is missing or invalid.
    */
   @Log({
-    logArgsMessage: ({ moduleId, studentId }) =>
-      `Fetching content progress for module ${moduleId} student ${studentId ?? 'self'}`,
+    logArgsMessage: ({ moduleId, userId, role }) =>
+      `Fetching content progress for module ${moduleId} student ${role === 'student' ? 'self' : userId}`,
     logSuccessMessage: (result) =>
       `Fetched ${result.length} content progress records`,
     logErrorMessage: (err, { moduleId, studentId }) =>
@@ -467,16 +466,12 @@ export class LmsContentService {
     @LogParam('moduleId') moduleId: string,
     @LogParam('userId') userId: string,
     @LogParam('role') role: Role,
-    @LogParam('studentId') studentId?: string,
   ): Promise<DetailedContentProgressDto[]> {
-    if (!studentId && role !== Role.student) {
-      throw new BadRequestException(
-        'Mentors and admins must provide a studentId',
-      );
-    }
-
     return await this.prisma.client.contentProgress.findMany({
-      where: { moduleId, studentId: studentId ?? userId },
+      where: {
+        moduleId,
+        ...(role === Role.student && { studentId: userId }),
+      },
       include: {
         moduleContent: {
           select: {

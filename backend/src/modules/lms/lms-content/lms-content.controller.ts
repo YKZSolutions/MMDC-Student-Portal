@@ -45,6 +45,7 @@ import {
   FullModuleContent,
   UpdateFullModuleContent,
 } from '@/modules/lms/lms-content/types';
+import { DetailedContentProgressDto } from '@/modules/lms/lms-content/dto/detailed-content-progress.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -291,15 +292,12 @@ export class LmsContentController {
   findAllContentProgress(
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
     @CurrentUser() user: CurrentAuthUser,
-    @Query('studentId', new ParseUUIDPipe({ optional: true }))
-    studentId?: string,
-  ) {
+  ): Promise<DetailedContentProgressDto[]> {
     const { role, user_id } = user.user_metadata;
     return this.lmsContentService.findAllContentProgress(
       moduleId,
       user_id,
       role,
-      studentId,
     );
   }
 }

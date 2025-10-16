@@ -31,12 +31,20 @@ import {
   ModuleTreeAssignmentItemDto,
   ModuleTreeLessonItemDto,
 } from '@/modules/lms/lms-module/dto/module-tree-content-item.dto';
+import {
+  DashboardProgress,
+  ModuleProgressDetail,
+  ModuleProgressOverview,
+  ProgressQueryParams,
+} from '@/modules/lms/lms-module/dto/module-progress-stats.dto';
+import { ModuleProgressService } from '@/modules/lms/lms-module/module-progress.service';
 
 @Controller('modules')
 export class LmsController {
   constructor(
     private readonly lmsService: LmsService,
     private readonly lmsPublishService: LmsPublishService,
+    private readonly progressService: ModuleProgressService,
   ) {}
 
   /**
@@ -264,5 +272,48 @@ export class LmsController {
   ): Promise<ModuleTreeDto> {
     const { role, user_id } = user.user_metadata;
     return this.lmsService.findModuleTree(id, role, user_id);
+  }
+
+  @Get(':id/progress/overview')
+  async getModuleProgressOverview(
+    @Param('id') id: string,
+    @Query() queryParams: ProgressQueryParams,
+    @CurrentUser() currentUser: CurrentAuthUser,
+  ): Promise<ModuleProgressOverview> {
+    const { role, user_id } = currentUser.user_metadata;
+    return this.progressService.getModuleProgressOverview(
+      id,
+      user_id,
+      role,
+      queryParams,
+    );
+  }
+
+  @Get(':id/progress/detail')
+  async getModuleProgressDetail(
+    @Param('id') id: string,
+    @Query() queryParams: ProgressQueryParams,
+    @CurrentUser() currentUser: CurrentAuthUser,
+  ): Promise<ModuleProgressDetail> {
+    const { role, user_id } = currentUser.user_metadata;
+    return this.progressService.getModuleProgressDetail(
+      id,
+      user_id,
+      role,
+      queryParams,
+    );
+  }
+
+  @Get('dashboard')
+  async getDashboardProgress(
+    @Query() queryParams: ProgressQueryParams,
+    @CurrentUser() currentUser: CurrentAuthUser,
+  ): Promise<DashboardProgress> {
+    const { role, user_id } = currentUser.user_metadata;
+    return this.progressService.getDashboardProgress(
+      user_id,
+      role,
+      queryParams,
+    );
   }
 }
