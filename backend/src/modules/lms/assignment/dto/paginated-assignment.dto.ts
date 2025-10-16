@@ -4,7 +4,9 @@ import { AssignmentSubmissionDto } from '@/generated/nestjs-dto/assignmentSubmis
 import { GradeRecordDto } from '@/generated/nestjs-dto/gradeRecord.dto';
 import { SubmissionAttachmentDto } from '@/generated/nestjs-dto/submissionAttachment.dto';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
-import { PickType } from '@nestjs/swagger';
+import { IntersectionType, PickType } from '@nestjs/swagger';
+import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
 class AssignmentStatsDto {
   submitted: number;
@@ -12,8 +14,14 @@ class AssignmentStatsDto {
   total: number;
 }
 
+class BaseAssignmentItemDto extends IntersectionType(
+  AssignmentDto,
+  PickType(Assignment, ['rubricTemplateId']),
+  PickType(ModuleContent, ['title', 'subtitle', 'content']),
+) {}
+
 // Admin
-class AdminAssignmentItemDto extends AssignmentDto {
+class AdminAssignmentItemDto extends BaseAssignmentItemDto {
   stats: AssignmentStatsDto;
 }
 
@@ -40,7 +48,7 @@ class MentorAssignmentSubmissionItemDto extends PickType(
   student: UserDto;
 }
 
-class MentorAssignmentItemDto extends AssignmentDto {
+class MentorAssignmentItemDto extends BaseAssignmentItemDto {
   stats: AssignmentStatsDto;
   submissions: MentorAssignmentSubmissionItemDto[];
 }
@@ -55,7 +63,7 @@ class StudentAssignmentSubmissionItemDto extends AssignmentSubmissionDto {
   grade?: GradeRecordDto | null;
 }
 
-export class StudentAssignmentItemDto extends AssignmentDto {
+export class StudentAssignmentItemDto extends BaseAssignmentItemDto {
   submissions: StudentAssignmentSubmissionItemDto[];
 }
 

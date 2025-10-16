@@ -1972,6 +1972,16 @@ export const zAdminAssignmentItemDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
+    rubricTemplateId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.array(z.object({})),
     stats: zAssignmentStatsDto
 });
 
@@ -2042,6 +2052,16 @@ export const zMentorAssignmentItemDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
+    rubricTemplateId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.array(z.object({})),
     stats: zAssignmentStatsDto,
     submissions: z.array(zMentorAssignmentSubmissionItemDto)
 });
@@ -2126,6 +2146,16 @@ export const zStudentAssignmentItemDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
+    rubricTemplateId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.array(z.object({})),
     submissions: z.array(zStudentAssignmentSubmissionItemDto)
 });
 

@@ -69,6 +69,13 @@ export class AssignmentService {
           _count: {
             select: { submissions: true },
           },
+          moduleContent: {
+            select: {
+              title: true,
+              subtitle: true,
+              content: true,
+            },
+          },
           submissions: {
             select: {
               id: true,
@@ -92,6 +99,9 @@ export class AssignmentService {
 
       return {
         ...assignmentItem,
+        title: assignmentItem.moduleContent.title,
+        subtitle: assignmentItem.moduleContent.subtitle,
+        content: assignmentItem.moduleContent.content as Prisma.JsonValue[],
         stats: {
           submitted: submitted,
           graded: graded,
@@ -145,6 +155,13 @@ export class AssignmentService {
           _count: {
             select: { submissions: true },
           },
+          moduleContent: {
+            select: {
+              title: true,
+              subtitle: true,
+              content: true,
+            },
+          },
           submissions: {
             select: {
               id: true,
@@ -173,6 +190,9 @@ export class AssignmentService {
 
       return {
         ...assignment,
+        title: assignment.moduleContent.title,
+        subtitle: assignment.moduleContent.subtitle,
+        content: assignment.moduleContent.content as Prisma.JsonValue[],
         submissions: assignment.submissions.map((submissionItem) => {
           const { gradeRecord, ...submission } = submissionItem;
           return {
@@ -219,6 +239,7 @@ export class AssignmentService {
       .paginate({
         where,
         include: {
+          moduleContent: true,
           submissions: {
             include: {
               gradeRecord: true,
@@ -230,6 +251,9 @@ export class AssignmentService {
 
     const assignments = data.map((assignment) => ({
       ...assignment,
+      title: assignment.moduleContent.title,
+      subtitle: assignment.moduleContent.subtitle,
+      content: assignment.moduleContent.content as Prisma.JsonValue[],
       submissions: assignment.submissions.map((submissionItem) => {
         const { gradeRecord, ...submission } = submissionItem;
         return {
@@ -260,12 +284,16 @@ export class AssignmentService {
     const assignment = await this.prisma.client.assignment.findFirstOrThrow({
       where: { id, submissions: { some: { studentId } } },
       include: {
+        moduleContent: true,
         submissions: { include: { attachments: true } },
       },
     });
 
     return {
       ...assignment,
+      title: assignment.moduleContent.title,
+      subtitle: assignment.moduleContent.subtitle,
+      content: assignment.moduleContent.content as Prisma.JsonValue[],
       submissions: assignment.submissions.map((submission) => ({
         ...submission,
         content: submission.content as Prisma.JsonValue[],

@@ -20909,6 +20909,23 @@
             "nullable": true,
             "format": "date-time"
           },
+          "rubricTemplateId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "stats": {
             "$ref": "#/components/schemas/AssignmentStatsDto"
           }
@@ -20926,6 +20943,10 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
+          "rubricTemplateId",
+          "title",
+          "subtitle",
+          "content",
           "stats"
         ]
       },
@@ -21109,6 +21130,23 @@
             "nullable": true,
             "format": "date-time"
           },
+          "rubricTemplateId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "stats": {
             "$ref": "#/components/schemas/AssignmentStatsDto"
           },
@@ -21132,6 +21170,10 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
+          "rubricTemplateId",
+          "title",
+          "subtitle",
+          "content",
           "stats",
           "submissions"
         ]
@@ -21343,6 +21385,23 @@
             "nullable": true,
             "format": "date-time"
           },
+          "rubricTemplateId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "submissions": {
             "type": "array",
             "items": {
@@ -21363,6 +21422,10 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
+          "rubricTemplateId",
+          "title",
+          "subtitle",
+          "content",
           "submissions"
         ]
       },

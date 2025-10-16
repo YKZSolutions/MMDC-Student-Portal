@@ -1367,6 +1367,12 @@ export type AdminAssignmentItemDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
     stats: AssignmentStatsDto;
 };
 
@@ -1413,6 +1419,12 @@ export type MentorAssignmentItemDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
     stats: AssignmentStatsDto;
     submissions: Array<MentorAssignmentSubmissionItemDto>;
 };
@@ -1467,6 +1479,12 @@ export type StudentAssignmentItemDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
     submissions: Array<StudentAssignmentSubmissionItemDto>;
 };
 
