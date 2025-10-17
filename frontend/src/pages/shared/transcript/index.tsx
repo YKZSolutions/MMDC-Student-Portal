@@ -12,6 +12,7 @@ import {
   enrollmentControllerFindOneEnrollmentOptions,
   transcriptControllerFindAllOptions,
   usersControllerFindAllOptions,
+  usersControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import type { TranscriptSearch } from '@/routes/(protected)/transcript'
 import {
@@ -24,7 +25,6 @@ import {
   Menu,
   Paper,
   rem,
-  Select,
   Skeleton,
   Stack,
   Table,
@@ -143,15 +143,43 @@ function TranscriptPage() {
       <Flex gap={'md'} direction={'column'}>
         <Stack gap={'md'}>
           <Group grow>
-            
+            <Suspense
+              fallback={
+                // This skeleton mimics the AsyncSearchSelect appearance
+                // to maintain layout consistency during loading.
+                <EnrollmentPeriodsSelector
+                  onChange={handleEnrollmentPeriodChange}
+                  transcripts={[]}
+                />
+              }
+            >
+              <TranscriptQueryProvider>
+                {(transcripts) => (
+                  <EnrollmentPeriodsSelector
+                    transcripts={transcripts}
+                    onChange={handleEnrollmentPeriodChange}
+                  />
+                )}
+              </TranscriptQueryProvider>
+            </Suspense>
 
             {authUser.role !== 'student' && (
               <Suspense
                 fallback={
-                  <Skeleton visible h={rem(40)} w="100%" radius={'md'} />
+                  <StudentSelector
+                    onChange={handleStudentChange}
+                    transcripts={[]}
+                  />
                 }
               >
-                <StudentSelector onChange={handleStudentChange} />
+                <TranscriptQueryProvider>
+                  {(transcripts) => (
+                    <StudentSelector
+                      onChange={handleStudentChange}
+                      transcripts={transcripts}
+                    />
+                  )}
+                </TranscriptQueryProvider>
               </Suspense>
             )}
           </Group>
@@ -236,68 +264,62 @@ function TranscriptTable({
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              <TranscriptQueryProvider>
-                {(transcripts) =>
-                  transcripts.map((transcript) => (
-                    <Table.Tr key={transcript.id}>
-                      <Table.Td>
-                        <Text fw={500} c={'dark.7'} fz={'sm'}>
-                          {transcript.courseOffering?.course?.courseCode}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text c={'dark.6'} fz={'sm'}>
-                          {transcript.courseOffering?.course?.name}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600} c={'dark.7'} fz={'sm'}>
-                          {transcript.grade}
-                        </Text>
-                      </Table.Td>
-                      <RoleComponentManager
-                        currentRole={authUser.role}
-                        roleRender={{
-                          admin: (
-                            <Table.Td>
-                              <Menu
-                                withArrow
-                                position="bottom-end"
-                                shadow="md"
-                                width={200}
+              {transcripts.map((transcript) => (
+                <Table.Tr key={transcript.id}>
+                  <Table.Td>
+                    <Text fw={500} c={'dark.7'} fz={'sm'}>
+                      {transcript.courseOffering?.course?.courseCode}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text c={'dark.6'} fz={'sm'}>
+                      {transcript.courseOffering?.course?.name}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text fw={600} c={'dark.7'} fz={'sm'}>
+                      {transcript.grade}
+                    </Text>
+                  </Table.Td>
+                  <RoleComponentManager
+                    currentRole={authUser.role}
+                    roleRender={{
+                      admin: (
+                        <Table.Td>
+                          <Menu
+                            withArrow
+                            position="bottom-end"
+                            shadow="md"
+                            width={200}
+                          >
+                            <Menu.Target>
+                              <ActionIcon
+                                onClick={(e) => e.stopPropagation()}
+                                variant="subtle"
+                                color="gray"
+                                radius={'xl'}
                               >
-                                <Menu.Target>
-                                  <ActionIcon
-                                    onClick={(e) => e.stopPropagation()}
-                                    variant="subtle"
-                                    color="gray"
-                                    radius={'xl'}
-                                  >
-                                    <IconDotsVertical size={20} stroke={1.5} />
-                                  </ActionIcon>
-                                </Menu.Target>
-                                <Menu.Dropdown>
-                                  <Menu.Item
-                                    leftSection={<IconEdit size={16} />}
-                                  >
-                                    Edit
-                                  </Menu.Item>
-                                  <Menu.Item
-                                    c="red"
-                                    leftSection={<IconTrash size={16} />}
-                                  >
-                                    Delete
-                                  </Menu.Item>
-                                </Menu.Dropdown>
-                              </Menu>
-                            </Table.Td>
-                          ),
-                        }}
-                      />
-                    </Table.Tr>
-                  ))
-                }
-              </TranscriptQueryProvider>
+                                <IconDotsVertical size={20} stroke={1.5} />
+                              </ActionIcon>
+                            </Menu.Target>
+                            <Menu.Dropdown>
+                              <Menu.Item leftSection={<IconEdit size={16} />}>
+                                Edit
+                              </Menu.Item>
+                              <Menu.Item
+                                c="red"
+                                leftSection={<IconTrash size={16} />}
+                              >
+                                Delete
+                              </Menu.Item>
+                            </Menu.Dropdown>
+                          </Menu>
+                        </Table.Td>
+                      ),
+                    }}
+                  />
+                </Table.Tr>
+              ))}
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
@@ -308,13 +330,17 @@ function TranscriptTable({
 
 function EnrollmentPeriodsSelector({
   onChange,
+  transcripts,
 }: {
   onChange: (value: string | null) => void
+  transcripts: DetailedTranscriptDto[]
 }) {
   const { search } = useSearchState(route)
 
-  const enrollmentPeriodId = search.enrollmentPeriodId ?? undefined
-  
+  const enrollmentPeriodId =
+    search.enrollmentPeriodId ??
+    transcripts[0]?.courseOffering.enrollmentPeriod.id
+
   return (
     <AsyncSearchSelect
       variant="default"
@@ -349,33 +375,64 @@ function EnrollmentPeriodsSelector({
 
 function StudentSelector({
   onChange,
+  transcripts,
 }: {
   onChange: (value: string | null) => void
+  transcripts: DetailedTranscriptDto[]
 }) {
   const { search } = useSearchState(route)
 
-  const { data } = useSuspenseQuery(
-    usersControllerFindAllOptions({
-      query: { search: '', page: 1, role: 'student' },
-    }),
-  )
-
-  const students = data?.users ?? []
-  const options = students.map((student: UserWithRelations) => ({
-    value: student.id,
-    label: `${student.firstName} ${student.lastName}`,
-  }))
+  const studentId = search.studentId ?? transcripts[0]?.user.id
 
   return (
-    <Select
+    <AsyncSearchSelect
+      variant="default"
+      radius={'md'}
       label="Student"
       placeholder="Select a student"
-      data={options}
-      value={search.studentId}
-      onChange={onChange}
-      searchable
+      withAsterisk
+      className="flex-1"
+      preloadOptions
+      initialValue={studentId}
+      getItemById={(id) =>
+        usersControllerFindOneOptions({
+          path: {
+            id: id,
+          },
+        })
+      }
+      getOptions={(search) =>
+        usersControllerFindAllOptions({
+          query: {
+            search,
+            role: 'student',
+          },
+        })
+      }
+      mapData={(data) =>
+        data.users.map((user: UserWithRelations) => ({
+          value: user.id,
+          label: `${user.firstName} ${user.lastName}`,
+          email: user.userAccount?.email ?? undefined,
+        }))
+      }
+      mapItem={(user) => ({
+        value: user.id,
+        label: `${user.firstName} ${user.lastName}`,
+        email: user.userAccount?.email ?? undefined,
+      })}
+      renderOption={({ option }) => (
+        <Box>
+          <Text fw={500} c={'dark.7'} fz={'sm'}>
+            {option.label}
+          </Text>
+          <Text fw={400} c={'dark.4'} fz={'xs'}>
+            {option.email}
+          </Text>
+        </Box>
+      )}
       allowDeselect={false}
-      radius={'md'}
+      onChange={onChange}
     />
   )
 }
