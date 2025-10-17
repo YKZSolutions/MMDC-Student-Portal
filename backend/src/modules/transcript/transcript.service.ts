@@ -217,7 +217,7 @@ export class TranscriptService {
           ).id;
       }
 
-      return await tx.transcript.findMany({
+      const transcripts = await tx.transcript.findMany({
         where: {
           ...where,
         },
@@ -236,6 +236,38 @@ export class TranscriptService {
           },
         },
       });
+
+      // Compute GWA (Grade Weighted Average)
+      // GWA = Sum(grade * units) / Sum(units)
+      const { totalGradePoints, totalUnits } = transcripts.reduce(
+        (acc, transcript) => {
+          const gradePoints = new Decimal(transcript.gradePoints || 0);
+          const units = new Decimal(
+            transcript.courseOffering.course.units || 0,
+          );
+
+          return {
+            totalGradePoints: acc.totalGradePoints.plus(gradePoints),
+            totalUnits: acc.totalUnits.plus(units),
+          };
+        },
+        {
+          totalGradePoints: new Decimal(0),
+          totalUnits: new Decimal(0),
+        },
+      );
+
+      const gwa = totalUnits.gt(0)
+        ? totalGradePoints.div(totalUnits)
+        : new Decimal(0);
+
+      // Add GWA to each transcript
+      const transcriptsWithGwa = transcripts.map((transcript) => ({
+        ...transcript,
+        gwa,
+      }));
+
+      return transcriptsWithGwa;
     });
   }
 
