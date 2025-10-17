@@ -2026,6 +2026,7 @@ export type DetailedTranscriptDto = {
     updatedAt: string;
     deletedAt: string | null;
     courseOffering: TranscriptCourseOfferingDto;
+    user: UserWithRelations;
 };
 
 export type UpdateTranscriptDto = {

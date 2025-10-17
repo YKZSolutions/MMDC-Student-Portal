@@ -3179,7 +3179,8 @@ export const zDetailedTranscriptDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
-    courseOffering: zTranscriptCourseOfferingDto
+    courseOffering: zTranscriptCourseOfferingDto,
+    user: zUserWithRelations
 });
 
 export const zUpdateTranscriptDto = z.object({

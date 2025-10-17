@@ -23753,6 +23753,9 @@
           },
           "courseOffering": {
             "$ref": "#/components/schemas/TranscriptCourseOfferingDto"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserWithRelations"
           }
         },
         "required": [
@@ -23763,7 +23766,8 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
-          "courseOffering"
+          "courseOffering",
+          "user"
         ]
       },
       "UpdateTranscriptDto": {
