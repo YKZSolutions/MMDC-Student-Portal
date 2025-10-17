@@ -1,6 +1,7 @@
 import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 import { TranscriptDto } from '@/generated/nestjs-dto/transcript.dto';
+import { UserWithRelations } from '@/modules/users/dto/user-with-relations.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
 class TranscriptCourseOfferingDto {
@@ -11,4 +12,7 @@ class TranscriptCourseOfferingDto {
 export class DetailedTranscriptDto extends TranscriptDto {
   @ApiProperty({ type: () => TranscriptCourseOfferingDto })
   courseOffering: TranscriptCourseOfferingDto;
+
+  @ApiProperty({ type: () => UserWithRelations })
+  user: UserWithRelations;
 }

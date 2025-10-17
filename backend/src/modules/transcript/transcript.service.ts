@@ -228,6 +228,12 @@ export class TranscriptService {
               enrollmentPeriod: true,
             },
           },
+          user: {
+            include: {
+              userAccount: true,
+              userDetails: true,
+            },
+          },
         },
       });
     });
