@@ -1,6 +1,12 @@
-import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  IntersectionType,
+  OmitType,
+  PickType,
+} from '@nestjs/swagger';
 import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
-import { AssignmentSubmission } from '@/generated/nestjs-dto/assignmentSubmission.entity';
+import { AssignmentSubmissionDto } from '@/generated/nestjs-dto/assignmentSubmission.dto';
+import { CurrentGradeDto } from '@/modules/lms/grading/dto/studentGradebookDto';
 
 /**
  * The base interface for any gradable item within a module.
@@ -31,15 +37,47 @@ export class GradableAssignmentItem extends IntersectionType(
     'updatedAt',
     'deletedAt',
   ]),
-  OmitType(AssignmentSubmission, [
-    'assignment',
-    'content',
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'id',
-    'studentId',
-    'attachments',
-    'group',
-  ]),
 ) {}
+
+export class BasicAssignmentSubmission extends PickType(
+  AssignmentSubmissionDto,
+  ['id', 'state', 'groupSnapshot', 'submittedAt', 'lateDays'],
+) {
+  @ApiProperty({
+    type: 'string',
+    required: true,
+    nullable: false,
+  })
+  studentId: string;
+}
+
+export class BasicAssignmentSubmissionItemWithGrade extends BasicAssignmentSubmission {
+  @ApiProperty({
+    type: CurrentGradeDto,
+    required: false,
+    nullable: true,
+  })
+  currentGrade: CurrentGradeDto | null;
+}
+
+export class FullGradableAssignmentItem extends IntersectionType(
+  BaseGradableItem,
+  PickType(Assignment, [
+    'rubricTemplate',
+    'mode',
+    'maxScore',
+    'weightPercentage',
+    'maxAttempts',
+    'allowLateSubmission',
+    'latePenalty',
+    'dueDate',
+    'gracePeriodMinutes',
+  ]),
+) {
+  @ApiProperty({
+    type: BasicAssignmentSubmissionItemWithGrade,
+    isArray: true,
+    description: 'The submissions of the assignment.',
+  })
+  submissions: BasicAssignmentSubmissionItemWithGrade[];
+}

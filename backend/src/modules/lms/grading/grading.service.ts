@@ -4,7 +4,6 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
@@ -24,16 +23,21 @@ import {
 import { isUUID } from 'class-validator';
 import { GradebookFilterDto } from '@/modules/lms/grading/dto/gradebook-filter.dto';
 import {
-  GradeEntryDto,
+  StudentViewGradeEntryDto,
   GradebookForMentorDto,
   GradebookForStudentDto,
-} from '@/modules/lms/grading/dto/gradebook.dto';
+  CurrentGradeDto,
+} from '@/modules/lms/grading/dto/studentGradebookDto';
 import { GradeRecordDto } from '@/generated/nestjs-dto/gradeRecord.dto';
 import { UpdateGradeRecordDto } from '@/generated/nestjs-dto/update-gradeRecord.dto';
 import { GradeAssignmentSubmissionDto } from '@/modules/lms/grading/dto/grade-assignment-submission.dto';
 import { GradeRecord } from '@/generated/nestjs-dto/gradeRecord.entity';
 import { omitAuditDates } from '@/config/prisma_omit.config';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
+import {
+  BasicAssignmentSubmissionItemWithGrade,
+  FullGradableAssignmentItem,
+} from '@/modules/lms/grading/dto/gradable-item.dto';
 
 @Injectable()
 export class GradingService {
@@ -41,8 +45,6 @@ export class GradingService {
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
-
-  private logger = new Logger(GradingService.name, { timestamp: true });
 
   // SECTION: Gradebook / Grade View
 
@@ -56,10 +58,8 @@ export class GradingService {
   async getStudentGradebook(
     @LogParam('studentId') studentId: string,
     @LogParam('filters') filters: GradebookFilterDto,
-    moduleIds?: string[] = [],
   ): Promise<GradebookForStudentDto> {
     const { moduleId, limit, page } = filters;
-    moduleIds?.push(moduleId);
 
     const module = await this.prisma.client.module.findUnique({
       where: { id: moduleId },
@@ -77,7 +77,7 @@ export class GradingService {
         where: {
           moduleContent: {
             moduleSection: {
-              moduleId: { in: moduleIds },
+              moduleId,
             },
           },
           submissions: { some: { studentId: studentId } },
@@ -114,7 +114,7 @@ export class GradingService {
       throw new NotFoundException('Student not found');
     }
 
-    const grades = rawGradeBook
+    const gradeRecords: StudentViewGradeEntryDto[] = rawGradeBook
       .map((item) => {
         const latestSubmission =
           item.submissions.length > 0
@@ -132,14 +132,16 @@ export class GradingService {
         }
 
         return {
-          id: gradeRecord.id,
-          rawScore: gradeRecord.rawScore,
-          finalScore: gradeRecord.finalScore,
-          grade: gradeRecord.grade,
-          gradedAt: gradeRecord.gradedAt,
-          feedback: gradeRecord.feedback,
-          rubricEvaluationDetails: gradeRecord.rubricEvaluationDetails,
-          submission: {
+          currentGrade: {
+            id: gradeRecord.id,
+            rawScore: gradeRecord.rawScore,
+            finalScore: gradeRecord.finalScore,
+            grade: gradeRecord.grade,
+            gradedAt: gradeRecord.gradedAt,
+            feedback: gradeRecord.feedback,
+            rubricEvaluationDetails: gradeRecord.rubricEvaluationDetails,
+          },
+          gradableItem: {
             contentId: item.moduleContentId,
             moduleId: moduleId,
             title: item.moduleContent?.title || 'Unknown Assignment',
@@ -153,23 +155,14 @@ export class GradingService {
             latePenalty: item.latePenalty,
             dueDate: item.dueDate,
             gracePeriodMinutes: item.gracePeriodMinutes,
-            // Submission properties
-            assignmentId: item.id,
-            studentId: studentId,
-            groupId: latestSubmission?.groupId || null,
-            groupSnapshot: latestSubmission?.groupSnapshot || null,
-            state: latestSubmission?.state || SubmissionState.DRAFT,
-            submittedAt: latestSubmission?.submittedAt,
-            attemptNumber: latestSubmission?.attemptNumber || 0,
-            lateDays: latestSubmission?.lateDays,
           },
-        } as GradeEntryDto;
+        } as StudentViewGradeEntryDto;
       })
       .filter((item) => item !== null);
 
     return {
       student: student as UserDto,
-      grades,
+      gradeRecords,
       meta,
     };
   }
@@ -185,7 +178,7 @@ export class GradingService {
     @LogParam('mentor') mentorId: string,
     @LogParam('filters') filters: GradebookFilterDto,
   ): Promise<GradebookForMentorDto> {
-    const { moduleId, courseOfferingId, courseSectionId, limit, page } =
+    const { moduleId, courseOfferingId, courseSectionId, limit, page, search } =
       filters;
 
     // First, verify the mentor has access to the requested resources
@@ -216,32 +209,58 @@ export class GradingService {
     }
 
     // Get all students in the mentor's section
-    const [enrollments, meta] = await this.prisma.client.courseEnrollment
-      .paginate({
-        where: {
-          courseSectionId: mentorAccess.id,
-          status: {
-            in: ['enrolled', 'completed'] as CourseEnrollmentStatus[],
-          },
-        },
-        include: {
+    const enrollments = await this.prisma.client.courseEnrollment.findMany({
+      where: {
+        ...(search && {
           student: {
-            omit: omitAuditDates,
+            OR: [
+              {
+                firstName: { contains: search },
+              },
+              {
+                lastName: { contains: search },
+              },
+              {
+                studentDetails: {
+                  studentNumber: { contains: search },
+                },
+              },
+              {
+                userAccount: {
+                  email: { contains: search },
+                },
+              },
+            ],
           },
+        }),
+        courseSectionId: mentorAccess.id,
+        status: {
+          in: ['enrolled', 'completed'] as CourseEnrollmentStatus[],
         },
-      })
-      .withPages({
-        limit: limit || 10,
-        page: page || 1,
-        includePageCount: true,
-      });
+      },
+      include: {
+        student: {
+          omit: omitAuditDates,
+        },
+      },
+    });
 
     if (enrollments.length === 0) {
       return {
-        grades: [],
-        meta,
+        gradeRecords: [],
+        meta: {
+          currentPage: page || 1,
+          isFirstPage: true,
+          isLastPage: true,
+          previousPage: null,
+          nextPage: null,
+          pageCount: 1,
+          totalCount: 0,
+        },
       };
     }
+
+    const studentIds = enrollments.map((enrollment) => enrollment.studentId);
 
     // Get all modules the mentor has access to in this section
     const accessibleModules = await this.prisma.client.sectionModule.findMany({
@@ -254,19 +273,79 @@ export class GradingService {
 
     const moduleIds = accessibleModules.map((sm) => sm.moduleId);
 
+    const [rawGradeBook, meta] = await this.prisma.client.assignment
+      .paginate({
+        where: {
+          moduleContent: {
+            moduleSection: {
+              moduleId: { in: moduleIds },
+            },
+          },
+          submissions: { some: { studentId: { in: studentIds } } },
+        },
+        include: {
+          moduleContent: {
+            select: {
+              title: true,
+            },
+          },
+          submissions: {
+            include: {
+              gradeRecord: {
+                omit: omitAuditDates,
+              },
+            },
+            omit: omitAuditDates,
+          },
+        },
+        omit: omitAuditDates,
+      })
+      .withPages({
+        limit: limit || 10,
+        page: page || 1,
+        includePageCount: true,
+      });
+
     // Fetch gradebook data for all students
-    const gradebooks = await Promise.all(
-      enrollments.map(async (enrollment) => {
-        return this.getStudentGradebook(
-          enrollment.studentId,
-          filters,
-          moduleIds,
-        );
-      }),
-    );
+    const gradebook: FullGradableAssignmentItem[] = rawGradeBook.map((item) => {
+      return {
+        moduleId,
+        contentId: item.moduleContentId,
+        title: item.moduleContent.title,
+        // Assignment properties
+        mode: item.mode,
+        maxScore: item.maxScore,
+        weightPercentage: item.weightPercentage,
+        maxAttempts: item.maxAttempts,
+        allowLateSubmission: item.allowLateSubmission,
+        latePenalty: item.latePenalty,
+        dueDate: item.dueDate,
+        gracePeriodMinutes: item.gracePeriodMinutes,
+        submissions: item.submissions.map((submission) => {
+          const gradeRecord = submission.gradeRecord;
+          return {
+            id: submission.id,
+            groupSnapshot: submission.groupSnapshot,
+            state: submission.state,
+            studentId: submission.studentId,
+            submittedAt: submission.submittedAt,
+            lateDays: submission.lateDays,
+            currentGrade: {
+              id: gradeRecord?.id,
+              rawScore: gradeRecord?.rawScore,
+              finalScore: gradeRecord?.finalScore,
+              grade: gradeRecord?.grade,
+              gradedAt: gradeRecord?.gradedAt,
+              feedback: gradeRecord?.feedback,
+              rubricEvaluationDetails: gradeRecord?.rubricEvaluationDetails,
+            } as CurrentGradeDto,
+          } as BasicAssignmentSubmissionItemWithGrade;
+        }),
+      };
+    });
 
     return {
-      grades: gradebooks,
+      gradeRecords: gradebook,
       meta,
     };
   }
@@ -289,14 +368,8 @@ export class GradingService {
     @LogParam('admin') adminId: string,
     @LogParam('filters') filters: GradebookFilterDto,
   ): Promise<GradebookForMentorDto> {
-    const {
-      moduleId,
-      studentId,
-      courseOfferingId,
-      courseSectionId,
-      limit,
-      page,
-    } = filters;
+    const { moduleId, courseOfferingId, courseSectionId, limit, page } =
+      filters;
 
     // Admin has access to everything, so we just validate the existence of resources
     const whereClause: Prisma.CourseEnrollmentWhereInput = {};
@@ -327,51 +400,31 @@ export class GradingService {
       };
     }
 
-    if (studentId) {
-      const studentExists = await this.prisma.client.user.findUnique({
-        where: {
-          id: studentId,
-          role: 'student',
-        },
-        select: { id: true },
-      });
-      if (!studentExists) {
-        throw new NotFoundException('Student not found.');
-      }
-      whereClause.studentId = studentId;
-    }
-
     // Default to enrolled students
     whereClause.status = {
       in: ['enrolled', 'completed'] as CourseEnrollmentStatus[],
     };
 
-    const [enrollments, meta] = await this.prisma.client.courseEnrollment
-      .paginate({
-        where: whereClause,
-        include: {
-          student: {
-            omit: omitAuditDates,
-          },
-          courseSection: {
-            include: {
-              sectionModules: {
-                where: moduleId ? { moduleId } : {},
-                select: { moduleId: true },
-              },
+    const enrollments = await this.prisma.client.courseEnrollment.findMany({
+      where: whereClause,
+      include: {
+        student: {
+          omit: omitAuditDates,
+        },
+        courseSection: {
+          include: {
+            sectionModules: {
+              where: moduleId ? { moduleId } : {},
+              select: { moduleId: true },
             },
           },
         },
-      })
-      .withPages({
-        limit: limit || 10,
-        page: page || 1,
-        includePageCount: true,
-      });
+      },
+    });
 
     if (enrollments.length === 0) {
       return {
-        grades: [],
+        gradeRecords: [],
         meta: {
           currentPage: page || 1,
           isFirstPage: true,
@@ -385,7 +438,7 @@ export class GradingService {
     }
 
     // Get module IDs based on filters
-    let moduleIds: string[] = [];
+    let moduleIds: string[];
     if (moduleId) {
       moduleIds = [moduleId];
     } else {
@@ -396,19 +449,81 @@ export class GradingService {
       moduleIds = [...new Set(allModuleIds)];
     }
 
+    const studentIds = enrollments.map((enrollment) => enrollment.studentId);
+
+    const [rawGradeBook, meta] = await this.prisma.client.assignment
+      .paginate({
+        where: {
+          moduleContent: {
+            moduleSection: {
+              moduleId: { in: moduleIds },
+            },
+          },
+          submissions: { some: { studentId: { in: studentIds } } },
+        },
+        include: {
+          moduleContent: {
+            select: {
+              title: true,
+            },
+          },
+          submissions: {
+            include: {
+              gradeRecord: {
+                omit: omitAuditDates,
+              },
+            },
+            omit: omitAuditDates,
+          },
+        },
+        omit: omitAuditDates,
+      })
+      .withPages({
+        limit: limit || 10,
+        page: page || 1,
+        includePageCount: true,
+      });
+
     // Fetch gradebook data for all students
-    const gradebooks = await Promise.all(
-      enrollments.map(async (enrollment) => {
-        return this.getStudentGradebook(
-          enrollment.studentId,
-          filters,
-          moduleIds,
-        );
-      }),
-    );
+    const gradebook: FullGradableAssignmentItem[] = rawGradeBook.map((item) => {
+      return {
+        moduleId,
+        contentId: item.moduleContentId,
+        title: item.moduleContent.title,
+        // Assignment properties
+        mode: item.mode,
+        maxScore: item.maxScore,
+        weightPercentage: item.weightPercentage,
+        maxAttempts: item.maxAttempts,
+        allowLateSubmission: item.allowLateSubmission,
+        latePenalty: item.latePenalty,
+        dueDate: item.dueDate,
+        gracePeriodMinutes: item.gracePeriodMinutes,
+        submissions: item.submissions.map((submission) => {
+          const gradeRecord = submission.gradeRecord;
+          return {
+            id: submission.id,
+            groupSnapshot: submission.groupSnapshot,
+            state: submission.state,
+            studentId: submission.studentId,
+            submittedAt: submission.submittedAt,
+            lateDays: submission.lateDays,
+            currentGrade: {
+              id: gradeRecord?.id,
+              rawScore: gradeRecord?.rawScore,
+              finalScore: gradeRecord?.finalScore,
+              grade: gradeRecord?.grade,
+              gradedAt: gradeRecord?.gradedAt,
+              feedback: gradeRecord?.feedback,
+              rubricEvaluationDetails: gradeRecord?.rubricEvaluationDetails,
+            } as CurrentGradeDto,
+          } as BasicAssignmentSubmissionItemWithGrade;
+        }),
+      };
+    });
 
     return {
-      grades: gradebooks,
+      gradeRecords: gradebook,
       meta,
     };
   }

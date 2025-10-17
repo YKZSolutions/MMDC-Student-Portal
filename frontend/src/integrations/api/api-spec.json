@@ -3541,6 +3541,87 @@
         ]
       }
     },
+    "/modules/{id}/progress/overview": {
+      "get": {
+        "operationId": "LmsController_getModuleProgressOverview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleProgressOverview"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
+    "/modules/{id}/progress/detail": {
+      "get": {
+        "operationId": "LmsController_getModuleProgressDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleProgressDetail"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
+    "/modules/dashboard": {
+      "get": {
+        "operationId": "LmsController_getDashboardProgress",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardProgress"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
     "/modules/{moduleId}/groups": {
       "post": {
         "description": "Requires `ADMIN` or `MENTOR` role",
@@ -10326,14 +10407,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "studentId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -13535,6 +13608,1125 @@
         },
         "tags": [
           "Submission"
+        ]
+      }
+    },
+    "/grading/gradebook/student": {
+      "get": {
+        "description": "Retrieves the gradebook for the authenticated student showing their grades for submitted assignments",
+        "operationId": "GradingController_getStudentGradebook",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "moduleId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by Module ID.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Section ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Student ID (Admin only).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Offering ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseSectionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Section ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student gradebook retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradebookForStudentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Get student gradebook",
+        "tags": [
+          "Grading"
+        ]
+      }
+    },
+    "/grading/gradebook/mentor": {
+      "get": {
+        "description": "Retrieves gradebook data for all students in courses the mentor is assigned to",
+        "operationId": "GradingController_getMentorGradebook",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "moduleId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by Module ID.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Section ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Student ID (Admin only).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Offering ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseSectionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Section ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mentor gradebook retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradebookForMentorDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ForbiddenException": {
+                    "description": "Forbidden",
+                    "value": {
+                      "statusCode": 403,
+                      "message": "Forbidden",
+                      "error": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Get mentor gradebook",
+        "tags": [
+          "Grading"
+        ]
+      }
+    },
+    "/grading/gradebook/admin": {
+      "get": {
+        "description": "Retrieves gradebook data across all courses and students in the system",
+        "operationId": "GradingController_getAdminGradebook",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "moduleId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by Module ID.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Section ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Student ID (Admin only).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Offering ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseSectionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by a specific Course Section ID (Admin only).",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin gradebook retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradebookForMentorDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Get admin gradebook",
+        "tags": [
+          "Grading"
+        ]
+      }
+    },
+    "/grading/submissions/{submissionId}/grade": {
+      "post": {
+        "description": "Creates a grade record for a student assignment submission",
+        "operationId": "GradingController_gradeAssignmentSubmission",
+        "parameters": [
+          {
+            "name": "submissionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeAssignmentSubmissionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Assignment graded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRecordDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRecordDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ForbiddenException": {
+                    "description": "Forbidden",
+                    "value": {
+                      "statusCode": 403,
+                      "message": "Forbidden",
+                      "error": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Grade assignment submission",
+        "tags": [
+          "Grading"
+        ]
+      }
+    },
+    "/grading/grade-records/{recordId}": {
+      "patch": {
+        "description": "Updates an existing grade record for an assignment submission",
+        "operationId": "GradingController_updateGradeRecord",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGradeRecordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Grade record updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ForbiddenException": {
+                    "description": "Forbidden",
+                    "value": {
+                      "statusCode": 403,
+                      "message": "Forbidden",
+                      "error": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Update grade record",
+        "tags": [
+          "Grading"
         ]
       }
     },
@@ -17689,6 +18881,287 @@
           "courseId",
           "publishedAt",
           "unpublishedAt"
+        ]
+      },
+      "ModuleProgressOverview": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleTitle": {
+            "type": "string"
+          },
+          "completedContentItems": {
+            "type": "number"
+          },
+          "totalContentItems": {
+            "type": "number"
+          },
+          "notStartedContentItems": {
+            "type": "number"
+          },
+          "overdueAssignmentsCount": {
+            "type": "number"
+          },
+          "progressPercentage": {
+            "type": "number"
+          },
+          "status": {
+            "type": "object"
+          },
+          "lastAccessedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "completedStudentsCount": {
+            "type": "number"
+          },
+          "totalStudentsCount": {
+            "type": "number"
+          },
+          "moduleCompletionPercentage": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "moduleId",
+          "moduleTitle",
+          "completedContentItems",
+          "totalContentItems",
+          "notStartedContentItems",
+          "overdueAssignmentsCount",
+          "progressPercentage",
+          "status",
+          "completedStudentsCount",
+          "totalStudentsCount",
+          "moduleCompletionPercentage"
+        ]
+      },
+      "ContentItemProgress": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "object"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "lastAccessedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "completedStudentsCount": {
+            "type": "number"
+          },
+          "totalStudentsCount": {
+            "type": "number"
+          },
+          "completionPercentage": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "completedStudentsCount",
+          "totalStudentsCount",
+          "completionPercentage"
+        ]
+      },
+      "SectionProgress": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "contentItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentItemProgress"
+            }
+          },
+          "completedContentItems": {
+            "type": "number"
+          },
+          "totalContentItems": {
+            "type": "number"
+          },
+          "progressPercentage": {
+            "type": "number"
+          },
+          "completedStudentsCount": {
+            "type": "number"
+          },
+          "totalStudentsCount": {
+            "type": "number"
+          },
+          "completionPercentage": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "contentItems",
+          "completedContentItems",
+          "totalContentItems",
+          "progressPercentage",
+          "completedStudentsCount",
+          "totalStudentsCount",
+          "completionPercentage"
+        ]
+      },
+      "ModuleProgressDetail": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleTitle": {
+            "type": "string"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectionProgress"
+            }
+          },
+          "overallProgress": {
+            "type": "object",
+            "properties": {
+              "completedContentItems": {
+                "type": "number"
+              },
+              "totalContentItems": {
+                "type": "number"
+              },
+              "progressPercentage": {
+                "type": "number"
+              },
+              "status": {
+                "type": "object"
+              },
+              "completedStudentsCount": {
+                "type": "number"
+              },
+              "totalStudentsCount": {
+                "type": "number"
+              },
+              "moduleCompletionPercentage": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "completedContentItems",
+              "totalContentItems",
+              "progressPercentage",
+              "status",
+              "completedStudentsCount",
+              "totalStudentsCount",
+              "moduleCompletionPercentage"
+            ]
+          }
+        },
+        "required": [
+          "moduleId",
+          "moduleTitle",
+          "sections",
+          "overallProgress"
+        ]
+      },
+      "StudentProgressStats": {
+        "type": "object",
+        "properties": {
+          "studentId": {
+            "type": "string"
+          },
+          "studentName": {
+            "type": "string"
+          },
+          "completedModules": {
+            "type": "number"
+          },
+          "totalModules": {
+            "type": "number"
+          },
+          "averageProgress": {
+            "type": "number"
+          },
+          "lastActivity": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "studentId",
+          "studentName",
+          "completedModules",
+          "totalModules",
+          "averageProgress",
+          "lastActivity"
+        ]
+      },
+      "DashboardProgress": {
+        "type": "object",
+        "properties": {
+          "studentProgress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleProgressOverview"
+            }
+          },
+          "overallStats": {
+            "type": "object",
+            "properties": {
+              "totalStudents": {
+                "type": "number"
+              },
+              "averageProgress": {
+                "type": "number"
+              },
+              "completedModules": {
+                "type": "number"
+              },
+              "inProgressModules": {
+                "type": "number"
+              },
+              "notStartedModules": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalStudents",
+              "averageProgress",
+              "completedModules",
+              "inProgressModules",
+              "notStartedModules"
+            ]
+          },
+          "studentStats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentProgressStats"
+            }
+          }
+        },
+        "required": [
+          "studentProgress"
         ]
       },
       "CreateDetailedGroupDto": {
@@ -21912,6 +23385,688 @@
           "updatedAt",
           "deletedAt",
           "student"
+        ]
+      },
+      "CurrentGradeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rawScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "finalScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubricEvaluationDetails": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "gradedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "rawScore",
+          "finalScore",
+          "grade",
+          "feedback",
+          "rubricEvaluationDetails",
+          "gradedAt"
+        ]
+      },
+      "GradableAssignmentItem": {
+        "type": "object",
+        "properties": {
+          "contentId": {
+            "type": "string",
+            "description": "The unique ID of the ModuleContent record."
+          },
+          "moduleId": {
+            "type": "string",
+            "description": "The module id of the ModuleContent record."
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the gradable item."
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "rubricTemplate": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RubricTemplate"
+              }
+            ]
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          }
+        },
+        "required": [
+          "contentId",
+          "moduleId",
+          "title",
+          "moduleContentId",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes"
+        ]
+      },
+      "StudentViewGradeEntryDto": {
+        "type": "object",
+        "properties": {
+          "currentGrade": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrentGradeDto"
+              }
+            ]
+          },
+          "submission": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignmentSubmissionDto"
+            }
+          },
+          "gradableItem": {
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradableAssignmentItem"
+              }
+            ]
+          }
+        },
+        "required": [
+          "submission",
+          "gradableItem"
+        ]
+      },
+      "GradebookForStudentDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "student": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "gradeRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentViewGradeEntryDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "student",
+          "gradeRecords"
+        ]
+      },
+      "BasicAssignmentSubmissionItemWithGrade": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groupSnapshot": {
+            "type": "object",
+            "nullable": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmissionState"
+              }
+            ]
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "lateDays": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "studentId": {
+            "type": "string",
+            "nullable": false
+          },
+          "currentGrade": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrentGradeDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "groupSnapshot",
+          "state",
+          "submittedAt",
+          "lateDays",
+          "studentId"
+        ]
+      },
+      "FullGradableAssignmentItem": {
+        "type": "object",
+        "properties": {
+          "contentId": {
+            "type": "string",
+            "description": "The unique ID of the ModuleContent record."
+          },
+          "moduleId": {
+            "type": "string",
+            "description": "The module id of the ModuleContent record."
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the gradable item."
+          },
+          "rubricTemplate": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RubricTemplate"
+              }
+            ]
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "submissions": {
+            "description": "The submissions of the assignment.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BasicAssignmentSubmissionItemWithGrade"
+            }
+          }
+        },
+        "required": [
+          "contentId",
+          "moduleId",
+          "title",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "submissions"
+        ]
+      },
+      "GradebookForMentorDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "gradeRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FullGradableAssignmentItem"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "gradeRecords"
+        ]
+      },
+      "GradeAssignmentSubmissionDto": {
+        "type": "object",
+        "properties": {
+          "rawScore": {
+            "type": "string",
+            "format": "Decimal.js",
+            "description": "The raw score given to the submission before any penalties.",
+            "example": "85.50"
+          },
+          "feedback": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubricEvaluationDetails": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "UpdateGradeRecordDto": {
+        "type": "object",
+        "properties": {
+          "rawScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "finalScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubricEvaluationDetails": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "Module": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "courseId": {
+            "type": "string",
+            "nullable": true
+          },
+          "courseOfferingId": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "courseId",
+          "courseOfferingId",
+          "publishedAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "module": {
+            "$ref": "#/components/schemas/Module"
+          },
+          "groupNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "groupName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleId",
+          "groupNumber",
+          "groupName",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GradeRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "assignmentSubmissionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "assignmentSubmission": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentSubmission"
+              }
+            ]
+          },
+          "rawScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "finalScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubricEvaluationDetails": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "gradedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "studentId",
+          "assignmentSubmissionId",
+          "rawScore",
+          "finalScore",
+          "grade",
+          "feedback",
+          "rubricEvaluationDetails",
+          "gradedAt",
+          "updatedAt"
+        ]
+      },
+      "SubmissionAttachment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "assignmentSubmissionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "assignmentSubmissionId",
+          "name",
+          "url",
+          "type",
+          "size",
+          "createdAt"
+        ]
+      },
+      "AssignmentSubmission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "assignmentId": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string",
+            "nullable": true
+          },
+          "group": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Group"
+              }
+            ]
+          },
+          "groupSnapshot": {
+            "type": "object",
+            "nullable": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmissionState"
+              }
+            ]
+          },
+          "gradeRecord": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradeRecord"
+              }
+            ]
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "attemptNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateDays": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubmissionAttachment"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "assignmentId",
+          "studentId",
+          "groupId",
+          "groupSnapshot",
+          "state",
+          "content",
+          "submittedAt",
+          "attemptNumber",
+          "lateDays",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
         ]
       },
       "PricingType": {

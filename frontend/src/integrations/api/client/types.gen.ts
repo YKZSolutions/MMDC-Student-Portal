@@ -532,6 +532,86 @@ export type ModuleTreeDto = {
     moduleSections?: Array<ModuleTreeSectionDto>;
 };
 
+export type ModuleProgressOverview = {
+    moduleId: string;
+    moduleTitle: string;
+    completedContentItems: number;
+    totalContentItems: number;
+    notStartedContentItems: number;
+    overdueAssignmentsCount: number;
+    progressPercentage: number;
+    status: {
+        [key: string]: unknown;
+    };
+    lastAccessedAt?: string | null;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    moduleCompletionPercentage: number;
+};
+
+export type ContentItemProgress = {
+    id: string;
+    title: string;
+    status: {
+        [key: string]: unknown;
+    };
+    completedAt?: string | null;
+    lastAccessedAt?: string | null;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    completionPercentage: number;
+};
+
+export type SectionProgress = {
+    id: string;
+    title: string;
+    contentItems: Array<ContentItemProgress>;
+    completedContentItems: number;
+    totalContentItems: number;
+    progressPercentage: number;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    completionPercentage: number;
+};
+
+export type ModuleProgressDetail = {
+    moduleId: string;
+    moduleTitle: string;
+    sections: Array<SectionProgress>;
+    overallProgress: {
+        completedContentItems: number;
+        totalContentItems: number;
+        progressPercentage: number;
+        status: {
+            [key: string]: unknown;
+        };
+        completedStudentsCount: number;
+        totalStudentsCount: number;
+        moduleCompletionPercentage: number;
+    };
+};
+
+export type StudentProgressStats = {
+    studentId: string;
+    studentName: string;
+    completedModules: number;
+    totalModules: number;
+    averageProgress: number;
+    lastActivity: string | null;
+};
+
+export type DashboardProgress = {
+    studentProgress: Array<ModuleProgressOverview>;
+    overallStats?: {
+        totalStudents: number;
+        averageProgress: number;
+        completedModules: number;
+        inProgressModules: number;
+        notStartedModules: number;
+    };
+    studentStats?: Array<StudentProgressStats>;
+};
+
 export type CreateDetailedGroupDto = {
     groupNumber: number;
     groupName?: string | null;
@@ -1610,6 +1690,193 @@ export type AssignmentSubmissionDetailsDto = {
     student: UserDto;
     assignment?: Assignment;
     attachments?: Array<SubmissionAttachmentDto>;
+};
+
+export type CurrentGradeDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+};
+
+export type GradableAssignmentItem = {
+    /**
+     * The unique ID of the ModuleContent record.
+     */
+    contentId: string;
+    /**
+     * The module id of the ModuleContent record.
+     */
+    moduleId: string;
+    /**
+     * The title of the gradable item.
+     */
+    title: string;
+    moduleContentId: string;
+    rubricTemplate?: RubricTemplate | null;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+};
+
+export type StudentViewGradeEntryDto = {
+    currentGrade?: CurrentGradeDto | null;
+    submission: Array<AssignmentSubmissionDto>;
+    gradableItem: GradableAssignmentItem;
+};
+
+export type GradebookForStudentDto = {
+    meta: PaginationMetaDto;
+    student: UserDto;
+    gradeRecords: Array<StudentViewGradeEntryDto>;
+};
+
+export type BasicAssignmentSubmissionItemWithGrade = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    submittedAt: string | null;
+    lateDays: number | null;
+    studentId: string;
+    currentGrade?: CurrentGradeDto | null;
+};
+
+export type FullGradableAssignmentItem = {
+    /**
+     * The unique ID of the ModuleContent record.
+     */
+    contentId: string;
+    /**
+     * The module id of the ModuleContent record.
+     */
+    moduleId: string;
+    /**
+     * The title of the gradable item.
+     */
+    title: string;
+    rubricTemplate?: RubricTemplate | null;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    /**
+     * The submissions of the assignment.
+     */
+    submissions: Array<BasicAssignmentSubmissionItemWithGrade>;
+};
+
+export type GradebookForMentorDto = {
+    meta: PaginationMetaDto;
+    gradeRecords: Array<FullGradableAssignmentItem>;
+};
+
+export type GradeAssignmentSubmissionDto = {
+    /**
+     * The raw score given to the submission before any penalties.
+     */
+    rawScore?: string;
+    feedback?: string | null;
+    rubricEvaluationDetails?: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type UpdateGradeRecordDto = {
+    rawScore?: string;
+    finalScore?: string;
+    grade?: string;
+    feedback?: string | null;
+    rubricEvaluationDetails?: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type Module = {
+    id: string;
+    title: string;
+    courseId: string | null;
+    courseOfferingId: string | null;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type Group = {
+    id: string;
+    moduleId: string;
+    module?: Module;
+    groupNumber: number;
+    groupName: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type GradeRecord = {
+    id: string;
+    studentId: string;
+    assignmentSubmissionId: string | null;
+    assignmentSubmission?: AssignmentSubmission | null;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+    updatedAt: string;
+};
+
+export type SubmissionAttachment = {
+    id: string;
+    assignmentSubmissionId: string | null;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    createdAt: string;
+};
+
+export type AssignmentSubmission = {
+    id: string;
+    assignment?: Assignment;
+    assignmentId: string;
+    studentId: string;
+    groupId: string | null;
+    group?: Group | null;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    gradeRecord?: GradeRecord | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    attachments?: Array<SubmissionAttachment>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type PricingType = 'tuition' | 'lab' | 'misc' | 'other';
@@ -2708,6 +2975,49 @@ export type LmsControllerFindModuleTreeResponses = {
 };
 
 export type LmsControllerFindModuleTreeResponse = LmsControllerFindModuleTreeResponses[keyof LmsControllerFindModuleTreeResponses];
+
+export type LmsControllerGetModuleProgressOverviewData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{id}/progress/overview';
+};
+
+export type LmsControllerGetModuleProgressOverviewResponses = {
+    200: ModuleProgressOverview;
+};
+
+export type LmsControllerGetModuleProgressOverviewResponse = LmsControllerGetModuleProgressOverviewResponses[keyof LmsControllerGetModuleProgressOverviewResponses];
+
+export type LmsControllerGetModuleProgressDetailData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{id}/progress/detail';
+};
+
+export type LmsControllerGetModuleProgressDetailResponses = {
+    200: ModuleProgressDetail;
+};
+
+export type LmsControllerGetModuleProgressDetailResponse = LmsControllerGetModuleProgressDetailResponses[keyof LmsControllerGetModuleProgressDetailResponses];
+
+export type LmsControllerGetDashboardProgressData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/modules/dashboard';
+};
+
+export type LmsControllerGetDashboardProgressResponses = {
+    200: DashboardProgress;
+};
+
+export type LmsControllerGetDashboardProgressResponse = LmsControllerGetDashboardProgressResponses[keyof LmsControllerGetDashboardProgressResponses];
 
 export type GroupControllerFindAllData = {
     body?: never;
@@ -4547,9 +4857,7 @@ export type LmsContentControllerFindAllContentProgressData = {
     path: {
         moduleId: string;
     };
-    query: {
-        studentId: string;
-    };
+    query?: never;
     url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
 };
 
@@ -5483,6 +5791,283 @@ export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentR
 };
 
 export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponse = SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses];
+
+export type GradingControllerGetStudentGradebookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by Module ID.
+         */
+        moduleId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        sectionId?: string;
+        /**
+         * Filter by a specific Student ID (Admin only).
+         */
+        studentId?: string;
+        /**
+         * Filter by a specific Course Offering ID (Admin only).
+         */
+        courseOfferingId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        courseSectionId?: string;
+    };
+    url: '/grading/gradebook/student';
+};
+
+export type GradingControllerGetStudentGradebookErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGetStudentGradebookError = GradingControllerGetStudentGradebookErrors[keyof GradingControllerGetStudentGradebookErrors];
+
+export type GradingControllerGetStudentGradebookResponses = {
+    /**
+     * Student gradebook retrieved successfully
+     */
+    200: GradebookForStudentDto;
+};
+
+export type GradingControllerGetStudentGradebookResponse = GradingControllerGetStudentGradebookResponses[keyof GradingControllerGetStudentGradebookResponses];
+
+export type GradingControllerGetMentorGradebookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by Module ID.
+         */
+        moduleId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        sectionId?: string;
+        /**
+         * Filter by a specific Student ID (Admin only).
+         */
+        studentId?: string;
+        /**
+         * Filter by a specific Course Offering ID (Admin only).
+         */
+        courseOfferingId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        courseSectionId?: string;
+    };
+    url: '/grading/gradebook/mentor';
+};
+
+export type GradingControllerGetMentorGradebookErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    403: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGetMentorGradebookError = GradingControllerGetMentorGradebookErrors[keyof GradingControllerGetMentorGradebookErrors];
+
+export type GradingControllerGetMentorGradebookResponses = {
+    /**
+     * Mentor gradebook retrieved successfully
+     */
+    200: GradebookForMentorDto;
+};
+
+export type GradingControllerGetMentorGradebookResponse = GradingControllerGetMentorGradebookResponses[keyof GradingControllerGetMentorGradebookResponses];
+
+export type GradingControllerGetAdminGradebookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by Module ID.
+         */
+        moduleId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        sectionId?: string;
+        /**
+         * Filter by a specific Student ID (Admin only).
+         */
+        studentId?: string;
+        /**
+         * Filter by a specific Course Offering ID (Admin only).
+         */
+        courseOfferingId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        courseSectionId?: string;
+    };
+    url: '/grading/gradebook/admin';
+};
+
+export type GradingControllerGetAdminGradebookErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGetAdminGradebookError = GradingControllerGetAdminGradebookErrors[keyof GradingControllerGetAdminGradebookErrors];
+
+export type GradingControllerGetAdminGradebookResponses = {
+    /**
+     * Admin gradebook retrieved successfully
+     */
+    200: GradebookForMentorDto;
+};
+
+export type GradingControllerGetAdminGradebookResponse = GradingControllerGetAdminGradebookResponses[keyof GradingControllerGetAdminGradebookResponses];
+
+export type GradingControllerGradeAssignmentSubmissionData = {
+    body: GradeAssignmentSubmissionDto;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/grading/submissions/{submissionId}/grade';
+};
+
+export type GradingControllerGradeAssignmentSubmissionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    403: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGradeAssignmentSubmissionError = GradingControllerGradeAssignmentSubmissionErrors[keyof GradingControllerGradeAssignmentSubmissionErrors];
+
+export type GradingControllerGradeAssignmentSubmissionResponses = {
+    /**
+     * Assignment graded successfully
+     */
+    200: GradeRecordDto;
+    201: GradeRecordDto;
+};
+
+export type GradingControllerGradeAssignmentSubmissionResponse = GradingControllerGradeAssignmentSubmissionResponses[keyof GradingControllerGradeAssignmentSubmissionResponses];
+
+export type GradingControllerUpdateGradeRecordData = {
+    body: UpdateGradeRecordDto;
+    path: {
+        recordId: string;
+    };
+    query?: never;
+    url: '/grading/grade-records/{recordId}';
+};
+
+export type GradingControllerUpdateGradeRecordErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    403: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerUpdateGradeRecordError = GradingControllerUpdateGradeRecordErrors[keyof GradingControllerUpdateGradeRecordErrors];
+
+export type GradingControllerUpdateGradeRecordResponses = {
+    /**
+     * Grade record updated successfully
+     */
+    200: GradeRecord;
+};
+
+export type GradingControllerUpdateGradeRecordResponse = GradingControllerUpdateGradeRecordResponses[keyof GradingControllerUpdateGradeRecordResponses];
 
 export type SwaggerControllerDownloadAllSpecsData = {
     body?: never;

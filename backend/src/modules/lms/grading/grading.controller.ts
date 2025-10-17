@@ -23,7 +23,7 @@ import { GradebookFilterDto } from './dto/gradebook-filter.dto';
 import {
   GradebookForStudentDto,
   GradebookForMentorDto,
-} from './dto/gradebook.dto';
+} from './dto/studentGradebookDto';
 import { GradeAssignmentSubmissionDto } from './dto/grade-assignment-submission.dto';
 import { GradeRecordDto } from '@/generated/nestjs-dto/gradeRecord.dto';
 import { UpdateGradeRecordDto } from '@/generated/nestjs-dto/update-gradeRecord.dto';

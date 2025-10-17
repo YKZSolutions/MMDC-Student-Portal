@@ -866,6 +866,92 @@ export const zModuleTreeDto = z.object({
     moduleSections: z.optional(z.array(zModuleTreeSectionDto))
 });
 
+export const zModuleProgressOverview = z.object({
+    moduleId: z.string(),
+    moduleTitle: z.string(),
+    completedContentItems: z.number(),
+    totalContentItems: z.number(),
+    notStartedContentItems: z.number(),
+    overdueAssignmentsCount: z.number(),
+    progressPercentage: z.number(),
+    status: z.object({}),
+    lastAccessedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    completedStudentsCount: z.number(),
+    totalStudentsCount: z.number(),
+    moduleCompletionPercentage: z.number()
+});
+
+export const zContentItemProgress = z.object({
+    id: z.string(),
+    title: z.string(),
+    status: z.object({}),
+    completedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    lastAccessedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    completedStudentsCount: z.number(),
+    totalStudentsCount: z.number(),
+    completionPercentage: z.number()
+});
+
+export const zSectionProgress = z.object({
+    id: z.string(),
+    title: z.string(),
+    contentItems: z.array(zContentItemProgress),
+    completedContentItems: z.number(),
+    totalContentItems: z.number(),
+    progressPercentage: z.number(),
+    completedStudentsCount: z.number(),
+    totalStudentsCount: z.number(),
+    completionPercentage: z.number()
+});
+
+export const zModuleProgressDetail = z.object({
+    moduleId: z.string(),
+    moduleTitle: z.string(),
+    sections: z.array(zSectionProgress),
+    overallProgress: z.object({
+        completedContentItems: z.number(),
+        totalContentItems: z.number(),
+        progressPercentage: z.number(),
+        status: z.object({}),
+        completedStudentsCount: z.number(),
+        totalStudentsCount: z.number(),
+        moduleCompletionPercentage: z.number()
+    })
+});
+
+export const zStudentProgressStats = z.object({
+    studentId: z.string(),
+    studentName: z.string(),
+    completedModules: z.number(),
+    totalModules: z.number(),
+    averageProgress: z.number(),
+    lastActivity: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zDashboardProgress = z.object({
+    studentProgress: z.array(zModuleProgressOverview),
+    overallStats: z.optional(z.object({
+        totalStudents: z.number(),
+        averageProgress: z.number(),
+        completedModules: z.number(),
+        inProgressModules: z.number(),
+        notStartedModules: z.number()
+    })),
+    studentStats: z.optional(z.array(zStudentProgressStats))
+});
+
 export const zCreateDetailedGroupDto = z.object({
     groupNumber: z.int(),
     groupName: z.optional(z.union([
@@ -2368,6 +2454,266 @@ export const zAssignmentSubmissionDetailsDto = z.object({
     attachments: z.optional(z.array(zSubmissionAttachmentDto))
 });
 
+export const zCurrentGradeDto = z.object({
+    id: z.string(),
+    rawScore: z.string(),
+    finalScore: z.string(),
+    grade: z.string(),
+    feedback: z.union([
+        z.string(),
+        z.null()
+    ]),
+    rubricEvaluationDetails: z.array(z.object({})),
+    gradedAt: z.iso.datetime()
+});
+
+export const zGradableAssignmentItem = z.object({
+    contentId: z.string(),
+    moduleId: z.string(),
+    title: z.string(),
+    moduleContentId: z.string(),
+    rubricTemplate: z.optional(z.union([
+        zRubricTemplate,
+        z.null()
+    ])),
+    mode: zAssignmentMode,
+    maxScore: z.int(),
+    weightPercentage: z.int(),
+    maxAttempts: z.union([
+        z.int(),
+        z.null()
+    ]),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
+    latePenalty: z.union([
+        z.int(),
+        z.null()
+    ]),
+    dueDate: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    gracePeriodMinutes: z.union([
+        z.int(),
+        z.null()
+    ])
+});
+
+export const zStudentViewGradeEntryDto = z.object({
+    currentGrade: z.optional(z.union([
+        zCurrentGradeDto,
+        z.null()
+    ])),
+    submission: z.array(zAssignmentSubmissionDto),
+    gradableItem: zGradableAssignmentItem
+});
+
+export const zGradebookForStudentDto = z.object({
+    meta: zPaginationMetaDto,
+    student: zUserDto,
+    gradeRecords: z.array(zStudentViewGradeEntryDto)
+});
+
+export const zBasicAssignmentSubmissionItemWithGrade = z.object({
+    id: z.string(),
+    groupSnapshot: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    state: zSubmissionState,
+    submittedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    lateDays: z.union([
+        z.int(),
+        z.null()
+    ]),
+    studentId: z.string(),
+    currentGrade: z.optional(z.union([
+        zCurrentGradeDto,
+        z.null()
+    ]))
+});
+
+export const zFullGradableAssignmentItem = z.object({
+    contentId: z.string(),
+    moduleId: z.string(),
+    title: z.string(),
+    rubricTemplate: z.optional(z.union([
+        zRubricTemplate,
+        z.null()
+    ])),
+    mode: zAssignmentMode,
+    maxScore: z.int(),
+    weightPercentage: z.int(),
+    maxAttempts: z.union([
+        z.int(),
+        z.null()
+    ]),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
+    latePenalty: z.union([
+        z.int(),
+        z.null()
+    ]),
+    dueDate: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    gracePeriodMinutes: z.union([
+        z.int(),
+        z.null()
+    ]),
+    submissions: z.array(zBasicAssignmentSubmissionItemWithGrade)
+});
+
+export const zGradebookForMentorDto = z.object({
+    meta: zPaginationMetaDto,
+    gradeRecords: z.array(zFullGradableAssignmentItem)
+});
+
+export const zGradeAssignmentSubmissionDto = z.object({
+    rawScore: z.optional(z.string()),
+    feedback: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    rubricEvaluationDetails: z.optional(z.array(z.object({})))
+});
+
+export const zUpdateGradeRecordDto = z.object({
+    rawScore: z.optional(z.string()),
+    finalScore: z.optional(z.string()),
+    grade: z.optional(z.string()),
+    feedback: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    rubricEvaluationDetails: z.optional(z.array(z.object({})))
+});
+
+export const zModule = z.object({
+    id: z.string(),
+    title: z.string(),
+    courseId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    courseOfferingId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zGroup = z.object({
+    id: z.string(),
+    moduleId: z.string(),
+    module: z.optional(zModule),
+    groupNumber: z.int(),
+    groupName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime()
+});
+
+export const zSubmissionAttachment = z.object({
+    id: z.string(),
+    assignmentSubmissionId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    name: z.string(),
+    url: z.string(),
+    type: z.string(),
+    size: z.int(),
+    createdAt: z.iso.datetime()
+});
+
+export const zAssignmentSubmission = z.object({
+    id: z.string(),
+    assignment: z.optional(zAssignment),
+    assignmentId: z.string(),
+    studentId: z.string(),
+    groupId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    group: z.optional(z.union([
+        zGroup,
+        z.null()
+    ])),
+    groupSnapshot: z.union([
+        z.object({}),
+        z.null()
+    ]),
+    state: zSubmissionState,
+    gradeRecord: z.optional(z.union([
+        zGradeRecord,
+        z.null()
+    ])),
+    content: z.array(z.object({})),
+    submittedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    attemptNumber: z.int(),
+    lateDays: z.union([
+        z.int(),
+        z.null()
+    ]),
+    attachments: z.optional(z.array(zSubmissionAttachment)),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zGradeRecord = z.object({
+    id: z.string(),
+    studentId: z.string(),
+    assignmentSubmissionId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    assignmentSubmission: z.optional(z.union([
+        zAssignmentSubmission,
+        z.null()
+    ])),
+    rawScore: z.string(),
+    finalScore: z.string(),
+    grade: z.string(),
+    feedback: z.union([
+        z.string(),
+        z.null()
+    ]),
+    rubricEvaluationDetails: z.array(z.object({})),
+    gradedAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime()
+});
+
 export const zPricingType = z.enum([
     'tuition',
     'lab',
@@ -2921,6 +3267,34 @@ export const zLmsControllerFindModuleTreeData = z.object({
  * Module tree retrieved successfully
  */
 export const zLmsControllerFindModuleTreeResponse = zModuleTreeDto;
+
+export const zLmsControllerGetModuleProgressOverviewData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsControllerGetModuleProgressOverviewResponse = zModuleProgressOverview;
+
+export const zLmsControllerGetModuleProgressDetailData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsControllerGetModuleProgressDetailResponse = zModuleProgressDetail;
+
+export const zLmsControllerGetDashboardProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zLmsControllerGetDashboardProgressResponse = zDashboardProgress;
 
 export const zGroupControllerFindAllData = z.object({
     body: z.optional(z.never()),
@@ -3651,9 +4025,7 @@ export const zLmsContentControllerFindAllContentProgressData = z.object({
     path: z.object({
         moduleId: z.string()
     }),
-    query: z.object({
-        studentId: z.string()
-    })
+    query: z.optional(z.never())
 });
 
 export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
@@ -3973,6 +4345,92 @@ export const zSubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmen
 });
 
 export const zSubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponse = z.array(zAssignmentSubmissionDetailsDto);
+
+export const zGradingControllerGetStudentGradebookData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        moduleId: z.optional(z.uuid()),
+        sectionId: z.optional(z.uuid()),
+        studentId: z.optional(z.string()),
+        courseOfferingId: z.optional(z.uuid()),
+        courseSectionId: z.optional(z.uuid())
+    }))
+});
+
+/**
+ * Student gradebook retrieved successfully
+ */
+export const zGradingControllerGetStudentGradebookResponse = zGradebookForStudentDto;
+
+export const zGradingControllerGetMentorGradebookData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        moduleId: z.optional(z.uuid()),
+        sectionId: z.optional(z.uuid()),
+        studentId: z.optional(z.string()),
+        courseOfferingId: z.optional(z.uuid()),
+        courseSectionId: z.optional(z.uuid())
+    }))
+});
+
+/**
+ * Mentor gradebook retrieved successfully
+ */
+export const zGradingControllerGetMentorGradebookResponse = zGradebookForMentorDto;
+
+export const zGradingControllerGetAdminGradebookData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        moduleId: z.optional(z.uuid()),
+        sectionId: z.optional(z.uuid()),
+        studentId: z.optional(z.string()),
+        courseOfferingId: z.optional(z.uuid()),
+        courseSectionId: z.optional(z.uuid())
+    }))
+});
+
+/**
+ * Admin gradebook retrieved successfully
+ */
+export const zGradingControllerGetAdminGradebookResponse = zGradebookForMentorDto;
+
+export const zGradingControllerGradeAssignmentSubmissionData = z.object({
+    body: zGradeAssignmentSubmissionDto,
+    path: z.object({
+        submissionId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Assignment graded successfully
+ */
+export const zGradingControllerGradeAssignmentSubmissionResponse = zGradeRecordDto;
+
+export const zGradingControllerUpdateGradeRecordData = z.object({
+    body: zUpdateGradeRecordDto,
+    path: z.object({
+        recordId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Grade record updated successfully
+ */
+export const zGradingControllerUpdateGradeRecordResponse = zGradeRecord;
 
 export const zSwaggerControllerDownloadAllSpecsData = z.object({
     body: z.optional(z.never()),
