@@ -287,10 +287,16 @@ export class GradingService {
           moduleContent: {
             select: {
               title: true,
+              moduleSection: {
+                select: {
+                  moduleId: true,
+                },
+              },
             },
           },
           submissions: {
             include: {
+              student: true,
               gradeRecord: {
                 omit: omitAuditDates,
               },
@@ -309,7 +315,7 @@ export class GradingService {
     // Fetch gradebook data for all students
     const gradebook: FullGradableAssignmentItem[] = rawGradeBook.map((item) => {
       return {
-        moduleId,
+        moduleId: item.moduleContent.moduleSection.moduleId,
         contentId: item.moduleContentId,
         title: item.moduleContent.title,
         // Assignment properties
@@ -327,7 +333,7 @@ export class GradingService {
             id: submission.id,
             groupSnapshot: submission.groupSnapshot,
             state: submission.state,
-            studentId: submission.studentId,
+            student: submission.student,
             submittedAt: submission.submittedAt,
             lateDays: submission.lateDays,
             currentGrade: {
@@ -351,21 +357,18 @@ export class GradingService {
   }
 
   @Log({
-    logArgsMessage: ({ filters, userId, role }) =>
-      `Fetching gradebook for user ${userId} (${role}) with filters: ${JSON.stringify(filters)}`,
+    logArgsMessage: ({ filters }) =>
+      `Fetching admin gradebook with filters: ${JSON.stringify(filters)}`,
     logSuccessMessage: () => `Gradebook successfully fetched.`,
-    logErrorMessage: (err, { userId }) =>
-      `Error fetching gradebook for user ${userId}: ${err.message}`,
+    logErrorMessage: (err) => `Error fetching admin gradebook: ${err.message}`,
   })
   @Log({
-    logArgsMessage: ({ filters, adminId }) =>
-      `Fetching admin gradebook for admin ${adminId} with filters: ${JSON.stringify(filters)}`,
+    logArgsMessage: ({ filters }) =>
+      `Fetching admin gradebook with filters: ${JSON.stringify(filters)}`,
     logSuccessMessage: () => `Admin gradebook successfully fetched.`,
-    logErrorMessage: (err, { adminId }) =>
-      `Error fetching admin gradebook for admin ${adminId}: ${err.message}`,
+    logErrorMessage: (err) => `Error fetching admin gradebook: ${err.message}`,
   })
   async getAdminGradebook(
-    @LogParam('admin') adminId: string,
     @LogParam('filters') filters: GradebookFilterDto,
   ): Promise<GradebookForMentorDto> {
     const { moduleId, courseOfferingId, courseSectionId, limit, page } =
@@ -465,12 +468,20 @@ export class GradingService {
           moduleContent: {
             select: {
               title: true,
+              moduleSection: {
+                select: {
+                  moduleId: true,
+                },
+              },
             },
           },
           submissions: {
             include: {
+              student: true,
               gradeRecord: {
-                omit: omitAuditDates,
+                omit: {
+                  updatedAt: true,
+                },
               },
             },
             omit: omitAuditDates,
@@ -487,7 +498,7 @@ export class GradingService {
     // Fetch gradebook data for all students
     const gradebook: FullGradableAssignmentItem[] = rawGradeBook.map((item) => {
       return {
-        moduleId,
+        moduleId: item.moduleContent.moduleSection.moduleId,
         contentId: item.moduleContentId,
         title: item.moduleContent.title,
         // Assignment properties
@@ -505,7 +516,7 @@ export class GradingService {
             id: submission.id,
             groupSnapshot: submission.groupSnapshot,
             state: submission.state,
-            studentId: submission.studentId,
+            student: submission.student,
             submittedAt: submission.submittedAt,
             lateDays: submission.lateDays,
             currentGrade: {

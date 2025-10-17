@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { type User as UserAsType } from './user.entity';
+import { User, type User as UserAsType } from './user.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
@@ -18,16 +18,16 @@ export class GradeRecord {
   })
   studentId: string;
   @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  assignmentSubmissionId: string | null;
-  @ApiProperty({
     type: () => AssignmentSubmission,
     required: false,
     nullable: true,
   })
   assignmentSubmission?: AssignmentSubmissionAsType | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  assignmentSubmissionId: string | null;
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',

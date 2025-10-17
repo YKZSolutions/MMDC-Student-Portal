@@ -17,7 +17,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { GradingService } from './grading.service';
 import { GradebookFilterDto } from './dto/gradebook-filter.dto';
 import {
@@ -30,7 +30,6 @@ import { UpdateGradeRecordDto } from '@/generated/nestjs-dto/update-gradeRecord.
 import { GradeRecord } from '@/generated/nestjs-dto/gradeRecord.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 
-@ApiTags('Grading')
 @Controller('grading')
 export class GradingController {
   constructor(private readonly gradingService: GradingService) {}
@@ -133,7 +132,7 @@ export class GradingController {
   getAdminGradebook(
     @Query() filters: GradebookFilterDto,
   ): Promise<GradebookForMentorDto> {
-    return this.gradingService.getAdminGradebook('', filters);
+    return this.gradingService.getAdminGradebook(filters);
   }
 
   /**

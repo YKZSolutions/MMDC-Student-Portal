@@ -7,6 +7,7 @@ import {
 import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
 import { AssignmentSubmissionDto } from '@/generated/nestjs-dto/assignmentSubmission.dto';
 import { CurrentGradeDto } from '@/modules/lms/grading/dto/studentGradebookDto';
+import { UserDto } from '@/generated/nestjs-dto/user.dto';
 
 /**
  * The base interface for any gradable item within a module.
@@ -44,11 +45,11 @@ export class BasicAssignmentSubmission extends PickType(
   ['id', 'state', 'groupSnapshot', 'submittedAt', 'lateDays'],
 ) {
   @ApiProperty({
-    type: 'string',
+    type: UserDto,
     required: true,
     nullable: false,
   })
-  studentId: string;
+  student: UserDto;
 }
 
 export class BasicAssignmentSubmissionItemWithGrade extends BasicAssignmentSubmission {
