@@ -17,6 +17,7 @@ import {
   useCombobox,
 } from '@mantine/core'
 import {
+  useQuery,
   useSuspenseQuery,
   type UseSuspenseQueryOptions,
 } from '@tanstack/react-query'
@@ -29,7 +30,7 @@ function AsyncTermComboboxQueryProvider({
 }: {
   children: (props: {
     enrollmentPeriods: EnrollmentPeriodDto[]
-    activeEnrollmentPeriod: EnrollmentPeriodDto | null
+    activeEnrollmentPeriod: EnrollmentPeriodDto | undefined
   }) => ReactNode
 }) {
   const searchParam: {
@@ -43,15 +44,19 @@ function AsyncTermComboboxQueryProvider({
       })
     : enrollmentControllerFindActiveEnrollmentOptions()
 
-  const { data: activeEnrollmentPeriod } = useSuspenseQuery(
-    options as UseSuspenseQueryOptions<EnrollmentPeriodDto>,
-  )
+  //TODO: Properly implement eror handling for this
+  // temporarily fixed unhandled thrown error
+  const {
+    data: activeEnrollmentPeriod,
+    isLoading,
+    error: activeEnrollmentPeriodError,
+  } = useQuery(options as UseSuspenseQueryOptions<EnrollmentPeriodDto>)
 
-  const { data } = useSuspenseQuery(
+  const { data, error } = useQuery(
     enrollmentControllerFindAllEnrollmentsOptions({}),
   )
 
-  const enrollmentPeriods = data.enrollments
+  const enrollmentPeriods = data?.enrollments ?? []
 
   return children({
     enrollmentPeriods,
@@ -65,7 +70,9 @@ export default function AsyncTermCombobox() {
     onDropdownClose: () => combobox.resetSelectedOption(),
   })
 
-  const [selected, setSelected] = useState<EnrollmentPeriodDto | null>(null)
+  const [selected, setSelected] = useState<EnrollmentPeriodDto | undefined>(
+    undefined,
+  )
 
   const handleSelect = (optionValue: string) => {
     const parsed: EnrollmentPeriodDto = JSON.parse(optionValue)
@@ -152,7 +159,7 @@ function TermComboboxTarget({
   activeEnrollmentPeriod,
   combobox,
 }: {
-  activeEnrollmentPeriod: EnrollmentPeriodDto | null
+  activeEnrollmentPeriod: EnrollmentPeriodDto | undefined
   combobox: ReturnType<typeof useCombobox>
 }) {
   return activeEnrollmentPeriod ? (
