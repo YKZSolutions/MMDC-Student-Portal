@@ -562,7 +562,7 @@ export type ContentItemProgress = {
     completionPercentage: number;
 };
 
-export type SectionProgress = {
+export type ContentSectionProgress = {
     id: string;
     title: string;
     contentItems: Array<ContentItemProgress>;
@@ -577,7 +577,7 @@ export type SectionProgress = {
 export type ModuleProgressDetail = {
     moduleId: string;
     moduleTitle: string;
-    sections: Array<SectionProgress>;
+    sections: Array<ContentSectionProgress>;
     overallProgress: {
         completedContentItems: number;
         totalContentItems: number;
@@ -1749,7 +1749,7 @@ export type BasicAssignmentSubmissionItemWithGrade = {
     state: SubmissionState;
     submittedAt: string | null;
     lateDays: number | null;
-    studentId: string;
+    student: UserDto;
     currentGrade?: CurrentGradeDto | null;
 };
 
@@ -1829,22 +1829,6 @@ export type Group = {
     updatedAt: string;
 };
 
-export type GradeRecord = {
-    id: string;
-    studentId: string;
-    assignmentSubmissionId: string | null;
-    assignmentSubmission?: AssignmentSubmission | null;
-    rawScore: string;
-    finalScore: string;
-    grade: string;
-    feedback: string | null;
-    rubricEvaluationDetails: Array<{
-        [key: string]: unknown;
-    }>;
-    gradedAt: string;
-    updatedAt: string;
-};
-
 export type SubmissionAttachment = {
     id: string;
     assignmentSubmissionId: string | null;
@@ -1866,7 +1850,6 @@ export type AssignmentSubmission = {
         [key: string]: unknown;
     } | null;
     state: SubmissionState;
-    gradeRecord?: GradeRecord | null;
     content: Array<{
         [key: string]: unknown;
     }>;
@@ -1877,6 +1860,22 @@ export type AssignmentSubmission = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+};
+
+export type GradeRecord = {
+    id: string;
+    studentId: string;
+    assignmentSubmission?: AssignmentSubmission | null;
+    assignmentSubmissionId: string | null;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+    updatedAt: string;
 };
 
 export type PricingType = 'tuition' | 'lab' | 'misc' | 'other';
@@ -5804,10 +5803,6 @@ export type GradingControllerGetStudentGradebookData = {
          */
         moduleId?: string;
         /**
-         * Filter by a specific Course Section ID (Admin only).
-         */
-        sectionId?: string;
-        /**
          * Filter by a specific Student ID (Admin only).
          */
         studentId?: string;
@@ -5863,10 +5858,6 @@ export type GradingControllerGetMentorGradebookData = {
          * Filter by Module ID.
          */
         moduleId?: string;
-        /**
-         * Filter by a specific Course Section ID (Admin only).
-         */
-        sectionId?: string;
         /**
          * Filter by a specific Student ID (Admin only).
          */
@@ -5928,10 +5919,6 @@ export type GradingControllerGetAdminGradebookData = {
          * Filter by Module ID.
          */
         moduleId?: string;
-        /**
-         * Filter by a specific Course Section ID (Admin only).
-         */
-        sectionId?: string;
         /**
          * Filter by a specific Student ID (Admin only).
          */

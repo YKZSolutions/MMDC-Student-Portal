@@ -11,7 +11,7 @@ export class ContentItemProgress {
   completionPercentage: number;
 }
 
-export class SectionProgress {
+export class ContentSectionProgress {
   id: string;
   title: string;
   contentItems: ContentItemProgress[];
@@ -41,7 +41,7 @@ export class ModuleProgressOverview {
 export class ModuleProgressDetail {
   moduleId: string;
   moduleTitle: string;
-  sections: SectionProgress[];
+  sections: ContentSectionProgress[];
   overallProgress: {
     completedContentItems: number;
     totalContentItems: number;
