@@ -45,7 +45,7 @@ import {
   IconRubberStampOff,
   IconTrash,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Fragment, type ReactNode, Suspense, useState } from 'react'
 import { ModulePanelSuspense } from '../suspense'
@@ -68,7 +68,9 @@ function ModulePanelQueryProvider({
 }) {
   const { lmsCode } = useParams({ strict: false })
 
-  const { data } = useSuspenseQuery(
+  //TODO: Properly implement eror handling for this
+  // temporarily fixed unhandled thrown error
+  const { data, error } = useQuery(
     lmsControllerFindModuleTreeOptions({
       path: {
         id: lmsCode || '',

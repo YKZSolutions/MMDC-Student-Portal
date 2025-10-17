@@ -69,6 +69,7 @@ import {
   useSuspenseQuery,
   type QueryObserverResult,
   type RefetchOptions,
+  useQuery,
 } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
@@ -155,7 +156,7 @@ function EnrollmentStudentQueryProvider({
   },
 }: {
   children: (props: {
-    enrollmentPeriodData: EnrollmentPeriodDto
+    enrollmentPeriodData: EnrollmentPeriodDto | undefined
     courseOfferings: DetailedCourseOfferingDto[]
     message: string
     totalPages: number
@@ -164,11 +165,13 @@ function EnrollmentStudentQueryProvider({
 }) {
   const { search, page, status } = props
 
-  const { data: enrollmentPeriodData } = useSuspenseQuery(
+  //TODO: Properly implement error handling for this
+  // temporarily fixed unhandled thrown error
+  const { data: enrollmentPeriodData, error } = useQuery(
     enrollmentControllerFindActiveEnrollmentOptions(),
   )
 
-  const { data: courseData } = useSuspenseQuery(
+  const { data: courseData, error: courseQueryError } = useQuery(
     courseOfferingControllerFindCourseOfferingsByPeriodOptions({
       query: {
         page: page,
@@ -176,12 +179,12 @@ function EnrollmentStudentQueryProvider({
         status: status == 'all' ? undefined : status,
       },
       path: {
-        enrollmentId: enrollmentPeriodData.id,
+        enrollmentId: enrollmentPeriodData?.id || '',
       },
     }),
   )
 
-  const courseOfferings = courseData.courseOfferings
+  const courseOfferings = courseData?.courseOfferings || []
 
   const limit = 10
   const total = courseOfferings.length
@@ -260,14 +263,19 @@ function EnrollmentStudentPage() {
               {({ enrollmentPeriodData }) => (
                 <Group>
                   <Title c={'dark.7'} order={2} fw={700}>
-                    {formatToSchoolYear(
-                      enrollmentPeriodData.startYear,
-                      enrollmentPeriodData.endYear,
-                    )}
+                    {enrollmentPeriodData?.startYear &&
+                    enrollmentPeriodData?.startYear
+                      ? formatToSchoolYear(
+                          enrollmentPeriodData.startYear,
+                          enrollmentPeriodData.endYear,
+                        )
+                      : 'No active enrollment period'}
                   </Title>
                   <Divider orientation="vertical" />
                   <Title c={'dark.7'} order={2} fw={700}>
-                    Term {enrollmentPeriodData.term}
+                    {enrollmentPeriodData?.term
+                      ? 'Term ' + enrollmentPeriodData.term
+                      : 'N/A'}
                   </Title>
                 </Group>
               )}
@@ -276,7 +284,7 @@ function EnrollmentStudentPage() {
         </Group>
 
         {/* Main Tabs */}
-        {/* Don't modify page layout here. Instead,
+        {/* Don't modify the page layout here. Instead,
         modify each component provided in tabsData */}
 
         <Tabs
@@ -360,7 +368,7 @@ function CourseSelectionPanel() {
     })
 
     // Invalidate the course offerings query here so it only refetches
-    // on enrolled and not enrolled tab and it retriggers suspense
+    // on the enrolled and not enrolled tab and it retriggers suspense
     if (value == 'enrolled' || value == 'not enrolled')
       queryClient.removeQueries({
         predicate: (query) =>
@@ -494,7 +502,7 @@ function CourseSelectionPanel() {
                         <Accordion.Control py={rem(5)}>
                           <CourseOfferingAccordionControl
                             course={course}
-                            periodId={enrollmentPeriodData.id}
+                            periodId={enrollmentPeriodData?.id}
                           />
                         </Accordion.Control>
 
@@ -830,7 +838,7 @@ function CourseOfferingAccordionControl({
   periodId,
 }: {
   course: DetailedCourseOfferingDto
-  periodId: string
+  periodId: string | undefined
 }) {
   return (
     <Group justify="space-between">
