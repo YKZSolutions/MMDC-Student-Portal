@@ -143,7 +143,7 @@ function TranscriptPage() {
 
       <Flex gap={'md'} direction={'column'}>
         <Stack gap={'md'}>
-          <Group grow>
+          <Group>
             <Suspense
               fallback={
                 // This skeleton mimics the AsyncSearchSelect appearance
@@ -345,7 +345,6 @@ function EnrollmentPeriodsSelector({
       label="Enrollment Period"
       placeholder="Select an enrollment period"
       withAsterisk
-      className="flex-1"
       preloadOptions
       initialValue={enrollmentPeriodId}
       getItemById={(id) =>
@@ -388,7 +387,6 @@ function StudentSelector({
       label="Student"
       placeholder="Select a student"
       withAsterisk
-      className="flex-1"
       preloadOptions
       initialValue={studentId}
       getItemById={(id) =>
