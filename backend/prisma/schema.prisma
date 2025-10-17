@@ -891,7 +891,8 @@ enum SubmissionState {
 }
 
 model AssignmentSubmission {
-  id           String     @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
+
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   assignmentId String     @db.Uuid
 
@@ -906,6 +907,7 @@ model AssignmentSubmission {
 
   state SubmissionState
 
+  /// @DtoApiHidden
   gradeRecord GradeRecord?
 
   /// Text submission
@@ -958,8 +960,8 @@ model GradeRecord {
   studentId String @db.Uuid
 
   // @DtoApiHidden
-  assignmentSubmissionId String?               @unique @db.Uuid
   assignmentSubmission   AssignmentSubmission? @relation(fields: [assignmentSubmissionId], references: [id])
+  assignmentSubmissionId String?               @unique @db.Uuid
 
   // Common grade data
   rawScore   Decimal @db.Decimal(5, 2) // Actual grade data
