@@ -6,16 +6,16 @@ import type {
   ContentNode,
   CourseNodeModel,
   FullModuleContent,
-  Module,
-  ModuleItem,
-  ModuleSection,
   ModuleTreeContentItem,
   SectionNodeData,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
+  AssignmentItemDto,
   ContentType,
   ModuleContent,
+  ModuleTreeAssignmentItemDto,
+  ModuleTreeDto,
   ModuleTreeSectionDto,
 } from '@/integrations/api/client'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
@@ -53,18 +53,6 @@ export function getPastDate(daysToSubtract: number) {
   ).toISOString()
 }
 
-export function getSubmissionStatus(
-  assignment: AssignmentBase | StudentAssignment | undefined,
-) {
-  if (!assignment) return undefined
-
-  if ('submissionStatus' in assignment) {
-    return assignment.submissionStatus
-  }
-
-  return undefined
-}
-
 export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
   const augmented: CourseNodeModel[] = [...nodes]
 
@@ -95,8 +83,10 @@ export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
 }
 
 // Convert a Module (local model) into CourseNodeModel[] for the Tree component
-export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
-  return convertSectionsToTreeData(module.sections as any[])
+export function convertModuleToTreeData(
+  module: ModuleTreeDto,
+): CourseNodeModel[] {
+  return convertSectionsToTreeData(module.moduleSections || [])
 }
 
 // Convert API DTO sections into CourseNodeModel[] for the Tree component
@@ -190,31 +180,40 @@ function convertSectionsToTreeData(
   return treeData
 }
 
-export function getModuleSubSectionsFromModule(module: Module) {
-  return module.sections.flatMap((section) => section.subsections)
+export function getModuleSubSectionsFromModule(module: ModuleTreeDto) {
+  return module.moduleSections?.flatMap((section) => section.subsections)
 }
 
-export function getModuleSubSectionsFromSections(sections: ModuleSection[]) {
+export function getModuleSubSectionsFromSections(
+  sections: ModuleTreeSectionDto[],
+) {
   return sections.flatMap((section) => section.subsections)
 }
 
-export function getAllModuleSections(module: Module) {
-  const sections = module.sections
-  const subsections = getModuleSubSectionsFromSections(sections)
+export function getAllModuleSections(
+  module: ModuleTreeDto,
+): ModuleTreeSectionDto[] {
+  const sections: ModuleTreeSectionDto[] = module.moduleSections || []
+  const subsections = sections
+    .flatMap((section) => section.subsections || [])
+    .filter((s): s is ModuleTreeSectionDto => s != null)
+
   return [...sections, ...subsections]
 }
 
-export function getModuleItemsFromModule(module: Module) {
+export function getModuleItemsFromModule(
+  module: ModuleTreeDto,
+): ModuleTreeContentItem[] {
   const sections = getAllModuleSections(module)
-  return sections.flatMap((section) => section.items)
+  return sections.flatMap((section) => section?.moduleContents)
 }
 
-export function getModuleItemsFromSections(sections: ModuleSection[]) {
-  let items: ModuleItem[] = []
+export function getModuleItemsFromSections(sections: ModuleTreeSectionDto[]) {
+  let items: ModuleTreeContentItem[] = []
   sections.forEach((s) => {
     items = [
       ...items,
-      ...s.items,
+      ...s.moduleContents,
       ...getModuleItemsFromSections(s.subsections || []),
     ]
   })
@@ -226,29 +225,24 @@ export const createFilterOption = (value: string) => ({
   value: value.toLowerCase(),
 })
 
-export const getCompletedItemsCount = (items: ModuleItem[]) => {
+export const getCompletedItemsCount = (items: ModuleTreeContentItem[]) => {
   return items.filter((item) => {
-    if (item.type === 'lesson' && item.progress) {
-      return item.progress.isCompleted
-    }
-    if (item.type === 'assignment' && item.assignment) {
-      const submissionStatus = getSubmissionStatus(item.assignment)
+    if (item.studentProgress) {
       return (
-        submissionStatus === 'graded' ||
-        submissionStatus === 'ready-for-grading' ||
-        submissionStatus === 'submitted'
+        item.studentProgress.filter((s) => s.status === 'COMPLETED').length > 0
       )
     }
+
     return false
   }).length
 }
 
-export const getOverdueItemsCount = (items: ModuleItem[]) => {
+export const getOverdueItemsCount = (items: ModuleTreeContentItem[]) => {
   return items.filter((item) => {
-    if (item.type === 'assignment' && item.assignment?.dueDate) {
+    if (item.contentType === 'ASSIGNMENT' && item?.dueDate) {
       return (
-        new Date(item.assignment.dueDate) < new Date() &&
-        getSubmissionStatus(item.assignment) === 'pending'
+        new Date(item.dueDate) < new Date() &&
+        item.studentProgress?.[0].status !== 'COMPLETED'
       )
     }
     return false

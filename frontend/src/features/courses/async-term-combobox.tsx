@@ -36,7 +36,7 @@ function AsyncTermComboboxQueryProvider({
     term: EnrollmentPeriodDto['id']
   } = useSearch({ strict: false })
 
-  // Fetch active enrollment period or selected term details if term is in search
+  // Fetch active enrollment period or selected term details if the term is in search
   const options = searchParam.term
     ? enrollmentControllerFindOneEnrollmentOptions({
         path: { enrollmentId: searchParam.term },
