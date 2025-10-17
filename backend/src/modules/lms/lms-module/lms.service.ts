@@ -453,13 +453,9 @@ export class LmsService {
     logErrorMessage: (err, { userId }) =>
       `Fetching modules for mentor ${userId} | Error: ${err.message}`,
   })
-  @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { userId }) =>
-      new NotFoundException(`No modules found for mentor ${userId}`),
-  })
   async findAllForMentor(
-    userId: string,
-    filters: FilterModulesDto,
+    @LogParam('userId') userId: string,
+    @LogParam('filters') filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
     const where: Prisma.ModuleWhereInput = {};
     const page = filters.page || 1;
@@ -920,6 +916,10 @@ export class LmsService {
     logErrorMessage: (err: any, { moduleId, userId, role }) =>
       `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role}: ${err.message}`,
   })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (message, { moduleId }) =>
+      new NotFoundException(`Module ${moduleId} not found`),
+  })
   async findModuleTree(
     @LogParam('moduleId') moduleId: string,
     @LogParam('role') role: Role,
@@ -932,11 +932,33 @@ export class LmsService {
     // Define a single query to get the Module, ALL Sections, and ALL Contents
     const [module, flatSections, flatContents] =
       await this.prisma.client.$transaction([
-        // 1. Fetch the Module (same as your current query's top level)
+        // 1. Fetch the Module
         this.prisma.client.module.findUniqueOrThrow({
           where: {
             id: moduleId,
             ...(role !== Role.admin && { publishedAt: { not: null } }),
+            ...(role === Role.mentor && {
+              courseOffering: {
+                courseSections: {
+                  some: {
+                    mentor: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
+            }),
+            ...(role === Role.student && {
+              courseOffering: {
+                courseEnrollments: {
+                  some: {
+                    student: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
+            }),
             deletedAt: null,
           },
           select: {
