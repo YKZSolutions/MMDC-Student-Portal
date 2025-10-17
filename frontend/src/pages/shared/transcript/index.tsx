@@ -15,6 +15,7 @@ import {
   usersControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import type { TranscriptSearch } from '@/routes/(protected)/transcript'
+import { formatEnrollmentToFullLabel } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
@@ -214,10 +215,6 @@ function TranscriptTable({
 
   const enrollmentPeriodId = transcripts[0].courseOffering.enrollmentPeriod.id
 
-  const formatTermLabel = (enrollmentPeriod: EnrollmentPeriodDto) => {
-    return `SY ${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear} (Term ${enrollmentPeriod.term})`
-  }
-
   return (
     <Stack gap={'lg'}>
       <Paper withBorder radius={'md'}>
@@ -228,7 +225,7 @@ function TranscriptTable({
         >
           {(enrollmentPeriod) => (
             <Text p={'sm'} c={'dark.7'} fz={'sm'} fw={600}>
-              {formatTermLabel(enrollmentPeriod)}
+              {formatEnrollmentToFullLabel(enrollmentPeriod)}
             </Text>
           )}
         </EnrollmentPeriodQueryProvider>
@@ -360,12 +357,12 @@ function EnrollmentPeriodsSelector({
       mapData={(data) =>
         data.enrollments.map((enrollment: EnrollmentPeriodDto) => ({
           value: enrollment.id,
-          label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
+          label: formatEnrollmentToFullLabel(enrollment),
         }))
       }
       mapItem={(enrollment) => ({
         value: enrollment.id,
-        label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
+        label: formatEnrollmentToFullLabel(enrollment),
       })}
       allowDeselect={false}
       onChange={onChange}
