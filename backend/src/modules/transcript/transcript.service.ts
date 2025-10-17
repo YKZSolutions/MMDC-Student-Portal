@@ -154,7 +154,7 @@ export class TranscriptService {
    */
   @Log({
     logArgsMessage: ({ filters, user }) =>
-      `Fetching transcripts with filters [${filters}] for student [${user.id}]`,
+      `Fetching transcripts with filters [${JSON.stringify(filters)}] for student [${user.id}]`,
     logSuccessMessage: (_, { user }) =>
       `Transcript successfully created for student [${user.id}]`,
     logErrorMessage: (err, { user }) =>
@@ -171,6 +171,7 @@ export class TranscriptService {
     return this.prisma.client.$transaction(async (tx) => {
       const { enrollmentPeriodId, studentId } = filters;
       const role = user.user_metadata.role;
+      const userId = user.user_metadata.user_id;
       const where: Prisma.TranscriptWhereInput = {};
 
       // Assign the enrollmentPeriodId may it be provided or not
@@ -196,8 +197,8 @@ export class TranscriptService {
       }
 
       // Ensure that non-admin users can only access their own transcripts
-      // Assign the user.id may it be provided or not
-      where.userId = user.id;
+      // Assign the userId may it be provided or not
+      where.userId = userId;
 
       if (role !== 'student') {
         where.userId =
