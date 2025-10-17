@@ -49,8 +49,8 @@ export class GradingService {
   // SECTION: Gradebook / Grade View
 
   @Log({
-    logArgsMessage: ({ filters, studentId, role }) =>
-      `Fetching gradebook for user ${studentId} (${role}) with filters: ${JSON.stringify(filters)}`,
+    logArgsMessage: ({ filters, studentId }) =>
+      `Fetching gradebook for user ${studentId} with filters: ${JSON.stringify(filters)}`,
     logSuccessMessage: () => `Gradebook successfully fetched.`,
     logErrorMessage: (err, { studentId }) =>
       `Error fetching gradebook for user ${studentId}: ${err.message}`,
@@ -90,7 +90,9 @@ export class GradingService {
             where: { studentId: studentId },
             include: {
               gradeRecord: {
-                omit: omitAuditDates,
+                omit: {
+                  updatedAt: true,
+                },
               },
             },
             omit: omitAuditDates,
@@ -298,7 +300,9 @@ export class GradingService {
             include: {
               student: true,
               gradeRecord: {
-                omit: omitAuditDates,
+                omit: {
+                  updatedAt: true,
+                },
               },
             },
             omit: omitAuditDates,

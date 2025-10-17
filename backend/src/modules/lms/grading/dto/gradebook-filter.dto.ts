@@ -8,13 +8,6 @@ export class GradebookFilterDto extends BaseFilterDto {
   moduleId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by a specific Course Section ID (Admin only).',
-  })
-  @IsOptional()
-  @IsUUID()
-  sectionId?: string;
-
-  @ApiPropertyOptional({
     description: 'Filter by a specific Student ID (Admin only).',
   })
   @IsOptional()
