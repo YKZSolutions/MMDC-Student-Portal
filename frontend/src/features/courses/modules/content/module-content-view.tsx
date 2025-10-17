@@ -4,7 +4,10 @@ import {
   type SubmissionPayload,
 } from '@/features/courses/modules/content/submission-form.tsx'
 import { useQuickForm } from '@/hooks/use-quick-form'
-import type { ModuleContent } from '@/integrations/api/client'
+import type {
+  AssignmentItemDto,
+  ModuleContent,
+} from '@/integrations/api/client'
 import {
   resolveContentDetails,
   isEditorEmpty,
@@ -55,6 +58,7 @@ import {
   assignmentControllerSubmitMutation,
   assignmentControllerUpdateMutation,
   lmsContentControllerFindOneOptions,
+  lmsContentControllerUpdateMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import Decimal from 'decimal.js'
@@ -69,6 +73,8 @@ import {
   type AssignmentConfigFormOutput,
 } from '@/features/courses/modules/content/assignment-config.schema.ts'
 import type { FullModuleContent } from '@/features/courses/modules/types.ts'
+import { useEditorState } from '@/features/courses/hooks/useEditorState.tsx'
+import { useState } from 'react'
 
 const route = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/edit')
 
@@ -102,6 +108,7 @@ function ModuleContentView({
           component={Link}
           to="/lms/$lmsCode/modules"
           maw={'fit-content'}
+          hidden={isPreview}
         >
           <Group>
             <IconChevronLeft size={16} />
@@ -161,7 +168,7 @@ function ModuleContentView({
 
             {user.role === 'admin' &&
               moduleContentData?.contentType === 'ASSIGNMENT' && (
-                <AssignmentConfigCard />
+                <AssignmentConfigCard assignmentData={moduleContentData} />
               )}
           </Grid.Col>
         </Grid>
@@ -179,64 +186,65 @@ function ModuleContentView({
    Subcomponents
 --------------------------------------------------- */
 
-function AssignmentConfigCard() {
-  const { itemId } = route.useParams()
-  const { id } = route.useSearch()
-  const { data: moduleContent } = useSuspenseQuery(
-    lmsContentControllerFindOneOptions({
-      path: { moduleContentId: itemId },
-    }),
+function AssignmentConfigCard({
+  assignmentData,
+}: {
+  assignmentData: AssignmentItemDto
+}) {
+  const [isPending, setIsPending] = useState(false)
+
+  // Get the update function from CMS context if available, otherwise use local mutation
+  const { mutateAsync: updateModuleContent } = useAppMutation(
+    lmsContentControllerUpdateMutation,
+    {
+      loading: {
+        title: 'Updating Assignment Config',
+        message: 'Saving assignment configuration...',
+      },
+      success: {
+        title: 'Assignment Config Updated',
+        message: 'Assignment configuration updated successfully',
+      },
+    },
   )
 
-  const { update, form, isPending } = useQuickForm<
-    AssignmentConfigFormInput,
-    AssignmentConfigFormOutput
-  >()({
-    name: 'config',
-    formOptions: {
-      initialValues: {
-        maxScore: null,
-        maxAttempts: null,
-        dueDate: null,
-        weightPercentage: null,
-      },
-      validate: zod4Resolver(assignmentConfigFormSchema),
+  const form = useForm<AssignmentConfigFormInput>({
+    initialValues: {
+      maxScore: assignmentData.maxScore
+        ? new Decimal(assignmentData.maxScore).toNumber()
+        : null,
+      maxAttempts: assignmentData.maxAttempts || null,
+      dueDate: assignmentData.dueDate
+        ? dayjs(assignmentData.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss')
+        : null,
+      weightPercentage: assignmentData.weightPercentage || null,
     },
-    transformQueryData: (config) => ({
-      maxScore: config?.weightPercentage
-        ? new Decimal(config.weightPercentage).toNumber()
-        : null,
-      dueAt: config.dueDate
-        ? dayjs(config.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss')
-        : null,
-      maxAttempt: config.maxAttempts,
-    }),
-    queryOptions: assignmentControllerFindOneOptions({
-      path: { moduleContentId: itemId },
-    }),
-    createMutationOptions: assignmentControllerUpdateMutation({}),
-    updateMutationOptions: assignmentControllerUpdateMutation({}),
-    queryKeyInvalidation: assignmentControllerFindOneQueryKey({
-      path: { moduleContentId: itemId },
-    }),
+    validate: zod4Resolver(assignmentConfigFormSchema),
   })
 
-  const handleSaveConfig = async (values: AssignmentConfigFormOutput) => {
-    console.log(values)
+  const handleSaveConfig = async (values: AssignmentConfigFormInput) => {
     if (form.validate().hasErrors) return
-    const { maxScore, dueDate, maxAttempts } = values
 
-    await update.mutateAsync({
-      path: { moduleContentId: moduleContent?.id || '' },
-      body: {
-        maxScore: maxScore ? new Decimal(maxScore).toString() : undefined,
-        dueDate:
-          dayjs(dueDate, 'YYYY-MM-DD HH:mm:ss').format(
-            'YYYY-MM-DDTHH:mm:ss[Z]',
-          ) || undefined,
-        maxAttempts: maxAttempts || undefined,
-      },
-    })
+    setIsPending(true)
+    try {
+      await updateModuleContent({
+        path: { moduleContentId: assignmentData.id },
+        body: {
+          ...assignmentData,
+          // Only update the assignment config fields
+          maxScore: values.maxScore || undefined,
+          dueDate: values.dueDate
+            ? dayjs(values.dueDate).format('YYYY-MM-DDTHH:mm:ss[Z]')
+            : undefined,
+          maxAttempts: values.maxAttempts || undefined,
+          weightPercentage: values.weightPercentage || undefined,
+        },
+      })
+    } catch (error) {
+      console.error('Failed to update assignment config:', error)
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
@@ -249,7 +257,6 @@ function AssignmentConfigCard() {
           placeholder="100"
           allowDecimal
           disabled={isPending}
-          key={form.key('maxScore')}
           {...form.getInputProps('maxScore')}
         />
         <DateTimePicker
@@ -257,8 +264,7 @@ function AssignmentConfigCard() {
           label="Due"
           placeholder="Select date and time"
           disabled={isPending}
-          key={form.key('dueAt')}
-          {...form.getInputProps('dueAt')}
+          {...form.getInputProps('dueDate')}
         />
         <NumberInput
           variant="filled"
@@ -266,12 +272,11 @@ function AssignmentConfigCard() {
           placeholder="1"
           min={1}
           disabled={isPending}
-          key={form.key('maxAttempt')}
-          {...form.getInputProps('maxAttempt')}
+          {...form.getInputProps('maxAttempts')}
         />
         <Button
           loading={isPending}
-          onClick={() => handleSaveConfig(form.getValues())}
+          onClick={() => handleSaveConfig(form.values)}
         >
           Save
         </Button>

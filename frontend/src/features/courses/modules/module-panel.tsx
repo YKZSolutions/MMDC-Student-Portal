@@ -48,7 +48,6 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Fragment, type ReactNode, Suspense, useState } from 'react'
-import { getMockModuleByRole } from '../mocks'
 import { ModulePanelSuspense } from '../suspense'
 import AddModuleItemDrawer from './admin/add-module-item-drawer'
 import type { ModuleTreeContentItem } from '@/features/courses/modules/types.ts'
@@ -87,9 +86,6 @@ function ModulePanelQueryProvider({
 }
 
 function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
-  const { authUser } = useAuth('protected')
-  const moduleData = getMockModuleByRole(authUser.role) //TODO: replace with actual data
-
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
 
