@@ -1,4 +1,3 @@
-// --- Grade (applies to student or group) ---
 import type {
   Submission,
   SubmissionStatus,
