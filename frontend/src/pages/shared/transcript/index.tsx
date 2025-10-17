@@ -1,132 +1,79 @@
-import AsyncSearchSelect from '@/components/async-search-select'
-import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import { useSearchState } from '@/hooks/use-search-state'
-import {
-  type DetailedTranscriptDto,
-  type EnrollmentPeriodDto,
-  type UserWithRelations,
+import type {
+    DetailedTranscriptDto,
+    EnrollmentPeriodDto,
+    UserWithRelations,
 } from '@/integrations/api/client'
 import {
-  enrollmentControllerFindAllEnrollmentsOptions,
-  enrollmentControllerFindOneEnrollmentOptions,
-  transcriptControllerFindAllOptions,
-  usersControllerFindAllOptions,
+    enrollmentControllerFindAllEnrollmentsOptions,
+    transcriptControllerFindAllOptions,
+    usersControllerFindAllOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
-import type { TranscriptSearch } from '@/routes/(protected)/transcript'
 import {
-  ActionIcon,
-  Box,
-  Center,
-  Container,
-  Flex,
-  Group,
-  Menu,
-  Paper,
-  rem,
-  Select,
-  Skeleton,
-  Stack,
-  Table,
-  Text,
-  Title,
+    Box,
+    Center,
+    Container,
+    Flex,
+    Group,
+    rem,
+    Select,
+    Skeleton,
+    Stack,
+    Table,
+    Text,
+    Title,
 } from '@mantine/core'
-import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
-import React, { Suspense } from 'react'
+import React, { Suspense, useMemo, useState } from 'react'
 
-const route = getRouteApi('/(protected)/transcript/')
+interface TranscriptQueryFilters {
+  enrollmentPeriodId: string | null
+  studentId: string | null
+}
 
-/**
- * @param children - Child components that will receive the transcript data.
- * @param props - Optional props to override default behavior.
- *
- * @returns
- * Retrieves transcripts based on filters and provides them to child components.
- */
 function TranscriptQueryProvider({
+  filters,
   children,
-  props,
 }: {
+  filters: TranscriptQueryFilters
   children: (data: DetailedTranscriptDto[]) => React.ReactNode
-  props?: {
-    filters?: TranscriptSearch
-  }
 }) {
-  const { search } = useSearchState(route)
-  const filters = props?.filters ?? {
-    enrollmentPeriodId: search.enrollmentPeriodId || undefined,
-    studentId: search.studentId || undefined,
-  }
-
   const { authUser } = useAuth('protected')
 
-  const { data } = useSuspenseQuery({
-    ...transcriptControllerFindAllOptions({
+  const { data } = useSuspenseQuery(
+    transcriptControllerFindAllOptions({
       query: {
-        enrollmentPeriodId: filters?.enrollmentPeriodId || undefined,
+        enrollmentPeriodId: filters.enrollmentPeriodId || undefined,
         studentId:
-          (authUser.role !== 'student' && filters?.studentId) || undefined,
+          (authUser.role !== 'student' && filters.studentId) || undefined,
       },
     }),
-  })
+  )
 
   const transcripts = data ?? []
 
   return children(transcripts)
 }
 
-/**
- *
- * @param children - Child components that will receive the enrollment period data.
- * @param props - Optional props to override default behavior.
- *
- *
- * @returns
- * Retrieves a specific enrollment period by its ID and provides it to child components.
- */
-function EnrollmentPeriodQueryProvider({
-  children,
-  props,
-}: {
-  children: (data: EnrollmentPeriodDto) => React.ReactNode
-  props?: {
-    enrollmentPeriodId: EnrollmentPeriodDto['id']
-  }
-}) {
-  const { search } = useSearchState(route)
-
-  const enrollmentPeriodId =
-    props?.enrollmentPeriodId ?? (search.enrollmentPeriodId || undefined)
-
-  const { data } = useSuspenseQuery({
-    ...enrollmentControllerFindOneEnrollmentOptions({
-      path: {
-        enrollmentId: enrollmentPeriodId || '',
-      },
-    }),
-  })
-
-  const enrollments = data ?? []
-
-  return children(enrollments)
-}
-
 function TranscriptPage() {
   const { authUser } = useAuth('protected')
-
-  const { setSearch } = useSearchState(route)
+  const [filters, setFilters] = useState<TranscriptQueryFilters>({
+    enrollmentPeriodId: null,
+    studentId: null,
+  })
 
   const handleEnrollmentPeriodChange = (value: string | null) => {
-    const enrollmentPeriodId = value ?? undefined
-
-    setSearch({ enrollmentPeriodId })
+    setFilters((prev) => ({
+      ...prev,
+      enrollmentPeriodId: value,
+    }))
   }
 
   const handleStudentChange = (value: string | null) => {
-    const studentId = value ?? undefined
-    setSearch({ studentId })
+    setFilters((prev) => ({
+      ...prev,
+      studentId: value,
+    }))
   }
 
   return (
@@ -143,7 +90,14 @@ function TranscriptPage() {
       <Flex gap={'md'} direction={'column'}>
         <Stack gap={'md'}>
           <Group grow>
-            
+            <Suspense
+              fallback={<Skeleton visible h={rem(40)} w="100%" radius={'md'} />}
+            >
+              <EnrollmentPeriodsSelector
+                value={filters.enrollmentPeriodId}
+                onChange={handleEnrollmentPeriodChange}
+              />
+            </Suspense>
 
             {authUser.role !== 'student' && (
               <Suspense
@@ -151,14 +105,17 @@ function TranscriptPage() {
                   <Skeleton visible h={rem(40)} w="100%" radius={'md'} />
                 }
               >
-                <StudentSelector onChange={handleStudentChange} />
+                <StudentSelector
+                  value={filters.studentId}
+                  onChange={handleStudentChange}
+                />
               </Suspense>
             )}
           </Group>
         </Stack>
 
         <Suspense fallback={<Skeleton visible h={rem(200)} radius={'md'} />}>
-          <TranscriptQueryProvider>
+          <TranscriptQueryProvider filters={filters}>
             {(transcripts) => <TranscriptTable transcripts={transcripts} />}
           </TranscriptQueryProvider>
         </Suspense>
@@ -172,8 +129,6 @@ function TranscriptTable({
 }: {
   transcripts: DetailedTranscriptDto[]
 }) {
-  const { authUser } = useAuth('protected')
-
   if (transcripts.length === 0) {
     return (
       <Center py={rem(40)}>
@@ -184,176 +139,124 @@ function TranscriptTable({
     )
   }
 
-  const enrollmentPeriodId = transcripts[0].courseOffering.enrollmentPeriod.id
+  // Organize transcripts by term
+  const groupedByTerm = useMemo(() => {
+    const grouped: { [termLabel: string]: DetailedTranscriptDto[] } = {}
 
-  const formatTermLabel = (enrollmentPeriod: EnrollmentPeriodDto) => {
-    return `SY ${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear} (Term ${enrollmentPeriod.term})`
-  }
+    transcripts.forEach((transcript) => {
+      const termLabel = transcript.courseOffering?.enrollmentPeriod
+        ? `SY ${transcript.courseOffering.enrollmentPeriod.startYear}-${transcript.courseOffering.enrollmentPeriod.endYear} (Term ${transcript.courseOffering.enrollmentPeriod.term})`
+        : 'Unknown Term'
+
+      if (!grouped[termLabel]) {
+        grouped[termLabel] = []
+      }
+      grouped[termLabel].push(transcript)
+    })
+
+    return grouped
+  }, [transcripts])
 
   return (
     <Stack gap={'lg'}>
-      <Paper withBorder radius={'md'}>
-        <EnrollmentPeriodQueryProvider
-          props={{
-            enrollmentPeriodId: enrollmentPeriodId,
-          }}
-        >
-          {(enrollmentPeriod) => (
-            <Text p={'sm'} c={'dark.7'} fz={'sm'} fw={600}>
-              {formatTermLabel(enrollmentPeriod)}
-            </Text>
-          )}
-        </EnrollmentPeriodQueryProvider>
+      {Object.entries(groupedByTerm).map(([termLabel, termTranscripts]) => (
+        <Box key={termLabel}>
+          <Text fw={600} c={'dark.7'} mb={'md'} fz={'sm'}>
+            {termLabel}
+          </Text>
 
-        <Table.ScrollContainer minWidth={rem(500)} type="native">
-          <Table
-            verticalSpacing={'sm'}
-            highlightOnHover
-            highlightOnHoverColor="gray.0"
-            styles={{
-              th: {
-                fontWeight: 500,
-              },
-            }}
-          >
-            <Table.Thead>
-              <Table.Tr
-                style={{
-                  border: '0px',
-                }}
-                bg={'gray.1'}
-                c={'dark.5'}
-              >
-                <Table.Th>Course Code</Table.Th>
-                <Table.Th>Course Name</Table.Th>
-                <Table.Th w={rem(80)}>Grade</Table.Th>
-                <RoleComponentManager
-                  currentRole={authUser.role}
-                  roleRender={{
-                    admin: <Table.Th w={0}></Table.Th>,
+          <Table.ScrollContainer minWidth={rem(500)} type="native">
+            <Table
+              verticalSpacing={'sm'}
+              highlightOnHover
+              highlightOnHoverColor="gray.0"
+              style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
+              styles={{
+                th: {
+                  fontWeight: 500,
+                },
+              }}
+            >
+              <Table.Thead>
+                <Table.Tr
+                  style={{
+                    border: '0px',
                   }}
-                />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              <TranscriptQueryProvider>
-                {(transcripts) =>
-                  transcripts.map((transcript) => (
-                    <Table.Tr key={transcript.id}>
-                      <Table.Td>
-                        <Text fw={500} c={'dark.7'} fz={'sm'}>
-                          {transcript.courseOffering?.course?.courseCode}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text c={'dark.6'} fz={'sm'}>
-                          {transcript.courseOffering?.course?.name}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={600} c={'dark.7'} fz={'sm'}>
-                          {transcript.grade}
-                        </Text>
-                      </Table.Td>
-                      <RoleComponentManager
-                        currentRole={authUser.role}
-                        roleRender={{
-                          admin: (
-                            <Table.Td>
-                              <Menu
-                                withArrow
-                                position="bottom-end"
-                                shadow="md"
-                                width={200}
-                              >
-                                <Menu.Target>
-                                  <ActionIcon
-                                    onClick={(e) => e.stopPropagation()}
-                                    variant="subtle"
-                                    color="gray"
-                                    radius={'xl'}
-                                  >
-                                    <IconDotsVertical size={20} stroke={1.5} />
-                                  </ActionIcon>
-                                </Menu.Target>
-                                <Menu.Dropdown>
-                                  <Menu.Item
-                                    leftSection={<IconEdit size={16} />}
-                                  >
-                                    Edit
-                                  </Menu.Item>
-                                  <Menu.Item
-                                    c="red"
-                                    leftSection={<IconTrash size={16} />}
-                                  >
-                                    Delete
-                                  </Menu.Item>
-                                </Menu.Dropdown>
-                              </Menu>
-                            </Table.Td>
-                          ),
-                        }}
-                      />
-                    </Table.Tr>
-                  ))
-                }
-              </TranscriptQueryProvider>
-            </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
-      </Paper>
+                  bg={'gray.1'}
+                  c={'dark.5'}
+                >
+                  <Table.Th>Course Code</Table.Th>
+                  <Table.Th>Course Name</Table.Th>
+                  <Table.Th w={rem(80)}>Grade</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {termTranscripts.map((transcript) => (
+                  <Table.Tr key={transcript.id}>
+                    <Table.Td>
+                      <Text fw={500} c={'dark.7'} fz={'sm'}>
+                        {transcript.courseOffering?.course?.courseCode}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text c={'dark.6'} fz={'sm'}>
+                        {transcript.courseOffering?.course?.name}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text fw={600} c={'dark.7'} fz={'sm'}>
+                        {transcript.grade}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Box>
+      ))}
     </Stack>
   )
 }
 
 function EnrollmentPeriodsSelector({
+  value,
   onChange,
 }: {
+  value: string | null
   onChange: (value: string | null) => void
 }) {
-  const { search } = useSearchState(route)
+  const { data } = useSuspenseQuery(
+    enrollmentControllerFindAllEnrollmentsOptions(),
+  )
 
-  const enrollmentPeriodId = search.enrollmentPeriodId ?? undefined
-  
+  const enrollments = data?.enrollments ?? []
+  const options = enrollments.map((enrollment: EnrollmentPeriodDto) => ({
+    value: enrollment.id,
+    label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
+  }))
+
   return (
-    <AsyncSearchSelect
-      variant="default"
-      radius={'md'}
+    <Select
       label="Enrollment Period"
       placeholder="Select an enrollment period"
-      withAsterisk
-      className="flex-1"
-      preloadOptions
-      initialValue={enrollmentPeriodId}
-      getItemById={(id) =>
-        enrollmentControllerFindOneEnrollmentOptions({
-          path: { enrollmentId: id },
-        })
-      }
-      getOptions={() => enrollmentControllerFindAllEnrollmentsOptions()}
-      mapData={(data) =>
-        data.enrollments.map((enrollment: EnrollmentPeriodDto) => ({
-          value: enrollment.id,
-          label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
-        }))
-      }
-      mapItem={(enrollment) => ({
-        value: enrollment.id,
-        label: `SY ${enrollment.startYear}-${enrollment.endYear} (Term ${enrollment.term})`,
-      })}
-      allowDeselect={false}
+      data={options}
+      value={value}
       onChange={onChange}
+      searchable
+      clearable
+      radius={'md'}
     />
   )
 }
 
 function StudentSelector({
+  value,
   onChange,
 }: {
+  value: string | null
   onChange: (value: string | null) => void
 }) {
-  const { search } = useSearchState(route)
-
   const { data } = useSuspenseQuery(
     usersControllerFindAllOptions({
       query: { search: '', page: 1, role: 'student' },
@@ -371,10 +274,10 @@ function StudentSelector({
       label="Student"
       placeholder="Select a student"
       data={options}
-      value={search.studentId}
+      value={value}
       onChange={onChange}
       searchable
-      allowDeselect={false}
+      clearable
       radius={'md'}
     />
   )
