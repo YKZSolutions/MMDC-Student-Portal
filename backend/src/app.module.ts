@@ -31,6 +31,7 @@ import { AssignmentModule } from '@/modules/lms/assignment/assignment.module';
 import { GroupModule } from '@/modules/lms/group/group.module';
 import { SubmissionModule } from '@/modules/lms/submission/submission.module';
 import { GradingModule } from '@/modules/lms/grading/grading.module';
+import { YearLevelModule } from './modules/year-level/year-level.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { GradingModule } from '@/modules/lms/grading/grading.module';
     PricingModule,
     NotificationsModule,
     AppointmentsModule,
+    YearLevelModule,
   ],
   controllers: [],
   providers: [

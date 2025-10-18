@@ -4,6 +4,7 @@ export const seedConfig = {
 
   DELETE_ALL_DATA: true,
   CREATE_USER_ACCOUNTS: true,
+  FRESH_DATA: true,
 
   // Adjust these numbers to control the amount of data generated
 

@@ -8,6 +8,10 @@ import {
   PricingGroup,
   type PricingGroup as PricingGroupAsType,
 } from './pricingGroup.entity';
+import {
+  YearLevel,
+  type YearLevel as YearLevelAsType,
+} from './yearLevel.entity';
 
 export class EnrollmentPeriod {
   @ApiProperty({
@@ -27,6 +31,8 @@ export class EnrollmentPeriod {
   pricingGroupId: string | null;
   @ApiHideProperty()
   pricingGroup?: PricingGroupAsType | null;
+  @ApiHideProperty()
+  eligibleYearLevels?: YearLevelAsType[];
   @ApiProperty({
     type: 'integer',
     format: 'int32',

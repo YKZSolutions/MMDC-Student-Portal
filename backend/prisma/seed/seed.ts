@@ -41,76 +41,74 @@ async function main() {
       );
       console.timeEnd('Seeded Users');
 
-      // Step 2: Seed Academics
-      console.time('Seeded Academics');
-      const { programs, majors, courses, curriculums } =
-        await seedAcademics(tx);
-      console.timeEnd('Seeded Academics');
+      if (!seedConfig.FRESH_DATA) {
+        // Step 2: Seed Academics
+        console.time('Seeded Academics');
+        const { programs, majors, courses, curriculums } =
+          await seedAcademics(tx);
+        console.timeEnd('Seeded Academics');
 
-      // Step 3: Seed Enrollments
-      console.time('Seeded Enrollments');
-      const {
-        enrollmentPeriods,
-        courseOfferings,
-        courseSections,
-        courseEnrollments,
-      } = await seedEnrollments(tx, courses, mentors, students);
-      console.timeEnd('Seeded Enrollments');
+        // Step 3: Seed Enrollments
+        console.time('Seeded Enrollments');
+        const {
+          enrollmentPeriods,
+          courseOfferings,
+          courseSections,
+          courseEnrollments,
+        } = await seedEnrollments(tx, courses, mentors, students);
+        console.timeEnd('Seeded Enrollments');
 
-      // Step 4: Seed Modules and Content
-      console.time('Seeded Modules');
-      const { modules, contents, assignments } = await seedModules(
-        tx,
-        courses,
-        courseOfferings,
-      );
-      console.timeEnd('Seeded Modules');
+        // Step 4: Seed Modules and Content
+        console.time('Seeded Modules');
+        const { modules, contents, assignments } = await seedModules(
+          tx,
+          courses,
+          courseOfferings,
+        );
+        console.timeEnd('Seeded Modules');
 
-      // Step 5: Link Sections to Modules
-      console.time('Seeded Section Modules');
-      await seedSectionModules(tx, courseSections, modules);
-      console.timeEnd('Seeded Section Modules');
+        // Step 5: Link Sections to Modules
+        console.time('Seeded Section Modules');
+        await seedSectionModules(tx, courseSections, modules);
+        console.timeEnd('Seeded Section Modules');
 
-      // Step 6: Seed Submissions & Progress
-      console.time('Seeded Submissions & Progress');
-      const { assignmentSubmissions, contentProgress } = await seedSubmissions(
-        tx,
-        courseEnrollments,
-        contents,
-        assignments,
-      );
-      console.timeEnd('Seeded Submissions & Progress');
+        // Step 6: Seed Submissions & Progress
+        console.time('Seeded Submissions & Progress');
+        const { assignmentSubmissions, contentProgress } =
+          await seedSubmissions(tx, courseEnrollments, contents, assignments);
+        console.timeEnd('Seeded Submissions & Progress');
 
-      // Step 7: Seed Grades
-      console.time('Seeded Grades');
-      await seedGrades(tx, [...assignmentSubmissions]);
-      console.timeEnd('Seeded Grades');
+        // Step 7: Seed Grades
+        console.time('Seeded Grades');
+        await seedGrades(tx, [...assignmentSubmissions]);
+        console.timeEnd('Seeded Grades');
 
-      // Step 9: Seed Billing
-      console.time('Seeded Billing');
-      await seedBilling(tx, students);
-      console.timeEnd('Seeded Billing');
+        // Step 9: Seed Billing
+        console.time('Seeded Billing');
+        await seedBilling(tx, students);
+        console.timeEnd('Seeded Billing');
 
-      // Step 10: Seed Notifications
-      console.time('Seeded Notifications');
-      await seedNotifications(tx, users);
-      console.timeEnd('Seeded Notifications');
+        // Step 10: Seed Notifications
+        console.time('Seeded Notifications');
+        await seedNotifications(tx, users);
+        console.timeEnd('Seeded Notifications');
 
-      console.timeEnd('Database seeded in');
-      console.log('✅ Seed completed successfully!');
+        console.timeEnd('Database seeded in');
+        console.log('✅ Seed completed successfully!');
 
-      // Print summary
-      console.log('\n📊 Seed Summary:');
-      console.log(
-        `👥 Users: ${users.length} (${admins.length} admins, ${mentors.length} mentors, ${students.length} students)`,
-      );
-      console.log(
-        `🎓 Academics: ${programs.length} programs, ${majors.length} majors, ${courses.length} courses`,
-      );
-      console.log(
-        `📚 Course Content: ${modules.length} modules, ${contents.length} content items`,
-      );
-      console.log(`📈 Progress: ${contentProgress.length} progress records`);
+        // Print summary
+        console.log('\n📊 Seed Summary:');
+        console.log(
+          `👥 Users: ${users.length} (${admins.length} admins, ${mentors.length} mentors, ${students.length} students)`,
+        );
+        console.log(
+          `🎓 Academics: ${programs.length} programs, ${majors.length} majors, ${courses.length} courses`,
+        );
+        console.log(
+          `📚 Course Content: ${modules.length} modules, ${contents.length} content items`,
+        );
+        console.log(`📈 Progress: ${contentProgress.length} progress records`);
+      }
     },
     {
       timeout: 120000, // 120-second timeout

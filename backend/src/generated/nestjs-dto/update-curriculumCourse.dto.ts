@@ -17,13 +17,5 @@ export class UpdateCurriculumCourseDto {
   })
   @IsOptional()
   @IsInt()
-  year?: number;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    required: false,
-  })
-  @IsOptional()
-  @IsInt()
   semester?: number;
 }

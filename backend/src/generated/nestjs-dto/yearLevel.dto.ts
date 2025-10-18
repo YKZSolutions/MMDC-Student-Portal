@@ -1,20 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CurriculumCourseDto {
+export class YearLevelDto {
   @ApiProperty({
     type: 'string',
   })
   id: string;
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
+    type: 'string',
   })
-  order: number;
+  name: string;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
   })
-  semester: number;
+  levelOrder: number;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  description: string | null;
+  @ApiProperty({
+    type: 'boolean',
+  })
+  isActive: boolean;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

@@ -5,6 +5,10 @@ import {
   type EnrollmentPeriod as EnrollmentPeriodAsType,
 } from './enrollmentPeriod.entity';
 import {
+  YearLevel,
+  type YearLevel as YearLevelAsType,
+} from './yearLevel.entity';
+import {
   CourseEnrollment,
   type CourseEnrollment as CourseEnrollmentAsType,
 } from './courseEnrollment.entity';
@@ -39,6 +43,8 @@ export class CourseOffering {
   periodId: string;
   @ApiHideProperty()
   enrollmentPeriod?: EnrollmentPeriodAsType;
+  @ApiHideProperty()
+  targetYearLevels?: YearLevelAsType[];
   @ApiHideProperty()
   courseEnrollments?: CourseEnrollmentAsType[];
   @ApiHideProperty()

@@ -1,6 +1,10 @@
 import { Prisma, StudentType } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { User, type User as UserAsType } from './user.entity';
+import {
+  YearLevel,
+  type YearLevel as YearLevelAsType,
+} from './yearLevel.entity';
 
 export class StudentDetails {
   @ApiProperty({
@@ -13,6 +17,13 @@ export class StudentDetails {
   userId: string;
   @ApiHideProperty()
   user?: UserAsType;
+  @ApiHideProperty()
+  yearLevel?: YearLevelAsType | null;
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+  })
+  yearLevelId: string | null;
   @ApiProperty({
     type: 'string',
   })

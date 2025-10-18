@@ -123,6 +123,32 @@ model UserDetails {
   deletedAt DateTime?
 }
 
+model YearLevel {
+  id String @id @default(uuid()) @db.Uuid
+
+  name        String // e.g. "First Year", "Grade 10", "Senior High"
+  levelOrder  Int // numeric order, e.g. 1, 2, 3, 4
+  description String? // optional additional info (e.g., "Freshman year")
+
+  /// @DtoApiHidden
+  students          StudentDetails[] // Students in this year level
+  /// @DtoApiHidden
+  curriculumCourses CurriculumCourse[] // Courses associated with this year level
+  /// @DtoApiHidden
+  enrollmentPeriods EnrollmentPeriod[] // Year levels eligible to enroll for these periods
+  /// @DtoApiHidden
+  courseOfferings   CourseOffering[] // Offerings targeted to this year level
+
+  isActive Boolean @default(true)
+
+  /// @DtoReadOnly
+  createdAt DateTime  @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime  @updatedAt
+  /// @DtoReadOnly
+  deletedAt DateTime?
+}
+
 enum StudentType {
   new
   regular
@@ -138,6 +164,10 @@ model StudentDetails {
   userId String @unique @db.Uuid
   /// @DtoApiHidden
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// @DtoApiHidden
+  yearLevel   YearLevel? @relation(fields: [yearLevelId], references: [id])
+  yearLevelId String?    @db.Uuid
 
   studentNumber String      @unique
   studentType   StudentType
@@ -277,16 +307,19 @@ model Curriculum {
 model CurriculumCourse {
   id String @id @default(uuid()) @db.Uuid
 
-  curriculumId String     @db.Uuid
   /// @DtoApiHidden
   curriculum   Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId String     @db.Uuid
 
-  courseId String @db.Uuid
   /// @DtoApiHidden
   course   Course @relation(fields: [courseId], references: [id])
+  courseId String @db.Uuid
+
+  /// @DtoApiHidden
+  yearLevel   YearLevel? @relation(fields: [yearLevelId], references: [id])
+  yearLevelId String?    @db.Uuid
 
   order    Int
-  year     Int
   semester Int
 
   /// @DtoReadOnly
@@ -316,6 +349,10 @@ model EnrollmentPeriod {
   pricingGroupId  String?          @db.Uuid
   /// @DtoApiHidden
   pricingGroup    PricingGroup?    @relation(fields: [pricingGroupId], references: [id])
+
+  // New field to specify which year levels are eligible
+  /// @DtoApiHidden
+  eligibleYearLevels YearLevel[]
 
   startYear Int
   endYear   Int
@@ -347,6 +384,10 @@ model CourseOffering {
   periodId         String           @db.Uuid // Each offering belongs to one enrollment period
   /// @DtoApiHidden
   enrollmentPeriod EnrollmentPeriod @relation(fields: [periodId], references: [id])
+
+  // Target offering to specific year levels
+  /// @DtoApiHidden
+  targetYearLevels YearLevel[]
 
   /// @DtoApiHidden
   courseEnrollments CourseEnrollment[] // Each offering can have multiple enrollments

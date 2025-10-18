@@ -15,12 +15,5 @@ export class CreateCurriculumCourseDto {
   })
   @IsNotEmpty()
   @IsInt()
-  year: number;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-  })
-  @IsNotEmpty()
-  @IsInt()
   semester: number;
 }
