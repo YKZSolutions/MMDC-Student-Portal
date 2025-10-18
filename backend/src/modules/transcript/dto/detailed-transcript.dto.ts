@@ -14,6 +14,9 @@ export class DetailedTranscriptDto extends TranscriptDto {
   @ApiProperty({ type: () => TranscriptCourseOfferingDto })
   courseOffering: TranscriptCourseOfferingDto;
 
+  @ApiProperty({ type: 'string', format: 'uuid' })
+  courseOfferingId: string;
+
   @ApiProperty({ type: () => UserWithRelations })
   user: UserWithRelations;
 
