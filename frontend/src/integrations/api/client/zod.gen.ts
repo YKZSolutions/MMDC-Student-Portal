@@ -2974,7 +2974,8 @@ export const zDetailedTranscriptDto = z.object({
         z.null()
     ]),
     courseOffering: zTranscriptCourseOfferingDto,
-    user: zUserWithRelations
+    user: zUserWithRelations,
+    gwa: z.string()
 });
 
 export const zUpdateTranscriptDto = z.object({

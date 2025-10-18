@@ -2076,6 +2076,7 @@ export type DetailedTranscriptDto = {
     deletedAt: string | null;
     courseOffering: TranscriptCourseOfferingDto;
     user: UserWithRelations;
+    gwa: string;
 };
 
 export type UpdateTranscriptDto = {
