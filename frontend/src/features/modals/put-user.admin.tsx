@@ -44,6 +44,7 @@ import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { notifications } from '@mantine/notifications'
 import { supabase } from '@/integrations/supabase/supabase-client'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation.tsx'
 
 function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
   const [active, setActive] = useState(0)
@@ -71,15 +72,19 @@ function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
     validate: zod4Resolver(MainFormSchema),
   })
 
-  const { mutateAsync: create, isPending } = useMutation({
-    ...usersControllerCreateMutation(),
-    onSettled: async () => {
-      const { queryClient } = getContext()
-      queryClient.invalidateQueries({
-        queryKey: usersControllerFindAllQueryKey(),
-      })
+  const { mutateAsync: create, isPending } = useAppMutation(
+    usersControllerCreateMutation,
+    {
+      loading: {
+        title: 'User Account Creation',
+        message: 'Creating user account..',
+      },
+      success: {
+        title: 'User Account Created',
+        message: 'User account has been created successfully',
+      },
     },
-  })
+  )
 
   const nextStep = () =>
     setActive((current) => {
@@ -335,15 +340,19 @@ interface NextFormProps {
 }
 
 function StudentForm(props: NextFormProps) {
-  const { mutateAsync: create, isPending } = useMutation({
-    ...usersControllerCreateStudentMutation(),
-    onSettled: async () => {
-      const { queryClient } = getContext()
-      queryClient.invalidateQueries({
-        queryKey: usersControllerFindAllQueryKey(),
-      })
+  const { mutateAsync: create, isPending } = useAppMutation(
+    usersControllerCreateStudentMutation,
+    {
+      loading: {
+        title: 'Student Account Creation',
+        message: 'Creating account for student...',
+      },
+      success: {
+        title: 'Student Account Created',
+        message: 'Account for student has been created successfully',
+      },
     },
-  })
+  )
 
   const form = useForm<StudentFormInput>({
     mode: 'uncontrolled',
@@ -465,15 +474,19 @@ function StudentForm(props: NextFormProps) {
 }
 
 function StaffForm(props: NextFormProps) {
-  const { mutateAsync: create, isPending } = useMutation({
-    ...usersControllerCreateStaffMutation(),
-    onSettled: async () => {
-      const { queryClient } = getContext()
-      queryClient.invalidateQueries({
-        queryKey: usersControllerFindAllQueryKey(),
-      })
+  const { mutateAsync: create, isPending } = useAppMutation(
+    usersControllerCreateStaffMutation,
+    {
+      loading: {
+        title: 'Staff Account Creation',
+        message: 'Creating account for staff...',
+      },
+      success: {
+        title: 'Staff Account Created',
+        message: 'Account for staff has been created successfully',
+      },
     },
-  })
+  )
 
   const form = useForm<StaffFormInput>({
     mode: 'uncontrolled',
