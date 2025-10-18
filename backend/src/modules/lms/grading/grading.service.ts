@@ -363,12 +363,7 @@ export class GradingService {
   @Log({
     logArgsMessage: ({ filters }) =>
       `Fetching admin gradebook with filters: ${JSON.stringify(filters)}`,
-    logSuccessMessage: () => `Gradebook successfully fetched.`,
-    logErrorMessage: (err) => `Error fetching admin gradebook: ${err.message}`,
-  })
-  @Log({
-    logArgsMessage: ({ filters }) =>
-      `Fetching admin gradebook with filters: ${JSON.stringify(filters)}`,
+
     logSuccessMessage: () => `Admin gradebook successfully fetched.`,
     logErrorMessage: (err) => `Error fetching admin gradebook: ${err.message}`,
   })

@@ -14,6 +14,16 @@ import { Log } from '@/common/decorators/log.decorator';
 import { ContentProgress } from '@/generated/nestjs-dto/contentProgress.entity';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
+/**
+ * Service for tracking and managing student progress across modules, sections, and content items in the LMS.
+ *
+ * This service provides methods to:
+ * - Retrieve progress overviews and detailed breakdowns for modules, sections, and content items.
+ * - Aggregate and compute statistics such as completion rates, overdue assignments, and last accessed times.
+ * - Support different user roles (e.g., student, instructor) and query parameters for flexible progress tracking.
+ *
+ * Typical consumers include dashboard components, progress analytics, and reporting features within the LMS.
+ */
 @Injectable()
 export class ModuleProgressService {
   constructor(

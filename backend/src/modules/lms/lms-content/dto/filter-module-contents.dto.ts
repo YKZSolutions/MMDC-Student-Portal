@@ -3,7 +3,6 @@ import { ContentType, ProgressStatus } from '@prisma/client';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
 
-//TODO: Omit protected fields from the request
 export class FilterModuleContentsDto extends BaseFilterDto {
   @ApiPropertyOptional({
     enum: ContentType,
