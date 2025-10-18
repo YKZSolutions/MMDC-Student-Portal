@@ -6,6 +6,7 @@ import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -17,7 +18,6 @@ import {
   Put,
   Query,
   UnauthorizedException,
-  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -38,7 +38,6 @@ import {
   UpdateUserStaffDto,
   UpdateUserStudentDto,
 } from './dto/update-user-details.dto';
-import { UserWithRelations } from './dto/user-with-relations.dto';
 import { UsersService } from './users.service';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { AuthUser } from '@/common/interfaces/auth.user-metadata';
@@ -47,7 +46,10 @@ import {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
+import { UserDto } from '@/generated/nestjs-dto/user.dto';
+import { UserWithRelations } from '@/modules/users/dto/user-with-relations.dto';
+import { MessageDto } from '@/common/dto/message.dto';
 
 /**
  *
@@ -68,8 +70,11 @@ export class UsersController {
   @Post()
   @Roles(Role.ADMIN)
   @ApiCreatedResponse({ type: User })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
   async create(@Body() createUserDto: CreateUserFullDto): Promise<User> {
     return this.usersService.create(createUserDto.role, createUserDto);
   }
@@ -84,11 +89,14 @@ export class UsersController {
    */
   @Post('/student')
   @Roles(Role.ADMIN)
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
   async createStudent(
     @Body() createUserDto: CreateUserStudentDto,
-  ): Promise<User> {
+  ): Promise<UserDto> {
     return this.usersService.create('student', createUserDto);
   }
 
@@ -102,9 +110,14 @@ export class UsersController {
    */
   @Post('/staff')
   @Roles(Role.ADMIN)
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
-  async createStaff(@Body() createUserDto: CreateUserStaffDto): Promise<User> {
+  @ApiException(() => [
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  async createStaff(
+    @Body() createUserDto: CreateUserStaffDto,
+  ): Promise<UserDto> {
     return this.usersService.create(createUserDto.role, createUserDto);
   }
 
@@ -116,13 +129,13 @@ export class UsersController {
    */
   @Post('invite')
   @Roles(Role.ADMIN)
-  @ApiCreatedResponse({ type: User })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
-  async inviteUser(@Body() inviteUserDto: InviteUserDto): Promise<User> {
-    const user = await this.usersService.inviteUser(inviteUserDto);
-
-    return user.user;
+  @ApiException(() => [
+    BadRequestException,
+    ConflictException,
+    InternalServerErrorException,
+  ])
+  async inviteUser(@Body() inviteUserDto: InviteUserDto): Promise<UserDto> {
+    return await this.usersService.inviteUser(inviteUserDto);
   }
 
   /**
@@ -158,7 +171,7 @@ export class UsersController {
   @Get('/me')
   async getMe(
     @CurrentUser() user: AuthUser,
-  ): Promise<UserDetailsFullDto | UserStudentDetailsDto | UserStaffDetailsDto> {
+  ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
     return this.usersService.getMe(user.id);
   }
 
@@ -176,7 +189,7 @@ export class UsersController {
   async updateOwnUserDetails(
     @CurrentUser() user: AuthUser,
     @Body() updateUserDto: UpdateUserBaseDto,
-  ): Promise<User> {
+  ): Promise<UserDto> {
     const { user_id, role } = user.user_metadata;
 
     return this.usersService.updateUserDetails(user_id!, role!, updateUserDto);
@@ -197,7 +210,7 @@ export class UsersController {
   async updateUserStudentDetails(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserStudentDto,
-  ): Promise<User> {
+  ): Promise<UserDto> {
     const user = await this.usersService.findOne(id);
 
     return this.usersService.updateUserDetails(id, user.role, updateUserDto);
@@ -218,7 +231,7 @@ export class UsersController {
   async updateUserStaffDetails(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserStaffDto,
-  ): Promise<User> {
+  ): Promise<UserDto> {
     const user = await this.usersService.findOne(id);
 
     return this.usersService.updateUserDetails(id, user.role, updateUserDto);
@@ -261,7 +274,7 @@ export class UsersController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<UserWithRelations> {
     return this.usersService.findOne(id);
   }
 
@@ -290,7 +303,7 @@ export class UsersController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  async updateUserStatus(@Param('id') id: string) {
+  async updateUserStatus(@Param('id') id: string): Promise<MessageDto> {
     return this.usersService.updateStatus(id);
   }
 
@@ -326,7 +339,10 @@ export class UsersController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
+  remove(
+    @Param('id') id: string,
+    @Query() query?: DeleteQueryDto,
+  ): Promise<MessageDto> {
     return this.usersService.remove(id, query?.directDelete);
   }
 }

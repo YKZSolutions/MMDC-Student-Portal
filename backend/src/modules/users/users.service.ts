@@ -38,6 +38,7 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
+import { MessageDto } from '@/common/dto/message.dto';
 
 @Injectable()
 export class UsersService {
@@ -59,11 +60,31 @@ export class UsersService {
    * @throws BadRequestException if user creation in DB fails.
    */
   @Log({
-    logArgsMessage: ({ credentials, role }) =>
-      `Create supabase account email=${credentials.email} role=${role}`,
-    logSuccessMessage: (result, { credentials }) =>
-      `Create supabase account email=${credentials.email} id=${result.id}`,
-    logErrorMessage: (err, { credentials }) =>
+    logArgsMessage: ({
+      credentials,
+      role,
+    }: {
+      credentials: CreateUserFullDto['credentials'];
+      role: Role;
+    }) => `Create supabase account email=${credentials.email} role=${role}`,
+    logSuccessMessage: (
+      result,
+      {
+        credentials,
+      }: {
+        credentials: CreateUserFullDto['credentials'];
+        role: Role;
+      },
+    ) => `Create supabase account email=${credentials.email} id=${result.id}`,
+    logErrorMessage: (
+      err,
+      {
+        credentials,
+      }: {
+        credentials: CreateUserFullDto['credentials'];
+        role: Role;
+      },
+    ) =>
       `Create supabase account email=${credentials.email} | Error: ${err.message}`,
   })
   private async accountCreationHandler(
@@ -100,18 +121,37 @@ export class UsersService {
    * @throws InternalServerErrorException if user creation fails.
    */
   @Log({
-    logArgsMessage: ({ role, dto }) =>
-      `Create user account email=${dto.credentials.email} role=${role}`,
-    logSuccessMessage: (result, { role, dto }) =>
+    logArgsMessage: ({
+      role,
+      dto,
+    }: {
+      role: Role;
+      dto: CreateUserFullDto | CreateUserStudentDto | CreateUserStaffDto;
+    }) => `Create user account email=${dto.credentials.email} role=${role}`,
+    logSuccessMessage: (
+      result,
+      {
+        role,
+        dto,
+      }: {
+        role: Role;
+        dto: CreateUserFullDto | CreateUserStudentDto | CreateUserStaffDto;
+      },
+    ) =>
       `Create user account email=${dto.credentials.email} role=${role} | id=${result.id}`,
-    logErrorMessage: (err, { role, dto }) =>
+    logErrorMessage: (
+      err,
+      {
+        role,
+        dto,
+      }: {
+        role: Role;
+        dto: CreateUserFullDto | CreateUserStudentDto | CreateUserStaffDto;
+      },
+    ) =>
       `Create user account email=${dto.credentials.email} role=${role} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: (msg, { dto }) =>
-      new ConflictException(
-        `User creation failed: email=${dto.credentials.email} already exists`,
-      ),
     [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException('Invalid reference when creating user'),
     [PrismaErrorCode.RelationViolation]: () =>
@@ -135,7 +175,40 @@ export class UsersService {
       user: userDto,
       credentials,
       userDetails: userDetailsDto,
-    } = createUserDto;
+      specificDetails,
+    } = role === Role.student
+      ? (createUserDto as CreateUserStudentDto)
+      : (createUserDto as CreateUserStaffDto);
+
+    const existingUser = await this.prisma.client.user.findFirst({
+      where: {
+        ...(role === Role.student &&
+          'studentNumber' in specificDetails && {
+            studentDetails: {
+              studentNumber: specificDetails.studentNumber,
+            },
+          }),
+        ...(role !== Role.student &&
+          'employeeNumber' in specificDetails && {
+            staffDetails: {
+              employeeNumber: specificDetails.employeeNumber,
+            },
+          }),
+      },
+    });
+
+    if (existingUser) {
+      if (role === Role.student && 'studentNumber' in specificDetails) {
+        throw new ConflictException(
+          `Student with student number ${specificDetails.studentNumber} already exists`,
+        );
+      }
+      if (role !== Role.student && 'employeeNumber' in specificDetails) {
+        throw new ConflictException(
+          `Staff with employee number ${specificDetails.employeeNumber} already exists`,
+        );
+      }
+    }
 
     return await this.accountCreationHandler(
       credentials,
@@ -190,15 +263,18 @@ export class UsersService {
    */
 
   @Log({
-    logArgsMessage: ({ dto }) =>
+    logArgsMessage: ({ dto }: { dto: InviteUserDto }) =>
       `Invite user email=${dto.email} role=${dto.role}`,
-    logSuccessMessage: (result, { dto }) =>
-      `Invite user email=${dto.email} role=${dto.role} | id=${result.user.id}`,
-    logErrorMessage: (err, { dto }) =>
+    logSuccessMessage: (result, { dto }: { dto: InviteUserDto }) =>
+      `Invite user email=${dto.email} role=${dto.role} | id=${result.id}`,
+    logErrorMessage: (err, { dto }: { dto: InviteUserDto }) =>
       `Invite user email=${dto.email} role=${dto.role} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: (msg, { dto }) =>
+    [PrismaErrorCode.UniqueConstraint]: (
+      _msg,
+      { dto }: { dto: InviteUserDto },
+    ) =>
       new ConflictException(
         `Invitation failed: email=${dto.email} already exists`,
       ),
@@ -207,18 +283,20 @@ export class UsersService {
         'User invitation failed due to transaction deadlock',
       ),
   })
-  async inviteUser(@LogParam('dto') inviteUserDto: InviteUserDto) {
-    const result = await this.prisma.client.$transaction(async (tx) => {
+  async inviteUser(
+    @LogParam('dto') inviteUserDto: InviteUserDto,
+  ): Promise<UserDto> {
+    return await this.prisma.client.$transaction(async (tx) => {
       const account = await this.authService.invite(
         inviteUserDto.email,
         inviteUserDto.role,
       );
 
-      let user = await tx.user.findFirst({
+      let user: UserDto | null = await tx.user.findFirst({
         where: { userAccount: { authUid: account.id } },
       });
 
-      if (user) return { user };
+      if (user) return user;
 
       user = await tx.user.create({
         data: {
@@ -239,10 +317,8 @@ export class UsersService {
         user_id: user.id,
       });
 
-      return { user };
+      return user;
     });
-
-    return result;
   }
 
   /**
@@ -265,7 +341,7 @@ export class UsersService {
       `Failed to update user details userId=${userId} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (msg, { userId }) =>
+    [PrismaErrorCode.RecordNotFound]: (_msg, { userId }) =>
       new NotFoundException(`User with ID ${userId} not found`),
     [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException('Invalid reference during user update'),
@@ -315,12 +391,10 @@ export class UsersService {
       }
     }
 
-    const updatedUser = await this.prisma.client.user.update({
+    return await this.prisma.client.user.update({
       where: { id: userId },
       data: baseUserData,
     });
-
-    return updatedUser;
   }
 
   /**
@@ -441,8 +515,7 @@ export class UsersService {
 
     this.filterHandler(filters, where);
 
-    const count = await this.prisma.client.user.count({ where });
-    return count;
+    return await this.prisma.client.user.count({ where });
   }
 
   /**
@@ -506,16 +579,14 @@ export class UsersService {
       `Failed to update status for userId=${userId} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (msg, { userId }) =>
+    [PrismaErrorCode.RecordNotFound]: (_msg, { userId }) =>
       new NotFoundException(`User or account with ID ${userId} not found`),
     [PrismaErrorCode.TransactionDeadlock]: () =>
       new InternalServerErrorException(
         'Updating user status failed due to transaction deadlock',
       ),
   })
-  async updateStatus(
-    @LogParam('userId') userId: string,
-  ): Promise<{ message: string }> {
+  async updateStatus(@LogParam('userId') userId: string): Promise<MessageDto> {
     const user = await this.prisma.client.user.findUnique({
       where: { id: userId },
       select: {
@@ -659,7 +730,7 @@ export class UsersService {
       `Failed to remove user id=${id} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (msg, { id }) =>
+    [PrismaErrorCode.RecordNotFound]: (_msg, { id }) =>
       new NotFoundException(`User with ID ${id} not found`),
     [PrismaErrorCode.TransactionDeadlock]: () =>
       new InternalServerErrorException(
@@ -669,7 +740,7 @@ export class UsersService {
   async remove(
     @LogParam('id') id: string,
     directDelete?: boolean,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageDto> {
     const user = await this.prisma.client.user.findUniqueOrThrow({
       where: { id },
       include: {
