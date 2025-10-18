@@ -180,33 +180,35 @@ export class UsersService {
       ? (createUserDto as CreateUserStudentDto)
       : (createUserDto as CreateUserStaffDto);
 
-    const existingUser = await this.prisma.client.user.findFirst({
-      where: {
-        ...(role === Role.student &&
-          'studentNumber' in specificDetails && {
-            studentDetails: {
-              studentNumber: specificDetails.studentNumber,
-            },
-          }),
-        ...(role !== Role.student &&
-          'employeeNumber' in specificDetails && {
-            staffDetails: {
-              employeeNumber: specificDetails.employeeNumber,
-            },
-          }),
-      },
-    });
+    if (specificDetails) {
+      const existingUser = await this.prisma.client.user.findFirst({
+        where: {
+          ...(role === Role.student &&
+            'studentNumber' in specificDetails && {
+              studentDetails: {
+                studentNumber: specificDetails.studentNumber,
+              },
+            }),
+          ...(role !== Role.student &&
+            'employeeNumber' in specificDetails && {
+              staffDetails: {
+                employeeNumber: specificDetails.employeeNumber,
+              },
+            }),
+        },
+      });
 
-    if (existingUser) {
-      if (role === Role.student && 'studentNumber' in specificDetails) {
-        throw new ConflictException(
-          `Student with student number ${specificDetails.studentNumber} already exists`,
-        );
-      }
-      if (role !== Role.student && 'employeeNumber' in specificDetails) {
-        throw new ConflictException(
-          `Staff with employee number ${specificDetails.employeeNumber} already exists`,
-        );
+      if (existingUser) {
+        if (role === Role.student && 'studentNumber' in specificDetails) {
+          throw new ConflictException(
+            `Student with student number ${specificDetails.studentNumber} already exists`,
+          );
+        }
+        if (role !== Role.student && 'employeeNumber' in specificDetails) {
+          throw new ConflictException(
+            `Staff with employee number ${specificDetails.employeeNumber} already exists`,
+          );
+        }
       }
     }
 
