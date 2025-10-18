@@ -74,7 +74,7 @@ export class EnrollmentController {
    * Requires `ADMIN` role.
    *
    * @throws NotFoundException If the enrollment does not exist
-   * @throws BadRequestException If ID format is invalid
+   * @throws BadRequestException If an ID format is invalid
    */
   @ApiException(() => [NotFoundException, BadRequestException])
   @Get(':enrollmentId')

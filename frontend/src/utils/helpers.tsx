@@ -5,25 +5,21 @@ import type {
 import type {
   ContentNode,
   CourseNodeModel,
-  Module,
-  ModuleItem,
-  ModuleSection,
+  FullModuleContent,
+  ModuleTreeContentItem,
+  SectionNodeData,
 } from '@/features/courses/modules/types.ts'
 import type { AcademicTerm } from '@/features/courses/types.ts'
 import type {
-  BasicModuleItemDto,
+  AssignmentItemDto,
   ContentType,
   ModuleContent,
+  ModuleTreeAssignmentItemDto,
+  ModuleTreeDto,
+  ModuleTreeSectionDto,
 } from '@/integrations/api/client'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
-import {
-  IconCalendarTime,
-  IconClipboard,
-  IconExternalLink,
-  IconFileText,
-  IconMessageCircle,
-  IconPaperclip,
-} from '@tabler/icons-react'
+import { IconClipboard, IconFileText } from '@tabler/icons-react'
 
 export function getTypeFromLevel(level?: number) {
   switch (level) {
@@ -57,18 +53,6 @@ export function getPastDate(daysToSubtract: number) {
   ).toISOString()
 }
 
-export function getSubmissionStatus(
-  assignment: AssignmentBase | StudentAssignment | undefined,
-) {
-  if (!assignment) return undefined
-
-  if ('submissionStatus' in assignment) {
-    return assignment.submissionStatus
-  }
-
-  return undefined
-}
-
 export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
   const augmented: CourseNodeModel[] = [...nodes]
 
@@ -99,35 +83,40 @@ export function injectAddButtons(nodes: CourseNodeModel[]): CourseNodeModel[] {
 }
 
 // Convert a Module (local model) into CourseNodeModel[] for the Tree component
-export function convertModuleToTreeData(module: Module): CourseNodeModel[] {
-  return convertSectionsToTreeData(module.sections as any[])
+export function convertModuleToTreeData(
+  module: ModuleTreeDto,
+): CourseNodeModel[] {
+  return convertSectionsToTreeData(module.moduleSections || [])
 }
 
 // Convert API DTO sections into CourseNodeModel[] for the Tree component
 export function convertModuleSectionsToTreeData(
-  sections: ContentNode[],
+  sections: ModuleTreeSectionDto[],
 ): CourseNodeModel[] {
   return convertSectionsToTreeData(sections)
 }
 
 // Shared implementation: simple, non-mutating traversal that flattens
 // sections, subsections and items into the node list expected by the Tree.
-function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
+function convertSectionsToTreeData(
+  sections: ModuleTreeSectionDto[],
+): CourseNodeModel[] {
   const treeData: CourseNodeModel[] = []
 
-  function processSection(section: ContentNode, parentId = 'root', level = 1) {
+  function processSection(section: ModuleTreeSectionDto, parentId = 'root') {
     if (!section) return
 
+    // Push the section or subsection node
     treeData.push({
       id: section.id,
       parent: parentId,
       text: section.title ?? 'Untitled Section',
-      droppable: getTypeFromLevel(level) !== 'item',
+      droppable: true,
       data: {
-        level,
-        type: getTypeFromLevel(level),
+        level: parentId === 'root' ? 1 : 2,
+        type: 'section',
         contentData: section,
-      },
+      } satisfies SectionNodeData,
     })
 
     // This is still needed for the mock items.
@@ -159,26 +148,21 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
     //   }
     // }
 
-    if ('moduleContents' in section) {
-      const items = section.moduleContents ?? []
+    if (parentId !== 'root') {
+      const items: ModuleTreeContentItem[] = section.moduleContents ?? []
       for (const item of items) {
         if (!item) continue
         treeData.push({
           id: item.id,
           parent: section.id,
-          text:
-            getContentKeyAndData(item).existingContent?.title ??
-            'Untitled Item',
+          text: item.title ?? 'Untitled Item',
           droppable: false,
           data: {
             level: 3,
             type: 'item',
             contentData: {
               ...item,
-              title: getContentKeyAndData(item).existingContent?.title ?? '',
-              moduleId: section.moduleId,
-              parentSectionId: '',
-              prerequisiteSectionId: '',
+              title: item.title ?? '',
             },
           },
         })
@@ -187,7 +171,7 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
 
     const subs = section.subsections ?? []
     for (const sub of subs) {
-      processSection(sub, section.id, level + 1)
+      processSection(sub, section.id)
     }
   }
 
@@ -196,31 +180,40 @@ function convertSectionsToTreeData(sections: ContentNode[]): CourseNodeModel[] {
   return treeData
 }
 
-export function getModuleSubSectionsFromModule(module: Module) {
-  return module.sections.flatMap((section) => section.subsections)
+export function getModuleSubSectionsFromModule(module: ModuleTreeDto) {
+  return module.moduleSections?.flatMap((section) => section.subsections)
 }
 
-export function getModuleSubSectionsFromSections(sections: ModuleSection[]) {
+export function getModuleSubSectionsFromSections(
+  sections: ModuleTreeSectionDto[],
+) {
   return sections.flatMap((section) => section.subsections)
 }
 
-export function getAllModuleSections(module: Module) {
-  const sections = module.sections
-  const subsections = getModuleSubSectionsFromSections(sections)
+export function getAllModuleSections(
+  module: ModuleTreeDto,
+): ModuleTreeSectionDto[] {
+  const sections: ModuleTreeSectionDto[] = module.moduleSections || []
+  const subsections = sections
+    .flatMap((section) => section.subsections || [])
+    .filter((s): s is ModuleTreeSectionDto => s != null)
+
   return [...sections, ...subsections]
 }
 
-export function getModuleItemsFromModule(module: Module) {
+export function getModuleItemsFromModule(
+  module: ModuleTreeDto,
+): ModuleTreeContentItem[] {
   const sections = getAllModuleSections(module)
-  return sections.flatMap((section) => section.items)
+  return sections.flatMap((section) => section?.moduleContents)
 }
 
-export function getModuleItemsFromSections(sections: ModuleSection[]) {
-  let items: ModuleItem[] = []
+export function getModuleItemsFromSections(sections: ModuleTreeSectionDto[]) {
+  let items: ModuleTreeContentItem[] = []
   sections.forEach((s) => {
     items = [
       ...items,
-      ...s.items,
+      ...s.moduleContents,
       ...getModuleItemsFromSections(s.subsections || []),
     ]
   })
@@ -232,29 +225,24 @@ export const createFilterOption = (value: string) => ({
   value: value.toLowerCase(),
 })
 
-export const getCompletedItemsCount = (items: ModuleItem[]) => {
+export const getCompletedItemsCount = (items: ModuleTreeContentItem[]) => {
   return items.filter((item) => {
-    if (item.type === 'lesson' && item.progress) {
-      return item.progress.isCompleted
-    }
-    if (item.type === 'assignment' && item.assignment) {
-      const submissionStatus = getSubmissionStatus(item.assignment)
+    if (item.studentProgress) {
       return (
-        submissionStatus === 'graded' ||
-        submissionStatus === 'ready-for-grading' ||
-        submissionStatus === 'submitted'
+        item.studentProgress.filter((s) => s.status === 'COMPLETED').length > 0
       )
     }
+
     return false
   }).length
 }
 
-export const getOverdueItemsCount = (items: ModuleItem[]) => {
+export const getOverdueItemsCount = (items: ModuleTreeContentItem[]) => {
   return items.filter((item) => {
-    if (item.type === 'assignment' && item.assignment?.dueDate) {
+    if (item.contentType === 'ASSIGNMENT' && item?.dueDate) {
       return (
-        new Date(item.assignment.dueDate) < new Date() &&
-        getSubmissionStatus(item.assignment) === 'pending'
+        new Date(item.dueDate) < new Date() &&
+        item.studentProgress?.[0].status !== 'COMPLETED'
       )
     }
     return false
@@ -294,16 +282,6 @@ export const getContentTypeIcon = (contentType: ContentType) => {
       return <IconFileText size={16} />
     case 'ASSIGNMENT':
       return <IconClipboard size={16} />
-    case 'QUIZ':
-      return <IconPaperclip size={16} />
-    case 'DISCUSSION':
-      return <IconMessageCircle size={16} />
-    case 'FILE':
-      return <IconPaperclip size={16} />
-    case 'URL':
-      return <IconExternalLink size={16} />
-    case 'VIDEO':
-      return <IconCalendarTime size={16} />
     default:
       return 'Untitled Item'
   }
@@ -311,7 +289,7 @@ export const getContentTypeIcon = (contentType: ContentType) => {
 
 // Helper type: maps ModuleContent.contentType (e.g. 'LESSON') to the corresponding
 // lowercased key on the ModuleContent object (e.g. 'lesson').
-type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
+type DetailKeyForContent<U extends FullModuleContent | ModuleTreeContentItem> =
   U extends {
     contentType: infer CT
   }
@@ -322,26 +300,26 @@ type ModuleContentKeyFor<U extends ModuleContent | BasicModuleItemDto> =
       : never
     : never
 
-export type ExistingContent<T extends ModuleContent | BasicModuleItemDto> =
-  | NonNullable<T[ModuleContentKeyFor<T>]>
-  | undefined
+export type ContentDetailOf<
+  T extends FullModuleContent | ModuleTreeContentItem,
+> = NonNullable<T[DetailKeyForContent<T>]> | undefined
 
-export const getContentKeyAndData = <
-  T extends ModuleContent | BasicModuleItemDto,
+export const resolveContentDetails = <
+  T extends FullModuleContent | ModuleTreeContentItem,
 >(
   data: T,
 ): {
-  contentKey: ModuleContentKeyFor<T>
-  existingContent: NonNullable<T[ModuleContentKeyFor<T>]> | undefined
+  contentKey: DetailKeyForContent<T>
+  contentDetails: NonNullable<T[DetailKeyForContent<T>]> | undefined
 } => {
-  const contentKey = data.contentType.toLowerCase() as ModuleContentKeyFor<T>
+  const contentKey = data.contentType.toLowerCase() as DetailKeyForContent<T>
 
   // Read the property and cast to the precise type so callers get IntelliSense.
-  const existingContent = (data[contentKey] ?? undefined) as
-    | NonNullable<T[ModuleContentKeyFor<T>]>
+  const contentDetails = (data[contentKey] ?? undefined) as
+    | NonNullable<T[DetailKeyForContent<T>]>
     | undefined
 
-  return { contentKey, existingContent }
+  return { contentKey, contentDetails }
 }
 
 export const isEditorEmpty = (editor: BlockNoteEditor) => {
@@ -350,7 +328,7 @@ export const isEditorEmpty = (editor: BlockNoteEditor) => {
   const block = editor.document[0]
   if (block.type !== 'paragraph') return false
 
-  // Ensure content array is empty or only contains empty text
+  // Ensure the content array is empty or only contains empty text
   return (
     block.content.length === 0 ||
     block.content.every((c) => c.type === 'text' && c.text.trim() === '')

@@ -4,6 +4,7 @@ import {
   BasicTextStyleButton,
   BlockTypeSelect,
   ColorStyleButton,
+  CreateLinkButton,
   FileCaptionButton,
   FileDeleteButton,
   FileDownloadButton,
@@ -15,7 +16,7 @@ import {
   TextAlignButton,
   UnnestBlockButton,
   useBlockNoteEditor,
-  useComponentsContext
+  useComponentsContext,
 } from '@blocknote/react'
 import { Box, Divider, Group, Paper, Stack } from '@mantine/core'
 import {
@@ -111,7 +112,7 @@ const RichTextEditor = ({ editor }: RichTextEditorProps) => {
                         key={'codeStyleButton'}
                         basicTextStyle={'code'}
                       />
-                      <CustomCreateLinkButton key={'createLinkButton'} />
+                      <CreateLinkButton key={'createLinkButton'} />
                     </Group>
                     <Divider orientation="vertical" />
                     <Group gap={2}>
@@ -137,11 +138,6 @@ const RichTextEditor = ({ editor }: RichTextEditorProps) => {
                       <NestBlockButton key={'nestBlockButton'} />
                       <UnnestBlockButton key={'unnestBlockButton'} />
                     </Group>
-                    {/* <ModeToggleButton
-                  key={'modeToggleButton'}
-                  onToggle={() => setIsPreviewMode(!isPreviewMode)}
-                  isPreviewMode={isPreviewMode}
-                /> */}
                   </Group>
                 </FormattingToolbar>
               </Paper>
@@ -182,51 +178,6 @@ const RichTextEditor = ({ editor }: RichTextEditorProps) => {
   )
 }
 
-function CustomCreateLinkButton() {
-  const editor = useBlockNoteEditor()
-  const Components = useComponentsContext()!
-  const [opened, setOpened] = useState(false)
-  const [url, setUrl] = useState('')
-
-  const handleSubmit = () => {
-    if (!url) return
-    editor.createLink(url)
-    setOpened(false)
-    setUrl('')
-  }
-
-  return (
-    <Components.Generic.Popover.Root opened={opened}>
-      <Components.Generic.Popover.Trigger>
-        <Components.FormattingToolbar.Button
-          mainTooltip="Create link"
-          onClick={() => setOpened((o) => !o)}
-          icon={<IconLink size={16} />}
-          label={'Link'}
-        ></Components.FormattingToolbar.Button>
-      </Components.Generic.Popover.Trigger>
-      <Components.Generic.Popover.Content
-        variant={'panel-popover'}
-        className={'bn-form-popover'}
-      >
-        <Components.Generic.Form.TextInput
-          name="url"
-          variant={'default'}
-          icon={<IconLink size={16} />}
-          placeholder="Enter URL"
-          value={url}
-          autoFocus={true}
-          onChange={(e) => setUrl(e.currentTarget.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSubmit()
-            if (e.key === 'Escape') setOpened(false)
-          }}
-        />
-      </Components.Generic.Popover.Content>
-    </Components.Generic.Popover.Root>
-  )
-}
-
 const UndoButton = () => {
   const editor = useBlockNoteEditor()
   const Components = useComponentsContext()!
@@ -252,29 +203,6 @@ const RedoButton = () => {
       icon={<IconArrowForwardUp size={16} transform="rotate(180deg)" />}
       label={'Redo'}
     />
-  )
-}
-
-type ModeToggleButtonProps = {
-  isPreviewMode: boolean
-  onToggle: () => void
-}
-
-const ModeToggleButton = ({
-  isPreviewMode,
-  onToggle,
-}: ModeToggleButtonProps) => {
-  const Components = useComponentsContext()!
-
-  return (
-    <Components.FormattingToolbar.Button
-      mainTooltip={
-        !isPreviewMode ? 'Switch to Preview Mode' : 'Switch to Edit Mode'
-      }
-      onClick={() => onToggle()}
-      icon={isPreviewMode ? <IconEdit size={16} /> : <IconEye size={16} />}
-      label={isPreviewMode ? 'Edit Mode' : 'Preview Mode'}
-    ></Components.FormattingToolbar.Button>
   )
 }
 

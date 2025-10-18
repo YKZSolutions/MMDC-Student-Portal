@@ -27,40 +27,44 @@ export function createAssignmentSubmissionData(
     SubmissionState.RETURNED,
   ]);
 
-  const submissionContent = {
-    type: 'doc',
-    content: [
-      {
-        type: 'heading',
-        attrs: { level: 2 },
-        content: [{ type: 'text', text: 'Assignment Submission' }],
-      },
-      {
-        type: 'paragraph',
-        content: [
-          {
-            type: 'text',
-            text: faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 })),
-          },
-        ],
-      },
-      {
-        type: 'codeBlock',
-        attrs: { language: 'javascript' },
-        content: [
-          {
-            type: 'text',
-            text: '// Code solution here\nfunction solve() {\n  return "solution";\n}',
-          },
-        ],
-      },
-    ],
-  };
+  const submissionContent = [
+    {
+      type: 'doc',
+      content: [
+        {
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text: 'Assignment Submission' }],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: faker.lorem.paragraphs(
+                faker.number.int({ min: 2, max: 5 }),
+              ),
+            },
+          ],
+        },
+        {
+          type: 'codeBlock',
+          attrs: { language: 'javascript' },
+          content: [
+            {
+              type: 'text',
+              text: '// Code solution here\nfunction solve() {\n  return "solution";\n}',
+            },
+          ],
+        },
+      ],
+    },
+  ];
 
   return {
     student: { connect: { id: studentId } },
     assignment: { connect: { id: assignmentId } },
-    content: submissionContent,
+    content: submissionContent, // Now this is an array
     submittedAt: faker.date.recent({ days: 7 }),
     lateDays: isLate ? faker.number.int({ min: 1, max: 5 }) : 0,
     state,
@@ -92,15 +96,14 @@ export function createAssignmentSubmissionData(
 }
 
 export function createGradeRecordData(
-  gradingId: string,
   studentId: string,
   isAssignment: boolean,
 ): Prisma.GradeRecordCreateInput {
   const rawScore = faker.number.int({
     min: seedConfig.MIN_SCORE,
-    max: seedConfig.MIN_SCORE,
+    max: seedConfig.MAX_SCORE, // Fixed: was MIN_SCORE, should be MAX_SCORE
   });
-  const finalScore = isAssignment ? rawScore : rawScore; // Could apply curve here
+  const finalScore = isAssignment ? rawScore : rawScore; // Could apply a curve here
 
   const grade =
     finalScore >= 90
@@ -113,7 +116,8 @@ export function createGradeRecordData(
             ? 'D'
             : 'F';
 
-  const base: Prisma.GradeRecordCreateInput = {
+  return {
+    // Simplified since we don't have the extra fields in the schema
     student: { connect: { id: studentId } },
     rawScore,
     finalScore,
@@ -126,116 +130,5 @@ export function createGradeRecordData(
       'Outstanding analysis and presentation.',
     ]),
     gradedAt: faker.date.recent(),
-  };
-
-  return {
-    ...base,
-    ...(isAssignment
-      ? {
-          rubricScores: [
-            {
-              criterionKey: 'accuracy',
-              label: 'Accuracy',
-              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
-              score: faker.number.int({
-                min: seedConfig.RUBRIC_MIN_SCORE,
-                max: seedConfig.RUBRIC_MAX_SCORE,
-              }),
-            },
-            {
-              criterionKey: 'clarity',
-              label: 'Clarity',
-              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
-              score: faker.number.int({
-                min: seedConfig.RUBRIC_MIN_SCORE,
-                max: seedConfig.RUBRIC_MAX_SCORE,
-              }),
-            },
-            {
-              criterionKey: 'completeness',
-              label: 'Completeness',
-              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
-              score: faker.number.int({
-                min: seedConfig.RUBRIC_MIN_SCORE,
-                max: seedConfig.RUBRIC_MAX_SCORE,
-              }),
-            },
-            {
-              criterionKey: 'timeliness',
-              label: 'Timeliness',
-              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
-              score: faker.number.int({
-                min: seedConfig.RUBRIC_MIN_SCORE,
-                max: seedConfig.RUBRIC_MAX_SCORE,
-              }),
-            },
-            {
-              criterionKey: 'quality',
-              label: 'Quality',
-              maxPoints: seedConfig.RUBRIC_MAX_SCORE,
-              score: faker.number.int({
-                min: seedConfig.RUBRIC_MIN_SCORE,
-                max: seedConfig.RUBRIC_MAX_SCORE,
-              }),
-            },
-          ],
-        }
-      : {
-          questionResults: Array.from(
-            { length: seedConfig.QUESTION_COUNT },
-            (_, i) => ({
-              questionId: `q${i + 1}`,
-              answer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-              score: faker.number.int({ min: 1, max: 5 }),
-              feedback: faker.helpers.arrayElement([
-                'Correct',
-                'Partially correct',
-                'Incorrect',
-              ]),
-              correctAnswer: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-            }),
-          ),
-        }),
-  };
-}
-
-export function createQuizSubmissionData(
-  studentId: string,
-  quizId: string,
-): Prisma.QuizSubmissionCreateInput {
-  const isGraded = Math.random() < seedConfig.GRADING_CHANCE;
-  const state = isGraded
-    ? SubmissionState.GRADED
-    : faker.helpers.arrayElement([
-        SubmissionState.SUBMITTED,
-        SubmissionState.UNDER_REVIEW,
-      ]);
-
-  const answers = {
-    multipleChoice: {
-      q1: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-      q2: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-      q3: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-    },
-    trueFalse: {
-      q4: faker.datatype.boolean(),
-      q5: faker.datatype.boolean(),
-    },
-    shortAnswer: {
-      q6: faker.lorem.sentence(),
-    },
-  };
-
-  return {
-    student: { connect: { id: studentId } },
-    quiz: { connect: { id: quizId } },
-    answers,
-    submittedAt: faker.date.recent({ days: 3 }),
-    timeSpent: faker.number.int({ min: 600, max: 3600 }), // 10-60 minutes
-    attemptNumber: faker.number.int({ min: 1, max: 2 }),
-    state,
-    ...(isGraded && {
-      rawScore: faker.number.int({ min: 60, max: 100 }),
-    }),
   };
 }

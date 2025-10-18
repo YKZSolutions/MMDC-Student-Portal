@@ -41,13 +41,5 @@ export class UpdateGradeRecordDto {
   })
   @IsOptional()
   @IsArray()
-  rubricScores?: Prisma.InputJsonValue[];
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-    required: false,
-  })
-  @IsOptional()
-  @IsArray()
-  questionScores?: Prisma.InputJsonValue[];
+  rubricEvaluationDetails?: PrismaJson.RubricEvaluationDetail[];
 }

@@ -50,7 +50,7 @@ function CourseDashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
             xs: rem(250),
           }}
         />
-        {/* Implement this at a later time */}
+        {/* TODO: Implement this at a later time */}
         {/* <CourseDashboardFilters
           filters={filters}
           activeFilters={activeFilters}

@@ -1,13 +1,13 @@
-import { AssignmentMode, Prisma } from '@prisma/client';
+import { AssignmentMode } from '@prisma/client';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ModuleContent,
   type ModuleContent as ModuleContentAsType,
 } from './moduleContent.entity';
 import {
-  GradingConfig,
-  type GradingConfig as GradingConfigAsType,
-} from './gradingConfig.entity';
+  RubricTemplate,
+  type RubricTemplate as RubricTemplateAsType,
+} from './rubricTemplate.entity';
 import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
@@ -25,25 +25,31 @@ export class Assignment {
   })
   moduleContentId: string;
   @ApiProperty({
-    type: 'string',
+    type: () => RubricTemplate,
+    required: false,
+    nullable: true,
   })
-  title: string;
+  rubricTemplate?: RubricTemplateAsType | null;
   @ApiProperty({
     type: 'string',
     nullable: true,
   })
-  subtitle: string | null;
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  content: Prisma.JsonValue[];
+  rubricTemplateId: string | null;
   @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
-    nullable: true,
   })
-  mode: AssignmentMode | null;
+  mode: AssignmentMode;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  maxScore: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  weightPercentage: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -56,11 +62,11 @@ export class Assignment {
   })
   allowLateSubmission: boolean | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
     nullable: true,
   })
-  latePenalty: Prisma.Decimal | null;
+  latePenalty: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -89,17 +95,6 @@ export class Assignment {
     nullable: true,
   })
   deletedAt: Date | null;
-  @ApiProperty({
-    type: () => GradingConfig,
-    required: false,
-    nullable: true,
-  })
-  grading?: GradingConfigAsType | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  gradingId: string | null;
   @ApiHideProperty()
   submissions?: AssignmentSubmissionAsType[];
 }

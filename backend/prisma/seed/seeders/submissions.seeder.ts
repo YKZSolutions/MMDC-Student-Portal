@@ -4,27 +4,21 @@ import {
   ContentProgress,
   CourseEnrollment,
   ModuleContent,
-  PrismaClient,
   ProgressStatus,
-  Quiz,
-  QuizSubmission,
-  SubmissionState,
 } from '@prisma/client';
 import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import {
   createAssignmentSubmissionData,
   createContentProgressData,
-  createQuizSubmissionData,
 } from '../factories/submission.factory';
-import { faker } from '@faker-js/faker';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 export async function seedSubmissions(
-  prisma: PrismaClient,
+  prisma: PrismaTransaction,
   enrollments: CourseEnrollment[],
   contents: ModuleContent[],
   assignments: Assignment[],
-  quizzes: Quiz[],
 ) {
   log('Seeding submissions and progress...');
 
@@ -45,9 +39,29 @@ export async function seedSubmissions(
     ]),
   );
 
+  // Get module sections to map contents to modules
+  const moduleSections = await prisma.moduleSection.findMany({
+    select: {
+      id: true,
+      moduleId: true,
+    },
+  });
+
+  // Create a map for content-to-module lookup
+  const contentModuleMap = new Map(
+    contents.map((content) => {
+      const moduleSection = moduleSections.find(
+        (ms) => ms.id === content.moduleSectionId,
+      );
+      return [content.id, moduleSection?.moduleId];
+    }),
+  );
+
   const assignmentSubmissions: AssignmentSubmission[] = [];
-  const quizSubmissions: QuizSubmission[] = [];
   const contentProgress: ContentProgress[] = [];
+
+  // Track submissions to avoid duplicates
+  const submissionTracker = new Set<string>();
 
   for (const enrollment of enrollments) {
     const studentId = enrollment.studentId;
@@ -62,43 +76,53 @@ export async function seedSubmissions(
 
     // Seed assignment submissions
     for (const assignment of assignments) {
-      const moduleInfo = moduleMap.get(assignment.moduleContentId);
-      if (
-        !moduleInfo ||
-        !enrolledModules.some((m) => m.id === assignment.moduleContentId)
-      ) {
+      // Get the module content to find the module
+      const moduleContent = contents.find(
+        (c) => c.id === assignment.moduleContentId,
+      );
+      if (!moduleContent) continue;
+
+      const moduleId = contentModuleMap.get(moduleContent.id);
+      if (!moduleId) continue;
+
+      const moduleInfo = moduleMap.get(moduleId);
+      if (!moduleInfo || !enrolledModules.some((m) => m.id === moduleId)) {
         continue;
       }
 
-      if (Math.random() < seedConfig.SUBMISSION_CHANCE) {
-        const submission = await prisma.assignmentSubmission.create({
-          data: createAssignmentSubmissionData(studentId, assignment.id),
-        });
-        assignmentSubmissions.push(submission);
-      }
-    }
+      // Create a unique key for this student+assignment combination
+      const submissionKey = `${studentId}-${assignment.id}`;
 
-    // Seed quiz submissions
-    for (const quiz of quizzes) {
-      const moduleInfo = moduleMap.get(quiz.moduleContentId);
+      // Only create a submission if we haven't already created one for this student+assignment
       if (
-        !moduleInfo ||
-        !enrolledModules.some((m) => m.id === quiz.moduleContentId)
+        !submissionTracker.has(submissionKey) &&
+        Math.random() < seedConfig.SUBMISSION_CHANCE
       ) {
-        continue;
-      }
-
-      if (Math.random() < seedConfig.SUBMISSION_CHANCE) {
-        const submission = await prisma.quizSubmission.create({
-          data: createQuizSubmissionData(studentId, quiz.id),
-        });
-        quizSubmissions.push(submission);
+        try {
+          const submission = await prisma.assignmentSubmission.create({
+            data: createAssignmentSubmissionData(studentId, assignment.id),
+          });
+          assignmentSubmissions.push(submission);
+          submissionTracker.add(submissionKey); // Mark this combination as processed
+        } catch (error) {
+          // If there's still a unique constraint error, log it and continue
+          if (error.code === 'P2002') {
+            console.warn(
+              `Duplicate submission attempted for student ${studentId} and assignment ${assignment.id}`,
+            );
+            continue;
+          }
+          throw error;
+        }
       }
     }
 
     // Seed content progress
     for (const content of contents) {
-      if (!enrolledModules.some((m) => m.id === content.moduleId)) continue;
+      const moduleId = contentModuleMap.get(content.id);
+      if (!moduleId) continue;
+
+      if (!enrolledModules.some((m) => m.id === moduleId)) continue;
 
       if (Math.random() < seedConfig.PROGRESS_CHANCE) {
         const status =
@@ -106,46 +130,43 @@ export async function seedSubmissions(
             ? ProgressStatus.COMPLETED
             : ProgressStatus.IN_PROGRESS;
 
-        const progress = await prisma.contentProgress.upsert({
-          where: {
-            studentId_moduleContentId: {
-              studentId,
-              moduleContentId: content.id,
+        try {
+          const progress = await prisma.contentProgress.upsert({
+            where: {
+              studentId_moduleContentId: {
+                studentId,
+                moduleContentId: content.id,
+              },
             },
-          },
-          update: {
-            status,
-            ...(status === ProgressStatus.COMPLETED && {
-              completedAt: new Date(),
-            }),
-            lastAccessedAt: new Date(),
-          },
-          create: {
-            ...createContentProgressData(
-              studentId,
-              content.moduleId,
-              content.id,
-            ),
-            status,
-            lastAccessedAt: new Date(),
-            timeSpent: faker.number.int({
-              min: seedConfig.MIN_TIME_SPENT,
-              max: seedConfig.MAX_TIME_SPENT,
-            }), // 5-60 minutes
-          },
-        });
-        contentProgress.push(progress);
+            update: {
+              status,
+              ...(status === ProgressStatus.COMPLETED && {
+                completedAt: new Date(),
+              }),
+              lastAccessedAt: new Date(),
+            },
+            create: {
+              ...createContentProgressData(studentId, moduleId, content.id),
+              status,
+              lastAccessedAt: new Date(),
+            },
+          });
+          contentProgress.push(progress);
+        } catch (error) {
+          console.warn(
+            `Error creating progress for student ${studentId} and content ${content.id}:`,
+            error.message,
+          );
+        }
       }
     }
   }
 
   log(`-> Created ${assignmentSubmissions.length} assignment submissions.`);
-  log(`-> Created ${quizSubmissions.length} quiz submissions.`);
   log(`-> Created ${contentProgress.length} content progress records.`);
 
   return {
     assignmentSubmissions,
-    quizSubmissions,
     contentProgress,
   };
 }

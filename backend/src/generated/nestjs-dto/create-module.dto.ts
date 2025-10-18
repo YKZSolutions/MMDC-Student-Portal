@@ -1,10 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateModuleDto {
   @ApiProperty({
@@ -13,31 +8,4 @@ export class CreateModuleDto {
   @IsNotEmpty()
   @IsString()
   title: string;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  publishedAt?: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  toPublishAt?: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  unpublishedAt?: Date | null;
 }

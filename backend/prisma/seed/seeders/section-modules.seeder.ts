@@ -1,8 +1,9 @@
-import { PrismaClient, Module, CourseSection } from '@prisma/client';
+import { Module, CourseSection } from '@prisma/client';
 import { log } from '../utils/helpers';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 export async function seedSectionModules(
-  prisma: PrismaClient,
+  prisma: PrismaTransaction,
   courseSections: CourseSection[],
   modules: Module[],
 ) {
@@ -12,34 +13,37 @@ export async function seedSectionModules(
     id: string;
     courseSectionId: string;
     moduleId: string;
-    publishedAt: Date | null;
     classMeetings: any;
   }> = [];
-  const classMeetingsTemplate = {
-    schedule: [
-      {
-        day: 'monday',
-        startTime: '09:00',
-        endTime: '11:00',
-        room: 'Virtual Classroom A',
-      },
-      {
-        day: 'wednesday',
-        startTime: '09:00',
-        endTime: '11:00',
-        room: 'Virtual Classroom A',
-      },
-    ],
-    instructor: 'Professor Smith',
-    officeHours: [
-      {
-        day: 'tuesday',
-        startTime: '14:00',
-        endTime: '16:00',
-        location: 'Online',
-      },
-    ],
-  };
+
+  // Wrap the classMeetingsTemplate in an array since the field expects JSON[]
+  const classMeetingsTemplate = [
+    {
+      schedule: [
+        {
+          day: 'monday',
+          startTime: '09:00',
+          endTime: '11:00',
+          room: 'Virtual Classroom A',
+        },
+        {
+          day: 'wednesday',
+          startTime: '09:00',
+          endTime: '11:00',
+          room: 'Virtual Classroom A',
+        },
+      ],
+      instructor: 'Professor Smith',
+      officeHours: [
+        {
+          day: 'tuesday',
+          startTime: '14:00',
+          endTime: '16:00',
+          location: 'Online',
+        },
+      ],
+    },
+  ];
 
   for (const section of courseSections) {
     // Get modules that belong to the same course offering as this section
@@ -57,8 +61,7 @@ export async function seedSectionModules(
         data: {
           courseSectionId: section.id,
           moduleId: module.id,
-          publishedAt: new Date(),
-          classMeetings: classMeetingsTemplate,
+          classMeetings: classMeetingsTemplate, // Now this is an array
         },
       });
       sectionModules.push(sectionModule);

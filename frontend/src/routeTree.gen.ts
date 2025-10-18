@@ -41,7 +41,6 @@ import { Route as protectedCurriculumMajorsIndexRouteImport } from './routes/(pr
 import { Route as protectedCurriculumCoursesIndexRouteImport } from './routes/(protected)/curriculum/courses/index'
 import { Route as protectedCurriculumBuilderIndexRouteImport } from './routes/(protected)/curriculum/builder/index'
 import { Route as protectedCmsCourseCodeIndexRouteImport } from './routes/(protected)/cms/$courseCode/index'
-import { Route as protectedLmsLmsCodePublishRouteImport } from './routes/(protected)/lms/$lmsCode_.publish'
 import { Route as protectedCurriculumCoursesCreateRouteImport } from './routes/(protected)/curriculum/courses/create'
 import { Route as protectedCurriculumCurriculumCodeEditRouteImport } from './routes/(protected)/curriculum/$curriculumCode_.edit'
 import { Route as protectedBillingBillingIdEditRouteImport } from './routes/(protected)/billing/$billingId_.edit'
@@ -231,12 +230,6 @@ const protectedCmsCourseCodeIndexRoute =
     path: '/cms/$courseCode/',
     getParentRoute: () => protectedRouteRoute,
   } as any)
-const protectedLmsLmsCodePublishRoute =
-  protectedLmsLmsCodePublishRouteImport.update({
-    id: '/lms/$lmsCode_/publish',
-    path: '/lms/$lmsCode/publish',
-    getParentRoute: () => protectedRouteRoute,
-  } as any)
 const protectedCurriculumCoursesCreateRoute =
   protectedCurriculumCoursesCreateRouteImport.update({
     id: '/curriculum/courses/create',
@@ -340,7 +333,6 @@ export interface FileRoutesByFullPath {
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/curriculum/$curriculumCode/edit': typeof protectedCurriculumCurriculumCodeEditRoute
   '/curriculum/courses/create': typeof protectedCurriculumCoursesCreateRoute
-  '/lms/$lmsCode/publish': typeof protectedLmsLmsCodePublishRoute
   '/cms/$courseCode': typeof protectedCmsCourseCodeIndexRoute
   '/curriculum/builder': typeof protectedCurriculumBuilderIndexRoute
   '/curriculum/courses': typeof protectedCurriculumCoursesIndexRoute
@@ -386,7 +378,6 @@ export interface FileRoutesByTo {
   '/billing/$billingId/edit': typeof protectedBillingBillingIdEditRoute
   '/curriculum/$curriculumCode/edit': typeof protectedCurriculumCurriculumCodeEditRoute
   '/curriculum/courses/create': typeof protectedCurriculumCoursesCreateRoute
-  '/lms/$lmsCode/publish': typeof protectedLmsLmsCodePublishRoute
   '/cms/$courseCode': typeof protectedCmsCourseCodeIndexRoute
   '/curriculum/builder': typeof protectedCurriculumBuilderIndexRoute
   '/curriculum/courses': typeof protectedCurriculumCoursesIndexRoute
@@ -434,7 +425,6 @@ export interface FileRoutesById {
   '/(protected)/billing/$billingId_/edit': typeof protectedBillingBillingIdEditRoute
   '/(protected)/curriculum/$curriculumCode_/edit': typeof protectedCurriculumCurriculumCodeEditRoute
   '/(protected)/curriculum/courses/create': typeof protectedCurriculumCoursesCreateRoute
-  '/(protected)/lms/$lmsCode_/publish': typeof protectedLmsLmsCodePublishRoute
   '/(protected)/cms/$courseCode/': typeof protectedCmsCourseCodeIndexRoute
   '/(protected)/curriculum/builder/': typeof protectedCurriculumBuilderIndexRoute
   '/(protected)/curriculum/courses/': typeof protectedCurriculumCoursesIndexRoute
@@ -482,7 +472,6 @@ export interface FileRouteTypes {
     | '/billing/$billingId/edit'
     | '/curriculum/$curriculumCode/edit'
     | '/curriculum/courses/create'
-    | '/lms/$lmsCode/publish'
     | '/cms/$courseCode'
     | '/curriculum/builder'
     | '/curriculum/courses'
@@ -528,7 +517,6 @@ export interface FileRouteTypes {
     | '/billing/$billingId/edit'
     | '/curriculum/$curriculumCode/edit'
     | '/curriculum/courses/create'
-    | '/lms/$lmsCode/publish'
     | '/cms/$courseCode'
     | '/curriculum/builder'
     | '/curriculum/courses'
@@ -575,7 +563,6 @@ export interface FileRouteTypes {
     | '/(protected)/billing/$billingId_/edit'
     | '/(protected)/curriculum/$curriculumCode_/edit'
     | '/(protected)/curriculum/courses/create'
-    | '/(protected)/lms/$lmsCode_/publish'
     | '/(protected)/cms/$courseCode/'
     | '/(protected)/curriculum/builder/'
     | '/(protected)/curriculum/courses/'
@@ -827,13 +814,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedCmsCourseCodeIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
-    '/(protected)/lms/$lmsCode_/publish': {
-      id: '/(protected)/lms/$lmsCode_/publish'
-      path: '/lms/$lmsCode/publish'
-      fullPath: '/lms/$lmsCode/publish'
-      preLoaderRoute: typeof protectedLmsLmsCodePublishRouteImport
-      parentRoute: typeof protectedRouteRoute
-    }
     '/(protected)/curriculum/courses/create': {
       id: '/(protected)/curriculum/courses/create'
       path: '/curriculum/courses/create'
@@ -978,7 +958,6 @@ interface protectedRouteRouteChildren {
   protectedBillingBillingIdEditRoute: typeof protectedBillingBillingIdEditRoute
   protectedCurriculumCurriculumCodeEditRoute: typeof protectedCurriculumCurriculumCodeEditRoute
   protectedCurriculumCoursesCreateRoute: typeof protectedCurriculumCoursesCreateRoute
-  protectedLmsLmsCodePublishRoute: typeof protectedLmsLmsCodePublishRoute
   protectedCmsCourseCodeIndexRoute: typeof protectedCmsCourseCodeIndexRoute
   protectedCurriculumBuilderIndexRoute: typeof protectedCurriculumBuilderIndexRoute
   protectedCurriculumCoursesIndexRoute: typeof protectedCurriculumCoursesIndexRoute
@@ -1014,7 +993,6 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedCurriculumCurriculumCodeEditRoute:
     protectedCurriculumCurriculumCodeEditRoute,
   protectedCurriculumCoursesCreateRoute: protectedCurriculumCoursesCreateRoute,
-  protectedLmsLmsCodePublishRoute: protectedLmsLmsCodePublishRoute,
   protectedCmsCourseCodeIndexRoute: protectedCmsCourseCodeIndexRoute,
   protectedCurriculumBuilderIndexRoute: protectedCurriculumBuilderIndexRoute,
   protectedCurriculumCoursesIndexRoute: protectedCurriculumCoursesIndexRoute,

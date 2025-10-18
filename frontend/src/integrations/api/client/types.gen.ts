@@ -359,7 +359,6 @@ export type DetailedModulesDto = {
     id: string;
     title: string;
     publishedAt: string | null;
-    toPublishAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
     updatedAt: string;
@@ -375,32 +374,42 @@ export type PaginatedModulesDto = {
 
 export type UpdateModuleDto = {
     title?: string;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
 };
 
 export type ModuleDto = {
     id: string;
     title: string;
     publishedAt: string | null;
-    toPublishAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
 };
 
-export type ContentType = 'LESSON' | 'ASSIGNMENT' | 'QUIZ' | 'DISCUSSION' | 'VIDEO' | 'URL' | 'FILE';
-
-export type Lesson = {
+export type ModuleSection = {
     id: string;
-    moduleContentId: string;
+    moduleId: string;
+    parentSectionId: string | null;
+    prerequisiteSectionId: string | null;
     title: string;
-    subtitle: string | null;
-    content: Array<{
+    order: number | null;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ContentType = 'LESSON' | 'ASSIGNMENT';
+
+export type RubricTemplate = {
+    id: string;
+    name: string;
+    description: string | null;
+    tags: Array<string>;
+    criteriaJson: {
         [key: string]: unknown;
-    }>;
+    } | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -408,128 +417,19 @@ export type Lesson = {
 
 export type AssignmentMode = 'INDIVIDUAL' | 'GROUP';
 
-export type Quiz = {
-    id: string;
-    moduleContentId: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    timeLimit: number | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    questions: Array<{
-        [key: string]: unknown;
-    }>;
-    grading?: GradingConfig | null;
-    gradingId: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type GradingConfig = {
-    id: string;
-    weight: string | null;
-    isCurved: boolean;
-    curveSettings: {
-        [key: string]: unknown;
-    } | null;
-    rubricSchema: Array<{
-        [key: string]: unknown;
-    }>;
-    questionRules: Array<{
-        [key: string]: unknown;
-    }>;
-    quizzes?: Array<Quiz>;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type Assignment = {
     id: string;
     moduleContentId: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    mode: AssignmentMode | null;
+    rubricTemplate?: RubricTemplate | null;
+    rubricTemplateId: string | null;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
     maxAttempts: number | null;
     allowLateSubmission: boolean | null;
-    latePenalty: string | null;
+    latePenalty: number | null;
     dueDate: string | null;
     gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    grading?: GradingConfig | null;
-    gradingId: string | null;
-};
-
-export type DiscussionPost = {
-    id: string;
-    discussionId: string;
-    discussion?: Discussion;
-    authorId: string;
-    author?: User;
-    content: {
-        [key: string]: unknown;
-    };
-    parentId: string | null;
-    parent?: DiscussionPost | null;
-    replies?: Array<DiscussionPost>;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type Discussion = {
-    id: string;
-    moduleContentId: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    isThreaded: boolean | null;
-    requirePost: boolean | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    posts?: Array<DiscussionPost>;
-};
-
-export type Video = {
-    id: string;
-    moduleContentId: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    url: string | null;
-    duration: number | null;
-    transcript: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type ExternalUrl = {
-    id: string;
-    moduleContentId: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    url: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -544,7 +444,6 @@ export type ContentProgress = {
     moduleContentId: string;
     status: ProgressStatus;
     completedAt: string | null;
-    timeSpent: number | null;
     lastAccessedAt: string | null;
     createdAt: string;
     updatedAt: string;
@@ -552,148 +451,59 @@ export type ContentProgress = {
 
 export type ModuleContent = {
     id: string;
-    moduleId: string;
-    moduleSectionId: string | null;
-    order: number | null;
+    moduleSection?: ModuleSection;
+    moduleSectionId: string;
     contentType: ContentType;
-    publishedAt: string | null;
-    toPublishAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    lesson?: Lesson | null;
-    assignment?: Assignment | null;
-    quiz?: Quiz | null;
-    discussion?: Discussion | null;
-    video?: Video | null;
-    url?: ExternalUrl | null;
-    file?: FileResource | null;
-    studentProgress?: Array<ContentProgress>;
-};
-
-export type FileResource = {
-    id: string;
-    moduleContentId: string;
-    moduleContent?: ModuleContent;
     title: string;
     subtitle: string | null;
     content: Array<{
         [key: string]: unknown;
     }>;
-    url: string | null;
-    name: string | null;
-    path: string | null;
-    size: number | null;
-    mimeType: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicLessonDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicAssignmentDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    mode: AssignmentMode | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicQuizDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    timeLimit: number | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicDiscussionDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    isThreaded: boolean | null;
-    requirePost: boolean | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicVideoDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    url: string | null;
-    duration: number | null;
-    transcript: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicExternalUrlDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    url: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicFileResourceDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    url: string | null;
-    name: string | null;
-    path: string | null;
-    size: number | null;
-    mimeType: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type BasicModuleItemDto = {
-    id: string;
-    order: number | null;
-    contentType: ContentType;
+    order: number;
     publishedAt: string | null;
-    toPublishAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
     updatedAt: string;
-    lesson?: BasicLessonDto | null;
-    assignment?: BasicAssignmentDto | null;
-    quiz?: BasicQuizDto | null;
-    discussion?: BasicDiscussionDto | null;
-    video?: BasicVideoDto | null;
-    externalUrl?: BasicExternalUrlDto | null;
-    fileResource?: BasicFileResourceDto | null;
+    deletedAt: string | null;
+    assignment?: Assignment | null;
     studentProgress?: Array<ContentProgress>;
+};
+
+export type ModuleTreeLessonItemDto = {
+    id: string;
+    moduleSectionId: string;
+    title: string;
+    subtitle: string | null;
+    order: number;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    studentProgress?: Array<ContentProgress>;
+    readonly contentType: string;
+};
+
+export type ModuleTreeAssignmentItemDto = {
+    id: string;
+    moduleSectionId: string;
+    title: string;
+    subtitle: string | null;
+    order: number;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    studentProgress?: Array<ContentProgress>;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    deletedAt: string | null;
+    readonly contentType: string;
 };
 
 export type ModuleTreeSectionDto = {
@@ -704,10 +514,13 @@ export type ModuleTreeSectionDto = {
     title: string;
     order: number | null;
     publishedAt: string | null;
-    toPublishAt: string | null;
     unpublishedAt: string | null;
     subsections?: Array<ModuleTreeSectionDto> | null;
-    moduleContents?: Array<BasicModuleItemDto> | null;
+    moduleContents: Array<({
+        contentType: 'LESSON';
+    } & ModuleTreeLessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & ModuleTreeAssignmentItemDto)>;
 };
 
 export type ModuleTreeDto = {
@@ -715,438 +528,88 @@ export type ModuleTreeDto = {
     title: string;
     courseId: string | null;
     publishedAt: string | null;
-    toPublishAt: string | null;
     unpublishedAt: string | null;
-    moduleSections?: Array<ModuleTreeSectionDto> | null;
+    moduleSections?: Array<ModuleTreeSectionDto>;
 };
 
-export type CreateModuleSectionDto = {
-    title: string;
-    order?: number | null;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    parentSectionId?: string | null;
-    prerequisiteSectionId?: string | null;
-};
-
-export type DetailedModuleSectionDto = {
-    id: string;
-    title: string;
-    order: number | null;
-    publishedAt: string | null;
-    toPublishAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    prerequisiteSectionId?: string | null;
-    parentSectionId?: string | null;
+export type ModuleProgressOverview = {
     moduleId: string;
-};
-
-export type UpdateModuleSectionDto = {
-    [key: string]: unknown;
-};
-
-export type CreateContentDto = {
-    order?: number | null;
-    contentType: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    sectionId?: string;
-    title: string;
-};
-
-export type UpdateLessonItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
+    moduleTitle: string;
+    completedContentItems: number;
+    totalContentItems: number;
+    notStartedContentItems: number;
+    overdueAssignmentsCount: number;
+    progressPercentage: number;
+    status: {
         [key: string]: unknown;
-    }>;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    sectionId?: string;
+    };
+    lastAccessedAt?: string | null;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    moduleCompletionPercentage: number;
 };
 
-export type UpdateAssignmentItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    mode?: AssignmentMode | null;
-    maxAttempts?: number | null;
-    allowLateSubmission?: boolean | null;
-    latePenalty?: string | null;
-    dueDate?: string | null;
-    gracePeriodMinutes?: number | null;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    gradingId?: string;
-    sectionId?: string;
-};
-
-export type UpdateQuizItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    timeLimit?: number | null;
-    maxAttempts?: number | null;
-    allowLateSubmission?: boolean | null;
-    latePenalty?: string | null;
-    dueDate?: string | null;
-    gracePeriodMinutes?: number | null;
-    questions?: Array<{
-        [key: string]: unknown;
-    }>;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    gradingId?: string;
-    sectionId?: string;
-};
-
-export type UpdateDiscussionItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    isThreaded?: boolean | null;
-    requirePost?: boolean | null;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    sectionId?: string;
-};
-
-export type UpdateFileItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    url?: string | null;
-    name?: string | null;
-    path?: string | null;
-    size?: number | null;
-    mimeType?: string | null;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    sectionId?: string;
-};
-
-export type UpdateExternalUrlItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    url?: string | null;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    sectionId?: string;
-};
-
-export type UpdateVideoItemDto = {
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    url?: string | null;
-    order?: number | null;
-    contentType?: ContentType;
-    publishedAt?: string | null;
-    toPublishAt?: string | null;
-    unpublishedAt?: string | null;
-    sectionId?: string;
-};
-
-export type EnrollmentPeriodFilterDto = {
-    startYear?: number;
-    endYear?: number;
-    term?: number;
-    status?: EnrollmentStatus;
-};
-
-export type PaginatedModuleContentDto = {
-    meta: PaginationMetaDto;
-    moduleContents: Array<BasicModuleItemDto>;
-};
-
-export type ModuleContentInfoDto = {
+export type ContentItemProgress = {
     id: string;
-    order: number | null;
-    contentType: ContentType;
-    moduleSectionId: string | null;
+    title: string;
+    status: {
+        [key: string]: unknown;
+    };
+    completedAt?: string | null;
+    lastAccessedAt?: string | null;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    completionPercentage: number;
+};
+
+export type ContentSectionProgress = {
+    id: string;
+    title: string;
+    contentItems: Array<ContentItemProgress>;
+    completedContentItems: number;
+    totalContentItems: number;
+    progressPercentage: number;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    completionPercentage: number;
+};
+
+export type ModuleProgressDetail = {
     moduleId: string;
+    moduleTitle: string;
+    sections: Array<ContentSectionProgress>;
+    overallProgress: {
+        completedContentItems: number;
+        totalContentItems: number;
+        progressPercentage: number;
+        status: {
+            [key: string]: unknown;
+        };
+        completedStudentsCount: number;
+        totalStudentsCount: number;
+        moduleCompletionPercentage: number;
+    };
 };
 
-export type DetailedContentProgressDto = {
-    id: string;
-    completedAt: string | null;
+export type StudentProgressStats = {
     studentId: string;
-    moduleContent: ModuleContentInfoDto;
+    studentName: string;
+    completedModules: number;
+    totalModules: number;
+    averageProgress: number;
+    lastActivity: string | null;
 };
 
-export type SubmissionState = 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'GRADED' | 'RETURNED';
-
-export type SubmitAssignmentDto = {
-    state: SubmissionState;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-};
-
-export type AssignmentStatsDto = {
-    submitted: number;
-    graded: number;
-    total: number;
-};
-
-export type GradingConfigDto = {
-    id: string;
-    weight: string | null;
-    isCurved: boolean;
-    curveSettings: {
-        [key: string]: unknown;
-    } | null;
-    rubricSchema: Array<{
-        [key: string]: unknown;
-    }>;
-    questionRules: Array<{
-        [key: string]: unknown;
-    }>;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type AdminAssignmentItemDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    mode: AssignmentMode | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    stats: AssignmentStatsDto;
-    grading?: GradingConfigDto;
-};
-
-export type PaginatedAssignmentDto = {
-    meta: PaginationMetaDto;
-    assignments: Array<AdminAssignmentItemDto>;
-};
-
-export type SubmissionAttachmentDto = {
-    id: string;
-    name: string;
-    url: string;
-    type: string;
-    size: number;
-    createdAt: string;
-};
-
-export type GradeRecordItemDto = {
-    id: string;
-    rawScore: string;
-    finalScore: string;
-    grade: string;
-    gradedAt: string;
-};
-
-export type MentorAssignmentSubmissionItemDto = {
-    id: string;
-    submittedAt: string | null;
-    attachments?: Array<SubmissionAttachmentDto>;
-    grade?: GradeRecordItemDto;
-    student: UserDto;
-};
-
-export type MentorAssignmentItemDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    mode: AssignmentMode | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    stats: AssignmentStatsDto;
-    submissions: Array<MentorAssignmentSubmissionItemDto>;
-    grading?: GradingConfigDto;
-};
-
-export type PaginatedMentorAssignmentDto = {
-    meta: PaginationMetaDto;
-    assignments: Array<MentorAssignmentItemDto>;
-};
-
-export type GradeRecordDto = {
-    id: string;
-    rawScore: string;
-    finalScore: string;
-    grade: string;
-    feedback: string | null;
-    rubricScores: Array<{
-        [key: string]: unknown;
-    }>;
-    questionScores: Array<{
-        [key: string]: unknown;
-    }>;
-    gradedAt: string;
-    updatedAt: string;
-};
-
-export type StudentAssignmentSubmissionItemDto = {
-    id: string;
-    groupSnapshot: {
-        [key: string]: unknown;
-    } | null;
-    state: SubmissionState;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    submittedAt: string | null;
-    attemptNumber: number;
-    lateDays: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    attachments?: Array<SubmissionAttachmentDto>;
-    grade?: GradeRecordDto;
-};
-
-export type StudentAssignmentItemDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    mode: AssignmentMode | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    submissions: Array<StudentAssignmentSubmissionItemDto>;
-    grading?: GradingConfigDto;
-};
-
-export type PaginatedStudentAssignmentDto = {
-    meta: PaginationMetaDto;
-    assignments: Array<StudentAssignmentItemDto>;
-};
-
-export type AssignmentItemDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    mode: AssignmentMode | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    grading?: GradingConfigDto;
-};
-
-export type UpdateAssignmentConfigDto = {
-    maxScore?: string;
-    dueAt?: string;
-    maxAttempt?: number;
-};
-
-export type GradeSubmissionDto = {
-    studentId: string;
-    grade: number;
-};
-
-export type AssignmentDto = {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    mode: AssignmentMode | null;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: string | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type SubmissionDetailsDto = {
-    id: string;
-    groupSnapshot: {
-        [key: string]: unknown;
-    } | null;
-    state: SubmissionState;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    submittedAt: string | null;
-    attemptNumber: number;
-    lateDays: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    grade?: GradeRecordDto;
-    student: UserDto;
-    assignment: AssignmentDto;
-    grading?: GradingConfigDto;
-    attachments: Array<SubmissionAttachmentDto>;
+export type DashboardProgress = {
+    studentProgress: Array<ModuleProgressOverview>;
+    overallStats?: {
+        totalStudents: number;
+        averageProgress: number;
+        completedModules: number;
+        inProgressModules: number;
+        notStartedModules: number;
+    };
+    studentStats?: Array<StudentProgressStats>;
 };
 
 export type CreateDetailedGroupDto = {
@@ -1713,6 +1176,133 @@ export type FinalizeEnrollmentDto = {
     studentId?: string;
 };
 
+export type AssignmentItemDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    rubricTemplateId?: string | null;
+    contentType: ContentType;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    order: number;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+};
+
+export type LessonItemDto = {
+    id: string;
+    contentType: ContentType;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    order: number;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ConnectModuleSectionDto = {
+    id: string;
+};
+
+export type CreateModuleContentModuleSectionRelationInputDto = {
+    connect: ConnectModuleSectionDto;
+};
+
+export type CreateModuleContentDto = {
+    moduleSection: CreateModuleContentModuleSectionRelationInputDto;
+    contentType?: ContentType;
+    title: string;
+    subtitle?: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    publishedAt?: string | null;
+    unpublishedAt?: string | null;
+};
+
+export type UpdateModuleContentModuleSectionRelationInputDto = {
+    connect: ConnectModuleSectionDto;
+};
+
+export type UpdateAssignmentItemDto = {
+    mode?: AssignmentMode;
+    maxScore?: number;
+    weightPercentage?: number;
+    maxAttempts?: number | null;
+    allowLateSubmission?: boolean | null;
+    latePenalty?: number | null;
+    dueDate?: string | null;
+    gracePeriodMinutes?: number | null;
+    rubricTemplateId?: string | null;
+    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
+    title?: string;
+    subtitle?: string | null;
+    content?: Array<{
+        [key: string]: unknown;
+    }>;
+    order?: number;
+    publishedAt?: string | null;
+    unpublishedAt?: string | null;
+    contentType: 'ASSIGNMENT';
+};
+
+export type UpdateLessonItemDto = {
+    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
+    title?: string;
+    subtitle?: string | null;
+    content?: Array<{
+        [key: string]: unknown;
+    }>;
+    order?: number;
+    publishedAt?: string | null;
+    unpublishedAt?: string | null;
+    contentType: 'LESSON';
+};
+
+export type PaginatedModuleContentDto = {
+    meta: PaginationMetaDto;
+    moduleContents: Array<({
+        contentType: 'LESSON';
+    } & LessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & AssignmentItemDto)>;
+};
+
+export type MessageDto = {
+    message: string;
+};
+
+export type ModuleContentInfoDto = {
+    id: string;
+    moduleSectionId: string;
+    contentType: ContentType;
+    order: number;
+};
+
+export type DetailedContentProgressDto = {
+    id: string;
+    completedAt: string | null;
+    studentId: string;
+    moduleContent: ModuleContentInfoDto;
+};
+
 export type CreateMajorDto = {
     majorCode: string;
     name: string;
@@ -1827,6 +1417,465 @@ export type UpdateCurriculumWithCourseDto = {
     majorId?: string;
     curriculum: UpdateCurriculumDto;
     courses: Array<UpdateCurriculumCourseItemDto>;
+};
+
+export type SubmissionState = 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'GRADED' | 'RETURNED';
+
+export type SubmitAssignmentDto = {
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type AssignmentStatsDto = {
+    submitted: number;
+    graded: number;
+    total: number;
+};
+
+export type AdminAssignmentItemDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    stats: AssignmentStatsDto;
+};
+
+export type PaginatedAssignmentDto = {
+    meta: PaginationMetaDto;
+    assignments: Array<AdminAssignmentItemDto>;
+};
+
+export type SubmissionAttachmentDto = {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    createdAt: string;
+};
+
+export type GradeRecordItemDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    gradedAt: string;
+};
+
+export type MentorAssignmentSubmissionItemDto = {
+    id: string;
+    submittedAt: string | null;
+    attachments?: Array<SubmissionAttachmentDto>;
+    grade?: GradeRecordItemDto | null;
+    student: UserDto;
+};
+
+export type MentorAssignmentItemDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    stats: AssignmentStatsDto;
+    submissions: Array<MentorAssignmentSubmissionItemDto>;
+};
+
+export type PaginatedMentorAssignmentDto = {
+    meta: PaginationMetaDto;
+    assignments: Array<MentorAssignmentItemDto>;
+};
+
+export type GradeRecordDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+    updatedAt: string;
+};
+
+export type StudentAssignmentSubmissionItemDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    attachments?: Array<SubmissionAttachmentDto>;
+    grade?: GradeRecordDto | null;
+};
+
+export type StudentAssignmentItemDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submissions: Array<StudentAssignmentSubmissionItemDto>;
+};
+
+export type PaginatedStudentAssignmentDto = {
+    meta: PaginationMetaDto;
+    assignments: Array<StudentAssignmentItemDto>;
+};
+
+export type AssignmentDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type UpdateAssignmentConfigDto = {
+    mode?: AssignmentMode;
+    maxScore?: number;
+    weightPercentage?: number;
+    maxAttempts?: number | null;
+    allowLateSubmission?: boolean | null;
+    latePenalty?: number | null;
+    dueDate?: string | null;
+    gracePeriodMinutes?: number | null;
+    rubricTemplateId?: string | null;
+};
+
+export type CreateModuleSectionDto = {
+    title: string;
+    order?: number | null;
+    parentSectionId?: string | null;
+    prerequisiteSectionId?: string | null;
+};
+
+export type DetailedModuleSectionDto = {
+    id: string;
+    title: string;
+    order: number | null;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    prerequisiteSectionId?: string | null;
+    parentSectionId?: string | null;
+    moduleId: string;
+};
+
+export type UpdateModuleSectionDto = {
+    [key: string]: unknown;
+};
+
+export type CreateSubmissionAttachmentDto = {
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+};
+
+export type CreateAssignmentSubmissionAttachmentsRelationInputDto = {
+    create: Array<CreateSubmissionAttachmentDto>;
+};
+
+export type CreateAssignmentSubmissionDto = {
+    groupSnapshot?: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt?: string | null;
+    lateDays?: number | null;
+    attachments?: CreateAssignmentSubmissionAttachmentsRelationInputDto;
+};
+
+export type AssignmentSubmissionDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type GradeSubmissionDto = {
+    studentId: string;
+    grade: number;
+};
+
+export type AssignmentSubmissionDetailsDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    gradeRecord?: GradeRecordDto | null;
+    student: UserDto;
+    assignment?: Assignment;
+    attachments?: Array<SubmissionAttachmentDto>;
+};
+
+export type CurrentGradeDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+};
+
+export type GradableAssignmentItem = {
+    /**
+     * The unique ID of the ModuleContent record.
+     */
+    contentId: string;
+    /**
+     * The module id of the ModuleContent record.
+     */
+    moduleId: string;
+    /**
+     * The title of the gradable item.
+     */
+    title: string;
+    moduleContentId: string;
+    rubricTemplate?: RubricTemplate | null;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+};
+
+export type StudentViewGradeEntryDto = {
+    currentGrade?: CurrentGradeDto | null;
+    submission: Array<AssignmentSubmissionDto>;
+    gradableItem: GradableAssignmentItem;
+};
+
+export type GradebookForStudentDto = {
+    meta: PaginationMetaDto;
+    student: UserDto;
+    gradeRecords: Array<StudentViewGradeEntryDto>;
+};
+
+export type BasicAssignmentSubmissionItemWithGrade = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    submittedAt: string | null;
+    lateDays: number | null;
+    student: UserDto;
+    currentGrade?: CurrentGradeDto | null;
+};
+
+export type FullGradableAssignmentItem = {
+    /**
+     * The unique ID of the ModuleContent record.
+     */
+    contentId: string;
+    /**
+     * The module id of the ModuleContent record.
+     */
+    moduleId: string;
+    /**
+     * The title of the gradable item.
+     */
+    title: string;
+    rubricTemplate?: RubricTemplate | null;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    /**
+     * The submissions of the assignment.
+     */
+    submissions: Array<BasicAssignmentSubmissionItemWithGrade>;
+};
+
+export type GradebookForMentorDto = {
+    meta: PaginationMetaDto;
+    gradeRecords: Array<FullGradableAssignmentItem>;
+};
+
+export type GradeAssignmentSubmissionDto = {
+    /**
+     * The raw score given to the submission before any penalties.
+     */
+    rawScore?: string;
+    feedback?: string | null;
+    rubricEvaluationDetails?: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type UpdateGradeRecordDto = {
+    rawScore?: string;
+    finalScore?: string;
+    grade?: string;
+    feedback?: string | null;
+    rubricEvaluationDetails?: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type Module = {
+    id: string;
+    title: string;
+    courseId: string | null;
+    courseOfferingId: string | null;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type Group = {
+    id: string;
+    moduleId: string;
+    module?: Module;
+    groupNumber: number;
+    groupName: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type SubmissionAttachment = {
+    id: string;
+    assignmentSubmissionId: string | null;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    createdAt: string;
+};
+
+export type AssignmentSubmission = {
+    id: string;
+    assignment?: Assignment;
+    assignmentId: string;
+    studentId: string;
+    groupId: string | null;
+    group?: Group | null;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    attachments?: Array<SubmissionAttachment>;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type GradeRecord = {
+    id: string;
+    studentId: string;
+    assignmentSubmission?: AssignmentSubmission | null;
+    assignmentSubmissionId: string | null;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+    updatedAt: string;
 };
 
 export type PricingType = 'tuition' | 'lab' | 'misc' | 'other';
@@ -2842,9 +2891,7 @@ export type LmsControllerPublishData = {
     path: {
         id: string;
     };
-    query?: {
-        toPublishAt?: string | null;
-    };
+    query?: never;
     url: '/modules/{id}/publish';
 };
 
@@ -2967,776 +3014,48 @@ export type LmsControllerFindModuleTreeResponses = {
 
 export type LmsControllerFindModuleTreeResponse = LmsControllerFindModuleTreeResponses[keyof LmsControllerFindModuleTreeResponses];
 
-export type LmsSectionControllerFindAllModuleSectionsData = {
-    body?: never;
-    path: {
-        moduleId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/sections';
-};
-
-export type LmsSectionControllerFindAllModuleSectionsErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSectionControllerFindAllModuleSectionsError = LmsSectionControllerFindAllModuleSectionsErrors[keyof LmsSectionControllerFindAllModuleSectionsErrors];
-
-export type LmsSectionControllerFindAllModuleSectionsResponses = {
-    200: Array<DetailedModuleSectionDto>;
-};
-
-export type LmsSectionControllerFindAllModuleSectionsResponse = LmsSectionControllerFindAllModuleSectionsResponses[keyof LmsSectionControllerFindAllModuleSectionsResponses];
-
-export type LmsSectionControllerCreateData = {
-    body: CreateModuleSectionDto;
-    path: {
-        moduleId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/sections';
-};
-
-export type LmsSectionControllerCreateErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSectionControllerCreateError = LmsSectionControllerCreateErrors[keyof LmsSectionControllerCreateErrors];
-
-export type LmsSectionControllerCreateResponses = {
-    201: DetailedModuleSectionDto;
-};
-
-export type LmsSectionControllerCreateResponse = LmsSectionControllerCreateResponses[keyof LmsSectionControllerCreateResponses];
-
-export type LmsSectionControllerRemoveData = {
-    body?: never;
-    path: {
-        moduleSectionId: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/modules/{moduleId}/sections/{moduleSectionId}';
-};
-
-export type LmsSectionControllerRemoveErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSectionControllerRemoveError = LmsSectionControllerRemoveErrors[keyof LmsSectionControllerRemoveErrors];
-
-export type LmsSectionControllerRemoveResponses = {
-    200: unknown;
-};
-
-export type LmsSectionControllerFindOneData = {
-    body?: never;
-    path: {
-        moduleSectionId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/sections/{moduleSectionId}';
-};
-
-export type LmsSectionControllerFindOneErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSectionControllerFindOneError = LmsSectionControllerFindOneErrors[keyof LmsSectionControllerFindOneErrors];
-
-export type LmsSectionControllerFindOneResponses = {
-    200: DetailedModuleSectionDto;
-};
-
-export type LmsSectionControllerFindOneResponse = LmsSectionControllerFindOneResponses[keyof LmsSectionControllerFindOneResponses];
-
-export type LmsSectionControllerUpdateData = {
-    body: UpdateModuleSectionDto;
-    path: {
-        moduleSectionId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/sections/{moduleSectionId}';
-};
-
-export type LmsSectionControllerUpdateErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSectionControllerUpdateError = LmsSectionControllerUpdateErrors[keyof LmsSectionControllerUpdateErrors];
-
-export type LmsSectionControllerUpdateResponses = {
-    200: DetailedModuleSectionDto;
-};
-
-export type LmsSectionControllerUpdateResponse = LmsSectionControllerUpdateResponses[keyof LmsSectionControllerUpdateResponses];
-
-export type LmsSectionControllerPublishSectionData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        toPublishAt?: string | null;
-    };
-    url: '/modules/{moduleId}/sections/{id}/publish';
-};
-
-export type LmsSectionControllerPublishSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSectionControllerPublishSectionError = LmsSectionControllerPublishSectionErrors[keyof LmsSectionControllerPublishSectionErrors];
-
-export type LmsSectionControllerPublishSectionResponses = {
-    201: unknown;
-};
-
-export type LmsSectionControllerUnpublishSectionData = {
+export type LmsControllerGetModuleProgressOverviewData = {
     body?: never;
     path: {
         id: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/sections/{id}/unpublish';
+    url: '/modules/{id}/progress/overview';
 };
 
-export type LmsSectionControllerUnpublishSectionErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
+export type LmsControllerGetModuleProgressOverviewResponses = {
+    200: ModuleProgressOverview;
+};
+
+export type LmsControllerGetModuleProgressOverviewResponse = LmsControllerGetModuleProgressOverviewResponses[keyof LmsControllerGetModuleProgressOverviewResponses];
+
+export type LmsControllerGetModuleProgressDetailData = {
+    body?: never;
+    path: {
+        id: string;
     };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
+    query?: never;
+    url: '/modules/{id}/progress/detail';
 };
 
-export type LmsSectionControllerUnpublishSectionError = LmsSectionControllerUnpublishSectionErrors[keyof LmsSectionControllerUnpublishSectionErrors];
-
-export type LmsSectionControllerUnpublishSectionResponses = {
-    201: unknown;
+export type LmsControllerGetModuleProgressDetailResponses = {
+    200: ModuleProgressDetail;
 };
 
-export type LmsContentControllerFindAllData = {
+export type LmsControllerGetModuleProgressDetailResponse = LmsControllerGetModuleProgressDetailResponses[keyof LmsControllerGetModuleProgressDetailResponses];
+
+export type LmsControllerGetDashboardProgressData = {
     body?: never;
     path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        enrollmentPeriod?: EnrollmentPeriodFilterDto;
-        contentType?: ContentType;
-        progress?: ProgressStatus;
-    };
-    url: '/modules/{moduleId}/contents';
-};
-
-export type LmsContentControllerFindAllErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerFindAllError = LmsContentControllerFindAllErrors[keyof LmsContentControllerFindAllErrors];
-
-export type LmsContentControllerFindAllResponses = {
-    200: PaginatedModuleContentDto;
-};
-
-export type LmsContentControllerFindAllResponse = LmsContentControllerFindAllResponses[keyof LmsContentControllerFindAllResponses];
-
-export type LmsContentControllerCreateData = {
-    body: CreateContentDto;
-    path: {
-        moduleId: string;
-    };
     query?: never;
-    url: '/modules/{moduleId}/contents';
+    url: '/modules/dashboard';
 };
 
-export type LmsContentControllerCreateErrors = {
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
+export type LmsControllerGetDashboardProgressResponses = {
+    200: DashboardProgress;
 };
 
-export type LmsContentControllerCreateError = LmsContentControllerCreateErrors[keyof LmsContentControllerCreateErrors];
-
-export type LmsContentControllerCreateResponses = {
-    201: ModuleContent;
-};
-
-export type LmsContentControllerCreateResponse = LmsContentControllerCreateResponses[keyof LmsContentControllerCreateResponses];
-
-export type LmsContentControllerRemoveData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
-};
-
-export type LmsContentControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerRemoveError = LmsContentControllerRemoveErrors[keyof LmsContentControllerRemoveErrors];
-
-export type LmsContentControllerRemoveResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type LmsContentControllerRemoveResponse = LmsContentControllerRemoveResponses[keyof LmsContentControllerRemoveResponses];
-
-export type LmsContentControllerFindOneData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
-};
-
-export type LmsContentControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerFindOneError = LmsContentControllerFindOneErrors[keyof LmsContentControllerFindOneErrors];
-
-export type LmsContentControllerFindOneResponses = {
-    200: ModuleContent;
-};
-
-export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
-
-export type LmsContentControllerUpdateData = {
-    body: ({
-        contentType: 'LESSON';
-    } & UpdateLessonItemDto) | ({
-        contentType: 'ASSIGNMENT';
-    } & UpdateAssignmentItemDto) | ({
-        contentType: 'QUIZ';
-    } & UpdateQuizItemDto) | ({
-        contentType: 'DISCUSSION';
-    } & UpdateDiscussionItemDto) | ({
-        contentType: 'FILE';
-    } & UpdateFileItemDto) | ({
-        contentType: 'URL';
-    } & UpdateExternalUrlItemDto) | ({
-        contentType: 'VIDEO';
-    } & UpdateVideoItemDto);
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
-};
-
-export type LmsContentControllerUpdateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerUpdateError = LmsContentControllerUpdateErrors[keyof LmsContentControllerUpdateErrors];
-
-export type LmsContentControllerUpdateResponses = {
-    200: ModuleContent;
-};
-
-export type LmsContentControllerUpdateResponse = LmsContentControllerUpdateResponses[keyof LmsContentControllerUpdateResponses];
-
-export type LmsContentControllerPublishData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: {
-        toPublishAt?: string | null;
-    };
-    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
-};
-
-export type LmsContentControllerPublishErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerPublishError = LmsContentControllerPublishErrors[keyof LmsContentControllerPublishErrors];
-
-export type LmsContentControllerPublishResponses = {
-    200: unknown;
-};
-
-export type LmsContentControllerUnpublishData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
-};
-
-export type LmsContentControllerUnpublishErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerUnpublishError = LmsContentControllerUnpublishErrors[keyof LmsContentControllerUnpublishErrors];
-
-export type LmsContentControllerUnpublishResponses = {
-    200: unknown;
-};
-
-export type LmsContentControllerFindAllContentProgressData = {
-    body?: never;
-    path: {
-        moduleId: string;
-    };
-    query: {
-        studentId: string;
-    };
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
-};
-
-export type LmsContentControllerFindAllContentProgressErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
-
-export type LmsContentControllerFindAllContentProgressResponses = {
-    200: Array<DetailedContentProgressDto>;
-};
-
-export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
-
-export type LmsContentControllerCreateContentProgressData = {
-    body?: never;
-    path: {
-        moduleId: string;
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
-};
-
-export type LmsContentControllerCreateContentProgressErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerCreateContentProgressError = LmsContentControllerCreateContentProgressErrors[keyof LmsContentControllerCreateContentProgressErrors];
-
-export type LmsContentControllerCreateContentProgressResponses = {
-    201: DetailedContentProgressDto;
-};
-
-export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
-
-export type LmsAssignmentControllerUpdateData = {
-    body: UpdateAssignmentConfigDto;
-    path: {
-        assignmentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/assignments/{assignmentId}';
-};
-
-export type LmsAssignmentControllerUpdateErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerUpdateError = LmsAssignmentControllerUpdateErrors[keyof LmsAssignmentControllerUpdateErrors];
-
-export type LmsAssignmentControllerUpdateResponses = {
-    200: unknown;
-};
-
-export type LmsAssignmentControllerSubmitData = {
-    body: SubmitAssignmentDto;
-    path: {
-        assignmentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/assignments/{assignmentId}';
-};
-
-export type LmsAssignmentControllerSubmitErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerSubmitError = LmsAssignmentControllerSubmitErrors[keyof LmsAssignmentControllerSubmitErrors];
-
-export type LmsAssignmentControllerSubmitResponses = {
-    201: unknown;
-};
-
-export type LmsAssignmentControllerFindAllForAdminData = {
-    body?: never;
-    path: {
-        moduleId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/modules/{moduleId}/assignments';
-};
-
-export type LmsAssignmentControllerFindAllForAdminErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerFindAllForAdminError = LmsAssignmentControllerFindAllForAdminErrors[keyof LmsAssignmentControllerFindAllForAdminErrors];
-
-export type LmsAssignmentControllerFindAllForAdminResponses = {
-    200: PaginatedAssignmentDto;
-};
-
-export type LmsAssignmentControllerFindAllForAdminResponse = LmsAssignmentControllerFindAllForAdminResponses[keyof LmsAssignmentControllerFindAllForAdminResponses];
-
-export type LmsAssignmentControllerFindAllForMentorData = {
-    body?: never;
-    path: {
-        moduleId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/modules/{moduleId}/assignments/mentor';
-};
-
-export type LmsAssignmentControllerFindAllForMentorErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerFindAllForMentorError = LmsAssignmentControllerFindAllForMentorErrors[keyof LmsAssignmentControllerFindAllForMentorErrors];
-
-export type LmsAssignmentControllerFindAllForMentorResponses = {
-    200: PaginatedMentorAssignmentDto;
-};
-
-export type LmsAssignmentControllerFindAllForMentorResponse = LmsAssignmentControllerFindAllForMentorResponses[keyof LmsAssignmentControllerFindAllForMentorResponses];
-
-export type LmsAssignmentControllerFindAllForStudentData = {
-    body?: never;
-    path: {
-        moduleId: string;
-    };
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/modules/{moduleId}/assignments/student';
-};
-
-export type LmsAssignmentControllerFindAllForStudentErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerFindAllForStudentError = LmsAssignmentControllerFindAllForStudentErrors[keyof LmsAssignmentControllerFindAllForStudentErrors];
-
-export type LmsAssignmentControllerFindAllForStudentResponses = {
-    200: PaginatedStudentAssignmentDto;
-};
-
-export type LmsAssignmentControllerFindAllForStudentResponse = LmsAssignmentControllerFindAllForStudentResponses[keyof LmsAssignmentControllerFindAllForStudentResponses];
-
-export type LmsAssignmentControllerFindOneData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/assignments/{moduleContentId}';
-};
-
-export type LmsAssignmentControllerFindOneErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerFindOneError = LmsAssignmentControllerFindOneErrors[keyof LmsAssignmentControllerFindOneErrors];
-
-export type LmsAssignmentControllerFindOneResponses = {
-    200: AssignmentItemDto;
-};
-
-export type LmsAssignmentControllerFindOneResponse = LmsAssignmentControllerFindOneResponses[keyof LmsAssignmentControllerFindOneResponses];
-
-export type LmsAssignmentControllerFindOneForStudentData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/assignments/{moduleContentId}/student';
-};
-
-export type LmsAssignmentControllerFindOneForStudentErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsAssignmentControllerFindOneForStudentError = LmsAssignmentControllerFindOneForStudentErrors[keyof LmsAssignmentControllerFindOneForStudentErrors];
-
-export type LmsAssignmentControllerFindOneForStudentResponses = {
-    200: StudentAssignmentItemDto;
-};
-
-export type LmsAssignmentControllerFindOneForStudentResponse = LmsAssignmentControllerFindOneForStudentResponses[keyof LmsAssignmentControllerFindOneForStudentResponses];
-
-export type LmsSubmissionControllerFindOneData = {
-    body?: never;
-    path: {
-        submissionId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/submissions/{submissionId}';
-};
-
-export type LmsSubmissionControllerFindOneErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSubmissionControllerFindOneError = LmsSubmissionControllerFindOneErrors[keyof LmsSubmissionControllerFindOneErrors];
-
-export type LmsSubmissionControllerFindOneResponses = {
-    200: SubmissionDetailsDto;
-};
-
-export type LmsSubmissionControllerFindOneResponse = LmsSubmissionControllerFindOneResponses[keyof LmsSubmissionControllerFindOneResponses];
-
-export type LmsSubmissionControllerGradeData = {
-    body: GradeSubmissionDto;
-    path: {
-        submissionId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/submissions/{submissionId}';
-};
-
-export type LmsSubmissionControllerGradeErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsSubmissionControllerGradeError = LmsSubmissionControllerGradeErrors[keyof LmsSubmissionControllerGradeErrors];
-
-export type LmsSubmissionControllerGradeResponses = {
-    200: GradeRecordDto;
-};
-
-export type LmsSubmissionControllerGradeResponse = LmsSubmissionControllerGradeResponses[keyof LmsSubmissionControllerGradeResponses];
+export type LmsControllerGetDashboardProgressResponse = LmsControllerGetDashboardProgressResponses[keyof LmsControllerGetDashboardProgressResponses];
 
 export type GroupControllerFindAllData = {
     body?: never;
@@ -5323,6 +4642,325 @@ export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
 
+export type LmsContentControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        contentType?: ContentType;
+        progress?: ProgressStatus;
+    };
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindAllError = LmsContentControllerFindAllErrors[keyof LmsContentControllerFindAllErrors];
+
+export type LmsContentControllerFindAllResponses = {
+    200: PaginatedModuleContentDto;
+};
+
+export type LmsContentControllerFindAllResponse = LmsContentControllerFindAllResponses[keyof LmsContentControllerFindAllResponses];
+
+export type LmsContentControllerCreateData = {
+    body: CreateModuleContentDto;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerCreateErrors = {
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerCreateError = LmsContentControllerCreateErrors[keyof LmsContentControllerCreateErrors];
+
+export type LmsContentControllerCreateResponses = {
+    201: ({
+        contentType: 'LESSON';
+    } & LessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & AssignmentItemDto);
+};
+
+export type LmsContentControllerCreateResponse = LmsContentControllerCreateResponses[keyof LmsContentControllerCreateResponses];
+
+export type LmsContentControllerRemoveData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerRemoveError = LmsContentControllerRemoveErrors[keyof LmsContentControllerRemoveErrors];
+
+export type LmsContentControllerRemoveResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type LmsContentControllerRemoveResponse = LmsContentControllerRemoveResponses[keyof LmsContentControllerRemoveResponses];
+
+export type LmsContentControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindOneError = LmsContentControllerFindOneErrors[keyof LmsContentControllerFindOneErrors];
+
+export type LmsContentControllerFindOneResponses = {
+    200: ({
+        contentType: 'LESSON';
+    } & LessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & AssignmentItemDto);
+};
+
+export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
+
+export type LmsContentControllerUpdateData = {
+    body: ({
+        contentType: 'LESSON';
+    } & UpdateLessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & UpdateAssignmentItemDto);
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerUpdateError = LmsContentControllerUpdateErrors[keyof LmsContentControllerUpdateErrors];
+
+export type LmsContentControllerUpdateResponses = {
+    200: ModuleContent;
+};
+
+export type LmsContentControllerUpdateResponse = LmsContentControllerUpdateResponses[keyof LmsContentControllerUpdateResponses];
+
+export type LmsContentControllerPublishData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
+};
+
+export type LmsContentControllerPublishErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerPublishError = LmsContentControllerPublishErrors[keyof LmsContentControllerPublishErrors];
+
+export type LmsContentControllerPublishResponses = {
+    200: MessageDto;
+};
+
+export type LmsContentControllerPublishResponse = LmsContentControllerPublishResponses[keyof LmsContentControllerPublishResponses];
+
+export type LmsContentControllerUnpublishData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
+};
+
+export type LmsContentControllerUnpublishErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerUnpublishError = LmsContentControllerUnpublishErrors[keyof LmsContentControllerUnpublishErrors];
+
+export type LmsContentControllerUnpublishResponses = {
+    200: MessageDto;
+};
+
+export type LmsContentControllerUnpublishResponse = LmsContentControllerUnpublishResponses[keyof LmsContentControllerUnpublishResponses];
+
+export type LmsContentControllerFindAllContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+};
+
+export type LmsContentControllerFindAllContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
+
+export type LmsContentControllerFindAllContentProgressResponses = {
+    200: Array<DetailedContentProgressDto>;
+};
+
+export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
+
+export type LmsContentControllerCreateContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+};
+
+export type LmsContentControllerCreateContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerCreateContentProgressError = LmsContentControllerCreateContentProgressErrors[keyof LmsContentControllerCreateContentProgressErrors];
+
+export type LmsContentControllerCreateContentProgressResponses = {
+    201: DetailedContentProgressDto;
+};
+
+export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
+
 export type MajorControllerFindAllData = {
     body?: never;
     path?: never;
@@ -5643,6 +5281,819 @@ export type CurriculumControllerUpdateResponses = {
 };
 
 export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
+
+export type AssignmentControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/{moduleContentId}/assignments';
+};
+
+export type AssignmentControllerFindOneErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindOneError = AssignmentControllerFindOneErrors[keyof AssignmentControllerFindOneErrors];
+
+export type AssignmentControllerFindOneResponses = {
+    200: AssignmentDto;
+};
+
+export type AssignmentControllerFindOneResponse = AssignmentControllerFindOneResponses[keyof AssignmentControllerFindOneResponses];
+
+export type AssignmentControllerUpdateData = {
+    body: UpdateAssignmentConfigDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/{moduleContentId}/assignments';
+};
+
+export type AssignmentControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerUpdateError = AssignmentControllerUpdateErrors[keyof AssignmentControllerUpdateErrors];
+
+export type AssignmentControllerUpdateResponses = {
+    200: unknown;
+};
+
+export type AssignmentControllerSubmitData = {
+    body: SubmitAssignmentDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/{moduleContentId}/assignments';
+};
+
+export type AssignmentControllerSubmitErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerSubmitError = AssignmentControllerSubmitErrors[keyof AssignmentControllerSubmitErrors];
+
+export type AssignmentControllerSubmitResponses = {
+    201: unknown;
+};
+
+export type AssignmentControllerFindAllForAdminData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/admin/all';
+};
+
+export type AssignmentControllerFindAllForAdminErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindAllForAdminError = AssignmentControllerFindAllForAdminErrors[keyof AssignmentControllerFindAllForAdminErrors];
+
+export type AssignmentControllerFindAllForAdminResponses = {
+    200: PaginatedAssignmentDto;
+};
+
+export type AssignmentControllerFindAllForAdminResponse = AssignmentControllerFindAllForAdminResponses[keyof AssignmentControllerFindAllForAdminResponses];
+
+export type AssignmentControllerFindAllForMentorData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/mentor/all';
+};
+
+export type AssignmentControllerFindAllForMentorErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindAllForMentorError = AssignmentControllerFindAllForMentorErrors[keyof AssignmentControllerFindAllForMentorErrors];
+
+export type AssignmentControllerFindAllForMentorResponses = {
+    200: PaginatedMentorAssignmentDto;
+};
+
+export type AssignmentControllerFindAllForMentorResponse = AssignmentControllerFindAllForMentorResponses[keyof AssignmentControllerFindAllForMentorResponses];
+
+export type AssignmentControllerFindAllForStudentData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/student/all';
+};
+
+export type AssignmentControllerFindAllForStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindAllForStudentError = AssignmentControllerFindAllForStudentErrors[keyof AssignmentControllerFindAllForStudentErrors];
+
+export type AssignmentControllerFindAllForStudentResponses = {
+    200: PaginatedStudentAssignmentDto;
+};
+
+export type AssignmentControllerFindAllForStudentResponse = AssignmentControllerFindAllForStudentResponses[keyof AssignmentControllerFindAllForStudentResponses];
+
+export type AssignmentControllerFindOneForStudentData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/student';
+};
+
+export type AssignmentControllerFindOneForStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindOneForStudentError = AssignmentControllerFindOneForStudentErrors[keyof AssignmentControllerFindOneForStudentErrors];
+
+export type AssignmentControllerFindOneForStudentResponses = {
+    200: StudentAssignmentItemDto;
+};
+
+export type AssignmentControllerFindOneForStudentResponse = AssignmentControllerFindOneForStudentResponses[keyof AssignmentControllerFindOneForStudentResponses];
+
+export type LmsSectionControllerFindAllModuleSectionsData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections';
+};
+
+export type LmsSectionControllerFindAllModuleSectionsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerFindAllModuleSectionsError = LmsSectionControllerFindAllModuleSectionsErrors[keyof LmsSectionControllerFindAllModuleSectionsErrors];
+
+export type LmsSectionControllerFindAllModuleSectionsResponses = {
+    200: Array<DetailedModuleSectionDto>;
+};
+
+export type LmsSectionControllerFindAllModuleSectionsResponse = LmsSectionControllerFindAllModuleSectionsResponses[keyof LmsSectionControllerFindAllModuleSectionsResponses];
+
+export type LmsSectionControllerCreateData = {
+    body: CreateModuleSectionDto;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections';
+};
+
+export type LmsSectionControllerCreateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerCreateError = LmsSectionControllerCreateErrors[keyof LmsSectionControllerCreateErrors];
+
+export type LmsSectionControllerCreateResponses = {
+    201: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerCreateResponse = LmsSectionControllerCreateResponses[keyof LmsSectionControllerCreateResponses];
+
+export type LmsSectionControllerRemoveData = {
+    body?: never;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerRemoveErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerRemoveError = LmsSectionControllerRemoveErrors[keyof LmsSectionControllerRemoveErrors];
+
+export type LmsSectionControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type LmsSectionControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerFindOneError = LmsSectionControllerFindOneErrors[keyof LmsSectionControllerFindOneErrors];
+
+export type LmsSectionControllerFindOneResponses = {
+    200: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerFindOneResponse = LmsSectionControllerFindOneResponses[keyof LmsSectionControllerFindOneResponses];
+
+export type LmsSectionControllerUpdateData = {
+    body: UpdateModuleSectionDto;
+    path: {
+        moduleSectionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{moduleSectionId}';
+};
+
+export type LmsSectionControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerUpdateError = LmsSectionControllerUpdateErrors[keyof LmsSectionControllerUpdateErrors];
+
+export type LmsSectionControllerUpdateResponses = {
+    200: DetailedModuleSectionDto;
+};
+
+export type LmsSectionControllerUpdateResponse = LmsSectionControllerUpdateResponses[keyof LmsSectionControllerUpdateResponses];
+
+export type LmsSectionControllerPublishSectionData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{id}/publish';
+};
+
+export type LmsSectionControllerPublishSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerPublishSectionError = LmsSectionControllerPublishSectionErrors[keyof LmsSectionControllerPublishSectionErrors];
+
+export type LmsSectionControllerPublishSectionResponses = {
+    201: unknown;
+};
+
+export type LmsSectionControllerUnpublishSectionData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/sections/{id}/unpublish';
+};
+
+export type LmsSectionControllerUnpublishSectionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsSectionControllerUnpublishSectionError = LmsSectionControllerUnpublishSectionErrors[keyof LmsSectionControllerUnpublishSectionErrors];
+
+export type LmsSectionControllerUnpublishSectionResponses = {
+    201: unknown;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/{moduleContentId}';
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentError = SubmissionControllerFindAssignmentSubmissionsForAssignmentErrors[keyof SubmissionControllerFindAssignmentSubmissionsForAssignmentErrors];
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentResponses = {
+    200: Array<AssignmentSubmissionDetailsDto>;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsForAssignmentResponse = SubmissionControllerFindAssignmentSubmissionsForAssignmentResponses[keyof SubmissionControllerFindAssignmentSubmissionsForAssignmentResponses];
+
+export type SubmissionControllerSubmitAssignmentData = {
+    body: CreateAssignmentSubmissionDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/{moduleContentId}';
+};
+
+export type SubmissionControllerSubmitAssignmentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerSubmitAssignmentError = SubmissionControllerSubmitAssignmentErrors[keyof SubmissionControllerSubmitAssignmentErrors];
+
+export type SubmissionControllerSubmitAssignmentResponses = {
+    201: AssignmentSubmissionDto;
+};
+
+export type SubmissionControllerSubmitAssignmentResponse = SubmissionControllerSubmitAssignmentResponses[keyof SubmissionControllerSubmitAssignmentResponses];
+
+export type SubmissionControllerFindOneData = {
+    body?: never;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/{submissionId}';
+};
+
+export type SubmissionControllerFindOneErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindOneError = SubmissionControllerFindOneErrors[keyof SubmissionControllerFindOneErrors];
+
+export type SubmissionControllerFindOneResponses = {
+    200: AssignmentSubmissionDetailsDto;
+};
+
+export type SubmissionControllerFindOneResponse = SubmissionControllerFindOneResponses[keyof SubmissionControllerFindOneResponses];
+
+export type SubmissionControllerGradeData = {
+    body: GradeSubmissionDto;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/{submissionId}';
+};
+
+export type SubmissionControllerGradeErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerGradeError = SubmissionControllerGradeErrors[keyof SubmissionControllerGradeErrors];
+
+export type SubmissionControllerGradeResponses = {
+    200: GradeRecordDto;
+};
+
+export type SubmissionControllerGradeResponse = SubmissionControllerGradeResponses[keyof SubmissionControllerGradeResponses];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentData = {
+    body?: never;
+    path: {
+        studentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/student/{studentId}';
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentError = SubmissionControllerFindAssignmentSubmissionsOfStudentErrors[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentErrors];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentResponses = {
+    200: Array<AssignmentSubmissionDetailsDto>;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentResponse = SubmissionControllerFindAssignmentSubmissionsOfStudentResponses[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentResponses];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+        studentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/submissions/assignment/{moduleContentId}/student/{studentId}';
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentError = SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentErrors[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentErrors];
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses = {
+    200: Array<AssignmentSubmissionDetailsDto>;
+};
+
+export type SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponse = SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses[keyof SubmissionControllerFindAssignmentSubmissionsOfStudentForAssignmentResponses];
+
+export type GradingControllerGetStudentGradebookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by Module ID.
+         */
+        moduleId?: string;
+        /**
+         * Filter by a specific Student ID (Admin only).
+         */
+        studentId?: string;
+        /**
+         * Filter by a specific Course Offering ID (Admin only).
+         */
+        courseOfferingId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        courseSectionId?: string;
+    };
+    url: '/grading/gradebook/student';
+};
+
+export type GradingControllerGetStudentGradebookErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGetStudentGradebookError = GradingControllerGetStudentGradebookErrors[keyof GradingControllerGetStudentGradebookErrors];
+
+export type GradingControllerGetStudentGradebookResponses = {
+    /**
+     * Student gradebook retrieved successfully
+     */
+    200: GradebookForStudentDto;
+};
+
+export type GradingControllerGetStudentGradebookResponse = GradingControllerGetStudentGradebookResponses[keyof GradingControllerGetStudentGradebookResponses];
+
+export type GradingControllerGetMentorGradebookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by Module ID.
+         */
+        moduleId?: string;
+        /**
+         * Filter by a specific Student ID (Admin only).
+         */
+        studentId?: string;
+        /**
+         * Filter by a specific Course Offering ID (Admin only).
+         */
+        courseOfferingId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        courseSectionId?: string;
+    };
+    url: '/grading/gradebook/mentor';
+};
+
+export type GradingControllerGetMentorGradebookErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    403: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGetMentorGradebookError = GradingControllerGetMentorGradebookErrors[keyof GradingControllerGetMentorGradebookErrors];
+
+export type GradingControllerGetMentorGradebookResponses = {
+    /**
+     * Mentor gradebook retrieved successfully
+     */
+    200: GradebookForMentorDto;
+};
+
+export type GradingControllerGetMentorGradebookResponse = GradingControllerGetMentorGradebookResponses[keyof GradingControllerGetMentorGradebookResponses];
+
+export type GradingControllerGetAdminGradebookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by Module ID.
+         */
+        moduleId?: string;
+        /**
+         * Filter by a specific Student ID (Admin only).
+         */
+        studentId?: string;
+        /**
+         * Filter by a specific Course Offering ID (Admin only).
+         */
+        courseOfferingId?: string;
+        /**
+         * Filter by a specific Course Section ID (Admin only).
+         */
+        courseSectionId?: string;
+    };
+    url: '/grading/gradebook/admin';
+};
+
+export type GradingControllerGetAdminGradebookErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGetAdminGradebookError = GradingControllerGetAdminGradebookErrors[keyof GradingControllerGetAdminGradebookErrors];
+
+export type GradingControllerGetAdminGradebookResponses = {
+    /**
+     * Admin gradebook retrieved successfully
+     */
+    200: GradebookForMentorDto;
+};
+
+export type GradingControllerGetAdminGradebookResponse = GradingControllerGetAdminGradebookResponses[keyof GradingControllerGetAdminGradebookResponses];
+
+export type GradingControllerGradeAssignmentSubmissionData = {
+    body: GradeAssignmentSubmissionDto;
+    path: {
+        submissionId: string;
+    };
+    query?: never;
+    url: '/grading/submissions/{submissionId}/grade';
+};
+
+export type GradingControllerGradeAssignmentSubmissionErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    403: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerGradeAssignmentSubmissionError = GradingControllerGradeAssignmentSubmissionErrors[keyof GradingControllerGradeAssignmentSubmissionErrors];
+
+export type GradingControllerGradeAssignmentSubmissionResponses = {
+    /**
+     * Assignment graded successfully
+     */
+    200: GradeRecordDto;
+    201: GradeRecordDto;
+};
+
+export type GradingControllerGradeAssignmentSubmissionResponse = GradingControllerGradeAssignmentSubmissionResponses[keyof GradingControllerGradeAssignmentSubmissionResponses];
+
+export type GradingControllerUpdateGradeRecordData = {
+    body: UpdateGradeRecordDto;
+    path: {
+        recordId: string;
+    };
+    query?: never;
+    url: '/grading/grade-records/{recordId}';
+};
+
+export type GradingControllerUpdateGradeRecordErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    403: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type GradingControllerUpdateGradeRecordError = GradingControllerUpdateGradeRecordErrors[keyof GradingControllerUpdateGradeRecordErrors];
+
+export type GradingControllerUpdateGradeRecordResponses = {
+    /**
+     * Grade record updated successfully
+     */
+    200: GradeRecord;
+};
+
+export type GradingControllerUpdateGradeRecordResponse = GradingControllerUpdateGradeRecordResponses[keyof GradingControllerUpdateGradeRecordResponses];
 
 export type SwaggerControllerDownloadAllSpecsData = {
     body?: never;
