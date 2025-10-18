@@ -25268,6 +25268,10 @@
           "courseOffering": {
             "$ref": "#/components/schemas/TranscriptCourseOfferingDto"
           },
+          "courseOfferingId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "user": {
             "$ref": "#/components/schemas/UserWithRelations"
           },
@@ -25285,6 +25289,7 @@
           "updatedAt",
           "deletedAt",
           "courseOffering",
+          "courseOfferingId",
           "user",
           "gwa"
         ]

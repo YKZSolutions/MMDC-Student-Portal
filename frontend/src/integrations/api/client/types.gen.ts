@@ -2075,6 +2075,7 @@ export type DetailedTranscriptDto = {
     updatedAt: string;
     deletedAt: string | null;
     courseOffering: TranscriptCourseOfferingDto;
+    courseOfferingId: string;
     user: UserWithRelations;
     gwa: string;
 };
