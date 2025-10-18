@@ -1,6 +1,7 @@
 import AsyncSearchSelect from '@/components/async-search-select'
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import type { PartialUpdateTranscript } from '@/features/transcript/types'
 import { useSearchState } from '@/hooks/use-search-state'
 import {
   type DetailedTranscriptDto,
@@ -11,9 +12,12 @@ import {
   enrollmentControllerFindAllEnrollmentsOptions,
   enrollmentControllerFindOneEnrollmentOptions,
   transcriptControllerFindAllOptions,
+  transcriptControllerUpdateMutation,
+  transcriptControllerUpsertMutation,
   usersControllerFindAllOptions,
   usersControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import type { TranscriptSearch } from '@/routes/(protected)/transcript'
 import { formatEnrollmentToFullLabel } from '@/utils/formatters'
 import {
@@ -32,7 +36,12 @@ import {
   Text,
   Title,
 } from '@mantine/core'
-import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react'
+import {
+  IconCalculator,
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
+} from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import React, { Fragment, Suspense } from 'react'
@@ -215,6 +224,64 @@ function TranscriptTable({
 
   const enrollmentPeriodId = transcripts[0].courseOffering.enrollmentPeriod.id
 
+  const { mutateAsync: recalculateAsync } = useAppMutation(
+    transcriptControllerUpsertMutation,
+    {
+      loading: {
+        title: 'Recalculating Transcripts',
+        message: 'Please wait while transcripts are being recalculated.',
+      },
+      success: {
+        title: 'Transcripts Recalculated',
+        message: 'Transcripts have been successfully recalculated.',
+      },
+    },
+  )
+
+  const { mutateAsync: editAsync } = useAppMutation(
+    transcriptControllerUpdateMutation,
+    {
+      loading: {
+        title: 'Updating Transcript',
+        message: 'Please wait while the transcript is being updated.',
+      },
+      success: {
+        title: 'Transcript Updated',
+        message: 'The transcript has been successfully updated.',
+      },
+    },
+  )
+
+  const handleMenu = {
+    handleRecalculate: async ({
+      courseOfferingId,
+      user,
+    }: Pick<DetailedTranscriptDto, 'courseOfferingId' | 'user'>) => {
+      await recalculateAsync({
+        body: {
+          courseOfferingId: courseOfferingId,
+          studentId: user.id,
+        },
+      })
+    },
+
+    handleEdit: ({
+      id: transcriptId,
+      grade,
+      gradeLetter,
+    }: PartialUpdateTranscript) => {
+      editAsync({
+        body: {
+          grade: grade,
+          gradeLetter: gradeLetter ?? undefined,
+        },
+        path: {
+          transcriptId: transcriptId,
+        },
+      })
+    },
+  }
+
   return (
     <Stack gap={'lg'}>
       <Paper withBorder radius={'md'}>
@@ -282,7 +349,7 @@ function TranscriptTable({
                     </Table.Td>
                     <Table.Td>
                       <Text fw={600} c={'dark.7'} fz={'sm'}>
-                        {transcript.grade}
+                        {transcript.grade ?? transcript.gradeLetter}
                       </Text>
                     </Table.Td>
                     <RoleComponentManager
@@ -307,7 +374,27 @@ function TranscriptTable({
                                 </ActionIcon>
                               </Menu.Target>
                               <Menu.Dropdown>
-                                <Menu.Item leftSection={<IconEdit size={16} />}>
+                                <Menu.Item
+                                  onClick={() =>
+                                    handleMenu.handleRecalculate({
+                                      courseOfferingId:
+                                        transcript.courseOfferingId,
+                                      user: transcript.user,
+                                    })
+                                  }
+                                  leftSection={<IconCalculator size={16} />}
+                                >
+                                  Recalculate
+                                </Menu.Item>
+                                <Menu.Item
+                                  onClick={() =>
+                                    handleMenu.handleEdit({
+                                      id: transcript.id,
+                                      grade: transcript.grade,
+                                    })
+                                  }
+                                  leftSection={<IconEdit size={16} />}
+                                >
                                   Edit
                                 </Menu.Item>
                                 <Menu.Item
