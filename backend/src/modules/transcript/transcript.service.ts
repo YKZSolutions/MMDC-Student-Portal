@@ -60,8 +60,10 @@ export class TranscriptService {
             studentId: studentId,
             assignment: {
               moduleContent: {
-                module: {
-                  courseOfferingId: courseOfferingId,
+                moduleSection: {
+                  module: {
+                    courseOfferingId: courseOfferingId,
+                  },
                 },
               },
             },
@@ -72,7 +74,7 @@ export class TranscriptService {
             select: {
               assignment: {
                 select: {
-                  grading: true,
+                  maxScore: true,
                 },
               },
             },
@@ -93,7 +95,7 @@ export class TranscriptService {
         (acc, record) => {
           const rawScore = new Decimal(record.rawScore);
           const maxScore = new Decimal(
-            record.assignmentSubmission?.assignment.grading?.weight || 0,
+            record.assignmentSubmission?.assignment.maxScore || 0,
           );
 
           // Avoid division by zero
