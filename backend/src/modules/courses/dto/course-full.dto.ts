@@ -1,4 +1,4 @@
-import { CourseDto as AutoCourseDto } from '@/generated/nestjs-dto/course.dto';
+import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CourseRelationDto {
@@ -12,16 +12,10 @@ export class CourseRelationDto {
   name: string;
 }
 
-export class CourseDto extends AutoCourseDto {
+export class CourseFullDto extends CourseDto {
   @ApiProperty({ type: () => [CourseRelationDto] })
   prereqs: CourseRelationDto[];
 
   @ApiProperty({ type: () => [CourseRelationDto] })
-  prereqFor: CourseRelationDto[];
-
-  @ApiProperty({ type: () => [CourseRelationDto] })
   coreqs: CourseRelationDto[];
-
-  @ApiProperty({ type: () => [CourseRelationDto] })
-  coreqFor: CourseRelationDto[];
 }
