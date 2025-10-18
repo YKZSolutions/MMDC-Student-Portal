@@ -69,13 +69,12 @@ export class UsersController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiCreatedResponse({ type: User })
   @ApiException(() => [
     BadRequestException,
     ConflictException,
     InternalServerErrorException,
   ])
-  async create(@Body() createUserDto: CreateUserFullDto): Promise<User> {
+  async create(@Body() createUserDto: CreateUserFullDto): Promise<UserDto> {
     return this.usersService.create(createUserDto.role, createUserDto);
   }
 
