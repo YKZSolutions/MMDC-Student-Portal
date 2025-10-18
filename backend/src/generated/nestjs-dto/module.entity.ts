@@ -13,10 +13,6 @@ import {
   type ModuleSection as ModuleSectionAsType,
 } from './moduleSection.entity';
 import {
-  ModuleContent,
-  type ModuleContent as ModuleContentAsType,
-} from './moduleContent.entity';
-import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
@@ -50,8 +46,6 @@ export class Module {
   @ApiHideProperty()
   moduleSections?: ModuleSectionAsType[];
   @ApiHideProperty()
-  moduleContents?: ModuleContentAsType[];
-  @ApiHideProperty()
   progresses?: ContentProgressAsType[];
   @ApiHideProperty()
   groups?: GroupAsType[];
@@ -61,12 +55,6 @@ export class Module {
     nullable: true,
   })
   publishedAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
-  toPublishAt: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

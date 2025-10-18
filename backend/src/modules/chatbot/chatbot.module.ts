@@ -6,10 +6,11 @@ import { UsersModule } from '../users/users.module';
 import { BillingModule } from '../billing/billing.module';
 import { CoursesModule } from '../courses/courses.module';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
-import { LmsModule } from '../lms/lms.module';
+import { LmsModule } from '../lms/lms-module/lms.module';
 import { SupabaseService } from '@/lib/supabase/supabase.service';
 import { N8nService } from '@/lib/n8n/n8n.service';
 import { HttpModule } from '@nestjs/axios';
+import { LmsContentModule } from '@/modules/lms/lms-content/lms-content.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { HttpModule } from '@nestjs/axios';
     CoursesModule,
     EnrollmentModule,
     LmsModule,
+    LmsContentModule,
     HttpModule,
   ],
   controllers: [ChatbotController],

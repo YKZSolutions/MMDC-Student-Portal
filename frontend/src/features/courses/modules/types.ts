@@ -2,73 +2,58 @@ import type {
   AssignmentBase,
   StudentAssignment,
 } from '@/features/courses/assignments/types.ts'
-import type { ModuleTreeSectionDto } from '@/integrations/api/client'
-import type { Block } from '@blocknote/core'
+import type {
+  AssignmentItemDto,
+  LessonItemDto,
+  ModuleTreeAssignmentItemDto,
+  ModuleTreeLessonItemDto,
+  ModuleTreeSectionDto,
+} from '@/integrations/api/client'
 import type { NodeModel } from '@minoru/react-dnd-treeview'
 
-export interface ContentProgress {
-  contentId: string
-  isCompleted: boolean
-  completedAt?: string
+export type FullModuleContent =
+  | (LessonItemDto & { contentType: 'LESSON' })
+  | (AssignmentItemDto & { contentType: 'ASSIGNMENT' })
+
+type ContentTypeMap = {
+  LESSON: ModuleTreeLessonItemDto
+  ASSIGNMENT: ModuleTreeAssignmentItemDto
 }
 
-export interface Published {
-  isPublished: boolean
-  publishedAt: string
-  toPublishAt: string
-  unpublishedAt: string
+export type ModuleTreeContentItem = {
+  [K in keyof ContentTypeMap]: ContentTypeMap[K] & { contentType: K }
+}[keyof ContentTypeMap]
+
+export type ContentNode = ModuleTreeSectionDto | ModuleTreeContentItem
+export type ContentNodeType = 'section' | 'item' | 'add-button'
+
+export interface SectionNodeData {
+  level: 1 | 2
+  type: 'section'
+  contentData: ModuleTreeSectionDto
 }
 
-export interface Module {
-  id: string
-  courseCode: string
-  courseName: string
-  courseSection: string
-  sections: ModuleSection[]
-  published: Published
+/**
+ * Item → ModuleTreeContentItem
+ */
+export interface ItemNodeData {
+  level: 3
+  type: 'item'
+  contentData: ModuleTreeContentItem
 }
 
-export interface ModuleSection extends Published {
-  id: string
-  parentId: string
-  moduleId: string
-  parentSectionId: string
-  prerequisiteSectionId: string
-  title: string
-  order: number
-  items: ModuleItem[]
-  subsections: ModuleSection[]
-  prerequisites?: string[]
-}
-
-export interface ModuleItem {
-  id: string
-  parentId: string
-  type: ContentType
-  title: string
-  order: number
-  prerequisites?: string[]
-  content?: Block[]
-  url?: string
-  progress?: ContentProgress
-  assignment?: AssignmentBase | StudentAssignment
-  published: Published
-}
-
-export type ContentType =
-  | 'lesson'
-  | 'assignment'
-  | 'discussion'
-  | 'url'
-  | 'file'
-
-export type ContentNode = ModuleTreeSectionDto
-export type ContentNodeType = 'section' | 'subsection' | 'item' | 'add-button'
-
-export interface CourseNodeData {
+/**
+ * Add-button → undefined
+ */
+export interface AddButtonNodeData {
   level: number
-  type: ContentNodeType
-  contentData?: ContentNode
+  type: 'add-button'
+  contentData?: undefined
 }
+
+/**
+ * Combined discriminated union
+ */
+export type CourseNodeData = SectionNodeData | ItemNodeData | AddButtonNodeData
 
 export type CourseNodeModel = NodeModel<CourseNodeData>

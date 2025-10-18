@@ -21,25 +21,10 @@ import {
   IconMessageChatbot,
   IconMessageCheck,
 } from '@tabler/icons-react'
-import { Link, useLocation, useParams } from '@tanstack/react-router'
-import { mockCourseBasicDetails } from '@/features/courses/mocks.ts'
+import { Link, useLocation } from '@tanstack/react-router'
 import { Fragment } from 'react'
-import dayjs from 'dayjs'
 import { useDisclosure } from '@mantine/hooks'
-import {
-  notificationsControllerFindAllOptions,
-  notificationsControllerFindAllQueryKey,
-  notificationsControllerGetCountOptions,
-  notificationsControllerGetCountQueryKey,
-  notificationsControllerMarkAllAsReadMutation,
-} from '@/integrations/api/client/@tanstack/react-query.gen'
 import { EmptyState } from '@/components/empty-state'
-import { getContext } from '@/integrations/tanstack-query/root-provider'
-import type {
-  NotificationCountDto,
-  NotificationItemDto,
-  PaginatedNotificationDto,
-} from '@/integrations/api/client'
 import { useNotificationQuery } from '@/features/notification/use-notification-query'
 import NotificationItemCard from '@/features/notification/notification-item-card'
 
@@ -50,13 +35,6 @@ type TopBarProps = {
 
 function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
   const location = useLocation()
-  const params = useParams({ strict: false }) as Record<string, string>
-  const { courseCode } = params
-
-  // TODO: Replace with actual course data from the backend
-  const course = courseCode
-    ? mockCourseBasicDetails.find((c) => c.courseCode === courseCode)
-    : null
 
   const paths = location.pathname.split('/').slice(1)
   const pathLinks = paths.map((_, i) => '/' + paths.slice(0, i + 1).join('/'))
@@ -82,12 +60,7 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
           const isLast = idx === paths.length - 1
           const path = pathLinks[idx]
 
-          let label = link.charAt(0).toUpperCase() + link.slice(1)
-
-          // Check if the link matches the courseCode and replace it with the courseName
-          if (link === courseCode && course) {
-            label = course.courseName
-          }
+          const label = link.charAt(0).toUpperCase() + link.slice(1)
 
           return <BreadcrumbItem isLast={isLast} path={path} label={label} />
         })}

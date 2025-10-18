@@ -1,4 +1,4 @@
-import { AssignmentMode, Prisma } from '@prisma/client';
+import { AssignmentMode } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AssignmentDto {
@@ -7,25 +7,20 @@ export class AssignmentDto {
   })
   id: string;
   @ApiProperty({
-    type: 'string',
-  })
-  title: string;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  subtitle: string | null;
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  content: Prisma.JsonValue[];
-  @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
-    nullable: true,
   })
-  mode: AssignmentMode | null;
+  mode: AssignmentMode;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  maxScore: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+  })
+  weightPercentage: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -38,11 +33,11 @@ export class AssignmentDto {
   })
   allowLateSubmission: boolean | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
     nullable: true,
   })
-  latePenalty: Prisma.Decimal | null;
+  latePenalty: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

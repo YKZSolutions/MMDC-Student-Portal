@@ -4,10 +4,6 @@ import type {
   CourseGradebookForMentor,
   StudentAssignmentGrade,
 } from '@/features/courses/grades/types.ts'
-import {
-  mockMentorGradebook,
-  mockStudentGradebook,
-} from '@/features/courses/mocks.ts'
 import { formatTimestampToDateTimeText } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -40,6 +36,21 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react'
 import { Fragment, Suspense, useEffect, useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import type {
+  AssignmentSubmissionDto,
+  BasicAssignmentSubmissionItemWithGrade,
+  FullGradableAssignmentItem,
+  StudentViewGradeEntryDto,
+} from '@/integrations/api/client'
+import {
+  gradingControllerGetAdminGradebookOptions,
+  gradingControllerGetMentorGradebookOptions,
+  gradingControllerGetStudentGradebookOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen.ts'
+import Decimal from 'decimal.js'
+import { useParams } from '@tanstack/react-router'
+import { Route } from '@/routes/(protected)/lms/$lmsCode.tsx'
 
 function getRoleSpecificContent({
   role,
@@ -51,30 +62,46 @@ function getRoleSpecificContent({
   setAdminFiltered,
 }: {
   role: 'student' | 'mentor' | 'admin'
-  studentFiltered: StudentAssignmentGrade[]
-  mentorFiltered: CourseGradebookForMentor['assignments']
-  adminFiltered: CourseGradebookForMentor['assignments']
+  studentFiltered: StudentViewGradeEntryDto[]
+  mentorFiltered: FullGradableAssignmentItem[]
+  adminFiltered: FullGradableAssignmentItem[]
   setStudentFiltered: React.Dispatch<
-    React.SetStateAction<StudentAssignmentGrade[]>
+    React.SetStateAction<StudentViewGradeEntryDto[]>
   >
   setMentorFiltered: React.Dispatch<
-    React.SetStateAction<CourseGradebookForMentor['assignments']>
+    React.SetStateAction<FullGradableAssignmentItem[]>
   >
   setAdminFiltered: React.Dispatch<
-    React.SetStateAction<CourseGradebookForMentor['assignments']>
+    React.SetStateAction<FullGradableAssignmentItem[]>
   >
 }) {
+  const { lmsCode } = Route.useParams()
   switch (role) {
-    case 'student':
+    case 'student': {
+      const { data } = useSuspenseQuery(
+        gradingControllerGetStudentGradebookOptions({
+          query: {
+            moduleId: lmsCode,
+          },
+        }),
+      )
       return {
-        data: mockStudentGradebook.assignments,
+        data: data.gradeRecords,
         filtered: studentFiltered,
         onFilter: setStudentFiltered,
         identifiers: ['assignmentTitle'] as const,
       }
-    case 'mentor':
+    }
+    case 'mentor': {
+      const { data } = useSuspenseQuery(
+        gradingControllerGetMentorGradebookOptions({
+          query: {
+            moduleId: lmsCode,
+          },
+        }),
+      )
       return {
-        data: mockMentorGradebook.assignments,
+        data: data.gradeRecords,
         filtered: mentorFiltered,
         onFilter: setMentorFiltered,
         identifiers: [
@@ -82,9 +109,17 @@ function getRoleSpecificContent({
           ['submissions', 'studentName'],
         ] as const,
       }
-    case 'admin':
+    }
+    case 'admin': {
+      const { data } = useSuspenseQuery(
+        gradingControllerGetAdminGradebookOptions({
+          query: {
+            moduleId: lmsCode,
+          },
+        }),
+      )
       return {
-        data: mockMentorGradebook.assignments,
+        data: data.gradeRecords,
         filtered: adminFiltered,
         onFilter: setAdminFiltered,
         identifiers: [
@@ -92,6 +127,7 @@ function getRoleSpecificContent({
           ['submissions', 'studentName'],
         ] as const,
       }
+    }
     default:
       throw new Error('Invalid role')
   }
@@ -100,13 +136,13 @@ function getRoleSpecificContent({
 function CourseGrades() {
   const { authUser } = useAuth('protected')
   const [studentFiltered, setStudentFiltered] = useState<
-    StudentAssignmentGrade[]
+    StudentViewGradeEntryDto[]
   >([])
   const [mentorFiltered, setMentorFiltered] = useState<
-    CourseGradebookForMentor['assignments']
+    FullGradableAssignmentItem[]
   >([])
   const [adminFiltered, setAdminFiltered] = useState<
-    CourseGradebookForMentor['assignments']
+    FullGradableAssignmentItem[]
   >([])
   const [viewMode, setViewMode] = useState<'by-assignment' | 'by-student'>(
     'by-assignment',
@@ -155,17 +191,17 @@ function CourseGrades() {
         </Group>
       </Group>
       {authUser.role === 'student' && (
-        <StudentGradesTable assignments={studentFiltered} />
+        <StudentGradesTable gradeBook={studentFiltered} />
       )}
       {authUser.role === 'mentor' && (
         <ElevatedRoleGradesTable
-          assignments={mentorFiltered}
+          gradeBook={mentorFiltered}
           viewMode={viewMode}
         />
       )}
       {authUser.role === 'admin' && (
         <ElevatedRoleGradesTable
-          assignments={adminFiltered}
+          gradeBook={adminFiltered}
           viewMode={viewMode}
         />
       )}
@@ -174,9 +210,9 @@ function CourseGrades() {
 }
 
 function StudentGradesTable({
-  assignments,
+  gradeBook,
 }: {
-  assignments: StudentAssignmentGrade[]
+  gradeBook: StudentViewGradeEntryDto[]
 }) {
   const theme = useMantineTheme()
 
@@ -212,34 +248,49 @@ function StudentGradesTable({
           </Table.Thead>
           <Table.Tbody>
             <Suspense fallback={<SuspendedTableRows columns={6} />}>
-              {assignments.map((assignment) => {
-                // Get the latest submission
-                const latestSubmission =
-                  assignment.submissions.length > 0
-                    ? assignment.submissions[assignment.submissions.length - 1]
-                    : null
+              {gradeBook.map((grade) => {
+                const latestSubmission = grade?.submission.reduce(
+                  (latest, current) => {
+                    if (!latest) return current
 
-                // Determine if this is a group assignment
+                    const currentDate = current.submittedAt
+                      ? new Date(current.submittedAt)
+                      : new Date(0)
+                    const latestDate = latest.submittedAt
+                      ? new Date(latest.submittedAt)
+                      : new Date(0)
+
+                    if (currentDate > latestDate) return current
+                    if (current.attemptNumber > latest.attemptNumber)
+                      return current
+                    return latest
+                  },
+                  undefined as AssignmentSubmissionDto | undefined,
+                )
+
+                // Determine if this is a group grade
                 const isGroupAssignment =
-                  latestSubmission?.grade?.groupId !== undefined
+                  latestSubmission?.groupSnapshot !== undefined
 
                 return (
-                  <Table.Tr key={assignment.assignmentId}>
+                  <Table.Tr key={grade?.gradableItem.moduleContentId}>
                     <Table.Td>
                       <Box>
-                        <Text fw={500}>{assignment.assignmentTitle}</Text>
+                        <Text fw={500}>{grade?.gradableItem?.title}</Text>
                         <Text size="sm" c="dimmed">
-                          {assignment.points} points
+                          {grade.currentGrade?.finalScore} points
                           {isGroupAssignment && ' (Group)'}
                         </Text>
                       </Box>
                     </Table.Td>
                     <Table.Td>
                       <Text fw={500} size="sm" c={'dark.4'}>
-                        {formatTimestampToDateTimeText(
-                          assignment.dueDate,
-                          'by',
-                        )}
+                        {grade?.gradableItem?.dueDate
+                          ? formatTimestampToDateTimeText(
+                              grade?.gradableItem?.dueDate,
+                              'by',
+                            )
+                          : 'N/A'}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -249,32 +300,34 @@ function StudentGradesTable({
                               latestSubmission.submittedAt,
                             )
                           : 'Not Submitted'}
-                        {latestSubmission?.isLate && (
+                        {grade?.gradableItem?.allowLateSubmission && (
                           <Text size="xs" c="red.4" fw={500}>
-                            {latestSubmission.lateDays} day(s) late
+                            {latestSubmission?.lateDays} day(s) late
                           </Text>
                         )}
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      {assignment.currentGrade ? (
+                      {grade.currentGrade ? (
                         <Box>
                           <Text fw={500} c={'dark.4'}>
-                            {assignment.currentGrade.score} /{' '}
-                            {assignment.currentGrade.maxScore}
+                            {grade?.currentGrade?.finalScore} /{' '}
+                            {grade.gradableItem?.maxScore}
                           </Text>
                           <Text size="xs" c="dimmed">
-                            {assignment.currentGrade.gradedAt &&
-                              `Graded ${formatTimestampToDateTimeText(assignment.currentGrade.gradedAt)}`}
+                            {grade.currentGrade?.gradedAt &&
+                              `Graded ${formatTimestampToDateTimeText(grade.currentGrade?.gradedAt)}`}
                           </Text>
                         </Box>
                       ) : (
-                        <Text c="dimmed">- / {assignment.points}</Text>
+                        <Text c="dimmed">
+                          - / {grade?.gradableItem?.maxScore}
+                        </Text>
                       )}
                     </Table.Td>
                     <Table.Td>
-                      {assignment.currentGrade?.feedback ? (
-                        <Tooltip label={assignment.currentGrade.feedback}>
+                      {grade.currentGrade?.feedback ? (
+                        <Tooltip label={grade.currentGrade.feedback}>
                           <IconNote size={20} color={theme.colors.dark[4]} />
                         </Tooltip>
                       ) : (
@@ -293,10 +346,10 @@ function StudentGradesTable({
 }
 
 function ElevatedRoleGradesTable({
-  assignments,
+  gradeBook = [],
   viewMode = 'by-assignment',
 }: {
-  assignments: CourseGradebookForMentor['assignments']
+  gradeBook: FullGradableAssignmentItem[]
   viewMode?: 'by-assignment' | 'by-student'
 }) {
   const theme = useMantineTheme()
@@ -316,38 +369,46 @@ function ElevatedRoleGradesTable({
   }
 
   const getDetailedStats = (
-    assignment: CourseGradebookForMentor['assignments'][number],
+    assignment: FullGradableAssignmentItem[][number],
   ) => {
     const scores = assignment.submissions
-      .filter((s) => s.grade)
-      .map((s) => s.grade!.score)
+      .filter((s) => s.currentGrade?.finalScore != null)
+      .map((s) => new Decimal(s.currentGrade!.finalScore))
 
     const totalSubmissions = assignment.submissions.length
     const gradedSubmissions = scores.length
     const averageScore =
-      scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
-    const minScore = scores.length > 0 ? Math.min(...scores) : 0
-    const maxScore = scores.length > 0 ? Math.max(...scores) : 0
+      scores.length > 0
+        ? Number(
+            scores
+              .reduce((a, b) => a.plus(b), new Decimal(0))
+              .div(scores.length),
+          )
+        : 0
+    const minScore =
+      scores.length > 0 ? Math.min(...scores.map((s) => s.toNumber())) : 0
+    const maxScore =
+      scores.length > 0 ? Math.max(...scores.map((s) => s.toNumber())) : 0
 
     return {
       totalSubmissions,
       gradedSubmissions,
       pendingSubmissions: assignment.submissions.filter(
-        (s) => s.submissionStatus === 'pending',
+        (s) => s.state === 'DRAFT',
       ).length,
       submittedSubmissions: assignment.submissions.filter(
-        (s) => s.submissionStatus === 'submitted',
+        (s) => s.state === 'SUBMITTED',
       ).length,
       averageScore,
       minScore,
       maxScore,
       completionRate: (gradedSubmissions / totalSubmissions) * 100,
-      averagePercentage: (averageScore / (assignment.points || 1)) * 100,
+      averagePercentage: (averageScore / (assignment.maxScore || 1)) * 100,
     }
   }
 
   if (viewMode === 'by-student') {
-    return <ElevatedRoleGradesTableByStudent assignments={assignments} />
+    return <ElevatedRoleGradesTableByStudent assignments={gradeBook} />
   }
 
   // Default: by-assignment view with detailed stats
@@ -381,17 +442,15 @@ function ElevatedRoleGradesTable({
         </Table.Thead>
         <Table.Tbody>
           <Suspense fallback={<SuspendedTableRows columns={6} />}>
-            {assignments.map((assignment) => {
+            {gradeBook.map((assignment) => {
               const stats = getDetailedStats(assignment)
-              const isExpanded = expandedAssignments.has(
-                assignment.assignmentId,
-              )
+              const isExpanded = expandedAssignments.has(assignment.contentId)
 
               return (
                 <>
                   <Table.Tr
-                    key={assignment.assignmentId}
-                    onClick={() => toggleExpand(assignment.assignmentId)}
+                    key={assignment.contentId}
+                    onClick={() => toggleExpand(assignment.contentId)}
                     style={{ cursor: 'pointer' }}
                   >
                     <Table.Td>
@@ -399,7 +458,7 @@ function ElevatedRoleGradesTable({
                         <ActionIcon
                           variant="transparent"
                           size="sm"
-                          onClick={() => toggleExpand(assignment.assignmentId)}
+                          onClick={() => toggleExpand(assignment.contentId)}
                         >
                           {isExpanded ? (
                             <IconChevronDown size={16} />
@@ -408,19 +467,21 @@ function ElevatedRoleGradesTable({
                           )}
                         </ActionIcon>
                         <Box>
-                          <Text fw={500}>{assignment.assignmentTitle}</Text>
+                          <Text fw={500}>{assignment.title}</Text>
                           <Text size="sm" c="dimmed">
-                            {assignment.points} points
+                            {assignment.maxScore} points
                           </Text>
                         </Box>
                       </Group>
                     </Table.Td>
                     <Table.Td>
                       <Text fw={500} size="sm" c={'dark.4'}>
-                        {formatTimestampToDateTimeText(
-                          assignment.dueDate,
-                          'by',
-                        )}
+                        {assignment.dueDate
+                          ? formatTimestampToDateTimeText(
+                              assignment.dueDate,
+                              'by',
+                            )
+                          : 'N/A'}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -449,7 +510,7 @@ function ElevatedRoleGradesTable({
                         </Text>
                         <Text size="xs" fw={500} c={'dimmed'}>
                           Avg: {stats.averageScore.toFixed(1)}/
-                          {assignment.points}
+                          {assignment.maxScore}
                         </Text>
 
                         <Group gap="xs">
@@ -485,7 +546,7 @@ function ElevatedRoleGradesTable({
 function AssignmentRowByAssignment({
   assignment,
 }: {
-  assignment: CourseGradebookForMentor['assignments'][number]
+  assignment: FullGradableAssignmentItem[][number]
 }) {
   const theme = useMantineTheme()
   return (
@@ -496,7 +557,7 @@ function AssignmentRowByAssignment({
       <Stack gap={4}>
         {assignment.submissions.map((submission) => (
           <Group
-            key={submission.studentId}
+            key={submission.student.id}
             justify="space-between"
             py={'sm'}
             px="xs"
@@ -505,27 +566,27 @@ function AssignmentRowByAssignment({
             }}
           >
             <Box>
-              <Text size="sm">{submission.studentName}</Text>
-              <Badge
-                color={submission.submissionStatus}
-                variant="filled"
-                size="xs"
-              >
-                {submission.submissionStatus}
+              <Text size="sm">
+                {submission.student.firstName +
+                  ' ' +
+                  submission.student.lastName}
+              </Text>
+              <Badge color={submission.state} variant="filled" size="xs">
+                {submission.state}
               </Badge>
             </Box>
             <Group gap="xs">
-              {submission.grade ? (
+              {submission.currentGrade ? (
                 <Text size="sm" fw={500} c={'dark.5'}>
-                  {submission.grade.score}/{submission.grade.maxScore}
+                  {submission.currentGrade.finalScore}/{assignment.maxScore}
                 </Text>
               ) : (
                 <Text size="sm" c="dimmed">
                   Not graded
                 </Text>
               )}
-              {submission.grade?.feedback && (
-                <Tooltip label={submission.grade.feedback}>
+              {submission.currentGrade?.feedback && (
+                <Tooltip label={submission.currentGrade.feedback}>
                   <IconNote size={16} color={theme.colors.dark[4]} />
                 </Tooltip>
               )}
@@ -535,12 +596,12 @@ function AssignmentRowByAssignment({
                 onClick={() =>
                   console.log(
                     'Grade:',
-                    assignment.assignmentId,
-                    submission.studentId,
+                    assignment.contentId,
+                    submission.student.id,
                   )
                 }
               >
-                {submission.submissionStatus === 'graded' ? 'Edit' : 'Grade'}
+                {submission.state === 'GRADED' ? 'Edit' : 'Grade'}
               </Button>
             </Group>
           </Group>
@@ -550,23 +611,40 @@ function AssignmentRowByAssignment({
   )
 }
 
+export type AssignmentWithSubmission = FullGradableAssignmentItem & {
+  submission: BasicAssignmentSubmissionItemWithGrade
+}
+
+// Aggregated stats per student
+export interface StudentAggregate {
+  studentId: string
+  studentName: string
+  totalScore: number
+  totalPossible: number
+  gradedAssignments: number
+  totalAssignments: number
+  assignments: AssignmentWithSubmission[]
+}
+
 function ElevatedRoleGradesTableByStudent({
   assignments,
 }: {
-  assignments: CourseGradebookForMentor['assignments']
+  assignments: FullGradableAssignmentItem[]
 }) {
   const [isStudentExpanded, { toggle: toggleStudent }] = useDisclosure(false)
-  // Student overview for admin
-  const studentMap = new Map()
+  const studentMap = new Map<string, StudentAggregate>()
   let totalPossiblePoints = 0
 
   assignments.forEach((assignment) => {
-    totalPossiblePoints += assignment.points || 0
+    totalPossiblePoints += assignment.maxScore || 0
+
     assignment.submissions.forEach((submission) => {
-      if (!studentMap.has(submission.studentId)) {
-        studentMap.set(submission.studentId, {
-          studentId: submission.studentId,
-          studentName: submission.studentName,
+      const studentId = submission.student.id
+
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          studentId,
+          studentName: `${submission.student.firstName} ${submission.student.lastName}`,
           totalScore: 0,
           totalPossible: 0,
           gradedAssignments: 0,
@@ -574,19 +652,28 @@ function ElevatedRoleGradesTableByStudent({
           assignments: [],
         })
       }
-      const student = studentMap.get(submission.studentId)
+
+      const student = studentMap.get(studentId)!
       student.totalAssignments++
-      if (submission.grade) {
-        student.totalScore += submission.grade.score
-        student.totalPossible += submission.grade.maxScore
-        student.gradedAssignments++
+
+      const finalScore = submission.currentGrade?.finalScore
+      if (finalScore !== undefined && finalScore !== null) {
+        const numericScore = Number(finalScore)
+        if (!isNaN(numericScore)) {
+          student.totalScore += numericScore
+          student.totalPossible += assignment.maxScore
+          student.gradedAssignments++
+        }
       }
-      studentMap.get(submission.studentId).assignments.push({
+
+      student.assignments.push({
         ...assignment,
         submission,
       })
     })
   })
+
+  const students = Array.from(studentMap.values())
 
   return (
     <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>
@@ -619,18 +706,15 @@ function ElevatedRoleGradesTableByStudent({
             </Text>
             <Text size="xl" fw={700}>
               {(
-                Array.from(studentMap.values())
-                  .filter((s: any) => s.gradedAssignments > 0)
+                students
+                  .filter((s) => s.gradedAssignments > 0)
                   .reduce(
-                    (sum: number, s: any) =>
-                      sum + (s.totalScore / s.totalPossible) * 100,
+                    (sum, s) => sum + (s.totalScore / s.totalPossible) * 100,
                     0,
                   ) /
                 Math.max(
                   1,
-                  Array.from(studentMap.values()).filter(
-                    (s: any) => s.gradedAssignments > 0,
-                  ).length,
+                  students.filter((s) => s.gradedAssignments > 0).length,
                 )
               ).toFixed(1)}
             </Text>
@@ -745,21 +829,14 @@ function ElevatedRoleGradesTableByStudent({
                         style={{ background: '#f8f9fa' }}
                       >
                         <Collapse in={isStudentExpanded}>
-                          <Stack p={'md'} gap={'xs'}>
-                            {Array.from(studentMap.values()).flatMap(
-                              (student: any) =>
-                                student.assignments.map(
-                                  (assignmentWithSubmission: any) => (
-                                    <AssignmentRowByStudent
-                                      key={`${student.studentId}-${assignmentWithSubmission.assignmentId}`}
-                                      assignmentWithSubmission={
-                                        assignmentWithSubmission
-                                      }
-                                      student={student}
-                                    />
-                                  ),
-                                ),
-                            )}
+                          <Stack p="md" gap="xs">
+                            {student.assignments.map((a: any) => (
+                              <AssignmentRowByStudent
+                                key={`${student.studentId}-${a.contentId}`}
+                                assignmentWithSubmission={a}
+                                student={student}
+                              />
+                            ))}
                           </Stack>
                         </Collapse>
                       </Table.Td>
@@ -778,28 +855,33 @@ function AssignmentRowByStudent({
   assignmentWithSubmission,
   student,
 }: {
-  assignmentWithSubmission: any
-  student: any
+  assignmentWithSubmission: AssignmentWithSubmission
+  student: StudentAggregate
 }) {
+  const submission = assignmentWithSubmission.submission
+  const status = assignmentWithSubmission.submission?.state
+
   return (
     <Card radius="md" withBorder>
       <Group justify="space-between" align="center" style={{ width: '100%' }}>
         {/* Assignment title & due */}
         <Box style={{ minWidth: 180 }}>
           <Text fw={500} size="md">
-            {assignmentWithSubmission.assignmentTitle}
+            {assignmentWithSubmission.title}
           </Text>
           <Text size="xs" c="dimmed">
-            {assignmentWithSubmission.points} points
+            {assignmentWithSubmission.maxScore} points
           </Text>
-          <Text size="xs" c="dimmed">
-            {formatTimestampToDateTimeText(
-              assignmentWithSubmission.dueDate,
-              'by',
-            )}
-          </Text>
+          {assignmentWithSubmission.dueDate && (
+            <Text size="xs" c="dimmed">
+              {formatTimestampToDateTimeText(
+                assignmentWithSubmission.dueDate,
+                'by',
+              )}
+            </Text>
+          )}
           <Badge
-            color={assignmentWithSubmission.submission.submissionStatus}
+            color={status}
             variant="filled"
             size="md"
             style={{
@@ -807,10 +889,7 @@ function AssignmentRowByStudent({
               fontWeight: 600,
             }}
           >
-            {assignmentWithSubmission.submission.submissionStatus.replace(
-              /-/g,
-              ' ',
-            )}
+            {status.replace(/-/g, ' ')}
           </Badge>
         </Box>
 
@@ -822,20 +901,22 @@ function AssignmentRowByStudent({
               textAlign: 'right',
             }}
           >
-            {assignmentWithSubmission.submission.grade ? (
+            {submission?.currentGrade ? (
               <>
                 <Text fw={700} size="md">
-                  {assignmentWithSubmission.submission.grade.score} /{' '}
-                  {assignmentWithSubmission.submission.grade.maxScore}
+                  {submission.currentGrade?.finalScore} /{' '}
+                  {assignmentWithSubmission.maxScore}
                 </Text>
                 <Text size="xs" c="dimmed">
-                  {assignmentWithSubmission.submission.grade.gradedAt &&
-                    `Graded ${formatTimestampToDateTimeText(assignmentWithSubmission.submission.grade.gradedAt)}`}
+                  {submission.currentGrade.gradedAt &&
+                    `Graded ${formatTimestampToDateTimeText(
+                      submission.currentGrade.gradedAt,
+                    )}`}
                 </Text>
               </>
             ) : (
               <Text c="dimmed" fw={500} size="md">
-                - / {assignmentWithSubmission.points}
+                - / {assignmentWithSubmission.maxScore}
               </Text>
             )}
           </Box>
@@ -848,14 +929,12 @@ function AssignmentRowByStudent({
             onClick={() => {
               console.log(
                 'Grade assignment:',
-                assignmentWithSubmission.assignmentId,
+                assignmentWithSubmission.contentId,
                 student.studentId,
               )
             }}
           >
-            {assignmentWithSubmission.submission.submissionStatus === 'graded'
-              ? 'Edit'
-              : 'Grade'}
+            {status === 'GRADED' ? 'Edit' : 'Grade'}
           </Button>
         </Group>
       </Group>

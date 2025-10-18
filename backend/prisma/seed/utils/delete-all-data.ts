@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { SupabaseService } from '../../../src/lib/supabase/supabase.service';
 import * as readline from 'node:readline';
 import { stdin, stdout } from 'node:process';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 async function confirmDeletion(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -35,7 +36,7 @@ async function confirmDeletion(): Promise<boolean> {
 }
 
 export async function deleteAllData(
-  prisma: PrismaClient,
+  prisma: PrismaTransaction,
   supabase: SupabaseService,
 ) {
   const shouldProceed = await confirmDeletion();
@@ -48,33 +49,16 @@ export async function deleteAllData(
   console.log('⚠️ Deleting all data...');
 
   // Order matters due to foreign key constraints!
-  await prisma.$transaction([
+  await Promise.all([
     // Grades and submissions
     prisma.gradeRecord.deleteMany(),
     prisma.assignmentSubmission.deleteMany(),
-    prisma.quizSubmission.deleteMany(),
-
-    // Discussion and forum related
-    prisma.discussionPost.deleteMany(),
-    prisma.discussion.deleteMany(),
 
     // Content progress tracking
     prisma.contentProgress.deleteMany(),
 
     // Assignments
     prisma.assignment.deleteMany(),
-
-    // Quizzes
-    prisma.quiz.deleteMany(),
-
-    // Grading configs
-    prisma.gradingConfig.deleteMany(),
-
-    // Module content
-    prisma.lesson.deleteMany(),
-    prisma.video.deleteMany(),
-    prisma.externalUrl.deleteMany(),
-    prisma.fileResource.deleteMany(),
 
     // Module structure
     prisma.sectionModule.deleteMany(),

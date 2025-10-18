@@ -57,12 +57,6 @@ export class ModuleSection {
     format: 'date-time',
     nullable: true,
   })
-  toPublishAt: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    nullable: true,
-  })
   unpublishedAt: Date | null;
   @ApiProperty({
     type: 'string',

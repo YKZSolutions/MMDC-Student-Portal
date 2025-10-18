@@ -1,25 +1,16 @@
-import SubmitButton from '@/components/submit-button.tsx'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import type {
-  AssignmentSubmissionReport,
-  StudentAssignment,
-} from '@/features/courses/assignments/types.ts'
+import type { AssignmentSubmissionReport } from '@/features/courses/assignments/types.ts'
 import {
-  mockAssignmentSubmissionReports,
-  mockStudentAssignments,
-} from '@/features/courses/mocks.ts'
-import {
-  lmsAssignmentControllerFindAllForAdmin,
+  assignmentControllerFindAllForStudent,
   type Role,
 } from '@/integrations/api/client'
 import {
-  lmsAssignmentControllerFindAllForAdminOptions,
-  lmsAssignmentControllerFindAllForMentorOptions,
-  lmsAssignmentControllerFindAllForStudentOptions,
-  lmsAssignmentControllerFindOneOptions,
-  lmsSubmissionControllerFindOneOptions,
-  lmsSubmissionControllerFindOneQueryKey,
-  lmsSubmissionControllerGradeMutation,
+  assignmentControllerFindAllForAdminOptions,
+  assignmentControllerFindAllForMentorOptions,
+  assignmentControllerFindAllForStudentOptions,
+  submissionControllerFindOneOptions,
+  submissionControllerFindOneQueryKey,
+  submissionControllerGradeMutation,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
@@ -178,7 +169,7 @@ function StudentAssignments() {
   const { lmsCode } = route.useParams()
 
   const { data: paginated } = useSuspenseQuery(
-    lmsAssignmentControllerFindAllForStudentOptions({
+    assignmentControllerFindAllForStudentOptions({
       path: { moduleId: lmsCode },
     }),
   )
@@ -207,7 +198,7 @@ function StudentAssignments() {
               : 'pending'
           }
           type={'assignment'}
-          points={Number(assignment.grading?.weight) || 0}
+          points={Number(assignment.weightPercentage) || 0}
           submittedAt={
             assignment.submissions.length > 0
               ? assignment.submissions[0].submittedAt
@@ -226,7 +217,7 @@ function MentorAssignments() {
   const navigate = route.useNavigate()
 
   const { data: paginated } = useSuspenseQuery(
-    lmsAssignmentControllerFindAllForMentorOptions({
+    assignmentControllerFindAllForMentorOptions({
       path: { moduleId: lmsCode },
     }),
   )
@@ -272,7 +263,7 @@ function MentorAssignments() {
         style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
         styles={{
           th: {
-            fontWeight: 500,
+            fontweightPercentage: 500,
           },
         }}
         verticalSpacing={'lg'}
@@ -321,7 +312,7 @@ function MentorAssignments() {
                           {report.title}
                         </Text>
                         <Text size="sm" c="dimmed">
-                          {report.grading?.weight} points • {'assignment'}
+                          {report.weightPercentage} points • {'assignment'}
                         </Text>
                       </Box>
                     </Group>
@@ -412,7 +403,7 @@ function MentorAssignments() {
                               <Group gap={rem(10)}>
                                 <Text size="xs" fw={500}>
                                   {submission.grade
-                                    ? `${submission.grade.finalScore}/${report.grading?.weight}`
+                                    ? `${submission.grade.finalScore}/${report.weightPercentage}`
                                     : 'Not graded'}
                                 </Text>
                                 <Button
@@ -490,7 +481,7 @@ function SubmissionViewModal() {
   const navigate = route.useNavigate()
 
   const { data: submission } = useQuery({
-    ...lmsSubmissionControllerFindOneOptions({
+    ...submissionControllerFindOneOptions({
       path: { submissionId: view || '' },
     }),
     enabled: view !== undefined,
@@ -587,29 +578,29 @@ function SubmissionGradeForm() {
   const { view } = route.useSearch()
 
   const { data: submission } = useQuery({
-    ...lmsSubmissionControllerFindOneOptions({
+    ...submissionControllerFindOneOptions({
       path: { submissionId: view || '' },
     }),
     enabled: view !== undefined,
   })
 
   const [grade, setGrade] = useState(
-    new Decimal(submission?.grade?.rawScore || 0).toNumber(),
+    new Decimal(submission?.gradeRecord?.rawScore || 0).toNumber(),
   )
 
   useEffect(() => {
-    setGrade(new Decimal(submission?.grade?.rawScore || 0).toNumber())
+    setGrade(new Decimal(submission?.gradeRecord?.rawScore || 0).toNumber())
   }, [submission])
 
   const { mutateAsync: gradeSubmission, isPending } = useAppMutation(
-    lmsSubmissionControllerGradeMutation,
+    submissionControllerGradeMutation,
     toastMessage('submission', 'grading', 'graded'),
     {
       onSuccess: () => {
         const { queryClient } = getContext()
 
         queryClient.invalidateQueries({
-          queryKey: lmsSubmissionControllerFindOneQueryKey({
+          queryKey: submissionControllerFindOneQueryKey({
             path: { submissionId: view || '' },
           }),
         })
@@ -656,7 +647,7 @@ function SubmissionGradeForm() {
             <NumberInput
               flex={5}
               placeholder="0"
-              max={Number(submission?.grading?.weight) || 0}
+              max={Number(submission?.assignment?.weightPercentage) || 0}
               min={0}
               value={grade}
               onChange={(val) => setGrade(Number(val))}
@@ -666,7 +657,7 @@ function SubmissionGradeForm() {
             <TextInput
               flex={4}
               readOnly
-              defaultValue={submission?.grading?.weight || 'N/A'}
+              defaultValue={submission?.assignment?.weightPercentage || 'N/A'}
             />
             <Text>points</Text>
           </Group>
@@ -675,8 +666,9 @@ function SubmissionGradeForm() {
         <Group justify="end">
           <Button
             disabled={
-              submission?.grade?.rawScore
-                ? grade === new Decimal(submission.grade.rawScore).toNumber()
+              submission?.gradeRecord?.rawScore
+                ? grade ===
+                  new Decimal(submission.gradeRecord.rawScore).toNumber()
                 : false
             }
             loading={isPending}
@@ -695,7 +687,7 @@ function AdminAssignments() {
   const { lmsCode } = route.useParams()
 
   const { data: paginated } = useSuspenseQuery(
-    lmsAssignmentControllerFindAllForAdminOptions({
+    assignmentControllerFindAllForAdminOptions({
       path: { moduleId: lmsCode },
     }),
   )
@@ -715,7 +707,7 @@ function AdminAssignments() {
           style={{ borderRadius: rem('8px'), overflow: 'hidden' }}
           styles={{
             th: {
-              fontWeight: 500,
+              fontweightPercentage: 500,
             },
           }}
           verticalSpacing={'lg'}
@@ -748,11 +740,9 @@ function AdminAssignments() {
                       <Text fw={500} c={'dark.5'}>
                         {report.title}
                       </Text>
-                      {report.grading && (
-                        <Text size="xs" c="dimmed">
-                          {report.grading.weight} points
-                        </Text>
-                      )}
+                      <Text size="xs" c="dimmed">
+                        {report.weightPercentage} points
+                      </Text>
                     </Box>
                   </Table.Td>
                   <Table.Td>
@@ -800,9 +790,12 @@ function AdminAssignments() {
                     /> */}
                     <Text fw={500} c="dark.5">
                       {report.stats.total > 0
-                        ? ((report.stats.submitted / report.stats.total) * 100).toFixed(0)
-                        : 0
-                      }%
+                        ? (
+                            (report.stats.submitted / report.stats.total) *
+                            100
+                          ).toFixed(0)
+                        : 0}
+                      %
                     </Text>
                     <Text size="xs" c="dimmed">
                       {report.stats.submitted}/{report.stats.total} completed

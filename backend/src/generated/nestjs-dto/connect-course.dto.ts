@@ -16,4 +16,11 @@ export class ConnectCourseDto {
   @IsOptional()
   @IsString()
   courseCode?: string;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
 }

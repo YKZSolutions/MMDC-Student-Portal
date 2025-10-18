@@ -16,11 +16,4 @@ export class ConnectGradeRecordDto {
   @IsOptional()
   @IsString()
   assignmentSubmissionId?: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  quizSubmissionId?: string;
 }

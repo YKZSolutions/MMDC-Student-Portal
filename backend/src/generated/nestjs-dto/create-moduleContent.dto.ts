@@ -1,31 +1,72 @@
-import { ContentType } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ContentType, Prisma } from '@prisma/client';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
+  IsString,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ConnectModuleSectionDto,
+  type ConnectModuleSectionDto as ConnectModuleSectionDtoAsType,
+} from './connect-moduleSection.dto';
 
+export class CreateModuleContentModuleSectionRelationInputDto {
+  @ApiProperty({
+    type: ConnectModuleSectionDto,
+  })
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => ConnectModuleSectionDto)
+  connect: ConnectModuleSectionDtoAsType;
+}
+
+@ApiExtraModels(
+  ConnectModuleSectionDto,
+  CreateModuleContentModuleSectionRelationInputDto,
+)
 export class CreateModuleContentDto {
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    default: 0,
+    type: CreateModuleContentModuleSectionRelationInputDto,
+  })
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => CreateModuleContentModuleSectionRelationInputDto)
+  moduleSection: CreateModuleContentModuleSectionRelationInputDto;
+  @ApiProperty({
+    enum: ContentType,
+    enumName: 'ContentType',
+    default: 'LESSON',
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(ContentType)
+  contentType?: ContentType;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  title: string;
+  @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsInt()
-  order?: number | null;
+  @IsString()
+  subtitle?: string | null;
   @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
+    type: () => Object,
+    isArray: true,
   })
   @IsNotEmpty()
-  @IsEnum(ContentType)
-  contentType: ContentType;
+  @IsArray()
+  content: Prisma.InputJsonValue[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -35,15 +76,6 @@ export class CreateModuleContentDto {
   @IsOptional()
   @IsDateString()
   publishedAt?: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  toPublishAt?: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

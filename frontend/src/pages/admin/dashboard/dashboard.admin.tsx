@@ -29,9 +29,13 @@ import {
   IconClipboardList,
   IconUsers,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Suspense, type ReactNode } from 'react'
+import type {
+  DetailedModulesDto,
+  UserWithRelations,
+} from '@/integrations/api/client'
 
 type AdminDashboardProviderProps = {
   userStats: {
@@ -88,9 +92,13 @@ function AdminDashboardProvider({
     }),
   )
 
-  const { data: enrollmentData } = useSuspenseQuery(
-    enrollmentControllerFindActiveEnrollmentOptions(),
-  )
+  //TODO: Properly implement eror handling for this
+  // temporarily fixed unhandled thrown error
+  const {
+    data: enrollmentData,
+    isLoading,
+    error, // This is where the error is caught
+  } = useQuery(enrollmentControllerFindActiveEnrollmentOptions())
 
   const { data: billingData } = useSuspenseQuery(
     billingControllerFindAllOptions({
@@ -105,7 +113,7 @@ function AdminDashboardProvider({
   )
 
   // Process user stats
-  const users = usersData.users || []
+  const users: UserWithRelations[] = usersData.users || []
   const userStats = {
     total: usersData.meta?.totalCount || 0,
     active: users.filter((u) => u.disabledAt === null && u.deletedAt === null)
@@ -113,7 +121,7 @@ function AdminDashboardProvider({
   }
 
   // Process course stats
-  const modules = coursesData.modules || []
+  const modules: DetailedModulesDto[] = coursesData.modules || []
   const courseStats = {
     total: modules.length,
     published: modules.filter((m) => m.publishedAt !== null).length,
@@ -177,7 +185,7 @@ function AdminDashboard() {
               Welcome back! Here's an overview of your system
             </Text>
           </Box>
-          
+
           <AdminDashboardProvider>
             {({ userStats, courseStats, enrollmentStats, billingStats }) => (
               <Stack gap="lg">

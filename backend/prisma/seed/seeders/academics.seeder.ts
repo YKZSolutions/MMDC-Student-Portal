@@ -1,10 +1,4 @@
-import {
-  Course,
-  Curriculum,
-  Major,
-  PrismaClient,
-  Program,
-} from '@prisma/client';
+import { Course, Curriculum, Major, Program } from '@prisma/client';
 
 import { log, pickRandom } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
@@ -17,8 +11,9 @@ import {
   MAJOR_SPECIALIZATIONS,
   PROGRAM_NAMES,
 } from '../constants/mockAcademics';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
-export async function seedAcademics(prisma: PrismaClient) {
+export async function seedAcademics(prisma: PrismaTransaction) {
   log('Seeding academics (Programs, Majors, Courses, Curriculums)...');
 
   // 1. Create Programs
