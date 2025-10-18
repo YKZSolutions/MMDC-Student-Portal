@@ -1964,7 +1964,6 @@ export const zCurriculumItemDto = z.object({
 export const zCurriculumCourseItemDto = z.object({
     id: z.string(),
     order: z.int(),
-    year: z.int(),
     semester: z.int(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -1998,7 +1997,7 @@ export const zUpdateCurriculumDto = z.object({
 export const zUpdateCurriculumCourseItemDto = z.object({
     courseId: z.uuid(),
     order: z.number(),
-    year: z.number().gte(1),
+    yearLevelId: z.optional(z.uuid()),
     semester: z.number().gte(1)
 });
 
@@ -2925,6 +2924,63 @@ export const zUpdateAppointmentStatusDto = z.object({
         z.null()
     ])),
     status: zAppointmentStatus
+});
+
+export const zCreateYearLevelDto = z.object({
+    name: z.string(),
+    levelOrder: z.int(),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zYearLevel = z.object({
+    id: z.string(),
+    name: z.string(),
+    levelOrder: z.int(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
+    isActive: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zYearLevelDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    levelOrder: z.int(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
+    isActive: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zPaginatedYearLevelsDto = z.object({
+    meta: zPaginationMetaDto,
+    yearLevels: z.array(zYearLevelDto)
+});
+
+export const zUpdateYearLevelDto = z.object({
+    name: z.optional(z.string()),
+    levelOrder: z.optional(z.int()),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zTestControllerTestStudentData = z.object({
@@ -4646,3 +4702,69 @@ export const zAppointmentsControllerUpdateStatusData = z.object({
 });
 
 export const zAppointmentsControllerUpdateStatusResponse = zAppointmentItemDto;
+
+export const zYearLevelControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+/**
+ * List of year levels retrieved successfully
+ */
+export const zYearLevelControllerFindAllResponse = zPaginatedYearLevelsDto;
+
+export const zYearLevelControllerCreateData = z.object({
+    body: zCreateYearLevelDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zYearLevelControllerCreateResponse = zYearLevel;
+
+export const zYearLevelControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+/**
+ * Year level deleted successfully
+ */
+export const zYearLevelControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
+
+export const zYearLevelControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Year level retrieved successfully
+ */
+export const zYearLevelControllerFindOneResponse = zYearLevel;
+
+export const zYearLevelControllerUpdateData = z.object({
+    body: zUpdateYearLevelDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Year level updated successfully
+ */
+export const zYearLevelControllerUpdateResponse = zYearLevel;

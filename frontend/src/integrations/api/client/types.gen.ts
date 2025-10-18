@@ -1387,7 +1387,6 @@ export type CurriculumItemDto = {
 export type CurriculumCourseItemDto = {
     id: string;
     order: number;
-    year: number;
     semester: number;
     createdAt: string;
     updatedAt: string;
@@ -1409,7 +1408,7 @@ export type UpdateCurriculumDto = {
 export type UpdateCurriculumCourseItemDto = {
     courseId: string;
     order: number;
-    year: number;
+    yearLevelId?: string;
     semester: number;
 };
 
@@ -2042,6 +2041,45 @@ export type UpdateAppointmentStatusDto = {
     endAt?: string;
     cancelReason?: string | null;
     status: AppointmentStatus;
+};
+
+export type CreateYearLevelDto = {
+    name: string;
+    levelOrder: number;
+    description?: string | null;
+};
+
+export type YearLevel = {
+    id: string;
+    name: string;
+    levelOrder: number;
+    description: string | null;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type YearLevelDto = {
+    id: string;
+    name: string;
+    levelOrder: number;
+    description: string | null;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type PaginatedYearLevelsDto = {
+    meta: PaginationMetaDto;
+    yearLevels: Array<YearLevelDto>;
+};
+
+export type UpdateYearLevelDto = {
+    name?: string;
+    levelOrder?: number;
+    description?: string | null;
 };
 
 export type TestControllerTestStudentData = {
@@ -6637,6 +6675,180 @@ export type AppointmentsControllerUpdateStatusResponses = {
 };
 
 export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerUpdateStatusResponses[keyof AppointmentsControllerUpdateStatusResponses];
+
+export type YearLevelControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/year-levels';
+};
+
+export type YearLevelControllerFindAllErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type YearLevelControllerFindAllError = YearLevelControllerFindAllErrors[keyof YearLevelControllerFindAllErrors];
+
+export type YearLevelControllerFindAllResponses = {
+    /**
+     * List of year levels retrieved successfully
+     */
+    200: PaginatedYearLevelsDto;
+};
+
+export type YearLevelControllerFindAllResponse = YearLevelControllerFindAllResponses[keyof YearLevelControllerFindAllResponses];
+
+export type YearLevelControllerCreateData = {
+    body: CreateYearLevelDto;
+    path?: never;
+    query?: never;
+    url: '/year-levels';
+};
+
+export type YearLevelControllerCreateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type YearLevelControllerCreateError = YearLevelControllerCreateErrors[keyof YearLevelControllerCreateErrors];
+
+export type YearLevelControllerCreateResponses = {
+    201: YearLevel;
+};
+
+export type YearLevelControllerCreateResponse = YearLevelControllerCreateResponses[keyof YearLevelControllerCreateResponses];
+
+export type YearLevelControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/year-levels/{id}';
+};
+
+export type YearLevelControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type YearLevelControllerRemoveError = YearLevelControllerRemoveErrors[keyof YearLevelControllerRemoveErrors];
+
+export type YearLevelControllerRemoveResponses = {
+    /**
+     * Year level deleted successfully
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type YearLevelControllerRemoveResponse = YearLevelControllerRemoveResponses[keyof YearLevelControllerRemoveResponses];
+
+export type YearLevelControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/year-levels/{id}';
+};
+
+export type YearLevelControllerFindOneErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type YearLevelControllerFindOneError = YearLevelControllerFindOneErrors[keyof YearLevelControllerFindOneErrors];
+
+export type YearLevelControllerFindOneResponses = {
+    /**
+     * Year level retrieved successfully
+     */
+    200: YearLevel;
+};
+
+export type YearLevelControllerFindOneResponse = YearLevelControllerFindOneResponses[keyof YearLevelControllerFindOneResponses];
+
+export type YearLevelControllerUpdateData = {
+    body: UpdateYearLevelDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/year-levels/{id}';
+};
+
+export type YearLevelControllerUpdateErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type YearLevelControllerUpdateError = YearLevelControllerUpdateErrors[keyof YearLevelControllerUpdateErrors];
+
+export type YearLevelControllerUpdateResponses = {
+    /**
+     * Year level updated successfully
+     */
+    200: YearLevel;
+};
+
+export type YearLevelControllerUpdateResponse = YearLevelControllerUpdateResponses[keyof YearLevelControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;
