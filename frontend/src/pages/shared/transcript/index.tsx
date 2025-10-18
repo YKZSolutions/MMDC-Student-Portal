@@ -35,7 +35,7 @@ import {
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import React, { Suspense } from 'react'
+import React, { Fragment, Suspense } from 'react'
 
 const route = getRouteApi('/(protected)/transcript/')
 
@@ -251,6 +251,7 @@ function TranscriptTable({
               >
                 <Table.Th>Course Code</Table.Th>
                 <Table.Th>Course Name</Table.Th>
+                <Table.Th>Units</Table.Th>
                 <Table.Th w={rem(80)}>Grade</Table.Th>
                 <RoleComponentManager
                   currentRole={authUser.role}
@@ -261,61 +262,90 @@ function TranscriptTable({
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {transcripts.map((transcript) => (
-                <Table.Tr key={transcript.id}>
-                  <Table.Td>
-                    <Text fw={500} c={'dark.7'} fz={'sm'}>
-                      {transcript.courseOffering?.course?.courseCode}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text c={'dark.6'} fz={'sm'}>
-                      {transcript.courseOffering?.course?.name}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text fw={600} c={'dark.7'} fz={'sm'}>
-                      {transcript.grade}
-                    </Text>
-                  </Table.Td>
-                  <RoleComponentManager
-                    currentRole={authUser.role}
-                    roleRender={{
-                      admin: (
-                        <Table.Td>
-                          <Menu
-                            withArrow
-                            position="bottom-end"
-                            shadow="md"
-                            width={200}
-                          >
-                            <Menu.Target>
-                              <ActionIcon
-                                onClick={(e) => e.stopPropagation()}
-                                variant="subtle"
-                                color="gray"
-                                radius={'xl'}
-                              >
-                                <IconDotsVertical size={20} stroke={1.5} />
-                              </ActionIcon>
-                            </Menu.Target>
-                            <Menu.Dropdown>
-                              <Menu.Item leftSection={<IconEdit size={16} />}>
-                                Edit
-                              </Menu.Item>
-                              <Menu.Item
-                                c="red"
-                                leftSection={<IconTrash size={16} />}
-                              >
-                                Delete
-                              </Menu.Item>
-                            </Menu.Dropdown>
-                          </Menu>
-                        </Table.Td>
-                      ),
-                    }}
-                  />
-                </Table.Tr>
+              {transcripts.map((transcript, index) => (
+                <Fragment key={transcript.id}>
+                  <Table.Tr>
+                    <Table.Td>
+                      <Text fw={500} c={'dark.7'} fz={'sm'}>
+                        {transcript.courseOffering?.course?.courseCode}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text c={'dark.6'} fz={'sm'}>
+                        {transcript.courseOffering?.course?.name}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text fw={600} c={'dark.7'} fz={'sm'}>
+                        {transcript.courseOffering?.course?.units}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text fw={600} c={'dark.7'} fz={'sm'}>
+                        {transcript.grade}
+                      </Text>
+                    </Table.Td>
+                    <RoleComponentManager
+                      currentRole={authUser.role}
+                      roleRender={{
+                        admin: (
+                          <Table.Td>
+                            <Menu
+                              withArrow
+                              position="bottom-end"
+                              shadow="md"
+                              width={200}
+                            >
+                              <Menu.Target>
+                                <ActionIcon
+                                  onClick={(e) => e.stopPropagation()}
+                                  variant="subtle"
+                                  color="gray"
+                                  radius={'xl'}
+                                >
+                                  <IconDotsVertical size={20} stroke={1.5} />
+                                </ActionIcon>
+                              </Menu.Target>
+                              <Menu.Dropdown>
+                                <Menu.Item leftSection={<IconEdit size={16} />}>
+                                  Edit
+                                </Menu.Item>
+                                <Menu.Item
+                                  c="red"
+                                  leftSection={<IconTrash size={16} />}
+                                >
+                                  Delete
+                                </Menu.Item>
+                              </Menu.Dropdown>
+                            </Menu>
+                          </Table.Td>
+                        ),
+                      }}
+                    />
+                  </Table.Tr>
+
+                  {index === transcripts.length - 1 && (
+                    <Table.Tr bg="gray.1">
+                      <Table.Td colSpan={3}>
+                        <Text
+                          fw={600}
+                          c="dark.6"
+                          fz="sm"
+                          fs={'italic'}
+                          ta={'right'}
+                          pr={'xl'}
+                        >
+                          General Weighted Average
+                        </Text>
+                      </Table.Td>
+                      <Table.Td ta="left" colSpan={2}>
+                        <Text fw={700} fz="sm">
+                          {transcript.gwa ?? '—'}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
+                </Fragment>
               ))}
             </Table.Tbody>
           </Table>
