@@ -248,10 +248,10 @@ export type PaginatedUsersDto = {
     users: Array<UserWithRelations>;
 };
 
-export type CreateCourseDto = {
+export type CreateCourseFullDto = {
     courseCode: string;
     name: string;
-    description: string;
+    description?: string | null;
     units: number;
     type: string;
     majorIds?: Array<string>;
@@ -265,11 +265,11 @@ export type CourseRelationDto = {
     name: string;
 };
 
-export type CourseDto = {
+export type CourseFullDto = {
     id: string;
     courseCode: string;
     name: string;
-    description: string;
+    description: string | null;
     units: number;
     type: string;
     isActive: boolean;
@@ -277,9 +277,7 @@ export type CourseDto = {
     updatedAt: string;
     deletedAt: string | null;
     prereqs: Array<CourseRelationDto>;
-    prereqFor: Array<CourseRelationDto>;
     coreqs: Array<CourseRelationDto>;
-    coreqFor: Array<CourseRelationDto>;
 };
 
 export type PaginatedCoursesDto = {
@@ -287,13 +285,13 @@ export type PaginatedCoursesDto = {
     /**
      * List of courses for the current page
      */
-    courses: Array<CourseDto>;
+    courses: Array<CourseFullDto>;
 };
 
 export type UpdateCourseDto = {
     courseCode?: string;
     name?: string;
-    description?: string;
+    description?: string | null;
     units?: number;
     type?: string;
     majorIds?: Array<string>;
@@ -353,6 +351,19 @@ export type CustomDetailedCourseOfferingDto = {
     enrollmentPeriod?: EnrollmentPeriodDto | null;
     courseSections: Array<DetailedCourseSectionDto>;
     periodId: string;
+};
+
+export type CourseDto = {
+    id: string;
+    courseCode: string;
+    name: string;
+    description: string | null;
+    units: number;
+    type: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type DetailedModulesDto = {
@@ -2505,7 +2516,7 @@ export type CoursesControllerFindAllResponses = {
 export type CoursesControllerFindAllResponse = CoursesControllerFindAllResponses[keyof CoursesControllerFindAllResponses];
 
 export type CoursesControllerCreateData = {
-    body: CreateCourseDto;
+    body: CreateCourseFullDto;
     path?: never;
     query?: never;
     url: '/courses';
@@ -2527,7 +2538,7 @@ export type CoursesControllerCreateErrors = {
 export type CoursesControllerCreateError = CoursesControllerCreateErrors[keyof CoursesControllerCreateErrors];
 
 export type CoursesControllerCreateResponses = {
-    201: CourseDto;
+    201: CourseFullDto;
 };
 
 export type CoursesControllerCreateResponse = CoursesControllerCreateResponses[keyof CoursesControllerCreateResponses];
@@ -2562,12 +2573,8 @@ export type CoursesControllerRemoveErrors = {
 export type CoursesControllerRemoveError = CoursesControllerRemoveErrors[keyof CoursesControllerRemoveErrors];
 
 export type CoursesControllerRemoveResponses = {
-    200: {
-        message?: string;
-    };
+    200: unknown;
 };
-
-export type CoursesControllerRemoveResponse = CoursesControllerRemoveResponses[keyof CoursesControllerRemoveResponses];
 
 export type CoursesControllerFindOneData = {
     body?: never;
@@ -2594,7 +2601,7 @@ export type CoursesControllerFindOneErrors = {
 export type CoursesControllerFindOneError = CoursesControllerFindOneErrors[keyof CoursesControllerFindOneErrors];
 
 export type CoursesControllerFindOneResponses = {
-    200: CourseDto;
+    200: CourseFullDto;
 };
 
 export type CoursesControllerFindOneResponse = CoursesControllerFindOneResponses[keyof CoursesControllerFindOneResponses];
@@ -2629,7 +2636,7 @@ export type CoursesControllerUpdateErrors = {
 export type CoursesControllerUpdateError = CoursesControllerUpdateErrors[keyof CoursesControllerUpdateErrors];
 
 export type CoursesControllerUpdateResponses = {
-    200: CourseDto;
+    200: CourseFullDto;
 };
 
 export type CoursesControllerUpdateResponse = CoursesControllerUpdateResponses[keyof CoursesControllerUpdateResponses];
