@@ -2077,7 +2077,7 @@ export type DetailedTranscriptDto = {
     courseOffering: TranscriptCourseOfferingDto;
     courseOfferingId: string;
     user: UserWithRelations;
-    gwa: string;
+    gwa?: string;
 };
 
 export type UpdateTranscriptDto = {
@@ -6750,6 +6750,36 @@ export type TranscriptControllerRemoveError = TranscriptControllerRemoveErrors[k
 export type TranscriptControllerRemoveResponses = {
     200: unknown;
 };
+
+export type TranscriptControllerFindOneTranscriptData = {
+    body?: never;
+    path: {
+        transcriptId: string;
+    };
+    query?: never;
+    url: '/transcript/{transcriptId}';
+};
+
+export type TranscriptControllerFindOneTranscriptErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerFindOneTranscriptError = TranscriptControllerFindOneTranscriptErrors[keyof TranscriptControllerFindOneTranscriptErrors];
+
+export type TranscriptControllerFindOneTranscriptResponses = {
+    200: DetailedTranscriptDto;
+};
+
+export type TranscriptControllerFindOneTranscriptResponse = TranscriptControllerFindOneTranscriptResponses[keyof TranscriptControllerFindOneTranscriptResponses];
 
 export type TranscriptControllerUpdateData = {
     body: UpdateTranscriptDto;

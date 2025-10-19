@@ -2976,7 +2976,7 @@ export const zDetailedTranscriptDto = z.object({
     courseOffering: zTranscriptCourseOfferingDto,
     courseOfferingId: z.uuid(),
     user: zUserWithRelations,
-    gwa: z.string()
+    gwa: z.optional(z.string())
 });
 
 export const zUpdateTranscriptDto = z.object({
@@ -4727,6 +4727,16 @@ export const zTranscriptControllerRemoveData = z.object({
         directDelete: z.optional(z.boolean())
     }))
 });
+
+export const zTranscriptControllerFindOneTranscriptData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        transcriptId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zTranscriptControllerFindOneTranscriptResponse = zDetailedTranscriptDto;
 
 export const zTranscriptControllerUpdateData = z.object({
     body: zUpdateTranscriptDto,
