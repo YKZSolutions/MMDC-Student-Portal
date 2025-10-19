@@ -936,26 +936,17 @@ export class LmsService {
         this.prisma.client.module.findUniqueOrThrow({
           where: {
             id: moduleId,
-            ...(role !== Role.admin && { publishedAt: { not: null } }),
             ...(role === Role.mentor && {
               courseOffering: {
                 courseSections: {
-                  some: {
-                    mentor: {
-                      id: userId,
-                    },
-                  },
+                  some: { mentor: { id: userId } },
                 },
               },
             }),
             ...(role === Role.student && {
               courseOffering: {
                 courseEnrollments: {
-                  some: {
-                    student: {
-                      id: userId,
-                    },
-                  },
+                  some: { student: { id: userId } },
                 },
               },
             }),
@@ -991,7 +982,8 @@ export class LmsService {
         this.prisma.client.moduleSection.findMany({
           where: {
             moduleId: moduleId,
-            ...(role !== Role.admin && { publishedAt: { not: null } }),
+            // Admins and Mentors see ALL sections (published or not)
+            ...(role === Role.student && { publishedAt: { not: null } }),
             deletedAt: null,
           },
           orderBy: { order: 'asc' },
@@ -1002,7 +994,7 @@ export class LmsService {
             prerequisiteSectionId: true,
             title: true,
             order: true,
-            ...(role === Role.admin && {
+            ...(role !== Role.student && {
               publishedAt: true,
               unpublishedAt: true,
               createdAt: true,
@@ -1015,7 +1007,8 @@ export class LmsService {
         this.prisma.client.moduleContent.findMany({
           where: {
             moduleSection: { moduleId: moduleId },
-            ...(role !== Role.admin && { publishedAt: { not: null } }),
+            // Admins and Mentors see ALL contents (published or not)
+            ...(role === Role.student && { publishedAt: { not: null } }),
             deletedAt: null,
           },
           orderBy: { order: 'asc' },
@@ -1027,7 +1020,7 @@ export class LmsService {
             order: true,
             contentType: true,
             assignment: true,
-            ...(role === Role.admin && {
+            ...(role !== Role.student && {
               publishedAt: true,
               unpublishedAt: true,
               createdAt: true,
@@ -1040,9 +1033,9 @@ export class LmsService {
         }),
       ]);
 
-    const moduleContents = flatContents.map((item) => {
-      return mapModuleContentToModuleTreeItem(item);
-    });
+    const moduleContents = flatContents.map((item) =>
+      mapModuleContentToModuleTreeItem(item),
+    );
 
     return {
       ...module,
