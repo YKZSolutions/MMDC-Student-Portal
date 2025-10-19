@@ -1,5 +1,7 @@
+import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
+import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import { User } from '@/generated/nestjs-dto/user.entity';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -16,8 +18,7 @@ import {
   Post,
   Put,
   Query,
-  UnauthorizedException,
-  ValidationPipe,
+  UnauthorizedException
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -26,6 +27,7 @@ import {
   ApiOkResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
+import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
@@ -38,16 +40,12 @@ import {
   UpdateUserStaffDto,
   UpdateUserStudentDto,
 } from './dto/update-user-details.dto';
-import { UserWithRelations } from './dto/user-with-relations.dto';
-import { UsersService } from './users.service';
-import { CurrentUser } from '@/common/decorators/auth-user.decorator';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
 import {
   UserDetailsFullDto,
   UserStaffDetailsDto,
   UserStudentDetailsDto,
 } from './dto/user-details.dto';
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { UsersService } from './users.service';
 
 /**
  *
@@ -235,7 +233,7 @@ export class UsersController {
    */
 
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MENTOR)
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
