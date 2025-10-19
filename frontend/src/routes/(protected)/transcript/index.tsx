@@ -5,6 +5,7 @@ import z from 'zod'
 const transcriptSearchSchema = z.object({
   enrollmentPeriodId: z.string().optional().nullable(),
   studentId: z.string().optional().nullable(),
+  editTranscriptId: z.string().optional().nullable(),
 })
 
 export type TranscriptSearch = z.infer<typeof transcriptSearchSchema>
