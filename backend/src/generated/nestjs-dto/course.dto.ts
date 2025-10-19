@@ -15,8 +15,9 @@ export class CourseDto {
   name: string;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  description: string;
+  description: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

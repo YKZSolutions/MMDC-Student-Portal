@@ -17,10 +17,8 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
-import { CourseDto } from './dto/course.dto';
-import { CreateCourseDto } from './dto/create-course.dto';
+import { CreateCourseFullDto } from './dto/create-course-full.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 
 /**
@@ -39,11 +37,10 @@ export class CoursesController {
    * Requires `ADMIN` role.
    *
    */
-  @ApiCreatedResponse({ type: CourseDto })
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto) {
+  create(@Body() createCourseDto: CreateCourseFullDto) {
     return this.coursesService.create(createCourseDto);
   }
 
@@ -66,7 +63,6 @@ export class CoursesController {
    * @remarks Requires `ADMIN` role.
    *
    */
-  @ApiOkResponse({ type: CourseDto })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Get(':id')
@@ -81,7 +77,6 @@ export class CoursesController {
    * This operation updates the details of an existing course.
    * Requires `ADMIN` role.
    */
-  @ApiOkResponse({ type: CourseDto })
   @ApiException(() => [
     NotFoundException,
     ConflictException,
@@ -100,20 +95,6 @@ export class CoursesController {
    * This operation permanently deletes a course from the system.
    * Requires `ADMIN` role.
    */
-  @ApiOkResponse({
-    schema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          examples: [
-            'Course marked for deletion',
-            'Course permanently deleted',
-          ],
-        },
-      },
-    },
-  })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Delete(':id')

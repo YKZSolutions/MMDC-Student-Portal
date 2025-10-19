@@ -1,8 +1,8 @@
 import { IsArray, IsOptional, IsUUID } from 'class-validator';
-import { CreateCourseDto as AutoCreateCourseDto } from '@/generated/nestjs-dto/create-course.dto';
+import { CreateCourseDto } from '@/generated/nestjs-dto/create-course.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateCourseDto extends AutoCreateCourseDto {
+export class CreateCourseFullDto extends CreateCourseDto {
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
