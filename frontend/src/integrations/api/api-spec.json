@@ -16883,6 +16883,7 @@
     },
     "/transcript/{transcriptId}": {
       "get": {
+        "description": "Retrieves a specific transcript record by ID with all related information.\nRequires `ADMIN`, `MENTOR`, or `STUDENT` role.",
         "operationId": "TranscriptController_findOneTranscript",
         "parameters": [
           {
@@ -16982,12 +16983,13 @@
             "description": ""
           }
         },
+        "summary": "Fetch a single transcript record",
         "tags": [
           "Transcript"
         ]
       },
       "patch": {
-        "description": "Updates the details of an existing transcript record identified by its ID.\nRequires `ADMIN` or `MENTOR` role.",
+        "description": "Updates the details of an existing transcript record identified by its ID.\nAllows updating grade and grade letter values.\nRequires `ADMIN` or `MENTOR` role.",
         "operationId": "TranscriptController_update",
         "parameters": [
           {

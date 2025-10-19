@@ -4750,6 +4750,11 @@ export const transcriptControllerRemoveMutation = (options?: Partial<Options<Tra
 
 export const transcriptControllerFindOneTranscriptQueryKey = (options: Options<TranscriptControllerFindOneTranscriptData>) => createQueryKey('transcriptControllerFindOneTranscript', options);
 
+/**
+ * Fetch a single transcript record
+ * Retrieves a specific transcript record by ID with all related information.
+ * Requires `ADMIN`, `MENTOR`, or `STUDENT` role.
+ */
 export const transcriptControllerFindOneTranscriptOptions = (options: Options<TranscriptControllerFindOneTranscriptData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
@@ -4768,6 +4773,7 @@ export const transcriptControllerFindOneTranscriptOptions = (options: Options<Tr
 /**
  * Update a transcript record
  * Updates the details of an existing transcript record identified by its ID.
+ * Allows updating grade and grade letter values.
  * Requires `ADMIN` or `MENTOR` role.
  */
 export const transcriptControllerUpdateMutation = (options?: Partial<Options<TranscriptControllerUpdateData>>): UseMutationOptions<TranscriptControllerUpdateResponse, TranscriptControllerUpdateError, Options<TranscriptControllerUpdateData>> => {

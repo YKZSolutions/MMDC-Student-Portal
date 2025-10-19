@@ -2111,6 +2111,11 @@ export const transcriptControllerRemove = <ThrowOnError extends boolean = false>
     });
 };
 
+/**
+ * Fetch a single transcript record
+ * Retrieves a specific transcript record by ID with all related information.
+ * Requires `ADMIN`, `MENTOR`, or `STUDENT` role.
+ */
 export const transcriptControllerFindOneTranscript = <ThrowOnError extends boolean = false>(options: Options<TranscriptControllerFindOneTranscriptData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<TranscriptControllerFindOneTranscriptResponses, TranscriptControllerFindOneTranscriptErrors, ThrowOnError>({
         url: '/transcript/{transcriptId}',
@@ -2121,6 +2126,7 @@ export const transcriptControllerFindOneTranscript = <ThrowOnError extends boole
 /**
  * Update a transcript record
  * Updates the details of an existing transcript record identified by its ID.
+ * Allows updating grade and grade letter values.
  * Requires `ADMIN` or `MENTOR` role.
  */
 export const transcriptControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<TranscriptControllerUpdateData, ThrowOnError>) => {
