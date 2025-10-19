@@ -23,6 +23,7 @@ export class DetailedTranscriptDto extends TranscriptDto {
   @ApiProperty({
     type: 'string',
     format: 'Decimal.js',
+    required: false,
   })
-  gwa: Decimal;
+  gwa?: Decimal;
 }
