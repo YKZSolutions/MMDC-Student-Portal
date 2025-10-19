@@ -38,7 +38,7 @@ export type CreateUserFullDto = {
     userDetails?: CreateUserDetailsDto;
 };
 
-export type User = {
+export type UserDto = {
     id: string;
     firstName: string;
     middleName: string | null;
@@ -66,18 +66,6 @@ export type CreateUserStudentDto = {
     user: CreateUserDto;
     credentials: UserCredentialsDto;
     userDetails?: CreateUserDetailsDto;
-};
-
-export type UserDto = {
-    id: string;
-    firstName: string;
-    middleName: string | null;
-    lastName: string;
-    role: Role;
-    createdAt: string;
-    updatedAt: string;
-    disabledAt: string | null;
-    deletedAt: string | null;
 };
 
 export type StaffRole = 'mentor' | 'admin';
@@ -220,6 +208,18 @@ export type UpdateUserStaffDto = {
 export type UpdateUserBaseDto = {
     user?: UpdateUserDto;
     userDetails?: UpdateUserDetailsDto;
+};
+
+export type User = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    disabledAt: string | null;
+    deletedAt: string | null;
 };
 
 export type PaginationMetaDto = {
@@ -2055,6 +2055,47 @@ export type UpdateAppointmentStatusDto = {
     status: AppointmentStatus;
 };
 
+export type UpsertTranscriptDto = {
+    courseOfferingId: string;
+    studentId: string;
+};
+
+export type GradeLetter = 'pass' | 'fail' | 'incomplete';
+
+export type TranscriptDto = {
+    id: string;
+    grade: string;
+    gradeLetter: GradeLetter | null;
+    gradePoints: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type TranscriptCourseOfferingDto = {
+    course: CourseDto;
+    enrollmentPeriod: EnrollmentPeriodDto;
+};
+
+export type DetailedTranscriptDto = {
+    id: string;
+    grade: string;
+    gradeLetter: GradeLetter | null;
+    gradePoints: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    courseOffering: TranscriptCourseOfferingDto;
+    courseOfferingId: string;
+    user: UserWithRelations;
+    gwa?: string;
+};
+
+export type UpdateTranscriptDto = {
+    grade?: string;
+    gradeLetter?: 'pass' | 'fail' | 'incomplete';
+};
+
 export type TestControllerTestStudentData = {
     body?: never;
     path?: never;
@@ -2162,7 +2203,7 @@ export type UsersControllerCreateErrors = {
 export type UsersControllerCreateError = UsersControllerCreateErrors[keyof UsersControllerCreateErrors];
 
 export type UsersControllerCreateResponses = {
-    201: User;
+    201: UserDto;
 };
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
@@ -6644,6 +6685,158 @@ export type AppointmentsControllerUpdateStatusResponses = {
 };
 
 export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerUpdateStatusResponses[keyof AppointmentsControllerUpdateStatusResponses];
+
+export type TranscriptControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        enrollmentPeriodId?: string;
+        studentId?: string;
+    };
+    url: '/transcript';
+};
+
+export type TranscriptControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerFindAllError = TranscriptControllerFindAllErrors[keyof TranscriptControllerFindAllErrors];
+
+export type TranscriptControllerFindAllResponses = {
+    200: Array<DetailedTranscriptDto>;
+};
+
+export type TranscriptControllerFindAllResponse = TranscriptControllerFindAllResponses[keyof TranscriptControllerFindAllResponses];
+
+export type TranscriptControllerUpsertData = {
+    body: UpsertTranscriptDto;
+    path?: never;
+    query?: never;
+    url: '/transcript';
+};
+
+export type TranscriptControllerUpsertErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerUpsertError = TranscriptControllerUpsertErrors[keyof TranscriptControllerUpsertErrors];
+
+export type TranscriptControllerUpsertResponses = {
+    200: TranscriptDto;
+};
+
+export type TranscriptControllerUpsertResponse = TranscriptControllerUpsertResponses[keyof TranscriptControllerUpsertResponses];
+
+export type TranscriptControllerRemoveData = {
+    body?: never;
+    path: {
+        transcriptId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/transcript/{transcriptId}';
+};
+
+export type TranscriptControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerRemoveError = TranscriptControllerRemoveErrors[keyof TranscriptControllerRemoveErrors];
+
+export type TranscriptControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type TranscriptControllerFindOneTranscriptData = {
+    body?: never;
+    path: {
+        transcriptId: string;
+    };
+    query?: never;
+    url: '/transcript/{transcriptId}';
+};
+
+export type TranscriptControllerFindOneTranscriptErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerFindOneTranscriptError = TranscriptControllerFindOneTranscriptErrors[keyof TranscriptControllerFindOneTranscriptErrors];
+
+export type TranscriptControllerFindOneTranscriptResponses = {
+    200: DetailedTranscriptDto;
+};
+
+export type TranscriptControllerFindOneTranscriptResponse = TranscriptControllerFindOneTranscriptResponses[keyof TranscriptControllerFindOneTranscriptResponses];
+
+export type TranscriptControllerUpdateData = {
+    body: UpdateTranscriptDto;
+    path: {
+        transcriptId: string;
+    };
+    query?: never;
+    url: '/transcript/{transcriptId}';
+};
+
+export type TranscriptControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TranscriptControllerUpdateError = TranscriptControllerUpdateErrors[keyof TranscriptControllerUpdateErrors];
+
+export type TranscriptControllerUpdateResponses = {
+    200: TranscriptDto;
+};
+
+export type TranscriptControllerUpdateResponse = TranscriptControllerUpdateResponses[keyof TranscriptControllerUpdateResponses];
 
 export type ClientOptions = {
     baseUrl: string;

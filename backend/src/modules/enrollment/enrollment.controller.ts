@@ -17,10 +17,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
-import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
-import { EnrollmentService } from './enrollment.service';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
+import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
+import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
+import { EnrollmentService } from './enrollment.service';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -48,7 +48,7 @@ export class EnrollmentController {
    * Requires `ADMIN` role.
    */
   @ApiException(() => [BadRequestException])
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get()
   findAllEnrollments(@Query() filters: BaseFilterDto) {
     return this.enrollmentService.findAllEnrollments(filters);
@@ -78,7 +78,7 @@ export class EnrollmentController {
    */
   @ApiException(() => [NotFoundException, BadRequestException])
   @Get(':enrollmentId')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   findOneEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
   ) {

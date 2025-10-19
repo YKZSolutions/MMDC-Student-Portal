@@ -1,3 +1,4 @@
+import type { EnrollmentPeriodDto } from '@/integrations/api/client'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -113,4 +114,10 @@ export function formatToTimeOfDay(
   if (mid < 17 * 60) return 'Afternoon'
   if (mid < 22 * 60) return 'Evening'
   return 'Night'
+}
+
+export function formatEnrollmentToFullLabel(
+  enrollmentPeriod: EnrollmentPeriodDto,
+) {
+  return `SY ${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear} (Term ${enrollmentPeriod.term})`
 }
