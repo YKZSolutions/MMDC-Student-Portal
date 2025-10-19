@@ -15,7 +15,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
 import { MessageDto } from '@/common/dto/message.dto';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
-import { UpdateAssignmentConfigDto } from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
+import { UpdateAssignmentConfigDto } from '@/modules/lms/assignment/dto/update-assignment-config.dto';
 
 @Injectable()
 export class AssignmentService {

@@ -494,6 +494,21 @@ export type ModuleTreeLessonItemDto = {
     readonly contentType: string;
 };
 
+export type AssignmentDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
 export type ModuleTreeAssignmentItemDto = {
     id: string;
     moduleSectionId: string;
@@ -505,16 +520,8 @@ export type ModuleTreeAssignmentItemDto = {
     createdAt: string;
     updatedAt: string;
     studentProgress?: Array<ContentProgress>;
-    mode: AssignmentMode;
-    maxScore: number;
-    weightPercentage: number;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: number | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    deletedAt: string | null;
     readonly contentType: string;
+    assignment: AssignmentDto;
 };
 
 export type ModuleTreeSectionDto = {
@@ -1187,7 +1194,7 @@ export type FinalizeEnrollmentDto = {
     studentId?: string;
 };
 
-export type AssignmentItemDto = {
+export type AssignmentConfigDto = {
     id: string;
     mode: AssignmentMode;
     maxScore: number;
@@ -1201,6 +1208,10 @@ export type AssignmentItemDto = {
     updatedAt: string;
     deletedAt: string | null;
     rubricTemplateId?: string | null;
+};
+
+export type AssignmentItemDto = {
+    id: string;
     contentType: ContentType;
     title: string;
     subtitle: string | null;
@@ -1210,6 +1221,10 @@ export type AssignmentItemDto = {
     order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    assignment: AssignmentConfigDto;
 };
 
 export type LessonItemDto = {
@@ -1252,16 +1267,7 @@ export type UpdateModuleContentModuleSectionRelationInputDto = {
     connect: ConnectModuleSectionDto;
 };
 
-export type UpdateAssignmentItemDto = {
-    mode?: AssignmentMode;
-    maxScore?: number;
-    weightPercentage?: number;
-    maxAttempts?: number | null;
-    allowLateSubmission?: boolean | null;
-    latePenalty?: number | null;
-    dueDate?: string | null;
-    gracePeriodMinutes?: number | null;
-    rubricTemplateId?: string | null;
+export type UpdateModuleContentDto = {
     moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
     title?: string;
     subtitle?: string | null;
@@ -1271,20 +1277,6 @@ export type UpdateAssignmentItemDto = {
     order?: number;
     publishedAt?: string | null;
     unpublishedAt?: string | null;
-    contentType: 'ASSIGNMENT';
-};
-
-export type UpdateLessonItemDto = {
-    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    order?: number;
-    publishedAt?: string | null;
-    unpublishedAt?: string | null;
-    contentType: 'LESSON';
 };
 
 export type PaginatedModuleContentDto = {
@@ -1582,21 +1574,6 @@ export type StudentAssignmentItemDto = {
 export type PaginatedStudentAssignmentDto = {
     meta: PaginationMetaDto;
     assignments: Array<StudentAssignmentItemDto>;
-};
-
-export type AssignmentDto = {
-    id: string;
-    mode: AssignmentMode;
-    maxScore: number;
-    weightPercentage: number;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: number | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
 };
 
 export type UpdateAssignmentConfigDto = {
@@ -4004,6 +3981,11 @@ export type EnrollmentControllerCreateEnrollmentErrors = {
         message: string;
         error?: string;
     };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
 };
 
 export type EnrollmentControllerCreateEnrollmentError = EnrollmentControllerCreateEnrollmentErrors[keyof EnrollmentControllerCreateEnrollmentErrors];
@@ -4811,11 +4793,7 @@ export type LmsContentControllerFindOneResponses = {
 export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
 
 export type LmsContentControllerUpdateData = {
-    body: ({
-        contentType: 'LESSON';
-    } & UpdateLessonItemDto) | ({
-        contentType: 'ASSIGNMENT';
-    } & UpdateAssignmentItemDto);
+    body: UpdateModuleContentDto;
     path: {
         moduleContentId: string;
     };

@@ -21,12 +21,10 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { DetailedContentProgressDto } from './dto/detailed-content-progress.dto';
 import { AssignmentService } from '../assignment/assignment.service';
 import { CreateModuleContentDto } from '@/generated/nestjs-dto/create-moduleContent.dto';
-import { mapModuleContentToFullModuleContent } from '@/modules/lms/lms-content/helper/mapper';
-import {
-  FullModuleContent,
-  UpdateFullModuleContent,
-} from '@/modules/lms/lms-content/types';
+import { FullModuleContent } from '@/modules/lms/lms-content/types';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { mapModuleContentToFullModuleContent } from '@/modules/lms/lms-content/helper/mapper';
+import { UpdateModuleContentDto } from '@/generated/nestjs-dto/update-moduleContent.dto';
 
 @Injectable()
 export class LmsContentService {
@@ -152,29 +150,6 @@ export class LmsContentService {
       };
     }
 
-    // Fetch contentType from the database first
-    const contentRecord =
-      await this.prisma.client.moduleContent.findUniqueOrThrow({
-        where: { id },
-        select: { contentType: true },
-      });
-
-    const contentType = contentRecord.contentType; // Use the fetched contentType
-
-    if (contentType === ContentType.ASSIGNMENT) {
-      if (role === Role.student && userId) {
-        baseInclude.assignment = {
-          include: {
-            submissions: {
-              where: { studentId: userId },
-            },
-          },
-        };
-      } else {
-        baseInclude.assignment = true;
-      }
-    }
-
     // Apply security filters based on the role
     const queryOptions: Prisma.ModuleContentFindUniqueOrThrowArgs = {
       where: { id },
@@ -185,9 +160,11 @@ export class LmsContentService {
       queryOptions.omit = { ...omitAuditDates, ...omitPublishFields };
     }
 
-    return (await this.prisma.client.moduleContent.findUniqueOrThrow(
-      queryOptions,
-    )) as FullModuleContent;
+    return mapModuleContentToFullModuleContent(
+      (await this.prisma.client.moduleContent.findUniqueOrThrow(
+        queryOptions,
+      )) as ModuleContent,
+    );
   }
 
   @Log({
@@ -208,70 +185,23 @@ export class LmsContentService {
   })
   async update(
     @LogParam('id') id: string,
-    @LogParam('dto') dto: UpdateFullModuleContent,
-  ): Promise<FullModuleContent> {
+    @LogParam('dto') dto: UpdateModuleContentDto,
+  ): Promise<ModuleContent> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid module content ID format');
     }
 
-    // Extract common fields
-    const {
-      contentType,
-      order,
-      content,
-      publishedAt,
-      unpublishedAt,
-      moduleSection,
-      title,
-      subtitle,
-      ...rest
-    } = dto;
-
-    return this.prisma.client.$transaction(async (tx) => {
-      // 1. Get the current content type inside the transaction
-      const currentContent = await tx.moduleContent.findUnique({
+    return this.prisma.client.moduleContent
+      .update({
         where: { id },
-        select: { contentType: true },
+        data: dto,
+      })
+      .then((item) => {
+        return {
+          ...item,
+          content: item.content as Prisma.JsonValue[],
+        };
       });
-
-      if (!currentContent) {
-        throw new NotFoundException(`Module content with ID ${id} not found`);
-      }
-
-      if (contentType !== currentContent.contentType) {
-        throw new BadRequestException(
-          'Changing contentType is not allowed. Please remove and recreate the content.',
-        );
-      }
-
-      const data: Prisma.ModuleContentUpdateInput = {
-        order,
-        moduleSection,
-        title,
-        subtitle,
-        content,
-        publishedAt,
-        unpublishedAt,
-      };
-
-      // 2. Update the base module content
-      await tx.moduleContent.update({
-        where: { id },
-        data,
-      });
-
-      // 3. Delegate to specialized services (pass `tx`)
-      switch (contentType) {
-        case ContentType.ASSIGNMENT:
-          await this.assignmentService.update(id, rest, tx);
-          break;
-        default:
-          break;
-      }
-
-      // 4. Return the refreshed entity
-      return this.findOne(id, Role.admin, null);
-    });
   }
 
   /**

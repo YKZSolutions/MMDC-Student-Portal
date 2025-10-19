@@ -6,10 +6,6 @@ import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { FilterModuleContentsDto } from '@/modules/lms/lms-content/dto/filter-module-contents.dto';
 import { PaginatedModuleContentDto } from '@/modules/lms/lms-content/dto/paginated-module-content.dto';
-import {
-  UpdateAssignmentItemDto,
-  UpdateLessonItemDto,
-} from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
 import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
 import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -41,11 +37,9 @@ import {
   AssignmentItemDto,
   LessonItemDto,
 } from './dto/full-module-content.dto';
-import {
-  FullModuleContent,
-  UpdateFullModuleContent,
-} from '@/modules/lms/lms-content/types';
+import { FullModuleContent } from '@/modules/lms/lms-content/types';
 import { DetailedContentProgressDto } from '@/modules/lms/lms-content/dto/detailed-content-progress.dto';
+import { UpdateModuleContentDto } from '@/generated/nestjs-dto/update-moduleContent.dto';
 
 @Controller('modules/:moduleId/contents')
 export class LmsContentController {
@@ -135,28 +129,13 @@ export class LmsContentController {
     InternalServerErrorException,
   ])
   @Roles(Role.ADMIN)
-  @ApiBody({
-    // Define the overall schema type as oneOf the possible DTOs
-    schema: {
-      oneOf: [
-        { $ref: getSchemaPath(UpdateLessonItemDto) },
-        { $ref: getSchemaPath(UpdateAssignmentItemDto) },
-      ],
-      discriminator: {
-        propertyName: 'contentType',
-        mapping: {
-          [ContentType.LESSON]: getSchemaPath(UpdateLessonItemDto),
-          [ContentType.ASSIGNMENT]: getSchemaPath(UpdateAssignmentItemDto),
-        },
-      },
-    },
-  })
-  @ApiExtraModels(UpdateAssignmentItemDto, UpdateLessonItemDto)
+  @ApiBody({ type: UpdateModuleContentDto })
   @Patch(':moduleContentId')
   update(
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
-    @Body() updateContentDto: UpdateFullModuleContent,
-  ): Promise<FullModuleContent> {
+    @Body() updateContentDto: UpdateModuleContentDto,
+  ): Promise<ModuleContent> {
+    console.log(updateContentDto);
     return this.lmsContentService.update(moduleContentId, updateContentDto);
   }
 
@@ -198,7 +177,6 @@ export class LmsContentController {
   @ApiOkResponse({
     type: PaginatedModuleContentDto,
   })
-  @ApiExtraModels(UpdateAssignmentItemDto, UpdateLessonItemDto)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get()

@@ -1,51 +1,60 @@
+import { ContentType } from '@prisma/client';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import {
-  FullModuleContent,
+  LessonItemDto,
+  AssignmentItemDto,
+} from '@/modules/lms/lms-content/dto/full-module-content.dto';
+import {
   ModuleTreeContentItem,
+  ModuleTreeLessonItem,
 } from '@/modules/lms/lms-content/types';
 
 export function mapModuleContentToModuleTreeItem(
   moduleContent: Omit<ModuleContent, 'content' | 'moduleSection' | 'deletedAt'>,
 ): ModuleTreeContentItem {
-  const { assignment, contentType, ...rest } = moduleContent;
+  if (moduleContent.contentType === 'LESSON') {
+    return moduleContent as ModuleTreeLessonItem;
+  }
 
-  if (contentType === 'ASSIGNMENT') {
-    if (!assignment) {
+  if (moduleContent.contentType === 'ASSIGNMENT') {
+    if (!moduleContent.assignment) {
       throw new Error('Assignment is required for assignment content');
     }
 
     return {
-      contentType,
-      ...assignment,
-      ...rest,
+      ...moduleContent,
+      assignment: moduleContent.assignment,
+      contentType: ContentType.ASSIGNMENT,
     };
   }
 
-  return {
-    contentType,
-    ...rest,
-  };
+  throw new Error(`Unsupported content type: ${moduleContent.contentType}`);
 }
 
 export function mapModuleContentToFullModuleContent(
   moduleContent: ModuleContent,
-): FullModuleContent {
-  const { assignment, contentType, ...rest } = moduleContent;
+): LessonItemDto | AssignmentItemDto {
+  const baseContent = {
+    ...moduleContent,
+    ...(moduleContent.assignment && { assignment: moduleContent.assignment }),
+    ...(moduleContent.studentProgress && {
+      studentProgress: moduleContent.studentProgress,
+    }),
+  };
 
-  if (contentType === 'ASSIGNMENT') {
-    if (!assignment) {
-      throw new Error('Assignment is required for assignment content');
-    }
-
-    return {
-      contentType,
-      ...assignment,
-      ...rest,
-    };
+  if (moduleContent.contentType === ContentType.LESSON) {
+    return baseContent as LessonItemDto;
   }
 
-  return {
-    contentType,
-    ...rest,
-  };
+  if (moduleContent.contentType === ContentType.ASSIGNMENT) {
+    if (!moduleContent.assignment) {
+      throw new Error(
+        `Assignment content ${moduleContent.id} is missing assignment relation`,
+      );
+    }
+
+    return baseContent as AssignmentItemDto;
+  }
+
+  throw new Error(`Unsupported content type: ${moduleContent.contentType}`);
 }
