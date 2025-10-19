@@ -1,6 +1,6 @@
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
-import { ApiProperty, IntersectionType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { ContentType } from '@prisma/client';
 
 export class LessonItemDto extends ModuleContentDto {
@@ -20,13 +20,15 @@ export class AssignmentConfigDto extends AssignmentDto {
   rubricTemplateId?: string | null;
 }
 
-export class AssignmentItemDto extends IntersectionType(
-  AssignmentConfigDto,
-  ModuleContentDto,
-) {
+export class AssignmentItemDto extends ModuleContentDto {
   @ApiProperty({
     enum: [ContentType.ASSIGNMENT],
     default: ContentType.ASSIGNMENT,
   })
   declare contentType: 'ASSIGNMENT';
+
+  @ApiProperty({
+    type: AssignmentConfigDto,
+  })
+  assignment: AssignmentConfigDto;
 }

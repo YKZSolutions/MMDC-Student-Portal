@@ -3,17 +3,8 @@ import {
   SubmissionForm,
   type SubmissionPayload,
 } from '@/features/courses/modules/content/submission-form.tsx'
-import { useQuickForm } from '@/hooks/use-quick-form'
-import type {
-  AssignmentItemDto,
-  ModuleContent,
-} from '@/integrations/api/client'
-import {
-  resolveContentDetails,
-  isEditorEmpty,
-  toBlockArray,
-  type ContentDetailOf,
-} from '@/utils/helpers.tsx'
+import type { AssignmentConfigDto } from '@/integrations/api/client'
+import { isEditorEmpty, toBlockArray } from '@/utils/helpers.tsx'
 import type { Block, BlockNoteEditor } from '@blocknote/core'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
@@ -168,7 +159,10 @@ function ModuleContentView({
 
             {user.role === 'admin' &&
               moduleContentData?.contentType === 'ASSIGNMENT' && (
-                <AssignmentConfigCard assignmentData={moduleContentData} />
+                <AssignmentConfigCard
+                  contentId={moduleContentData.id}
+                  assignmentData={moduleContentData.assignment}
+                />
               )}
           </Grid.Col>
         </Grid>
@@ -187,15 +181,17 @@ function ModuleContentView({
 --------------------------------------------------- */
 
 function AssignmentConfigCard({
+  contentId,
   assignmentData,
 }: {
-  assignmentData: AssignmentItemDto
+  contentId: string
+  assignmentData: AssignmentConfigDto
 }) {
   const [isPending, setIsPending] = useState(false)
 
   // Get the update function from CMS context if available, otherwise use local mutation
-  const { mutateAsync: updateModuleContent } = useAppMutation(
-    lmsContentControllerUpdateMutation,
+  const { mutateAsync: updateAssignmentConfig } = useAppMutation(
+    assignmentControllerUpdateMutation,
     {
       loading: {
         title: 'Updating Assignment Config',
@@ -215,7 +211,7 @@ function AssignmentConfigCard({
         : null,
       maxAttempts: assignmentData.maxAttempts || null,
       dueDate: assignmentData.dueDate
-        ? dayjs(assignmentData.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss')
+        ? dayjs(assignmentData.dueDate).utc().toDate()
         : null,
       weightPercentage: assignmentData.weightPercentage || null,
     },
@@ -227,14 +223,12 @@ function AssignmentConfigCard({
 
     setIsPending(true)
     try {
-      await updateModuleContent({
-        path: { moduleContentId: assignmentData.id },
+      await updateAssignmentConfig({
+        path: { moduleContentId: contentId },
         body: {
-          ...assignmentData,
-          // Only update the assignment config fields
           maxScore: values.maxScore || undefined,
           dueDate: values.dueDate
-            ? dayjs(values.dueDate).format('YYYY-MM-DDTHH:mm:ss[Z]')
+            ? dayjs(values.dueDate).utc().toISOString()
             : undefined,
           maxAttempts: values.maxAttempts || undefined,
           weightPercentage: values.weightPercentage || undefined,
