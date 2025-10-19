@@ -157,6 +157,44 @@
             },
             "description": ""
           },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
           "500": {
             "content": {
               "application/json": {
@@ -372,7 +410,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -404,6 +442,44 @@
                     "error": {
                       "type": "string",
                       "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
                     }
                   },
                   "required": [
@@ -486,7 +562,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -518,6 +594,44 @@
                     "error": {
                       "type": "string",
                       "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
                     }
                   },
                   "required": [
@@ -600,7 +714,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -632,6 +746,44 @@
                     "error": {
                       "type": "string",
                       "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
                     }
                   },
                   "required": [
@@ -862,7 +1014,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -995,7 +1147,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -1128,7 +1280,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -17468,6 +17620,60 @@
           "credentials"
         ]
       },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "disabledAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "middleName",
+          "lastName",
+          "role",
+          "createdAt",
+          "updatedAt",
+          "disabledAt",
+          "deletedAt"
+        ]
+      },
       "StaffRole": {
         "type": "string",
         "enum": [
@@ -18439,60 +18645,6 @@
           "thursday",
           "friday",
           "saturday"
-        ]
-      },
-      "UserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "middleName": {
-            "type": "string",
-            "nullable": true
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "role": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Role"
-              }
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "disabledAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "firstName",
-          "middleName",
-          "lastName",
-          "role",
-          "createdAt",
-          "updatedAt",
-          "disabledAt",
-          "deletedAt"
         ]
       },
       "DetailedCourseSectionDto": {

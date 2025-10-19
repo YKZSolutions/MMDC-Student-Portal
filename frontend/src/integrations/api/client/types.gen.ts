@@ -68,6 +68,18 @@ export type CreateUserStudentDto = {
     userDetails?: CreateUserDetailsDto;
 };
 
+export type UserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    disabledAt: string | null;
+    deletedAt: string | null;
+};
+
 export type StaffRole = 'mentor' | 'admin';
 
 export type CreateStaffDetailsDto = {
@@ -317,18 +329,6 @@ export type EnrollmentPeriodDto = {
 };
 
 export type Days = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
-
-export type UserDto = {
-    id: string;
-    firstName: string;
-    middleName: string | null;
-    lastName: string;
-    role: Role;
-    createdAt: string;
-    updatedAt: string;
-    disabledAt: string | null;
-    deletedAt: string | null;
-};
 
 export type DetailedCourseSectionDto = {
     id: string;
@@ -2177,6 +2177,11 @@ export type UsersControllerCreateErrors = {
         message: string;
         error?: string;
     };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -2205,6 +2210,11 @@ export type UsersControllerCreateStudentErrors = {
         message: string;
         error?: string;
     };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -2215,7 +2225,7 @@ export type UsersControllerCreateStudentErrors = {
 export type UsersControllerCreateStudentError = UsersControllerCreateStudentErrors[keyof UsersControllerCreateStudentErrors];
 
 export type UsersControllerCreateStudentResponses = {
-    201: User;
+    201: UserDto;
 };
 
 export type UsersControllerCreateStudentResponse = UsersControllerCreateStudentResponses[keyof UsersControllerCreateStudentResponses];
@@ -2233,6 +2243,11 @@ export type UsersControllerCreateStaffErrors = {
         message: string;
         error?: string;
     };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -2243,7 +2258,7 @@ export type UsersControllerCreateStaffErrors = {
 export type UsersControllerCreateStaffError = UsersControllerCreateStaffErrors[keyof UsersControllerCreateStaffErrors];
 
 export type UsersControllerCreateStaffResponses = {
-    201: User;
+    201: UserDto;
 };
 
 export type UsersControllerCreateStaffResponse = UsersControllerCreateStaffResponses[keyof UsersControllerCreateStaffResponses];
@@ -2261,6 +2276,11 @@ export type UsersControllerInviteUserErrors = {
         message: string;
         error?: string;
     };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -2271,7 +2291,7 @@ export type UsersControllerInviteUserErrors = {
 export type UsersControllerInviteUserError = UsersControllerInviteUserErrors[keyof UsersControllerInviteUserErrors];
 
 export type UsersControllerInviteUserResponses = {
-    201: User;
+    201: UserDto;
 };
 
 export type UsersControllerInviteUserResponse = UsersControllerInviteUserResponses[keyof UsersControllerInviteUserResponses];
@@ -2335,7 +2355,7 @@ export type UsersControllerUpdateOwnUserDetailsErrors = {
 export type UsersControllerUpdateOwnUserDetailsError = UsersControllerUpdateOwnUserDetailsErrors[keyof UsersControllerUpdateOwnUserDetailsErrors];
 
 export type UsersControllerUpdateOwnUserDetailsResponses = {
-    200: User;
+    200: UserDto;
     201: User;
 };
 
@@ -2366,7 +2386,7 @@ export type UsersControllerUpdateUserStudentDetailsErrors = {
 export type UsersControllerUpdateUserStudentDetailsError = UsersControllerUpdateUserStudentDetailsErrors[keyof UsersControllerUpdateUserStudentDetailsErrors];
 
 export type UsersControllerUpdateUserStudentDetailsResponses = {
-    200: User;
+    200: UserDto;
     201: User;
 };
 
@@ -2397,7 +2417,7 @@ export type UsersControllerUpdateUserStaffDetailsErrors = {
 export type UsersControllerUpdateUserStaffDetailsError = UsersControllerUpdateUserStaffDetailsErrors[keyof UsersControllerUpdateUserStaffDetailsErrors];
 
 export type UsersControllerUpdateUserStaffDetailsResponses = {
-    200: User;
+    200: UserDto;
     201: User;
 };
 
