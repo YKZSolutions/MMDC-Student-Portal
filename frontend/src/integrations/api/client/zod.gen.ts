@@ -168,7 +168,7 @@ export const zUserDetailsFullDto = z.object({
     ])
 });
 
-export const zStudentDetailsDto = z.object({
+export const zStudentDetailsWithYearDto = z.object({
     id: z.string(),
     studentNumber: z.string(),
     studentType: zStudentType,
@@ -179,7 +179,11 @@ export const zStudentDetailsDto = z.object({
     deletedAt: z.union([
         z.iso.datetime(),
         z.null()
-    ])
+    ]),
+    yearLevel: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zUserStudentDetailsDto = z.object({
@@ -204,7 +208,7 @@ export const zUserStudentDetailsDto = z.object({
         z.null()
     ]),
     studentDetails: z.union([
-        zStudentDetailsDto,
+        zStudentDetailsWithYearDto,
         z.null()
     ])
 });

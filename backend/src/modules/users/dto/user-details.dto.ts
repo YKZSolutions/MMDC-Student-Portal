@@ -27,9 +27,14 @@ export class UserDetailsFullDto {
   userDetails: UserDetailsDto | null;
 }
 
+export class StudentDetailsWithYearDto extends StudentDetailsDto {
+  @ApiProperty()
+  yearLevel?: string | null;
+}
+
 export class UserStudentDetailsDto extends UserDetailsFullDto {
-  @ApiProperty({ type: StudentDetailsDto, nullable: true })
-  studentDetails: StudentDetailsDto;
+  @ApiProperty({ type: StudentDetailsWithYearDto, nullable: true })
+  studentDetails: StudentDetailsWithYearDto;
 }
 
 export class UserStaffDetailsDto extends UserDetailsFullDto {

@@ -232,6 +232,7 @@ function ProfilePage() {
 }
 
 function StudentDetails({ data }: { data: UserStudentDetailsDto }) {
+  console.log(data)
   return (
     <Paper radius="md" p="xl" withBorder>
       <Stack gap="lg">
@@ -252,6 +253,13 @@ function StudentDetails({ data }: { data: UserStudentDetailsDto }) {
               label="Student Type"
               value={data.studentDetails?.studentType ?? '—'}
               icon={<IconSchool color="gray" size={16} />}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <InfoItem
+              label="Year Level"
+              value={data.studentDetails?.yearLevel ?? '—'}
+              icon={<IconCalendar color="gray" size={16} />}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6 }}>

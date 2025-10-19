@@ -664,7 +664,15 @@ export class UsersService {
           include: {
             userDetails: true,
             staffDetails: true,
-            studentDetails: true,
+            studentDetails: {
+              include: {
+                yearLevel: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -699,7 +707,10 @@ export class UsersService {
     if (role === 'student') {
       return {
         ...basicDetails,
-        studentDetails,
+        studentDetails: {
+          ...studentDetails,
+          yearLevel: studentDetails?.yearLevel?.name || null,
+        },
       } as UserStudentDetailsDto;
     }
 

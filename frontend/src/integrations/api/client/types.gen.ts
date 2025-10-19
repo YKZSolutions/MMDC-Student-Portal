@@ -115,7 +115,7 @@ export type UserDetailsFullDto = {
     userDetails: UserDetailsDto | null;
 };
 
-export type StudentDetailsDto = {
+export type StudentDetailsWithYearDto = {
     id: string;
     studentNumber: string;
     studentType: StudentType;
@@ -126,6 +126,7 @@ export type StudentDetailsDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    yearLevel?: string | null;
 };
 
 export type UserStudentDetailsDto = {
@@ -136,7 +137,7 @@ export type UserStudentDetailsDto = {
     lastName: string;
     role: 'student' | 'mentor' | 'admin';
     userDetails: UserDetailsDto | null;
-    studentDetails: StudentDetailsDto | null;
+    studentDetails: StudentDetailsWithYearDto | null;
 };
 
 export type StaffDetailsDto = {
