@@ -236,7 +236,7 @@ model Course {
 
   courseCode  String  @unique
   name        String  @unique
-  description String
+  description String?
   units       Int
   type        String
   isActive    Boolean @default(true)

@@ -1793,7 +1793,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCourseDto"
+                "$ref": "#/components/schemas/CreateCourseFullDto"
               }
             }
           }
@@ -1804,7 +1804,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CourseDto"
+                  "$ref": "#/components/schemas/CourseFullDto"
                 }
               }
             }
@@ -2038,7 +2038,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CourseDto"
+                  "$ref": "#/components/schemas/CourseFullDto"
                 }
               }
             }
@@ -2154,7 +2154,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CourseDto"
+                  "$ref": "#/components/schemas/CourseFullDto"
                 }
               }
             }
@@ -2303,23 +2303,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "examples": [
-                        "Course marked for deletion",
-                        "Course permanently deleted"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
+            "description": ""
           },
           "404": {
             "content": {
@@ -18349,7 +18333,7 @@
           "users"
         ]
       },
-      "CreateCourseDto": {
+      "CreateCourseFullDto": {
         "type": "object",
         "properties": {
           "courseCode": {
@@ -18359,7 +18343,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "units": {
             "type": "integer",
@@ -18393,7 +18378,6 @@
         "required": [
           "courseCode",
           "name",
-          "description",
           "units",
           "type"
         ]
@@ -18417,7 +18401,7 @@
           "name"
         ]
       },
-      "CourseDto": {
+      "CourseFullDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -18430,7 +18414,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "units": {
             "type": "integer",
@@ -18461,19 +18446,7 @@
               "$ref": "#/components/schemas/CourseRelationDto"
             }
           },
-          "prereqFor": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CourseRelationDto"
-            }
-          },
           "coreqs": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CourseRelationDto"
-            }
-          },
-          "coreqFor": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CourseRelationDto"
@@ -18492,9 +18465,7 @@
           "updatedAt",
           "deletedAt",
           "prereqs",
-          "prereqFor",
-          "coreqs",
-          "coreqFor"
+          "coreqs"
         ]
       },
       "PaginatedCoursesDto": {
@@ -18513,7 +18484,7 @@
             "description": "List of courses for the current page",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CourseDto"
+              "$ref": "#/components/schemas/CourseFullDto"
             }
           }
         },
@@ -18532,7 +18503,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "units": {
             "type": "integer",
@@ -18761,6 +18733,59 @@
           "deletedAt",
           "courseSections",
           "periodId"
+        ]
+      },
+      "CourseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "units": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "courseCode",
+          "name",
+          "description",
+          "units",
+          "type",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
         ]
       },
       "DetailedModulesDto": {
