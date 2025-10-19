@@ -40,6 +40,7 @@ import {
   IconCalculator,
   IconDotsVertical,
   IconEdit,
+  IconFileSad,
   IconTrash,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -212,18 +213,6 @@ function TranscriptTable({
 }) {
   const { authUser } = useAuth('protected')
 
-  if (transcripts.length === 0) {
-    return (
-      <Center py={rem(40)}>
-        <Text fw={500} c={'dark.5'}>
-          No transcripts found for the selected period and student.
-        </Text>
-      </Center>
-    )
-  }
-
-  const enrollmentPeriodId = transcripts[0].courseOffering.enrollmentPeriod.id
-
   const { mutateAsync: recalculateAsync } = useAppMutation(
     transcriptControllerUpsertMutation,
     {
@@ -251,6 +240,29 @@ function TranscriptTable({
       },
     },
   )
+
+  if (transcripts.length === 0) {
+    return (
+      <Center py={rem(40)}>
+        <Stack align="center" gap={0}>
+          <IconFileSad
+            size={48}
+            stroke={1}
+            color="var(--mantine-color-gray-6)"
+          />
+          <Text fw={600} fz="md" c="dark.7">
+            No Transcripts Found
+          </Text>
+          <Text fz="sm" c="dimmed">
+            There are no transcripts available for the selected period and
+            student.
+          </Text>
+        </Stack>
+      </Center>
+    )
+  }
+
+  const enrollmentPeriodId = transcripts[0].courseOffering.enrollmentPeriod.id
 
   const handleMenu = {
     handleRecalculate: async ({
