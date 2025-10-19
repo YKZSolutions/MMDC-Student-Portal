@@ -274,6 +274,55 @@ export class TranscriptService {
   }
 
   /**
+   * Retrieves a single transcript record by ID.
+   *
+   * @param transcriptId - The ID of the transcript to retrieve
+   * @returns The corresponding {@link DetailedTranscriptDto}
+   *
+   * @throws NotFoundException - If the transcript does not exist
+   * @throws InternalServerErrorException - If there is an error during the fetch operation
+   */
+  @Log({
+    logArgsMessage: ({ transcriptId }) =>
+      `Fetching transcript [${transcriptId}]`,
+    logSuccessMessage: (transcript) =>
+      `Transcript [${transcript.id}] successfully retrieved.`,
+    logErrorMessage: (err, { transcriptId }) =>
+      `Error fetching transcript [${transcriptId}] | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { transcriptId }) =>
+      new NotFoundException(`Transcript [${transcriptId}] not found`),
+  })
+  async findOneTranscript(
+    @LogParam('transcriptId') transcriptId: string,
+  ): Promise<DetailedTranscriptDto> {
+    return this.prisma.client.$transaction(async (tx) => {
+      const transcript = await tx.transcript.findUniqueOrThrow({
+        where: {
+          id: transcriptId,
+        },
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+              enrollmentPeriod: true,
+            },
+          },
+          user: {
+            include: {
+              userAccount: true,
+              userDetails: true,
+            },
+          },
+        },
+      });
+
+      return transcript;
+    });
+  }
+
+  /**
    * Updates a transcript record.
    *
    * @param transcriptId - The ID of the transcript to update.

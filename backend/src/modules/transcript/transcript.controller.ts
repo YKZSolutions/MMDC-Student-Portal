@@ -5,6 +5,7 @@ import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -59,9 +60,25 @@ export class TranscriptController {
   }
 
   /**
+   * Fetch a single transcript record
+   * @remarks
+   * Retrieves a specific transcript record by ID with all related information.
+   * Requires `ADMIN`, `MENTOR`, or `STUDENT` role.
+   */
+  @Get(':transcriptId')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  @ApiException(() => [NotFoundException, BadRequestException])
+  findOneTranscript(
+    @Param('transcriptId', new ParseUUIDPipe()) transcriptId: string,
+  ) {
+    return this.transcriptService.findOneTranscript(transcriptId);
+  }
+
+  /**
    * Update a transcript record
    * @remarks
    * Updates the details of an existing transcript record identified by its ID.
+   * Allows updating grade and grade letter values.
    * Requires `ADMIN` or `MENTOR` role.
    */
   @Patch(':transcriptId')
