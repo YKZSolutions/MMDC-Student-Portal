@@ -38,7 +38,7 @@ export type CreateUserFullDto = {
     userDetails?: CreateUserDetailsDto;
 };
 
-export type User = {
+export type UserDto = {
     id: string;
     firstName: string;
     middleName: string | null;
@@ -66,18 +66,6 @@ export type CreateUserStudentDto = {
     user: CreateUserDto;
     credentials: UserCredentialsDto;
     userDetails?: CreateUserDetailsDto;
-};
-
-export type UserDto = {
-    id: string;
-    firstName: string;
-    middleName: string | null;
-    lastName: string;
-    role: Role;
-    createdAt: string;
-    updatedAt: string;
-    disabledAt: string | null;
-    deletedAt: string | null;
 };
 
 export type StaffRole = 'mentor' | 'admin';
@@ -220,6 +208,18 @@ export type UpdateUserStaffDto = {
 export type UpdateUserBaseDto = {
     user?: UpdateUserDto;
     userDetails?: UpdateUserDetailsDto;
+};
+
+export type User = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
+    disabledAt: string | null;
+    deletedAt: string | null;
 };
 
 export type PaginationMetaDto = {
@@ -2203,7 +2203,7 @@ export type UsersControllerCreateErrors = {
 export type UsersControllerCreateError = UsersControllerCreateErrors[keyof UsersControllerCreateErrors];
 
 export type UsersControllerCreateResponses = {
-    201: User;
+    201: UserDto;
 };
 
 export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];

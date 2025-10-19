@@ -50,7 +50,7 @@ export const zCreateUserFullDto = z.object({
     userDetails: z.optional(zCreateUserDetailsDto)
 });
 
-export const zUser = z.object({
+export const zUserDto = z.object({
     id: z.string(),
     firstName: z.string(),
     middleName: z.union([
@@ -93,27 +93,6 @@ export const zCreateUserStudentDto = z.object({
     user: zCreateUserDto,
     credentials: zUserCredentialsDto,
     userDetails: z.optional(zCreateUserDetailsDto)
-});
-
-export const zUserDto = z.object({
-    id: z.string(),
-    firstName: z.string(),
-    middleName: z.union([
-        z.string(),
-        z.null()
-    ]),
-    lastName: z.string(),
-    role: zRole,
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    disabledAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
 });
 
 export const zStaffRole = z.enum([
@@ -321,6 +300,27 @@ export const zUpdateUserStaffDto = z.object({
 export const zUpdateUserBaseDto = z.object({
     user: z.optional(zUpdateUserDto),
     userDetails: z.optional(zUpdateUserDetailsDto)
+});
+
+export const zUser = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    disabledAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
 });
 
 export const zPaginationMetaDto = z.object({
@@ -3068,7 +3068,7 @@ export const zUsersControllerCreateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zUsersControllerCreateResponse = zUser;
+export const zUsersControllerCreateResponse = zUserDto;
 
 export const zUsersControllerCreateStudentData = z.object({
     body: zCreateUserStudentDto,
