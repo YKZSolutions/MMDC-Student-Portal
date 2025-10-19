@@ -1,6 +1,7 @@
 import AsyncSearchSelect from '@/components/async-search-select'
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
+import TranscriptEditDrawer from '@/features/transcript/components/transcript-edit-drawer'
 import type { PartialUpdateTranscript } from '@/features/transcript/types'
 import { useSearchState } from '@/hooks/use-search-state'
 import {
@@ -12,11 +13,13 @@ import {
   enrollmentControllerFindAllEnrollmentsOptions,
   enrollmentControllerFindOneEnrollmentOptions,
   transcriptControllerFindAllOptions,
-  transcriptControllerUpdateMutation,
+  transcriptControllerFindAllQueryKey,
+  transcriptControllerRemoveMutation,
   transcriptControllerUpsertMutation,
   usersControllerFindAllOptions,
   usersControllerFindOneOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import type { TranscriptSearch } from '@/routes/(protected)/transcript'
 import { formatEnrollmentToFullLabel } from '@/utils/formatters'
@@ -36,6 +39,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import {
   IconCalculator,
   IconDotsVertical,
@@ -48,6 +52,8 @@ import { getRouteApi } from '@tanstack/react-router'
 import React, { Fragment, Suspense } from 'react'
 
 const route = getRouteApi('/(protected)/transcript/')
+
+const { queryClient } = getContext()
 
 /**
  * @param children - Child components that will receive the transcript data.
@@ -213,6 +219,8 @@ function TranscriptTable({
 }) {
   const { authUser } = useAuth('protected')
 
+  const { search, setSearch } = useSearchState(route)
+
   const { mutateAsync: recalculateAsync } = useAppMutation(
     transcriptControllerUpsertMutation,
     {
@@ -225,18 +233,48 @@ function TranscriptTable({
         message: 'Transcripts have been successfully recalculated.',
       },
     },
+    {
+      onSuccess: async () => {
+        // Invalidate and refetch transcripts after recalculation
+        const transcriptsKey = transcriptControllerFindAllQueryKey({
+          query: {
+            studentId: search.studentId || undefined,
+            enrollmentPeriodId: search.enrollmentPeriodId || undefined,
+          },
+        })
+
+        await queryClient.cancelQueries({ queryKey: transcriptsKey })
+
+        await queryClient.invalidateQueries({ queryKey: transcriptsKey })
+      },
+    },
   )
 
-  const { mutateAsync: editAsync } = useAppMutation(
-    transcriptControllerUpdateMutation,
+  const { mutateAsync: deleteAsync } = useAppMutation(
+    transcriptControllerRemoveMutation,
     {
       loading: {
-        title: 'Updating Transcript',
-        message: 'Please wait while the transcript is being updated.',
+        title: 'Deleting Transcript',
+        message: 'Please wait while the transcript is being deleted.',
       },
       success: {
-        title: 'Transcript Updated',
-        message: 'The transcript has been successfully updated.',
+        title: 'Transcript Deleted',
+        message: 'The transcript has been successfully deleted.',
+      },
+    },
+    {
+      onSuccess: async () => {
+        // Invalidate and refetch transcripts after recalculation
+        const transcriptsKey = transcriptControllerFindAllQueryKey({
+          query: {
+            studentId: search.studentId || undefined,
+            enrollmentPeriodId: search.enrollmentPeriodId || undefined,
+          },
+        })
+
+        await queryClient.cancelQueries({ queryKey: transcriptsKey })
+
+        await queryClient.invalidateQueries({ queryKey: transcriptsKey })
       },
     },
   )
@@ -277,18 +315,30 @@ function TranscriptTable({
       })
     },
 
-    handleEdit: ({
-      id: transcriptId,
-      grade,
-      gradeLetter,
-    }: PartialUpdateTranscript) => {
-      editAsync({
-        body: {
-          grade: grade,
-          gradeLetter: gradeLetter ?? undefined,
-        },
-        path: {
-          transcriptId: transcriptId,
+    handleEdit: ({ id: transcriptId }: PartialUpdateTranscript) => {
+      setSearch({
+        editTranscriptId: transcriptId,
+      })
+    },
+
+    handleDelete: ({ id: transcriptId }: Pick<DetailedTranscriptDto, 'id'>) => {
+      modals.openConfirmModal({
+        title: 'Delete Transcript',
+        centered: true,
+        children: (
+          <Text size="sm">
+            Are you sure you want to delete this transcript? This action cannot
+            be undone.
+          </Text>
+        ),
+        labels: { confirm: 'Delete', cancel: 'Cancel' },
+        confirmProps: { color: 'red' },
+        onConfirm: async () => {
+          await deleteAsync({
+            path: {
+              transcriptId,
+            },
+          })
         },
       })
     },
@@ -412,6 +462,11 @@ function TranscriptTable({
                                 <Menu.Item
                                   c="red"
                                   leftSection={<IconTrash size={16} />}
+                                  onClick={() =>
+                                    handleMenu.handleDelete({
+                                      id: transcript.id,
+                                    })
+                                  }
                                 >
                                   Delete
                                 </Menu.Item>
@@ -444,6 +499,8 @@ function TranscriptTable({
                       </Table.Td>
                     </Table.Tr>
                   )}
+
+                  <TranscriptEditDrawer editTranscriptId={transcript.id} />
                 </Fragment>
               ))}
             </Table.Tbody>
