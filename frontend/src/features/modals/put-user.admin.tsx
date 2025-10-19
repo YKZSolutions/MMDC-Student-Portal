@@ -4,6 +4,7 @@ import {
   usersControllerCreateMutation,
   usersControllerCreateStaffMutation,
   usersControllerCreateStudentMutation,
+  yearLevelControllerFindAllOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Button,
@@ -42,6 +43,7 @@ import { notifications } from '@mantine/notifications'
 import { supabase } from '@/integrations/supabase/supabase-client'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 function PutUserModal({ context, id }: ContextModalProps<{ userId?: string }>) {
   const [active, setActive] = useState(0)
@@ -351,6 +353,9 @@ function StudentForm(props: NextFormProps) {
     },
   )
 
+  const { data } = useSuspenseQuery(yearLevelControllerFindAllOptions())
+  const yearLevels = data?.yearLevels ?? []
+
   const form = useForm<StudentFormInput>({
     mode: 'uncontrolled',
     initialValues: {
@@ -429,6 +434,20 @@ function StudentForm(props: NextFormProps) {
         key={form.key('studentType')}
         {...form.getInputProps('studentType')}
       />
+      <Select
+        data-cy="new-user-year-level-input"
+        className="flex-1"
+        label="Year Level"
+        placeholder="Select year level"
+        withAsterisk
+        data={yearLevels.map((level) => ({
+          value: level.id,
+          label: level.name,
+        }))}
+        disabled={isPending}
+        key={form.key('yearLevelId')}
+        {...form.getInputProps('yearLevelId')}
+      />
       <DatePickerInput
         data-cy="new-user-admissiondate-input"
         className="flex-1"
@@ -446,7 +465,6 @@ function StudentForm(props: NextFormProps) {
           //form.getInputProps('admissionDate').onChange(`${val}T00:00:00Z`)
         }
       />
-
       <Group justify="space-between" mt="xl">
         <Button
           variant="default"

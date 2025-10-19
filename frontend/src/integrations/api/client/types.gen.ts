@@ -1352,7 +1352,7 @@ export type CreateCurriculumDto = {
 export type CreateCurriculumCourseItemDto = {
     courseId: string;
     order: number;
-    year: number;
+    yearLevelId?: string;
     semester: number;
 };
 
@@ -1384,6 +1384,17 @@ export type CurriculumItemDto = {
     major: MajorDto;
 };
 
+export type YearLevelDto = {
+    id: string;
+    name: string;
+    levelOrder: number;
+    description: string | null;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
 export type CurriculumCourseItemDto = {
     id: string;
     order: number;
@@ -1392,6 +1403,7 @@ export type CurriculumCourseItemDto = {
     updatedAt: string;
     deletedAt: string | null;
     course: CourseDto;
+    yearLevel: YearLevelDto | null;
 };
 
 export type CurriculumWithCoursesDto = {
@@ -2050,17 +2062,6 @@ export type CreateYearLevelDto = {
 };
 
 export type YearLevel = {
-    id: string;
-    name: string;
-    levelOrder: number;
-    description: string | null;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type YearLevelDto = {
     id: string;
     name: string;
     levelOrder: number;

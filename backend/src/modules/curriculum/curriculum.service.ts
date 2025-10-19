@@ -74,7 +74,7 @@ export class CurriculumService {
           return {
             curriculumId: curriculum.id,
             courseId: course.id,
-            year: payload.year,
+            yearLevelId: payload.yearLevelId,
             semester: payload.semester,
             order: payload.order,
           };
@@ -98,7 +98,7 @@ export class CurriculumService {
     logSuccessMessage: (res) => `Fetched ${res.length} curriculums`,
   })
   async findAll(): Promise<CurriculumItemDto[]> {
-    const curriculums = (
+    return (
       await this.prisma.client.curriculum.findMany({
         include: {
           major: {
@@ -118,8 +118,6 @@ export class CurriculumService {
         major: major,
       };
     });
-
-    return curriculums;
   }
 
   /**
@@ -173,6 +171,7 @@ export class CurriculumService {
       },
       include: {
         course: true,
+        yearLevel: true,
       },
     });
 
@@ -227,14 +226,14 @@ export class CurriculumService {
             },
           },
           update: {
-            year: course.year,
+            yearLevelId: course.yearLevelId,
             semester: course.semester,
             order: course.order,
           },
           create: {
             curriculumId: id,
             courseId: course.courseId,
-            year: course.year,
+            yearLevelId: course.yearLevelId,
             semester: course.semester,
             order: course.order,
           },
@@ -285,7 +284,7 @@ export class CurriculumService {
         where: { id },
       });
       if (!curriculum.deletedAt) {
-        this.prisma.client.$transaction(async (tx) => {
+        await this.prisma.client.$transaction(async (tx) => {
           await tx.curriculumCourse.updateMany({
             where: { curriculumId: id },
             data: {
@@ -307,7 +306,7 @@ export class CurriculumService {
       }
     }
 
-    this.prisma.client.$transaction(async (tx) => {
+    await this.prisma.client.$transaction(async (tx) => {
       await tx.curriculumCourse.deleteMany({
         where: { curriculumId: id },
       });

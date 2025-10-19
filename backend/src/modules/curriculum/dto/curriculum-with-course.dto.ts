@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import { IsArray, ValidateNested } from 'class-validator';
 import { CurriculumItemDto } from './curriculum-item.dto';
 import { CourseDto } from '@/generated/nestjs-dto/course.dto';
+import { YearLevelDto } from '@/generated/nestjs-dto/yearLevel.dto';
 
 export class CurriculumWithCoursesDto {
   @ValidateNested({ each: true })
@@ -19,4 +20,7 @@ export class CurriculumCourseItemDto extends CurriculumCourseDto {
   @ValidateNested({ each: true })
   @Type(() => CourseDto)
   course: CourseDto;
+
+  @Type(() => YearLevelDto)
+  yearLevel: YearLevelDto | null;
 }

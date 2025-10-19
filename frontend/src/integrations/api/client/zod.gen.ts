@@ -1905,7 +1905,7 @@ export const zCreateCurriculumDto = z.object({
 export const zCreateCurriculumCourseItemDto = z.object({
     courseId: z.uuid(),
     order: z.number(),
-    year: z.number().gte(1),
+    yearLevelId: z.optional(z.uuid()),
     semester: z.number().gte(1)
 });
 
@@ -1961,6 +1961,23 @@ export const zCurriculumItemDto = z.object({
     major: zMajorDto
 });
 
+export const zYearLevelDto = z.object({
+    id: z.string(),
+    name: z.string(),
+    levelOrder: z.int(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
+    isActive: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
 export const zCurriculumCourseItemDto = z.object({
     id: z.string(),
     order: z.int(),
@@ -1971,7 +1988,11 @@ export const zCurriculumCourseItemDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
-    course: zCourseDto
+    course: zCourseDto,
+    yearLevel: z.union([
+        zYearLevelDto,
+        z.null()
+    ])
 });
 
 export const zCurriculumWithCoursesDto = z.object({
@@ -2936,23 +2957,6 @@ export const zCreateYearLevelDto = z.object({
 });
 
 export const zYearLevel = z.object({
-    id: z.string(),
-    name: z.string(),
-    levelOrder: z.int(),
-    description: z.union([
-        z.string(),
-        z.null()
-    ]),
-    isActive: z.boolean(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zYearLevelDto = z.object({
     id: z.string(),
     name: z.string(),
     levelOrder: z.int(),

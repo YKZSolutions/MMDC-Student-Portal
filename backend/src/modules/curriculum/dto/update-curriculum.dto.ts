@@ -29,8 +29,8 @@ class UpdateCurriculumCourseItemDto {
   @IsNumber()
   order: number;
 
-  @IsPositive()
-  year: number;
+  @IsUUID()
+  yearLevelId?: string;
 
   @IsPositive()
   semester: number;

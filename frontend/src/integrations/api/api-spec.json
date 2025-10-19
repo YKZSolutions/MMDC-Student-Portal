@@ -22740,9 +22740,9 @@
           "order": {
             "type": "number"
           },
-          "year": {
-            "type": "number",
-            "minimum": 1
+          "yearLevelId": {
+            "type": "string",
+            "format": "uuid"
           },
           "semester": {
             "type": "number",
@@ -22752,7 +22752,6 @@
         "required": [
           "courseId",
           "order",
-          "year",
           "semester"
         ]
       },
@@ -22871,6 +22870,51 @@
           "major"
         ]
       },
+      "YearLevelDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "levelOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "levelOrder",
+          "description",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
       "CurriculumCourseItemDto": {
         "type": "object",
         "properties": {
@@ -22900,6 +22944,14 @@
           },
           "course": {
             "$ref": "#/components/schemas/CourseDto"
+          },
+          "yearLevel": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/YearLevelDto"
+              }
+            ]
           }
         },
         "required": [
@@ -22909,7 +22961,8 @@
           "createdAt",
           "updatedAt",
           "deletedAt",
-          "course"
+          "course",
+          "yearLevel"
         ]
       },
       "CurriculumWithCoursesDto": {
@@ -25464,51 +25517,6 @@
         ]
       },
       "YearLevel": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "levelOrder": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "levelOrder",
-          "description",
-          "isActive",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "YearLevelDto": {
         "type": "object",
         "properties": {
           "id": {

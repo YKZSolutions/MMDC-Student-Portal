@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsUUID,
   ValidateNested,
@@ -29,8 +30,9 @@ class CreateCurriculumCourseItemDto {
   @IsNumber()
   order: number;
 
-  @IsPositive()
-  year: number;
+  @IsOptional()
+  @IsUUID()
+  yearLevelId?: string;
 
   @IsPositive()
   semester: number;
