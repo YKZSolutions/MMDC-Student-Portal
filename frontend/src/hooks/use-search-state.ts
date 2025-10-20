@@ -1,4 +1,4 @@
-import { useDebouncedCallback } from '@mantine/hooks'
+import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks'
 import type {
   AnyRouter,
   RegisteredRouter,
@@ -10,21 +10,17 @@ import { useState } from 'react'
  * A custom hook that simplifies reading, updating, and clearing
  * URL search parameters when using TanStack Router.
  *
- * Maintains a local state that syncs with URL search params.
- * Provides immediate local updates with debounced URL navigation.
+ * Includes both immediate and debounced setters for search state.
  *
  * @param {RouteApi<TId, TRouter>} route - The route API instance returned by `Route.useRoute()`.
- * @param {Partial<Search>} [defaultValues] - Default values for search parameters.
- * @param {number} [debounceMs=200] - Delay in milliseconds for debounced URL updates.
+ * @param {number} [debounceMs=200] - Delay in milliseconds for debounced search updates.
  *
  * @returns
  * Object containing:
- * - `search`: Current URL search parameters (alias for searchParam).
- * - `searchParam`: Current URL search parameters.
- * - `query`: Local state for search parameters (immediately updated).
+ * - `search`: Current search parameters.
  * - `navigate`: Underlying navigate function.
- * - `setSearch`: Updates URL search parameters immediately.
- * - `setQuery`: Updates local state and triggers debounced URL navigation.
+ * - `setSearch`: Immediately updates search parameters.
+ * - `setDebouncedSearch`: Debounced version of `setSearch`.
  * - `clearSearch`: Removes all or selected search parameters.
  */
 export const useSearchState = <
@@ -32,34 +28,20 @@ export const useSearchState = <
   TRouter extends AnyRouter = RegisteredRouter,
 >(
   route: RouteApi<TId, TRouter>,
-  defaultValues?: Partial<any>,
   debounceMs: number = 200,
 ) => {
-  const searchParam = route.useSearch()
+  const search = route.useSearch()
   const navigate = route.useNavigate()
-  type Search = typeof searchParam
+  type Search = typeof search
 
-  const queryDefaultValues = {
-    ...defaultValues,
-    ...Object.fromEntries(
-      Object.entries(searchParam).filter(([_, v]) => v !== undefined),
-    ),
-  } as Search
+  const [query, setQuery] = useState<Search>(search)
 
-  const [query, setQueryState] = useState<Search>(queryDefaultValues)
+  const [debouncedSearch] = useDebouncedValue(search, debounceMs)
 
-  const handleNavigate = useDebouncedCallback(
+  const debouncedNavigate = useDebouncedCallback(
     (next: Partial<Search>, replace: boolean = false) => {
       navigate({
-        search: ((prev: Search) => ({
-          ...prev,
-          ...Object.fromEntries(
-            Object.entries(next).map(([k, v]) => [
-              k,
-              v === '' || v === null ? undefined : v,
-            ]),
-          ),
-        })) as any,
+        search: ((prev: Search) => ({ ...prev, ...next })) as any,
         replace,
       })
     },
@@ -73,6 +55,8 @@ export const useSearchState = <
    * @param {boolean} [replace=false] - Whether to replace the current history entry.
    */
   const setSearch = (next: Partial<Search>, replace: boolean = false) => {
+    setQuery((prev) => ({ ...prev, ...next }))
+
     navigate({
       search: ((prev: Search) => ({ ...prev, ...next })) as any,
       replace,
@@ -80,23 +64,18 @@ export const useSearchState = <
   }
 
   /**
-   * Updates local query state immediately and triggers debounced URL navigation.
+   * Debounced version of `setSearch`. Updates search parameters after the debounce delay.
    *
-   * @param {Partial<Search> | ((prev: Search) => Partial<Search>)} next - New search parameters or updater function.
+   * @param {Partial<Search>} next - Search parameters to merge.
    * @param {boolean} [replace=false] - Whether to replace the current history entry.
    */
-  const setQuery = (
-    next: Partial<Search> | ((prev: Search) => Partial<Search>),
+  const setDebouncedSearch = (
+    next: Partial<Search>,
     replace: boolean = false,
   ) => {
-    const updates = typeof next === 'function' ? next(query) : next
+    setQuery((prev) => ({ ...prev, ...next }))
 
-    setQueryState((prev) => ({
-      ...prev,
-      ...updates,
-    }))
-
-    handleNavigate(updates, replace)
+    debouncedNavigate(next, replace)
   }
 
   /**
@@ -106,19 +85,9 @@ export const useSearchState = <
    */
   const clearSearch = (keys?: (keyof Search)[]) => {
     if (!keys) {
-      setQueryState(defaultValues as Search)
       navigate({ search: {} as Partial<Search> } as any)
       return
     }
-
-    const clearedValues = Object.fromEntries(
-      keys.map((k) => [k, defaultValues?.[k] ?? null]),
-    ) as Partial<Search>
-
-    setQueryState((prev) => ({
-      ...prev,
-      ...clearedValues,
-    }))
 
     navigate({
       search: ((prev: Search) => {
@@ -129,13 +98,5 @@ export const useSearchState = <
     })
   }
 
-  return {
-    search: searchParam,
-    searchParam,
-    query,
-    navigate,
-    setSearch,
-    setQuery,
-    clearSearch,
-  }
+  return { search: query, navigate, setSearch, debouncedSearch, setDebouncedSearch, clearSearch }
 }
