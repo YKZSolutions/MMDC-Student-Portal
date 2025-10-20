@@ -70,7 +70,7 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
         color: 'red',
         title: messages.error?.title ?? 'Something went wrong',
         message:
-          err.error ?? messages.error?.message ?? 'Please try again later.',
+          messages.error?.message ?? err.error ?? 'Please try again later.',
         icon: <IconX size={18} />,
         loading: false,
         autoClose: err.error ? 5000 : 3000, // longer if there's a specific error message
