@@ -353,42 +353,43 @@ export class CourseOfferingService {
     @LogParam('periodId') periodId: string,
     @LogParam('courseOfferingId') courseOfferingId: string,
   ) {
-    // Check if the course offering exists
-    const offering = await this.prisma.client.courseOffering.findFirstOrThrow({
-      where: { id: courseOfferingId, periodId: periodId },
-      include: {
-        enrollmentPeriod: true,
-      },
-    });
+    return await this.prisma.client.$transaction(async (tx) => {
+      // Check if the course offering exists
+      const offering = await tx.courseOffering.findFirstOrThrow({
+        where: { id: courseOfferingId, periodId: periodId },
+        include: {
+          enrollmentPeriod: true,
+        },
+      });
 
-    const periodStatus = offering.enrollmentPeriod.status;
+      const periodStatus = offering.enrollmentPeriod.status;
 
-    if (periodStatus === 'closed') {
-      throw new BadRequestException(
-        `Cannot remove course offering since this period has already ended.`,
-      );
-    }
+      if (periodStatus === 'closed') {
+        throw new BadRequestException(
+          `Cannot remove course offering since this period has already ended.`,
+        );
+      }
 
-    if (periodStatus === 'active') {
-      const enrolledCourses =
-        await this.prisma.client.courseEnrollment.findMany({
+      if (periodStatus === 'active') {
+        const enrolledCourses = await tx.courseEnrollment.findMany({
           where: {
             courseOfferingId: courseOfferingId,
             status: { not: 'dropped' },
           },
         });
 
-      if (enrolledCourses.length > 0) {
-        throw new BadRequestException(
-          `${enrolledCourses.length} student/s have enrolled in this course. Please cancel the enrollment or contact the students to drop the course.`,
-        );
+        if (enrolledCourses.length > 0) {
+          throw new BadRequestException(
+            `${enrolledCourses.length} student/s have enrolled in this course. Please cancel the enrollment or contact the students to drop the course.`,
+          );
+        }
       }
-    }
 
-    await this.prisma.client.courseOffering.deleteMany({
-      where: { id: courseOfferingId, periodId },
+      await tx.courseOffering.deleteMany({
+        where: { id: courseOfferingId, periodId },
+      });
+
+      return { message: 'Course offering removed successfully' };
     });
-
-    return { message: 'Course offering removed successfully' };
   }
 }

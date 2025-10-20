@@ -338,33 +338,35 @@ export class CourseSectionService {
     @LogParam('offeringId') offeringId: string,
     @LogParam('sectionId') sectionId: string,
   ) {
-    const section = await this.prisma.client.courseSection.findFirstOrThrow({
-      where: {
-        id: sectionId,
-        courseOfferingId: offeringId,
-        courseOffering: {
-          periodId: enrollmentId,
-        },
-      },
-      include: {
-        courseOffering: {
-          include: {
-            enrollmentPeriod: true,
+    return await this.prisma.client.$transaction(async (tx) => {
+      const section = await tx.courseSection.findFirstOrThrow({
+        where: {
+          id: sectionId,
+          courseOfferingId: offeringId,
+          courseOffering: {
+            periodId: enrollmentId,
           },
         },
-      },
+        include: {
+          courseOffering: {
+            include: {
+              enrollmentPeriod: true,
+            },
+          },
+        },
+      });
+
+      if (section.courseOffering.enrollmentPeriod.status === 'closed') {
+        throw new BadRequestException(
+          'Cannot remove a course section from a closed enrollment period.',
+        );
+      }
+
+      await tx.courseSection.delete({
+        where: { id: sectionId },
+      });
+
+      return { message: 'Section removed successfully' };
     });
-
-    if (section.courseOffering.enrollmentPeriod.status === 'closed') {
-      throw new BadRequestException(
-        'Cannot remove a course section from a closed enrollment period.',
-      );
-    }
-
-    await this.prisma.client.courseSection.delete({
-      where: { id: sectionId },
-    });
-
-    return { message: 'Section removed successfully' };
   }
 }
