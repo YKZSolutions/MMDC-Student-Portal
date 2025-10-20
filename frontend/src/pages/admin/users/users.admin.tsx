@@ -54,7 +54,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { Suspense, type ReactNode } from 'react'
 
@@ -101,45 +101,13 @@ function UsersQueryProvider({
 }
 
 function UsersPage() {
-  const searchParam = route.useSearch()
-  const navigate = useNavigate()
-
   const { search, debouncedSearch, setDebouncedSearch } = useSearchState(route)
-
-  // const queryDefaultValues = {
-  //   search: searchParam.search || '',
-  //   page: 1,
-  //   role: searchParam.role || null,
-  // }
-
-  // const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
-
-  // Since searchParam is debounced,
-  // this is what we need to pass to the query provider
-  // This will ensure that the query is also debounced
-  // const debouncedQuery = {
-  //   search: searchParam.search || '',
-  //   page: query.page,
-  //   role: query.role,
-  // } as IUsersQuery
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
 
     setDebouncedSearch({ search: value.trim() || undefined })
-
-    // handleNavigate(value)
   }
-
-  // const handleNavigate = useDebouncedCallback(async (value: string) => {
-  //   navigate({
-  //     to: '/users',
-  //     search: (prev) => ({
-  //       ...prev,
-  //       search: value.trim() || undefined,
-  //     }),
-  //   })
-  // }, 200)
 
   const handlePage = (page: IUsersQuery['page']) => {
     setDebouncedSearch({ page: page })
@@ -147,14 +115,6 @@ function UsersPage() {
 
   const handleRoleFilter = (role: IUsersQuery['role']) => {
     setDebouncedSearch({ role: role || undefined, page: 1 })
-
-    // navigate({
-    //   to: '/users',
-    //   search: (prev) => ({
-    //     ...prev,
-    //     role: role || undefined,
-    //   }),
-    // })
   }
 
   const handleResetFilter = () => {

@@ -34,8 +34,11 @@ export const useSearchState = <
   const navigate = route.useNavigate()
   type Search = typeof search
 
+  // This holds the current search state, so navigation updates won't break
+  // the displayed values while typing.
   const [query, setQuery] = useState<Search>(search)
 
+  // This provides a way for the caller to access the debounced search values.
   const [debouncedSearch] = useDebouncedValue(search, debounceMs)
 
   const debouncedNavigate = useDebouncedCallback(
@@ -85,10 +88,16 @@ export const useSearchState = <
    */
   const clearSearch = (keys?: (keyof Search)[]) => {
     if (!keys) {
+      setQuery({} as Search)
       navigate({ search: {} as Partial<Search> } as any)
       return
     }
 
+    setQuery((prev) => {
+      const copy = { ...prev }
+      keys.forEach((k) => delete copy[k])
+      return copy
+    })
     navigate({
       search: ((prev: Search) => {
         const copy = { ...prev }
@@ -98,5 +107,12 @@ export const useSearchState = <
     })
   }
 
-  return { search: query, navigate, setSearch, debouncedSearch, setDebouncedSearch, clearSearch }
+  return {
+    search: query, // Use the local state to avoid flicker while typing
+    navigate,
+    setSearch,
+    debouncedSearch,
+    setDebouncedSearch,
+    clearSearch,
+  }
 }
