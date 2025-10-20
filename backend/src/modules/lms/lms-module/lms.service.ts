@@ -140,9 +140,7 @@ export class LmsService {
             moduleContents: {
               include: {
                 assignment: {
-                  include: {
-                    submissions: false,
-                  },
+                  include: { submissions: false },
                 },
               },
             },
@@ -153,7 +151,6 @@ export class LmsService {
 
     await this.prisma.client.$transaction(async (tx) => {
       for (const module of latestModules) {
-        // Find the course offering for the current enrollment period
         const courseOffering = currentEnrollment.courseOfferings.find(
           (co) => co.courseId === module.courseId,
         );
@@ -164,7 +161,7 @@ export class LmsService {
           );
         }
 
-        // Create the new module
+        // Create new module
         const newModule = await tx.module.create({
           data: {
             title: module.title,
@@ -175,36 +172,45 @@ export class LmsService {
           },
         });
 
+        // Step 1: Clone all sections and keep mapping
+        const sectionIdMap = new Map<string, string>();
+
         for (const oldSection of module.moduleSections) {
           const newSection = await tx.moduleSection.create({
             data: {
               moduleId: newModule.id,
               title: oldSection.title,
               order: oldSection.order,
-              publishedAt: null, // Reset publication status
+              publishedAt: null,
               unpublishedAt: null,
             },
           });
+          sectionIdMap.set(oldSection.id, newSection.id);
+        }
 
-          for (const oldContent of oldSection.moduleContents) {
-            // Create the base module content
-            const newContent = await tx.moduleContent.create({
-              data: {
-                moduleSectionId: newSection.id,
-                title: oldContent.title,
-                subtitle: oldContent.subtitle,
-                content: oldContent.content,
-                order: oldContent.order,
-                contentType: oldContent.contentType,
-                publishedAt: null, // Reset publication status
-                unpublishedAt: null,
-              },
-            });
+        // Step 2: Clone contents & assignments in parallel per section
+        await Promise.all(
+          module.moduleSections.map(async (oldSection) => {
+            const newSectionId = sectionIdMap.get(oldSection.id)!;
+            await Promise.all(
+              oldSection.moduleContents.map(async (oldContent) => {
+                const newContent = await tx.moduleContent.create({
+                  data: {
+                    moduleSectionId: newSectionId,
+                    title: oldContent.title,
+                    subtitle: oldContent.subtitle,
+                    content: oldContent.content,
+                    order: oldContent.order,
+                    contentType: oldContent.contentType,
+                    publishedAt: null,
+                    unpublishedAt: null,
+                  },
+                });
 
-            // Clone content-specific data based on type
-            switch (oldContent.contentType) {
-              case 'ASSIGNMENT':
-                if (oldContent.assignment) {
+                if (
+                  oldContent.contentType === 'ASSIGNMENT' &&
+                  oldContent.assignment
+                ) {
                   await tx.assignment.create({
                     data: {
                       moduleContentId: newContent.id,
@@ -221,10 +227,28 @@ export class LmsService {
                     },
                   });
                 }
-                break;
-            }
-          }
-        }
+              }),
+            );
+          }),
+        );
+
+        // Step 3: Bulk update parent/prerequisite references in parallel
+        await Promise.all(
+          module.moduleSections.map((oldSection) => {
+            const newSectionId = sectionIdMap.get(oldSection.id)!;
+            return tx.moduleSection.update({
+              where: { id: newSectionId },
+              data: {
+                parentSectionId: oldSection.parentSectionId
+                  ? sectionIdMap.get(oldSection.parentSectionId)
+                  : null,
+                prerequisiteSectionId: oldSection.prerequisiteSectionId
+                  ? sectionIdMap.get(oldSection.prerequisiteSectionId)
+                  : null,
+              },
+            });
+          }),
+        );
       }
     });
   }
