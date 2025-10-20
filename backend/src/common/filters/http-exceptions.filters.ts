@@ -1,10 +1,13 @@
 import {
   ArgumentsHost,
+  BadRequestException,
   Catch,
+  ConflictException,
   ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -79,7 +82,11 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       this.logError('PrismaClientKnownRequestError', requestId, req, exception);
 
       // --- 3. NestJS HTTP Exceptions ---
-    } else if (exception instanceof HttpException) {
+    } else if (
+      exception instanceof NotFoundException ||
+      exception instanceof BadRequestException ||
+      exception instanceof ConflictException
+    ) {
       const exceptionResponse = exception.getResponse();
       statusCode = exception.getStatus();
 

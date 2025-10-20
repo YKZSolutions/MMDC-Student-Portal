@@ -9,6 +9,7 @@ import { CourseOffering } from '@/generated/nestjs-dto/courseOffering.entity';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -22,12 +23,14 @@ import {
   FilterCourseOfferingDto,
 } from './dto/filter-course-offering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-course-offering.dto';
+import { LmsService } from '@/modules/lms/lms-module/lms.service';
 
 @Injectable()
 export class CourseOfferingService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private lmsService: LmsService,
   ) {}
 
   /**
@@ -71,25 +74,24 @@ export class CourseOfferingService {
       new NotFoundException(
         `Enrollment period [${periodId}] or Course [${courseOffering.courseId}] does not exist.`,
       ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (
-      _,
-      {
-        periodId,
-        courseOffering,
-      }: { periodId: string; courseOffering: CreateCourseOfferingDto },
-    ) =>
-      new BadRequestException(
-        `Invalid reference: Enrollment period [${periodId}] or Course [${courseOffering.courseId}] is invalid.`,
-      ),
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException(`This course is already offered in this period.`),
   })
   async createCourseOffering(
     @LogParam('periodId') periodId: string,
     @LogParam('courseOffering')
     createCourseOfferingDto: CreateCourseOfferingDto,
   ): Promise<CourseOffering> {
-    return await this.prisma.client.courseOffering.create({
+    const newCourseOffering = await this.prisma.client.courseOffering.create({
       data: { ...createCourseOfferingDto, periodId },
     });
+
+    await this.lmsService.cloneMostRecentModules(
+      periodId,
+      newCourseOffering.id,
+    );
+
+    return newCourseOffering;
   }
 
   /**
@@ -126,31 +128,11 @@ export class CourseOfferingService {
       `Error creating course offering [${courseOffering.curriculumId}] for period [${periodId}] | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RelatedRecordNotFound]: (
-      _,
-      {
-        periodId,
-        courseOffering,
-      }: {
-        periodId: string;
-        courseOffering: CreateCourseOfferingCurriculumDto;
-      },
-    ) =>
-      new NotFoundException(
-        `Enrollment period [${periodId}] or Curriculum [${courseOffering.curriculumId}] does not exist.`,
-      ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (
-      _,
-      {
-        periodId,
-        courseOffering,
-      }: {
-        periodId: string;
-        courseOffering: CreateCourseOfferingCurriculumDto;
-      },
-    ) =>
-      new BadRequestException(
-        `Invalid reference: Enrollment period [${periodId}] or Curriculum [${courseOffering.curriculumId}] is invalid.`,
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new NotFoundException(`Enrollment period or Curriculum does not exist.`),
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException(
+        `These curriculum is already offered in this period.`,
       ),
   })
   async createCourseOfferingsByCurriculum(
@@ -158,21 +140,63 @@ export class CourseOfferingService {
     @LogParam('courseOffering')
     createCourseOfferingDto: CreateCourseOfferingCurriculumDto,
   ): Promise<CourseOffering[]> {
-    return this.prisma.client.$transaction(async (tx) => {
-      const curriculums = await tx.curriculumCourse.findMany({
-        where: { curriculumId: createCourseOfferingDto.curriculumId },
-        include: {
-          course: true,
-        },
-      });
+    const courseOfferings = await this.prisma.client.$transaction(
+      async (tx) => {
+        const enrollmentPeriod = await tx.enrollmentPeriod.findFirst({
+          where: { id: periodId },
+          include: {
+            courseOfferings: true,
+          },
+        });
 
-      return tx.courseOffering.createManyAndReturn({
-        data: curriculums.map((item) => ({
-          courseId: item.course.id,
-          periodId: periodId,
-        })),
-      });
-    });
+        if (!enrollmentPeriod) {
+          throw new NotFoundException(`Enrollment period not found.`);
+        }
+
+        if (enrollmentPeriod.status === 'closed') {
+          throw new BadRequestException(
+            `Cannot create course offerings since this period has already ended.`,
+          );
+        }
+
+        const existingOfferings = enrollmentPeriod?.courseOfferings;
+
+        const curriculumCourses = await tx.curriculumCourse.findMany({
+          where: { curriculumId: createCourseOfferingDto.curriculumId },
+          include: {
+            course: true,
+          },
+        });
+
+        let coursesToCreate = curriculumCourses;
+
+        if (existingOfferings) {
+          coursesToCreate = curriculumCourses.filter(
+            (course) =>
+              !existingOfferings.some(
+                (offering) => offering.courseId === course.course.id,
+              ),
+          );
+
+          if (coursesToCreate.length === 0) {
+            throw new ConflictException(
+              `All courses for this curriculum already exist in this period: SY ${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear} | Term ${enrollmentPeriod.term}`,
+            );
+          }
+        }
+
+        return tx.courseOffering.createManyAndReturn({
+          data: coursesToCreate.map((item) => ({
+            courseId: item.course.id,
+            periodId: periodId,
+          })),
+        });
+      },
+    );
+
+    await this.lmsService.cloneMostRecentModules(periodId);
+
+    return courseOfferings;
   }
 
   /**
@@ -329,7 +353,7 @@ export class CourseOfferingService {
     @LogParam('periodId') periodId: string,
     @LogParam('courseOfferingId') courseOfferingId: string,
   ) {
-    // Check if course offering exists
+    // Check if the course offering exists
     const offering = await this.prisma.client.courseOffering.findFirstOrThrow({
       where: { id: courseOfferingId, periodId: periodId },
       include: {
@@ -337,10 +361,28 @@ export class CourseOfferingService {
       },
     });
 
-    if (offering.enrollmentPeriod.status === 'closed') {
+    const periodStatus = offering.enrollmentPeriod.status;
+
+    if (periodStatus === 'closed') {
       throw new BadRequestException(
-        `Enrollment ${periodId} is closed and cannot be deleted.`,
+        `Cannot remove course offering since this period has already ended.`,
       );
+    }
+
+    if (periodStatus === 'active') {
+      const enrolledCourses =
+        await this.prisma.client.courseEnrollment.findMany({
+          where: {
+            courseOfferingId: courseOfferingId,
+            status: { not: 'dropped' },
+          },
+        });
+
+      if (enrolledCourses.length > 0) {
+        throw new BadRequestException(
+          `${enrolledCourses.length} student/s have enrolled in this course. Please cancel the enrollment or contact the students to drop the course.`,
+        );
+      }
     }
 
     await this.prisma.client.courseOffering.deleteMany({

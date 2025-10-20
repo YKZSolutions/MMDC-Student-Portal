@@ -100,16 +100,23 @@ export class LmsService {
    * @async
    * @param {string} enrollmentPeriodId - The UUID of the target enrollment period
    *                                      where modules should be copied into.
+   * @param courseOfferingId
    * @throws {NotFoundException} If the enrollment period does not exist.
    * @throws {Error} If any part of the transaction fails (all changes are rolled back).
    */
   @Log({
-    logArgsMessage: ({ enrollmentPeriodId }) =>
-      `Cloning modules for enrollment period ${enrollmentPeriodId}`,
-    logSuccessMessage: (_, { enrollmentPeriodId }) =>
-      `Cloned modules for enrollment period id ${enrollmentPeriodId}`,
-    logErrorMessage: (err, { enrollmentPeriodId }) =>
-      `Cloning modules for enrollment period ${enrollmentPeriodId} | Error: ${err.message}`,
+    logArgsMessage: ({ enrollmentPeriodId, courseOfferingId }) =>
+      `Cloning modules for enrollment period ${enrollmentPeriodId} ${
+        courseOfferingId ? `for course offering ${courseOfferingId}` : ''
+      }`,
+    logSuccessMessage: (_, { enrollmentPeriodId, courseOfferingId }) =>
+      `Cloned modules for enrollment period id ${enrollmentPeriodId} ${
+        courseOfferingId ? `for course offering ${courseOfferingId}` : ''
+      }`,
+    logErrorMessage: (err, { enrollmentPeriodId, courseOfferingId }) =>
+      `Cloning modules for enrollment period ${enrollmentPeriodId} ${
+        courseOfferingId ? `for course offering ${courseOfferingId}` : ''
+      }  | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { enrollmentPeriodId }) =>
@@ -119,10 +126,20 @@ export class LmsService {
   })
   async cloneMostRecentModules(
     @LogParam('enrollmentPeriodId') enrollmentPeriodId: string,
+    @LogParam('courseOfferingId') courseOfferingId?: string,
   ) {
     const currentEnrollment =
       await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
-        where: { id: enrollmentPeriodId },
+        where: {
+          id: enrollmentPeriodId,
+          ...(courseOfferingId && {
+            courseOfferings: {
+              some: {
+                id: courseOfferingId,
+              },
+            },
+          }),
+        },
         include: { courseOfferings: true },
       });
 

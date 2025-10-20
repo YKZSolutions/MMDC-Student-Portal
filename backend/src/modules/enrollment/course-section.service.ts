@@ -60,10 +60,19 @@ export class CourseSectionService {
   ): Promise<CourseSectionDto> {
     const offering = await this.prisma.client.courseOffering.findFirst({
       where: { id: offeringId, periodId: enrollmentId },
+      include: {
+        enrollmentPeriod: true,
+      },
     });
 
     if (!offering) {
       throw new NotFoundException('Offering not found in this enrollment');
+    }
+
+    if (offering.enrollmentPeriod.status === 'closed') {
+      throw new BadRequestException(
+        'Cannot create a course section in a closed enrollment period.',
+      );
     }
 
     return this.prisma.client.courseSection.create({
@@ -298,7 +307,7 @@ export class CourseSectionService {
       ),
     [PrismaErrorCode.ForeignKeyConstraint]: (_, { sectionId }) =>
       new BadRequestException(
-        `Course section [${sectionId}] cannot be deleted because it is still referenced by other records (e.g., enrollments).`,
+        `Course section cannot be deleted because it is still referenced by other records (e.g., enrollments).`,
       ),
   })
   async removeCourseSection(
