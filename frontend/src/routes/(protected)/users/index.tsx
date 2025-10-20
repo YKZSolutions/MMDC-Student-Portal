@@ -11,6 +11,8 @@ const usersSearchSchema = z.object({
   role: z.enum(zRole.options).optional(),
 })
 
+export type UsersSearchSchemaType = z.infer<typeof usersSearchSchema>
+
 export const Route = createFileRoute('/(protected)/users/')({
   component: RouteComponent,
   validateSearch: usersSearchSchema,
