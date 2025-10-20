@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -42,8 +43,12 @@ export class AppointmentsService {
    * @throws NotFoundException - If the related course, student, or mentor ID does not exist.
    */
   @Log({
-    logArgsMessage: ({ createDto }) =>
-      `Creating appointment for student ${createDto.studentId} with mentor ${createDto.mentorId}`,
+    logArgsMessage: ({
+      createAppointmentDto,
+    }: {
+      createAppointmentDto: CreateAppointmentItemDto;
+    }) =>
+      `Creating appointment for student ${createAppointmentDto.studentId} with mentor ${createAppointmentDto.mentorId}`,
     logSuccessMessage: (result) => `Created appointment with ID: ${result.id}`,
     logErrorMessage: (err) =>
       `Failed to create appointment. Error: ${err.message}`,
@@ -55,51 +60,65 @@ export class AppointmentsService {
       ),
   })
   async create(
-    @LogParam('createDto') createAppointmentDto: CreateAppointmentItemDto,
+    @LogParam('createAppointmentDto')
+    createAppointmentDto: CreateAppointmentItemDto,
   ): Promise<AppointmentItemDto> {
-    const appointment = await this.prisma.client.appointment.create({
-      data: createAppointmentDto,
-      include: {
-        courseOffering: {
-          include: {
-            course: true,
-          },
-        },
-        student: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            middleName: true,
-            role: true,
-          },
-        },
-        mentor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            middleName: true,
-            role: true,
-          },
-        },
-      },
-    });
+    await this.validateCreateAppointment(createAppointmentDto);
 
-    await this.notificationService.notifyUser(
-      createAppointmentDto.mentorId,
-      'Mentoring Appointment Booking',
-      `${appointment.student.firstName} ${appointment.student.lastName} has booked an appointment`,
-    );
+    try {
+      const appointment = await this.prisma.client.appointment.create({
+        data: createAppointmentDto,
+        include: {
+          courseOffering: {
+            include: {
+              course: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              role: true,
+            },
+          },
+          mentor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              role: true,
+            },
+          },
+        },
+      });
 
-    return {
-      ...appointment,
-      course: {
-        id: appointment.courseOffering.course.id,
-        courseCode: appointment.courseOffering.course.courseCode,
-        name: appointment.courseOffering.course.name,
-      },
-    };
+      await this.notificationService.notifyUser(
+        createAppointmentDto.mentorId,
+        'Mentoring Appointment Booking',
+        `${appointment.student.firstName} ${appointment.student.lastName} has booked an appointment`,
+      );
+
+      return {
+        ...appointment,
+        course: {
+          id: appointment.courseOffering.course.id,
+          courseCode: appointment.courseOffering.course.courseCode,
+          name: appointment.courseOffering.course.name,
+        },
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === PrismaErrorCode.UniqueConstraint) {
+          throw new ConflictException(
+            'An appointment already exists for this mentor, student, and start time',
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async findBookedRange(
@@ -581,5 +600,164 @@ export class AppointmentsService {
     return {
       message: 'Appointment has been permanently deleted',
     };
+  }
+
+  private async validateCreateAppointment(
+    createAppointmentDto: CreateAppointmentItemDto,
+  ): Promise<void> {
+    const { startAt, endAt, mentorId, studentId } = createAppointmentDto;
+
+    // Validate time constraints
+    this.validateTimeConstraints(startAt, endAt);
+
+    // Check for scheduling conflicts
+    await this.checkSchedulingConflicts(mentorId, studentId, startAt, endAt);
+
+    // Validate business rules
+    await this.validateBusinessRules(createAppointmentDto);
+  }
+
+  private validateTimeConstraints(startAt: Date, endAt: Date): void {
+    const now = new Date();
+
+    // Check if an appointment is in the future
+    if (startAt <= now) {
+      throw new BadRequestException(
+        'Appointment must be scheduled in the future',
+      );
+    }
+
+    // Check if end time is after start time
+    if (endAt <= startAt) {
+      throw new BadRequestException('End time must be after start time');
+    }
+  }
+
+  private async checkSchedulingConflicts(
+    mentorId: string,
+    studentId: string,
+    startAt: Date,
+    endAt: Date,
+  ): Promise<void> {
+    // Check for mentor conflicts
+    const mentorConflicts = await this.prisma.client.appointment.findFirst({
+      where: {
+        mentorId,
+        status: { in: ['booked', 'approved', 'rescheduled', 'extended'] }, // Only check active appointments
+        OR: [
+          // Case 1: New appointment starts during an existing appointment
+          {
+            startAt: { lte: startAt },
+            endAt: { gt: startAt },
+          },
+          // Case 2: New appointment ends during an existing appointment
+          {
+            startAt: { lt: endAt },
+            endAt: { gte: endAt },
+          },
+          // Case 3: New appointment completely overlaps existing appointment
+          {
+            startAt: { gte: startAt },
+            endAt: { lte: endAt },
+          },
+        ],
+      },
+    });
+
+    if (mentorConflicts) {
+      throw new ConflictException(
+        'Mentor is not available during the requested time slot',
+      );
+    }
+
+    // Check for student conflicts
+    const studentConflicts = await this.prisma.client.appointment.findFirst({
+      where: {
+        studentId,
+        status: { in: ['booked', 'approved', 'rescheduled', 'extended'] },
+        OR: [
+          {
+            startAt: { lte: startAt },
+            endAt: { gt: startAt },
+          },
+          {
+            startAt: { lt: endAt },
+            endAt: { gte: endAt },
+          },
+          {
+            startAt: { gte: startAt },
+            endAt: { lte: endAt },
+          },
+        ],
+      },
+    });
+
+    if (studentConflicts) {
+      throw new ConflictException(
+        'Student has a conflicting appointment during the requested time slot',
+      );
+    }
+  }
+
+  private async validateBusinessRules(
+    createAppointmentDto: CreateAppointmentItemDto,
+  ): Promise<void> {
+    const { mentorId, studentId, courseOfferingId } = createAppointmentDto;
+
+    // Verify mentor exists and is active
+    const mentor = await this.prisma.client.user.findFirst({
+      where: {
+        id: mentorId,
+        role: Role.mentor,
+        deletedAt: null,
+      },
+    });
+
+    if (!mentor) {
+      throw new BadRequestException('Mentor not found or inactive');
+    }
+
+    // Verify a student exists and is active
+    const student = await this.prisma.client.user.findFirst({
+      where: {
+        id: studentId,
+        role: Role.student,
+        deletedAt: null,
+      },
+    });
+
+    if (!student) {
+      throw new BadRequestException('Student not found or inactive');
+    }
+
+    // Verify course offering exists and is active
+    const courseOffering = await this.prisma.client.courseOffering.findFirst({
+      where: {
+        id: courseOfferingId,
+        deletedAt: null,
+      },
+      include: {
+        courseSections: {
+          include: {
+            mentor: true,
+          },
+        },
+      },
+    });
+
+    if (!courseOffering) {
+      throw new BadRequestException('Course offering not found or inactive');
+    }
+
+    // Verify mentor is associated with the course offering
+    const mentorExists = courseOffering.courseSections.find((section) => {
+      return section.mentorId === mentorId;
+    });
+
+    if (!mentorExists) {
+      throw new BadRequestException(
+        'Mentor is not associated with the course offering',
+      );
+    }
   }
 }
