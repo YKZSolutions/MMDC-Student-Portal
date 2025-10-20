@@ -4212,6 +4212,11 @@ export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors = 
         message: string;
         error?: string;
     };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
 };
 
 export type CourseOfferingControllerCreateCourseOfferingsByCurriculumIdError = CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors[keyof CourseOfferingControllerCreateCourseOfferingsByCurriculumIdErrors];
