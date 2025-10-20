@@ -9,6 +9,7 @@ import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -222,7 +223,7 @@ export class CourseSectionService {
       ),
     [PrismaErrorCode.RelatedRecordNotFound]: (_, { sectionId }) =>
       new BadRequestException(
-        `Related record missing while updating course section [${sectionId}] (mentor or offering not found).`,
+        `Related record missing while updating course section (mentor or offering not found).`,
       ),
   })
   async updateCourseSection(
@@ -232,7 +233,7 @@ export class CourseSectionService {
     updateCourseSectionDto: UpdateCourseSectionDto,
   ): Promise<CourseSectionDto> {
     return await this.prisma.client.$transaction(async (tx) => {
-      const section = await tx.courseSection.findFirstOrThrow({
+      const existingCourseSection = await tx.courseSection.findFirstOrThrow({
         where: {
           id: sectionId,
           courseOfferingId: offeringId,
@@ -243,10 +244,32 @@ export class CourseSectionService {
         include: { courseOffering: { include: { enrollmentPeriod: true } } },
       });
 
-      if (section.courseOffering.enrollmentPeriod.status === 'closed') {
+      if (
+        existingCourseSection.courseOffering.enrollmentPeriod.status ===
+        'closed'
+      ) {
         throw new BadRequestException(
           `Enrollment period for this course section is closed and cannot be updated.`,
         );
+      }
+
+      if (updateCourseSectionDto.name) {
+        await tx.courseSection
+          .findUnique({
+            where: {
+              courseOfferingId_name: {
+                courseOfferingId: offeringId,
+                name: updateCourseSectionDto.name,
+              },
+            },
+          })
+          .then((existingSection) => {
+            if (existingSection && existingSection.id !== sectionId) {
+              throw new ConflictException(
+                `A section with the name "${updateCourseSectionDto.name}" already exists for this offering.`,
+              );
+            }
+          });
       }
 
       // Check first if the mentor has another section with overlapping schedule
