@@ -8,11 +8,11 @@ dayjs.extend(relativeTime)
 
 export function formatPaginationMessage({
   limit,
-  page,
+  page = 1,
   total,
 }: {
   limit: number
-  page: number
+  page: number | undefined
   total: number
 }) {
   const start = limit * (page - 1) + 1
