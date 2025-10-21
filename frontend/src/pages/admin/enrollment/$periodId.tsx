@@ -2,10 +2,12 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import AsyncMentorCombobox from '@/features/enrollment/async-mentor-combobox'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
+import type { PaginationSearch } from '@/features/pagination/search-validation'
 import {
   EditSectionFormSchema,
   type EditSectionFormValues,
 } from '@/features/validation/edit-course-offering-subject'
+import { useSearchState } from '@/hooks/use-search-state'
 import {
   type CourseDto,
   type DetailedCourseOfferingDto,
@@ -83,15 +85,10 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
-import { Fragment, Suspense, useState } from 'react'
+import { Fragment, Suspense } from 'react'
 
 const route = getRouteApi('/(protected)/enrollment/$periodId')
 const { queryClient } = getContext()
-
-interface IEnrollmentPeriodAdminQuery {
-  search: string
-  page: number
-}
 
 function EnrollmentPeriodAdminQueryProvider({
   children,
@@ -106,7 +103,7 @@ function EnrollmentPeriodAdminQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IEnrollmentPeriodAdminQuery
+  props?: PaginationSearch
 }) {
   const { periodId } = route.useParams()
   const { search, page } = props
@@ -153,17 +150,7 @@ function EnrollmentPeriodIdPage() {
   const navigate = useNavigate()
   const { periodId } = route.useParams()
 
-  const searchParam: {
-    search: string
-  } = route.useSearch()
-
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-  }
-
-  const [query, setQuery] =
-    useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
+  const { search } = useSearchState(route)
 
   const { mutateAsync: addCourseOffering, isPending: addCourseIsPending } =
     useAppMutation(
@@ -506,7 +493,7 @@ function EnrollmentPeriodIdPage() {
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={query.page || 1}
+                  value={search.page || 1}
                   withPages={false}
                 />
               </Group>
