@@ -4,8 +4,13 @@ import {
   SuspendedAdminEnrollmentCourseOfferingCards,
   SuspendedStudentEnrollmentFinalizationSectionCards,
 } from '@/features/enrollment/suspense'
+import type { IPaymentScheme } from '@/features/enrollment/types'
 import {
-  type CourseOfferingControllerFindCourseOfferingsByPeriodData,
+  enrollmentStatusOptions,
+  paymentSchemeData,
+} from '@/features/enrollment/validation'
+import { useSearchState } from '@/hooks/use-search-state'
+import {
   type DetailedCourseEnrollmentDto,
   type DetailedCourseOfferingDto,
   type DetailedCourseSectionDto,
@@ -24,6 +29,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import type { EnrollmentStateSearchSchema } from '@/routes/(protected)/enrollment'
 import {
   formatDaysAbbrev,
   formatMetaToPagination,
@@ -66,12 +72,11 @@ import {
   type ReactNode,
 } from '@tabler/icons-react'
 import {
-  useQuery,
   useSuspenseQuery,
   type QueryObserverResult,
   type RefetchOptions,
 } from '@tanstack/react-query'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
@@ -79,7 +84,7 @@ const route = getRouteApi('/(protected)/enrollment/')
 
 const { queryClient } = getContext()
 
-const tabsData = [
+export const tabsData = [
   {
     value: 'course-selection',
     label: 'Course Selection',
@@ -91,61 +96,6 @@ const tabsData = [
     Component: FinalizationPanel,
   },
 ]
-
-const segmentedControlData = [
-  {
-    label: 'All',
-    value: 'all' satisfies IEnrollmentStudentQuery['status'],
-  },
-  {
-    label: 'Enrolled',
-    value: 'enrolled' satisfies IEnrollmentStudentQuery['status'],
-  },
-  {
-    label: 'Not Enrolled',
-    value: 'not enrolled' satisfies IEnrollmentStudentQuery['status'],
-  },
-]
-
-interface IPaymentScheme {
-  paymentTypeId: PaymentScheme
-  paymentType: string
-  paymentDescription: string
-  paymentBreakdown: string
-}
-
-const paymentSchemeData = [
-  {
-    paymentTypeId: 'full',
-    paymentType: 'Full Payment',
-    paymentDescription: 'No Interest • 1 Payment',
-    paymentBreakdown: '100% at Enrollment',
-  },
-  {
-    paymentTypeId: 'installment1',
-    paymentType: 'Installment Plan 1',
-    paymentDescription: '5% Interest • 3 Payments',
-    paymentBreakdown:
-      '40% at enrollment • 30% first payment • 30% second payment',
-  },
-  {
-    paymentTypeId: 'installment2',
-    paymentType: 'Installment Plan 2',
-    paymentDescription: '7.5% Interest • 3 Payments',
-    paymentBreakdown:
-      '20% at enrollment • 40% first payment • 40% second payment',
-  },
-] as IPaymentScheme[]
-
-interface IEnrollmentStudentQuery {
-  search: string
-  page: number
-  status:
-    | NonNullable<
-        CourseOfferingControllerFindCourseOfferingsByPeriodData['query']
-      >['status']
-    | 'all'
-}
 
 function EnrollmentStudentQueryProvider({
   children,
@@ -161,17 +111,15 @@ function EnrollmentStudentQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IEnrollmentStudentQuery
+  props?: EnrollmentStateSearchSchema
 }) {
   const { search, page, status } = props
 
-  //TODO: Properly implement error handling for this
-  // temporarily fixed unhandled thrown error
-  const { data: enrollmentPeriodData, error } = useQuery(
+  const { data: enrollmentPeriodData } = useSuspenseQuery(
     enrollmentControllerFindActiveEnrollmentOptions(),
   )
 
-  const { data: courseData, error: courseQueryError } = useQuery(
+  const { data: courseData } = useSuspenseQuery(
     courseOfferingControllerFindCourseOfferingsByPeriodOptions({
       query: {
         page: page,
@@ -191,8 +139,6 @@ function EnrollmentStudentQueryProvider({
     page,
     meta: courseData?.meta!,
   })
-
-  console.log(courseOfferings)
 
   return children({
     enrollmentPeriodData,
@@ -220,22 +166,15 @@ function EnrollmentStudentFinalizationQueryProvider({
 }
 
 function EnrollmentStudentPage() {
-  const navigate = useNavigate()
-  const searchParam: {
-    tab: (typeof tabsData)[number]['value']
-  } = route.useSearch()
+  const { search, setDebouncedSearch } = useSearchState(route)
 
   const handleChangeTab = (
     value: (typeof tabsData)[number]['value'] | null,
   ) => {
     if (!value) return
 
-    navigate({
-      to: '/enrollment',
-      search: (prev) => ({
-        ...prev,
-        tab: value !== 'course-selection' ? value : undefined,
-      }),
+    setDebouncedSearch({
+      tab: value !== 'course-selection' ? value : undefined,
     })
   }
 
@@ -259,8 +198,7 @@ function EnrollmentStudentPage() {
               {({ enrollmentPeriodData }) => (
                 <Group>
                   <Title c={'dark.7'} order={2} fw={700}>
-                    {enrollmentPeriodData?.startYear &&
-                    enrollmentPeriodData?.startYear
+                    {enrollmentPeriodData?.startYear
                       ? formatToSchoolYear(
                           enrollmentPeriodData.startYear,
                           enrollmentPeriodData.endYear,
@@ -284,7 +222,7 @@ function EnrollmentStudentPage() {
         modify each component provided in tabsData */}
 
         <Tabs
-          defaultValue={searchParam.tab || tabsData[0].value}
+          defaultValue={search.tab || tabsData[0].value}
           onChange={(e) => handleChangeTab(e)}
           inverted
           radius={'md'}
@@ -335,33 +273,12 @@ function EnrollmentStudentPage() {
 }
 
 function CourseSelectionPanel() {
-  const searchParam: {
-    search: string
-    status: IEnrollmentStudentQuery['status']
-  } = route.useSearch()
-  const navigate = useNavigate()
-
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-    status: searchParam.status || 'all',
-  } satisfies IEnrollmentStudentQuery
-
-  const [query, setQuery] =
-    useState<IEnrollmentStudentQuery>(queryDefaultValues)
+  const { search, setDebouncedSearch } = useSearchState(route)
 
   const handleSegmentedControlChange = (
-    value: IEnrollmentStudentQuery['status'],
+    value: EnrollmentStateSearchSchema['status'],
   ) => {
-    setQuery((prev) => ({ ...prev, status: value }))
-
-    navigate({
-      to: '/enrollment',
-      search: (prev) => ({
-        ...prev,
-        status: value !== 'all' ? value : undefined,
-      }),
-    })
+    setDebouncedSearch({ status: value })
 
     // Invalidate the course offerings query here so it only refetches
     // on the enrolled and not enrolled tab and it retriggers suspense
@@ -383,12 +300,12 @@ function CourseSelectionPanel() {
             bd={'1px solid gray.2'}
             radius={'md'}
             data-cy="enrollment-tabs" // Add to the container
-            data={segmentedControlData}
+            data={[...enrollmentStatusOptions]}
             color="primary"
-            defaultValue={query.status}
+            defaultValue={search.status}
             onChange={(e) =>
               handleSegmentedControlChange(
-                e as IEnrollmentStudentQuery['status'],
+                e as EnrollmentStateSearchSchema['status'],
               )
             }
             fullWidth
@@ -469,7 +386,7 @@ function CourseSelectionPanel() {
 
         <Accordion variant="filled">
           <Suspense fallback={<SuspendedAdminEnrollmentCourseOfferingCards />}>
-            <EnrollmentStudentQueryProvider props={query}>
+            <EnrollmentStudentQueryProvider props={search}>
               {({ enrollmentPeriodData, courseOfferings }) => (
                 <>
                   {courseOfferings.length === 0 && (
@@ -523,7 +440,7 @@ function CourseSelectionPanel() {
               <Text size="sm">{props.message}</Text>
               <Pagination
                 total={props.totalPages}
-                value={query.page || 1}
+                value={search.page || 1}
                 withPages={false}
               />
             </Group>
