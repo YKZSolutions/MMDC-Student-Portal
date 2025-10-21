@@ -271,6 +271,7 @@ function AppointmentForm() {
 
   const user = data as UserStudentDetailsDto
 
+  // TODO: Refactor this to handle error toasts
   const { create, form, isPending } = useQuickForm<
     AppointmentFormInput,
     AppointmentFormOutput

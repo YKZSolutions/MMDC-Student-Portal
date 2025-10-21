@@ -11,24 +11,24 @@ export class Appointment {
     type: 'string',
   })
   id: string;
-  @ApiProperty({
-    type: 'string',
-  })
-  courseOfferingId: string;
   @ApiHideProperty()
   courseOffering?: CourseOfferingAsType;
   @ApiProperty({
     type: 'string',
   })
-  studentId: string;
+  courseOfferingId: string;
   @ApiHideProperty()
   student?: UserAsType;
   @ApiProperty({
     type: 'string',
   })
-  mentorId: string;
+  studentId: string;
   @ApiHideProperty()
   mentor?: UserAsType;
+  @ApiProperty({
+    type: 'string',
+  })
+  mentorId: string;
   @ApiProperty({
     type: 'string',
   })

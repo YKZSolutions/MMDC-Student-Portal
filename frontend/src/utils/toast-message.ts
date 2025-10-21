@@ -6,6 +6,7 @@ export const toastMessage = (
   name: string,
   operationBefore: string,
   operationAfter: string,
+  showError: boolean = true,
 ): NotificationMessages => ({
   loading: {
     title: `${titleCase(operationBefore)} ${titleCase(name)}`,
@@ -15,8 +16,10 @@ export const toastMessage = (
     title: `${titleCase(name)} ${titleCase(operationAfter)}`,
     message: `The ${lowerCase(name)} has been ${lowerCase(operationAfter)}.`,
   },
-  error: {
-    title: `Failed ${titleCase(operationBefore)} ${titleCase(name)}`,
-    message: `Something went wrong while ${operationBefore} the ${lowerCase(name)}`,
-  },
+  ...(showError && {
+    error: {
+      title: `Failed ${titleCase(operationBefore)} ${titleCase(name)}`,
+      message: `Something went wrong while ${operationBefore} the ${lowerCase(name)}`,
+    },
+  }),
 })
