@@ -132,7 +132,7 @@ export class CourseOfferingService {
       new NotFoundException(`Enrollment period or Curriculum does not exist.`),
     [PrismaErrorCode.UniqueConstraint]: () =>
       new ConflictException(
-        `These curriculum is already offered in this period.`,
+        `This curriculum is already offered in this period.`,
       ),
   })
   async createCourseOfferingsByCurriculum(
