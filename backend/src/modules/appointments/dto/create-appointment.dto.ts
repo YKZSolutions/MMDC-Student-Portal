@@ -6,15 +6,12 @@ export class CreateAppointmentItemDto extends OmitType(CreateAppointmentDto, [
   'description',
 ]) {
   @IsUUID()
-  @IsString()
   @IsNotEmpty()
   courseOfferingId: string;
   @IsUUID()
-  @IsString()
   @IsNotEmpty()
   studentId: string;
   @IsUUID()
-  @IsString()
   @IsNotEmpty()
   mentorId: string;
 
