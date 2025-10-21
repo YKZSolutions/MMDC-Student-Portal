@@ -8,13 +8,12 @@ import {
   type ProgramFormInput,
   type ProgramFormOutput,
 } from '@/features/curriculum/schema/add-program.schema'
-import { usePaginationSearch } from '@/features/pagination/use-pagination-search'
 import { useQuickAction } from '@/hooks/use-quick-action'
 import { useQuickForm } from '@/hooks/use-quick-form'
+import { useSearchState } from '@/hooks/use-search-state'
 import type { MajorItemDto, ProgramDto } from '@/integrations/api/client'
 import {
   majorControllerCreateMutation,
-  majorControllerFindAllQueryKey,
   majorControllerFindOneOptions,
   majorControllerRemoveMutation,
   majorControllerUpdateMutation,
@@ -107,8 +106,8 @@ function ProgramsList() {
   const navigate = route.useNavigate()
 
   const {
-    pagination: { page, search },
-  } = usePaginationSearch(route)
+    search: { page, search },
+  } = useSearchState(route)
 
   const { data: paginated } = useSuspenseQuery(
     programControllerFindAllOptions({ query: { page, search } }),
@@ -453,8 +452,8 @@ function ProgramFormDrawer() {
 function ProgramForm() {
   const { updateProgram } = route.useSearch()
   const {
-    pagination: { page, search },
-  } = usePaginationSearch(route)
+    search: { page, search },
+  } = useSearchState(route)
   const navigate = route.useNavigate()
 
   const { create, update, form, isPending } = useQuickForm<

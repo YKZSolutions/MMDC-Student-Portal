@@ -2,13 +2,13 @@ import { AsyncSearchable } from '@/components/async-searchable'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
-import { usePaginationSearch } from '@/features/pagination/use-pagination-search'
 import {
   enrollmentPeriodFormSchema,
   type EnrollmentPeriodFormInput,
   type EnrollmentPeriodFormOutput,
 } from '@/features/validation/create-enrollment.schema'
 import { useQuickForm } from '@/hooks/use-quick-form'
+import { useSearchState } from '@/hooks/use-search-state'
 import type {
   BillDto,
   EnrollmentPeriodDto,
@@ -104,7 +104,7 @@ function EnrollmentAdminQueryProvider({
 }
 
 export default function EnrollmentAdminPage() {
-  const { pagination, debouncedSearch, handlePage } = usePaginationSearch(route)
+  const { search, handlePage, handleSearch } = useSearchState(route)
   const navigate = route.useNavigate()
 
   return (
@@ -140,7 +140,7 @@ export default function EnrollmentAdminPage() {
                 base: '100%',
                 xs: rem(250),
               }}
-              onChange={(e) => debouncedSearch(e.target.value)}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Button
               w={{
@@ -189,7 +189,7 @@ export default function EnrollmentAdminPage() {
                   <Text size="sm">{props.message}</Text>
                   <Pagination
                     total={props.totalPages}
-                    value={pagination.page}
+                    value={search.page}
                     onChange={handlePage}
                     withPages={false}
                   />
