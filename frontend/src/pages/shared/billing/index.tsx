@@ -1,7 +1,7 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { useAuth } from '@/features/auth/auth.hook'
-import { SuspendedBillingTableRows } from '@/features/billing/suspense'
+import { SuspendedBillingTableRows } from '@/features/billing/components/suspense'
 import { billingStatusOptions } from '@/features/billing/validation'
 import { useSearchState } from '@/hooks/use-search-state'
 import type {
