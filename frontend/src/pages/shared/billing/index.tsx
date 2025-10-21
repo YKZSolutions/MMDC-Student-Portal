@@ -417,7 +417,7 @@ function AdminBillingTableBody({ invoice }: { invoice: BillItemDto }) {
               message: 'The bill has been permanently deleted.',
             },
       error: {
-        title: 'Failed to Delete the bill.',
+        title: 'Failed to delete the bill.',
         message:
           'An error occurred while trying to delete the bill. Please try again.',
       },
