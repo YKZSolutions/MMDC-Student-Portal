@@ -17,7 +17,7 @@ import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
-import { UpdateAssignmentConfigDto } from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
+import { UpdateAssignmentConfigDto } from '@/modules/lms/assignment/dto/update-assignment-config.dto';
 
 @Controller('modules/:moduleId/:moduleContentId/assignments')
 export class AssignmentController {

@@ -41,6 +41,13 @@ export class PricingGroupService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('One or more pricing IDs were not found.'),
+    [PrismaErrorCode.UniqueConstraint]: (
+      _,
+      { createPricingDto }: { createPricingDto: CreatePricingGroupItemDto },
+    ) =>
+      new NotFoundException(
+        `Pricing group name '${createPricingDto.group.name}' already exists. Please try a different name.`,
+      ),
   })
   async create(
     @LogParam('createPricingDto') createPricingDto: CreatePricingGroupItemDto,

@@ -239,9 +239,9 @@ export const getCompletedItemsCount = (items: ModuleTreeContentItem[]) => {
 
 export const getOverdueItemsCount = (items: ModuleTreeContentItem[]) => {
   return items.filter((item) => {
-    if (item.contentType === 'ASSIGNMENT' && item?.dueDate) {
+    if (item.contentType === 'ASSIGNMENT' && item?.assignment.dueDate) {
       return (
-        new Date(item.dueDate) < new Date() &&
+        new Date(item.assignment.dueDate) < new Date() &&
         item.studentProgress?.[0].status !== 'COMPLETED'
       )
     }

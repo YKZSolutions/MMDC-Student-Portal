@@ -1,4 +1,4 @@
-import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { ContentType } from '@prisma/client';
@@ -11,15 +11,17 @@ class ModuleTreeBase extends OmitType(ModuleContent, [
   'deletedAt',
 ]) {}
 
-export class ModuleTreeAssignmentItemDto extends IntersectionType(
-  ModuleTreeBase,
-  AssignmentDto,
-) {
+export class ModuleTreeAssignmentItemDto extends ModuleTreeBase {
   @ApiProperty({
     default: ContentType.ASSIGNMENT,
     readOnly: true,
   })
   declare contentType: 'ASSIGNMENT';
+
+  @ApiProperty({
+    type: AssignmentDto,
+  })
+  assignment: AssignmentDto;
 }
 
 export class ModuleTreeLessonItemDto extends ModuleTreeBase {

@@ -6,6 +6,7 @@ import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -21,6 +22,7 @@ import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dt
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { EnrollmentService } from './enrollment.service';
+import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -33,10 +35,12 @@ export class EnrollmentController {
    * This operation creates a new enrollment period for managing course registrations.
    * Requires `ADMIN` role.
    */
-  @ApiException(() => [BadRequestException])
-  @Roles(Role.ADMIN)
   @Post()
-  createEnrollment(@Body() dto: CreateEnrollmentPeriodItemDto) {
+  @Roles(Role.ADMIN)
+  @ApiException(() => [BadRequestException, ConflictException])
+  createEnrollment(
+    @Body() dto: CreateEnrollmentPeriodItemDto,
+  ): Promise<EnrollmentPeriodDto> {
     return this.enrollmentService.createEnrollment(dto);
   }
 

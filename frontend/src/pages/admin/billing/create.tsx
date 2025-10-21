@@ -88,7 +88,7 @@ function CreateBillingPage() {
       },
       success: { title: 'Bill Created', message: 'The bill has been created.' },
       error: {
-        title: 'Failed',
+        title: 'Failed to Create Bill',
         message: 'Something went wrong while creating the bill.',
       },
     },

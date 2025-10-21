@@ -13,7 +13,10 @@ import type {
   CourseNodeModel,
 } from '@/features/courses/modules/types.ts'
 import type { CourseBasicDetails } from '@/features/courses/types.ts'
-import type { ModuleTreeSectionDto } from '@/integrations/api/client'
+import type {
+  AssignmentItemDto,
+  ModuleTreeSectionDto,
+} from '@/integrations/api/client'
 import {
   lmsContentControllerFindOneQueryKey,
   lmsContentControllerPublishMutation,
@@ -29,7 +32,6 @@ import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { capitalizeFirstLetter } from '@/utils/formatters'
 import {
   convertModuleSectionsToTreeData,
-  resolveContentDetails,
   getTypeFromLevel,
   injectAddButtons,
 } from '@/utils/helpers'
@@ -222,7 +224,7 @@ function CMSWrapper({ courseCode }: CMSProps) {
         moduleContentId: editorState.id || '',
       },
       body: {
-        contentType: data.contentType,
+        ...data,
         content: editorState.content.document,
       },
     })
@@ -463,7 +465,6 @@ function CMSView({ courseCode }: { courseCode?: CMSProps['courseCode'] }) {
         moduleContentId: editorState.id || '',
       },
       body: {
-        contentType: existingContent.contentType,
         title: title,
       },
     })

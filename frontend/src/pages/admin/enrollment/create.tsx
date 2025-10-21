@@ -41,7 +41,7 @@ function CreateEnrollmentPage() {
     validate: zod4Resolver(enrollmentPeriodFormSchema),
   })
 
-  const { mutateAsync: create, isPending } = useAppMutation(
+  const { mutateAsync: create } = useAppMutation(
     enrollmentControllerCreateEnrollmentMutation,
     {
       loading: {
@@ -51,10 +51,6 @@ function CreateEnrollmentPage() {
       success: {
         title: 'Enrollment Period Created',
         message: 'The enrollment period has been created.',
-      },
-      error: {
-        title: 'Failed',
-        message: 'Something went wrong while creating the enrollment period.',
       },
     },
     {
