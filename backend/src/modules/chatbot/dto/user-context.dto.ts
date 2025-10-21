@@ -8,6 +8,9 @@ export class UserBaseContext {
   @IsString()
   email: string | null;
 
+  @IsString()
+  name: string | null;
+
   role: Role;
 }
 

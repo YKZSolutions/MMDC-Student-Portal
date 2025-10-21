@@ -195,7 +195,7 @@ const Chatbot = ({
                 }}
               >
                 <Text unselectable={'on'} size={'lg'} fw={500}>
-                  Chat with us
+                  Chat with AI
                 </Text>
               </Button>
             </Popover.Target>

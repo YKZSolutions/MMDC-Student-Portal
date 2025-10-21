@@ -11,8 +11,10 @@ import {
   PaymentScheme,
   ProgressStatus,
   Role,
+  AppointmentStatus,
 } from '@prisma/client';
 import { RelativeDateRange } from '@/common/utils/date-range.util';
+import { NotificationType } from '@/modules/notifications/dto/filter-notification.dto';
 
 // Common enums/refs
 const RoleEnum = Object.values(Role) as string[];
@@ -24,6 +26,8 @@ const FilterBillSortEnum = Object.values(FilterBillSort) as string[];
 const BillStatusEnum = Object.values(BillStatus) as string[];
 const PaymentSchemeEnum = Object.values(PaymentScheme) as string[];
 const BillTypeEnum = Object.values(BillType) as string[];
+const AppointmentStatusEnum = Object.values(AppointmentStatus) as string[];
+const NotificationTypeEnum = Object.values(NotificationType);
 const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
 
 // -------------------------
@@ -32,23 +36,21 @@ const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
 export const vectorSearchFn: FunctionDeclaration = {
   name: 'search_vector',
   description:
-    'Search for documents using vector search. It answers general questions. Such as about school information, policies, procedures:\n' +
-    '- "When is the enrollment?"\n' +
-    '- "What are the school hours?"\n' +
-    '- "How do I book a mentoring session?"',
+    'Search for documents using vector search. It answers general questions (non user specific).',
   parameters: {
     type: Type.OBJECT,
     properties: {
       query: {
         type: Type.STRING,
-        description: 'The search query.',
+        description:
+          'Search query string. Use "Searching for" as a prefix to search for specific documents." ',
       },
       limit: {
         type: Type.INTEGER,
-        default: 10,
-        description: 'The number of results to return (default 10).',
+        description: 'Maximum number of results to return',
       },
     },
+    required: ['query'],
   },
 };
 
@@ -65,39 +67,21 @@ export const usersCountFn: FunctionDeclaration = {
       role: {
         type: Type.STRING,
         enum: RoleEnum,
-        description: 'Role of the user.',
+        description:
+          'Role of the user to filter by. Default is all roles when not provided.',
       },
       search: {
         type: Type.STRING,
         description: 'Search term for filtering users.',
       },
-      page: {
-        type: Type.INTEGER,
-        default: 1,
-        description: 'Page number for pagination (default 1).',
-      },
-      limit: {
-        type: Type.INTEGER,
-        default: 10,
-        description: 'Number of users per page (default 10).',
-      },
     },
   },
 };
 
-export const usersFindOneFn: FunctionDeclaration = {
-  name: 'users_find_one',
-  description: 'Find a specific user by their ID.',
-  parameters: {
-    type: Type.OBJECT,
-    properties: {
-      id: {
-        type: Type.STRING,
-        description: 'User identifier.',
-      },
-    },
-    required: ['id'],
-  },
+export const usersFindSelf: FunctionDeclaration = {
+  name: 'users_find_self',
+  description:
+    'Find the registered details of the current authenticated user. Includes extra details such as student details or staff details',
 };
 
 // -------------------------
@@ -252,49 +236,38 @@ export const lmsMyModulesFn: FunctionDeclaration = {
   },
 };
 
-export const lmsModuleContentsFn: FunctionDeclaration = {
-  name: 'lms_module_contents',
+// -------------------------
+// Appointments function declarations
+// -------------------------
+export const appointmentsMyAppointmentsFn: FunctionDeclaration = {
+  name: 'appointments_my_appointments',
   description:
-    'Fetch all content (lessons, quizzes, assignments) for a module with optional filtering.',
+    'Get all appointments or mentoring sessions for the current user (student or mentor) with optional filtering by status, course, or date range.',
   parameters: {
     type: Type.OBJECT,
     properties: {
-      enrollmentPeriod: {
-        type: Type.OBJECT,
-        properties: {
-          startYear: {
-            type: Type.INTEGER,
-            description: 'Filter content by start year.',
-          },
-          endYear: {
-            type: Type.INTEGER,
-            description: 'Filter content by end year.',
-          },
-          status: {
-            type: Type.STRING,
-            enum: EnrollmentStatusEnum,
-            description: 'Filter content by enrollment status.',
-          },
-          term: {
-            type: Type.INTEGER,
-            description: 'Filter content by term number.',
-          },
-        },
-      },
-      contentType: {
+      status: {
         type: Type.STRING,
-        enum: ContentTypeEnum,
-        description: 'Filter content by content type.',
+        enum: AppointmentStatusEnum,
+        description: 'Filter appointments by status.',
       },
-      progress: {
+      courseId: {
         type: Type.STRING,
-        enum: ProgressStatusEnum,
-        description: 'Filter content by progress status.',
+        description: 'Filter appointments by course ID.',
+      },
+      startDate: {
+        type: Type.STRING,
+        description:
+          'Filter appointments starting from this date (ISO string).',
+      },
+      endDate: {
+        type: Type.STRING,
+        description: 'Filter appointments ending by this date (ISO string).',
       },
       search: {
         type: Type.STRING,
         description:
-          'Search term for filtering content by student name or student number, content title and/or subtitle',
+          'Search term for filtering appointments by title or description.',
       },
       page: {
         type: Type.INTEGER,
@@ -304,10 +277,65 @@ export const lmsModuleContentsFn: FunctionDeclaration = {
       limit: {
         type: Type.INTEGER,
         default: 10,
-        description: 'Number of content items per page (default 10).',
+        description: 'Number of appointments per page (default 10).',
       },
     },
   },
+};
+
+export const appointmentsMentorBookedFn: FunctionDeclaration = {
+  name: 'appointments_mentor_booked',
+  description:
+    'Get all booked appointments for the current mentor within a date range. Only available to mentors.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      startDate: {
+        type: Type.STRING,
+        description: 'Start date for filtering appointments (ISO string).',
+      },
+      endDate: {
+        type: Type.STRING,
+        description: 'End date for filtering appointments (ISO string).',
+      },
+    },
+  },
+};
+
+// -------------------------
+// Notifications function declarations
+// -------------------------
+export const notificationsMyNotificationsFn: FunctionDeclaration = {
+  name: 'notifications_my_notifications',
+  description:
+    'Get all notifications for the current user with optional filtering by read status and type.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      type: {
+        type: Type.STRING,
+        enum: NotificationTypeEnum,
+        description: 'Filter notifications by read status (READ or UNREAD).',
+      },
+      page: {
+        type: Type.INTEGER,
+        default: 1,
+        description: 'Page number for pagination (default 1).',
+      },
+      limit: {
+        type: Type.INTEGER,
+        default: 10,
+        description: 'Number of notifications per page (default 10).',
+      },
+    },
+  },
+};
+
+export const notificationsMyCountsFn: FunctionDeclaration = {
+  name: 'notifications_my_counts',
+  description:
+    'Get notification counts for the current user (total, read, unread).',
+  parameters: { type: Type.OBJECT, properties: {} },
 };
 
 // -------------------------
@@ -370,7 +398,7 @@ export const billingInvoiceDetailsFn: FunctionDeclaration = {
   parameters: {
     type: Type.OBJECT,
     properties: {
-      id: { type: Type.STRING, description: 'Invoice identifier.' },
+      id: { type: Type.NUMBER, description: 'Invoice identifier.' },
     },
     required: ['id'],
   },
@@ -381,7 +409,7 @@ export const billingInvoiceDetailsFn: FunctionDeclaration = {
 // -------------------------
 export const userFunctions: FunctionDeclaration[] = [
   usersCountFn,
-  usersFindOneFn,
+  usersFindSelf,
 ];
 
 export const courseFunctions: FunctionDeclaration[] = [
@@ -397,8 +425,20 @@ export const enrollmentFunctions: FunctionDeclaration[] = [
 
 export const lmsFunctions: FunctionDeclaration[] = [
   lmsMyModulesFn,
-  lmsModuleContentsFn,
+  // lmsModuleContentsFn,
+  // lmsModuleContentsWithProgressFn,
+  // lmsMyContentProgressFn,
   lmsMyTodosFn,
+];
+
+export const appointmentsFunctions: FunctionDeclaration[] = [
+  appointmentsMyAppointmentsFn,
+  appointmentsMentorBookedFn,
+];
+
+export const notificationsFunctions: FunctionDeclaration[] = [
+  notificationsMyNotificationsFn,
+  notificationsMyCountsFn,
 ];
 
 export const billingFunctions: FunctionDeclaration[] = [
@@ -414,6 +454,8 @@ export const tools: Tool[] = [
       ...courseFunctions,
       ...enrollmentFunctions,
       ...lmsFunctions,
+      ...appointmentsFunctions,
+      ...notificationsFunctions,
       ...billingFunctions,
     ],
   },
@@ -429,6 +471,9 @@ export function getToolsForRole(role: string) {
           functionDeclarations: [
             ...courseFunctions,
             ...lmsFunctions,
+            ...appointmentsFunctions,
+            ...notificationsFunctions,
+            usersFindSelf,
             vectorSearchFn,
           ],
         },
@@ -440,7 +485,10 @@ export function getToolsForRole(role: string) {
             ...courseFunctions,
             ...enrollmentFunctions,
             ...lmsFunctions,
+            ...appointmentsFunctions,
+            ...notificationsFunctions,
             ...billingFunctions,
+            usersFindSelf,
             vectorSearchFn,
           ],
         },

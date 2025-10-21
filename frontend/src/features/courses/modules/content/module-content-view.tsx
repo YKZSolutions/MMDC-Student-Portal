@@ -160,7 +160,6 @@ function ModuleContentView({
             {user.role === 'admin' &&
               moduleContentData?.contentType === 'ASSIGNMENT' && (
                 <AssignmentConfigCard
-                  contentId={moduleContentData.id}
                   assignmentData={moduleContentData.assignment}
                 />
               )}
@@ -181,10 +180,8 @@ function ModuleContentView({
 --------------------------------------------------- */
 
 function AssignmentConfigCard({
-  contentId,
   assignmentData,
 }: {
-  contentId: string
   assignmentData: AssignmentConfigDto
 }) {
   const [isPending, setIsPending] = useState(false)
@@ -224,7 +221,7 @@ function AssignmentConfigCard({
     setIsPending(true)
     try {
       await updateAssignmentConfig({
-        path: { moduleContentId: contentId },
+        path: { assignmentId: assignmentData.id },
         body: {
           maxScore: values.maxScore || undefined,
           dueDate: values.dueDate
@@ -566,7 +563,7 @@ function EmbeddedSubmissionBox({ assignmentData }: { assignmentData: any }) {
     }
 
     quickSubmit({
-      path: { moduleContentId: assignment.id },
+      path: { assignmentId: assignment.id },
       body: {
         state: 'SUBMITTED',
         content: content as any,
