@@ -8,16 +8,14 @@ import type {
 import { usersControllerGetMeOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import {
-  Button,
   Container,
-  Flex,
   Grid,
   Group,
   Paper,
   rem,
   Stack,
   Text,
-  Title,
+  Title
 } from '@mantine/core'
 import {
   IconBriefcase,
@@ -25,10 +23,8 @@ import {
   IconCalendar,
   IconId,
   IconMail,
-  IconPencil,
   IconSchool,
-  IconTrash,
-  IconUser,
+  IconUser
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -81,25 +77,6 @@ function ProfilePage() {
                         : '—'}
                     </Text>
                   </Stack>
-
-                  <Flex gap="md" ml="auto">
-                    <Button
-                      leftSection={<IconPencil size={16} />}
-                      variant="light"
-                      color="gray"
-                      radius="md"
-                    >
-                      Edit Profile
-                    </Button>
-                    <Button
-                      leftSection={<IconTrash size={16} />}
-                      variant="light"
-                      color="red"
-                      radius="md"
-                    >
-                      Deactivate
-                    </Button>
-                  </Flex>
                 </Group>
 
                 <Stack>
