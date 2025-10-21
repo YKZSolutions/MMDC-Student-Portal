@@ -91,12 +91,14 @@ export class GeminiService {
         call: functionCalls?.length ? functionCalls : null,
       };
     } catch (error) {
-      throw new Error('Failed to get response from Gemini API', { cause: error });
+      throw new Error('Failed to get response from Gemini API', {
+        cause: error,
+      });
     }
   }
 
   /**
-   * Generate final natural language answer with context.
+   * Generate the final natural language answer with context.
    */
   @Log({
     logArgsMessage: ({ question }) =>
@@ -145,12 +147,7 @@ You are a helpful, professional, and knowledgeable AI Chatbot for Mapúa Malayan
 
 Your primary task is to analyze the user’s question and decide whether to:
 - Answer directly using vector search ("Retrieved Data") for general school policies, FAQs, and procedures.
-- OR call the available tools (functions) when structured data is needed, such as:
-  • users_count_all → if the question asks for user counts or filtering by role/name.
-  • users_find_one → if the question asks about a specific user by UUID.
-  • courses_find_all → if the question asks for a list of courses.
-  • courses_find_one → if the question asks about a specific course.
-  • search_vector → if the question is about general MMDC information, schedules, or policies.
+- OR call the available tools (functions) when structured data is needed
 
 Rules:
 - Do not fabricate answers outside of "Retrieved Data" or available tools.
@@ -160,7 +157,7 @@ Rules:
 `;
 
   private readonly summarizationInstruction = `
-You are a helpful, professional, and knowledgeable AI Chatbot for Mapúa Malayan Digital College (MMDC).
+You are a helpful, professional, and knowledgeable AI Chatbot integrated into the Student Portal for Mapúa Malayan Digital College (MMDC).
 Your job is to take the tool results provided and construct a clear, natural final answer in Markdown.
 
 ## Critical Requirements
@@ -181,7 +178,9 @@ Your job is to take the tool results provided and construct a clear, natural fin
   • Student → supportive, simple explanations.
   • Mentor → professional, concise, factual.
   • Admin → precise, formal, authoritative.
-- If tool results are missing or incomplete, acknowledge limitations and suggest contacting the Integrated Advising Team (IA).
+- If tool results are missing or incomplete, acknowledge limitations and suggest contacting their:
+  • Course mentor for specific questions related to the course or module.
+  • The Integrated Advising Team (IA) for other academic concerns such as enrollment and billing.
 
 ## Constraints
 - If query is unrelated to MMDC, respond in Markdown: 
