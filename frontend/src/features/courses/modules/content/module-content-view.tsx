@@ -211,7 +211,7 @@ function AssignmentConfigCard({
         : null,
       maxAttempts: assignmentData.maxAttempts || null,
       dueDate: assignmentData.dueDate
-        ? dayjs(assignmentData.dueDate).utc().toDate()
+        ? dayjs(assignmentData.dueDate).utc().format('YYYY-MM-DDTHH:mm:ss')
         : null,
       weightPercentage: assignmentData.weightPercentage || null,
     },
