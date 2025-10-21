@@ -14,13 +14,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollment-period.dto';
-import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
-import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
+import { LmsService } from '../lms/lms-module/lms.service';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 import { EnrollmentPeriodItemDto } from './dto/enrollment-period-item.dto';
-import { LmsService } from '../lms/lms-module/lms.service';
+import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollment-period.dto';
+import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
+import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -89,9 +90,36 @@ export class EnrollmentService {
     @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedEnrollmentPeriodsDto> {
     const page = filters.page || 1;
+    const search = filters.search || '';
+    const where: Prisma.EnrollmentPeriodWhereInput = {};
+
+    if (search) {
+      where.OR = [
+        ...(!isNaN(Number(search))
+          ? [
+              {
+                term: {
+                  equals: Number(search),
+                },
+              },
+              {
+                startYear: {
+                  equals: Number(search),
+                },
+              },
+              {
+                endYear: {
+                  equals: Number(search),
+                },
+              },
+            ]
+          : []),
+      ];
+    }
 
     const [enrollments, meta] = await this.prisma.client.enrollmentPeriod
       .paginate({
+        where,
         orderBy: {
           createdAt: 'desc',
         },
