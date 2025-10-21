@@ -78,11 +78,16 @@ export const useSearchState = <
   }
 
   const handleSearch = (search: Partial<Search['search']>) => {
-    setDebouncedSearch({ search: search || undefined } as Partial<Search>)
+    setDebouncedSearch({
+      search: search || undefined,
+      page: undefined,
+    } as Partial<Search>)
   }
 
   const handlePage = (page: Partial<Search['page']>) => {
-    setDebouncedSearch({ page: page } as Partial<Search>)
+    setDebouncedSearch({
+      page: page == 1 ? undefined : page,
+    } as Partial<Search>)
   }
 
   /**

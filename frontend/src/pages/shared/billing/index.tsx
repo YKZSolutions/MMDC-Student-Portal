@@ -112,7 +112,8 @@ function BillingQueryProvider({
 }
 
 function BillingPage() {
-  const { search, handleSearch, setDebouncedSearch } = useSearchState(route)
+  const { search, handleSearch, handlePage, setDebouncedSearch } =
+    useSearchState(route)
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
@@ -206,8 +207,9 @@ function BillingPage() {
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={search.page}
+                  value={search.page || 1}
                   withPages={false}
+                  onChange={handlePage}
                 />
               </Group>
             )}

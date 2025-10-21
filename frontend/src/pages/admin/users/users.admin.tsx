@@ -289,7 +289,7 @@ function UsersPage() {
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={search.page}
+                  value={search.page || 1}
                   onChange={handlePage}
                   withPages={false}
                 />

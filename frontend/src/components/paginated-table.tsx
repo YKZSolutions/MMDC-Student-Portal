@@ -150,7 +150,7 @@ function PaginatedTable<T>({
         <Text size="sm">{message}</Text>
         <Pagination
           total={meta.pageCount}
-          value={currentPage}
+          value={currentPage || 1}
           onChange={onPaginationChange}
           withPages={false}
         />

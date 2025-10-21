@@ -506,7 +506,7 @@ function EnrollmentPeriodIdPage() {
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={query.page}
+                  value={query.page || 1}
                   withPages={false}
                 />
               </Group>
