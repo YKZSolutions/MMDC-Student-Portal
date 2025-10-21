@@ -144,7 +144,7 @@ export class TestAppService {
             await tx.studentDetails.create({
               data: {
                 userId: user.id,
-                studentNumber: 1,
+                studentNumber: '1',
                 studentType: StudentType.regular,
                 admissionDate: new Date().toISOString(),
                 otherDetails: {},

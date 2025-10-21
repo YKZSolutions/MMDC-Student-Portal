@@ -34,14 +34,6 @@ import {
   type GradeRecord as GradeRecordAsType,
 } from './gradeRecord.entity';
 import {
-  QuizSubmission,
-  type QuizSubmission as QuizSubmissionAsType,
-} from './quizSubmission.entity';
-import {
-  DiscussionPost,
-  type DiscussionPost as DiscussionPostAsType,
-} from './discussionPost.entity';
-import {
   ContentProgress,
   type ContentProgress as ContentProgressAsType,
 } from './contentProgress.entity';
@@ -57,6 +49,10 @@ import {
   NotificationReceipt,
   type NotificationReceipt as NotificationReceiptAsType,
 } from './notificationReceipt.entity';
+import {
+  Transcript,
+  type Transcript as TranscriptAsType,
+} from './transcript.entity';
 
 export class User {
   @ApiProperty({
@@ -82,10 +78,6 @@ export class User {
   @ApiHideProperty()
   grades?: GradeRecordAsType[];
   @ApiHideProperty()
-  quizAttempts?: QuizSubmissionAsType[];
-  @ApiHideProperty()
-  postedDiscussions?: DiscussionPostAsType[];
-  @ApiHideProperty()
   moduleProgress?: ContentProgressAsType[];
   @ApiHideProperty()
   groups?: GroupMemberAsType[];
@@ -95,6 +87,8 @@ export class User {
   appointmentMentors?: AppointmentAsType[];
   @ApiHideProperty()
   notifications?: NotificationReceiptAsType[];
+  @ApiHideProperty()
+  transcripts?: TranscriptAsType[];
   @ApiProperty({
     type: 'string',
   })

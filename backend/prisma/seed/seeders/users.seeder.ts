@@ -3,9 +3,10 @@ import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import { createUserData } from '../factories/user.factory';
 import { SupabaseService } from '../../../src/lib/supabase/supabase.service';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 export async function seedUsers(
-  prisma: PrismaClient,
+  prisma: PrismaTransaction,
   supabase: SupabaseService,
 ) {
   log('Seeding users...');

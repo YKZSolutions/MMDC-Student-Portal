@@ -2,10 +2,12 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import AsyncMentorCombobox from '@/features/enrollment/async-mentor-combobox'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
+import type { PaginationSearch } from '@/features/pagination/search-validation'
 import {
   EditSectionFormSchema,
   type EditSectionFormValues,
 } from '@/features/validation/edit-course-offering-subject'
+import { useSearchState } from '@/hooks/use-search-state'
 import {
   type CourseDto,
   type DetailedCourseOfferingDto,
@@ -28,7 +30,7 @@ import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import {
   formatDaysAbbrev,
-  formatPaginationMessage,
+  formatMetaToPagination,
   formatToSchoolYear,
   formatToTimeOfDay,
 } from '@/utils/formatters'
@@ -83,15 +85,10 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
-import { Fragment, Suspense, useState } from 'react'
+import { Fragment, Suspense } from 'react'
 
 const route = getRouteApi('/(protected)/enrollment/$periodId')
 const { queryClient } = getContext()
-
-interface IEnrollmentPeriodAdminQuery {
-  search: string
-  page: number
-}
 
 function EnrollmentPeriodAdminQueryProvider({
   children,
@@ -106,7 +103,7 @@ function EnrollmentPeriodAdminQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IEnrollmentPeriodAdminQuery
+  props?: PaginationSearch
 }) {
   const { periodId } = route.useParams()
   const { search, page } = props
@@ -133,14 +130,10 @@ function EnrollmentPeriodAdminQueryProvider({
 
   const courseOfferings = courseData.courseOfferings
 
-  const limit = 10
-  const total = courseOfferings.length
-  const totalPages = 1
-
-  const message = formatPaginationMessage({
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
     page,
-    total,
-    limit,
+    meta: courseData.meta,
   })
 
   console.log(courseOfferings)
@@ -157,17 +150,7 @@ function EnrollmentPeriodIdPage() {
   const navigate = useNavigate()
   const { periodId } = route.useParams()
 
-  const searchParam: {
-    search: string
-  } = route.useSearch()
-
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-  }
-
-  const [query, setQuery] =
-    useState<IEnrollmentPeriodAdminQuery>(queryDefaultValues)
+  const { search } = useSearchState(route)
 
   const { mutateAsync: addCourseOffering, isPending: addCourseIsPending } =
     useAppMutation(
@@ -182,7 +165,7 @@ function EnrollmentPeriodIdPage() {
           message: 'The course offering has been added.',
         },
         error: {
-          title: 'Failed',
+          title: 'Failed to Add Course Offering',
           message: 'Something went wrong while adding the course offering.',
         },
       },
@@ -234,7 +217,7 @@ function EnrollmentPeriodIdPage() {
           message: 'The course offering has been added.',
         },
         error: {
-          title: 'Failed',
+          title: 'Failed to Add Course Offering',
           message: 'Something went wrong while adding the course offering.',
         },
       },
@@ -510,7 +493,7 @@ function EnrollmentPeriodIdPage() {
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={query.page}
+                  value={search.page || 1}
                   withPages={false}
                 />
               </Group>
@@ -546,7 +529,7 @@ function CourseOfferingAccordionControl({
         message: 'The course offering has been removed.',
       },
       error: {
-        title: 'Failed',
+        title: 'Failed to Remove Course Offering',
         message: 'Something went wrong while removing the course offering.',
       },
     },
@@ -671,7 +654,7 @@ function CourseOfferingAccordionPanel({
         message: 'The course section has been added.',
       },
       error: {
-        title: 'Failed',
+        title: 'Failed to Add Course Section',
         message: 'Something went wrong while adding the course section.',
       },
     },
@@ -774,7 +757,7 @@ function CourseOfferingSubjectCard({
         message: 'The course section has been removed.',
       },
       error: {
-        title: 'Failed',
+        title: 'Failed to Remove Course Section',
         message: 'Something went wrong while removing the course section.',
       },
     },
@@ -907,7 +890,7 @@ function CourseOfferingSubjectCard({
                 variant="light"
                 radius="sm"
               >
-                {section.maxSlot} / {section.maxSlot} slots
+                {section.availableSlots} / {section.maxSlot} slots
               </Badge>
             </Flex>
           </Grid.Col>
@@ -959,10 +942,6 @@ function CourseOfferingSectionEditForm({
       success: {
         title: 'Saved',
         message: 'Section updated successfully.',
-      },
-      error: {
-        title: 'Failed',
-        message: 'Unable to update section.',
       },
     },
     {

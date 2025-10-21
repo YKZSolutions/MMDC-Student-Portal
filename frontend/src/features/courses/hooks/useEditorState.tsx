@@ -1,10 +1,10 @@
 import {
   type ContentNode,
   type ContentNodeType,
+  type FullModuleContent,
 } from '@/features/courses/modules/types.ts'
-import type { ModuleContent } from '@/integrations/api/client'
 import { lmsContentControllerFindOneOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { getContentKeyAndData, toBlockArray } from '@/utils/helpers.tsx'
+import { toBlockArray } from '@/utils/helpers.tsx'
 import type { BlockNoteEditor } from '@blocknote/core'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -26,7 +26,7 @@ export const editorViewOptions: EditorViewOption[] = [
 export interface EditorState {
   id: string | null
   type: ContentNodeType
-  data: ModuleContent
+  data: FullModuleContent
   content: BlockNoteEditor
   view: EditorView
 }
@@ -46,7 +46,9 @@ const EditorContext = createContext<EditorContextValue | null>(null)
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
-  const searchParams: EditorSearchParams = useSearch({ strict: false })
+  const searchParams: EditorSearchParams = useSearch({
+    strict: false,
+  })
   const { itemId } = useParams({ strict: false })
 
   const moduleContentId = searchParams.id ?? itemId ?? ''
@@ -57,12 +59,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     }),
   )
 
-  const { contentKey, existingContent } =
-    getContentKeyAndData(moduleContentData)
 
   const editor = useCreateBlockNote(
     {
-      initialContent: toBlockArray(existingContent?.content),
+      initialContent: toBlockArray(moduleContentData?.content),
     },
     [moduleContentId],
   )

@@ -56,11 +56,7 @@ export class AssignmentSubmission {
     enumName: 'SubmissionState',
   })
   state: SubmissionState;
-  @ApiProperty({
-    type: () => GradeRecord,
-    required: false,
-    nullable: true,
-  })
+  @ApiHideProperty()
   gradeRecord?: GradeRecordAsType | null;
   @ApiProperty({
     type: () => Object,

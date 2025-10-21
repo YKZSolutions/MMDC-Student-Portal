@@ -1,11 +1,20 @@
 import { CreateAppointmentDto } from '@/generated/nestjs-dto/create-appointment.dto';
-import { IsUUID } from 'class-validator';
+import { OmitType } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-export class CreateAppointmentItemDto extends CreateAppointmentDto {
+export class CreateAppointmentItemDto extends OmitType(CreateAppointmentDto, [
+  'description',
+]) {
   @IsUUID()
-  courseId: string;
+  @IsNotEmpty()
+  courseOfferingId: string;
   @IsUUID()
+  @IsNotEmpty()
   studentId: string;
   @IsUUID()
+  @IsNotEmpty()
   mentorId: string;
+
+  @IsString()
+  description: string;
 }

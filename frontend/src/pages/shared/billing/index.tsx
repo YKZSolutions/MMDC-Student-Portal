@@ -1,7 +1,9 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { useAuth } from '@/features/auth/auth.hook'
-import { SuspendedBillingTableRows } from '@/features/billing/suspense'
+import { SuspendedBillingTableRows } from '@/features/billing/components/suspense'
+import { billingStatusOptions } from '@/features/billing/validation'
+import { useSearchState } from '@/hooks/use-search-state'
 import type {
   BillDto,
   BillItemDto,
@@ -14,7 +16,8 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { formatPaginationMessage } from '@/utils/formatters'
+import type { BillingSearch } from '@/routes/(protected)/billing'
+import { formatMetaToPagination } from '@/utils/formatters'
 import {
   ActionIcon,
   Badge,
@@ -36,7 +39,6 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
-import { useDebouncedCallback } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
@@ -52,29 +54,9 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import React, { Suspense, useMemo, useState } from 'react'
+import React, { Suspense, useMemo } from 'react'
 
 const route = getRouteApi('/(protected)/billing/')
-
-const segmentedControlOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Paid', value: 'paid' },
-  { label: 'Unpaid', value: 'unpaid' },
-  { label: 'Partial', value: 'partial' },
-  { label: 'Overpaid', value: 'overpaid' },
-  { label: 'Trash', value: 'deleted' },
-] as const
-
-interface IBillingQuery {
-  search: string
-  page: number
-  tab: (typeof segmentedControlOptions)[number]['value']
-}
-
-interface IBillingSearchParams {
-  search: string
-  tab: IBillingQuery['tab']
-}
 
 function BillingQueryProvider({
   children,
@@ -90,7 +72,7 @@ function BillingQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IBillingQuery
+  props?: BillingSearch
 }) {
   const { search, page, tab } = props
 
@@ -113,15 +95,13 @@ function BillingQueryProvider({
   )
 
   const currentInvoices = data.bills || []
-
-  console.log(currentInvoices)
-
   const meta = data.meta as PaginationMetaDto
-  const limit = 10
-  const total = meta.totalCount ?? 0
-  const totalPages = meta.pageCount ?? 0
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
+    page,
+    meta,
+  })
 
   return children({
     currentInvoices,
@@ -132,60 +112,14 @@ function BillingQueryProvider({
 }
 
 function BillingPage() {
-  const searchParam: IBillingSearchParams = route.useSearch()
+  const { search, handleSearch, handlePage, setDebouncedSearch } =
+    useSearchState(route)
+  const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-    tab: searchParam.tab || ('all' as IBillingQuery['tab']),
+  const handleTabChange = (value: BillingSearch['tab']) => {
+    setDebouncedSearch({ tab: value !== 'all' ? value : undefined })
   }
-
-  const [query, setQuery] = useState<IBillingQuery>(queryDefaultValues)
-
-  // Since searchParam is debounced,
-  // this is what we need to pass to the query provider
-  // This will ensure that the query is also debounced
-  const debouncedQuery = {
-    search: searchParam.search || '',
-    page: query.page,
-    tab: query.tab,
-  } as IBillingQuery
-
-  const { authUser } = useAuth('protected')
-
-  const handleTabChange = (value: IBillingQuery['tab']) => {
-    setQuery((prev) => ({ ...prev, tab: value }))
-
-    navigate({
-      to: '/billing',
-      search: (prev) => ({
-        ...prev,
-        tab: value !== 'all' ? value : undefined,
-      }),
-    })
-  }
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-
-    setQuery((prev) => ({
-      ...prev,
-      search: value,
-    }))
-
-    handleNavigate(value)
-  }
-
-  const handleNavigate = useDebouncedCallback(async (value: string) => {
-    navigate({
-      to: '/billing',
-      search: (prev) => ({
-        ...prev,
-        search: value.trim() || undefined,
-      }),
-    })
-  }, 200)
 
   return (
     <Container size={'md'} pb={'xl'}>
@@ -212,10 +146,10 @@ function BillingPage() {
               overflowX: 'auto',
             }}
             bd={'1px solid gray.2'}
-            data={[...segmentedControlOptions]}
-            defaultValue={searchParam.tab || 'all'}
+            data={[...billingStatusOptions]}
+            defaultValue={search.tab || 'all'}
             color="primary"
-            onChange={(value) => handleTabChange(value as IBillingQuery['tab'])}
+            onChange={(value) => handleTabChange(value as BillingSearch['tab'])}
           />
           <Flex
             gap={'sm'}
@@ -230,7 +164,8 @@ function BillingPage() {
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
               w={{ base: '100%', xs: rem(250) }}
-              onChange={handleSearch}
+              defaultValue={search.search}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Button
               variant="default"
@@ -263,17 +198,18 @@ function BillingPage() {
           </Flex>
         </Flex>
 
-        <BillingTable query={debouncedQuery} />
+        <BillingTable query={search} />
 
         <Suspense fallback={<SuspendedPagination />}>
-          <BillingQueryProvider props={debouncedQuery}>
+          <BillingQueryProvider props={search}>
             {(props) => (
               <Group justify="flex-end">
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={query.page}
+                  value={search.page || 1}
                   withPages={false}
+                  onChange={handlePage}
                 />
               </Group>
             )}
@@ -285,7 +221,7 @@ function BillingPage() {
   )
 }
 
-function BillingTable({ query }: { query: IBillingQuery }) {
+function BillingTable({ query }: { query: BillingSearch }) {
   const navigate = useNavigate()
   const { authUser } = useAuth('protected')
 
@@ -303,7 +239,7 @@ function BillingTable({ query }: { query: IBillingQuery }) {
   }, [authUser.role])
 
   return (
-    <Table.ScrollContainer minWidth={rem(700)} type="native">
+    <Table.ScrollContainer minWidth={rem(500)} type="native">
       <Table
         verticalSpacing={'md'}
         highlightOnHover
@@ -396,18 +332,18 @@ function AdminBillingTableHeader() {
 }
 
 function AdminBillingTableBody({ invoice }: { invoice: BillItemDto }) {
-  const searchParam: IBillingSearchParams = route.useSearch()
+  const { search } = useSearchState(route)
   const navigate = useNavigate()
 
   const { mutateAsync: remove } = useAppMutation(
     billingControllerRemoveMutation,
     {
       loading:
-        searchParam.tab !== 'deleted'
+        search.tab !== 'deleted'
           ? { title: 'Moving to Trash', message: 'Please wait...' }
           : { title: 'Deleting Bill', message: 'Please wait...' },
       success:
-        searchParam.tab !== 'deleted'
+        search.tab !== 'deleted'
           ? {
               title: 'Bill moved to Trash',
               message: 'The bill has been successfully moved to Trash.',

@@ -16,24 +16,26 @@ import {
 import { Prisma } from '@prisma/client';
 import { isUUID } from 'class-validator';
 import { CustomPrismaService } from 'nestjs-prisma';
-import { CourseDto } from './dto/course.dto';
-import { CreateCourseDto } from './dto/create-course.dto';
+import { CourseFullDto } from './dto/course-full.dto';
+import { CreateCourseFullDto } from './dto/create-course-full.dto';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { LmsService } from '../lms/lms-module/lms.service';
 
 @Injectable()
 export class CoursesService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly lmsService: LmsService,
   ) {}
 
   /**
    * Creates a new course in the database.
    *
    * @async
-   * @param {CreateCourseDto} createCourseDto - Data Transfer Object containing the course details to create.
-   * @returns  {Promise<CourseDto>} The create course record
+   * @param {CreateCourseFullDto} createCourseDto - Data Transfer Object containing the course details to create.
+   * @returns  {Promise<CourseFullDto>} The create course record
    *
    * @throws {ConflictException} - If the course code already exists.
    * @throws {Error} Any other unexpected errors.
@@ -51,8 +53,8 @@ export class CoursesService {
       new ConflictException('Course code already in use.'),
   })
   async create(
-    @LogParam('course') createCourseDto: CreateCourseDto,
-  ): Promise<CourseDto> {
+    @LogParam('course') createCourseDto: CreateCourseFullDto,
+  ): Promise<CourseFullDto> {
     const { majorIds, prereqIds, coreqIds, ...courseData } = createCourseDto;
 
     const data: Prisma.CourseCreateInput = {
@@ -71,7 +73,14 @@ export class CoursesService {
       data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
     }
 
-    return (await this.prisma.client.course.create({ data })) as CourseDto;
+    const course = await this.prisma.client.course.create({
+      data,
+      include: { prereqs: true, coreqs: true },
+    });
+
+    await this.lmsService.initializeCourseModule(course.id);
+
+    return course;
   }
 
   /**
@@ -126,8 +135,8 @@ export class CoursesService {
       .paginate({
         where,
         include: {
-          prereqs: { select: { courseCode: true, name: true } },
-          coreqs: { select: { courseCode: true, name: true } },
+          prereqs: { select: { id: true, courseCode: true, name: true } },
+          coreqs: { select: { id: true, courseCode: true, name: true } },
         },
       })
       .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
@@ -140,7 +149,7 @@ export class CoursesService {
    *
    * @async
    * @param {string} id - The UUID of the course.
-   * @returns {Promise<CourseDto>} The course record.
+   * @returns {Promise<CourseFullDto>} The course record.
    *
    * @throws {BadRequestException} If the provided ID is not a valid UUID.
    * @throws {NotFoundException} If no course is found with the given ID.
@@ -156,12 +165,12 @@ export class CoursesService {
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException('Course not found'),
   })
-  async findOne(@LogParam('id') id: string): Promise<CourseDto> {
+  async findOne(@LogParam('id') id: string): Promise<CourseFullDto> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid course ID format');
     }
 
-    return (await this.prisma.client.course.findUniqueOrThrow({
+    return await this.prisma.client.course.findUniqueOrThrow({
       where: { id },
       include: {
         coreqs: {
@@ -171,7 +180,7 @@ export class CoursesService {
           select: { id: true, courseCode: true, name: true },
         },
       },
-    })) as CourseDto;
+    });
   }
 
   /**
@@ -180,7 +189,7 @@ export class CoursesService {
    * @async
    * @param {string} id - The UUID of the course to update.
    * @param {UpdateCourseDto} updateCourseDto - Data Transfer Object containing updated course details.
-   * @returns {Promise<CourseDto>} The updated course record.
+   * @returns {Promise<CourseFullDto>} The updated course record.
    *
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {ConflictException} If the course code already exists.
@@ -201,7 +210,7 @@ export class CoursesService {
   async update(
     @LogParam('id') id: string,
     @LogParam('course') updateCourseDto: UpdateCourseDto,
-  ): Promise<CourseDto> {
+  ): Promise<CourseFullDto> {
     if (!isUUID(id)) {
       throw new NotFoundException(`Course with ID ${id} not found.`);
     }
@@ -224,10 +233,14 @@ export class CoursesService {
       data.prereqs = { set: prereqIds.map((id) => ({ id })) };
     }
 
-    return (await this.prisma.client.course.update({
+    return await this.prisma.client.course.update({
       where: { id },
       data,
-    })) as CourseDto;
+      include: {
+        prereqs: true,
+        coreqs: true,
+      },
+    });
   }
 
   /**
@@ -255,6 +268,10 @@ export class CoursesService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_msg, { id }) =>
       new NotFoundException(`Course with ID ${id} not found`),
+    [PrismaErrorCode.ForeignKeyConstraint]: (_msg, _) =>
+      new BadRequestException(
+        'Cannot delete course because it is associated with an existing major',
+      ),
   })
   async remove(
     @LogParam('id') id: string,

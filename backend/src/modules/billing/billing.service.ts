@@ -18,7 +18,12 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { InstallmentService } from '../installment/installment.service';
 import { CreateBillingDto } from './dto/create-billing.dto';
 import { DetailedBillDto } from './dto/detailed-bill.dto';
-import { BillStatus, FilterBillDto } from './dto/filter-bill.dto';
+import {
+  BillStatus,
+  FilterBillDto,
+  FilterBillSort,
+  SortOrder,
+} from './dto/filter-bill.dto';
 import { PaginatedBillsDto } from './dto/paginated-bills.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -35,6 +40,7 @@ export class BillingService {
    * Creates a new billing entry in the database.
    *
    * @param createBillingDto - The DTO containing billing data (amount, due date, etc.)
+   * @param dueDates - The due dates for the installments.
    * @param userId - (Optional) The ID of the user the bill is associated with.
    * @returns The created billing object in DTO format.
    * @throws NotFoundException - If the user with the id was not found
@@ -116,8 +122,8 @@ export class BillingService {
     const billType = filters.type ? BillType[filters.type] : null;
     const status = filters.status || null;
     const search = filters.search || null;
-    const sort = filters.sort || null;
-    const sortDir = filters.sortOrder || 'desc';
+    const sort = filters.sort || FilterBillSort.createdAt;
+    const sortDir = filters.sortOrder || SortOrder.desc;
     const isDeleted = filters.isDeleted || false;
 
     const fetchedBills = await this.prisma.client.$queryRawTyped(
@@ -234,6 +240,58 @@ export class BillingService {
     };
   }
 
+  @Log({
+    logArgsMessage: ({ invoiceId }) =>
+      `Fetching bills for invoiceId =${invoiceId}`,
+    logSuccessMessage: (res) => `Fetched bills with invoiceId=${res.invoiceId}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Bill with id=${id} was not found`),
+  })
+  async findOneByInvoiceId(
+    @LogParam('invoiceId') invoiceId: number,
+    role: Role,
+    userId: string,
+  ): Promise<DetailedBillDto> {
+    const bill = await this.prisma.client.bill.findFirstOrThrow({
+      where: {
+        invoiceId: invoiceId,
+        ...(role !== 'admin' && { userId }),
+      },
+    });
+
+    const billPayments = await this.prisma.client.billPayment.aggregate({
+      where: { billId: bill?.id },
+      _sum: {
+        amountPaid: true,
+      },
+    });
+
+    const totalPaid = billPayments._sum.amountPaid || Decimal(0);
+
+    const status: BillStatus = (() => {
+      switch (true) {
+        case totalPaid.eq(0):
+          return BillStatus.unpaid;
+        case totalPaid.lessThan(bill.totalAmount):
+          return BillStatus.partial;
+        case totalPaid.eq(bill.totalAmount):
+          return BillStatus.paid;
+        case totalPaid.greaterThan(bill.totalAmount):
+          return BillStatus.overpaid;
+        default:
+          return BillStatus.unpaid;
+      }
+    })();
+
+    return {
+      ...bill,
+      totalPaid,
+      status,
+    };
+  }
+
   /**
    * Updates a billing entry by ID.
    *
@@ -289,7 +347,7 @@ export class BillingService {
         where: { id: id },
       });
       if (!payment.deletedAt) {
-        this.prisma.client.$transaction(async (tx) => {
+        await this.prisma.client.$transaction(async (tx) => {
           await tx.billPayment.updateMany({
             where: { billId: id },
             data: {
@@ -318,7 +376,7 @@ export class BillingService {
       }
     }
 
-    this.prisma.client.$transaction(async (tx) => {
+    await this.prisma.client.$transaction(async (tx) => {
       await tx.billPayment.deleteMany({
         where: { billId: id },
       });

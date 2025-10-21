@@ -1,12 +1,12 @@
 import { PaginatedDto } from '@/common/dto/paginated.dto';
-import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { CourseFullDto } from './course-full.dto';
 
 export class PaginatedCoursesDto extends PaginatedDto {
   @ApiProperty({
-    type: () => CourseDto,
+    type: () => CourseFullDto,
     isArray: true,
     description: 'List of courses for the current page',
   })
-  courses: CourseDto[];
+  courses: CourseFullDto[];
 }

@@ -1,5 +1,5 @@
 // ...existing code...
-import type { CourseDto } from '@/integrations/api/client'
+import type { CourseFullDto } from '@/integrations/api/client'
 import { coursesControllerFindAllOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   ActionIcon,
@@ -37,7 +37,7 @@ function EnrollmentCourseCreateModalQueryProvider({
   props,
 }: {
   children: (props: {
-    courses: CourseDto[]
+    courses: CourseFullDto[]
     isFetching: boolean
     isPending: boolean
   }) => ReactNode
@@ -69,7 +69,7 @@ export default function EnrollmentCourseCreateModal({
   id,
   innerProps,
 }: ContextModalProps<{
-  onSelect?: (course: CourseDto) => void
+  onSelect?: (course: CourseFullDto) => void
 }>) {
   useEffect(() => {
     context.updateModal({
@@ -116,7 +116,7 @@ export default function EnrollmentCourseCreateModal({
     }))
   }
 
-  const handleSelect = (course: CourseDto) => {
+  const handleSelect = (course: CourseFullDto) => {
     // call callback if provided
     innerProps?.onSelect?.(course)
     // close modal

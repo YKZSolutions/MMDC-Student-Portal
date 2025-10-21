@@ -53,7 +53,7 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
         message: messages.success.message,
         icon: <IconCheck size={18} />,
         loading: false,
-        autoClose: 1500,
+        autoClose: 2000,
       })
 
       if (options?.onSuccess) {
@@ -61,14 +61,19 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
       }
     },
     onError: (error, variables, context) => {
+      const err = error as TError & { error?: string }
+
+      console.error(err.error)
+
       notifications.update({
         id: notifId.current,
         color: 'red',
         title: messages.error?.title ?? 'Something went wrong',
-        message: messages.error?.message ?? 'Please try again later.',
+        message:
+          messages.error?.message ?? err.error ?? 'Please try again later.',
         icon: <IconX size={18} />,
         loading: false,
-        autoClose: 3000,
+        autoClose: err.error ? 5000 : 3000, // longer if there's a specific error message
       })
 
       if (options?.onError) {
@@ -86,7 +91,7 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
         for (const val of Object.values(ctxAny.keys)) {
           if (val == null) continue
 
-          // if the value is already a queryKey array, use it; otherwise wrap single value
+          // if the value is already a queryKey array, use it; otherwise wrap a single value
           const keyArr = Array.isArray(val)
             ? (val as readonly unknown[])
             : ([val] as readonly unknown[])

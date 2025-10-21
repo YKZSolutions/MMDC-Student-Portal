@@ -43,12 +43,5 @@ export class CreateGradeRecordDto {
   })
   @IsNotEmpty()
   @IsArray()
-  rubricScores: Prisma.InputJsonValue[];
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  @IsNotEmpty()
-  @IsArray()
-  questionScores: Prisma.InputJsonValue[];
+  rubricEvaluationDetails: PrismaJson.RubricEvaluationDetail[];
 }

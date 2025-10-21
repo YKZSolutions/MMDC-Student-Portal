@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { PrismaClient, Role, User } from '@prisma/client';
 import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
+import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
 const NOTIFICATION_TEMPLATES = {
   student: [
@@ -30,7 +31,10 @@ const NOTIFICATION_TEMPLATES = {
   ],
 };
 
-export async function seedNotifications(prisma: PrismaClient, users: User[]) {
+export async function seedNotifications(
+  prisma: PrismaTransaction,
+  users: User[],
+) {
   log('Seeding notifications...');
 
   let notificationCount = 0;
@@ -45,7 +49,12 @@ export async function seedNotifications(prisma: PrismaClient, users: User[]) {
 
   // Get some course names for context
   const courses = await prisma.course.findMany({ take: 10 });
-  const assignments = await prisma.assignment.findMany({ take: 10 });
+  const assignments = await prisma.assignment.findMany({
+    take: 10,
+    include: {
+      moduleContent: true, // Include moduleContent to get the title
+    },
+  });
   const modules = await prisma.module.findMany({ take: 10 });
 
   // Create notifications for each role
@@ -61,12 +70,13 @@ export async function seedNotifications(prisma: PrismaClient, users: User[]) {
         const assignment = faker.helpers.arrayElement(assignments);
         const module = faker.helpers.arrayElement(modules);
 
+        // Use moduleContent title for assignment, fallback to a generic title
+        const assignmentTitle =
+          assignment?.moduleContent?.title || 'Programming Assignment 1';
+
         const title = template
           .replace('{course}', course?.name || 'Computer Science 101')
-          .replace(
-            '{assignment}',
-            assignment?.title || 'Programming Assignment 1',
-          )
+          .replace('{assignment}', assignmentTitle)
           .replace('{module}', module?.title || 'Introduction Module')
           .replace('{message}', faker.lorem.words(3));
 
@@ -84,13 +94,11 @@ export async function seedNotifications(prisma: PrismaClient, users: User[]) {
         });
         notificationCount++;
 
-        // Create receipt for the user
+        // Create receipt for the user (without title and content - they're not in the model)
         await prisma.notificationReceipt.create({
           data: {
             notificationId: notification.id,
             userId: user.id,
-            title,
-            content,
             isRead,
             createdAt: faker.date.recent({ days: 30 }),
           },

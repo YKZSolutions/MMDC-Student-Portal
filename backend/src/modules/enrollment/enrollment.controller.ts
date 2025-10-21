@@ -2,11 +2,11 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
-import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -18,9 +18,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
+import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
+import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { EnrollmentService } from './enrollment.service';
+import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -33,10 +35,12 @@ export class EnrollmentController {
    * This operation creates a new enrollment period for managing course registrations.
    * Requires `ADMIN` role.
    */
-  @ApiException(() => [BadRequestException])
-  @Roles(Role.ADMIN)
   @Post()
-  createEnrollment(@Body() dto: CreateEnrollmentPeriodDto) {
+  @Roles(Role.ADMIN)
+  @ApiException(() => [BadRequestException, ConflictException])
+  createEnrollment(
+    @Body() dto: CreateEnrollmentPeriodItemDto,
+  ): Promise<EnrollmentPeriodDto> {
     return this.enrollmentService.createEnrollment(dto);
   }
 
@@ -48,7 +52,7 @@ export class EnrollmentController {
    * Requires `ADMIN` role.
    */
   @ApiException(() => [BadRequestException])
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get()
   findAllEnrollments(@Query() filters: BaseFilterDto) {
     return this.enrollmentService.findAllEnrollments(filters);
@@ -74,11 +78,11 @@ export class EnrollmentController {
    * Requires `ADMIN` role.
    *
    * @throws NotFoundException If the enrollment does not exist
-   * @throws BadRequestException If ID format is invalid
+   * @throws BadRequestException If an ID format is invalid
    */
   @ApiException(() => [NotFoundException, BadRequestException])
   @Get(':enrollmentId')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   findOneEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
   ) {
@@ -99,7 +103,7 @@ export class EnrollmentController {
   @Patch(':enrollmentId')
   updateEnrollment(
     @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
-    @Body() updateEnrollmentDto: UpdateEnrollmentDto,
+    @Body() updateEnrollmentDto: UpdateEnrollmentPeriodItemDto,
   ) {
     return this.enrollmentService.updateEnrollment(
       enrollmentId,

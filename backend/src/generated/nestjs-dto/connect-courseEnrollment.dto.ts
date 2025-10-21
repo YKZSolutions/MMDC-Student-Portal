@@ -1,11 +1,42 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class ConnectCourseEnrollmentDto {
+export class CourseEnrollmentCourseOfferingIdStudentIdUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
   @IsNotEmpty()
   @IsString()
-  id: string;
+  courseOfferingId: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  studentId: string;
+}
+
+@ApiExtraModels(CourseEnrollmentCourseOfferingIdStudentIdUniqueInputDto)
+export class ConnectCourseEnrollmentDto {
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  id?: string;
+  @ApiProperty({
+    type: CourseEnrollmentCourseOfferingIdStudentIdUniqueInputDto,
+    required: false,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CourseEnrollmentCourseOfferingIdStudentIdUniqueInputDto)
+  courseOfferingId_studentId?: CourseEnrollmentCourseOfferingIdStudentIdUniqueInputDto;
 }

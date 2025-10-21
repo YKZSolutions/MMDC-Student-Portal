@@ -11,7 +11,7 @@ const route = getRouteApi('/(protected)/lms/$lmsCode/modules/')
 const { queryClient } = getContext()
 
 function ModulesAdminPage() {
-  const [allExpanded, setAllExpanded] = useState(false)
+  const [allExpanded, setAllExpanded] = useState(true)
 
   return (
     <Box>

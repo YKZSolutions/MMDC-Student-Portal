@@ -1,5 +1,6 @@
 import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
@@ -8,13 +9,17 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
+  Query
 } from '@nestjs/common';
-import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse } from '@nestjs/swagger';
 import { CourseEnrollmentService } from './course-enrollment.service';
+import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
+import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
 
 @Controller('enrollment/student')
@@ -42,6 +47,26 @@ export class CourseEnrollmentController {
   getCourseEnrollments(@CurrentUser() user: CurrentAuthUser) {
     const { role, user_id } = user.user_metadata;
     return this.courseEnrollmentService.getCourseEnrollments(user_id, role);
+  }
+
+  /**
+   * Retrieve all course enrollments with optional filters.
+   *
+   * @remarks
+   * - `ADMIN` can retrieve all enrollments and apply filters.
+   *
+   * @param filters Optional filtering criteria such as page.
+   * @returns A paginated response containing the enrollments matching the filter criteria.
+   *
+   * @throws BadRequestException If the request is malformed.
+   * @throws NotFoundException If no enrollment records match the filters.
+   */
+  @ApiOkResponse({ type: PaginatedCourseEnrollmentsDto })
+  @ApiException(() => [BadRequestException, NotFoundException])
+  @Roles(Role.ADMIN)
+  @Get()
+  findAll(@Query() filters: BaseFilterDto) {
+    return this.courseEnrollmentService.findAll(filters);
   }
 
   /**
@@ -122,12 +147,11 @@ export class CourseEnrollmentController {
     },
   })
   @ApiException(() => [BadRequestException])
-  @ApiBody({ required: false, type: StudentIdentifierDto })
   @Roles(Role.STUDENT, Role.ADMIN)
   @Post('/finalize')
   finalizeCourseEnrollment(
     @CurrentUser() user: CurrentAuthUser,
-    @Body() dto?: StudentIdentifierDto,
+    @Body() dto: FinalizeEnrollmentDto,
   ) {
     return this.courseEnrollmentService.finalizeEnrollment(user, dto);
   }

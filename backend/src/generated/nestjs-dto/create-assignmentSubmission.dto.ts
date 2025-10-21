@@ -1,5 +1,5 @@
 import { Prisma, SubmissionState } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
@@ -7,8 +7,30 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  CreateSubmissionAttachmentDto,
+  type CreateSubmissionAttachmentDto as CreateSubmissionAttachmentDtoAsType,
+} from './create-submissionAttachment.dto';
 
+export class CreateAssignmentSubmissionAttachmentsRelationInputDto {
+  @ApiProperty({
+    type: CreateSubmissionAttachmentDto,
+    isArray: true,
+  })
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateSubmissionAttachmentDto)
+  create: CreateSubmissionAttachmentDtoAsType[];
+}
+
+@ApiExtraModels(
+  CreateSubmissionAttachmentDto,
+  CreateAssignmentSubmissionAttachmentsRelationInputDto,
+)
 export class CreateAssignmentSubmissionDto {
   @ApiProperty({
     type: () => Object,
@@ -49,4 +71,12 @@ export class CreateAssignmentSubmissionDto {
   @IsOptional()
   @IsInt()
   lateDays?: number | null;
+  @ApiProperty({
+    required: false,
+    type: CreateAssignmentSubmissionAttachmentsRelationInputDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateAssignmentSubmissionAttachmentsRelationInputDto)
+  attachments?: CreateAssignmentSubmissionAttachmentsRelationInputDto;
 }

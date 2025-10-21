@@ -17,6 +17,10 @@ import {
   Appointment,
   type Appointment as AppointmentAsType,
 } from './appointment.entity';
+import {
+  Transcript,
+  type Transcript as TranscriptAsType,
+} from './transcript.entity';
 
 export class CourseOffering {
   @ApiProperty({
@@ -43,6 +47,8 @@ export class CourseOffering {
   modules?: ModuleAsType[];
   @ApiHideProperty()
   appointments?: AppointmentAsType[];
+  @ApiHideProperty()
+  transcripts?: TranscriptAsType[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

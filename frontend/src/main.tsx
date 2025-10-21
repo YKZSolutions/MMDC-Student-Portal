@@ -8,6 +8,7 @@ import { modals } from './integrations/mantine/mantine-modals.ts'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import utc from 'dayjs/plugin/utc'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
@@ -50,6 +51,7 @@ declare module '@tanstack/react-router' {
 
 dayjs.extend(relativeTime)
 dayjs.extend(customParseFormat)
+dayjs.extend(utc)
 
 // Render the app
 const rootElement = document.getElementById('app')

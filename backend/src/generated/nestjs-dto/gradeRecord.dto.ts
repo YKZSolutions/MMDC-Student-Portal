@@ -29,12 +29,7 @@ export class GradeRecordDto {
     type: () => Object,
     isArray: true,
   })
-  rubricScores: Prisma.JsonValue[];
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-  })
-  questionScores: Prisma.JsonValue[];
+  rubricEvaluationDetails: PrismaJson.RubricEvaluationDetail[];
   @ApiProperty({
     type: 'string',
     format: 'date-time',

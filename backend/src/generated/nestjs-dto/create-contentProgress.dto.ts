@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsOptional } from 'class-validator';
+import { IsDateString, IsOptional } from 'class-validator';
 
 export class CreateContentProgressDto {
   @ApiProperty({
@@ -11,15 +11,6 @@ export class CreateContentProgressDto {
   @IsOptional()
   @IsDateString()
   completedAt?: Date | null;
-  @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsInt()
-  timeSpent?: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

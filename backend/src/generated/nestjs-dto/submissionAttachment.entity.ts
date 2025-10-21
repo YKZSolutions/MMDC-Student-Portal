@@ -3,10 +3,6 @@ import {
   AssignmentSubmission,
   type AssignmentSubmission as AssignmentSubmissionAsType,
 } from './assignmentSubmission.entity';
-import {
-  QuizSubmission,
-  type QuizSubmission as QuizSubmissionAsType,
-} from './quizSubmission.entity';
 
 export class SubmissionAttachment {
   @ApiProperty({
@@ -20,13 +16,6 @@ export class SubmissionAttachment {
     nullable: true,
   })
   assignmentSubmissionId: string | null;
-  @ApiHideProperty()
-  quizSubmission?: QuizSubmissionAsType | null;
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-  })
-  quizSubmissionId: string | null;
   @ApiProperty({
     type: 'string',
   })

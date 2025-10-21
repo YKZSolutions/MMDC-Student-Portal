@@ -5,25 +5,30 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { CreateEnrollmentPeriodDto } from '@/generated/nestjs-dto/create-enrollmentPeriod.dto';
 import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
+import { LmsService } from '../lms/lms-module/lms.service';
+import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
+import { EnrollmentPeriodItemDto } from './dto/enrollment-period-item.dto';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollment-period.dto';
-import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
+import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 
 @Injectable()
 export class EnrollmentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly lmsService: LmsService,
   ) {}
 
   /**
@@ -44,10 +49,26 @@ export class EnrollmentService {
   })
   async createEnrollment(
     @LogParam('enrollment')
-    createEnrollmentPeriodDto: CreateEnrollmentPeriodDto,
+    createEnrollmentPeriodDto: CreateEnrollmentPeriodItemDto,
   ): Promise<EnrollmentPeriodDto> {
-    return await this.prisma.client.enrollmentPeriod.create({
-      data: { ...createEnrollmentPeriodDto },
+    return await this.prisma.client.$transaction(async (tx) => {
+      const existingEnrollment = await tx.enrollmentPeriod.findFirst({
+        where: {
+          startYear: createEnrollmentPeriodDto.startYear,
+          endYear: createEnrollmentPeriodDto.endYear,
+          term: createEnrollmentPeriodDto.term,
+        },
+      });
+
+      if (existingEnrollment) {
+        throw new ConflictException(
+          'Enrollment period already exists for the given duration.',
+        );
+      }
+
+      return await tx.enrollmentPeriod.create({
+        data: { ...createEnrollmentPeriodDto },
+      });
     });
   }
 
@@ -69,9 +90,40 @@ export class EnrollmentService {
     @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedEnrollmentPeriodsDto> {
     const page = filters.page || 1;
+    const search = filters.search || '';
+    const where: Prisma.EnrollmentPeriodWhereInput = {};
+
+    if (search) {
+      where.OR = [
+        ...(!isNaN(Number(search))
+          ? [
+              {
+                term: {
+                  equals: Number(search),
+                },
+              },
+              {
+                startYear: {
+                  equals: Number(search),
+                },
+              },
+              {
+                endYear: {
+                  equals: Number(search),
+                },
+              },
+            ]
+          : []),
+      ];
+    }
 
     const [enrollments, meta] = await this.prisma.client.enrollmentPeriod
-      .paginate()
+      .paginate({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
       .withPages({ limit: filters.limit ?? 10, page, includePageCount: true });
 
     return { enrollments, meta };
@@ -119,10 +171,18 @@ export class EnrollmentService {
   })
   async findOneEnrollment(
     @LogParam('id') id: string,
-  ): Promise<EnrollmentPeriodDto> {
-    return await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
-      where: { id },
-    });
+  ): Promise<EnrollmentPeriodItemDto> {
+    const enrollmentPeriod =
+      await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
+        where: { id },
+        include: {
+          pricingGroup: true,
+        },
+      });
+    return {
+      ...enrollmentPeriod,
+      pricingGroup: enrollmentPeriod.pricingGroup || undefined,
+    };
   }
 
   /**
@@ -159,10 +219,12 @@ export class EnrollmentService {
       }
 
       // Then update the requested one
-      return tx.enrollmentPeriod.update({
+      const enrollmentPeriod = await tx.enrollmentPeriod.update({
         where: { id },
         data: { ...updateEnrollmentStatusDto },
       });
+
+      return enrollmentPeriod;
     });
   }
 
@@ -189,7 +251,7 @@ export class EnrollmentService {
   })
   async updateEnrollment(
     @LogParam('id') id: string,
-    updateEnrollmentDto: UpdateEnrollmentDto,
+    updateEnrollmentDto: UpdateEnrollmentPeriodItemDto,
   ): Promise<EnrollmentPeriodDto> {
     const enrollment =
       await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
@@ -231,9 +293,9 @@ export class EnrollmentService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Enrollment [${id}] not found.`),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { id }) =>
+    [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException(
-        `Enrollment [${id}] cannot be deleted because it is still referenced by other records.`,
+        `Enrollment cannot be deleted because it is still referenced by other records.`,
       ),
   })
   async removeEnrollment(
@@ -245,9 +307,27 @@ export class EnrollmentService {
         where: { id },
       });
 
+    const enrolledStudents = await this.prisma.client.courseEnrollment.findMany(
+      {
+        where: {
+          courseOffering: {
+            enrollmentPeriod: {
+              id: enrollment.id,
+            },
+          },
+        },
+      },
+    );
+
+    if (enrolledStudents.length > 0) {
+      throw new BadRequestException(
+        `Students are enrolled in this enrollment period. Please cancel the enrollment first.}`,
+      );
+    }
+
     if (enrollment.status === 'closed') {
       throw new BadRequestException(
-        `Enrollment ${id} is closed and cannot be deleted.`,
+        `Enrollment for Term ${enrollment.term} of SY ${enrollment.startYear}-${enrollment.endYear} is closed and cannot be deleted.`,
       );
     }
 
@@ -263,6 +343,8 @@ export class EnrollmentService {
     await this.prisma.client.enrollmentPeriod.delete({
       where: { id },
     });
+
+    await this.lmsService.removeModules(id);
 
     return { message: 'Enrollment permanently deleted' };
   }

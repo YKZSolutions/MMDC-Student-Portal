@@ -3,6 +3,7 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import { roleOptions, roleStyles } from '@/features/user-management/constants'
 import { SuspendedUserTableRows } from '@/features/user-management/suspense'
 import type { IUsersQuery } from '@/features/user-management/types'
+import { useSearchState } from '@/hooks/use-search-state'
 import {
   type PaginationMetaDto,
   type Role,
@@ -16,7 +17,8 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
-import { formatPaginationMessage } from '@/utils/formatters'
+import type { UsersSearchSchemaType } from '@/routes/(protected)/users'
+import { formatMetaToPagination } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
@@ -39,7 +41,6 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core'
-import { useDebouncedCallback } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import {
@@ -53,9 +54,9 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { Suspense, useState, type ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
 
 const route = getRouteApi('/(protected)/users/')
 
@@ -64,7 +65,7 @@ function UsersQueryProvider({
   props = {
     search: '',
     page: 1,
-    role: null,
+    role: undefined,
   },
 }: {
   children: (props: {
@@ -73,23 +74,24 @@ function UsersQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IUsersQuery
+  props?: UsersSearchSchemaType
 }) {
   const { search, page, role } = props
 
   const { data } = useSuspenseQuery(
     usersControllerFindAllOptions({
-      query: { search, page, ...(role && { role }) },
+      query: { search: search, page, ...(role && { role }) },
     }),
   )
 
   const users = data?.users ?? []
   const meta = data?.meta
-  const limit = 10
-  const total = meta?.totalCount ?? 0
-  const totalPages = meta?.pageCount ?? 0
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
+    page,
+    meta,
+  })
 
   return children({
     users,
@@ -100,87 +102,15 @@ function UsersQueryProvider({
 }
 
 function UsersPage() {
-  const searchParam: {
-    search: string
-    role: Role | null
-  } = route.useSearch()
-  const navigate = useNavigate()
-
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-    role: searchParam.role || null,
-  }
-
-  const [query, setQuery] = useState<IUsersQuery>(queryDefaultValues)
-
-  // Since searchParam is debounced,
-  // this is what we need to pass to the query provider
-  // This will ensure that the query is also debounced
-  const debouncedQuery = {
-    search: searchParam.search || '',
-    page: query.page,
-    role: query.role,
-  } as IUsersQuery
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-
-    setQuery((prev) => ({
-      ...prev,
-      search: value,
-    }))
-
-    handleNavigate(value)
-  }
-
-  const handleNavigate = useDebouncedCallback(async (value: string) => {
-    navigate({
-      to: '/users',
-      search: (prev) => ({
-        ...prev,
-        search: value.trim() || undefined,
-      }),
-    })
-  }, 200)
-
-  const handlePage = (page: IUsersQuery['page']) => {
-    setQuery((prev) => ({
-      ...prev,
-      page,
-    }))
-  }
+  const { search, setDebouncedSearch, handleSearch, handlePage } =
+    useSearchState(route)
 
   const handleRoleFilter = (role: IUsersQuery['role']) => {
-    setQuery((prev) => ({
-      ...prev,
-      role,
-    }))
-
-    navigate({
-      to: '/users',
-      search: (prev) => ({
-        ...prev,
-        role: role || undefined,
-      }),
-    })
+    setDebouncedSearch({ role: role || undefined, page: 1 })
   }
 
   const handleResetFilter = () => {
-    setQuery((prev) => ({
-      ...prev,
-      role: null,
-      page: 1,
-    }))
-
-    navigate({
-      to: '/users',
-      search: (prev) => ({
-        ...prev,
-        role: undefined,
-        page: undefined,
-      }),
-    })
+    setDebouncedSearch({ role: undefined, page: undefined })
   }
 
   return (
@@ -242,8 +172,8 @@ function UsersPage() {
                 base: '100%',
                 xs: rem(250),
               }}
-              value={query.search}
-              onChange={(e) => handleSearch(e)}
+              defaultValue={search.search}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Popover position="bottom" width={rem(300)}>
               <Popover.Target>
@@ -295,12 +225,12 @@ function UsersPage() {
                           className="flex-[47%]"
                           key={role.value}
                           variant={
-                            query.role === role.value ? 'filled' : 'outline'
+                            search.role === role.value ? 'filled' : 'outline'
                           }
                           styles={{
                             root: {
                               background:
-                                query.role === role.value
+                                search.role === role.value
                                   ? 'var(--mantine-color-gray-3)'
                                   : 'transparent',
                               borderColor: 'var(--mantine-color-gray-3)',
@@ -347,16 +277,16 @@ function UsersPage() {
           </Flex>
         </Group>
 
-        <UsersTable props={debouncedQuery} />
+        <UsersTable props={search} />
 
         <Suspense fallback={<SuspendedPagination />}>
-          <UsersQueryProvider props={debouncedQuery}>
+          <UsersQueryProvider props={search}>
             {(props) => (
               <Group justify="flex-end">
                 <Text size="sm">{props.message}</Text>
                 <Pagination
                   total={props.totalPages}
-                  value={query.page}
+                  value={search.page || 1}
                   onChange={handlePage}
                   withPages={false}
                 />
@@ -369,7 +299,7 @@ function UsersPage() {
   )
 }
 
-function UsersTable({ props }: { props: IUsersQuery }) {
+function UsersTable({ props }: { props: UsersSearchSchemaType }) {
   return (
     <Table.ScrollContainer minWidth={rem(600)} type="native">
       <Table

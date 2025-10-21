@@ -22,11 +22,13 @@ export const SubmissionForm = ({
   onSubmit,
   buttonLabel = 'Submit',
   withSubmissionPageNavigation = false,
+  loading = false,
 }: {
   onSubmit: (payload: SubmissionPayload) => void
   buttonLabel?: string
   assignmentId?: string
   withSubmissionPageNavigation?: boolean
+  loading?: boolean
 }) => {
   const [file, setFile] = useState<File | null>(null)
   const [link, setLink] = useState('')
@@ -51,6 +53,7 @@ export const SubmissionForm = ({
         leftSection={<IconUpload size={16} />}
         value={file}
         onChange={setFile}
+        disabled={loading}
       />
 
       <TextInput
@@ -59,6 +62,7 @@ export const SubmissionForm = ({
         leftSection={<IconLink size={16} />}
         value={link}
         onChange={(e) => setLink(e.currentTarget.value)}
+        disabled={loading}
       />
 
       <Textarea
@@ -67,10 +71,11 @@ export const SubmissionForm = ({
         minRows={3}
         value={comments}
         onChange={(e) => setComments(e.currentTarget.value)}
+        disabled={loading}
       />
 
       <Group justify="flex-end">
-        <Button onClick={handleSubmit} disabled={!canSubmit}>
+        <Button onClick={handleSubmit} disabled={!canSubmit} loading={loading}>
           {buttonLabel}
         </Button>
 

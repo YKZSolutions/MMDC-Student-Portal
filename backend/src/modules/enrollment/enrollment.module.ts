@@ -7,6 +7,8 @@ import { CourseOfferingController } from './course-offering.controller';
 import { CourseSectionController } from './course-section.controller';
 import { CourseEnrollmentService } from './course-enrollment.service';
 import { CourseEnrollmentController } from './course-enrollment.controller';
+import { BillingModule } from '../billing/billing.module';
+import { LmsModule } from '../lms/lms-module/lms.module';
 
 @Module({
   controllers: [
@@ -22,5 +24,6 @@ import { CourseEnrollmentController } from './course-enrollment.controller';
     CourseEnrollmentService,
   ],
   exports: [EnrollmentService, CourseEnrollmentService],
+  imports: [BillingModule, LmsModule],
 })
 export class EnrollmentModule {}

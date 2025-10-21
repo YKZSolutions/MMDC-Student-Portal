@@ -4,12 +4,18 @@ import {
   SuspendedAdminEnrollmentCourseOfferingCards,
   SuspendedStudentEnrollmentFinalizationSectionCards,
 } from '@/features/enrollment/suspense'
+import type { IPaymentScheme } from '@/features/enrollment/types'
 import {
-  type CourseOfferingControllerFindCourseOfferingsByPeriodData,
+  enrollmentStatusOptions,
+  paymentSchemeData,
+} from '@/features/enrollment/validation'
+import { useSearchState } from '@/hooks/use-search-state'
+import {
   type DetailedCourseEnrollmentDto,
   type DetailedCourseOfferingDto,
   type DetailedCourseSectionDto,
   type EnrollmentPeriodDto,
+  type PaymentScheme,
 } from '@/integrations/api/client'
 import {
   courseEnrollmentControllerCreateCourseEnrollmentMutation,
@@ -23,9 +29,10 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import type { EnrollmentSearchSchema } from '@/routes/(protected)/enrollment'
 import {
   formatDaysAbbrev,
-  formatPaginationMessage,
+  formatMetaToPagination,
   formatToSchoolYear,
   formatToTimeOfDay,
 } from '@/utils/formatters'
@@ -69,7 +76,7 @@ import {
   type QueryObserverResult,
   type RefetchOptions,
 } from '@tanstack/react-query'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 
@@ -77,7 +84,7 @@ const route = getRouteApi('/(protected)/enrollment/')
 
 const { queryClient } = getContext()
 
-const tabsData = [
+export const tabsData = [
   {
     value: 'course-selection',
     label: 'Course Selection',
@@ -90,61 +97,6 @@ const tabsData = [
   },
 ]
 
-const segmentedControlData = [
-  {
-    label: 'All',
-    value: 'all' satisfies IEnrollmentStudentQuery['status'],
-  },
-  {
-    label: 'Enrolled',
-    value: 'enrolled' satisfies IEnrollmentStudentQuery['status'],
-  },
-  {
-    label: 'Not Enrolled',
-    value: 'not enrolled' satisfies IEnrollmentStudentQuery['status'],
-  },
-]
-
-interface IPaymentScheme {
-  paymentTypeId: string
-  paymentType: string
-  paymentDescription: string
-  paymentBreakdown: string
-}
-
-const paymentSchemeData = [
-  {
-    paymentTypeId: 'full-payment',
-    paymentType: 'Full Payment',
-    paymentDescription: 'No Interest • 1 Payment',
-    paymentBreakdown: '100% at Enrollment',
-  },
-  {
-    paymentTypeId: 'installment-plan-1',
-    paymentType: 'Installment Plan 1',
-    paymentDescription: '5% Interest • 3 Payments',
-    paymentBreakdown:
-      '40% at enrollment • 30% first payment • 30% second payment',
-  },
-  {
-    paymentTypeId: 'installment-plan-2',
-    paymentType: 'Installment Plan 2',
-    paymentDescription: '7.5% Interest • 3 Payments',
-    paymentBreakdown:
-      '20% at enrollment • 40% first payment • 40% second payment',
-  },
-] as IPaymentScheme[]
-
-interface IEnrollmentStudentQuery {
-  search: string
-  page: number
-  status:
-    | NonNullable<
-        CourseOfferingControllerFindCourseOfferingsByPeriodData['query']
-      >['status']
-    | 'all'
-}
-
 function EnrollmentStudentQueryProvider({
   children,
   props = {
@@ -154,12 +106,12 @@ function EnrollmentStudentQueryProvider({
   },
 }: {
   children: (props: {
-    enrollmentPeriodData: EnrollmentPeriodDto
+    enrollmentPeriodData: EnrollmentPeriodDto | undefined
     courseOfferings: DetailedCourseOfferingDto[]
     message: string
     totalPages: number
   }) => ReactNode
-  props?: IEnrollmentStudentQuery
+  props?: EnrollmentSearchSchema
 }) {
   const { search, page, status } = props
 
@@ -175,24 +127,18 @@ function EnrollmentStudentQueryProvider({
         status: status == 'all' ? undefined : status,
       },
       path: {
-        enrollmentId: enrollmentPeriodData.id,
+        enrollmentId: enrollmentPeriodData?.id || '',
       },
     }),
   )
 
-  const courseOfferings = courseData.courseOfferings
+  const courseOfferings = courseData?.courseOfferings || []
 
-  const limit = 10
-  const total = courseOfferings.length
-  const totalPages = 1
-
-  const message = formatPaginationMessage({
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
     page,
-    total,
-    limit,
+    meta: courseData?.meta!,
   })
-
-  console.log(courseOfferings)
 
   return children({
     enrollmentPeriodData,
@@ -220,22 +166,15 @@ function EnrollmentStudentFinalizationQueryProvider({
 }
 
 function EnrollmentStudentPage() {
-  const navigate = useNavigate()
-  const searchParam: {
-    tab: (typeof tabsData)[number]['value']
-  } = route.useSearch()
+  const { search, setDebouncedSearch } = useSearchState(route)
 
   const handleChangeTab = (
     value: (typeof tabsData)[number]['value'] | null,
   ) => {
     if (!value) return
 
-    navigate({
-      to: '/enrollment',
-      search: (prev) => ({
-        ...prev,
-        tab: value !== 'course-selection' ? value : undefined,
-      }),
+    setDebouncedSearch({
+      tab: value !== 'course-selection' ? value : undefined,
     })
   }
 
@@ -259,14 +198,18 @@ function EnrollmentStudentPage() {
               {({ enrollmentPeriodData }) => (
                 <Group>
                   <Title c={'dark.7'} order={2} fw={700}>
-                    {formatToSchoolYear(
-                      enrollmentPeriodData.startYear,
-                      enrollmentPeriodData.endYear,
-                    )}
+                    {enrollmentPeriodData?.startYear
+                      ? formatToSchoolYear(
+                          enrollmentPeriodData.startYear,
+                          enrollmentPeriodData.endYear,
+                        )
+                      : 'No active enrollment period'}
                   </Title>
                   <Divider orientation="vertical" />
                   <Title c={'dark.7'} order={2} fw={700}>
-                    Term {enrollmentPeriodData.term}
+                    {enrollmentPeriodData?.term
+                      ? 'Term ' + enrollmentPeriodData.term
+                      : 'N/A'}
                   </Title>
                 </Group>
               )}
@@ -275,11 +218,11 @@ function EnrollmentStudentPage() {
         </Group>
 
         {/* Main Tabs */}
-        {/* Don't modify page layout here. Instead,
+        {/* Don't modify the page layout here. Instead,
         modify each component provided in tabsData */}
 
         <Tabs
-          defaultValue={searchParam.tab || tabsData[0].value}
+          defaultValue={search.tab || tabsData[0].value}
           onChange={(e) => handleChangeTab(e)}
           inverted
           radius={'md'}
@@ -330,36 +273,15 @@ function EnrollmentStudentPage() {
 }
 
 function CourseSelectionPanel() {
-  const searchParam: {
-    search: string
-    status: IEnrollmentStudentQuery['status']
-  } = route.useSearch()
-  const navigate = useNavigate()
-
-  const queryDefaultValues = {
-    search: searchParam.search || '',
-    page: 1,
-    status: searchParam.status || 'all',
-  } satisfies IEnrollmentStudentQuery
-
-  const [query, setQuery] =
-    useState<IEnrollmentStudentQuery>(queryDefaultValues)
+  const { search, setDebouncedSearch } = useSearchState(route)
 
   const handleSegmentedControlChange = (
-    value: IEnrollmentStudentQuery['status'],
+    value: EnrollmentSearchSchema['status'],
   ) => {
-    setQuery((prev) => ({ ...prev, status: value }))
-
-    navigate({
-      to: '/enrollment',
-      search: (prev) => ({
-        ...prev,
-        status: value !== 'all' ? value : undefined,
-      }),
-    })
+    setDebouncedSearch({ status: value })
 
     // Invalidate the course offerings query here so it only refetches
-    // on enrolled and not enrolled tab and it retriggers suspense
+    // on the enrolled and not enrolled tab and it retriggers suspense
     if (value == 'enrolled' || value == 'not enrolled')
       queryClient.removeQueries({
         predicate: (query) =>
@@ -378,12 +300,12 @@ function CourseSelectionPanel() {
             bd={'1px solid gray.2'}
             radius={'md'}
             data-cy="enrollment-tabs" // Add to the container
-            data={segmentedControlData}
+            data={[...enrollmentStatusOptions]}
             color="primary"
-            defaultValue={query.status}
+            defaultValue={search.status}
             onChange={(e) =>
               handleSegmentedControlChange(
-                e as IEnrollmentStudentQuery['status'],
+                e as EnrollmentSearchSchema['status'],
               )
             }
             fullWidth
@@ -464,7 +386,7 @@ function CourseSelectionPanel() {
 
         <Accordion variant="filled">
           <Suspense fallback={<SuspendedAdminEnrollmentCourseOfferingCards />}>
-            <EnrollmentStudentQueryProvider props={query}>
+            <EnrollmentStudentQueryProvider props={search}>
               {({ enrollmentPeriodData, courseOfferings }) => (
                 <>
                   {courseOfferings.length === 0 && (
@@ -493,7 +415,7 @@ function CourseSelectionPanel() {
                         <Accordion.Control py={rem(5)}>
                           <CourseOfferingAccordionControl
                             course={course}
-                            periodId={enrollmentPeriodData.id}
+                            periodId={enrollmentPeriodData?.id}
                           />
                         </Accordion.Control>
 
@@ -518,7 +440,7 @@ function CourseSelectionPanel() {
               <Text size="sm">{props.message}</Text>
               <Pagination
                 total={props.totalPages}
-                value={query.page}
+                value={search.page || 1}
                 withPages={false}
               />
             </Group>
@@ -530,7 +452,8 @@ function CourseSelectionPanel() {
 }
 
 function FinalizationPanel() {
-  const [selectedPaymentScheme, setSelectedPaymentScheme] = useState<string>('')
+  const [selectedPaymentScheme, setSelectedPaymentScheme] =
+    useState<PaymentScheme | null>(null)
 
   const { mutateAsync: finalizeMutate } = useAppMutation(
     courseEnrollmentControllerFinalizeCourseEnrollmentMutation,
@@ -572,9 +495,15 @@ function FinalizationPanel() {
         </Text>
       ),
       labels: { confirm: 'Finalize', cancel: 'Cancel' },
-      onConfirm: async () =>
+      onConfirm: async () => {
         // Call the mutation
-        await finalizeMutate({}),
+        if (!selectedPaymentScheme) return
+        await finalizeMutate({
+          body: {
+            paymentScheme: selectedPaymentScheme,
+          },
+        })
+      },
     })
   }
 
@@ -778,13 +707,15 @@ function PaymentPlanCard({
   props,
 }: {
   props: IPaymentScheme & {
-    selectedPaymentScheme: string
-    setSelectedPaymentScheme: React.Dispatch<React.SetStateAction<string>>
+    selectedPaymentScheme: PaymentScheme | null
+    setSelectedPaymentScheme: React.Dispatch<
+      React.SetStateAction<PaymentScheme | null>
+    >
   }
 }) {
   const handleSelectPaymentScheme = () => {
     props.setSelectedPaymentScheme((prev) =>
-      prev === props.paymentTypeId ? '' : props.paymentTypeId,
+      prev === props.paymentTypeId ? null : props.paymentTypeId,
     )
   }
 
@@ -820,7 +751,7 @@ function CourseOfferingAccordionControl({
   periodId,
 }: {
   course: DetailedCourseOfferingDto
-  periodId: string
+  periodId: string | undefined
 }) {
   return (
     <Group justify="space-between">
@@ -1070,7 +1001,7 @@ function CourseOfferingSubjectCard({
                 variant="light"
                 radius="sm"
               >
-                {section.maxSlot} / {section.maxSlot} slots
+                {section.availableSlots} / {section.maxSlot} slots
               </Badge>
             </Flex>
           </Grid.Col>

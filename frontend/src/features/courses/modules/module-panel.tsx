@@ -1,9 +1,6 @@
 import NoItemFound from '@/components/no-item-found'
 import { useAuth } from '@/features/auth/auth.hook.ts'
-import {
-  type BasicModuleItemDto,
-  type ModuleTreeSectionDto,
-} from '@/integrations/api/client'
+import { type ModuleTreeSectionDto } from '@/integrations/api/client'
 import {
   lmsContentControllerPublishMutation,
   lmsContentControllerRemoveMutation,
@@ -17,7 +14,7 @@ import {
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { formatTimestampToDateTimeText } from '@/utils/formatters.ts'
-import { getContentKeyAndData, getContentTypeIcon } from '@/utils/helpers'
+import { getContentTypeIcon } from '@/utils/helpers'
 import {
   Accordion,
   ActionIcon,
@@ -48,12 +45,12 @@ import {
   IconRubberStampOff,
   IconTrash,
 } from '@tabler/icons-react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { Fragment, Suspense, useState } from 'react'
-import { getMockModuleByRole } from '../mocks'
+import { Fragment, type ReactNode, Suspense, useState } from 'react'
 import { ModulePanelSuspense } from '../suspense'
 import AddModuleItemDrawer from './admin/add-module-item-drawer'
+import type { ModuleTreeContentItem } from '@/features/courses/modules/types.ts'
 
 const { queryClient } = getContext()
 
@@ -67,11 +64,13 @@ function ModulePanelQueryProvider({
 }: {
   children: (props: {
     moduleSections: ModuleTreeSectionDto[] | null | undefined
-  }) => React.ReactNode
+  }) => ReactNode
 }) {
   const { lmsCode } = useParams({ strict: false })
 
-  const { data } = useSuspenseQuery(
+  //TODO: Properly implement eror handling for this
+  // temporarily fixed unhandled thrown error
+  const { data, error } = useQuery(
     lmsControllerFindModuleTreeOptions({
       path: {
         id: lmsCode || '',
@@ -89,9 +88,6 @@ function ModulePanelQueryProvider({
 }
 
 function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
-  const { authUser } = useAuth('protected')
-  const moduleData = getMockModuleByRole(authUser.role) //TODO: replace with actual data
-
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const theme = useMantineTheme()
 
@@ -222,7 +218,7 @@ function ModulePanel({ viewMode, allExpanded = false }: ModulePanelProps) {
 }
 
 interface ModuleItemCardProps {
-  moduleContent: BasicModuleItemDto
+  moduleContent: ModuleTreeContentItem
   viewMode: 'student' | 'mentor' | 'admin'
 }
 
@@ -232,7 +228,7 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
 
   const isOverdue =
     moduleContent.contentType === 'ASSIGNMENT' &&
-    moduleContent.assignment?.dueDate &&
+    moduleContent.assignment.dueDate &&
     new Date(moduleContent.assignment.dueDate) < new Date()
 
   const isCompleted =
@@ -247,7 +243,8 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
     if (role == 'admin') {
       return navigate({
         from: '/lms/$lmsCode/modules',
-        to: `edit`,
+        to: '$itemId/edit',
+        params: { itemId: moduleContent.id },
         search: { id: moduleContent.id, view: 'preview' },
       })
     }
@@ -287,7 +284,7 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
           <Box flex={1}>
             <Group gap="xs" mb={4}>
               <Text fw={500} size="sm" lineClamp={2}>
-                {getContentKeyAndData(moduleContent).existingContent?.title}
+                {moduleContent.title}
               </Text>
 
               {moduleContent.contentType && (
@@ -329,13 +326,14 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
               </Text>
             )}
 
-            {moduleContent.assignment && (
+            {moduleContent.contentType === 'ASSIGNMENT' && (
               <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
-                Due{' '}
-                {formatTimestampToDateTimeText(
-                  moduleContent.assignment.dueDate || '',
-                  'by',
-                )}{' '}
+                {moduleContent.assignment.dueDate &&
+                  'Due ' +
+                    formatTimestampToDateTimeText(
+                      moduleContent.assignment.dueDate,
+                      'by',
+                    )}{' '}
                 {/* • {moduleContent.assignment.points} pts */}
               </Text>
             )}
@@ -806,7 +804,7 @@ function AdminActions({ section }: AdminActionsProps) {
 function AdminActionsModuleContent({
   moduleContent,
 }: {
-  moduleContent: BasicModuleItemDto
+  moduleContent: ModuleTreeContentItem
 }) {
   const theme = useMantineTheme()
   const { lmsCode } = useParams({ strict: false })
@@ -991,7 +989,7 @@ function AdminActionsModuleContent({
       onConfirm: async () => {
         await unpublishModuleContent({
           path: {
-            'moduleContentId': moduleContent.id,
+            moduleContentId: moduleContent.id,
           },
         })
       },
@@ -1103,7 +1101,8 @@ function AdminActionsModuleContent({
               e.stopPropagation()
               navigate({
                 from: '/lms/$lmsCode/modules',
-                to: `edit`,
+                to: '$itemId/edit',
+                params: { itemId: moduleContent.id },
                 search: { id: moduleContent.id },
               })
             }}

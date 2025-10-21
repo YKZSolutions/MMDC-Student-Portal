@@ -1,5 +1,6 @@
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
+import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CurrentAuthUser } from '@/common/interfaces/auth.user-metadata';
 import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
@@ -10,16 +11,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
-import { StudentIdentifierDto } from './dto/student-identifier.dto';
 import { Role } from '@prisma/client';
+import { addDays, addMonths } from 'date-fns';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { BillingService } from '../billing/billing.service';
+import {
+  BillingCostBreakdown,
+  CreateBillingTypedBreakdownDto,
+} from '../billing/dto/create-billing.dto';
+import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dto';
+import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
+import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
+import { StudentIdentifierDto } from './dto/student-identifier.dto';
 
 @Injectable()
 export class CourseEnrollmentService {
   constructor(
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly billingService: BillingService,
   ) {}
 
   /**
@@ -79,6 +89,78 @@ export class CourseEnrollmentService {
     });
 
     return enrollments;
+  }
+
+  /**
+   * Retrieves all (enlisted or finalized) course enrollments across all students
+   * within the active enrollment period.
+   *
+   * This returns detailed enrollment records including the associated
+   * course offering and course section (with mentor/user data).
+   *
+   * @param filters - Optional filters for pagination and sorting
+   * @returns A list of {@link DetailedCourseEnrollmentDto} for all students
+   */
+  @Log({
+    logArgsMessage: ({ filters }) =>
+      `Fetching all course enrollments with filters: ${JSON.stringify(
+        filters,
+      )}`,
+    logSuccessMessage: (result) =>
+      `Fetched ${result.enrollments.length} enrollment(s)`,
+    logErrorMessage: (err) =>
+      `Error fetching all course enrollments | Error: ${err.message}`,
+  })
+  async findAll(
+    @LogParam('filters') filters: BaseFilterDto,
+  ): Promise<PaginatedCourseEnrollmentsDto> {
+    const page: BaseFilterDto['page'] = Number(filters?.page) || 1;
+
+    const [enrollments, meta] = await this.prisma.client.courseEnrollment
+      .paginate({
+        where: {
+          status: { in: ['enlisted', 'finalized'] },
+          courseOffering: {
+            enrollmentPeriod: {
+              status: 'active',
+            },
+          },
+        },
+        include: {
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              role: true,
+            },
+          },
+          courseSection: {
+            include: {
+              mentor: true,
+            },
+          },
+          courseOffering: {
+            include: {
+              course: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+      .withPages({
+        limit: 10,
+        page: page,
+        includePageCount: true,
+      });
+
+    return {
+      enrollments,
+      meta,
+    };
   }
 
   /**
@@ -255,11 +337,11 @@ export class CourseEnrollmentService {
    *
    * @throws BadRequestException - If no enlisted enrollments are found
    */
-  async finalizeEnrollment(user: CurrentAuthUser, dto?: StudentIdentifierDto) {
+  async finalizeEnrollment(user: CurrentAuthUser, dto: FinalizeEnrollmentDto) {
     const studentId =
       user.user_metadata.role === Role.student
         ? user.user_metadata.user_id
-        : dto?.studentId;
+        : dto.studentId;
 
     if (user.user_metadata.role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
@@ -283,7 +365,7 @@ export class CourseEnrollmentService {
         );
       }
 
-      await tx.courseEnrollment.updateMany({
+      const courseEnrollments = await tx.courseEnrollment.updateMany({
         where: {
           studentId,
           status: 'enlisted',
@@ -294,8 +376,80 @@ export class CourseEnrollmentService {
         },
       });
 
+      const student = await this.prisma.client.user.findFirstOrThrow({
+        where: { id: user.user_metadata.user_id },
+        include: {
+          userAccount: true,
+        },
+      });
+
+      const period = await this.prisma.client.enrollmentPeriod.findFirstOrThrow(
+        {
+          where: {
+            status: 'active',
+          },
+          include: {
+            pricingGroup: {
+              include: {
+                prices: true,
+              },
+            },
+          },
+        },
+      );
+
+      const { pricingGroup } = period;
+
+      if (pricingGroup) {
+        const { prices } = pricingGroup;
+
+        const tuitionFeeBase = prices.find((price) => price.type == 'tuition');
+        if (!tuitionFeeBase)
+          throw new BadRequestException(
+            "No tuition fee price for the enrollment period's pricing group",
+          );
+        const tuitionFee = tuitionFeeBase.amount.mul(courseEnrollments.count);
+        const miscFees = prices.filter((price) => price.type !== 'tuition');
+        const costBreakdown: BillingCostBreakdown[] = [
+          {
+            name: tuitionFeeBase.name,
+            category: tuitionFeeBase.type,
+            cost: tuitionFee,
+          },
+          ...miscFees.map((price) => ({
+            name: price.name,
+            cost: price.amount,
+            category: price.type,
+          })),
+        ];
+        const totalAmount = tuitionFee.add(
+          pricingGroup.amount.sub(tuitionFeeBase.amount),
+        );
+
+        const startDate = addDays(new Date(period.startDate), 10);
+        const dueDates =
+          dto.paymentScheme === 'full'
+            ? [startDate.toISOString()]
+            : [
+                startDate.toISOString(),
+                addMonths(startDate, 1).toISOString(),
+                addMonths(startDate, 2).toISOString(),
+              ];
+
+        const billDto: CreateBillingTypedBreakdownDto = {
+          payerEmail: student.userAccount?.email || '',
+          payerName: `${student.firstName} ${student.lastName}`,
+          costBreakdown,
+          billType: 'academic',
+          paymentScheme: dto?.paymentScheme,
+          totalAmount: totalAmount,
+        };
+
+        await this.billingService.create(billDto, dueDates, student.id);
+      }
+
       return {
-        message: `Successfilly finalized ${enslisted.length} course enrollment(s).`,
+        message: `Successfully finalized ${enslisted.length} course enrollment(s).`,
         studentId,
       };
     });

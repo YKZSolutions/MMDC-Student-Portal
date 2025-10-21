@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class ConnectStaffDetailsDto {
   @ApiProperty({
@@ -16,4 +16,12 @@ export class ConnectStaffDetailsDto {
   @IsOptional()
   @IsString()
   userId?: string;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  employeeNumber?: number;
 }

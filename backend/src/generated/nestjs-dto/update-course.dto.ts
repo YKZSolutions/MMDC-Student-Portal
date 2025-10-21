@@ -19,10 +19,11 @@ export class UpdateCourseDto {
   @ApiProperty({
     type: 'string',
     required: false,
+    nullable: true,
   })
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | null;
   @ApiProperty({
     type: 'integer',
     format: 'int32',

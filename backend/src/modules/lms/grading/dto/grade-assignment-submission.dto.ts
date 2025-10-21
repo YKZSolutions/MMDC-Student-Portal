@@ -5,7 +5,7 @@ import { UpdateGradeRecordDto } from '@/generated/nestjs-dto/update-gradeRecord.
 
 export class GradeAssignmentSubmissionDto extends PickType(
   UpdateGradeRecordDto,
-  ['rawScore', 'feedback', 'rubricScores'],
+  ['rawScore', 'feedback', 'rubricEvaluationDetails'],
 ) {
   @ApiProperty({
     description: 'The raw score given to the submission before any penalties.',

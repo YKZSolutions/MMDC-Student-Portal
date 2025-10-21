@@ -4,9 +4,9 @@ import {
   type CourseFormInput,
   type CourseFormOutput,
 } from '@/features/curriculum/schema/add-course.schema'
-import { usePaginationSearch } from '@/features/pagination/use-pagination-search'
 import { useQuickAction } from '@/hooks/use-quick-action'
 import { useQuickForm } from '@/hooks/use-quick-form'
+import { useSearchState } from '@/hooks/use-search-state'
 import {
   coursesControllerCreateMutation,
   coursesControllerFindAllOptions,
@@ -87,9 +87,9 @@ function EnrollmentTable() {
   }
 
   const {
-    pagination: { page, search },
-    changePage,
-  } = usePaginationSearch(route)
+    search: { page, search },
+    handlePage,
+  } = useSearchState(route)
 
   const { data: paginated } = useSuspenseQuery(
     coursesControllerFindAllOptions({ query: { page, search } }),
@@ -111,7 +111,7 @@ function EnrollmentTable() {
       data={courses}
       meta={meta}
       currentPage={page}
-      onPaginationChange={(val) => changePage(val, meta.pageCount)}
+      onPaginationChange={(val) => handlePage(val)}
       heading={['Code', 'Name', 'Units', 'Prerequisites', 'Corequisites']}
       onItemEdit={(course) => handleOpenDrawer(course.id)}
       onItemDelete={(course) =>
@@ -239,8 +239,8 @@ function CreateCourseDrawer() {
 function CreateCourseForm() {
   const { updateCourse } = route.useSearch()
   const {
-    pagination: { page, search },
-  } = usePaginationSearch(route)
+    search: { page, search },
+  } = useSearchState(route)
   const navigate = route.useNavigate()
 
   const { create, update, form, isPending } = useQuickForm<

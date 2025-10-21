@@ -1,26 +1,75 @@
-import { ContentType } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsInt, IsOptional } from 'class-validator';
+import { Prisma } from '@prisma/client';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ConnectModuleSectionDto,
+  type ConnectModuleSectionDto as ConnectModuleSectionDtoAsType,
+} from './connect-moduleSection.dto';
 
+export class UpdateModuleContentModuleSectionRelationInputDto {
+  @ApiProperty({
+    type: ConnectModuleSectionDto,
+  })
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => ConnectModuleSectionDto)
+  connect: ConnectModuleSectionDtoAsType;
+}
+
+@ApiExtraModels(
+  ConnectModuleSectionDto,
+  UpdateModuleContentModuleSectionRelationInputDto,
+)
 export class UpdateModuleContentDto {
   @ApiProperty({
-    type: 'integer',
-    format: 'int32',
-    default: 0,
+    required: false,
+    type: UpdateModuleContentModuleSectionRelationInputDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateModuleContentModuleSectionRelationInputDto)
+  moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  title?: string;
+  @ApiProperty({
+    type: 'string',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsInt()
-  order?: number | null;
+  @IsString()
+  subtitle?: string | null;
   @ApiProperty({
-    enum: ContentType,
-    enumName: 'ContentType',
+    type: () => Object,
+    isArray: true,
     required: false,
   })
   @IsOptional()
-  @IsEnum(ContentType)
-  contentType?: ContentType;
+  @IsArray()
+  content?: Prisma.InputJsonValue[];
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  order?: number;
   @ApiProperty({
     type: 'string',
     format: 'date-time',
@@ -30,15 +79,6 @@ export class UpdateModuleContentDto {
   @IsOptional()
   @IsDateString()
   publishedAt?: Date | null;
-  @ApiProperty({
-    type: 'string',
-    format: 'date-time',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsDateString()
-  toPublishAt?: Date | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

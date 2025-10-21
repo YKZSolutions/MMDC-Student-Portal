@@ -1,7 +1,8 @@
 import {
-  CreateEnrollmentPeriodFormSchema,
-  type CreateEnrollmentPeriodFormValues,
-} from '@/features/validation/create-enrollment'
+  enrollmentPeriodFormSchema,
+  type EnrollmentPeriodFormInput,
+  type EnrollmentPeriodFormOutput,
+} from '@/features/validation/create-enrollment.schema'
 import {
   billingControllerFindAllQueryKey,
   enrollmentControllerCreateEnrollmentMutation,
@@ -26,7 +27,7 @@ import { zod4Resolver } from 'mantine-form-zod-resolver'
 
 function CreateEnrollmentPage() {
   const navigate = useNavigate()
-  const form = useForm<CreateEnrollmentPeriodFormValues>({
+  const form = useForm<EnrollmentPeriodFormInput>({
     mode: 'uncontrolled',
     initialValues: {
       startDate: dayjs().startOf('day').toDate(),
@@ -35,11 +36,12 @@ function CreateEnrollmentPage() {
       endYear: dayjs().add(1, 'year').year(),
       term: 1,
       status: 'draft',
+      pricingGroup: null,
     },
-    validate: zod4Resolver(CreateEnrollmentPeriodFormSchema),
+    validate: zod4Resolver(enrollmentPeriodFormSchema),
   })
 
-  const { mutateAsync: create, isPending } = useAppMutation(
+  const { mutateAsync: create } = useAppMutation(
     enrollmentControllerCreateEnrollmentMutation,
     {
       loading: {
@@ -49,10 +51,6 @@ function CreateEnrollmentPage() {
       success: {
         title: 'Enrollment Period Created',
         message: 'The enrollment period has been created.',
-      },
-      error: {
-        title: 'Failed',
-        message: 'Something went wrong while creating the enrollment period.',
       },
     },
     {
@@ -71,14 +69,19 @@ function CreateEnrollmentPage() {
   const handleCreate = () => {
     if (form.validate().hasErrors) return console.log(form.getValues())
 
+    const values = form.getValues()
+
+    if (!values.pricingGroup) return
+
     create({
       body: {
-        startDate: form.getValues().startDate.toISOString(),
-        startYear: form.getValues().startYear,
-        endDate: form.getValues().endDate.toISOString(),
-        endYear: form.getValues().endYear,
-        term: form.getValues().term,
-        status: form.getValues().status,
+        startDate: values.startDate.toISOString(),
+        startYear: values.startYear,
+        endDate: values.endDate.toISOString(),
+        endYear: values.endYear,
+        term: values.term,
+        status: values.status,
+        pricingGroupId: values.pricingGroup.id,
       },
     })
   }

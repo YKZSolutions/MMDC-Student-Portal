@@ -1,16 +1,19 @@
+import type { QueryKey as ClientQueryKey } from '@/integrations/api/client/@tanstack/react-query.gen'
+import type { Options } from '@/integrations/api/client/client'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
-import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import {
+  useAppMutation,
+  type NotificationMessages,
+} from '@/integrations/tanstack-query/useAppMutation'
 import { toastMessage } from '@/utils/toast-message'
 import { useForm, type UseFormInput } from '@mantine/form'
 import {
   useQuery,
   type QueryKey,
-  type UseQueryOptions,
   type UseMutationOptions,
+  type UseQueryOptions,
 } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import type { QueryKey as ClientQueryKey } from '@/integrations/api/client/@tanstack/react-query.gen'
-import type { Options } from '@/integrations/api/client/client'
 
 interface QuickFormHookOptions<
   TFormInput extends Record<string, any>,
@@ -45,7 +48,12 @@ interface QuickFormHookOptions<
     TUpdateVars,
     TUpdateContext
   >
+  customToastMessage?: {
+    create?: NotificationMessages
+    update?: NotificationMessages
+  }
 }
+
 export function useQuickForm<
   TFormInput extends Record<string, any>,
   TFormOutput extends Record<string, any>,
@@ -72,6 +80,7 @@ export function useQuickForm<
     queryKeyInvalidation,
     formOptions,
     transformQueryData,
+    customToastMessage,
   }: QuickFormHookOptions<
     TFormInput,
     TQueryFnData,
@@ -92,7 +101,13 @@ export function useQuickForm<
 
     const create = useAppMutation(
       () => ({ mutationFn: createMutationOptions.mutationFn }),
-      toastMessage(name, 'creating', 'created'),
+      customToastMessage?.create ??
+        toastMessage(
+          name,
+          'creating',
+          'created',
+          Boolean(customToastMessage?.create),
+        ),
       {
         ...createMutationOptions,
         onSuccess: (data, vars, ctx) => {
@@ -105,7 +120,13 @@ export function useQuickForm<
 
     const update = useAppMutation(
       () => ({ mutationFn: updateMutationOptions.mutationFn }),
-      toastMessage(name, 'updating', 'updated'),
+      customToastMessage?.update ??
+        toastMessage(
+          name,
+          'updating',
+          'updated',
+          Boolean(customToastMessage?.update),
+        ),
       {
         ...updateMutationOptions,
         onSuccess: (data, vars, ctx) => {
@@ -117,8 +138,8 @@ export function useQuickForm<
     )
 
     const form = useForm<TFormInput>({
-      ...formOptions,
       mode: 'uncontrolled',
+      ...formOptions,
     })
 
     useEffect(() => {

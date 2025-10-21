@@ -10,11 +10,8 @@ import type {
   DetailedModulesDto,
   EnrollmentPeriodDto,
 } from '@/integrations/api/client'
-import {
-  enrollmentControllerFindActiveEnrollmentOptions,
-  lmsControllerFindAllForAdminOptions,
-} from '@/integrations/api/client/@tanstack/react-query.gen'
-import { formatPaginationMessage } from '@/utils/formatters'
+import { lmsControllerFindAllForAdminOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { formatMetaToPagination } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useSearch } from '@tanstack/react-router'
@@ -43,7 +40,6 @@ function AdminCourseDashboardProvider({
   },
 }: {
   children: (props: {
-    enrollmentPeriodData: EnrollmentPeriodDto
     modules: DetailedModulesDto[]
     message: string
     totalPages: number
@@ -55,10 +51,6 @@ function AdminCourseDashboardProvider({
   }
 }) {
   const { search, term, page } = props
-
-  const { data: enrollmentPeriodData } = useSuspenseQuery(
-    enrollmentControllerFindActiveEnrollmentOptions(),
-  )
 
   const { data: moduleData } = useSuspenseQuery(
     lmsControllerFindAllForAdminOptions({
@@ -72,18 +64,13 @@ function AdminCourseDashboardProvider({
 
   const modules = moduleData.modules
 
-  const limit = 10
-  const total = modules.length
-  const totalPages = 1
-
-  const message = formatPaginationMessage({
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
     page,
-    total,
-    limit,
+    meta: moduleData.meta,
   })
 
   return children({
-    enrollmentPeriodData,
     modules,
     message,
     totalPages,
@@ -121,13 +108,13 @@ function AdminCourseDashboardPage() {
                     <CourseCard
                       key={moduleData.id}
                       url={`/lms/${moduleData.id}`}
-                      course={moduleData.courseOffering?.course}
+                      course={moduleData.course || undefined}
                     />
                   ) : (
                     <CourseListRow
                       key={moduleData.id}
                       url={`/lms/${moduleData.id}`}
-                      course={moduleData.courseOffering?.course}
+                      course={moduleData.course || undefined}
                     />
                   ),
                 )

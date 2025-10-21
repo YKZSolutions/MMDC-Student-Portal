@@ -1,49 +1,41 @@
-import { AssignmentMode, Prisma } from '@prisma/client';
+import { AssignmentMode } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsBoolean,
   IsDateString,
-  IsDecimal,
   IsEnum,
   IsInt,
   IsOptional,
-  IsString,
 } from 'class-validator';
 
 export class UpdateAssignmentDto {
   @ApiProperty({
-    type: 'string',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  title?: string;
-  @ApiProperty({
-    type: 'string',
-    required: false,
-    nullable: true,
-  })
-  @IsOptional()
-  @IsString()
-  subtitle?: string | null;
-  @ApiProperty({
-    type: () => Object,
-    isArray: true,
-    required: false,
-  })
-  @IsOptional()
-  @IsArray()
-  content?: Prisma.InputJsonValue[];
-  @ApiProperty({
     enum: AssignmentMode,
     enumName: 'AssignmentMode',
+    default: 'INDIVIDUAL',
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsEnum(AssignmentMode)
-  mode?: AssignmentMode | null;
+  mode?: AssignmentMode;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  maxScore?: number;
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    default: 0,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  weightPercentage?: number;
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -55,6 +47,7 @@ export class UpdateAssignmentDto {
   maxAttempts?: number | null;
   @ApiProperty({
     type: 'boolean',
+    default: false,
     required: false,
     nullable: true,
   })
@@ -62,14 +55,14 @@ export class UpdateAssignmentDto {
   @IsBoolean()
   allowLateSubmission?: boolean | null;
   @ApiProperty({
-    type: 'string',
-    format: 'Decimal.js',
+    type: 'integer',
+    format: 'int32',
     required: false,
     nullable: true,
   })
   @IsOptional()
-  @IsDecimal()
-  latePenalty?: Prisma.Decimal | null;
+  @IsInt()
+  latePenalty?: number | null;
   @ApiProperty({
     type: 'string',
     format: 'date-time',

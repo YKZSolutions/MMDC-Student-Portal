@@ -9,6 +9,7 @@ import { CourseSectionDto } from '@/generated/nestjs-dto/courseSection.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -60,10 +61,19 @@ export class CourseSectionService {
   ): Promise<CourseSectionDto> {
     const offering = await this.prisma.client.courseOffering.findFirst({
       where: { id: offeringId, periodId: enrollmentId },
+      include: {
+        enrollmentPeriod: true,
+      },
     });
 
     if (!offering) {
       throw new NotFoundException('Offering not found in this enrollment');
+    }
+
+    if (offering.enrollmentPeriod.status === 'closed') {
+      throw new BadRequestException(
+        'Cannot create a course section in a closed enrollment period.',
+      );
     }
 
     return this.prisma.client.courseSection.create({
@@ -159,8 +169,10 @@ export class CourseSectionService {
    * using only the section id.
    */
   @Log({
-    logArgsMessage: ({ sectionId }) => `Fetching course section for id ${sectionId}`,
-    logSuccessMessage: (section) => `Successfully fetched course section ${section.id}`,
+    logArgsMessage: ({ sectionId }) =>
+      `Fetching course section for id ${sectionId}`,
+    logSuccessMessage: (section) =>
+      `Successfully fetched course section ${section.id}`,
     logErrorMessage: (err, { sectionId }) =>
       `Error fetching course section ${sectionId} | Error: ${err.message}`,
   })
@@ -211,7 +223,7 @@ export class CourseSectionService {
       ),
     [PrismaErrorCode.RelatedRecordNotFound]: (_, { sectionId }) =>
       new BadRequestException(
-        `Related record missing while updating course section [${sectionId}] (mentor or offering not found).`,
+        `Related record missing while updating course section (mentor or offering not found).`,
       ),
   })
   async updateCourseSection(
@@ -220,26 +232,77 @@ export class CourseSectionService {
     @LogParam('sectionId') sectionId: string,
     updateCourseSectionDto: UpdateCourseSectionDto,
   ): Promise<CourseSectionDto> {
-    const section = await this.prisma.client.courseSection.findFirstOrThrow({
-      where: {
-        id: sectionId,
-        courseOfferingId: offeringId,
-        courseOffering: {
-          periodId: enrollmentId,
+    return await this.prisma.client.$transaction(async (tx) => {
+      const existingCourseSection = await tx.courseSection.findFirstOrThrow({
+        where: {
+          id: sectionId,
+          courseOfferingId: offeringId,
+          courseOffering: {
+            periodId: enrollmentId,
+          },
         },
-      },
-      include: { courseOffering: { include: { enrollmentPeriod: true } } },
-    });
+        include: { courseOffering: { include: { enrollmentPeriod: true } } },
+      });
 
-    if (section.courseOffering.enrollmentPeriod.status === 'closed') {
-      throw new BadRequestException(
-        `Enrollment period for this course section is closed and cannot be updated.`,
-      );
-    }
+      if (
+        existingCourseSection.courseOffering.enrollmentPeriod.status ===
+        'closed'
+      ) {
+        throw new BadRequestException(
+          `Enrollment period for this course section is closed and cannot be updated.`,
+        );
+      }
 
-    return await this.prisma.client.courseSection.update({
-      where: { id: sectionId },
-      data: { ...updateCourseSectionDto },
+      if (updateCourseSectionDto.name) {
+        await tx.courseSection
+          .findUnique({
+            where: {
+              courseOfferingId_name: {
+                courseOfferingId: offeringId,
+                name: updateCourseSectionDto.name,
+              },
+            },
+          })
+          .then((existingSection) => {
+            if (existingSection && existingSection.id !== sectionId) {
+              throw new ConflictException(
+                `A section with the name "${updateCourseSectionDto.name}" already exists for this offering.`,
+              );
+            }
+          });
+      }
+
+      // Check first if the mentor has another section with overlapping schedule
+      // NOTE: This only checks within the same enrollment period
+      const { mentorId, startSched, endSched, days } = updateCourseSectionDto;
+
+      if (mentorId) {
+        const overlappingSection = await tx.courseSection.findFirst({
+          where: {
+            mentorId,
+            id: { not: sectionId },
+            courseOffering: {
+              periodId: enrollmentId,
+            },
+            AND: [
+              { startSched: { lt: endSched } },
+              { endSched: { gt: startSched } },
+              { days: { hasSome: days } },
+            ],
+          },
+        });
+
+        if (overlappingSection) {
+          throw new BadRequestException(
+            'The selected mentor is already assigned to another section with an overlapping schedule.',
+          );
+        }
+      }
+
+      return await tx.courseSection.update({
+        where: { id: sectionId },
+        data: { ...updateCourseSectionDto },
+      });
     });
   }
 
@@ -267,7 +330,7 @@ export class CourseSectionService {
       ),
     [PrismaErrorCode.ForeignKeyConstraint]: (_, { sectionId }) =>
       new BadRequestException(
-        `Course section [${sectionId}] cannot be deleted because it is still referenced by other records (e.g., enrollments).`,
+        `Course section cannot be deleted because it is still referenced by other records (e.g., enrollments).`,
       ),
   })
   async removeCourseSection(
@@ -275,33 +338,35 @@ export class CourseSectionService {
     @LogParam('offeringId') offeringId: string,
     @LogParam('sectionId') sectionId: string,
   ) {
-    const section = await this.prisma.client.courseSection.findFirstOrThrow({
-      where: {
-        id: sectionId,
-        courseOfferingId: offeringId,
-        courseOffering: {
-          periodId: enrollmentId,
-        },
-      },
-      include: {
-        courseOffering: {
-          include: {
-            enrollmentPeriod: true,
+    return await this.prisma.client.$transaction(async (tx) => {
+      const section = await tx.courseSection.findFirstOrThrow({
+        where: {
+          id: sectionId,
+          courseOfferingId: offeringId,
+          courseOffering: {
+            periodId: enrollmentId,
           },
         },
-      },
+        include: {
+          courseOffering: {
+            include: {
+              enrollmentPeriod: true,
+            },
+          },
+        },
+      });
+
+      if (section.courseOffering.enrollmentPeriod.status === 'closed') {
+        throw new BadRequestException(
+          'Cannot remove a course section from a closed enrollment period.',
+        );
+      }
+
+      await tx.courseSection.delete({
+        where: { id: sectionId },
+      });
+
+      return { message: 'Section removed successfully' };
     });
-
-    if (section.courseOffering.enrollmentPeriod.status === 'closed') {
-      throw new BadRequestException(
-        'Cannot remove a course section from a closed enrollment period.',
-      );
-    }
-
-    await this.prisma.client.courseSection.delete({
-      where: { id: sectionId },
-    });
-
-    return { message: 'Section removed successfully' };
   }
 }

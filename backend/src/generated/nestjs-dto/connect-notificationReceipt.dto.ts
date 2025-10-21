@@ -1,11 +1,42 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class ConnectNotificationReceiptDto {
+export class NotificationReceiptNotificationIdUserIdUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
   @IsNotEmpty()
   @IsString()
-  id: string;
+  notificationId: string;
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+}
+
+@ApiExtraModels(NotificationReceiptNotificationIdUserIdUniqueInputDto)
+export class ConnectNotificationReceiptDto {
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  id?: string;
+  @ApiProperty({
+    type: NotificationReceiptNotificationIdUserIdUniqueInputDto,
+    required: false,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => NotificationReceiptNotificationIdUserIdUniqueInputDto)
+  notificationId_userId?: NotificationReceiptNotificationIdUserIdUniqueInputDto;
 }

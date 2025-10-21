@@ -13,8 +13,6 @@ import {
   IconClipboardListFilled,
   IconGraph,
   IconGraphFilled,
-  IconHome,
-  IconHomeFilled,
   IconSchool,
   IconUser,
   IconUserCog,
@@ -24,17 +22,17 @@ import {
 
 export const studentLinks: NavItem[] = [
   {
-    link: '/dashboard',
-    label: 'Dashboard',
-    Icon: IconHomeFilled,
-    IconInactive: IconHome,
-    fuzzy: true,
-  },
-  {
     link: '/lms',
     label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
+    fuzzy: true,
+  },
+  {
+    link: '/transcript',
+    label: 'Transcript',
+    Icon: IconBooks,
+    IconInactive: IconBooks,
     fuzzy: true,
   },
   {
@@ -76,13 +74,6 @@ export const studentLinks: NavItem[] = [
 
 export const mentorLinks: NavItem[] = [
   {
-    link: '/dashboard',
-    label: 'Dashboard',
-    Icon: IconHomeFilled,
-    IconInactive: IconHome,
-    fuzzy: true,
-  },
-  {
     link: '/lms',
     label: 'LMS',
     Icon: IconBookFilled,
@@ -94,6 +85,13 @@ export const mentorLinks: NavItem[] = [
     label: 'Appointment',
     Icon: IconCalendarEventFilled,
     IconInactive: IconCalendarEvent,
+    fuzzy: true,
+  },
+  {
+    link: '/transcript',
+    label: 'Transcript',
+    Icon: IconBooks,
+    IconInactive: IconBooks,
     fuzzy: true,
   },
   {
@@ -179,6 +177,13 @@ export const adminLinks: NavItem[] = [
         fuzzy: true,
       },
     ],
+  },
+  {
+    link: '/transcript',
+    label: 'Transcript',
+    Icon: IconBooks,
+    IconInactive: IconBooks,
+    fuzzy: true,
   },
   {
     link: '/profile',

@@ -1,10 +1,24 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
 import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
+import { zEnrollmentStatusEnum } from '@/features/enrollment/validation'
 import { courseEnrollmentControllerGetCourseEnrollmentsOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import { mergeCommonSearchSchema } from '@/integrations/zod/merge-common-schema'
 import EnrollmentAdminPage from '@/pages/admin/enrollment'
 import EnrollmentStudentPage from '@/pages/student/enrollment'
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import z from 'zod'
+
+const enrollmentSearchSchema = mergeCommonSearchSchema({
+  create: z.boolean().optional(),
+  update: z.uuidv4().optional(),
+  tab: z.string().optional(),
+  status: z.enum(zEnrollmentStatusEnum.options).optional(),
+})
+
+export type EnrollmentSearchSchema = z.infer<
+  typeof enrollmentSearchSchema
+>
 
 export const Route = createFileRoute('/(protected)/enrollment/')({
   component: RouteComponent,
@@ -28,6 +42,7 @@ export const Route = createFileRoute('/(protected)/enrollment/')({
       }
     }
   },
+  validateSearch: enrollmentSearchSchema,
 })
 
 function RouteComponent() {
