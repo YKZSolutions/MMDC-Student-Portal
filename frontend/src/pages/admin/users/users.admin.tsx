@@ -105,17 +105,8 @@ function UsersQueryProvider({
 }
 
 function UsersPage() {
-  const { search, setDebouncedSearch } = useSearchState(route)
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-
-    setDebouncedSearch({ search: value || undefined })
-  }
-
-  const handlePage = (page: IUsersQuery['page']) => {
-    setDebouncedSearch({ page: page })
-  }
+  const { search, setDebouncedSearch, handleSearch, handlePage } =
+    useSearchState(route)
 
   const handleRoleFilter = (role: IUsersQuery['role']) => {
     setDebouncedSearch({ role: role || undefined, page: 1 })
@@ -184,8 +175,8 @@ function UsersPage() {
                 base: '100%',
                 xs: rem(250),
               }}
-              value={search.search}
-              onChange={(e) => handleSearch(e)}
+              defaultValue={search.search}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Popover position="bottom" width={rem(300)}>
               <Popover.Target>

@@ -30,23 +30,22 @@ export const useSearchState = <
   route: RouteApi<TId, TRouter>,
   debounceMs: number = 200,
 ) => {
-  const search = route.useSearch()
+  const searchParam = route.useSearch()
   const navigate = route.useNavigate()
-  type Search = typeof search
+  type Search = typeof searchParam
 
   // This holds the current search state, so navigation updates won't break
   // the displayed values while typing.
-  const [query, setQuery] = useState<Search>(search)
+  const [query, setQuery] = useState<Search>(searchParam)
 
-  const debouncedNavigate = useDebouncedCallback(
-    (next: Partial<Search>, replace: boolean = false) => {
-      navigate({
-        search: ((prev: Search) => ({ ...prev, ...next })) as any,
-        replace,
-      })
-    },
-    debounceMs,
-  )
+  const updateNavigate = (next: Partial<Search>, replace = false) => {
+    navigate({
+      search: ((prev: Search) => ({ ...prev, ...next })) as any,
+      replace,
+    })
+  }
+
+  const debouncedNavigate = useDebouncedCallback(updateNavigate, debounceMs)
 
   /**
    * Immediately updates search parameters by merging with existing values.
@@ -57,11 +56,7 @@ export const useSearchState = <
    */
   const setSearch = (next: Partial<Search>, replace: boolean = false) => {
     setQuery((prev) => ({ ...prev, ...next }))
-
-    navigate({
-      search: ((prev: Search) => ({ ...prev, ...next })) as any,
-      replace,
-    })
+    updateNavigate(next, replace)
   }
 
   /**
@@ -76,8 +71,15 @@ export const useSearchState = <
     replace: boolean = false,
   ) => {
     setQuery((prev) => ({ ...prev, ...next }))
-
     debouncedNavigate(next, replace)
+  }
+
+  const handleSearch = (search: Partial<Search['search']>) => {
+    setDebouncedSearch({ search: search || undefined } as Partial<Search>)
+  }
+
+  const handlePage = (page: Partial<Search['page']>) => {
+    setDebouncedSearch({ page: page } as Partial<Search>)
   }
 
   /**
@@ -85,25 +87,21 @@ export const useSearchState = <
    *
    * @param {(keyof Search)[]} [keys] - Keys to clear. Clears all if omitted.
    */
-  const clearSearch = (keys?: (keyof Search)[]) => {
+  const clearSearchParam = (keys?: (keyof Search)[]) => {
     if (!keys) {
       setQuery({} as Search)
       navigate({ search: {} as Partial<Search> } as any)
       return
     }
 
-    setQuery((prev) => {
+    const remover = (prev: Search) => {
       const copy = { ...prev }
       keys.forEach((k) => delete copy[k])
       return copy
-    })
-    navigate({
-      search: ((prev: Search) => {
-        const copy = { ...prev }
-        keys.forEach((k) => delete copy[k])
-        return copy
-      }) as any,
-    })
+    }
+
+    setQuery(remover)
+    navigate({ search: remover } as any)
   }
 
   return {
@@ -111,6 +109,8 @@ export const useSearchState = <
     navigate,
     setSearch,
     setDebouncedSearch,
-    clearSearch,
+    clearSearchParam,
+    handleSearch,
+    handlePage,
   }
 }
