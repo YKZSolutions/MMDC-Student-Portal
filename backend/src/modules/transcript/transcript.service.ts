@@ -186,11 +186,17 @@ export class TranscriptService {
       // If enrollmentPeriodId is not provided, fetch the active enrollment period
       if (!enrollmentPeriodId) {
         const fetchedEnrollmentPeriodId = (
-          await tx.enrollmentPeriod.findFirstOrThrow().catch(() => {
-            throw new NotFoundException(
-              'No enrollment periods found in the system',
-            );
-          })
+          await tx.enrollmentPeriod
+            .findFirstOrThrow({
+              where: {
+                status: 'active',
+              },
+            })
+            .catch(() => {
+              throw new NotFoundException(
+                'No enrollment periods found in the system',
+              );
+            })
         ).id;
 
         where.courseOffering.enrollmentPeriod = {
