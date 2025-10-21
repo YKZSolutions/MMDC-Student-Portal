@@ -167,7 +167,6 @@ export class LmsService {
 
     await this.prisma.client.$transaction(async (tx) => {
       for (const module of latestModules) {
-        // Find the course offering for the current enrollment period
         const courseOffering = currentEnrollment.courseOfferings.find(
           (co) => co.courseId === module.courseId,
         );
@@ -193,56 +192,104 @@ export class LmsService {
           },
         });
 
+        // Step 1: Clone all sections and keep mapping
+        const newSectionsData = module.moduleSections.map((s) => ({
+          moduleId: newModule.id,
+          title: s.title,
+          order: s.order,
+          publishedAt: null,
+          unpublishedAt: null,
+        }));
+
+        const newSections = await tx.moduleSection.createManyAndReturn({
+          data: newSectionsData,
+          select: { id: true },
+        });
+
+        const newSectionsMap = new Map<string, string>();
+        module.moduleSections.forEach((oldSection, i) => {
+          newSectionsMap.set(oldSection.id, newSections[i].id);
+        });
+
+        // Step 2: Clone contents & assignments in parallel per section
+        const allContentsData = module.moduleSections.flatMap((oldSection) => {
+          const newSectionId = newSectionsMap.get(oldSection.id);
+
+          if (!newSectionId) {
+            throw Error(
+              `Failed to find cloned section for original section ID ${oldSection.id}`,
+            );
+          }
+
+          return oldSection.moduleContents.map((c) => ({
+            moduleSectionId: newSectionId,
+            title: c.title,
+            subtitle: c.subtitle,
+            content: c.content,
+            contentType: c.contentType,
+            order: c.order,
+            publishedAt: null,
+            unpublishedAt: null,
+          }));
+        });
+
+        const newContents = await tx.moduleContent.createManyAndReturn({
+          data: allContentsData,
+        });
+
+        const assignmentData: Prisma.AssignmentCreateManyInput[] = [];
         for (const oldSection of module.moduleSections) {
-          const newSection = await tx.moduleSection.create({
-            data: {
-              moduleId: newModule.id,
-              title: oldSection.title,
-              order: oldSection.order,
-              publishedAt: null, // Reset publication status
-              unpublishedAt: null,
-            },
-          });
-
           for (const oldContent of oldSection.moduleContents) {
-            // Create the base module content
-            const newContent = await tx.moduleContent.create({
-              data: {
-                moduleSectionId: newSection.id,
-                title: oldContent.title,
-                subtitle: oldContent.subtitle,
-                content: oldContent.content,
-                order: oldContent.order,
-                contentType: oldContent.contentType,
-                publishedAt: null, // Reset publication status
-                unpublishedAt: null,
-              },
-            });
+            if (
+              oldContent.contentType === 'ASSIGNMENT' &&
+              oldContent.assignment
+            ) {
+              const newContent = newContents.find(
+                (c) =>
+                  c.title === oldContent.title &&
+                  c.order === oldContent.order &&
+                  c.moduleSectionId === newSectionsMap.get(oldSection.id),
+              );
 
-            // Clone content-specific data based on type
-            switch (oldContent.contentType) {
-              case 'ASSIGNMENT':
-                if (oldContent.assignment) {
-                  await tx.assignment.create({
-                    data: {
-                      moduleContentId: newContent.id,
-                      mode: oldContent.assignment.mode,
-                      dueDate: oldContent.assignment.dueDate,
-                      maxScore: oldContent.assignment.maxScore,
-                      maxAttempts: oldContent.assignment.maxAttempts,
-                      allowLateSubmission:
-                        oldContent.assignment.allowLateSubmission,
-                      latePenalty: oldContent.assignment.latePenalty,
-                      gracePeriodMinutes:
-                        oldContent.assignment.gracePeriodMinutes,
-                      rubricTemplateId: oldContent.assignment.rubricTemplateId,
-                    },
-                  });
-                }
-                break;
+              if (newContent) {
+                assignmentData.push({
+                  moduleContentId: newContent.id,
+                  mode: oldContent.assignment.mode,
+                  dueDate: oldContent.assignment.dueDate,
+                  maxScore: oldContent.assignment.maxScore,
+                  maxAttempts: oldContent.assignment.maxAttempts,
+                  allowLateSubmission:
+                    oldContent.assignment.allowLateSubmission,
+                  latePenalty: oldContent.assignment.latePenalty,
+                  gracePeriodMinutes: oldContent.assignment.gracePeriodMinutes,
+                  rubricTemplateId: oldContent.assignment.rubricTemplateId,
+                });
+              }
             }
           }
         }
+
+        if (assignmentData.length > 0) {
+          await tx.assignment.createMany({ data: assignmentData });
+        }
+
+        // Step 3: Bulk update parent/prerequisite references in parallel
+        await Promise.all(
+          module.moduleSections.map((oldSection) => {
+            const newSectionId = newSectionsMap.get(oldSection.id);
+            return tx.moduleSection.update({
+              where: { id: newSectionId },
+              data: {
+                parentSectionId: oldSection.parentSectionId
+                  ? newSectionsMap.get(oldSection.parentSectionId)
+                  : null,
+                prerequisiteSectionId: oldSection.prerequisiteSectionId
+                  ? newSectionsMap.get(oldSection.prerequisiteSectionId)
+                  : null,
+              },
+            });
+          }),
+        );
       }
     });
   }
