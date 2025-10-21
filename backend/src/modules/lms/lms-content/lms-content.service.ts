@@ -142,11 +142,22 @@ export class LmsContentService {
     }
 
     // Explicitly type baseInclude to allow dynamic properties
-    const baseInclude = {} as Prisma.ModuleContentInclude;
+    const baseInclude = {
+      assignment: true,
+    } as Prisma.ModuleContentInclude;
 
     if (role === Role.student && userId) {
       baseInclude.studentProgress = {
         where: { studentId: userId },
+      };
+      baseInclude.assignment = {
+        include: {
+          submissions: {
+            where: {
+              studentId: userId,
+            },
+          },
+        },
       };
     }
 
