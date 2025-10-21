@@ -62,39 +62,33 @@ export class GeminiService {
 
     conversation.push({ role: 'user', parts: [{ text: question }] });
 
-    try {
-      const result = await this.gemini.models.generateContent({
-        model: this.model,
-        contents: conversation,
-        config: {
-          tools: allowedTools,
-          systemInstruction: this.functionCallingInstruction,
-        },
-      });
+    const result = await this.gemini.models.generateContent({
+      model: this.model,
+      contents: conversation,
+      config: {
+        tools: allowedTools,
+        systemInstruction: this.functionCallingInstruction,
+      },
+    });
 
-      let responseText = '';
-      const functionCalls: FunctionCall[] = [];
+    let responseText = '';
+    const functionCalls: FunctionCall[] = [];
 
-      for (const candidate of result.candidates ?? []) {
-        for (const part of candidate.content?.parts ?? []) {
-          if ('text' in part) {
-            responseText += part.text;
-          }
-          if ('functionCall' in part && part.functionCall) {
-            functionCalls.push(part.functionCall);
-          }
+    for (const candidate of result.candidates ?? []) {
+      for (const part of candidate.content?.parts ?? []) {
+        if ('text' in part) {
+          responseText += part.text;
+        }
+        if ('functionCall' in part && part.functionCall) {
+          functionCalls.push(part.functionCall);
         }
       }
-
-      return {
-        text: responseText.trim() || undefined,
-        call: functionCalls?.length ? functionCalls : null,
-      };
-    } catch (error) {
-      throw new Error('Failed to get response from Gemini API', {
-        cause: error,
-      });
     }
+
+    return {
+      text: responseText.trim() || undefined,
+      call: functionCalls?.length ? functionCalls : null,
+    };
   }
 
   /**

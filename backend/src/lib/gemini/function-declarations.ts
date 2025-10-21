@@ -42,7 +42,8 @@ export const vectorSearchFn: FunctionDeclaration = {
     properties: {
       query: {
         type: Type.STRING,
-        description: 'Search query string',
+        description:
+          'Search query string. Use "Searching for" as a prefix to search for specific documents." ',
       },
       limit: {
         type: Type.INTEGER,
