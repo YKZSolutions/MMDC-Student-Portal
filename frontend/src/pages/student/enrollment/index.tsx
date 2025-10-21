@@ -29,7 +29,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import type { EnrollmentStateSearchSchema } from '@/routes/(protected)/enrollment'
+import type { EnrollmentSearchSchema } from '@/routes/(protected)/enrollment'
 import {
   formatDaysAbbrev,
   formatMetaToPagination,
@@ -111,7 +111,7 @@ function EnrollmentStudentQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
-  props?: EnrollmentStateSearchSchema
+  props?: EnrollmentSearchSchema
 }) {
   const { search, page, status } = props
 
@@ -276,7 +276,7 @@ function CourseSelectionPanel() {
   const { search, setDebouncedSearch } = useSearchState(route)
 
   const handleSegmentedControlChange = (
-    value: EnrollmentStateSearchSchema['status'],
+    value: EnrollmentSearchSchema['status'],
   ) => {
     setDebouncedSearch({ status: value })
 
@@ -305,7 +305,7 @@ function CourseSelectionPanel() {
             defaultValue={search.status}
             onChange={(e) =>
               handleSegmentedControlChange(
-                e as EnrollmentStateSearchSchema['status'],
+                e as EnrollmentSearchSchema['status'],
               )
             }
             fullWidth

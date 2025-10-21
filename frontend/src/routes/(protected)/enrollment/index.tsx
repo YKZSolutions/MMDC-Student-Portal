@@ -9,15 +9,15 @@ import EnrollmentStudentPage from '@/pages/student/enrollment'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import z from 'zod'
 
-const enrollmentStateSearchSchema = mergeCommonSearchSchema({
+const enrollmentSearchSchema = mergeCommonSearchSchema({
   create: z.boolean().optional(),
   update: z.uuidv4().optional(),
   tab: z.string().optional(),
   status: z.enum(zEnrollmentStatusEnum.options).optional(),
 })
 
-export type EnrollmentStateSearchSchema = z.infer<
-  typeof enrollmentStateSearchSchema
+export type EnrollmentSearchSchema = z.infer<
+  typeof enrollmentSearchSchema
 >
 
 export const Route = createFileRoute('/(protected)/enrollment/')({
@@ -42,7 +42,7 @@ export const Route = createFileRoute('/(protected)/enrollment/')({
       }
     }
   },
-  validateSearch: enrollmentStateSearchSchema,
+  validateSearch: enrollmentSearchSchema,
 })
 
 function RouteComponent() {
