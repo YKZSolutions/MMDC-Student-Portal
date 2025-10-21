@@ -12,11 +12,11 @@ export enum RelativeDateRange {
   TODAY = 'today',
   TOMORROW = 'tomorrow',
   YESTERDAY = 'yesterday',
-  THIS_WEEK = 'this week',
-  NEXT_WEEK = 'next week',
-  LAST_WEEK = 'last week',
-  THIS_MONTH = 'this month',
-  NEXT_MONTH = 'next month',
+  THIS_WEEK = 'this_week',
+  NEXT_WEEK = 'next_week',
+  LAST_WEEK = 'last_week',
+  THIS_MONTH = 'this_month',
+  NEXT_MONTH = 'next_month',
 }
 
 export function parseRelativeDateRange(
@@ -44,27 +44,27 @@ export function parseRelativeDateRange(
       to = endOfDay(yesterday);
       break;
     }
-    case 'this week':
+    case 'this_week':
       from = startOfWeek(now, { weekStartsOn: 1 });
       to = endOfWeek(now, { weekStartsOn: 1 });
       break;
-    case 'next week': {
+    case 'next_week': {
       const nextWeek = addWeeks(now, 1);
       from = startOfWeek(nextWeek, { weekStartsOn: 1 });
       to = endOfWeek(nextWeek, { weekStartsOn: 1 });
       break;
     }
-    case 'last week': {
+    case 'last_week': {
       const lastWeek = addWeeks(now, -1);
       from = startOfWeek(lastWeek, { weekStartsOn: 1 });
       to = endOfWeek(lastWeek, { weekStartsOn: 1 });
       break;
     }
-    case 'this month':
+    case 'this_month':
       from = new Date(now.getFullYear(), now.getMonth(), 1);
       to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
       break;
-    case 'next month': {
+    case 'next_month': {
       const nextMonth = addMonths(now, 1);
       from = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
       to = new Date(

@@ -8,28 +8,27 @@ import {
 } from '@/common/utils/date-range.util';
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { N8nService } from '@/lib/n8n/n8n.service';
-import { BillingService } from '@/modules/billing/billing.service';
-import { FilterBillDto } from '@/modules/billing/dto/filter-bill.dto';
-import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
-import { PromptDto } from '@/modules/chatbot/dto/prompt.dto';
+import { BillingService } from '../billing/billing.service';
+import { FilterBillDto } from '../billing/dto/filter-bill.dto';
+import { ChatbotResponseDto } from './dto/chatbot-response.dto';
+import { PromptDto } from './dto/prompt.dto';
 import {
   UserBaseContext,
   UserStaffContext,
   UserStudentContext,
-} from '@/modules/chatbot/dto/user-context.dto';
-import { CoursesService } from '@/modules/courses/courses.service';
-import { CourseEnrollmentService } from '@/modules/enrollment/course-enrollment.service';
-import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
-import { FilterModuleContentsDto } from '@/modules/lms/lms-content/dto/filter-module-contents.dto';
-import { FilterModulesDto } from '@/modules/lms/lms-module/dto/filter-modules.dto';
-import { LmsContentService } from '@/modules/lms/lms-content/lms-content.service';
-import { LmsService } from '@/modules/lms/lms-module/lms.service';
-import { FilterUserDto } from '@/modules/users/dto/filter-user.dto';
+} from './dto/user-context.dto';
+import { CoursesService } from '../courses/courses.service';
+import { CourseEnrollmentService } from '../enrollment/course-enrollment.service';
+import { FilterModulesDto } from '../lms/lms-module/dto/filter-modules.dto';
+import { LmsService } from '../lms/lms-module/lms.service';
+import { FilterUserDto } from '../users/dto/filter-user.dto';
+import { AppointmentsService } from '../appointments/appointments.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   UserStaffDetailsDto,
   UserStudentDetailsDto,
-} from '@/modules/users/dto/user-details.dto';
-import { UsersService } from '@/modules/users/users.service';
+} from '../users/dto/user-details.dto';
+import { UsersService } from '../users/users.service';
 import {
   Injectable,
   NotImplementedException,
@@ -37,6 +36,10 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PaginatedModulesDto } from '../lms/lms-module/dto/paginated-module.dto';
+import { DetailedBillDto } from '../billing/dto/detailed-bill.dto';
+import { FilterAppointmentDto } from '../appointments/dto/filter-appointment.dto';
+import { FilterNotificationDto } from '../notifications/dto/filter-notification.dto';
+import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 
 @Injectable()
 export class ChatbotService {
@@ -48,7 +51,8 @@ export class ChatbotService {
     private readonly enrollmentsService: EnrollmentService,
     private readonly courseEnrollmentService: CourseEnrollmentService,
     private readonly lmsService: LmsService,
-    private readonly lmsContentService: LmsContentService,
+    private readonly appointmentsService: AppointmentsService,
+    private readonly notificationsService: NotificationsService,
     private readonly n8n: N8nService,
   ) {}
 
@@ -59,11 +63,12 @@ export class ChatbotService {
     // Create base context with required fields
     const baseContext: UserBaseContext = {
       id: user.id,
+      name: user.firstName,
       role: role,
       email: user.email,
     };
 
-    // If user is a student and has student details
+    // If the user is a student and has student details
     if (role === 'student' && 'studentDetails' in user && user.studentDetails) {
       return {
         ...baseContext,
@@ -71,7 +76,7 @@ export class ChatbotService {
       } as UserStudentContext;
     }
 
-    // If user is staff and has staff details
+    // If the user is staff and has staff details
     if (
       (role === 'admin' || role === 'mentor') &&
       'staffDetails' in user &&
@@ -112,6 +117,7 @@ export class ChatbotService {
   ): Promise<ChatbotResponseDto> {
     const result: ChatbotResponseDto = { response: '' };
 
+    const userDetails = await this.usersService.getMe(authId);
     const userContext: UserBaseContext | UserStudentContext | UserStaffContext =
       this.mapUserToContext(role, await this.usersService.getMe(authId));
 
@@ -134,15 +140,17 @@ export class ChatbotService {
       call.map(async (functionCall) => {
         switch (functionCall.name) {
           case 'users_count_all': {
+            if (userContext.role !== 'admin') {
+              return 'This user does not have permission to count users.';
+            }
+
             const args = functionCall.args as FilterUserDto;
             const count = await this.usersService.countAll(args);
             return `Found ${count} users${args.role ? ` with role '${args.role}'` : ''}${args.search ? ` matching '${args.search}'` : ''}.`;
           }
 
-          case 'users_find_one': {
-            const { id } = functionCall.args as { id: string };
-            const user = await this.usersService.findOne(id);
-            return `User details: ${JSON.stringify(user)}`;
+          case 'users_find_self': {
+            return `User details: ${JSON.stringify(userDetails)}`;
           }
 
           case 'courses_find_all': {
@@ -202,13 +210,11 @@ export class ChatbotService {
             return `My modules: ${JSON.stringify(modules)}`;
           }
 
-          case 'lms_module_contents': {
-            const args = functionCall.args as FilterModuleContentsDto;
-            const contents = await this.lmsContentService.findAll(args);
-            return `Module contents: ${JSON.stringify(contents)}`;
-          }
-
           case 'billing_my_invoices': {
+            if (userContext.role !== 'student') {
+              return 'Non students do not have invoices.';
+            }
+
             const args = functionCall.args as FilterBillDto;
             const invoices = await this.billingService.findAll(
               args,
@@ -219,16 +225,21 @@ export class ChatbotService {
           }
 
           case 'billing_invoice_details': {
-            const { id } = functionCall.args as { id: string };
-            const invoice = await this.billingService.findOne(
-              id,
-              userContext.role,
-              userContext.id,
-            );
+            const { id } = functionCall.args as { id: number };
+            const invoice: DetailedBillDto =
+              await this.billingService.findOneByInvoiceId(
+                id,
+                userContext.role,
+                userContext.id,
+              );
             return `Invoice: ${JSON.stringify(invoice)}`;
           }
 
           case 'lms_my_todos': {
+            if (userContext.role !== 'student') {
+              return 'Non students do not have todos.';
+            }
+
             const args = functionCall.args as {
               relativeDate?: string;
               page?: number;
@@ -258,6 +269,86 @@ export class ChatbotService {
             return `Todos: ${JSON.stringify(todos)}`;
           }
 
+          case 'appointments_my_appointments': {
+            const args = functionCall.args as {
+              status?: string;
+              // courseId?: string;
+              // startDate?: string;
+              // endDate?: string;
+              // search?: string;
+              page?: number;
+              limit?: number;
+            };
+
+            const filterDto = {
+              ...(args.status && { status: [args.status] }),
+              // ...(args.courseId && { courseId: args.courseId }),
+              // ...(args.search && { search: args.search }),
+              ...(args.page && { page: args.page }),
+              ...(args.limit && { limit: args.limit }),
+            } as FilterAppointmentDto;
+
+            const appointments = await this.appointmentsService.findAll(
+              filterDto,
+              role,
+              userContext.id,
+            );
+            return `My appointments: ${JSON.stringify(appointments)}`;
+          }
+
+          case 'appointments_mentor_booked': {
+            if (userContext.role !== 'mentor') {
+              return 'This function is only available to mentors.';
+            }
+
+            const args = functionCall.args as {
+              startDate?: string;
+              endDate?: string;
+            };
+
+            const startDate = args.startDate
+              ? new Date(args.startDate)
+              : undefined;
+            const endDate = args.endDate ? new Date(args.endDate) : undefined;
+
+            const bookedAppointments =
+              await this.appointmentsService.findAllBooked(
+                userContext.id,
+                startDate,
+                endDate,
+              );
+            return `Booked appointments for mentor: ${JSON.stringify(bookedAppointments)}`;
+          }
+
+          case 'notifications_my_notifications': {
+            const args = functionCall.args as {
+              type?: string;
+              page?: number;
+              limit?: number;
+            };
+
+            const filterDto = {
+              ...(args.type && { type: args.type }),
+              ...(args.page && { page: args.page }),
+              ...(args.limit && { limit: args.limit }),
+            } as FilterNotificationDto;
+
+            const notifications = await this.notificationsService.findAll(
+              filterDto,
+              userContext.id,
+              role,
+            );
+            return `My notifications: ${JSON.stringify(notifications)}`;
+          }
+
+          case 'notifications_my_counts': {
+            const counts = await this.notificationsService.getCount(
+              userContext.id,
+              role,
+            );
+            return `Notification counts: ${JSON.stringify(counts)}`;
+          }
+
           case 'search_vector': {
             const args = functionCall.args as { query: string; limit: number };
             const vector = await this.handleVectorSearch(args.query);
@@ -266,7 +357,7 @@ export class ChatbotService {
 
           default:
             throw new NotImplementedException(
-              `Unhandled function call: ${functionCall.name}`,
+              'Unsupported function call: ' + functionCall.name,
             );
         }
       }),
@@ -289,7 +380,6 @@ export class ChatbotService {
   async handleVectorSearch(query: string): Promise<string> {
     const res = await this.n8n.searchVector(query);
 
-    // Keep it short for the LLM tools call; you can pass richer JSON if desired
     return res.output;
   }
 }
