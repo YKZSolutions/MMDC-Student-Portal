@@ -620,7 +620,7 @@ export class AppointmentsService {
   private validateTimeConstraints(startAt: Date, endAt: Date): void {
     const now = new Date();
 
-    // Check if an appointment is in the future
+    // Check if the appointment is in the future
     if (startAt <= now) {
       throw new BadRequestException(
         'Appointment must be scheduled in the future',
