@@ -22,8 +22,8 @@ import { useDebouncedValue } from '@mantine/hooks'
 import { IconX } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense, useState, type ReactNode } from 'react'
-import type { IUsersQuery } from '../user-management/types'
-import type { CreateBillFormValues } from '../validation/create-billing'
+import type { IUsersQuery } from '../../user-management/types'
+import type { CreateBillFormValues } from '../../validation/create-billing'
 
 function AsyncEmployeeComboboxQueryProvider({
   children,

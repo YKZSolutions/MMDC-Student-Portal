@@ -1,15 +1,14 @@
 import { AsyncSearchable } from '@/components/async-searchable'
-import { AsyncSelectList } from '@/components/async-select-list'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
 import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
-import { usePaginationSearch } from '@/features/pagination/use-pagination-search'
 import {
   enrollmentPeriodFormSchema,
   type EnrollmentPeriodFormInput,
   type EnrollmentPeriodFormOutput,
 } from '@/features/validation/create-enrollment.schema'
 import { useQuickForm } from '@/hooks/use-quick-form'
+import { useSearchState } from '@/hooks/use-search-state'
 import type {
   BillDto,
   EnrollmentPeriodDto,
@@ -26,7 +25,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { formatPaginationMessage, formatToSchoolYear } from '@/utils/formatters'
+import { formatMetaToPagination, formatToSchoolYear } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
@@ -46,8 +45,6 @@ import {
   Title,
 } from '@mantine/core'
 import { DatePickerInput, YearPickerInput } from '@mantine/dates'
-import { useForm } from '@mantine/form'
-import { useDebouncedState } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
@@ -60,7 +57,7 @@ import {
   type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { Suspense } from 'react'
@@ -90,13 +87,13 @@ function EnrollmentAdminQueryProvider({
   )
 
   const enrollmentPeriods = data.enrollments
-
   const meta = data.meta
-  const limit = 10
-  const total = meta.totalCount ?? 0
-  const totalPages = meta.pageCount ?? 0
 
-  const message = formatPaginationMessage({ limit, page: page || 1, total })
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
+    page,
+    meta,
+  })
 
   return children({
     enrollmentPeriods,
@@ -107,7 +104,7 @@ function EnrollmentAdminQueryProvider({
 }
 
 export default function EnrollmentAdminPage() {
-  const { pagination, debouncedSearch, handlePage } = usePaginationSearch(route)
+  const { search, handlePage, handleSearch } = useSearchState(route)
   const navigate = route.useNavigate()
 
   return (
@@ -143,7 +140,7 @@ export default function EnrollmentAdminPage() {
                 base: '100%',
                 xs: rem(250),
               }}
-              onChange={(e) => debouncedSearch(e.target.value)}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Button
               w={{
@@ -192,7 +189,7 @@ export default function EnrollmentAdminPage() {
                   <Text size="sm">{props.message}</Text>
                   <Pagination
                     total={props.totalPages}
-                    value={pagination.page}
+                    value={search.page}
                     onChange={handlePage}
                     withPages={false}
                   />

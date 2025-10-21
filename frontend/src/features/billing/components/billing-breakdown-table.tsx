@@ -10,7 +10,7 @@ import { IconHistory } from '@tabler/icons-react'
 import Decimal from 'decimal.js'
 import { groupBy } from 'lodash'
 import React from 'react'
-import type { IFrontendBillingCostBreakdown } from './types'
+import type { IFrontendBillingCostBreakdown } from '../types'
 
 function BillingFeeBreakdown({
   open,

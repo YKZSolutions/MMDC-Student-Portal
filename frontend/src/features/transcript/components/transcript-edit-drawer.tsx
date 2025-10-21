@@ -18,6 +18,7 @@ import {
   GRADE_OPTIONS,
   type TranscriptEditFormInput,
 } from '../schema/edit-transcript.schema'
+import { SuspendedTranscriptEditForm } from './suspense'
 
 const route = getRouteApi('/(protected)/transcript/')
 
@@ -45,7 +46,7 @@ function TranscriptEditDrawer({ editTranscriptId }: TranscriptEditDrawerProps) {
       keepMounted={false}
     >
       {isDrawerOpen && editTranscriptId && (
-        <Suspense fallback={<Text>Loading...</Text>}>
+        <Suspense fallback={<SuspendedTranscriptEditForm />}>
           <TranscriptEditForm
             transcriptId={editTranscriptId}
             onClose={closeDrawer}

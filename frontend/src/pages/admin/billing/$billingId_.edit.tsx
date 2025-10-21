@@ -1,5 +1,5 @@
-import AsyncEmployeeCombobox from '@/features/billing/async-employee-combobox'
-import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
+import AsyncEmployeeCombobox from '@/features/billing/components/async-employee-combobox'
+import BillingFeeBreakdown from '@/features/billing/components/billing-breakdown-table'
 import {
   CreateBillFormSchema,
   type CreateBillFormValues,

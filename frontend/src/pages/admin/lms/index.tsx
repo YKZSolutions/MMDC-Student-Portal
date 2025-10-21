@@ -11,7 +11,7 @@ import type {
   EnrollmentPeriodDto,
 } from '@/integrations/api/client'
 import { lmsControllerFindAllForAdminOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
-import { formatPaginationMessage } from '@/utils/formatters'
+import { formatMetaToPagination } from '@/utils/formatters'
 import { Container, Group, Stack } from '@mantine/core'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useSearch } from '@tanstack/react-router'
@@ -64,14 +64,10 @@ function AdminCourseDashboardProvider({
 
   const modules = moduleData.modules
 
-  const limit = 10
-  const total = modules.length
-  const totalPages = 1
-
-  const message = formatPaginationMessage({
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
     page,
-    total,
-    limit,
+    meta: moduleData.meta,
   })
 
   return children({
