@@ -102,15 +102,14 @@ function UsersQueryProvider({
 }
 
 function UsersPage() {
-  const { search, setDebouncedSearch, handleSearch, handlePage } =
-    useSearchState(route)
+  const { search, setSearch, handleSearch, handlePage } = useSearchState(route)
 
   const handleRoleFilter = (role: IUsersQuery['role']) => {
-    setDebouncedSearch({ role: role || undefined, page: 1 })
+    setSearch({ role: role || undefined, page: 1 })
   }
 
   const handleResetFilter = () => {
-    setDebouncedSearch({ role: undefined, page: undefined })
+    setSearch({ role: undefined, page: undefined })
   }
 
   return (

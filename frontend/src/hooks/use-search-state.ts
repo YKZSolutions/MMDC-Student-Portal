@@ -1,6 +1,4 @@
-import {
-  useDebouncedCallback
-} from '@mantine/hooks'
+import { useDebouncedCallback } from '@mantine/hooks'
 import type {
   AnyRouter,
   RegisteredRouter,
@@ -69,6 +67,13 @@ export const useSearchState = <
     debouncedNavigate(next, replace)
   }
 
+  /**
+   *
+   * Handles search parameter updates specifically for search inputs.
+   * Merges new search values and resets pagination.
+   *
+   * @param search - Partial search parameters to update.
+   */
   const handleSearch = (search: Partial<Search['search']>) => {
     setDebouncedSearch({
       search: search || undefined,
@@ -76,8 +81,14 @@ export const useSearchState = <
     } as Partial<Search>)
   }
 
+  /**
+   * Handles pagination changes by updating the page parameter.
+   * Resets to the first page if page is 1.
+   *
+   * @param page - New page number.
+   */
   const handlePage = (page: Partial<Search['page']>) => {
-    setDebouncedSearch({
+    setSearch({
       page: page == 1 ? undefined : page,
     } as Partial<Search>)
   }
