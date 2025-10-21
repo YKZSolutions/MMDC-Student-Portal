@@ -168,9 +168,15 @@ export class CourseOfferingService {
           },
         });
 
+        if (curriculumCourses.length === 0) {
+          throw new BadRequestException(
+            `This curriculum does not have any courses configured`,
+          );
+        }
+
         let coursesToCreate = curriculumCourses;
 
-        if (existingOfferings) {
+        if (existingOfferings.length > 0) {
           coursesToCreate = curriculumCourses.filter(
             (course) =>
               !existingOfferings.some(
