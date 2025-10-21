@@ -12009,12 +12009,12 @@
         ]
       }
     },
-    "/modules/{moduleId}/{moduleContentId}/assignments": {
+    "/modules/{moduleId}/{moduleContentId}/assignments/{assignmentId}": {
       "post": {
         "operationId": "AssignmentController_submit",
         "parameters": [
           {
-            "name": "moduleContentId",
+            "name": "assignmentId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12079,77 +12079,11 @@
           "Assignment"
         ]
       },
-      "get": {
-        "operationId": "AssignmentController_findOne",
-        "parameters": [
-          {
-            "name": "moduleContentId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AssignmentDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      },
       "patch": {
         "operationId": "AssignmentController_update",
         "parameters": [
           {
-            "name": "moduleContentId",
+            "name": "assignmentId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12493,6 +12427,74 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PaginatedStudentAssignmentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/modules/{moduleId}/{moduleContentId}/assignments": {
+      "get": {
+        "operationId": "AssignmentController_findOne",
+        "parameters": [
+          {
+            "name": "moduleContentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentDto"
                 }
               }
             }
