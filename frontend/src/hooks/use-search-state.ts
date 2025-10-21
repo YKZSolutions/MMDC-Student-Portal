@@ -1,4 +1,4 @@
-import { useDebouncedCallback } from '@mantine/hooks'
+import { useDebouncedCallback, useDidUpdate } from '@mantine/hooks'
 import type {
   AnyRouter,
   RegisteredRouter,
@@ -37,6 +37,9 @@ export const useSearchState = <
   // This holds the current search state, so navigation updates won't break
   // the displayed values while typing.
   const [query, setQuery] = useState<Search>(searchParam)
+
+  // FIX: This should ensure a change in one component updates others
+  useDidUpdate(() => setQuery(searchParam), [searchParam])
 
   const updateNavigate = (next: Partial<Search>, replace = false) => {
     navigate({
