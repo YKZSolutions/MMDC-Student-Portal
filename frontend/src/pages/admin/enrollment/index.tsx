@@ -104,7 +104,7 @@ function EnrollmentAdminQueryProvider({
 }
 
 export default function EnrollmentAdminPage() {
-  const { search, handlePage, handleSearch } = useSearchState(route)
+  const { search, handlePage } = useSearchState(route)
   const navigate = route.useNavigate()
 
   return (
@@ -140,7 +140,7 @@ export default function EnrollmentAdminPage() {
                 base: '100%',
                 xs: rem(250),
               }}
-              onChange={(e) => handleSearch(e.currentTarget.value)}
+              // onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Button
               w={{
