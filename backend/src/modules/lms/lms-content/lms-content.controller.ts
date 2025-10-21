@@ -135,7 +135,6 @@ export class LmsContentController {
     @Param('moduleContentId', new ParseUUIDPipe()) moduleContentId: string,
     @Body() updateContentDto: UpdateModuleContentDto,
   ): Promise<ModuleContent> {
-    console.log(updateContentDto);
     return this.lmsContentService.update(moduleContentId, updateContentDto);
   }
 
