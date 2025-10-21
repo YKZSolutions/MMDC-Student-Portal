@@ -1,4 +1,4 @@
-import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks'
+import { useDebouncedCallback } from '@mantine/hooks'
 import type {
   AnyRouter,
   RegisteredRouter,
@@ -38,9 +38,6 @@ export const useSearchState = <
   // the displayed values while typing.
   const [query, setQuery] = useState<Search>(search)
 
-  // This provides a way for the caller to access the debounced search values.
-  const [debouncedSearch] = useDebouncedValue(search, debounceMs)
-
   const debouncedNavigate = useDebouncedCallback(
     (next: Partial<Search>, replace: boolean = false) => {
       navigate({
@@ -53,6 +50,7 @@ export const useSearchState = <
 
   /**
    * Immediately updates search parameters by merging with existing values.
+   * Can be used for UI elements that require instant feedback.
    *
    * @param {Partial<Search>} next - Search parameters to merge.
    * @param {boolean} [replace=false] - Whether to replace the current history entry.
@@ -68,6 +66,7 @@ export const useSearchState = <
 
   /**
    * Debounced version of `setSearch`. Updates search parameters after the debounce delay.
+   * Useful for inputs where frequent changes occur, like text fields.
    *
    * @param {Partial<Search>} next - Search parameters to merge.
    * @param {boolean} [replace=false] - Whether to replace the current history entry.
@@ -111,7 +110,6 @@ export const useSearchState = <
     search: query, // Use the local state to avoid flicker while typing
     navigate,
     setSearch,
-    debouncedSearch,
     setDebouncedSearch,
     clearSearch,
   }

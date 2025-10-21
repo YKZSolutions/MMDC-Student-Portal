@@ -41,6 +41,7 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core'
+import { useDebouncedValue } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import {
@@ -78,9 +79,11 @@ function UsersQueryProvider({
 }) {
   const { search, page, role } = props
 
+  const [debouncedSearch] = useDebouncedValue(search, 200)
+
   const { data } = useSuspenseQuery(
     usersControllerFindAllOptions({
-      query: { search, page, ...(role && { role }) },
+      query: { search: debouncedSearch, page, ...(role && { role }) },
     }),
   )
 
@@ -101,12 +104,12 @@ function UsersQueryProvider({
 }
 
 function UsersPage() {
-  const { search, debouncedSearch, setDebouncedSearch } = useSearchState(route)
+  const { search, setDebouncedSearch } = useSearchState(route)
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
 
-    setDebouncedSearch({ search: value.trim() || undefined })
+    setDebouncedSearch({ search: value || undefined })
   }
 
   const handlePage = (page: IUsersQuery['page']) => {
@@ -285,10 +288,10 @@ function UsersPage() {
           </Flex>
         </Group>
 
-        <UsersTable props={debouncedSearch} />
+        <UsersTable props={search} />
 
         <Suspense fallback={<SuspendedPagination />}>
-          <UsersQueryProvider props={debouncedSearch}>
+          <UsersQueryProvider props={search}>
             {(props) => (
               <Group justify="flex-end">
                 <Text size="sm">{props.message}</Text>
