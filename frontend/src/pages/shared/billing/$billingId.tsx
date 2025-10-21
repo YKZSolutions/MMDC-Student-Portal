@@ -1,12 +1,12 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import BillingFeeBreakdown from '@/features/billing/billing-breakdown-table'
-import { mapBillingDetails } from '@/features/billing/helpers'
+import BillingFeeBreakdown from '@/features/billing/components/billing-breakdown-table'
 import {
   SuspendedBillingBreakdown,
   SuspendedBillingInstallment,
   SuspendedBillingPreface,
-} from '@/features/billing/suspense'
+} from '@/features/billing/components/suspense'
+import { mapBillingDetails } from '@/features/billing/helpers'
 import type {
   BillInstallmentItemDto,
   BillPaymentDto,
