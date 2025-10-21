@@ -1,13 +1,12 @@
 import RoleComponentManager from '@/components/role-component-manager'
 import { useAuth } from '@/features/auth/auth.hook'
-import { commonSearchSchema } from '@/features/validation/common-search.schema'
 import { zRole } from '@/integrations/api/client/zod.gen'
+import { mergeCommonSearchSchema } from '@/integrations/zod/merge-common-schema'
 import UsersPage from '@/pages/admin/users/users.admin'
 import { createFileRoute } from '@tanstack/react-router'
 import z from 'zod'
 
-const usersSearchSchema = z.object({
-  ...commonSearchSchema.shape,
+const usersSearchSchema = mergeCommonSearchSchema({
   role: z.enum(zRole.options).optional(),
 })
 
