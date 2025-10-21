@@ -239,7 +239,7 @@ function BillingTable({ query }: { query: BillingSearch }) {
   }, [authUser.role])
 
   return (
-    <Table.ScrollContainer minWidth={rem(700)} type="native">
+    <Table.ScrollContainer minWidth={rem(500)} type="native">
       <Table
         verticalSpacing={'md'}
         highlightOnHover
