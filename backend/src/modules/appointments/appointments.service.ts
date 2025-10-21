@@ -643,7 +643,7 @@ export class AppointmentsService {
     const mentorConflicts = await this.prisma.client.appointment.findFirst({
       where: {
         mentorId,
-        status: { in: ['booked', 'approved', 'rescheduled', 'extended'] }, // Only check active appointments
+        status: { in: ['approved', 'rescheduled', 'extended'] }, // Only check active appointments
         OR: [
           // Case 1: New appointment starts during an existing appointment
           {
