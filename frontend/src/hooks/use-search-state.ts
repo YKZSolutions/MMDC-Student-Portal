@@ -1,10 +1,14 @@
-import { useDebouncedCallback, useDidUpdate } from '@mantine/hooks'
+import {
+  useDebouncedCallback,
+  useDebouncedValue,
+  useDidUpdate,
+} from '@mantine/hooks'
 import type {
   AnyRouter,
   RegisteredRouter,
   RouteApi,
 } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 /**
  * A custom hook that simplifies reading, updating, and clearing
@@ -37,6 +41,18 @@ export const useSearchState = <
   // This holds the current search state, so navigation updates won't break
   // the displayed values while typing.
   const [query, setQuery] = useState<Search>(searchParam)
+
+  // Debounce the query to get the debounced search value
+  const [debouncedQuery] = useDebouncedValue(query, debounceMs)
+
+  // Memoize the combined search state to avoid unnecessary re-renders
+  const search = useMemo<Partial<Search>>(
+    () => ({
+      ...query, // Use the local state to avoid flicker while typing
+      search: debouncedQuery.search,
+    }),
+    [query, debouncedQuery.search],
+  )
 
   // FIX: This should ensure a change in one component updates others
   useDidUpdate(() => setQuery(searchParam), [searchParam])
@@ -113,7 +129,7 @@ export const useSearchState = <
   }
 
   return {
-    search: query, // Use the local state to avoid flicker while typing
+    search,
     navigate,
     setSearch,
     setDebouncedSearch,

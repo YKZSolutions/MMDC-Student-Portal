@@ -41,7 +41,6 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core'
-import { useDebouncedValue } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import {
@@ -79,11 +78,9 @@ function UsersQueryProvider({
 }) {
   const { search, page, role } = props
 
-  const [debouncedSearch] = useDebouncedValue(search, 200)
-
   const { data } = useSuspenseQuery(
     usersControllerFindAllOptions({
-      query: { search: debouncedSearch, page, ...(role && { role }) },
+      query: { search: search, page, ...(role && { role }) },
     }),
   )
 
