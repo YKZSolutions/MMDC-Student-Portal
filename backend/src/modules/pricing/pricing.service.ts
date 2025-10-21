@@ -34,9 +34,17 @@ export class PricingService {
     logSuccessMessage: (result) =>
       `Successfully created pricing with ID: ${result.id}`,
   })
-  @PrismaError({})
+  @PrismaError({
+    [PrismaErrorCode.UniqueConstraint]: (
+      _,
+      { createPricingDto }: { createPricingDto: CreatePricingDto },
+    ) =>
+      new NotFoundException(
+        `Pricing name '${createPricingDto.name}' already exists. Please try a different name.`,
+      ),
+  })
   async create(
-    @LogParam('userId') createPricingDto: CreatePricingDto,
+    @LogParam('createPricingDto') createPricingDto: CreatePricingDto,
   ): Promise<PricingDto> {
     return this.prisma.client.pricing.create({
       data: {
@@ -49,13 +57,12 @@ export class PricingService {
    * Retrieves a paginated list of pricing entries from the database.
    *
    * @param filters - The different filters, search, sorting, and pagination for the query.
-   * @returns A paginated list of all pricings.
+   * @returns A paginated list of all pricing.
    */
   @Log({
     logArgsMessage: ({ filters }) =>
-      `Fetching pricings with filters: ${JSON.stringify(filters)}`,
-    logSuccessMessage: (result) =>
-      `Fetched ${result.meta.totalCount} pricings.`,
+      `Fetching pricing with filters: ${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) => `Fetched ${result.meta.totalCount} pricing.`,
   })
   async findAll(
     @LogParam('filters') filters: BaseFilterDto,

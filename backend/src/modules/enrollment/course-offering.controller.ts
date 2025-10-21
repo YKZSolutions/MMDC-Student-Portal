@@ -6,6 +6,7 @@ import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -53,7 +54,11 @@ export class CourseOfferingController {
    * @throws NotFoundException If the enrollment period or course does not exist
    * @throws BadRequestException If invalid references are provided
    */
-  @ApiException(() => [NotFoundException, BadRequestException])
+  @ApiException(() => [
+    NotFoundException,
+    BadRequestException,
+    ConflictException,
+  ])
   @Roles(Role.ADMIN)
   @Post(':enrollmentId/curriculum')
   createCourseOfferingsByCurriculumId(

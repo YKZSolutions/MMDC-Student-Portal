@@ -6,10 +6,6 @@ import {
   AssignmentItemDto,
   LessonItemDto,
 } from '@/modules/lms/lms-content/dto/full-module-content.dto';
-import {
-  UpdateAssignmentItemDto,
-  UpdateLessonItemDto,
-} from '@/modules/lms/lms-content/dto/update-full-module-content.dto';
 
 export type ModuleTreeAssignmentItem = InstanceType<
   typeof ModuleTreeAssignmentItemDto
@@ -28,6 +24,3 @@ export type ModuleTreeContentItem =
   | ModuleTreeLessonItem;
 
 export type FullModuleContent = LessonItemDto | AssignmentItemDto;
-export type UpdateFullModuleContent =
-  | UpdateLessonItemDto
-  | UpdateAssignmentItemDto;

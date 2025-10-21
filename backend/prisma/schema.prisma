@@ -411,6 +411,7 @@ model CourseSection {
   sectionModules SectionModule[]
 
   @@unique([courseOfferingId, name])
+  @@unique([courseOfferingId, mentorId, startSched, endSched, days])
 }
 
 enum CourseEnrollmentStatus {
