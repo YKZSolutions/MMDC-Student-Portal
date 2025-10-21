@@ -717,7 +717,7 @@ export class AppointmentsService {
       throw new BadRequestException('Mentor not found or inactive');
     }
 
-    // Verify a student exists and is active
+    // Verify the student exists and is active
     const student = await this.prisma.client.user.findFirst({
       where: {
         id: studentId,
