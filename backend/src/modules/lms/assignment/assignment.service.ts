@@ -16,6 +16,8 @@ import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
 import { MessageDto } from '@/common/dto/message.dto';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { UpdateAssignmentConfigDto } from '@/modules/lms/assignment/dto/update-assignment-config.dto';
+import { Log } from '@/common/decorators/log.decorator';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 
 @Injectable()
 export class AssignmentService {
@@ -24,9 +26,17 @@ export class AssignmentService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
+  @Log({
+    logArgsMessage: ({ moduleContentId, studentId }) =>
+      `Submitting assignment for moduleContentId ${moduleContentId} by student ${studentId}`,
+    logSuccessMessage: (_, { moduleContentId, studentId }) =>
+      `Successfully submitted assignment for moduleContentId ${moduleContentId} by student ${studentId}`,
+    logErrorMessage: (err, { moduleContentId, studentId }) =>
+      `Error submitting assignment for moduleContentId ${moduleContentId} by student ${studentId}: ${err.message}`,
+  })
   async submit(
-    moduleContentId: string,
-    studentId: string,
+    @LogParam('moduleContentId') moduleContentId: string,
+    @LogParam('studentId') studentId: string,
     submitAssignmentDto: SubmitAssignmentDto,
   ): Promise<AssignmentSubmission> {
     return await this.prisma.client.assignmentSubmission.create({
@@ -41,9 +51,17 @@ export class AssignmentService {
     });
   }
 
+  @Log({
+    logArgsMessage: ({ moduleId, filters }) =>
+      `Fetching all assignments for admin in module ${moduleId}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { moduleId }) =>
+      `Successfully fetched ${result.assignments.length} assignments for admin in module ${moduleId}`,
+    logErrorMessage: (err, { moduleId }) =>
+      `Error fetching assignments for admin in module ${moduleId}: ${err.message}`,
+  })
   async findAllForAdmin(
-    moduleId: string,
-    filters: BaseFilterDto,
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedAssignmentDto> {
     const where: Prisma.AssignmentWhereInput = {};
     const page = filters.page || 1;
@@ -116,10 +134,18 @@ export class AssignmentService {
     };
   }
 
+  @Log({
+    logArgsMessage: ({ moduleId, mentorId, filters }) =>
+      `Fetching assignments for mentor ${mentorId} in module ${moduleId}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { moduleId, mentorId }) =>
+      `Successfully fetched ${result.assignments.length} assignments for mentor ${mentorId} in module ${moduleId}`,
+    logErrorMessage: (err, { moduleId, mentorId }) =>
+      `Error fetching assignments for mentor ${mentorId} in module ${moduleId}: ${err.message}`,
+  })
   async findAllForMentor(
-    moduleId: string,
-    mentorId: string,
-    filters: BaseFilterDto,
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('mentorId') mentorId: string,
+    @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedMentorAssignmentDto> {
     const where: Prisma.AssignmentWhereInput = {};
     const page = filters.page || 1;
@@ -215,10 +241,18 @@ export class AssignmentService {
     };
   }
 
+  @Log({
+    logArgsMessage: ({ moduleId, studentId, filters }) =>
+      `Fetching assignments for student ${studentId} in module ${moduleId}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { moduleId, studentId }) =>
+      `Successfully fetched ${result.assignments.length} assignments for student ${studentId} in module ${moduleId}`,
+    logErrorMessage: (err, { moduleId, studentId }) =>
+      `Error fetching assignments for student ${studentId} in module ${moduleId}: ${err.message}`,
+  })
   async findAllForStudent(
-    moduleId: string,
-    studentId: string,
-    filters: BaseFilterDto,
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('studentId') studentId: string,
+    @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedStudentAssignmentDto> {
     const where: Prisma.AssignmentWhereInput = {};
     const page = filters.page || 1;
@@ -271,21 +305,49 @@ export class AssignmentService {
     };
   }
 
-  async findOne(moduleContentId: string): Promise<AssignmentDto> {
+  @Log({
+    logArgsMessage: ({ moduleContentId }) =>
+      `Fetching assignment for moduleContentId ${moduleContentId}`,
+    logSuccessMessage: (_, { moduleContentId }) =>
+      `Successfully fetched assignment for moduleContentId ${moduleContentId}`,
+    logErrorMessage: (err, { moduleContentId }) =>
+      `Error fetching assignment for moduleContentId ${moduleContentId}: ${err.message}`,
+  })
+  async findOne(
+    @LogParam('moduleContentId') moduleContentId: string,
+  ): Promise<AssignmentDto> {
     return await this.prisma.client.assignment.findFirstOrThrow({
       where: { moduleContentId },
     });
   }
 
+  /**
+   * Find an assignment for a specific student, including their submissions if any exist
+   * @param moduleContentId - The assignment's module content ID
+   * @param studentId - The student's ID
+   * @returns Assignment data with student submissions (empty array if none)
+   */
+  @Log({
+    logArgsMessage: ({ moduleContentId, studentId }) =>
+      `Fetching assignment for student ${studentId} with moduleContentId ${moduleContentId}`,
+    logSuccessMessage: (_, { moduleContentId, studentId }) =>
+      `Successfully fetched assignment for student ${studentId} with moduleContentId ${moduleContentId}`,
+    logErrorMessage: (err, { moduleContentId, studentId }) =>
+      `Error fetching assignment for student ${studentId} with moduleContentId ${moduleContentId}: ${err.message}`,
+  })
   async findOneForStudent(
-    moduleContentId: string,
-    studentId: string,
+    @LogParam('moduleContentId') moduleContentId: string,
+    @LogParam('studentId') studentId: string,
   ): Promise<StudentAssignmentItemDto> {
+    // Find assignment for student - submissions included if they exist
     const assignment = await this.prisma.client.assignment.findFirstOrThrow({
-      where: { moduleContentId, submissions: { some: { studentId } } },
+      where: { moduleContentId },
       include: {
         moduleContent: true,
-        submissions: { include: { attachments: true } },
+        submissions: {
+          where: { studentId },
+          include: { attachments: true },
+        },
       },
     });
 
@@ -302,8 +364,16 @@ export class AssignmentService {
     };
   }
 
+  @Log({
+    logArgsMessage: ({ moduleContentId }) =>
+      `Updating assignment configuration for moduleContentId ${moduleContentId}`,
+    logSuccessMessage: (result, { moduleContentId }) =>
+      `Successfully updated assignment configuration for moduleContentId ${moduleContentId}: ${result.message}`,
+    logErrorMessage: (err, { moduleContentId }) =>
+      `Error updating assignment configuration for moduleContentId ${moduleContentId}: ${err.message}`,
+  })
   async update(
-    moduleContentId: string,
+    @LogParam('moduleContentId') moduleContentId: string,
     updateAssignmentDto: UpdateAssignmentConfigDto,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
@@ -330,9 +400,17 @@ export class AssignmentService {
     return { message: 'Assignment config updated successfully' };
   }
 
+  @Log({
+    logArgsMessage: ({ directDelete, moduleContentId }) =>
+      `Removing assignment for moduleContentId ${moduleContentId}, directDelete=${directDelete}`,
+    logSuccessMessage: (result, { directDelete, moduleContentId }) =>
+      `Successfully removed assignment for moduleContentId ${moduleContentId}, directDelete=${directDelete}: ${result.message}`,
+    logErrorMessage: (err, { directDelete, moduleContentId }) =>
+      `Error removing assignment for moduleContentId ${moduleContentId}, directDelete=${directDelete}: ${err.message}`,
+  })
   async remove(
-    directDelete: boolean,
-    moduleContentId: string,
+    @LogParam('directDelete') directDelete: boolean,
+    @LogParam('moduleContentId') moduleContentId: string,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
     const client = tx ?? this.prisma.client;
