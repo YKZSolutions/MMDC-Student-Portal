@@ -26,7 +26,7 @@ import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import {
   formatDaysAbbrev,
-  formatPaginationMessage,
+  formatMetaToPagination,
   formatToSchoolYear,
   formatToTimeOfDay,
 } from '@/utils/formatters'
@@ -66,10 +66,10 @@ import {
   type ReactNode,
 } from '@tabler/icons-react'
 import {
+  useQuery,
   useSuspenseQuery,
   type QueryObserverResult,
   type RefetchOptions,
-  useQuery,
 } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
@@ -186,14 +186,10 @@ function EnrollmentStudentQueryProvider({
 
   const courseOfferings = courseData?.courseOfferings || []
 
-  const limit = 10
-  const total = courseOfferings.length
-  const totalPages = 1
-
-  const message = formatPaginationMessage({
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
     page,
-    total,
-    limit,
+    meta: courseData?.meta!,
   })
 
   console.log(courseOfferings)

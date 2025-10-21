@@ -18,7 +18,7 @@ import {
 import { SupabaseBuckets } from '@/integrations/supabase/supabase-bucket'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import type { UsersSearchSchemaType } from '@/routes/(protected)/users'
-import { formatPaginationMessage } from '@/utils/formatters'
+import { formatMetaToPagination } from '@/utils/formatters'
 import {
   ActionIcon,
   Box,
@@ -89,11 +89,12 @@ function UsersQueryProvider({
 
   const users = data?.users ?? []
   const meta = data?.meta
-  const limit = 10
-  const total = meta?.totalCount ?? 0
-  const totalPages = meta?.pageCount ?? 0
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
+    page,
+    meta,
+  })
 
   return children({
     users,

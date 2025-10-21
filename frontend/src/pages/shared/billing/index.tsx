@@ -14,7 +14,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
-import { formatPaginationMessage } from '@/utils/formatters'
+import { formatMetaToPagination } from '@/utils/formatters'
 import {
   ActionIcon,
   Badge,
@@ -113,15 +113,13 @@ function BillingQueryProvider({
   )
 
   const currentInvoices = data.bills || []
-
-  console.log(currentInvoices)
-
   const meta = data.meta as PaginationMetaDto
-  const limit = 10
-  const total = meta.totalCount ?? 0
-  const totalPages = meta.pageCount ?? 0
 
-  const message = formatPaginationMessage({ limit, page, total })
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
+    page,
+    meta,
+  })
 
   return children({
     currentInvoices,

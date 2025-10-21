@@ -1,5 +1,5 @@
 import type { PaginationMetaDto } from '@/integrations/api/client'
-import { formatPaginationMessage } from '@/utils/formatters'
+import { formatMetaToPagination } from '@/utils/formatters'
 import {
   ActionIcon,
   Checkbox,
@@ -48,10 +48,10 @@ function PaginatedTable<T>({
   onItemEdit,
   onItemDelete,
 }: PaginatedTableProps<T>) {
-  const message = formatPaginationMessage({
+  const { message } = formatMetaToPagination({
     limit: 10,
     page: meta.currentPage,
-    total: meta.totalCount,
+    meta: meta,
   })
 
   return (

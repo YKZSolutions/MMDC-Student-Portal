@@ -28,7 +28,7 @@ import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import {
   formatDaysAbbrev,
-  formatPaginationMessage,
+  formatMetaToPagination,
   formatToSchoolYear,
   formatToTimeOfDay,
 } from '@/utils/formatters'
@@ -133,14 +133,10 @@ function EnrollmentPeriodAdminQueryProvider({
 
   const courseOfferings = courseData.courseOfferings
 
-  const limit = 10
-  const total = courseOfferings.length
-  const totalPages = 1
-
-  const message = formatPaginationMessage({
+  const { totalPages, message } = formatMetaToPagination({
+    limit: 10,
     page,
-    total,
-    limit,
+    meta: courseData.meta,
   })
 
   console.log(courseOfferings)
