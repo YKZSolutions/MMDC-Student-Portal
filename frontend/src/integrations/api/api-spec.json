@@ -6896,6 +6896,44 @@
               }
             },
             "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
           }
         },
         "summary": "Creates a new enrollment period",
@@ -7777,6 +7815,44 @@
                     "error": {
                       "type": "string",
                       "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ConflictException": {
+                    "description": "Conflict",
+                    "value": {
+                      "statusCode": 409,
+                      "message": "Conflict",
+                      "error": "Conflict"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Conflict"
                     }
                   },
                   "required": [
@@ -9812,21 +9888,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/UpdateLessonItemDto"
-                  },
-                  {
-                    "$ref": "#/components/schemas/UpdateAssignmentItemDto"
-                  }
-                ],
-                "discriminator": {
-                  "propertyName": "contentType",
-                  "mapping": {
-                    "LESSON": "#/components/schemas/UpdateLessonItemDto",
-                    "ASSIGNMENT": "#/components/schemas/UpdateAssignmentItemDto"
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateModuleContentDto"
               }
             }
           }
@@ -19353,6 +19415,80 @@
           "contentType"
         ]
       },
+      "AssignmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
       "ModuleTreeAssignmentItemDto": {
         "type": "object",
         "properties": {
@@ -19397,54 +19533,13 @@
               "$ref": "#/components/schemas/ContentProgress"
             }
           },
-          "mode": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentMode"
-              }
-            ]
-          },
-          "maxScore": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "weightPercentage": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "latePenalty": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
           "contentType": {
             "type": "string",
             "default": "ASSIGNMENT",
             "readOnly": true
+          },
+          "assignment": {
+            "$ref": "#/components/schemas/AssignmentDto"
           }
         },
         "required": [
@@ -19457,16 +19552,8 @@
           "unpublishedAt",
           "createdAt",
           "updatedAt",
-          "mode",
-          "maxScore",
-          "weightPercentage",
-          "maxAttempts",
-          "allowLateSubmission",
-          "latePenalty",
-          "dueDate",
-          "gracePeriodMinutes",
-          "deletedAt",
-          "contentType"
+          "contentType",
+          "assignment"
         ]
       },
       "ModuleTreeSectionDto": {
@@ -22039,7 +22126,7 @@
           "paymentScheme"
         ]
       },
-      "AssignmentItemDto": {
+      "AssignmentConfigDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -22100,6 +22187,28 @@
           "rubricTemplateId": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "AssignmentItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
           },
           "contentType": {
             "default": "ASSIGNMENT",
@@ -22135,28 +22244,37 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "assignment": {
+            "$ref": "#/components/schemas/AssignmentConfigDto"
           }
         },
         "required": [
           "id",
-          "mode",
-          "maxScore",
-          "weightPercentage",
-          "maxAttempts",
-          "allowLateSubmission",
-          "latePenalty",
-          "dueDate",
-          "gracePeriodMinutes",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
           "contentType",
           "title",
           "subtitle",
           "content",
           "order",
           "publishedAt",
-          "unpublishedAt"
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "assignment"
         ]
       },
       "LessonItemDto": {
@@ -22305,101 +22423,7 @@
           "connect"
         ]
       },
-      "UpdateAssignmentItemDto": {
-        "type": "object",
-        "properties": {
-          "mode": {
-            "default": "INDIVIDUAL",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentMode"
-              }
-            ]
-          },
-          "maxScore": {
-            "type": "integer",
-            "format": "int32",
-            "default": 0
-          },
-          "weightPercentage": {
-            "type": "integer",
-            "format": "int32",
-            "default": 0
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean",
-            "nullable": true,
-            "default": false
-          },
-          "latePenalty": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32",
-            "default": 0
-          },
-          "rubricTemplateId": {
-            "type": "string",
-            "nullable": true
-          },
-          "moduleSection": {
-            "$ref": "#/components/schemas/UpdateModuleContentModuleSectionRelationInputDto"
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32",
-            "default": 1
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "contentType": {
-            "type": "string",
-            "enum": [
-              "ASSIGNMENT"
-            ],
-            "default": "ASSIGNMENT"
-          }
-        },
-        "required": [
-          "contentType"
-        ]
-      },
-      "UpdateLessonItemDto": {
+      "UpdateModuleContentDto": {
         "type": "object",
         "properties": {
           "moduleSection": {
@@ -22432,18 +22456,8 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
-          },
-          "contentType": {
-            "type": "string",
-            "enum": [
-              "LESSON"
-            ],
-            "default": "LESSON"
           }
-        },
-        "required": [
-          "contentType"
-        ]
+        }
       },
       "PaginatedModuleContentDto": {
         "type": "object",
@@ -23629,80 +23643,6 @@
         "required": [
           "meta",
           "assignments"
-        ]
-      },
-      "AssignmentDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "mode": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentMode"
-              }
-            ]
-          },
-          "maxScore": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "weightPercentage": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "latePenalty": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "mode",
-          "maxScore",
-          "weightPercentage",
-          "maxAttempts",
-          "allowLateSubmission",
-          "latePenalty",
-          "dueDate",
-          "gracePeriodMinutes",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
         ]
       },
       "UpdateAssignmentConfigDto": {

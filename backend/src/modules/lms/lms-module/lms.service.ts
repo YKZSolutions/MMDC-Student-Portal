@@ -36,6 +36,7 @@ import {
 } from '@/modules/lms/lms-module/dto/module-tree.dto';
 import { mapModuleContentToModuleTreeItem } from '@/modules/lms/lms-content/helper/mapper';
 import { ModuleTreeContentItem } from '@/modules/lms/lms-content/types';
+import { MessageDto } from '@/common/dto/message.dto';
 
 @Injectable()
 export class LmsService {
@@ -99,16 +100,23 @@ export class LmsService {
    * @async
    * @param {string} enrollmentPeriodId - The UUID of the target enrollment period
    *                                      where modules should be copied into.
+   * @param courseOfferingId
    * @throws {NotFoundException} If the enrollment period does not exist.
    * @throws {Error} If any part of the transaction fails (all changes are rolled back).
    */
   @Log({
-    logArgsMessage: ({ enrollmentPeriodId }) =>
-      `Cloning modules for enrollment period ${enrollmentPeriodId}`,
-    logSuccessMessage: (_, { enrollmentPeriodId }) =>
-      `Cloned modules for enrollment period id ${enrollmentPeriodId}`,
-    logErrorMessage: (err, { enrollmentPeriodId }) =>
-      `Cloning modules for enrollment period ${enrollmentPeriodId} | Error: ${err.message}`,
+    logArgsMessage: ({ enrollmentPeriodId, courseOfferingId }) =>
+      `Cloning modules for enrollment period ${enrollmentPeriodId} ${
+        courseOfferingId ? `for course offering ${courseOfferingId}` : ''
+      }`,
+    logSuccessMessage: (_, { enrollmentPeriodId, courseOfferingId }) =>
+      `Cloned modules for enrollment period id ${enrollmentPeriodId} ${
+        courseOfferingId ? `for course offering ${courseOfferingId}` : ''
+      }`,
+    logErrorMessage: (err, { enrollmentPeriodId, courseOfferingId }) =>
+      `Cloning modules for enrollment period ${enrollmentPeriodId} ${
+        courseOfferingId ? `for course offering ${courseOfferingId}` : ''
+      }  | Error: ${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { enrollmentPeriodId }) =>
@@ -118,10 +126,20 @@ export class LmsService {
   })
   async cloneMostRecentModules(
     @LogParam('enrollmentPeriodId') enrollmentPeriodId: string,
+    @LogParam('courseOfferingId') courseOfferingId?: string,
   ) {
     const currentEnrollment =
       await this.prisma.client.enrollmentPeriod.findUniqueOrThrow({
-        where: { id: enrollmentPeriodId },
+        where: {
+          id: enrollmentPeriodId,
+          ...(courseOfferingId && {
+            courseOfferings: {
+              some: {
+                id: courseOfferingId,
+              },
+            },
+          }),
+        },
         include: { courseOfferings: true },
       });
 
@@ -139,9 +157,7 @@ export class LmsService {
           include: {
             moduleContents: {
               include: {
-                assignment: {
-                  include: { submissions: false },
-                },
+                assignment: true,
               },
             },
           },
@@ -161,7 +177,11 @@ export class LmsService {
           );
         }
 
-        // Create new module
+        if (module.courseOfferingId === courseOffering.id) {
+          continue;
+        }
+
+        // Create the new module
         const newModule = await tx.module.create({
           data: {
             title: module.title,
@@ -776,6 +796,45 @@ export class LmsService {
     return {
       message: `Module "${module.title}" and all related sections and contents were permanently deleted.`,
     };
+  }
+
+  /**
+   * Removes all modules in a given enrollment period.
+   *
+   *
+   * @async
+   * @param {string} enrollmentPeriodId - The UUID of the target enrollment period
+   *                                      where modules should be deleted.
+   * @throws {NotFoundException} If the enrollment period does not exist.
+   */
+  @Log({
+    logArgsMessage: ({ enrollmentPeriodId }) =>
+      `Deleting modules for enrollment period ${enrollmentPeriodId}`,
+    logSuccessMessage: (_, { enrollmentPeriodId }) =>
+      `Successfully deleted modules for enrollment period id ${enrollmentPeriodId}`,
+    logErrorMessage: (err, { enrollmentPeriodId }) =>
+      `Failed to delete modules for enrollment period ${enrollmentPeriodId} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: (_, { enrollmentPeriodId }) =>
+      new NotFoundException(
+        `Enrollment period not found for id ${enrollmentPeriodId}`,
+      ),
+  })
+  async removeModules(
+    @LogParam('enrollmentPeriodId') enrollmentPeriodId: string,
+  ): Promise<MessageDto> {
+    await this.prisma.client.module.deleteMany({
+      where: {
+        courseOffering: {
+          enrollmentPeriod: {
+            id: enrollmentPeriodId,
+          },
+        },
+      },
+    });
+
+    return new MessageDto('Modules successfully deleted');
   }
 
   @Log({

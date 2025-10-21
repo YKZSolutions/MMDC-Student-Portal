@@ -228,8 +228,8 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
 
   const isOverdue =
     moduleContent.contentType === 'ASSIGNMENT' &&
-    moduleContent.dueDate &&
-    new Date(moduleContent.dueDate) < new Date()
+    moduleContent.assignment.dueDate &&
+    new Date(moduleContent.assignment.dueDate) < new Date()
 
   const isCompleted =
     moduleContent.contentType === 'LESSON' &&
@@ -328,11 +328,12 @@ function ModuleItemCard({ moduleContent, viewMode }: ModuleItemCardProps) {
 
             {moduleContent.contentType === 'ASSIGNMENT' && (
               <Text size="xs" c={isOverdue ? 'red' : 'dimmed'}>
-                Due{' '}
-                {formatTimestampToDateTimeText(
-                  moduleContent.dueDate || '',
-                  'by',
-                )}{' '}
+                {moduleContent.assignment.dueDate &&
+                  'Due ' +
+                    formatTimestampToDateTimeText(
+                      moduleContent.assignment.dueDate,
+                      'by',
+                    )}{' '}
                 {/* • {moduleContent.assignment.points} pts */}
               </Text>
             )}

@@ -1,5 +1,6 @@
 import { zUpdateAssignmentConfigDto } from '@/integrations/api/client/zod.gen'
 import z from 'zod'
+import dayjs from 'dayjs'
 
 const zAssignmentConfigSchema = zUpdateAssignmentConfigDto.shape
 
@@ -19,7 +20,7 @@ export const assignmentConfigFormSchema = z
     maxAttempts: z.number().int().min(0).nullable().optional().default(0),
     allowLateSubmission: zAssignmentConfigSchema.allowLateSubmission.nullable(),
     latePenalty: zAssignmentConfigSchema.latePenalty.nullable(),
-    dueDate: zAssignmentConfigSchema.dueDate.nullable(),
+    dueDate: z.union([z.string(), z.date(), z.null()]),
     gracePeriodMinutes: z
       .number()
       .int()
@@ -113,12 +114,15 @@ export const assignmentConfigFormSchema = z
     }
 
     // Date validation - ensure the due date is not in the past
-    if (values.dueDate && new Date(values.dueDate) < new Date()) {
-      ctx.addIssue({
-        path: ['dueDate'],
-        code: 'custom',
-        message: 'Due date cannot be in the past',
-      })
+    if (values.dueDate) {
+      const dueDate = dayjs(values.dueDate)
+      if (dueDate.isBefore(dayjs(), 'minute')) {
+        ctx.addIssue({
+          path: ['dueDate'],
+          code: 'custom',
+          message: 'Due date cannot be in the past',
+        })
+      }
     }
 
     // Late penalty range validation

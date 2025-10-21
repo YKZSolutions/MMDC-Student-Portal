@@ -784,26 +784,8 @@ export const zModuleTreeLessonItemDto = z.object({
     contentType: z.string().readonly().default('LESSON')
 });
 
-export const zModuleTreeAssignmentItemDto = z.object({
+export const zAssignmentDto = z.object({
     id: z.string(),
-    moduleSectionId: z.string(),
-    title: z.string(),
-    subtitle: z.union([
-        z.string(),
-        z.null()
-    ]),
-    order: z.int(),
-    publishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    unpublishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    studentProgress: z.optional(z.array(zContentProgress)),
     mode: zAssignmentMode,
     maxScore: z.int(),
     weightPercentage: z.int(),
@@ -827,11 +809,36 @@ export const zModuleTreeAssignmentItemDto = z.object({
         z.int(),
         z.null()
     ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
     deletedAt: z.union([
         z.iso.datetime(),
         z.null()
+    ])
+});
+
+export const zModuleTreeAssignmentItemDto = z.object({
+    id: z.string(),
+    moduleSectionId: z.string(),
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
     ]),
-    contentType: z.string().readonly().default('ASSIGNMENT')
+    order: z.int(),
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    studentProgress: z.optional(z.array(zContentProgress)),
+    contentType: z.string().readonly().default('ASSIGNMENT'),
+    assignment: zAssignmentDto
 });
 
 export const zModuleTreeSectionDto = z.object({
@@ -1653,7 +1660,7 @@ export const zFinalizeEnrollmentDto = z.object({
     studentId: z.optional(z.uuid())
 });
 
-export const zAssignmentItemDto = z.object({
+export const zAssignmentConfigDto = z.object({
     id: z.string(),
     mode: zAssignmentMode,
     maxScore: z.int(),
@@ -1687,7 +1694,11 @@ export const zAssignmentItemDto = z.object({
     rubricTemplateId: z.optional(z.union([
         z.string(),
         z.null()
-    ])),
+    ]))
+});
+
+export const zAssignmentItemDto = z.object({
+    id: z.string(),
     contentType: zContentType,
     title: z.string(),
     subtitle: z.union([
@@ -1703,7 +1714,14 @@ export const zAssignmentItemDto = z.object({
     unpublishedAt: z.union([
         z.iso.datetime(),
         z.null()
-    ])
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    assignment: zAssignmentConfigDto
 });
 
 export const zLessonItemDto = z.object({
@@ -1763,34 +1781,7 @@ export const zUpdateModuleContentModuleSectionRelationInputDto = z.object({
     connect: zConnectModuleSectionDto
 });
 
-export const zUpdateAssignmentItemDto = z.object({
-    mode: z.optional(zAssignmentMode),
-    maxScore: z.optional(z.int()).default(0),
-    weightPercentage: z.optional(z.int()).default(0),
-    maxAttempts: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    allowLateSubmission: z.optional(z.union([
-        z.boolean().default(false),
-        z.null()
-    ])).default(false),
-    latePenalty: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    dueDate: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    gracePeriodMinutes: z.optional(z.union([
-        z.int().default(0),
-        z.null()
-    ])).default(0),
-    rubricTemplateId: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
+export const zUpdateModuleContentDto = z.object({
     moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
     title: z.optional(z.string()),
     subtitle: z.optional(z.union([
@@ -1806,32 +1797,7 @@ export const zUpdateAssignmentItemDto = z.object({
     unpublishedAt: z.optional(z.union([
         z.iso.datetime(),
         z.null()
-    ])),
-    contentType: z.enum([
-        'ASSIGNMENT'
-    ])
-});
-
-export const zUpdateLessonItemDto = z.object({
-    moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
-    title: z.optional(z.string()),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.array(z.object({}))),
-    order: z.optional(z.int()).default(1),
-    publishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    unpublishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    contentType: z.enum([
-        'LESSON'
-    ])
+    ]))
 });
 
 export const zPaginatedModuleContentDto = z.object({
@@ -2274,39 +2240,6 @@ export const zStudentAssignmentItemDto = z.object({
 export const zPaginatedStudentAssignmentDto = z.object({
     meta: zPaginationMetaDto,
     assignments: z.array(zStudentAssignmentItemDto)
-});
-
-export const zAssignmentDto = z.object({
-    id: z.string(),
-    mode: zAssignmentMode,
-    maxScore: z.int(),
-    weightPercentage: z.int(),
-    maxAttempts: z.union([
-        z.int(),
-        z.null()
-    ]),
-    allowLateSubmission: z.union([
-        z.boolean(),
-        z.null()
-    ]),
-    latePenalty: z.union([
-        z.int(),
-        z.null()
-    ]),
-    dueDate: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    gracePeriodMinutes: z.union([
-        z.int(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
 });
 
 export const zUpdateAssignmentConfigDto = z.object({
@@ -4072,14 +4005,7 @@ export const zLmsContentControllerFindOneResponse = z.union([
 ]);
 
 export const zLmsContentControllerUpdateData = z.object({
-    body: z.union([
-        z.object({
-            contentType: z.literal('LESSON')
-        }).and(zUpdateLessonItemDto),
-        z.object({
-            contentType: z.literal('ASSIGNMENT')
-        }).and(zUpdateAssignmentItemDto)
-    ]),
+    body: zUpdateModuleContentDto,
     path: z.object({
         moduleContentId: z.string()
     }),
