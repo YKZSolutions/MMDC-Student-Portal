@@ -2,7 +2,12 @@ import {
   ExtendedPrismaClient,
   PrismaTransaction,
 } from '@/lib/prisma/prisma.extension';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import {
   PaginatedAssignmentDto,
@@ -18,6 +23,10 @@ import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { UpdateAssignmentConfigDto } from '@/modules/lms/assignment/dto/update-assignment-config.dto';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class AssignmentService {
@@ -27,22 +36,28 @@ export class AssignmentService {
   ) {}
 
   @Log({
-    logArgsMessage: ({ moduleContentId, studentId }) =>
-      `Submitting assignment for moduleContentId ${moduleContentId} by student ${studentId}`,
-    logSuccessMessage: (_, { moduleContentId, studentId }) =>
-      `Successfully submitted assignment for moduleContentId ${moduleContentId} by student ${studentId}`,
-    logErrorMessage: (err, { moduleContentId, studentId }) =>
-      `Error submitting assignment for moduleContentId ${moduleContentId} by student ${studentId}: ${err.message}`,
+    logArgsMessage: ({ assignmentId, studentId }) =>
+      `Submitting assignment for assignmentId ${assignmentId} by student ${studentId}`,
+    logSuccessMessage: (_, { assignmentId, studentId }) =>
+      `Successfully submitted assignment for assignmentId ${assignmentId} by student ${studentId}`,
+    logErrorMessage: (err, { assignmentId, studentId }) =>
+      `Error submitting assignment for assignmentId ${assignmentId} by student ${studentId}: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(
+        `Assignment for making the submission is not found`,
+      ),
   })
   async submit(
-    @LogParam('moduleContentId') moduleContentId: string,
+    @LogParam('assignmentId') assignmentId: string,
     @LogParam('studentId') studentId: string,
     submitAssignmentDto: SubmitAssignmentDto,
   ): Promise<AssignmentSubmission> {
     return await this.prisma.client.assignmentSubmission.create({
       data: {
-        assignment: { connect: { moduleContentId } },
-        student: { connect: { id: studentId } },
+        assignmentId: assignmentId,
+        studentId: studentId,
         state: submitAssignmentDto.state,
         content: submitAssignmentDto.content,
         submittedAt:
@@ -317,7 +332,7 @@ export class AssignmentService {
     @LogParam('moduleContentId') moduleContentId: string,
   ): Promise<AssignmentDto> {
     return await this.prisma.client.assignment.findFirstOrThrow({
-      where: { moduleContentId },
+      where: { id: moduleContentId },
     });
   }
 
@@ -365,15 +380,15 @@ export class AssignmentService {
   }
 
   @Log({
-    logArgsMessage: ({ moduleContentId }) =>
-      `Updating assignment configuration for moduleContentId ${moduleContentId}`,
-    logSuccessMessage: (result, { moduleContentId }) =>
-      `Successfully updated assignment configuration for moduleContentId ${moduleContentId}: ${result.message}`,
-    logErrorMessage: (err, { moduleContentId }) =>
-      `Error updating assignment configuration for moduleContentId ${moduleContentId}: ${err.message}`,
+    logArgsMessage: ({ assignmentId }) =>
+      `Updating assignment configuration for assignmentId ${assignmentId}`,
+    logSuccessMessage: (result, { assignmentId }) =>
+      `Successfully updated assignment configuration for assignmentId ${assignmentId}: ${result.message}`,
+    logErrorMessage: (err, { assignmentId }) =>
+      `Error updating assignment configuration for assignmentId ${assignmentId}: ${err.message}`,
   })
   async update(
-    @LogParam('moduleContentId') moduleContentId: string,
+    @LogParam('assignmentId') assignmentId: string,
     updateAssignmentDto: UpdateAssignmentConfigDto,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
@@ -393,7 +408,7 @@ export class AssignmentService {
     }
 
     await client.assignment.update({
-      where: { moduleContentId },
+      where: { id: assignmentId },
       data,
     });
 
@@ -401,21 +416,21 @@ export class AssignmentService {
   }
 
   @Log({
-    logArgsMessage: ({ directDelete, moduleContentId }) =>
-      `Removing assignment for moduleContentId ${moduleContentId}, directDelete=${directDelete}`,
-    logSuccessMessage: (result, { directDelete, moduleContentId }) =>
-      `Successfully removed assignment for moduleContentId ${moduleContentId}, directDelete=${directDelete}: ${result.message}`,
-    logErrorMessage: (err, { directDelete, moduleContentId }) =>
-      `Error removing assignment for moduleContentId ${moduleContentId}, directDelete=${directDelete}: ${err.message}`,
+    logArgsMessage: ({ directDelete, assignmentId }) =>
+      `Removing assignment for assignmentId ${assignmentId}, directDelete=${directDelete}`,
+    logSuccessMessage: (result, { directDelete, assignmentId }) =>
+      `Successfully removed assignment for assignmentId ${assignmentId}, directDelete=${directDelete}: ${result.message}`,
+    logErrorMessage: (err, { directDelete, assignmentId }) =>
+      `Error removing assignment for assignmentId ${assignmentId}, directDelete=${directDelete}: ${err.message}`,
   })
   async remove(
     @LogParam('directDelete') directDelete: boolean,
-    @LogParam('moduleContentId') moduleContentId: string,
+    @LogParam('assignmentId') assignmentId: string,
     tx?: PrismaTransaction,
   ): Promise<MessageDto> {
     const client = tx ?? this.prisma.client;
     const assignment = await client.assignment.findUnique({
-      where: { moduleContentId },
+      where: { id: assignmentId },
       include: { submissions: true },
     });
 
@@ -431,12 +446,12 @@ export class AssignmentService {
 
     if (directDelete) {
       await client.assignment.delete({
-        where: { moduleContentId },
+        where: { id: assignmentId },
       });
       return new MessageDto('Assignment permanently deleted');
     }
     await client.assignment.update({
-      where: { moduleContentId },
+      where: { id: assignmentId },
       data: { deletedAt: new Date() },
     });
 
