@@ -161,6 +161,8 @@ export class CourseOfferingService {
 
         const existingOfferings = enrollmentPeriod?.courseOfferings;
 
+        console.log('existingOfferings', existingOfferings);
+
         const curriculumCourses = await tx.curriculumCourse.findMany({
           where: { curriculumId: createCourseOfferingDto.curriculumId },
           include: {
@@ -170,7 +172,9 @@ export class CourseOfferingService {
 
         let coursesToCreate = curriculumCourses;
 
-        if (existingOfferings) {
+        console.log('coursesToCreate', coursesToCreate);
+
+        if (existingOfferings.length > 0) {
           coursesToCreate = curriculumCourses.filter(
             (course) =>
               !existingOfferings.some(
@@ -184,6 +188,8 @@ export class CourseOfferingService {
             );
           }
         }
+
+        console.log('coursesToCreateFinal', coursesToCreate);
 
         return tx.courseOffering.createManyAndReturn({
           data: coursesToCreate.map((item) => ({
