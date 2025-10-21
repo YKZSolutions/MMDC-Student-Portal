@@ -5294,38 +5294,13 @@ export type CurriculumControllerUpdateResponses = {
 
 export type CurriculumControllerUpdateResponse = CurriculumControllerUpdateResponses[keyof CurriculumControllerUpdateResponses];
 
-export type AssignmentControllerFindOneData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/{moduleContentId}/assignments';
-};
-
-export type AssignmentControllerFindOneErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AssignmentControllerFindOneError = AssignmentControllerFindOneErrors[keyof AssignmentControllerFindOneErrors];
-
-export type AssignmentControllerFindOneResponses = {
-    200: AssignmentDto;
-};
-
-export type AssignmentControllerFindOneResponse = AssignmentControllerFindOneResponses[keyof AssignmentControllerFindOneResponses];
-
 export type AssignmentControllerUpdateData = {
     body: UpdateAssignmentConfigDto;
     path: {
-        moduleContentId: string;
+        assignmentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/{moduleContentId}/assignments';
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/{assignmentId}';
 };
 
 export type AssignmentControllerUpdateErrors = {
@@ -5350,10 +5325,10 @@ export type AssignmentControllerUpdateResponses = {
 export type AssignmentControllerSubmitData = {
     body: SubmitAssignmentDto;
     path: {
-        moduleContentId: string;
+        assignmentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/{moduleContentId}/assignments';
+    url: '/modules/{moduleId}/{moduleContentId}/assignments/{assignmentId}';
 };
 
 export type AssignmentControllerSubmitErrors = {
@@ -5456,6 +5431,31 @@ export type AssignmentControllerFindAllForStudentResponses = {
 };
 
 export type AssignmentControllerFindAllForStudentResponse = AssignmentControllerFindAllForStudentResponses[keyof AssignmentControllerFindAllForStudentResponses];
+
+export type AssignmentControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/{moduleContentId}/assignments';
+};
+
+export type AssignmentControllerFindOneErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AssignmentControllerFindOneError = AssignmentControllerFindOneErrors[keyof AssignmentControllerFindOneErrors];
+
+export type AssignmentControllerFindOneResponses = {
+    200: AssignmentDto;
+};
+
+export type AssignmentControllerFindOneResponse = AssignmentControllerFindOneResponses[keyof AssignmentControllerFindOneResponses];
 
 export type AssignmentControllerFindOneForStudentData = {
     body?: never;

@@ -4155,20 +4155,10 @@ export const zCurriculumControllerUpdateData = z.object({
 
 export const zCurriculumControllerUpdateResponse = zCurriculumDto;
 
-export const zAssignmentControllerFindOneData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zAssignmentControllerFindOneResponse = zAssignmentDto;
-
 export const zAssignmentControllerUpdateData = z.object({
     body: zUpdateAssignmentConfigDto,
     path: z.object({
-        moduleContentId: z.string()
+        assignmentId: z.string()
     }),
     query: z.optional(z.never())
 });
@@ -4176,7 +4166,7 @@ export const zAssignmentControllerUpdateData = z.object({
 export const zAssignmentControllerSubmitData = z.object({
     body: zSubmitAssignmentDto,
     path: z.object({
-        moduleContentId: z.string()
+        assignmentId: z.string()
     }),
     query: z.optional(z.never())
 });
@@ -4222,6 +4212,16 @@ export const zAssignmentControllerFindAllForStudentData = z.object({
 });
 
 export const zAssignmentControllerFindAllForStudentResponse = zPaginatedStudentAssignmentDto;
+
+export const zAssignmentControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAssignmentControllerFindOneResponse = zAssignmentDto;
 
 export const zAssignmentControllerFindOneForStudentData = z.object({
     body: z.optional(z.never()),
