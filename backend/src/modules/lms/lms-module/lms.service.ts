@@ -214,8 +214,11 @@ export class LmsService {
         // Step 2: Clone contents & assignments in parallel per section
         const allContentsData = module.moduleSections.flatMap((oldSection) => {
           const newSectionId = newSectionsMap.get(oldSection.id);
+
           if (!newSectionId) {
-            throw Error(`Module section ${oldSection.id} not found`);
+            throw Error(
+              `Failed to find cloned section for original section ID ${oldSection.id}`,
+            );
           }
 
           return oldSection.moduleContents.map((c) => ({
