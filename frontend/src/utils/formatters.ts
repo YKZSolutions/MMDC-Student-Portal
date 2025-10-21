@@ -18,7 +18,7 @@ export function formatMetaToPagination({
   page: number | undefined
   meta: PaginationMetaDto
 }) {
-  const totalItems = meta.totalCount
+  const totalItems = meta?.totalCount
   const totalPages = meta?.pageCount ?? 0
 
   const start = limit * (page - 1) + 1
