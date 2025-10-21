@@ -1,4 +1,7 @@
-import type { EnrollmentPeriodDto } from '@/integrations/api/client'
+import type {
+  EnrollmentPeriodDto,
+  PaginationMetaDto,
+} from '@/integrations/api/client'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -6,18 +9,27 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.extend(customParseFormat)
 dayjs.extend(relativeTime)
 
-export function formatPaginationMessage({
+export function formatMetaToPagination({
   limit,
-  page,
-  total,
+  page = 1,
+  meta,
 }: {
   limit: number
-  page: number
-  total: number
+  page: number | undefined
+  meta: PaginationMetaDto
 }) {
+  const totalItems = meta?.totalCount
+  const totalPages = meta?.pageCount ?? 0
+
   const start = limit * (page - 1) + 1
-  const end = Math.min(total, limit * page)
-  return `Showing ${start} - ${end} of ${total}`
+  const end = Math.min(totalItems, limit * page)
+
+  const message = `Showing ${start} - ${end} of ${totalItems}`
+
+  return {
+    message,
+    totalPages,
+  }
 }
 
 export function formatToLabel(value: string): string {

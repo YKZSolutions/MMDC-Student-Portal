@@ -3,9 +3,10 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 import TanStackQueryLayout from '@/integrations/tanstack-query/layout.tsx'
 
+import { Loader } from '@/components/loader-component'
 import { client } from '@/integrations/api/client/client.gen'
 import type { QueryClient } from '@tanstack/react-query'
-import { Loader } from '@/components/loader-component'
+import { paginationSearchSchema } from '@/features/pagination/search-validation'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -25,4 +26,5 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     })
   },
   pendingComponent: Loader,
+  validateSearch: paginationSearchSchema,
 })
