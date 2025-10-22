@@ -16,10 +16,14 @@ import {
   Param,
   Patch,
   Post,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseFullDto } from './dto/create-course-full.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { CourseFullDto } from './dto/course-full.dto';
+import { PaginatedCoursesDto } from '@/modules/courses/dto/paginated-course.dto';
+import { MessageDto } from '@/common/dto/message.dto';
 
 /**
  * @remarks
@@ -40,7 +44,7 @@ export class CoursesController {
   @ApiException(() => [ConflictException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Post()
-  create(@Body() createCourseDto: CreateCourseFullDto) {
+  create(@Body() createCourseDto: CreateCourseFullDto): Promise<CourseFullDto> {
     return this.coursesService.create(createCourseDto);
   }
 
@@ -53,7 +57,7 @@ export class CoursesController {
   @ApiException(() => [BadRequestException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Get()
-  findAll(@Query() filters: BaseFilterDto) {
+  findAll(@Query() filters: BaseFilterDto): Promise<PaginatedCoursesDto> {
     return this.coursesService.findAll(filters);
   }
 
@@ -66,7 +70,9 @@ export class CoursesController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<CourseFullDto> {
     return this.coursesService.findOne(id);
   }
 
@@ -84,7 +90,10 @@ export class CoursesController {
   ])
   @Roles(Role.ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateCourseDto: UpdateCourseDto,
+  ): Promise<CourseFullDto> {
     return this.coursesService.update(id, updateCourseDto);
   }
 
@@ -98,7 +107,10 @@ export class CoursesController {
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.ADMIN)
   @Delete(':id')
-  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query?: DeleteQueryDto,
+  ): Promise<MessageDto> {
     return this.coursesService.remove(id, query?.directDelete);
   }
 }
