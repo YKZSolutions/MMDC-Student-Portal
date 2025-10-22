@@ -6,7 +6,10 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
   Inject,
@@ -38,6 +41,7 @@ import { mapModuleContentToModuleTreeItem } from '@/modules/lms/lms-content/help
 import { ModuleTreeContentItem } from '@/modules/lms/lms-content/types';
 import { MessageDto } from '@/common/dto/message.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 
 @Injectable()
 export class LmsService {
@@ -53,8 +57,8 @@ export class LmsService {
    * linked to the course, with no enrollment period assigned initially.
    *
    * @async
-   * @param {string} courseId - The UUID of the course.
-   *
+   * @param course - The course to initialize a module for.
+   * @param transactionClient - The Prisma client to use for database operations.
    * @returns {Promise<ModuleDto>} The newly created base module entity.
    *
    * @throws {NotFoundException} If no course is found with the given ID.
@@ -69,18 +73,16 @@ export class LmsService {
       `Initializing empty module for course ${courseId} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { courseId }) =>
-      new NotFoundException(`Course not found for id ${courseId}`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Course not found}`),
   })
   async initializeCourseModule(
-    @LogParam('courseId') courseId: string,
+    @LogParam('course') course: CourseDto,
+    transactionClient: PrismaTransaction,
   ): Promise<ModuleDto> {
-    const course = await this.prisma.client.course.findUniqueOrThrow({
-      where: { id: courseId },
-      select: { id: true, name: true },
-    });
+    const useClient = transactionClient || this.prisma.client;
 
-    return await this.prisma.client.module.create({
+    return useClient.module.create({
       data: {
         courseId: course.id,
         title: course.name,

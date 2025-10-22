@@ -21,6 +21,7 @@ import { CreateCourseFullDto } from './dto/create-course-full.dto';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { LmsService } from '../lms/lms-module/lms.service';
+import { MessageDto } from '@/common/dto/message.dto';
 
 @Injectable()
 export class CoursesService {
@@ -41,11 +42,11 @@ export class CoursesService {
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
-    logArgsMessage: ({ course }) =>
+    logArgsMessage: ({ course }: { course: CreateCourseFullDto }) =>
       `Creating course [${course.courseCode} - ${course.name}]`,
     logSuccessMessage: (course) =>
       `Course [${course.courseCode} - ${course.name}] successfully created.`,
-    logErrorMessage: (err, { course }) =>
+    logErrorMessage: (err, { course }: { course: CreateCourseFullDto }) =>
       `An error has occurred while creating course [${course.courseCode} - ${course.name}] | Error: ${err.message}`,
   })
   @PrismaError({
@@ -73,21 +74,23 @@ export class CoursesService {
       data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
     }
 
-    const course = await this.prisma.client.course.create({
-      data,
-      include: { prereqs: true, coreqs: true },
+    return this.prisma.client.$transaction(async (tx) => {
+      const course: CourseFullDto = await tx.course.create({
+        data,
+        include: { prereqs: true, coreqs: true },
+      });
+
+      await this.lmsService.initializeCourseModule(course, tx);
+
+      return course;
     });
-
-    await this.lmsService.initializeCourseModule(course.id);
-
-    return course;
   }
 
   /**
    * Retrieves all courses matching the provided filters, with pagination support.
    *
    * @async
-   * @param {BaseFilterDto} filters - Filters and pagination otions (e.g., search keyword, page number).
+   * @param {BaseFilterDto} filters - Filters and pagination options (e.g., search keyword, page number).
    * @returns {Promise<PaginatedCoursesDto>} - Paginated list of courses with metadata.
    *
    * @throws {BadRequestException} If query parameters are invalid.
@@ -145,7 +148,7 @@ export class CoursesService {
   }
 
   /**
-   * Retrieves a single course by it's unique ID.
+   * Retrieves a single course by its unique ID.
    *
    * @async
    * @param {string} id - The UUID of the course.
@@ -197,62 +200,72 @@ export class CoursesService {
    */
   @Log({
     logArgsMessage: ({ id }) => `Updating course for id ${id}`,
-    logSuccessMessage: (id) => `Successfully updated course for id ${id}`,
+    logSuccessMessage: (course) =>
+      `Successfully updated course for id ${course.id}`,
     logErrorMessage: (err, { id }) =>
       `An error has occurred while updated course for id ${id} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Course not found for Id ${id}`),
-    [PrismaErrorCode.UniqueConstraint]: (_, { course }) =>
-      new ConflictException(`Course code ${course.courseCode} already in use`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Course does not exist`),
   })
   async update(
     @LogParam('id') id: string,
     @LogParam('course') updateCourseDto: UpdateCourseDto,
   ): Promise<CourseFullDto> {
     if (!isUUID(id)) {
-      throw new NotFoundException(`Course with ID ${id} not found.`);
+      throw new BadRequestException('Invalid course ID format');
     }
 
-    const { majorIds, coreqIds, prereqIds, ...courseData } = updateCourseDto;
+    return await this.prisma.client.$transaction(async (tx) => {
+      await tx.course.findUniqueOrThrow({ where: { id } }).then((course) => {
+        if (course.courseCode === updateCourseDto.courseCode) {
+          throw new ConflictException('Course code already exists');
+        }
+        if (course.name === updateCourseDto.name) {
+          throw new ConflictException('Course name already exists');
+        }
+      });
 
-    const data: Prisma.CourseUpdateInput = {
-      ...courseData,
-    };
+      const { majorIds, coreqIds, prereqIds, ...courseData } = updateCourseDto;
 
-    if (majorIds) {
-      data.majors = { set: majorIds.map((id) => ({ id })) };
-    }
+      const data: Prisma.CourseUpdateInput = {
+        ...courseData,
+      };
 
-    if (coreqIds) {
-      data.coreqs = { set: coreqIds.map((id) => ({ id })) };
-    }
+      if (majorIds) {
+        data.majors = { set: majorIds.map((id) => ({ id })) };
+      }
 
-    if (prereqIds) {
-      data.prereqs = { set: prereqIds.map((id) => ({ id })) };
-    }
+      if (coreqIds) {
+        data.coreqs = { set: coreqIds.map((id) => ({ id })) };
+      }
 
-    return await this.prisma.client.course.update({
-      where: { id },
-      data,
-      include: {
-        prereqs: true,
-        coreqs: true,
-      },
+      if (prereqIds) {
+        data.prereqs = { set: prereqIds.map((id) => ({ id })) };
+      }
+
+      return tx.course.update({
+        where: { id },
+        data,
+        include: {
+          prereqs: true,
+          coreqs: true,
+        },
+      });
     });
   }
 
   /**
    * Deletes a course from the database.
    *
-   * - If `directDelete` is false (or omitted), the coyrse is soft-deleted (sets `deletedAt`).
+   * - If `directDelete` is false (or omitted), the course is soft-deleted (sets `deletedAt`).
    * - If `directDelete` is true, the course is permanently deleted.
    *
    * @async
    * @param {string} id - The UUID of the course to delete.
    * @param {boolean} [directDelete=false] - Whether to permanently delete the record.
-   * @returns {Promise<{ message: string }>} Deletion confirmation message.
+   * @returns {Promise<MessageDto>} Deletion confirmation message.
    *
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {Error} Any other unexpected errors.
@@ -268,7 +281,7 @@ export class CoursesService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_msg, { id }) =>
       new NotFoundException(`Course with ID ${id} not found`),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_msg, _) =>
+    [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException(
         'Cannot delete course because it is associated with an existing major',
       ),
@@ -276,7 +289,7 @@ export class CoursesService {
   async remove(
     @LogParam('id') id: string,
     @LogParam('directDelete') directDelete?: boolean,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageDto> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Invalid ID format: ${id}`);
     }
