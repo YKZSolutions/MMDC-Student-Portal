@@ -1,138 +1,153 @@
 import request from 'supertest';
-import { INestApplication } from '@nestjs/common';
 import { TestAppService } from './utils/test-app.service';
-import { mockUsers } from './utils/mock-users';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { INestApplication } from '@nestjs/common';
+import { v4 } from 'uuid';
+import {
+  createMajor,
+  createMajorUpdate,
+  createInvalidMajor,
+} from './factories/major.factory';
 
+/* eslint-disable @typescript-eslint/no-unsafe-call,
+                  @typescript-eslint/no-unsafe-argument,
+                  @typescript-eslint/no-unsafe-member-access,
+                  @typescript-eslint/no-unsafe-assignment,
+                  @typescript-eslint/no-unsafe-return,
+*/
 describe('MajorsController (Integration)', () => {
-  const testService = new TestAppService();
-  let app: INestApplication;
-  let prisma: ExtendedPrismaClient;
+  let testService: TestAppService;
+
+  // Cache for frequently used app instances
+  let adminApp: INestApplication;
+  let studentApp: INestApplication;
+  let mentorApp: INestApplication;
+  let unauthApp: INestApplication;
+
   let createdMajorId: string;
 
-  const validMajorPayload = {
-    code: 'CS',
+  // Test data using factory functions with a proper API structure
+  const validMajorPayload = createMajor({
+    programId: v4(),
+    majorCode: 'CS',
     name: 'Computer Science',
-    description: 'A program focused on computing and software engineering.',
-  };
-
-  const anotherValidMajorPayload = {
-    code: 'MATH',
+    description: 'Bachelor of Science in Computer Science',
+  });
+  const anotherValidMajorPayload = createMajor({
+    programId: v4(),
+    majorCode: 'MATH',
     name: 'Mathematics',
-    description: 'Major in pure and applied mathematics.',
-  };
+    description: 'Bachelor of Science in Mathematics',
+  });
+  const updatePayload = createMajorUpdate();
 
   beforeAll(async () => {
-    const { prisma: p } = await testService.start();
-    prisma = p;
+    testService = new TestAppService();
+    await testService.start();
+
+    // Pre-create frequently used app instances
+    const { app: admin } = await testService.createTestApp();
+    const { app: student } = await testService.createTestApp(
+      testService.getMockUser('student'),
+    );
+    const { app: mentor } = await testService.createTestApp(
+      testService.getMockUser('mentor'),
+    );
+    const { app: unauth } = await testService.createTestApp(
+      testService.getMockUser('unauth'),
+    );
+
+    adminApp = admin;
+    studentApp = student;
+    mentorApp = mentor;
+    unauthApp = unauth;
   }, 800000);
 
   afterAll(async () => {
     await testService.close();
+    await TestAppService.closeAll(); // Clean up static resources
   });
 
   // --- POST /majors ---
   describe('POST /majors', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-    });
-
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should allow admin to create a major (201)', async () => {
-      const { body } = await request(app.getHttpServer())
+      await testService.resetDatabase();
+
+      const { body } = await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(201);
 
       expect(body).toHaveProperty('id');
-      expect(body.code).toBe(validMajorPayload.code);
+      expect(body.major.majorCode).toBe(validMajorPayload.major.majorCode);
+      expect(body.major.name).toBe(validMajorPayload.major.name);
+      expect(body.major.description).toBe(validMajorPayload.major.description);
+      expect(body.programId).toBe(validMajorPayload.programId);
+      expect(body).toHaveProperty('createdAt');
+      expect(body).toHaveProperty('updatedAt');
+
       createdMajorId = body.id;
     });
 
     it('should return 409 when creating duplicate code (409)', async () => {
-      await request(app.getHttpServer())
+      await testService.resetDatabase();
+
+      await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(201);
-      await request(app.getHttpServer())
+      await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(409);
     });
 
-    it('should return 400 for invalid payload', async () => {
-      await request(app.getHttpServer())
+    it('should return 400 for missing required fields', async () => {
+      await request(adminApp.getHttpServer())
         .post('/majors')
-        .send({ code: 'ENG' }) // missing fields
+        .send(createInvalidMajor.missingMajor())
         .expect(400);
     });
 
     it('should return 403 when student tries to create', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(403);
-      await studentApp.close();
     });
 
     it('should return 403 when mentor tries to create', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
       await request(mentorApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(403);
-      await mentorApp.close();
     });
 
     it('should return 401 when unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- GET /majors ---
   describe('GET /majors', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
+    beforeAll(async () => {
+      await testService.resetDatabase();
 
-      await request(app.getHttpServer())
+      // Create test data once for all GET tests
+      await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(201);
-      await request(app.getHttpServer())
+      await request(adminApp.getHttpServer())
         .post('/majors')
         .send(anotherValidMajorPayload)
         .expect(201);
     });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should return a list of majors with meta (200)', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .get('/majors?page=1')
         .expect(200);
 
@@ -142,217 +157,167 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should support search by name', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .get('/majors?search=Computer')
         .expect(200);
-      expect(body.majors.some((m: any) => m.name.includes('Computer'))).toBe(
-        true,
-      );
+      expect(
+        body.majors.some((m: any) => m.major.name.includes('Computer')),
+      ).toBe(true);
     });
 
     it('should return 400 for invalid page param', async () => {
-      await request(app.getHttpServer()).get('/majors?page=0').expect(400);
+      await request(adminApp.getHttpServer()).get('/majors?page=0').expect(400);
     });
 
     it('should return 403 for student', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer()).get('/majors').expect(403);
-      await studentApp.close();
     });
 
     it('should return 403 for mentor', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
       await request(mentorApp.getHttpServer()).get('/majors').expect(403);
-      await mentorApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer()).get('/majors').expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- GET /majors/:id ---
   describe('GET /majors/:id', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const { body } = await request(app.getHttpServer())
+    beforeAll(async () => {
+      await testService.resetDatabase();
+
+      // Create a test major for individual GET tests
+      const { body } = await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(201);
       createdMajorId = body.id;
     });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should return a major by ID (200)', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .get(`/majors/${createdMajorId}`)
         .expect(200);
       expect(body.id).toBe(createdMajorId);
+      expect(body.major.majorCode).toBe(validMajorPayload.major.majorCode);
+      expect(body.major.name).toBe(validMajorPayload.major.name);
+      expect(body.major.description).toBe(validMajorPayload.major.description);
+      expect(body.programId).toBe(validMajorPayload.programId);
     });
 
     it('should return 404 for non-existent ID', async () => {
-      await request(app.getHttpServer())
-        .get('/majors/11111111-1111-1111-1111-111111111111')
+      await request(adminApp.getHttpServer())
+        .get(`/majors/${v4()}`)
         .expect(404);
     });
 
     it('should return 403 for student', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer())
         .get(`/majors/${createdMajorId}`)
         .expect(403);
-      await studentApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
         .get(`/majors/${createdMajorId}`)
         .expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- PATCH /majors/:id ---
   describe('PATCH /majors/:id', () => {
-    const updatePayload = { name: 'Updated Major' };
+    beforeAll(async () => {
+      await testService.resetDatabase();
 
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const { body } = await request(app.getHttpServer())
+      // Create a test major for PATCH tests
+      const { body } = await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(201);
       createdMajorId = body.id;
     });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should allow admin to update (200)', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .patch(`/majors/${createdMajorId}`)
         .send(updatePayload)
         .expect(200);
-      expect(body.name).toBe(updatePayload.name);
+      expect(body.major.majorCode).toBe(updatePayload.majorCode);
+      expect(body.major.name).toBe(updatePayload.name);
+      expect(body.major.description).toBe(updatePayload.description);
     });
 
-    it('should return 400 for invalid data', async () => {
-      await request(app.getHttpServer())
+    it('should return 400 for invalid update data', async () => {
+      await request(adminApp.getHttpServer())
         .patch(`/majors/${createdMajorId}`)
-        .send({ year: -1 })
+        .send(createInvalidMajor.updateMissingCode())
         .expect(400);
     });
 
     it('should return 404 for non-existent ID', async () => {
-      await request(app.getHttpServer())
-        .patch('/majors/11111111-1111-1111-1111-111111111111')
+      await request(adminApp.getHttpServer())
+        .patch(`/majors/${v4()}`)
         .send(updatePayload)
         .expect(404);
     });
 
     it('should return 403 for student', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer())
         .patch(`/majors/${createdMajorId}`)
         .send(updatePayload)
         .expect(403);
-      await studentApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
         .patch(`/majors/${createdMajorId}`)
         .send(updatePayload)
         .expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- DELETE /majors/:id ---
   describe('DELETE /majors/:id', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const { body } = await request(app.getHttpServer())
+    beforeAll(async () => {
+      await testService.resetDatabase();
+
+      // Create a test major for DELETE tests
+      const { body } = await request(adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
         .expect(201);
       createdMajorId = body.id;
     });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should soft delete then permanently delete', async () => {
-      const soft = await request(app.getHttpServer())
+      const soft = await request(adminApp.getHttpServer())
         .delete(`/majors/${createdMajorId}`)
         .expect(200);
       expect(soft.body.message).toBe('Major marked for deletion');
 
-      const hard = await request(app.getHttpServer())
+      const hard = await request(adminApp.getHttpServer())
         .delete(`/majors/${createdMajorId}`)
         .expect(200);
       expect(hard.body.message).toBe('Major permanently deleted');
     });
 
     it('should return 404 for non-existent ID', async () => {
-      await request(app.getHttpServer())
-        .delete('/majors/11111111-1111-1111-1111-111111111111')
+      await request(adminApp.getHttpServer())
+        .delete(`/majors/${v4()}`)
         .expect(404);
     });
 
-    it('should return 403 for mentor', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
-      await request(mentorApp.getHttpServer())
+    it('should return 403 for student', async () => {
+      await request(studentApp.getHttpServer())
         .delete(`/majors/${createdMajorId}`)
         .expect(403);
-      await mentorApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
         .delete(`/majors/${createdMajorId}`)
         .expect(401);
-      await unauthApp.close();
     });
   });
 });

@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  ValidationPipe,
   ConflictException,
   InternalServerErrorException,
   BadRequestException,
@@ -17,7 +16,7 @@ import {
 import { MajorService } from './major.service';
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse } from '@nestjs/swagger';
 import { Major } from '@/generated/nestjs-dto/major.entity';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
 import { PaginatedMajorsDto } from './dto/paginated-major.dto';
@@ -25,6 +24,9 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { CreateProgramMajorDto } from './dto/create-major.dto';
+import { MajorDto } from '@/generated/nestjs-dto/major.dto';
+import { MajorItemDto } from '@/modules/major/dto/major-item.dto';
+import { MessageDto } from '@/common/dto/message.dto';
 
 /**
  * @remarks
@@ -38,22 +40,23 @@ export class MajorController {
    * Creates a major.
    *
    * @remarks This operation creates a new academic major.
-   * Requries `ADMIN` role.
+   * Requires `ADMIN` role.
    *
    * @returns
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiException(() => ConflictException)
   @ApiException(() => [ConflictException, InternalServerErrorException])
-  create(@Body() createProgramMajorDto: CreateProgramMajorDto) {
+  create(
+    @Body() createProgramMajorDto: CreateProgramMajorDto,
+  ): Promise<MajorDto> {
     return this.majorService.create(createProgramMajorDto);
   }
 
   /**
-   * Retrive all majors
+   * Retrieve all majors
    *
-   * @remarks Retrives a paginated list of majors based on the provided filters.
+   * @remarks Retrieves a paginated list of majors based on the provided filters.
    * Requires `ADMIN` role.
    */
   @Get()
@@ -63,7 +66,7 @@ export class MajorController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  findAll(@Query() filters: BaseFilterDto) {
+  findAll(@Query() filters: BaseFilterDto): Promise<PaginatedMajorsDto> {
     return this.majorService.findAll(filters);
   }
 
@@ -76,7 +79,7 @@ export class MajorController {
   @Get(':id')
   @Roles(Role.ADMIN)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<MajorItemDto> {
     return this.majorService.findOne(id);
   }
 
@@ -98,7 +101,7 @@ export class MajorController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateMajorDto: UpdateMajorDto,
-  ) {
+  ): Promise<MajorDto> {
     return this.majorService.update(id, updateMajorDto);
   }
 
@@ -125,7 +128,7 @@ export class MajorController {
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query?: DeleteQueryDto,
-  ) {
+  ): Promise<MessageDto> {
     return this.majorService.remove(id, query?.directDelete);
   }
 }
