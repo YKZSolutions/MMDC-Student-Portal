@@ -1395,6 +1395,182 @@ export const zChatbotResponseDto = z.object({
     response: z.string()
 });
 
+export const zCreateAppointmentItemDto = z.object({
+    title: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    gmeetLink: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    cancelReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    courseOfferingId: z.uuid(),
+    studentId: z.uuid(),
+    mentorId: z.uuid(),
+    description: z.string()
+});
+
+export const zAppointmentStatus = z.enum([
+    'booked',
+    'approved',
+    'cancelled',
+    'rescheduled',
+    'finished',
+    'extended'
+]);
+
+export const zAppointmentCourseDto = z.object({
+    id: z.string(),
+    courseCode: z.string(),
+    name: z.string()
+});
+
+export const zAppointmentUserDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: zRole
+});
+
+export const zAppointmentItemDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    status: zAppointmentStatus,
+    gmeetLink: z.union([
+        z.string(),
+        z.null()
+    ]),
+    cancelReason: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zAppointmentCourseDto,
+    student: zAppointmentUserDto,
+    mentor: zAppointmentUserDto
+});
+
+export const zCourseEnrollmentStatus = z.enum([
+    'enlisted',
+    'finalized',
+    'enrolled',
+    'completed',
+    'incomplete',
+    'dropped',
+    'failed'
+]);
+
+export const zDetailedCourseOfferingSubsetDto = z.object({
+    id: z.string(),
+    course: zCourseDto
+});
+
+export const zDetailedCourseEnrollmentDto = z.object({
+    id: z.string(),
+    status: zCourseEnrollmentStatus,
+    startedAt: z.iso.datetime(),
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    studentId: z.uuid(),
+    courseOfferingId: z.uuid(),
+    courseSectionId: z.uuid(),
+    courseSection: z.optional(zDetailedCourseSectionDto),
+    courseOffering: z.optional(zDetailedCourseOfferingSubsetDto)
+});
+
+export const zBookedAppointment = z.object({
+    id: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime()
+});
+
+export const zPaginatedAppointmentDto = z.object({
+    meta: zPaginationMetaDto,
+    appointments: z.array(zAppointmentItemDto)
+});
+
+export const zBookedAppointmentDto = z.object({
+    id: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime()
+});
+
+export const zAppointmentSectionDto = z.object({
+    id: z.string(),
+    startSched: z.string(),
+    endSched: z.string(),
+    days: z.array(zDays)
+});
+
+export const zAppointmentDetailsDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime(),
+    status: zAppointmentStatus,
+    gmeetLink: z.union([
+        z.string(),
+        z.null()
+    ]),
+    cancelReason: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    course: zAppointmentCourseDto,
+    section: zAppointmentSectionDto,
+    student: zAppointmentUserDto,
+    mentor: zAppointmentUserDto
+});
+
+export const zUpdateAppointmentItemDto = z.object({
+    title: z.optional(z.string()),
+    description: z.optional(z.string()),
+    gmeetLink: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zUpdateAppointmentStatusDto = z.object({
+    startAt: z.optional(z.iso.datetime()),
+    endAt: z.optional(z.iso.datetime()),
+    cancelReason: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    status: zAppointmentStatus
+});
+
 export const zCreateEnrollmentPeriodItemDto = z.object({
     startYear: z.int(),
     endYear: z.int(),
@@ -1471,42 +1647,6 @@ export const zCourseOffering = z.object({
 
 export const zCreateCourseOfferingCurriculumDto = z.object({
     curriculumId: z.uuid()
-});
-
-export const zCourseEnrollmentStatus = z.enum([
-    'enlisted',
-    'finalized',
-    'enrolled',
-    'completed',
-    'incomplete',
-    'dropped',
-    'failed'
-]);
-
-export const zDetailedCourseOfferingSubsetDto = z.object({
-    id: z.string(),
-    course: zCourseDto
-});
-
-export const zDetailedCourseEnrollmentDto = z.object({
-    id: z.string(),
-    status: zCourseEnrollmentStatus,
-    startedAt: z.iso.datetime(),
-    completedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    studentId: z.uuid(),
-    courseOfferingId: z.uuid(),
-    courseSectionId: z.uuid(),
-    courseSection: z.optional(zDetailedCourseSectionDto),
-    courseOffering: z.optional(zDetailedCourseOfferingSubsetDto)
 });
 
 export const zDetailedCourseOfferingDto = z.object({
@@ -1658,179 +1798,6 @@ export const zCourseEnrollmentDto = z.object({
 export const zFinalizeEnrollmentDto = z.object({
     paymentScheme: zPaymentScheme,
     studentId: z.optional(z.uuid())
-});
-
-export const zAssignmentConfigDto = z.object({
-    id: z.string(),
-    mode: zAssignmentMode,
-    maxScore: z.int(),
-    weightPercentage: z.int(),
-    maxAttempts: z.union([
-        z.int(),
-        z.null()
-    ]),
-    allowLateSubmission: z.union([
-        z.boolean(),
-        z.null()
-    ]),
-    latePenalty: z.union([
-        z.int(),
-        z.null()
-    ]),
-    dueDate: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    gracePeriodMinutes: z.union([
-        z.int(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    rubricTemplateId: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zAssignmentItemDto = z.object({
-    id: z.string(),
-    contentType: zContentType,
-    title: z.string(),
-    subtitle: z.union([
-        z.string(),
-        z.null()
-    ]),
-    content: z.array(z.object({})),
-    order: z.int(),
-    publishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    unpublishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    assignment: zAssignmentConfigDto
-});
-
-export const zLessonItemDto = z.object({
-    id: z.string(),
-    contentType: zContentType,
-    title: z.string(),
-    subtitle: z.union([
-        z.string(),
-        z.null()
-    ]),
-    content: z.array(z.object({})),
-    order: z.int(),
-    publishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    unpublishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zConnectModuleSectionDto = z.object({
-    id: z.string()
-});
-
-export const zCreateModuleContentModuleSectionRelationInputDto = z.object({
-    connect: zConnectModuleSectionDto
-});
-
-export const zCreateModuleContentDto = z.object({
-    moduleSection: zCreateModuleContentModuleSectionRelationInputDto,
-    contentType: z.optional(zContentType),
-    title: z.string(),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.array(z.object({})),
-    publishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    unpublishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ]))
-});
-
-export const zUpdateModuleContentModuleSectionRelationInputDto = z.object({
-    connect: zConnectModuleSectionDto
-});
-
-export const zUpdateModuleContentDto = z.object({
-    moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
-    title: z.optional(z.string()),
-    subtitle: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    content: z.optional(z.array(z.object({}))),
-    order: z.optional(z.int()).default(1),
-    publishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    unpublishedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ]))
-});
-
-export const zPaginatedModuleContentDto = z.object({
-    meta: zPaginationMetaDto,
-    moduleContents: z.array(z.union([
-        z.object({
-            contentType: z.literal('LESSON')
-        }).and(zLessonItemDto),
-        z.object({
-            contentType: z.literal('ASSIGNMENT')
-        }).and(zAssignmentItemDto)
-    ]))
-});
-
-export const zMessageDto = z.object({
-    message: z.string()
-});
-
-export const zModuleContentInfoDto = z.object({
-    id: z.string(),
-    moduleSectionId: z.string(),
-    contentType: zContentType,
-    order: z.int()
-});
-
-export const zDetailedContentProgressDto = z.object({
-    id: z.string(),
-    completedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    studentId: z.string(),
-    moduleContent: zModuleContentInfoDto
 });
 
 export const zCreateMajorDto = z.object({
@@ -2322,6 +2289,179 @@ export const zDetailedModuleSectionDto = z.object({
 
 export const zUpdateModuleSectionDto = z.object({});
 
+export const zAssignmentConfigDto = z.object({
+    id: z.string(),
+    mode: zAssignmentMode,
+    maxScore: z.int(),
+    weightPercentage: z.int(),
+    maxAttempts: z.union([
+        z.int(),
+        z.null()
+    ]),
+    allowLateSubmission: z.union([
+        z.boolean(),
+        z.null()
+    ]),
+    latePenalty: z.union([
+        z.int(),
+        z.null()
+    ]),
+    dueDate: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    gracePeriodMinutes: z.union([
+        z.int(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    rubricTemplateId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export const zAssignmentItemDto = z.object({
+    id: z.string(),
+    contentType: zContentType,
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.array(z.object({})),
+    order: z.int(),
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    assignment: zAssignmentConfigDto
+});
+
+export const zLessonItemDto = z.object({
+    id: z.string(),
+    contentType: zContentType,
+    title: z.string(),
+    subtitle: z.union([
+        z.string(),
+        z.null()
+    ]),
+    content: z.array(z.object({})),
+    order: z.int(),
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zConnectModuleSectionDto = z.object({
+    id: z.string()
+});
+
+export const zCreateModuleContentModuleSectionRelationInputDto = z.object({
+    connect: zConnectModuleSectionDto
+});
+
+export const zCreateModuleContentDto = z.object({
+    moduleSection: zCreateModuleContentModuleSectionRelationInputDto,
+    contentType: z.optional(zContentType),
+    title: z.string(),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.array(z.object({})),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ]))
+});
+
+export const zUpdateModuleContentModuleSectionRelationInputDto = z.object({
+    connect: zConnectModuleSectionDto
+});
+
+export const zUpdateModuleContentDto = z.object({
+    moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    content: z.optional(z.array(z.object({}))),
+    order: z.optional(z.int()).default(1),
+    publishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    unpublishedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ]))
+});
+
+export const zPaginatedModuleContentDto = z.object({
+    meta: zPaginationMetaDto,
+    moduleContents: z.array(z.union([
+        z.object({
+            contentType: z.literal('LESSON')
+        }).and(zLessonItemDto),
+        z.object({
+            contentType: z.literal('ASSIGNMENT')
+        }).and(zAssignmentItemDto)
+    ]))
+});
+
+export const zMessageDto = z.object({
+    message: z.string()
+});
+
+export const zModuleContentInfoDto = z.object({
+    id: z.string(),
+    moduleSectionId: z.string(),
+    contentType: zContentType,
+    order: z.int()
+});
+
+export const zDetailedContentProgressDto = z.object({
+    id: z.string(),
+    completedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    studentId: z.string(),
+    moduleContent: zModuleContentInfoDto
+});
+
 export const zCreateSubmissionAttachmentDto = z.object({
     name: z.string(),
     url: z.string(),
@@ -2744,146 +2884,6 @@ export const zUpdatePricingGroupDto = z.object({
 export const zUpdatePricingGroupItemDto = z.object({
     group: zUpdatePricingGroupDto,
     pricings: z.optional(z.array(z.uuid()))
-});
-
-export const zCreateAppointmentItemDto = z.object({
-    title: z.string(),
-    startAt: z.iso.datetime(),
-    endAt: z.iso.datetime(),
-    gmeetLink: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    cancelReason: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    courseOfferingId: z.uuid(),
-    studentId: z.uuid(),
-    mentorId: z.uuid(),
-    description: z.string()
-});
-
-export const zAppointmentStatus = z.enum([
-    'booked',
-    'approved',
-    'cancelled',
-    'rescheduled',
-    'finished',
-    'extended'
-]);
-
-export const zAppointmentCourseDto = z.object({
-    id: z.string(),
-    courseCode: z.string(),
-    name: z.string()
-});
-
-export const zAppointmentUserDto = z.object({
-    id: z.string(),
-    firstName: z.string(),
-    middleName: z.union([
-        z.string(),
-        z.null()
-    ]),
-    lastName: z.string(),
-    role: zRole
-});
-
-export const zAppointmentItemDto = z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string(),
-    startAt: z.iso.datetime(),
-    endAt: z.iso.datetime(),
-    status: zAppointmentStatus,
-    gmeetLink: z.union([
-        z.string(),
-        z.null()
-    ]),
-    cancelReason: z.union([
-        z.string(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    course: zAppointmentCourseDto,
-    student: zAppointmentUserDto,
-    mentor: zAppointmentUserDto
-});
-
-export const zBookedAppointment = z.object({
-    id: z.string(),
-    startAt: z.iso.datetime(),
-    endAt: z.iso.datetime()
-});
-
-export const zPaginatedAppointmentDto = z.object({
-    meta: zPaginationMetaDto,
-    appointments: z.array(zAppointmentItemDto)
-});
-
-export const zBookedAppointmentDto = z.object({
-    id: z.string(),
-    startAt: z.iso.datetime(),
-    endAt: z.iso.datetime()
-});
-
-export const zAppointmentSectionDto = z.object({
-    id: z.string(),
-    startSched: z.string(),
-    endSched: z.string(),
-    days: z.array(zDays)
-});
-
-export const zAppointmentDetailsDto = z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string(),
-    startAt: z.iso.datetime(),
-    endAt: z.iso.datetime(),
-    status: zAppointmentStatus,
-    gmeetLink: z.union([
-        z.string(),
-        z.null()
-    ]),
-    cancelReason: z.union([
-        z.string(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    course: zAppointmentCourseDto,
-    section: zAppointmentSectionDto,
-    student: zAppointmentUserDto,
-    mentor: zAppointmentUserDto
-});
-
-export const zUpdateAppointmentItemDto = z.object({
-    title: z.optional(z.string()),
-    description: z.optional(z.string()),
-    gmeetLink: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
-export const zUpdateAppointmentStatusDto = z.object({
-    startAt: z.optional(z.iso.datetime()),
-    endAt: z.optional(z.iso.datetime()),
-    cancelReason: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    status: zAppointmentStatus
 });
 
 export const zUpsertTranscriptDto = z.object({
@@ -3663,6 +3663,113 @@ export const zChatbotControllerPromptData = z.object({
 
 export const zChatbotControllerPromptResponse = zChatbotResponseDto;
 
+export const zAppointmentsControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        status: z.optional(z.array(zAppointmentStatus))
+    }))
+});
+
+export const zAppointmentsControllerFindAllResponse = zPaginatedAppointmentDto;
+
+export const zAppointmentsControllerCreateData = z.object({
+    body: zCreateAppointmentItemDto,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerCreateResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerFindMentorData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10)
+    }))
+});
+
+export const zAppointmentsControllerFindMentorResponse = zPaginatedUsersDto;
+
+export const zAppointmentsControllerFindCoursesData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerFindCoursesResponse = z.array(zDetailedCourseEnrollmentDto);
+
+export const zAppointmentsControllerFindBookedRangeData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        from: z.string(),
+        to: z.string(),
+        courseId: z.uuid(),
+        mentorId: z.uuid()
+    })
+});
+
+export const zAppointmentsControllerFindBookedRangeResponse = z.array(zBookedAppointment);
+
+export const zAppointmentsControllerFindAllBookedData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mentorId: z.string()
+    }),
+    query: z.optional(z.object({
+        startAt: z.optional(z.iso.datetime()),
+        endAt: z.optional(z.iso.datetime())
+    }))
+});
+
+export const zAppointmentsControllerFindAllBookedResponse = z.array(zBookedAppointmentDto);
+
+export const zAppointmentsControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zAppointmentsControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerFindOneResponse = zAppointmentDetailsDto;
+
+export const zAppointmentsControllerUpdateDetailsData = z.object({
+    body: zUpdateAppointmentItemDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerUpdateDetailsResponse = zAppointmentItemDto;
+
+export const zAppointmentsControllerUpdateStatusData = z.object({
+    body: zUpdateAppointmentStatusDto,
+    path: z.object({
+        id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zAppointmentsControllerUpdateStatusResponse = zAppointmentItemDto;
+
 export const zEnrollmentControllerFindAllEnrollmentsData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -3942,119 +4049,6 @@ export const zCourseEnrollmentControllerFinalizeCourseEnrollmentResponse = z.uni
     z.unknown()
 ]);
 
-export const zLmsContentControllerFindAllData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10),
-        contentType: z.optional(zContentType),
-        progress: z.optional(zProgressStatus)
-    }))
-});
-
-export const zLmsContentControllerFindAllResponse = zPaginatedModuleContentDto;
-
-export const zLmsContentControllerCreateData = z.object({
-    body: zCreateModuleContentDto,
-    path: z.object({
-        moduleId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerCreateResponse = z.union([
-    z.object({
-        contentType: z.literal('LESSON')
-    }).and(zLessonItemDto),
-    z.object({
-        contentType: z.literal('ASSIGNMENT')
-    }).and(zAssignmentItemDto)
-]);
-
-export const zLmsContentControllerRemoveData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.object({
-        directDelete: z.optional(z.boolean())
-    }))
-});
-
-export const zLmsContentControllerRemoveResponse = z.object({
-    message: z.optional(z.string())
-});
-
-export const zLmsContentControllerFindOneData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerFindOneResponse = z.union([
-    z.object({
-        contentType: z.literal('LESSON')
-    }).and(zLessonItemDto),
-    z.object({
-        contentType: z.literal('ASSIGNMENT')
-    }).and(zAssignmentItemDto)
-]);
-
-export const zLmsContentControllerUpdateData = z.object({
-    body: zUpdateModuleContentDto,
-    path: z.object({
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerUpdateResponse = zModuleContent;
-
-export const zLmsContentControllerPublishData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerPublishResponse = zMessageDto;
-
-export const zLmsContentControllerUnpublishData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerUnpublishResponse = zMessageDto;
-
-export const zLmsContentControllerFindAllContentProgressData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
-
-export const zLmsContentControllerCreateContentProgressData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        moduleId: z.string(),
-        moduleContentId: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zLmsContentControllerCreateContentProgressResponse = zDetailedContentProgressDto;
-
 export const zMajorControllerFindAllData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -4298,6 +4292,119 @@ export const zLmsSectionControllerUnpublishSectionData = z.object({
     }),
     query: z.optional(z.never())
 });
+
+export const zLmsContentControllerFindAllData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        contentType: z.optional(zContentType),
+        progress: z.optional(zProgressStatus)
+    }))
+});
+
+export const zLmsContentControllerFindAllResponse = zPaginatedModuleContentDto;
+
+export const zLmsContentControllerCreateData = z.object({
+    body: zCreateModuleContentDto,
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerCreateResponse = z.union([
+    z.object({
+        contentType: z.literal('LESSON')
+    }).and(zLessonItemDto),
+    z.object({
+        contentType: z.literal('ASSIGNMENT')
+    }).and(zAssignmentItemDto)
+]);
+
+export const zLmsContentControllerRemoveData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.object({
+        directDelete: z.optional(z.boolean())
+    }))
+});
+
+export const zLmsContentControllerRemoveResponse = z.object({
+    message: z.optional(z.string())
+});
+
+export const zLmsContentControllerFindOneData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerFindOneResponse = z.union([
+    z.object({
+        contentType: z.literal('LESSON')
+    }).and(zLessonItemDto),
+    z.object({
+        contentType: z.literal('ASSIGNMENT')
+    }).and(zAssignmentItemDto)
+]);
+
+export const zLmsContentControllerUpdateData = z.object({
+    body: zUpdateModuleContentDto,
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerUpdateResponse = zModuleContent;
+
+export const zLmsContentControllerPublishData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerPublishResponse = zMessageDto;
+
+export const zLmsContentControllerUnpublishData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerUnpublishResponse = zMessageDto;
+
+export const zLmsContentControllerFindAllContentProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerFindAllContentProgressResponse = z.array(zDetailedContentProgressDto);
+
+export const zLmsContentControllerCreateContentProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string(),
+        moduleContentId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+export const zLmsContentControllerCreateContentProgressResponse = zDetailedContentProgressDto;
 
 export const zSubmissionControllerFindAssignmentSubmissionsForAssignmentData = z.object({
     body: z.optional(z.never()),
@@ -4548,113 +4655,6 @@ export const zPricingGroupControllerUpdateData = z.object({
 });
 
 export const zPricingGroupControllerUpdateResponse = zPricingGroupItemDto;
-
-export const zAppointmentsControllerFindAllData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10),
-        status: z.optional(z.array(zAppointmentStatus))
-    }))
-});
-
-export const zAppointmentsControllerFindAllResponse = zPaginatedAppointmentDto;
-
-export const zAppointmentsControllerCreateData = z.object({
-    body: zCreateAppointmentItemDto,
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zAppointmentsControllerCreateResponse = zAppointmentItemDto;
-
-export const zAppointmentsControllerFindMentorData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10)
-    }))
-});
-
-export const zAppointmentsControllerFindMentorResponse = zPaginatedUsersDto;
-
-export const zAppointmentsControllerFindCoursesData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zAppointmentsControllerFindCoursesResponse = z.array(zDetailedCourseEnrollmentDto);
-
-export const zAppointmentsControllerFindBookedRangeData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.object({
-        from: z.string(),
-        to: z.string(),
-        courseId: z.uuid(),
-        mentorId: z.uuid()
-    })
-});
-
-export const zAppointmentsControllerFindBookedRangeResponse = z.array(zBookedAppointment);
-
-export const zAppointmentsControllerFindAllBookedData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        mentorId: z.string()
-    }),
-    query: z.optional(z.object({
-        startAt: z.optional(z.iso.datetime()),
-        endAt: z.optional(z.iso.datetime())
-    }))
-});
-
-export const zAppointmentsControllerFindAllBookedResponse = z.array(zBookedAppointmentDto);
-
-export const zAppointmentsControllerRemoveData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.object({
-        directDelete: z.optional(z.boolean())
-    }))
-});
-
-export const zAppointmentsControllerFindOneData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zAppointmentsControllerFindOneResponse = zAppointmentDetailsDto;
-
-export const zAppointmentsControllerUpdateDetailsData = z.object({
-    body: zUpdateAppointmentItemDto,
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zAppointmentsControllerUpdateDetailsResponse = zAppointmentItemDto;
-
-export const zAppointmentsControllerUpdateStatusData = z.object({
-    body: zUpdateAppointmentStatusDto,
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.optional(z.never())
-});
-
-export const zAppointmentsControllerUpdateStatusResponse = zAppointmentItemDto;
 
 export const zTranscriptControllerFindAllData = z.object({
     body: z.optional(z.never()),
