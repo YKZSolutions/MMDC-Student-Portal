@@ -1,138 +1,146 @@
 import request from 'supertest';
-import { INestApplication } from '@nestjs/common';
 import { TestAppService } from './utils/test-app.service';
-import { mockUsers } from './utils/mock-users';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { INestApplication } from '@nestjs/common';
+import { v4 } from 'uuid';
+import {
+  createCurriculum,
+  createCurriculumUpdate,
+  createInvalidCurriculum,
+} from './factories/curriculum.factory';
 
+/* eslint-disable @typescript-eslint/no-unsafe-call,
+                  @typescript-eslint/no-unsafe-argument,
+                  @typescript-eslint/no-unsafe-member-access,
+                  @typescript-eslint/no-unsafe-assignment,
+                  @typescript-eslint/no-unsafe-return,
+*/
 describe('CurriculumsController (Integration)', () => {
-  const testService = new TestAppService();
-  let app: INestApplication;
-  let prisma: ExtendedPrismaClient;
-  let createdCurriculumId: string;
+  let testService: TestAppService;
 
-  const validCurriculumPayload = {
-    year: 2025,
-    effectiveSemester: '1st Semester',
+  // Cache for frequently used app instances
+  let adminApp: INestApplication;
+  let studentApp: INestApplication;
+  let mentorApp: INestApplication;
+  let unauthApp: INestApplication;
+
+  // Test data using factory functions with a proper API structure
+  const validCurriculumPayload = createCurriculum({
+    majorId: v4(),
     description: 'CS Curriculum for 2025',
-  };
-
-  const anotherValidCurriculumPayload = {
-    year: 2026,
-    effectiveSemester: '2nd Semester',
+  });
+  const anotherValidCurriculumPayload = createCurriculum({
+    majorId: v4(),
     description: 'CS Curriculum for 2026',
-  };
+  });
+  const updatePayload = createCurriculumUpdate();
 
   beforeAll(async () => {
-    const { prisma: p } = await testService.start();
-    prisma = p;
+    testService = new TestAppService();
+    await testService.start();
+
+    // Pre-create frequently used app instances
+    const { app: admin } = await testService.createTestApp();
+    const { app: student } = await testService.createTestApp(
+      testService.getMockUser('student'),
+    );
+    const { app: mentor } = await testService.createTestApp(
+      testService.getMockUser('mentor'),
+    );
+    const { app: unauth } = await testService.createTestApp(
+      testService.getMockUser('unauth'),
+    );
+
+    adminApp = admin;
+    studentApp = student;
+    mentorApp = mentor;
+    unauthApp = unauth;
   }, 800000);
 
   afterAll(async () => {
     await testService.close();
+    await TestAppService.closeAll(); // Clean up static resources
   });
 
   // --- POST /curriculums ---
   describe('POST /curriculums', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-    });
-
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should allow admin to create a curriculum (201)', async () => {
-      const { body } = await request(app.getHttpServer())
+      await testService.resetDatabase();
+
+      const { body } = await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(201);
 
       expect(body).toHaveProperty('id');
-      expect(body.year).toBe(validCurriculumPayload.year);
-      createdCurriculumId = body.id;
+      expect(body.majorId).toBe(validCurriculumPayload.majorId);
+      expect(body.curriculum.name).toBe(validCurriculumPayload.curriculum.name);
+      expect(body.curriculum.description).toBe(
+        validCurriculumPayload.curriculum.description,
+      );
+      expect(body).toHaveProperty('createdAt');
+      expect(body).toHaveProperty('updatedAt');
     });
 
     it('should return 409 when creating duplicate year+semester (409)', async () => {
-      await request(app.getHttpServer())
+      await testService.resetDatabase();
+
+      await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(201);
-      await request(app.getHttpServer())
+      await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(409);
     });
 
     it('should return 400 for missing required fields', async () => {
-      await request(app.getHttpServer())
+      await request(adminApp.getHttpServer())
         .post('/curriculums')
-        .send({ year: 2025 }) // missing effectiveSemester and description
+        .send(createInvalidCurriculum.missingMajorId())
         .expect(400);
     });
 
     it('should return 403 when student tries to create', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(403);
-      await studentApp.close();
     });
 
     it('should return 403 when mentor tries to create', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
       await request(mentorApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(403);
-      await mentorApp.close();
     });
 
     it('should return 401 when unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- GET /curriculums ---
   describe('GET /curriculums', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
+    beforeAll(async () => {
+      await testService.resetDatabase();
 
-      await request(app.getHttpServer())
+      // Create test data once for all GET tests
+      await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(201);
-      await request(app.getHttpServer())
+      await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(anotherValidCurriculumPayload)
         .expect(201);
     });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
-
     it('should return a paginated list with meta (200)', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .get('/curriculums?page=1')
         .expect(200);
 
@@ -142,217 +150,165 @@ describe('CurriculumsController (Integration)', () => {
     });
 
     it('should support search by description', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .get('/curriculums?search=2025')
         .expect(200);
       expect(
-        body.curriculums.some((c: any) => c.description.includes('2025')),
+        body.curriculums.some((c: any) =>
+          c.curriculum.description.includes('2025'),
+        ),
       ).toBe(true);
     });
 
     it('should return 400 when page < 1', async () => {
-      await request(app.getHttpServer()).get('/curriculums?page=0').expect(400);
+      await request(adminApp.getHttpServer())
+        .get('/curriculums?page=0')
+        .expect(400);
     });
 
     it('should return 403 for student', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer()).get('/curriculums').expect(403);
-      await studentApp.close();
     });
 
     it('should return 403 for mentor', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
       await request(mentorApp.getHttpServer()).get('/curriculums').expect(403);
-      await mentorApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer()).get('/curriculums').expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- GET /curriculums/:id ---
   describe('GET /curriculums/:id', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const { body } = await request(app.getHttpServer())
+    it('should return a curriculum by ID (200)', async () => {
+      const { body: newCurriculum } = await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(201);
-      createdCurriculumId = body.id;
-    });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
+      const createdCurriculumId = newCurriculum.id;
 
-    it('should return a curriculum by ID (200)', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .get(`/curriculums/${createdCurriculumId}`)
         .expect(200);
       expect(body.id).toBe(createdCurriculumId);
+      expect(body.majorId).toBe(validCurriculumPayload.majorId);
+      expect(body.curriculum.name).toBe(validCurriculumPayload.curriculum.name);
+      expect(body.curriculum.description).toBe(
+        validCurriculumPayload.curriculum.description,
+      );
     });
 
     it('should return 404 for non-existent ID', async () => {
-      await request(app.getHttpServer())
-        .get('/curriculums/11111111-1111-1111-1111-111111111111')
+      await request(adminApp.getHttpServer())
+        .get(`/curriculums/${v4()}`)
         .expect(404);
     });
 
     it('should return 403 for student', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer())
-        .get(`/curriculums/${createdCurriculumId}`)
+        .get(`/curriculums/${v4()}`)
         .expect(403);
-      await studentApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
-        .get(`/curriculums/${createdCurriculumId}`)
+        .get(`/curriculums/${v4()}`)
         .expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- PATCH /curriculums/:id ---
   describe('PATCH /curriculums/:id', () => {
-    const updatePayload = { description: 'Updated CS Curriculum' };
+    it('should allow admin to update (200)', async () => {
+      await testService.resetDatabase();
 
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const { body } = await request(app.getHttpServer())
+      const { body: newCurriculum } = await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(201);
-      createdCurriculumId = body.id;
-    });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
+      const createdCurriculumId = newCurriculum.id;
 
-    it('should allow admin to update (200)', async () => {
-      const { body } = await request(app.getHttpServer())
+      const { body } = await request(adminApp.getHttpServer())
         .patch(`/curriculums/${createdCurriculumId}`)
         .send(updatePayload)
         .expect(200);
-      expect(body.description).toBe(updatePayload.description);
+      expect(body.curriculum.description).toBe(
+        updatePayload.curriculum.description,
+      );
+      expect(body.curriculum.name).toBe(updatePayload.curriculum.name);
     });
 
     it('should return 400 for invalid update data', async () => {
-      await request(app.getHttpServer())
-        .patch(`/curriculums/${createdCurriculumId}`)
-        .send({ year: -2020 })
+      await request(adminApp.getHttpServer())
+        .patch(`/curriculums/${v4()}`)
+        .send(createInvalidCurriculum.updateMissingCurriculum())
         .expect(400);
     });
 
     it('should return 404 for non-existent ID', async () => {
-      await request(app.getHttpServer())
-        .patch('/curriculums/11111111-1111-1111-1111-111111111111')
+      await request(adminApp.getHttpServer())
+        .patch(`/curriculums/${v4()}`)
         .send(updatePayload)
         .expect(404);
     });
 
     it('should return 403 for mentor', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
       await request(mentorApp.getHttpServer())
-        .patch(`/curriculums/${createdCurriculumId}`)
+        .patch(`/curriculums/${v4()}`)
         .send(updatePayload)
         .expect(403);
-      await mentorApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
-        .patch(`/curriculums/${createdCurriculumId}`)
+        .patch(`/curriculums/${v4()}`)
         .send(updatePayload)
         .expect(401);
-      await unauthApp.close();
     });
   });
 
   // --- DELETE /curriculums/:id ---
   describe('DELETE /curriculums/:id', () => {
-    beforeEach(async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const { body } = await request(app.getHttpServer())
+    it('should soft delete then permanently delete', async () => {
+      await testService.resetDatabase();
+
+      const { body: newCurriculum } = await request(adminApp.getHttpServer())
         .post('/curriculums')
         .send(validCurriculumPayload)
         .expect(201);
-      createdCurriculumId = body.id;
-    });
 
-    afterEach(async () => {
-      if (app) await app.close();
-      await testService.resetDatabase(prisma);
-    });
+      const createdCurriculumId = newCurriculum.id;
 
-    it('should soft delete then permanently delete', async () => {
-      const soft = await request(app.getHttpServer())
+      const soft = await request(adminApp.getHttpServer())
         .delete(`/curriculums/${createdCurriculumId}`)
         .expect(200);
       expect(soft.body.message).toBe('Curriculum marked for deletion');
 
-      const hard = await request(app.getHttpServer())
+      const hard = await request(adminApp.getHttpServer())
         .delete(`/curriculums/${createdCurriculumId}`)
         .expect(200);
       expect(hard.body.message).toBe('Curriculum permanently deleted');
     });
 
     it('should return 404 for non-existent ID', async () => {
-      await request(app.getHttpServer())
-        .delete('/curriculums/11111111-1111-1111-1111-111111111111')
+      await request(adminApp.getHttpServer())
+        .delete(`/curriculums/${v4()}`)
         .expect(404);
     });
 
     it('should return 403 for student', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
       await request(studentApp.getHttpServer())
-        .delete(`/curriculums/${createdCurriculumId}`)
+        .delete(`/curriculums/${v4()}`)
         .expect(403);
-      await studentApp.close();
     });
 
     it('should return 401 for unauthenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
       await request(unauthApp.getHttpServer())
-        .delete(`/curriculums/${createdCurriculumId}`)
+        .delete(`/curriculums/${v4()}`)
         .expect(401);
-      await unauthApp.close();
     });
   });
 });
