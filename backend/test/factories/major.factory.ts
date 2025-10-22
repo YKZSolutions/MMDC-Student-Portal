@@ -2,7 +2,7 @@
  * Major Factory Functions
  *
  * Provides readable, easy-to-use functions for creating major test data.
- * Uses the proper API structure with nested major object and programId.
+ * Uses the proper API structure with a nested major object and programId.
  *
  * Usage:
  *   const major = createMajor() // Creates a valid major with unique data
@@ -13,6 +13,7 @@
 import { CreateProgramMajorDto } from '@/modules/major/dto/create-major.dto';
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
 import { CreateMajorDto } from '@/generated/nestjs-dto/create-major.dto';
+import { v4 } from 'uuid';
 
 /**
  * Generate unique major data to avoid conflicts between tests
@@ -41,7 +42,7 @@ export const createMajor = (
   } = {},
 ): CreateProgramMajorDto => {
   const base = generateUniqueMajor();
-  const programId = overrides.programId || v4(); // Use provided programId or generate a test UUID
+  const programId = overrides.programId || v4(); // Use the provided programId or generate a test UUID
 
   return {
     programId,
@@ -66,7 +67,8 @@ export const createMajorUpdate = (
   return {
     majorCode: overrides.majorCode || `UpdatedCS${Date.now()}`,
     name: overrides.name || 'Updated Computer Science',
-    description: overrides.description || 'Updated Computer Science major description',
+    description:
+      overrides.description || 'Updated Computer Science major description',
   };
 };
 
@@ -102,7 +104,7 @@ export const createInvalidMajor = {
   },
 
   /**
-   * Missing required fields in major object
+   * Missing required fields in a major object
    */
   missingMajorFields: (): CreateProgramMajorDto => {
     const base = createMajor();
@@ -190,6 +192,6 @@ export const createMultipleMajors = (
       ...overrides,
       programId: overrides.programId || v4(),
       majorCode: overrides.majorCode || `MAJOR${index + 1}`,
-    })
+    }),
   );
 };
