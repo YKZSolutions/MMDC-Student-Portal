@@ -304,10 +304,10 @@ export class CoursesService {
         data: { deletedAt: new Date() },
       });
 
-      return { message: 'Course marked for deletion' };
+      return new MessageDto('Course marked for deletion');
     }
 
     await this.prisma.client.course.delete({ where: { id } });
-    return { message: 'Course permanently deleted' };
+    return new MessageDto('Course permanently deleted');
   }
 }

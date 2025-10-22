@@ -142,6 +142,7 @@ export class LmsService {
               },
             },
           }),
+          deletedAt: null,
         },
         include: { courseOfferings: true },
       });
@@ -152,6 +153,7 @@ export class LmsService {
         courseId: {
           in: currentEnrollment.courseOfferings.map((co) => co.courseId),
         },
+        deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
       distinct: ['courseId'],
@@ -281,7 +283,7 @@ export class LmsService {
           module.moduleSections.map((oldSection) => {
             const newSectionId = newSectionsMap.get(oldSection.id);
             return tx.moduleSection.update({
-              where: { id: newSectionId },
+              where: { id: newSectionId, deletedAt: null },
               data: {
                 parentSectionId: oldSection.parentSectionId
                   ? newSectionsMap.get(oldSection.parentSectionId)
@@ -336,7 +338,7 @@ export class LmsService {
     }
 
     // Build role-based where clause
-    const where: Prisma.ModuleWhereInput = { id };
+    const where: Prisma.ModuleWhereInput = { id, deletedAt: null };
 
     if (role === Role.student && userId) {
       where.courseOffering = {
@@ -406,7 +408,9 @@ export class LmsService {
     userId: string,
     filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
-    const where: Prisma.ModuleWhereInput = {};
+    const where: Prisma.ModuleWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     // Build search conditions
@@ -525,7 +529,9 @@ export class LmsService {
     @LogParam('userId') userId: string,
     @LogParam('filters') filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
-    const where: Prisma.ModuleWhereInput = {};
+    const where: Prisma.ModuleWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     // Build search conditions
@@ -643,7 +649,9 @@ export class LmsService {
   async findAllForAdmin(
     filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
-    const where: Prisma.ModuleWhereInput = {};
+    const where: Prisma.ModuleWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     // Build search conditions
@@ -741,7 +749,7 @@ export class LmsService {
     updateModuleDto: UpdateModuleDto,
   ): Promise<ModuleDto> {
     return await this.prisma.client.module.update({
-      where: { id },
+      where: { id, deletedAt: null },
       data: { ...updateModuleDto },
     });
   }

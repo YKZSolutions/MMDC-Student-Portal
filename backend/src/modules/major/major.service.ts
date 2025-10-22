@@ -39,16 +39,18 @@ export class MajorService {
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
-    logArgsMessage: ({ dto }) =>
+    logArgsMessage: ({ dto }: { dto: CreateProgramMajorDto }) =>
       `Create major name=${dto.major.name} programId=${dto.programId}`,
-    logSuccessMessage: (result, { dto }) =>
-      `Created major name=${dto.major.name} id=${result.id}`,
-    logErrorMessage: (err, { dto }) =>
+    logSuccessMessage: (result) =>
+      `Created major name=${result.name} id=${result.id}`,
+    logErrorMessage: (err, { dto }: { dto: CreateProgramMajorDto }) =>
       `Failed to create major name=${dto.major.name} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: (_, { dto }) =>
-      new ConflictException(`Major name already exists: ${dto.major.name}`),
+    [PrismaErrorCode.UniqueConstraint]: (
+      _,
+      { dto }: { dto: CreateProgramMajorDto },
+    ) => new ConflictException(`Major name already exists: ${dto.major.name}`),
   })
   async create(
     @LogParam('dto') createProgramMajorDto: CreateProgramMajorDto,
@@ -84,7 +86,9 @@ export class MajorService {
     @LogParam('filters') filters: BaseFilterDto,
     @LogParam('programId') programId?: string,
   ): Promise<PaginatedMajorsDto> {
-    const where: Prisma.MajorWhereInput = {};
+    const where: Prisma.MajorWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     if (programId) {
@@ -135,12 +139,12 @@ export class MajorService {
       `Failed to find major id=${id} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Major with ID ${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Major not found`),
   })
   async findOne(@LogParam('id') id: string): Promise<MajorItemDto> {
     return await this.prisma.client.major.findUniqueOrThrow({
-      where: { id },
+      where: { id, deletedAt: null },
     });
   }
 
@@ -164,8 +168,8 @@ export class MajorService {
       `Failed to update major id=${id} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Major with ID ${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Major not found`),
     [PrismaErrorCode.UniqueConstraint]: (_, { dto }: { dto: UpdateMajorDto }) =>
       new ConflictException(`Major name already exists: ${dto?.name}`),
   })
@@ -174,7 +178,7 @@ export class MajorService {
     @LogParam('dto') updateMajorDto: UpdateMajorDto,
   ): Promise<MajorDto> {
     return await this.prisma.client.major.update({
-      where: { id },
+      where: { id, deletedAt: null },
       data: { ...updateMajorDto },
     });
   }
@@ -202,8 +206,8 @@ export class MajorService {
       `Failed to remove major id=${id} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Major with ID ${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Major with not found`),
   })
   async remove(
     @LogParam('id') id: string,
