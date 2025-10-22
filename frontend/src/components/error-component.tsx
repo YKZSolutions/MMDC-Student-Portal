@@ -11,6 +11,8 @@ import {
   Stack,
   Text,
   ThemeIcon,
+  type CenterProps,
+  type TextProps,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
@@ -24,7 +26,7 @@ function ErrorFallback<TError extends ApiErrorResponse>({
   wrapperProps,
 }: {
   error?: TError
-  wrapperProps?: React.ComponentProps<typeof Center>
+  wrapperProps?: CenterProps
 }) {
   const [opened, { toggle }] = useDisclosure(false)
 
@@ -161,7 +163,7 @@ function SimpleErrorFallback<TError extends ApiErrorResponse>({
   props,
 }: {
   error?: TError
-  props?: React.ComponentProps<typeof Text>
+  props?: TextProps
 }) {
   return (
     <Text fw={500} {...props}>
