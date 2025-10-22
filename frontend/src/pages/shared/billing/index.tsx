@@ -112,13 +112,13 @@ function BillingQueryProvider({
 }
 
 function BillingPage() {
-  const { search, handleSearch, handlePage, setDebouncedSearch } =
+  const { search, handleSearch, handlePage, setSearch } =
     useSearchState(route)
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
 
   const handleTabChange = (value: BillingSearch['tab']) => {
-    setDebouncedSearch({ tab: value !== 'all' ? value : undefined })
+    setSearch({ tab: value !== 'all' ? value : undefined })
   }
 
   return (

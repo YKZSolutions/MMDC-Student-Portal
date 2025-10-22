@@ -1,14 +1,9 @@
-import {
-  useDebouncedCallback,
-  useDebouncedValue,
-  useDidUpdate,
-} from '@mantine/hooks'
+import { useDebouncedCallback } from '@mantine/hooks'
 import type {
   AnyRouter,
   RegisteredRouter,
   RouteApi,
 } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
 
 /**
  * A custom hook that simplifies reading, updating, and clearing
@@ -34,28 +29,9 @@ export const useSearchState = <
   route: RouteApi<TId, TRouter>,
   debounceMs: number = 200,
 ) => {
-  const searchParam = route.useSearch()
+  const search = route.useSearch()
   const navigate = route.useNavigate()
-  type Search = typeof searchParam
-
-  // This holds the current search state, so navigation updates won't break
-  // the displayed values while typing.
-  const [query, setQuery] = useState<Search>(searchParam)
-
-  // Debounce the query to get the debounced search value
-  const [debouncedQuery] = useDebouncedValue(query, debounceMs)
-
-  // Memoize the combined search state to avoid unnecessary re-renders
-  const search = useMemo<Partial<Search>>(
-    () => ({
-      ...query, // Use the local state to avoid flicker while typing
-      search: debouncedQuery.search,
-    }),
-    [query, debouncedQuery.search],
-  )
-
-  // FIX: This should ensure a change in one component updates others
-  useDidUpdate(() => setQuery(searchParam), [searchParam])
+  type Search = typeof search
 
   const updateNavigate = (next: Partial<Search>, replace = false) => {
     navigate({
@@ -74,7 +50,6 @@ export const useSearchState = <
    * @param {boolean} [replace=false] - Whether to replace the current history entry.
    */
   const setSearch = (next: Partial<Search>, replace: boolean = false) => {
-    setQuery((prev) => ({ ...prev, ...next }))
     updateNavigate(next, replace)
   }
 
@@ -89,10 +64,16 @@ export const useSearchState = <
     next: Partial<Search>,
     replace: boolean = false,
   ) => {
-    setQuery((prev) => ({ ...prev, ...next }))
     debouncedNavigate(next, replace)
   }
 
+  /**
+   *
+   * Handles search parameter updates specifically for search inputs.
+   * Merges new search values and resets pagination.
+   *
+   * @param search - Partial search parameters to update.
+   */
   const handleSearch = (search: Partial<Search['search']>) => {
     setDebouncedSearch({
       search: search || undefined,
@@ -100,8 +81,14 @@ export const useSearchState = <
     } as Partial<Search>)
   }
 
+  /**
+   * Handles pagination changes by updating the page parameter.
+   * Resets to the first page if page is 1.
+   *
+   * @param page - New page number.
+   */
   const handlePage = (page: Partial<Search['page']>) => {
-    setDebouncedSearch({
+    setSearch({
       page: page == 1 ? undefined : page,
     } as Partial<Search>)
   }
@@ -113,7 +100,6 @@ export const useSearchState = <
    */
   const clearSearchParam = (keys?: (keyof Search)[]) => {
     if (!keys) {
-      setQuery({} as Search)
       navigate({ search: {} as Partial<Search> } as any)
       return
     }
@@ -124,7 +110,6 @@ export const useSearchState = <
       return copy
     }
 
-    setQuery(remover)
     navigate({ search: remover } as any)
   }
 

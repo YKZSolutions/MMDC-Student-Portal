@@ -166,14 +166,14 @@ function EnrollmentStudentFinalizationQueryProvider({
 }
 
 function EnrollmentStudentPage() {
-  const { search, setDebouncedSearch } = useSearchState(route)
+  const { search, setSearch } = useSearchState(route)
 
   const handleChangeTab = (
     value: (typeof tabsData)[number]['value'] | null,
   ) => {
     if (!value) return
 
-    setDebouncedSearch({
+    setSearch({
       tab: value !== 'course-selection' ? value : undefined,
     })
   }
@@ -273,12 +273,12 @@ function EnrollmentStudentPage() {
 }
 
 function CourseSelectionPanel() {
-  const { search, setDebouncedSearch } = useSearchState(route)
+  const { search, setSearch } = useSearchState(route)
 
   const handleSegmentedControlChange = (
     value: EnrollmentSearchSchema['status'],
   ) => {
-    setDebouncedSearch({ status: value })
+    setSearch({ status: value })
 
     // Invalidate the course offerings query here so it only refetches
     // on the enrolled and not enrolled tab and it retriggers suspense
