@@ -37,6 +37,7 @@ import {
 import { mapModuleContentToModuleTreeItem } from '@/modules/lms/lms-content/helper/mapper';
 import { ModuleTreeContentItem } from '@/modules/lms/lms-content/types';
 import { MessageDto } from '@/common/dto/message.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
 @Injectable()
 export class LmsService {
@@ -315,7 +316,7 @@ export class LmsService {
     logArgsMessage: ({ id, role, userId }) =>
       `Fetching module ${id} for role=${role} user=${userId}`,
 
-    logSuccessMessage: (result, { id }) => `Fetched module ${id}`,
+    logSuccessMessage: (_result, { id }) => `Fetched module ${id}`,
     logErrorMessage: (err, { id }) =>
       `Fetching module ${id} | Error: ${err.message}`,
   })
@@ -864,7 +865,7 @@ export class LmsService {
     logSuccessMessage: (result) =>
       `Successfully fetched ${result.todos.length} todos`,
     logErrorMessage: (err, { studentId }) =>
-      `Error fetching todos for user ${studentId}: ${err.message}`,
+      `Error fetching todos for user ${studentId} | Error: ${err.message}`,
   })
   async findTodos(
     @LogParam('studentId') studentId: string,
@@ -1017,11 +1018,11 @@ export class LmsService {
       `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
     logSuccessMessage: (_, { userId }) =>
       `Successfully fetched module content tree for user ${userId}`,
-    logErrorMessage: (err: any, { moduleId, userId, role }) =>
-      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role}: ${err.message}`,
+    logErrorMessage: (err, { moduleId, userId, role }) =>
+      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (message, { moduleId }) =>
+    [PrismaErrorCode.RecordNotFound]: (_message, { moduleId }) =>
       new NotFoundException(`Module ${moduleId} not found`),
   })
   async findModuleTree(
@@ -1066,19 +1067,6 @@ export class LmsService {
               createdAt: true,
               updatedAt: true,
             }),
-            ...(role === Role.student &&
-              userId && {
-                progresses: {
-                  where: { studentId: userId },
-                  select: {
-                    id: true,
-                    moduleContentId: true,
-                    status: true,
-                    createdAt: true,
-                    updatedAt: true,
-                  },
-                },
-              }),
           },
         }),
 
@@ -1137,28 +1125,45 @@ export class LmsService {
         }),
       ]);
 
+    const typedModule = module satisfies Omit<ModuleTreeDto, 'moduleSections'>;
+    const typedSections = flatSections satisfies Omit<
+      ModuleTreeSectionDto[],
+      'moduleContents' | 'subsections'
+    >;
+
     const moduleContents = flatContents.map((item) =>
-      mapModuleContentToModuleTreeItem(item),
+      mapModuleContentToModuleTreeItem(
+        item satisfies Omit<
+          ModuleContent,
+          'content' | 'moduleSection' | 'deletedAt'
+        >,
+      ),
     );
 
     return {
-      ...module,
-      moduleSections: this.buildTree(flatSections, moduleContents),
+      ...typedModule,
+      moduleSections: this.buildTree(typedSections, moduleContents),
     };
   }
 
   private buildTree(
-    flatSections: ModuleTreeSectionDto[],
+    flatSections: Omit<
+      ModuleTreeSectionDto[],
+      'moduleContents' | 'subsections'
+    >,
     flatContents: ModuleTreeContentItem[],
   ): ModuleTreeSectionDto[] {
-    const sectionsMap = new Map();
+    const sectionsMap = new Map<string, ModuleTreeSectionDto>();
     const rootSections: ModuleTreeSectionDto[] = [];
 
     // Map contents to sections
-    const contentMap = flatContents.reduce((acc, content) => {
-      (acc[content.moduleSectionId] = acc[content.moduleSectionId] || []).push(
-        content,
-      );
+    const contentMap = flatContents.reduce<
+      Record<string, ModuleTreeContentItem[]>
+    >((acc, content) => {
+      if (!acc[content.moduleSectionId]) {
+        acc[content.moduleSectionId] = [];
+      }
+      acc[content.moduleSectionId].push(content);
       return acc;
     }, {});
 
@@ -1172,9 +1177,13 @@ export class LmsService {
     // Second pass: build the hierarchy
     for (const section of flatSections) {
       if (section.parentSectionId) {
-        const parent = sectionsMap.get(section.parentSectionId);
+        const parent: ModuleTreeSectionDto | undefined = sectionsMap.get(
+          section.parentSectionId,
+        );
         if (parent) {
-          parent.subsections.push(section);
+          if (parent.subsections) {
+            parent.subsections.push(section);
+          }
         }
         // Handle "orphaned" sections if the parent is deleted/filtered out
       } else {

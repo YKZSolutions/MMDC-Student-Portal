@@ -3,7 +3,7 @@ import { pagination } from 'prisma-extension-pagination';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { execSync } from 'child_process';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../../src/app.module';
+import { AppModule } from '@/app.module';
 import {
   ExecutionContext,
   INestApplication,
@@ -11,8 +11,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { MockUser, mockUsers } from './mock-users';
-import { AuthGuard } from '../../src/common/guards/auth.guard';
-import { AuthService } from '../../src/modules/auth/auth.service';
+import { AuthGuard } from '@/common/guards/auth.guard';
+import { AuthService } from '@/modules/auth/auth.service';
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
@@ -44,7 +44,7 @@ export class TestAppService {
 
   /**
    * Starts a PostgreSQL test container, applies Prisma migrations,
-   * initializes Prisma client with pagination extension, and seeds user data.
+   * initializes a Prisma client with pagination extension, and seeds user data.
    *
    * @returns An object containing the initialized Prisma client
    */
@@ -69,16 +69,19 @@ export class TestAppService {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Use both DATABASE_URL and your custom variables
-      execSync('npx prisma db push --skip-generate', {
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          DATABASE_URL: databaseUrl, // Standard Prisma environment variable
-          DATABASE_CLOUD_URL: databaseUrl,
-          DIRECT_CLOUD_URL: databaseUrl,
+      execSync(
+        'npx prisma db push --skip-generate --force-reset --accept-data-loss --schema=./prisma/schema.prisma',
+        {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            DATABASE_URL: databaseUrl, // Standard Prisma environment variable
+            DATABASE_CLOUD_URL: databaseUrl,
+            DIRECT_CLOUD_URL: databaseUrl,
+          },
+          cwd: process.cwd(), // Ensure we're in the correct directory
         },
-        cwd: process.cwd(), // Ensure we're in the correct directory
-      });
+      );
 
       this.prisma = new PrismaClient({
         datasources: {

@@ -2,6 +2,7 @@ import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { ModuleContentDto } from '@/generated/nestjs-dto/moduleContent.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { ContentType } from '@prisma/client';
+import { ContentProgress } from '@/generated/nestjs-dto/contentProgress.entity';
 
 export class LessonItemDto extends ModuleContentDto {
   @ApiProperty({
@@ -9,6 +10,13 @@ export class LessonItemDto extends ModuleContentDto {
     default: ContentType.LESSON,
   })
   declare contentType: 'LESSON';
+
+  @ApiProperty({
+    type: () => ContentProgress,
+    isArray: true,
+    required: false,
+  })
+  studentProgress?: ContentProgress[];
 }
 
 export class AssignmentConfigDto extends AssignmentDto {
@@ -31,4 +39,11 @@ export class AssignmentItemDto extends ModuleContentDto {
     type: AssignmentConfigDto,
   })
   assignment: AssignmentConfigDto;
+
+  @ApiProperty({
+    type: () => ContentProgress,
+    isArray: true,
+    required: false,
+  })
+  studentProgress?: ContentProgress[];
 }
