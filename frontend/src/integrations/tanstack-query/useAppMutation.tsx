@@ -1,3 +1,4 @@
+import type { ApiErrorResponse } from '@/features/validation/api-error.schema'
 import { notifications } from '@mantine/notifications'
 import { IconCheck, IconX } from '@tabler/icons-react'
 import {
@@ -61,9 +62,8 @@ export function useAppMutation<TData, TError, TVariables, TContext>(
       }
     },
     onError: (error, variables, context) => {
-      const err = error as TError & { error?: string }
-
-      console.error(err.error)
+      // assume TError is ApiErrorResponse for error handling
+      const err = error as ApiErrorResponse
 
       notifications.update({
         id: notifId.current,
