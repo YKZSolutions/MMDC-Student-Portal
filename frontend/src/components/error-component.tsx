@@ -21,14 +21,16 @@ import {
 
 function ErrorFallback<TError extends ApiErrorResponse>({
   error,
+  wrapperProps,
 }: {
   error?: TError
+  wrapperProps?: React.ComponentProps<typeof Center>
 }) {
   const [opened, { toggle }] = useDisclosure(false)
 
   if (!error) {
     return (
-      <Center my={'auto'}>
+      <Center my={'auto'} {...wrapperProps}>
         <Container size="sm">
           <Stack align="center" gap="lg">
             <ThemeIcon
@@ -59,7 +61,7 @@ function ErrorFallback<TError extends ApiErrorResponse>({
   }
 
   return (
-    <Center my={'auto'}>
+    <Center my={'auto'} {...wrapperProps}>
       <Container size="sm">
         <Stack align="center" gap="lg">
           <ThemeIcon
@@ -153,5 +155,21 @@ function ErrorFallback<TError extends ApiErrorResponse>({
     </Center>
   )
 }
+
+function SimpleErrorFallback<TError extends ApiErrorResponse>({
+  error,
+  props,
+}: {
+  error?: TError
+  props?: React.ComponentProps<typeof Text>
+}) {
+  return (
+    <Text fw={500} {...props}>
+      {error?.error || 'An unexpected error has occurred.'}
+    </Text>
+  )
+}
+
+ErrorFallback.Simple = SimpleErrorFallback
 
 export default ErrorFallback
