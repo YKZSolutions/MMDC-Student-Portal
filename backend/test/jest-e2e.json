@@ -1,5 +1,9 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
@@ -9,13 +13,15 @@
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/../src/$1"
   },
-  "maxWorkers": 1,
-  "testTimeout": 30000,
+  "maxWorkers": 4,
+  "testTimeout": 10000,
   "bail": false,
   "detectOpenHandles": true,
   "forceExit": true,
-  "verbose": true,
-  "testPathIgnorePatterns": ["/node_modules/"],
+  "verbose": false,
+  "testPathIgnorePatterns": [
+    "/node_modules/"
+  ],
   "collectCoverageFrom": [
     "../src/**/*.ts",
     "!../src/**/*.interface.ts",

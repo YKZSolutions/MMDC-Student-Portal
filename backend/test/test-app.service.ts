@@ -12,7 +12,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { MockUser, mockUsers } from './mock-users';
+import { MockUser, mockUsers } from './mocks/mock-users';
 import { AuthGuard } from '@/common/guards/auth.guard';
 import { AuthService } from '@/modules/auth/auth.service';
 import {
