@@ -11,10 +11,10 @@ import {
 } from '@mantine/core'
 import { IconFilter2, type ReactNode } from '@tabler/icons-react'
 
-export type FilterOption<TValue> = {
+export type FilterOption<TValue = string> = {
   label: string
   value: TValue | null
-  icon: ReactNode
+  icon: ReactNode | null
   color: MantineColor
 }
 
