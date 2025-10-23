@@ -358,12 +358,11 @@ export class CourseEnrollmentService {
     @LogParam('dto') dto: StudentIdentifierDto,
     @LogParam('user') user: CurrentAuthUser,
   ) {
+    const role = user.user_metadata.role;
     const studentId =
-      user.user_metadata.role === Role.student
-        ? user.user_metadata.user_id
-        : dto.studentId;
+      role === Role.student ? user.user_metadata.user_id : dto.studentId;
 
-    if (user.user_metadata.role === Role.admin && !studentId) {
+    if (role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
 
@@ -375,6 +374,21 @@ export class CourseEnrollmentService {
       if (!courseEnrollment) {
         throw new NotFoundException(
           'Enrollment record not found or already dropped.',
+        );
+      }
+
+      if (courseEnrollment.status === CourseEnrollmentStatus.completed) {
+        throw new BadRequestException(
+          'Cannot drop an enrollment that has already been completed.',
+        );
+      }
+
+      if (
+        role === 'student' &&
+        courseEnrollment.status === CourseEnrollmentStatus.finalized
+      ) {
+        throw new BadRequestException(
+          'Cannot drop a finalized enrollment. Please contact the admin for further assistance.',
         );
       }
 
