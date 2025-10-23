@@ -99,14 +99,11 @@ function UsersQueryProvider({
 }
 
 function UsersPage() {
-  const { search, setSearch, handleSearch, handlePage } = useSearchState(route)
+  const { search, setSearch, handleSearch, handlePage, clearSearchParam } =
+    useSearchState(route)
 
   const handleRoleFilter = (role: IUsersQuery['role']) => {
     setSearch({ role: role || undefined, page: 1 })
-  }
-
-  const handleResetFilter = () => {
-    setSearch({ role: undefined, page: undefined })
   }
 
   return (
@@ -172,10 +169,16 @@ function UsersPage() {
               onChange={(e) => handleSearch(e.currentTarget.value)}
             />
             <Filter
-              options={roleOptions}
-              matchedSearch={search.role}
-              handleSelectFilter={handleRoleFilter}
-              handleResetFilter={handleResetFilter}
+              title="Filter Users"
+              section={[
+                {
+                  label: 'Role',
+                  options: roleOptions,
+                  matchedSearch: search.role,
+                  handleSelectFilter: handleRoleFilter,
+                },
+              ]}
+              handleResetFilter={clearSearchParam}
             />
             <Button
               data-cy="add-user-button"

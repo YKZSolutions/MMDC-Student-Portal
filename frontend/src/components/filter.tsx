@@ -19,17 +19,22 @@ export type FilterOption<TValue> = {
 }
 
 interface FilterProps<TOption, TMatchedSearch> {
-  matchedSearch: TMatchedSearch
-  options: FilterOption<TOption>[]
+  title: string
+  section: FilterSection<TOption, TMatchedSearch>[]
   handleResetFilter: () => void
+}
+
+interface FilterSection<TOption, TMatchedSearch> {
+  label: string
+  options: FilterOption<TOption>[]
+  matchedSearch: TMatchedSearch
   handleSelectFilter: (option: TOption | null) => void
 }
 
-function Filter<TOption, TMatchedSearch>({
-  options,
-  matchedSearch,
+function Filter<TOption extends string, TMatchedSearch>({
+  title,
+  section,
   handleResetFilter,
-  handleSelectFilter,
 }: FilterProps<TOption, TMatchedSearch>) {
   return (
     <Popover position="bottom" width={rem(300)}>
@@ -51,7 +56,7 @@ function Filter<TOption, TMatchedSearch>({
         <Stack>
           <Flex justify={'space-between'}>
             <Title fw={500} c={'dark.8'} order={4}>
-              Filter Users
+              {title}
             </Title>
 
             <UnstyledButton
@@ -67,37 +72,48 @@ function Filter<TOption, TMatchedSearch>({
             </UnstyledButton>
           </Flex>
 
-          <Stack gap={'xs'}>
-            <Text fw={500} c={'gray.7'} fz={'sm'}>
-              Role
-            </Text>
-            <Flex justify={'space-between'} w={'100%'} wrap={'wrap'} gap={'sm'}>
-              {options.map((option) => (
-                <Button
-                  className="flex-[47%]"
-                  key={option.label}
-                  variant={
-                    matchedSearch === option.value ? 'filled' : 'outline'
-                  }
-                  styles={{
-                    root: {
-                      background:
-                        matchedSearch === option.value
-                          ? 'var(--mantine-color-gray-3)'
-                          : 'transparent',
-                      borderColor: 'var(--mantine-color-gray-3)',
-                      color: 'var(--mantine-color-dark-7)',
-                    },
-                  }}
-                  radius={'xl'}
-                  leftSection={option.icon}
-                  onClick={() => handleSelectFilter(option?.value || null)}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </Flex>
-          </Stack>
+          {section.map((section, index) => (
+            <Stack gap={'xs'} key={index}>
+              <Text fw={500} c={'gray.7'} fz={'sm'}>
+                {section.label}
+              </Text>
+              <Flex
+                justify={'space-between'}
+                w={'100%'}
+                wrap={'wrap'}
+                gap={'sm'}
+              >
+                {section.options.map((option) => (
+                  <Button
+                    className="flex-[47%]"
+                    key={option.value}
+                    variant={
+                      section.matchedSearch === option.value
+                        ? 'filled'
+                        : 'outline'
+                    }
+                    styles={{
+                      root: {
+                        background:
+                          section.matchedSearch === option.value
+                            ? 'var(--mantine-color-gray-3)'
+                            : 'transparent',
+                        borderColor: 'var(--mantine-color-gray-3)',
+                        color: 'var(--mantine-color-dark-7)',
+                      },
+                    }}
+                    radius={'xl'}
+                    leftSection={option.icon}
+                    onClick={() =>
+                      section.handleSelectFilter(option?.value || null)
+                    }
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </Flex>
+            </Stack>
+          ))}
         </Stack>
       </Popover.Dropdown>
     </Popover>
