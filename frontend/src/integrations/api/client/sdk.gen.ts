@@ -1084,7 +1084,7 @@ export const appointmentsControllerUpdateStatus = <ThrowOnError extends boolean 
 /**
  * Retrieves all enrollment periods
  * Fetches a paginated list of enrollment periods.
- * Requires `ADMIN` role.
+ * Requires `ADMIN`, `MENTOR`, or `STUDENT` roles.
  */
 export const enrollmentControllerFindAllEnrollments = <ThrowOnError extends boolean = false>(options?: Options<EnrollmentControllerFindAllEnrollmentsData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<EnrollmentControllerFindAllEnrollmentsResponses, EnrollmentControllerFindAllEnrollmentsErrors, ThrowOnError>({

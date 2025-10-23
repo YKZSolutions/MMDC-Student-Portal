@@ -7864,7 +7864,7 @@
         ]
       },
       "get": {
-        "description": "Fetches a paginated list of enrollment periods.\nRequires `ADMIN` role.",
+        "description": "Fetches a paginated list of enrollment periods.\nRequires `ADMIN`, `MENTOR`, or `STUDENT` roles.",
         "operationId": "EnrollmentController_findAllEnrollments",
         "parameters": [
           {
@@ -7892,6 +7892,33 @@
             "schema": {
               "minimum": 1,
               "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "upcoming",
+                "active",
+                "extended",
+                "closed",
+                "canceled",
+                "archived"
+              ]
+            }
+          },
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 3,
               "type": "number"
             }
           }

@@ -3776,7 +3776,17 @@ export const zEnrollmentControllerFindAllEnrollmentsData = z.object({
     query: z.optional(z.object({
         search: z.optional(z.string()),
         page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10)
+        limit: z.optional(z.number().gte(1)).default(10),
+        status: z.optional(z.enum([
+            'draft',
+            'upcoming',
+            'active',
+            'extended',
+            'closed',
+            'canceled',
+            'archived'
+        ])),
+        term: z.optional(z.number().gte(1).lte(3))
     }))
 });
 

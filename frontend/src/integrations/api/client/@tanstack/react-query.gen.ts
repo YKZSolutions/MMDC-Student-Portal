@@ -2341,7 +2341,7 @@ export const enrollmentControllerFindAllEnrollmentsQueryKey = (options?: Options
 /**
  * Retrieves all enrollment periods
  * Fetches a paginated list of enrollment periods.
- * Requires `ADMIN` role.
+ * Requires `ADMIN`, `MENTOR`, or `STUDENT` roles.
  */
 export const enrollmentControllerFindAllEnrollmentsOptions = (options?: Options<EnrollmentControllerFindAllEnrollmentsData>) => {
     return queryOptions({
@@ -2363,7 +2363,7 @@ export const enrollmentControllerFindAllEnrollmentsInfiniteQueryKey = (options?:
 /**
  * Retrieves all enrollment periods
  * Fetches a paginated list of enrollment periods.
- * Requires `ADMIN` role.
+ * Requires `ADMIN`, `MENTOR`, or `STUDENT` roles.
  */
 export const enrollmentControllerFindAllEnrollmentsInfiniteOptions = (options?: Options<EnrollmentControllerFindAllEnrollmentsData>) => {
     return infiniteQueryOptions<EnrollmentControllerFindAllEnrollmentsResponse, EnrollmentControllerFindAllEnrollmentsError, InfiniteData<EnrollmentControllerFindAllEnrollmentsResponse>, QueryKey<Options<EnrollmentControllerFindAllEnrollmentsData>>, number | Pick<QueryKey<Options<EnrollmentControllerFindAllEnrollmentsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(

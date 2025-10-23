@@ -4208,6 +4208,8 @@ export type EnrollmentControllerFindAllEnrollmentsData = {
         search?: string;
         page?: number;
         limit?: number;
+        status?: 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
+        term?: number;
     };
     url: '/enrollments';
 };
