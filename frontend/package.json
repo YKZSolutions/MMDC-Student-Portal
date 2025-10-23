@@ -49,6 +49,7 @@
     "react-dnd": "^16.0.1",
     "react-dom": "^19.0.0",
     "react-draggable": "^4.5.0",
+    "react-error-boundary": "^6.0.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.4",
     "sse.js": "2.7.2",
