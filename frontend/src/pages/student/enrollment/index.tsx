@@ -4,12 +4,13 @@ import {
   SuspendedAdminEnrollmentCourseOfferingCards,
   SuspendedStudentEnrollmentFinalizationSectionCards,
 } from '@/features/enrollment/components/suspense'
-import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
-import type { IPaymentScheme } from '@/features/enrollment/types'
 import {
   enrollmentStatusOptions,
   paymentSchemeData,
-} from '@/features/enrollment/validation'
+} from '@/features/enrollment/constants'
+import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
+import type { IPaymentScheme } from '@/features/enrollment/types'
+
 import { useSearchState } from '@/hooks/use-search-state'
 import {
   type DetailedCourseEnrollmentDto,
