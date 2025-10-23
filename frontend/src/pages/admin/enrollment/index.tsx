@@ -47,7 +47,7 @@ import {
   Stack,
   Table,
   Text,
-  Title
+  Title,
 } from '@mantine/core'
 import { DatePickerInput, YearPickerInput } from '@mantine/dates'
 import { modals } from '@mantine/modals'
@@ -57,7 +57,7 @@ import {
   IconPencil,
   IconPlus,
   IconTrash,
-  type ReactNode
+  type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
@@ -151,7 +151,11 @@ export default function EnrollmentAdminPage() {
             align="center"
           >
             {/* Changed spacing to gap */}
-            <Filter title="Filter Users" handleResetFilter={clearSearchParam}>
+            <Filter
+              title="Filter Enrollments"
+              shouldExpand
+              handleResetFilter={clearSearchParam}
+            >
               <Filter.Category
                 label="Term"
                 options={termAdminFilterOptions}
