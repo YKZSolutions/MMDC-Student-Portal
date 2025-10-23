@@ -67,19 +67,19 @@ export const termAdminFilterOptions = [
   },
   {
     label: 'Term 1',
-    value: '1',
+    value: 1,
     icon: null,
     color: 'blue',
   },
   {
     label: 'Term 2',
-    value: '2',
+    value: 2,
     icon: null,
     color: 'blue',
   },
   {
     label: 'Term 3',
-    value: '3',
+    value: 3,
     icon: null,
     color: 'blue',
   },
