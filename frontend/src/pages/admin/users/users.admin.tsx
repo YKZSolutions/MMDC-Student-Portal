@@ -1,3 +1,4 @@
+import Filter from '@/components/filter'
 import SupabaseAvatar from '@/components/supabase-avatar'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { roleOptions, roleStyles } from '@/features/user-management/constants'
@@ -31,15 +32,12 @@ import {
   Menu,
   Pagination,
   Pill,
-  Popover,
   rem,
   Skeleton,
-  Stack,
   Table,
   Text,
   TextInput,
   Title,
-  UnstyledButton,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
@@ -47,7 +45,6 @@ import {
   IconCancel,
   IconCheck,
   IconDotsVertical,
-  IconFilter2,
   IconPencil,
   IconPlus,
   IconSearch,
@@ -174,80 +171,12 @@ function UsersPage() {
               defaultValue={search.search}
               onChange={(e) => handleSearch(e.currentTarget.value)}
             />
-            <Popover position="bottom" width={rem(300)}>
-              <Popover.Target>
-                <Button
-                  variant="default"
-                  radius={'md'}
-                  leftSection={<IconFilter2 color="gray" size={20} />}
-                  lts={rem(0.25)}
-                  w={{
-                    base: '100%',
-                    xs: 'auto',
-                  }}
-                >
-                  Filters
-                </Button>
-              </Popover.Target>
-              <Popover.Dropdown bg="var(--mantine-color-body)">
-                <Stack>
-                  <Flex justify={'space-between'}>
-                    <Title fw={500} c={'dark.8'} order={4}>
-                      Filter Users
-                    </Title>
-
-                    <UnstyledButton
-                      styles={{
-                        root: {
-                          textDecoration: 'underline',
-                        },
-                      }}
-                      c={'primary'}
-                      onClick={() => handleResetFilter()}
-                    >
-                      Reset Filter
-                    </UnstyledButton>
-                  </Flex>
-
-                  <Stack gap={'xs'}>
-                    <Text fw={500} c={'gray.7'} fz={'sm'}>
-                      Role
-                    </Text>
-                    <Flex
-                      justify={'space-between'}
-                      w={'100%'}
-                      wrap={'wrap'}
-                      gap={'sm'}
-                    >
-                      {roleOptions.map((role) => (
-                        <Button
-                          className="flex-[47%]"
-                          key={role.value}
-                          variant={
-                            search.role === role.value ? 'filled' : 'outline'
-                          }
-                          styles={{
-                            root: {
-                              background:
-                                search.role === role.value
-                                  ? 'var(--mantine-color-gray-3)'
-                                  : 'transparent',
-                              borderColor: 'var(--mantine-color-gray-3)',
-                              color: 'var(--mantine-color-dark-7)',
-                            },
-                          }}
-                          radius={'xl'}
-                          leftSection={role.icon}
-                          onClick={() => handleRoleFilter(role.value)}
-                        >
-                          {role.label}
-                        </Button>
-                      ))}
-                    </Flex>
-                  </Stack>
-                </Stack>
-              </Popover.Dropdown>
-            </Popover>
+            <Filter
+              options={roleOptions}
+              matchedSearch={search.role}
+              handleSelectFilter={handleRoleFilter}
+              handleResetFilter={handleResetFilter}
+            />
             <Button
               data-cy="add-user-button"
               variant="filled"
