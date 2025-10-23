@@ -70,6 +70,7 @@ const route = getRouteApi('/(protected)/enrollment/')
 
 function EnrollmentAdminQueryProvider({
   children,
+  props = { page: 1 },
 }: {
   children: (props: {
     enrollmentPeriods: EnrollmentPeriodDto[]
@@ -77,14 +78,16 @@ function EnrollmentAdminQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
+  props?: EnrollmentSearchSchema
 }) {
-  const { search, page } = route.useSearch()
+  const { page, activity, term } = props
 
   const { data } = useSuspenseQuery(
     enrollmentControllerFindAllEnrollmentsOptions({
       query: {
         page: page,
-        search: search || undefined,
+        status: activity,
+        term: term,
       },
     }),
   )
@@ -198,7 +201,7 @@ export default function EnrollmentAdminPage() {
 
           {/* Pagination */}
           <Suspense fallback={<SuspendedPagination />}>
-            <EnrollmentAdminQueryProvider>
+            <EnrollmentAdminQueryProvider props={search}>
               {(props) => (
                 <Group justify="flex-end">
                   <Text size="sm">{props.message}</Text>
@@ -219,6 +222,7 @@ export default function EnrollmentAdminPage() {
 }
 
 function EnrollmentTable() {
+  const { search } = useSearchState(route)
   const navigate = route.useNavigate()
 
   const { mutateAsync: remove } = useAppMutation(
@@ -335,7 +339,7 @@ function EnrollmentTable() {
           }}
         >
           <Suspense fallback={<SuspendedAdminEnrollmentTableRows />}>
-            <EnrollmentAdminQueryProvider>
+            <EnrollmentAdminQueryProvider props={search}>
               {(props) =>
                 props.enrollmentPeriods.map((period) => (
                   <Table.Tr
