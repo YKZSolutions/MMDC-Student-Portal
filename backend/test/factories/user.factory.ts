@@ -11,6 +11,11 @@
  */
 
 import { Role, StudentType } from '@prisma/client';
+import {
+  UpdateUserBaseDto,
+  UpdateUserStaffDto,
+  UpdateUserStudentDto,
+} from '@/modules/users/dto/update-user-details.dto';
 
 /**
  * Generate unique test data to avoid conflicts between tests
@@ -32,14 +37,16 @@ const generateUniqueData = () => {
  * Create a valid user payload with unique data
  * Default role is 'student', override if needed
  */
-export const createUser = (overrides: {
-  role?: Role;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  password?: string;
-  gender?: string;
-} = {}) => {
+export const createUser = (
+  overrides: {
+    role?: Role;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    password?: string;
+    gender?: string;
+  } = {},
+) => {
   const unique = generateUniqueData();
 
   return {
@@ -63,13 +70,15 @@ export const createUser = (overrides: {
 /**
  * Create a valid student payload with unique data
  */
-export const createStudent = (overrides: {
-  studentType?: StudentType;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  studentNumber?: string;
-} = {}) => {
+export const createStudent = (
+  overrides: {
+    studentType?: StudentType;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    studentNumber?: string;
+  } = {},
+) => {
   const unique = generateUniqueData();
 
   return {
@@ -98,14 +107,16 @@ export const createStudent = (overrides: {
 /**
  * Create a valid staff payload (mentor or admin) with unique data
  */
-export const createStaff = (overrides: {
-  role?: 'mentor' | 'admin';
-  department?: string;
-  position?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-} = {}) => {
+export const createStaff = (
+  overrides: {
+    role?: 'mentor' | 'admin';
+    department?: string;
+    position?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } = {},
+) => {
   const unique = generateUniqueData();
 
   return {
@@ -135,12 +146,14 @@ export const createStaff = (overrides: {
 /**
  * Create an invite payload with unique data
  */
-export const createInvite = (overrides: {
-  role?: Role;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-} = {}) => {
+export const createInvite = (
+  overrides: {
+    role?: Role;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } = {},
+) => {
   const unique = generateUniqueData();
 
   return {
@@ -155,20 +168,26 @@ export const createInvite = (overrides: {
  * Create update payloads for different scenarios
  */
 export const createUpdate = {
-  user: (overrides: { firstName?: string; lastName?: string } = {}) => ({
+  user: (
+    overrides: { firstName?: string; lastName?: string } = {},
+  ): UpdateUserBaseDto => ({
     user: {
       firstName: overrides.firstName || 'Updated',
       lastName: overrides.lastName || 'Name',
     },
   }),
 
-  student: (overrides: { studentType?: StudentType } = {}) => ({
+  student: (
+    overrides: { studentType?: StudentType } = {},
+  ): UpdateUserStudentDto => ({
     specificDetails: {
       studentType: overrides.studentType || 'regular',
     },
   }),
 
-  staff: (overrides: { position?: string; department?: string } = {}) => ({
+  staff: (
+    overrides: { position?: string; department?: string } = {},
+  ): UpdateUserStaffDto => ({
     specificDetails: {
       position: overrides.position || 'Senior Mentor',
       department: overrides.department || 'Engineering',
@@ -228,7 +247,10 @@ export const createInvalid = {
       const base = createStudent();
       return {
         ...base,
-        specificDetails: { ...base.specificDetails, studentType: 'invalid_type' },
+        specificDetails: {
+          ...base.specificDetails,
+          studentType: 'invalid_type',
+        },
       };
     },
 

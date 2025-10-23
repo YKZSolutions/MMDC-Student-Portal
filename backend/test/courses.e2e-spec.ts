@@ -55,10 +55,15 @@ describe('CoursesController (Integration)', () => {
     unauthApp = unauth;
   }, 800000);
 
+  beforeEach(async () => {
+    // Reset the database before each test group or use for specific tests
+    await testService.resetDatabase();
+  }, 10000); // Timeout for reset operation
+
   afterAll(async () => {
     await testService.close();
     await TestAppService.closeAll(); // Clean up static resources
-  });
+  }, 15000); // Timeout for cleanup
 
   // --- POST /courses ---
   describe('POST /courses', () => {

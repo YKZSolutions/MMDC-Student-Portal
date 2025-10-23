@@ -343,8 +343,8 @@ export class UsersService {
       `Failed to update user details userId=${userId} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_msg, { userId }) =>
-      new NotFoundException(`User with ID ${userId} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`User not found`),
     [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException('Invalid reference during user update'),
     [PrismaErrorCode.RelationViolation]: () =>
