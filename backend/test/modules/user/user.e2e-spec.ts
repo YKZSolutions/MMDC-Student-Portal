@@ -1,93 +1,44 @@
 import request from 'supertest';
-import { mockUsers } from './utils/mock-users';
-import { TestAppService } from './utils/test-app.service';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { v4 } from 'uuid';
+import {
+  createUser,
+  createStudent,
+  createStaff,
+  createInvite,
+  createUpdate,
+  createInvalid,
+} from '../../factories/user.factory';
+import {
+  setupTestEnvironment,
+  teardownTestEnvironment,
+  TestContext,
+} from '../../test-setup';
 
+/* eslint-disable @typescript-eslint/no-unsafe-call,
+                  @typescript-eslint/no-unsafe-argument,
+                  @typescript-eslint/no-unsafe-member-access,
+                  @typescript-eslint/no-unsafe-assignment,
+                  @typescript-eslint/no-unsafe-return,
+*/
 describe('UsersController (Integration)', () => {
-  const testService = new TestAppService();
-  let app;
-  let prisma: ExtendedPrismaClient;
-  let createdUserId: string;
-  let createdStudentId: string;
-  let createdStaffId: string;
+  let context: TestContext;
 
-  const validUserPayload = {
-    role: 'student',
-    user: {
-      firstName: 'Dog',
-      lastName: 'Junior',
-    },
-    credentials: {
-      email: 'dog.junior@example.com',
-      password: 'SecurePass123!',
-    },
-    userDetails: {
-      dateJoined: new Date().toISOString(),
-      dob: '2000-01-15T00:00:00.000Z',
-      gender: 'male',
-    },
-  };
-
-  const validStudentPayload = {
-    specificDetails: {
-      studentNumber: 12345,
-      studentType: 'new',
-      admissionDate: new Date().toISOString(),
-      otherDetails: {},
-    },
-    user: {
-      firstName: 'Jane',
-      lastName: 'Doe',
-    },
-    credentials: {
-      email: 'jane.doe@example.com',
-      password: 'SecurePass123!',
-    },
-    userDetails: {
-      dateJoined: new Date().toISOString(),
-      dob: '2000-01-15T00:00:00.000Z',
-      gender: 'female',
-    },
-  };
-
-  const validStaffPayload = {
-    role: 'mentor',
-    specificDetails: {
-      employeeNumber: 54321,
-      department: 'IT',
-      position: 'Head Mentor',
-      otherDetails: {},
-    },
-    user: {
-      firstName: 'John',
-      lastName: 'Smith',
-    },
-    credentials: {
-      email: 'john.smith@example.com',
-      password: 'SecurePass123!',
-    },
-    userDetails: {
-      dateJoined: new Date().toISOString(),
-      dob: '1985-05-20T00:00:00.000Z',
-      gender: 'male',
-    },
-  };
+  // Test payloads using simple factory functions
+  const validUserPayload = createUser({ role: 'student' });
+  const validStudentPayload = createStudent();
+  const validStaffPayload = createStaff({ role: 'mentor' });
 
   beforeAll(async () => {
-    const { prisma: p } = await testService.start();
-    prisma = p;
-  }, 800000);
+    context = await setupTestEnvironment();
+  }, 30000);
 
   afterAll(async () => {
-    await testService.close();
-  });
+    await teardownTestEnvironment(context);
+  }, 15000);
 
   describe('POST /users', () => {
     it('should create a new user with valid data when authenticated as admin (201)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
@@ -95,50 +46,35 @@ describe('UsersController (Integration)', () => {
       expect(response.body).toHaveProperty('id');
       expect(response.body.firstName).toBe(validUserPayload.user.firstName);
       expect(response.body.role).toBe(validUserPayload.role);
-      createdUserId = response.body.id;
     });
 
     it('should return 400 when required fields are missing', async () => {
-      const invalidPayload = {
-        ...validUserPayload,
-        user: { firstName: 'John' },
-      };
+      const invalidPayload = createInvalid.user.missingFields();
 
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 400 when an invalid role is provided', async () => {
-      const invalidPayload = {
-        ...validUserPayload,
-        role: 'invalid_role',
-      };
+      const invalidPayload = createInvalid.user.invalidRole();
 
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(403);
@@ -147,10 +83,7 @@ describe('UsersController (Integration)', () => {
 
   describe('GET /users', () => {
     it('should retrieve a paginated list of users when authenticated as admin (200)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users')
         .expect(200);
 
@@ -160,7 +93,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should filter users by role query parameter', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users?role=student')
         .expect(200);
 
@@ -170,7 +103,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should filter users by search query parameter', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users?search=Dog')
         .expect(200);
 
@@ -180,7 +113,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should paginate results correctly with page query parameter', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users?page=1')
         .expect(200);
 
@@ -188,29 +121,21 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer()).get('/users').expect(401);
+      await request(context.unauthApp.getHttpServer())
+        .get('/users')
+        .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer()).get('/users').expect(403);
+      await request(context.studentApp.getHttpServer())
+        .get('/users')
+        .expect(403);
     });
   });
 
   describe('GET /users/me', () => {
     it('should retrieve the full profile of the authenticated admin (200)', async () => {
-      const { app: adminApp } = await testService.createTestApp(
-        mockUsers.admin,
-      );
-      app = adminApp;
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users/me')
         .expect(200);
 
@@ -219,11 +144,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should retrieve the full profile of the authenticated mentor (200)', async () => {
-      const { app: mentorApp } = await testService.createTestApp(
-        mockUsers.mentor,
-      );
-      app = mentorApp;
-      const response = await request(app.getHttpServer())
+      const response = await request(context.mentorApp.getHttpServer())
         .get('/users/me')
         .expect(200);
 
@@ -232,11 +153,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should retrieve the full profile of the authenticated student (200)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-      app = studentApp;
-      const response = await request(app.getHttpServer())
+      const response = await request(context.studentApp.getHttpServer())
         .get('/users/me')
         .expect(200);
 
@@ -245,26 +162,17 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer()).get('/users/me').expect(401);
+      await request(context.unauthApp.getHttpServer())
+        .get('/users/me')
+        .expect(401);
     });
   });
 
   describe('PUT /users/me', () => {
-    const updatedUserPayload = {
-      user: {
-        firstName: 'Updated',
-      },
-    };
+    const updatedUserPayload = createUpdate.user();
 
     it('should update the personal details of the authenticated user (200)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .put('/users/me')
         .send(updatedUserPayload)
         .expect(200);
@@ -273,24 +181,16 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 400 when invalid data is provided', async () => {
-      const invalidPayload = {
-        user: {
-          firstName: 123,
-        },
-      };
+      const invalidPayload = createInvalid.user.invalidType();
 
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put('/users/me')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .put('/users/me')
         .send(updatedUserPayload)
         .expect(401);
@@ -299,10 +199,14 @@ describe('UsersController (Integration)', () => {
 
   describe('GET /users/{id}', () => {
     it('should retrieve a specific user by ID when authenticated as admin (200)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
+      const createUserResponse = await request(context.adminApp.getHttpServer())
+        .post('/users')
+        .send(validUserPayload)
+        .expect(201);
 
-      const response = await request(app.getHttpServer())
+      const createdUserId = createUserResponse.body.id;
+
+      const response = await request(context.adminApp.getHttpServer())
         .get(`/users/${createdUserId}`)
         .expect(200);
 
@@ -310,44 +214,47 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 400 for an invalid ID format', async () => {
-      await request(app.getHttpServer()).get('/users/invalid-id').expect(400);
+      await request(context.adminApp.getHttpServer())
+        .get('/users/invalid-id')
+        .expect(400);
     });
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .get(`/users/${nonExistentId}`)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
-        .get(`/users/${createdUserId}`)
+      await request(context.unauthApp.getHttpServer())
+        .get(`/users/${v4()}`)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
-        .get(`/users/${createdUserId}`)
+      await request(context.studentApp.getHttpServer())
+        .get(`/users/${v4()}`)
         .expect(403);
     });
   });
 
   describe('PATCH /users/{id}/status', () => {
+    let createdUserId: string;
+
+    beforeAll(async () => {
+      const createUserResponse = await request(context.adminApp.getHttpServer())
+        .post('/users')
+        .send(validUserPayload)
+        .expect(201);
+
+      createdUserId = createUserResponse.body.id;
+    });
+
     it('should successfully disable a user when authenticated as admin (200)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
-        .send({ status: 'disabled' })
+        .send()
         .expect(200);
 
       expect(response.body).toHaveProperty(
@@ -357,7 +264,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should successfully enable a user when authenticated as admin (200)', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send({ status: 'active' })
         .expect(200);
@@ -370,29 +277,21 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .patch(`/users/${nonExistentId}/status`)
         .send({ status: 'disabled' })
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send({ status: 'disabled' })
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send({ status: 'disabled' })
         .expect(403);
@@ -401,10 +300,14 @@ describe('UsersController (Integration)', () => {
 
   describe('DELETE /users/{id}', () => {
     it('should soft-delete a user by default when authenticated as admin (200)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
+      const createUserResponse = await request(context.adminApp.getHttpServer())
+        .post('/users')
+        .send(validUserPayload)
+        .expect(201);
 
-      const response = await request(app.getHttpServer())
+      const createdUserId = createUserResponse.body.id;
+
+      const response = await request(context.adminApp.getHttpServer())
         .delete(`/users/${createdUserId}`)
         .expect(200);
 
@@ -412,23 +315,20 @@ describe('UsersController (Integration)', () => {
         'message',
         'User has been soft deleted',
       );
-      const user = await prisma.user.findUnique({
+      const user = await context.prismaClient.user.findUnique({
         where: { id: createdUserId },
       });
       expect(user.deletedAt).not.toBeNull();
     });
 
     it('should permanently delete a user with directDelete=true query parameter when authenticated as admin (200)', async () => {
-      // Re-create user for this test
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-      const createUserResponse = await request(app.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
       const tempUserId = createUserResponse.body.id;
 
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .delete(`/users/${tempUserId}?directDelete=true`)
         .expect(200);
 
@@ -436,81 +336,61 @@ describe('UsersController (Integration)', () => {
         'message',
         'User has been permanently deleted',
       );
-      const user = await prisma.user.findUnique({ where: { id: tempUserId } });
+      const user = await context.prismaClient.user.findUnique({
+        where: { id: tempUserId },
+      });
       expect(user).toBeNull();
     });
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .delete(`/users/${nonExistentId}`)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
-        .delete(`/users/${createdUserId}`)
+      await request(context.unauthApp.getHttpServer())
+        .delete(`/users/${v4()}`)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
-        .delete(`/users/${createdUserId}`)
+      await request(context.studentApp.getHttpServer())
+        .delete(`/users/${v4()}`)
         .expect(403);
     });
   });
 
   describe('POST /users/student', () => {
     it('should create a new student user when authenticated as admin (201)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users/student')
         .send(validStudentPayload)
         .expect(201);
 
       expect(response.body).toHaveProperty('id');
       expect(response.body.role).toBe('student');
-      createdStudentId = response.body.id;
     });
 
     it('should return 400 when required fields are missing', async () => {
-      const invalidPayload = {
-        ...validStudentPayload,
-        user: { firstName: 'Jane' },
-      };
+      const invalidPayload = createInvalid.student.missingFields();
 
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users/student')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users/student')
         .send(validStudentPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users/student')
         .send(validStudentPayload)
         .expect(403);
@@ -519,47 +399,33 @@ describe('UsersController (Integration)', () => {
 
   describe('POST /users/staff', () => {
     it('should create a new staff user (mentor or admin) when authenticated as admin (201)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users/staff')
         .send(validStaffPayload)
         .expect(201);
 
       expect(response.body).toHaveProperty('id');
       expect(['mentor', 'admin']).toContain(response.body.role);
-      createdStaffId = response.body.id;
     });
 
     it('should return 400 when required fields are missing', async () => {
-      const invalidPayload = {
-        ...validStaffPayload,
-        user: { firstName: 'John' },
-      };
+      const invalidPayload = createInvalid.staff.missingFields();
 
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users/staff')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users/staff')
         .send(validStaffPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users/staff')
         .send(validStaffPayload)
         .expect(403);
@@ -567,18 +433,10 @@ describe('UsersController (Integration)', () => {
   });
 
   describe('POST /users/invite', () => {
-    const invitePayload = {
-      firstName: 'Guest',
-      lastName: 'User',
-      role: 'student',
-      email: 'guest.user@example.com',
-    };
+    const invitePayload = createInvite({ role: 'student' });
 
     it('should invite a new user with a valid email and role when authenticated as admin (201)', async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-
-      const response = await request(app.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users/invite')
         .send(invitePayload)
         .expect(201);
@@ -588,34 +446,23 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 400 when required fields are missing', async () => {
-      const invalidPayload = {
-        ...invitePayload,
-        firstName: undefined,
-      };
+      const invalidPayload = createInvalid.invite.missingFields();
 
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users/invite')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users/invite')
         .send(invitePayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users/invite')
         .send(invitePayload)
         .expect(403);
@@ -623,16 +470,17 @@ describe('UsersController (Integration)', () => {
   });
 
   describe('PUT /users/{id}/student', () => {
-    const updateStudentPayload = {
-      specificDetails: {
-        studentType: 'regular',
-      },
-    };
+    const updateStudentPayload = createUpdate.student();
 
     it("should update a student's specific details when authenticated as admin (200)", async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-      const response = await request(app.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
+        .post('/users')
+        .send(validStudentPayload)
+        .expect(201);
+
+      const createdStudentId = createUserResponse.body.id;
+
+      const response = await request(context.adminApp.getHttpServer())
         .put(`/users/${createdStudentId}/student`)
         .send(updateStudentPayload)
         .expect(200);
@@ -641,60 +489,49 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 400 when invalid data is provided', async () => {
-      const invalidPayload = {
-        specificDetails: {
-          studentType: 'invalid_type',
-        },
-      };
+      const invalidPayload = createInvalid.student.invalidType();
 
-      await request(app.getHttpServer())
-        .put(`/users/${createdStudentId}/student`)
+      await request(context.adminApp.getHttpServer())
+        .put(`/users/${v4()}/student`)
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 404 for a non-existent student ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put(`/users/${nonExistentId}/student`)
         .send(updateStudentPayload)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
-        .put(`/users/${createdStudentId}/student`)
+      await request(context.unauthApp.getHttpServer())
+        .put(`/users/${v4()}/student`)
         .send(updateStudentPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
-        .put(`/users/${createdStudentId}/student`)
+      await request(context.studentApp.getHttpServer())
+        .put(`/users/${v4()}/student`)
         .send(updateStudentPayload)
         .expect(403);
     });
   });
 
   describe('PUT /users/{id}/staff', () => {
-    const updateStaffPayload = {
-      specificDetails: {
-        position: 'Senior Mentor',
-      },
-    };
+    const updateStaffPayload = createUpdate.staff();
 
     it("should update a staff member's specific details when authenticated as admin (200)", async () => {
-      const { app: adminApp } = await testService.createTestApp();
-      app = adminApp;
-      const response = await request(app.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
+        .post('/users')
+        .send(validStaffPayload)
+        .expect(201);
+
+      const createdStaffId = createUserResponse.body.id;
+
+      const response = await request(context.adminApp.getHttpServer())
         .put(`/users/${createdStaffId}/staff`)
         .send(updateStaffPayload)
         .expect(200);
@@ -703,44 +540,32 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 400 when invalid data is provided', async () => {
-      const invalidPayload = {
-        specificDetails: {
-          employeeNumber: 'invalid_number',
-        },
-      };
+      const invalidPayload = createInvalid.staff.invalidNumber();
 
-      await request(app.getHttpServer())
-        .put(`/users/${createdStaffId}/staff`)
+      await request(context.adminApp.getHttpServer())
+        .put(`/users/${v4()}/staff`)
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 404 for a non-existent staff ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(app.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put(`/users/${nonExistentId}/staff`)
         .send(updateStaffPayload)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      const { app: unauthApp } = await testService.createTestApp(
-        mockUsers.unauth,
-      );
-
-      await request(unauthApp.getHttpServer())
-        .put(`/users/${createdStaffId}/staff`)
+      await request(context.unauthApp.getHttpServer())
+        .put(`/users/${v4()}/staff`)
         .send(updateStaffPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      const { app: studentApp } = await testService.createTestApp(
-        mockUsers.student,
-      );
-
-      await request(studentApp.getHttpServer())
-        .put(`/users/${createdStaffId}/staff`)
+      await request(context.studentApp.getHttpServer())
+        .put(`/users/${v4()}/staff`)
         .send(updateStaffPayload)
         .expect(403);
     });

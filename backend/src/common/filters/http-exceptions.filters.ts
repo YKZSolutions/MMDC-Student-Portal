@@ -4,10 +4,11 @@ import {
   Catch,
   ConflictException,
   ExceptionFilter,
-  HttpException,
+  ForbiddenException,
   HttpStatus,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -85,7 +86,9 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     } else if (
       exception instanceof NotFoundException ||
       exception instanceof BadRequestException ||
-      exception instanceof ConflictException
+      exception instanceof ConflictException ||
+      exception instanceof UnauthorizedException ||
+      exception instanceof ForbiddenException
     ) {
       const exceptionResponse = exception.getResponse();
       statusCode = exception.getStatus();

@@ -311,6 +311,10 @@ export type UpdateCourseDto = {
     coreqIds?: Array<string>;
 };
 
+export type MessageDto = {
+    message: string;
+};
+
 export type EnrollmentStatus = 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
 
 export type EnrollmentPeriodDto = {
@@ -901,18 +905,6 @@ export type CreateProgramDto = {
     yearDuration: number;
 };
 
-export type Program = {
-    id: string;
-    programCode: string;
-    name: string;
-    description: string;
-    yearDuration: number;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type ProgramDto = {
     id: string;
     programCode: string;
@@ -945,6 +937,18 @@ export type MajorItemDto = {
 export type PaginatedMajorsDto = {
     meta: PaginationMetaDto;
     majors: Array<MajorItemDto>;
+};
+
+export type Program = {
+    id: string;
+    programCode: string;
+    name: string;
+    description: string;
+    yearDuration: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type UpdateProgramDto = {
@@ -1632,6 +1636,7 @@ export type AssignmentItemDto = {
     updatedAt: string;
     deletedAt: string | null;
     assignment: AssignmentConfigDto;
+    studentProgress?: Array<ContentProgress>;
 };
 
 export type LessonItemDto = {
@@ -1648,6 +1653,7 @@ export type LessonItemDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    studentProgress?: Array<ContentProgress>;
 };
 
 export type ConnectModuleSectionDto = {
@@ -1693,10 +1699,6 @@ export type PaginatedModuleContentDto = {
     } & LessonItemDto) | ({
         contentType: 'ASSIGNMENT';
     } & AssignmentItemDto)>;
-};
-
-export type MessageDto = {
-    message: string;
 };
 
 export type ModuleContentInfoDto = {
@@ -2611,8 +2613,10 @@ export type CoursesControllerRemoveErrors = {
 export type CoursesControllerRemoveError = CoursesControllerRemoveErrors[keyof CoursesControllerRemoveErrors];
 
 export type CoursesControllerRemoveResponses = {
-    200: unknown;
+    200: MessageDto;
 };
+
+export type CoursesControllerRemoveResponse = CoursesControllerRemoveResponses[keyof CoursesControllerRemoveResponses];
 
 export type CoursesControllerFindOneData = {
     body?: never;
@@ -3758,7 +3762,7 @@ export type ProgramControllerCreateErrors = {
 export type ProgramControllerCreateError = ProgramControllerCreateErrors[keyof ProgramControllerCreateErrors];
 
 export type ProgramControllerCreateResponses = {
-    201: Program;
+    201: ProgramDto;
 };
 
 export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
@@ -5171,8 +5175,10 @@ export type CurriculumControllerRemoveErrors = {
 export type CurriculumControllerRemoveError = CurriculumControllerRemoveErrors[keyof CurriculumControllerRemoveErrors];
 
 export type CurriculumControllerRemoveResponses = {
-    200: unknown;
+    200: MessageDto;
 };
+
+export type CurriculumControllerRemoveResponse = CurriculumControllerRemoveResponses[keyof CurriculumControllerRemoveResponses];
 
 export type CurriculumControllerFindOneData = {
     body?: never;
