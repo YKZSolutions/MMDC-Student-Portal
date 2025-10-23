@@ -1,16 +1,16 @@
 import {
-    Badge,
-    Button,
-    Divider,
-    Flex,
-    Group,
-    Popover,
-    rem,
-    Stack,
-    Text,
-    Title,
-    UnstyledButton,
-    type MantineColor,
+  Badge,
+  Button,
+  Divider,
+  Flex,
+  Group,
+  Popover,
+  rem,
+  Stack,
+  Text,
+  Title,
+  UnstyledButton,
+  type MantineColor,
 } from '@mantine/core'
 import { IconFilter2, IconX, type ReactNode } from '@tabler/icons-react'
 import { Children, isValidElement, useMemo } from 'react'
@@ -98,7 +98,14 @@ function Filter({
   }, [children, shouldExpand])
 
   return (
-    <Group gap={rem(5)} wrap="nowrap">
+    <Group
+      gap={rem(5)}
+      wrap="nowrap"
+      w={{
+        base: '100%',
+        xs: 'auto',
+      }}
+    >
       {/* Active Filter Badges - Auto-generated from children */}
       {activeFilters.length > 0 && shouldExpand && (
         <Group gap="xs" visibleFrom="sm">
