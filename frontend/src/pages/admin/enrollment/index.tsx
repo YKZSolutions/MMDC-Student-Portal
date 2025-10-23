@@ -1,12 +1,17 @@
 import { AsyncSearchable } from '@/components/async-searchable'
+import Filter from '@/components/filter'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import EnrollmentBadgeStatus from '@/features/enrollment/components/enrollment-badge-status'
 import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/components/suspense'
 import {
+  statusAdminFilterOptions,
+  termAdminFilterOptions,
+} from '@/features/enrollment/constants'
+import {
   enrollmentPeriodFormSchema,
   type EnrollmentPeriodFormInput,
   type EnrollmentPeriodFormOutput,
-} from '@/features/validation/create-enrollment.schema'
+} from '@/features/enrollment/schema/create-enrollment.schema'
 import { useQuickForm } from '@/hooks/use-quick-form'
 import { useSearchState } from '@/hooks/use-search-state'
 import type {
@@ -25,6 +30,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import type { EnrollmentSearchSchema } from '@/routes/(protected)/enrollment'
 import { formatMetaToPagination, formatToSchoolYear } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -41,20 +47,17 @@ import {
   Stack,
   Table,
   Text,
-  TextInput,
-  Title,
+  Title
 } from '@mantine/core'
 import { DatePickerInput, YearPickerInput } from '@mantine/dates'
 import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
   IconEye,
-  IconFilter2,
   IconPencil,
   IconPlus,
-  IconSearch,
   IconTrash,
-  type ReactNode,
+  type ReactNode
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
@@ -104,8 +107,24 @@ function EnrollmentAdminQueryProvider({
 }
 
 export default function EnrollmentAdminPage() {
-  const { search, handlePage } = useSearchState(route)
+  const { search, setSearch, handlePage, clearSearchParam } =
+    useSearchState(route)
   const navigate = route.useNavigate()
+
+  const handleTermFilter = (
+    term: EnrollmentSearchSchema['term'] | null,
+  ): void => {
+    setSearch({ term: term ?? undefined, page: undefined })
+  }
+
+  const handleStatusFilter = (
+    status: EnrollmentSearchSchema['activity'] | null,
+  ): void => {
+    setSearch({
+      activity: status ?? undefined,
+      page: undefined,
+    })
+  }
 
   return (
     <Container size={'md'} w="100%" pb={'xl'}>
@@ -132,28 +151,20 @@ export default function EnrollmentAdminPage() {
             align="center"
           >
             {/* Changed spacing to gap */}
-            <TextInput
-              placeholder="Search year/term/date"
-              radius={'md'}
-              leftSection={<IconSearch size={18} stroke={1} />}
-              w={{
-                base: '100%',
-                xs: rem(250),
-              }}
-              // onChange={(e) => handleSearch(e.currentTarget.value)}
-            />
-            <Button
-              w={{
-                base: '100%',
-                xs: 'auto',
-              }}
-              variant="default"
-              radius={'md'}
-              leftSection={<IconFilter2 color="gray" size={20} />}
-              lts={rem(0.25)}
-            >
-              Filters
-            </Button>
+            <Filter title="Filter Users" handleResetFilter={clearSearchParam}>
+              <Filter.Category
+                label="Term"
+                options={termAdminFilterOptions}
+                matchedSearch={search.term}
+                handleSelectFilter={handleTermFilter}
+              />
+              <Filter.Category
+                label="Status"
+                options={statusAdminFilterOptions}
+                matchedSearch={search.activity}
+                handleSelectFilter={handleStatusFilter}
+              />
+            </Filter>
             <Button
               w={{
                 base: '100%',

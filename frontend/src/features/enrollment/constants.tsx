@@ -1,4 +1,5 @@
 import type { FilterOption } from '@/components/filter'
+import type { EnrollmentSearchSchema } from '@/routes/(protected)/enrollment'
 import { IconListNumbers } from '@tabler/icons-react'
 import {
     zodStatusEnum,
@@ -57,9 +58,9 @@ export const enrollmentBadgeStatus: Record<
   archived: { color: 'dark', label: 'Archived' },
 }
 
-export const termFilterOptions = [
+export const termAdminFilterOptions = [
   {
-    label: 'All terms',
+    label: 'All',
     value: null,
     icon: <IconListNumbers size={16} />,
     color: 'gray',
@@ -82,18 +83,18 @@ export const termFilterOptions = [
     icon: null,
     color: 'blue',
   },
-] satisfies FilterOption[]
+] satisfies FilterOption<EnrollmentSearchSchema['term']>[]
 
-export const enrollmentAdminStatusFilterOptions = [
+export const statusAdminFilterOptions = [
   {
-    label: 'All statuses',
+    label: 'All',
     value: null,
     icon: <IconListNumbers size={16} />,
     color: 'gray',
   },
   ...(zodStatusEnum.options.map((statusOption) => ({
     label: statusOption.charAt(0).toUpperCase() + statusOption.slice(1),
-    value: statusOption,
+    value: statusOption as EnrollmentStatus,
     icon: null,
     color: enrollmentBadgeStatus[statusOption].color,
   })) satisfies FilterOption<EnrollmentStatus>[]),

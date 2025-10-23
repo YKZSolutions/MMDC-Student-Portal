@@ -1,7 +1,10 @@
 import Filter from '@/components/filter'
 import SupabaseAvatar from '@/components/supabase-avatar'
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import { roleFilterOptions, roleStyles } from '@/features/user-management/constants'
+import {
+  roleFilterOptions,
+  roleStyles,
+} from '@/features/user-management/constants'
 import { SuspendedUserTableRows } from '@/features/user-management/suspense'
 import type { IUsersQuery } from '@/features/user-management/types'
 import { useSearchState } from '@/hooks/use-search-state'
@@ -102,7 +105,7 @@ function UsersPage() {
   const { search, setSearch, handleSearch, handlePage, clearSearchParam } =
     useSearchState(route)
 
-  const handleRoleFilter = (role: IUsersQuery['role']) => {
+  const handleRoleFilter = (role: IUsersQuery['role'] | undefined) => {
     setSearch({ role: role || undefined, page: 1 })
   }
 
@@ -168,7 +171,7 @@ function UsersPage() {
               defaultValue={search.search}
               onChange={(e) => handleSearch(e.currentTarget.value)}
             />
-            <Filter
+            {/* <Filter
               title="Filter Users"
               section={[
                 {
@@ -179,7 +182,15 @@ function UsersPage() {
                 },
               ]}
               handleResetFilter={clearSearchParam}
-            />
+            /> */}
+            <Filter title="Filter Users" handleResetFilter={clearSearchParam}>
+              <Filter.Category
+                label="Role"
+                options={roleFilterOptions}
+                matchedSearch={search.role}
+                handleSelectFilter={handleRoleFilter}
+              />
+            </Filter>
             <Button
               data-cy="add-user-button"
               variant="filled"

@@ -1,5 +1,6 @@
 import {
     Button,
+    Divider,
     Flex,
     Popover,
     rem,
@@ -11,31 +12,27 @@ import {
 } from '@mantine/core'
 import { IconFilter2, type ReactNode } from '@tabler/icons-react'
 
-export type FilterOption<TValue> = {
+export type FilterOption<TOption> = {
   label: string
-  value: TValue | null | undefined
+  value: TOption | null | undefined
   icon: ReactNode | null
   color: MantineColor
 }
 
-export interface FilterSection<TOption> {
+export interface FilterSectionProps<TOption> {
   label: string
   options: FilterOption<TOption>[]
-  matchedSearch: FilterOption<TOption>['value']
+  matchedSearch: TOption | null | undefined
   handleSelectFilter: (value: TOption | null | undefined) => void
 }
 
-export interface FilterProps<TSections extends readonly FilterSection<any>[]> {
-  title: string
-  section: TSections
+export interface FilterProps {
+  title?: string | null
   handleResetFilter: () => void
+  children: ReactNode
 }
 
-function Filter<const TSections extends readonly FilterSection<any>[]>({
-  title,
-  section,
-  handleResetFilter,
-}: FilterProps<TSections>) {
+function Filter({ title, handleResetFilter, children }: FilterProps) {
   return (
     <Popover
       radius={'md'}
@@ -62,9 +59,11 @@ function Filter<const TSections extends readonly FilterSection<any>[]>({
       <Popover.Dropdown bg="var(--mantine-color-body)">
         <Stack>
           <Flex justify={'space-between'}>
-            <Title fw={500} c={'dark.8'} order={4}>
-              {title}
-            </Title>
+            {title && (
+              <Title fw={500} c={'dark.8'} order={4}>
+                {title}
+              </Title>
+            )}
 
             <UnstyledButton
               styles={{
@@ -72,59 +71,60 @@ function Filter<const TSections extends readonly FilterSection<any>[]>({
                   textDecoration: 'underline',
                 },
               }}
+              ml={'auto'}
               c={'primary'}
               onClick={() => handleResetFilter()}
             >
               Reset Filter
             </UnstyledButton>
           </Flex>
-
-          {section.map((section, index) => (
-            <Stack gap={'xs'} key={index}>
-              <Text fw={500} c={'gray.7'} fz={'sm'}>
-                {section.label}
-              </Text>
-              <Flex
-                justify={'space-between'}
-                w={'100%'}
-                wrap={'wrap'}
-                gap={'sm'}
-              >
-                {section.options.map((option) => (
-                  <Button
-                    className="flex-[47%]"
-                    key={option.label}
-                    variant={
-                      section.matchedSearch === option.value
-                        ? 'filled'
-                        : 'outline'
-                    }
-                    styles={{
-                      root: {
-                        background:
-                          section.matchedSearch === option.value
-                            ? 'var(--mantine-color-gray-3)'
-                            : 'transparent',
-                        borderColor: 'var(--mantine-color-gray-3)',
-                        color: 'var(--mantine-color-dark-7)',
-                      },
-                    }}
-                    radius={'xl'}
-                    leftSection={option.icon}
-                    onClick={() =>
-                      section.handleSelectFilter(option?.value || null)
-                    }
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </Flex>
-            </Stack>
-          ))}
+          {children}
         </Stack>
       </Popover.Dropdown>
     </Popover>
   )
 }
+
+function FilterCategory<TOption>({
+  label,
+  options,
+  matchedSearch,
+  handleSelectFilter,
+}: FilterSectionProps<TOption>) {
+  return (
+    <Stack gap={'xs'}>
+      <Divider />
+      <Text fw={500} c={'gray.7'} fz={'sm'}>
+        {label}
+      </Text>
+      <Flex justify={'space-between'} w={'100%'} wrap={'wrap'} gap={'sm'}>
+        {options.map((option) => (
+          <Button
+            className={'flex-[47%]'}
+            key={option.label}
+            variant={matchedSearch === option.value ? 'filled' : 'outline'}
+            styles={{
+              root: {
+                background:
+                  matchedSearch === option.value
+                    ? 'var(--mantine-color-gray-3)'
+                    : 'transparent',
+                borderColor: 'var(--mantine-color-gray-3)',
+                color: 'var(--mantine-color-dark-7)',
+              },
+            }}
+            radius={'xl'}
+            leftSection={option.icon}
+            onClick={() => handleSelectFilter(option?.value || null)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </Flex>
+    </Stack>
+  )
+}
+
+Filter.Category = FilterCategory
 
 export default Filter
