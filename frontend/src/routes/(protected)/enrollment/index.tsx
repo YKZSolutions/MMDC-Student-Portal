@@ -14,6 +14,7 @@ const enrollmentSearchSchema = mergeCommonSearchSchema({
   update: z.uuidv4().optional(),
   tab: z.string().optional(),
   status: z.enum(zEnrollmentStatusEnum.options).optional(),
+  term: z.string().optional(),
 })
 
 export type EnrollmentSearchSchema = z.infer<
