@@ -968,6 +968,128 @@ export type ChatbotResponseDto = {
     response: string;
 };
 
+export type CreateAppointmentItemDto = {
+    title: string;
+    startAt: string;
+    endAt: string;
+    gmeetLink?: string | null;
+    cancelReason?: string | null;
+    courseOfferingId: string;
+    studentId: string;
+    mentorId: string;
+    description: string;
+};
+
+export type AppointmentStatus = 'booked' | 'approved' | 'cancelled' | 'rescheduled' | 'finished' | 'extended';
+
+export type AppointmentCourseDto = {
+    id: string;
+    courseCode: string;
+    name: string;
+};
+
+export type AppointmentUserDto = {
+    id: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    role: Role;
+};
+
+export type AppointmentItemDto = {
+    id: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    status: AppointmentStatus;
+    gmeetLink: string | null;
+    cancelReason: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: AppointmentCourseDto;
+    student: AppointmentUserDto;
+    mentor: AppointmentUserDto;
+};
+
+export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
+
+export type DetailedCourseOfferingSubsetDto = {
+    id: string;
+    course: CourseDto;
+};
+
+export type DetailedCourseEnrollmentDto = {
+    id: string;
+    status: CourseEnrollmentStatus;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    studentId: string;
+    courseOfferingId: string;
+    courseSectionId: string;
+    courseSection?: DetailedCourseSectionDto;
+    courseOffering?: DetailedCourseOfferingSubsetDto;
+};
+
+export type BookedAppointment = {
+    id: string;
+    startAt: string;
+    endAt: string;
+};
+
+export type PaginatedAppointmentDto = {
+    meta: PaginationMetaDto;
+    appointments: Array<AppointmentItemDto>;
+};
+
+export type BookedAppointmentDto = {
+    id: string;
+    startAt: string;
+    endAt: string;
+};
+
+export type AppointmentSectionDto = {
+    id: string;
+    startSched: string;
+    endSched: string;
+    days: Array<Days>;
+};
+
+export type AppointmentDetailsDto = {
+    id: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    status: AppointmentStatus;
+    gmeetLink: string | null;
+    cancelReason: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    course: AppointmentCourseDto;
+    section: AppointmentSectionDto;
+    student: AppointmentUserDto;
+    mentor: AppointmentUserDto;
+};
+
+export type UpdateAppointmentItemDto = {
+    title?: string;
+    description?: string;
+    gmeetLink?: string | null;
+};
+
+export type UpdateAppointmentStatusDto = {
+    startAt?: string;
+    endAt?: string;
+    cancelReason?: string | null;
+    status: AppointmentStatus;
+};
+
 export type CreateEnrollmentPeriodItemDto = {
     startYear: number;
     endYear: number;
@@ -1038,28 +1160,6 @@ export type CourseOffering = {
 
 export type CreateCourseOfferingCurriculumDto = {
     curriculumId: string;
-};
-
-export type CourseEnrollmentStatus = 'enlisted' | 'finalized' | 'enrolled' | 'completed' | 'incomplete' | 'dropped' | 'failed';
-
-export type DetailedCourseOfferingSubsetDto = {
-    id: string;
-    course: CourseDto;
-};
-
-export type DetailedCourseEnrollmentDto = {
-    id: string;
-    status: CourseEnrollmentStatus;
-    startedAt: string;
-    completedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    studentId: string;
-    courseOfferingId: string;
-    courseSectionId: string;
-    courseSection?: DetailedCourseSectionDto;
-    courseOffering?: DetailedCourseOfferingSubsetDto;
 };
 
 export type DetailedCourseOfferingDto = {
@@ -1192,118 +1292,6 @@ export type CourseEnrollmentDto = {
 export type FinalizeEnrollmentDto = {
     paymentScheme: PaymentScheme;
     studentId?: string;
-};
-
-export type AssignmentConfigDto = {
-    id: string;
-    mode: AssignmentMode;
-    maxScore: number;
-    weightPercentage: number;
-    maxAttempts: number | null;
-    allowLateSubmission: boolean | null;
-    latePenalty: number | null;
-    dueDate: string | null;
-    gracePeriodMinutes: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    rubricTemplateId?: string | null;
-};
-
-export type AssignmentItemDto = {
-    id: string;
-    contentType: ContentType;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    order: number;
-    publishedAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    assignment: AssignmentConfigDto;
-};
-
-export type LessonItemDto = {
-    id: string;
-    contentType: ContentType;
-    title: string;
-    subtitle: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    order: number;
-    publishedAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
-export type ConnectModuleSectionDto = {
-    id: string;
-};
-
-export type CreateModuleContentModuleSectionRelationInputDto = {
-    connect: ConnectModuleSectionDto;
-};
-
-export type CreateModuleContentDto = {
-    moduleSection: CreateModuleContentModuleSectionRelationInputDto;
-    contentType?: ContentType;
-    title: string;
-    subtitle?: string | null;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    publishedAt?: string | null;
-    unpublishedAt?: string | null;
-};
-
-export type UpdateModuleContentModuleSectionRelationInputDto = {
-    connect: ConnectModuleSectionDto;
-};
-
-export type UpdateModuleContentDto = {
-    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
-    title?: string;
-    subtitle?: string | null;
-    content?: Array<{
-        [key: string]: unknown;
-    }>;
-    order?: number;
-    publishedAt?: string | null;
-    unpublishedAt?: string | null;
-};
-
-export type PaginatedModuleContentDto = {
-    meta: PaginationMetaDto;
-    moduleContents: Array<({
-        contentType: 'LESSON';
-    } & LessonItemDto) | ({
-        contentType: 'ASSIGNMENT';
-    } & AssignmentItemDto)>;
-};
-
-export type MessageDto = {
-    message: string;
-};
-
-export type ModuleContentInfoDto = {
-    id: string;
-    moduleSectionId: string;
-    contentType: ContentType;
-    order: number;
-};
-
-export type DetailedContentProgressDto = {
-    id: string;
-    completedAt: string | null;
-    studentId: string;
-    moduleContent: ModuleContentInfoDto;
 };
 
 export type CreateMajorDto = {
@@ -1611,6 +1599,118 @@ export type DetailedModuleSectionDto = {
 
 export type UpdateModuleSectionDto = {
     [key: string]: unknown;
+};
+
+export type AssignmentConfigDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    rubricTemplateId?: string | null;
+};
+
+export type AssignmentItemDto = {
+    id: string;
+    contentType: ContentType;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    order: number;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    assignment: AssignmentConfigDto;
+};
+
+export type LessonItemDto = {
+    id: string;
+    contentType: ContentType;
+    title: string;
+    subtitle: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    order: number;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
+export type ConnectModuleSectionDto = {
+    id: string;
+};
+
+export type CreateModuleContentModuleSectionRelationInputDto = {
+    connect: ConnectModuleSectionDto;
+};
+
+export type CreateModuleContentDto = {
+    moduleSection: CreateModuleContentModuleSectionRelationInputDto;
+    contentType?: ContentType;
+    title: string;
+    subtitle?: string | null;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    publishedAt?: string | null;
+    unpublishedAt?: string | null;
+};
+
+export type UpdateModuleContentModuleSectionRelationInputDto = {
+    connect: ConnectModuleSectionDto;
+};
+
+export type UpdateModuleContentDto = {
+    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
+    title?: string;
+    subtitle?: string | null;
+    content?: Array<{
+        [key: string]: unknown;
+    }>;
+    order?: number;
+    publishedAt?: string | null;
+    unpublishedAt?: string | null;
+};
+
+export type PaginatedModuleContentDto = {
+    meta: PaginationMetaDto;
+    moduleContents: Array<({
+        contentType: 'LESSON';
+    } & LessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & AssignmentItemDto)>;
+};
+
+export type MessageDto = {
+    message: string;
+};
+
+export type ModuleContentInfoDto = {
+    id: string;
+    moduleSectionId: string;
+    contentType: ContentType;
+    order: number;
+};
+
+export type DetailedContentProgressDto = {
+    id: string;
+    completedAt: string | null;
+    studentId: string;
+    moduleContent: ModuleContentInfoDto;
 };
 
 export type CreateSubmissionAttachmentDto = {
@@ -1930,106 +2030,6 @@ export type UpdatePricingGroupDto = {
 export type UpdatePricingGroupItemDto = {
     group: UpdatePricingGroupDto;
     pricings?: Array<string>;
-};
-
-export type CreateAppointmentItemDto = {
-    title: string;
-    startAt: string;
-    endAt: string;
-    gmeetLink?: string | null;
-    cancelReason?: string | null;
-    courseOfferingId: string;
-    studentId: string;
-    mentorId: string;
-    description: string;
-};
-
-export type AppointmentStatus = 'booked' | 'approved' | 'cancelled' | 'rescheduled' | 'finished' | 'extended';
-
-export type AppointmentCourseDto = {
-    id: string;
-    courseCode: string;
-    name: string;
-};
-
-export type AppointmentUserDto = {
-    id: string;
-    firstName: string;
-    middleName: string | null;
-    lastName: string;
-    role: Role;
-};
-
-export type AppointmentItemDto = {
-    id: string;
-    title: string;
-    description: string;
-    startAt: string;
-    endAt: string;
-    status: AppointmentStatus;
-    gmeetLink: string | null;
-    cancelReason: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    course: AppointmentCourseDto;
-    student: AppointmentUserDto;
-    mentor: AppointmentUserDto;
-};
-
-export type BookedAppointment = {
-    id: string;
-    startAt: string;
-    endAt: string;
-};
-
-export type PaginatedAppointmentDto = {
-    meta: PaginationMetaDto;
-    appointments: Array<AppointmentItemDto>;
-};
-
-export type BookedAppointmentDto = {
-    id: string;
-    startAt: string;
-    endAt: string;
-};
-
-export type AppointmentSectionDto = {
-    id: string;
-    startSched: string;
-    endSched: string;
-    days: Array<Days>;
-};
-
-export type AppointmentDetailsDto = {
-    id: string;
-    title: string;
-    description: string;
-    startAt: string;
-    endAt: string;
-    status: AppointmentStatus;
-    gmeetLink: string | null;
-    cancelReason: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    course: AppointmentCourseDto;
-    section: AppointmentSectionDto;
-    student: AppointmentUserDto;
-    mentor: AppointmentUserDto;
-};
-
-export type UpdateAppointmentItemDto = {
-    title?: string;
-    description?: string;
-    gmeetLink?: string | null;
-};
-
-export type UpdateAppointmentStatusDto = {
-    startAt?: string;
-    endAt?: string;
-    cancelReason?: string | null;
-    status: AppointmentStatus;
 };
 
 export type UpsertTranscriptDto = {
@@ -3941,6 +3941,266 @@ export type ChatbotControllerPromptResponses = {
 
 export type ChatbotControllerPromptResponse = ChatbotControllerPromptResponses[keyof ChatbotControllerPromptResponses];
 
+export type AppointmentsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        status?: Array<AppointmentStatus>;
+    };
+    url: '/appointments';
+};
+
+export type AppointmentsControllerFindAllErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindAllError = AppointmentsControllerFindAllErrors[keyof AppointmentsControllerFindAllErrors];
+
+export type AppointmentsControllerFindAllResponses = {
+    200: PaginatedAppointmentDto;
+};
+
+export type AppointmentsControllerFindAllResponse = AppointmentsControllerFindAllResponses[keyof AppointmentsControllerFindAllResponses];
+
+export type AppointmentsControllerCreateData = {
+    body: CreateAppointmentItemDto;
+    path?: never;
+    query?: never;
+    url: '/appointments';
+};
+
+export type AppointmentsControllerCreateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerCreateError = AppointmentsControllerCreateErrors[keyof AppointmentsControllerCreateErrors];
+
+export type AppointmentsControllerCreateResponses = {
+    201: AppointmentItemDto;
+};
+
+export type AppointmentsControllerCreateResponse = AppointmentsControllerCreateResponses[keyof AppointmentsControllerCreateResponses];
+
+export type AppointmentsControllerFindMentorData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    };
+    url: '/appointments/mentors';
+};
+
+export type AppointmentsControllerFindMentorResponses = {
+    200: PaginatedUsersDto;
+};
+
+export type AppointmentsControllerFindMentorResponse = AppointmentsControllerFindMentorResponses[keyof AppointmentsControllerFindMentorResponses];
+
+export type AppointmentsControllerFindCoursesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/appointments/courses';
+};
+
+export type AppointmentsControllerFindCoursesResponses = {
+    200: Array<DetailedCourseEnrollmentDto>;
+};
+
+export type AppointmentsControllerFindCoursesResponse = AppointmentsControllerFindCoursesResponses[keyof AppointmentsControllerFindCoursesResponses];
+
+export type AppointmentsControllerFindBookedRangeData = {
+    body?: never;
+    path?: never;
+    query: {
+        from: string;
+        to: string;
+        courseId: string;
+        mentorId: string;
+    };
+    url: '/appointments/booked';
+};
+
+export type AppointmentsControllerFindBookedRangeResponses = {
+    200: Array<BookedAppointment>;
+};
+
+export type AppointmentsControllerFindBookedRangeResponse = AppointmentsControllerFindBookedRangeResponses[keyof AppointmentsControllerFindBookedRangeResponses];
+
+export type AppointmentsControllerFindAllBookedData = {
+    body?: never;
+    path: {
+        mentorId: string;
+    };
+    query?: {
+        startAt?: string;
+        endAt?: string;
+    };
+    url: '/appointments/{mentorId}/mentor';
+};
+
+export type AppointmentsControllerFindAllBookedErrors = {
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindAllBookedError = AppointmentsControllerFindAllBookedErrors[keyof AppointmentsControllerFindAllBookedErrors];
+
+export type AppointmentsControllerFindAllBookedResponses = {
+    200: Array<BookedAppointmentDto>;
+};
+
+export type AppointmentsControllerFindAllBookedResponse = AppointmentsControllerFindAllBookedResponses[keyof AppointmentsControllerFindAllBookedResponses];
+
+export type AppointmentsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerRemoveError = AppointmentsControllerRemoveErrors[keyof AppointmentsControllerRemoveErrors];
+
+export type AppointmentsControllerRemoveResponses = {
+    200: unknown;
+};
+
+export type AppointmentsControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerFindOneError = AppointmentsControllerFindOneErrors[keyof AppointmentsControllerFindOneErrors];
+
+export type AppointmentsControllerFindOneResponses = {
+    200: AppointmentDetailsDto;
+};
+
+export type AppointmentsControllerFindOneResponse = AppointmentsControllerFindOneResponses[keyof AppointmentsControllerFindOneResponses];
+
+export type AppointmentsControllerUpdateDetailsData = {
+    body: UpdateAppointmentItemDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}';
+};
+
+export type AppointmentsControllerUpdateDetailsErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerUpdateDetailsError = AppointmentsControllerUpdateDetailsErrors[keyof AppointmentsControllerUpdateDetailsErrors];
+
+export type AppointmentsControllerUpdateDetailsResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerUpdateDetailsResponse = AppointmentsControllerUpdateDetailsResponses[keyof AppointmentsControllerUpdateDetailsResponses];
+
+export type AppointmentsControllerUpdateStatusData = {
+    body: UpdateAppointmentStatusDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/appointments/{id}/status';
+};
+
+export type AppointmentsControllerUpdateStatusErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type AppointmentsControllerUpdateStatusError = AppointmentsControllerUpdateStatusErrors[keyof AppointmentsControllerUpdateStatusErrors];
+
+export type AppointmentsControllerUpdateStatusResponses = {
+    200: AppointmentItemDto;
+};
+
+export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerUpdateStatusResponses[keyof AppointmentsControllerUpdateStatusResponses];
+
 export type EnrollmentControllerFindAllEnrollmentsData = {
     body?: never;
     path?: never;
@@ -4657,321 +4917,6 @@ export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponses = {
 };
 
 export type CourseEnrollmentControllerFinalizeCourseEnrollmentResponse = CourseEnrollmentControllerFinalizeCourseEnrollmentResponses[keyof CourseEnrollmentControllerFinalizeCourseEnrollmentResponses];
-
-export type LmsContentControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        contentType?: ContentType;
-        progress?: ProgressStatus;
-    };
-    url: '/modules/{moduleId}/contents';
-};
-
-export type LmsContentControllerFindAllErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerFindAllError = LmsContentControllerFindAllErrors[keyof LmsContentControllerFindAllErrors];
-
-export type LmsContentControllerFindAllResponses = {
-    200: PaginatedModuleContentDto;
-};
-
-export type LmsContentControllerFindAllResponse = LmsContentControllerFindAllResponses[keyof LmsContentControllerFindAllResponses];
-
-export type LmsContentControllerCreateData = {
-    body: CreateModuleContentDto;
-    path: {
-        moduleId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents';
-};
-
-export type LmsContentControllerCreateErrors = {
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerCreateError = LmsContentControllerCreateErrors[keyof LmsContentControllerCreateErrors];
-
-export type LmsContentControllerCreateResponses = {
-    201: ({
-        contentType: 'LESSON';
-    } & LessonItemDto) | ({
-        contentType: 'ASSIGNMENT';
-    } & AssignmentItemDto);
-};
-
-export type LmsContentControllerCreateResponse = LmsContentControllerCreateResponses[keyof LmsContentControllerCreateResponses];
-
-export type LmsContentControllerRemoveData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
-};
-
-export type LmsContentControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerRemoveError = LmsContentControllerRemoveErrors[keyof LmsContentControllerRemoveErrors];
-
-export type LmsContentControllerRemoveResponses = {
-    200: {
-        message?: string;
-    };
-};
-
-export type LmsContentControllerRemoveResponse = LmsContentControllerRemoveResponses[keyof LmsContentControllerRemoveResponses];
-
-export type LmsContentControllerFindOneData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
-};
-
-export type LmsContentControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerFindOneError = LmsContentControllerFindOneErrors[keyof LmsContentControllerFindOneErrors];
-
-export type LmsContentControllerFindOneResponses = {
-    200: ({
-        contentType: 'LESSON';
-    } & LessonItemDto) | ({
-        contentType: 'ASSIGNMENT';
-    } & AssignmentItemDto);
-};
-
-export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
-
-export type LmsContentControllerUpdateData = {
-    body: UpdateModuleContentDto;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
-};
-
-export type LmsContentControllerUpdateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerUpdateError = LmsContentControllerUpdateErrors[keyof LmsContentControllerUpdateErrors];
-
-export type LmsContentControllerUpdateResponses = {
-    200: ModuleContent;
-};
-
-export type LmsContentControllerUpdateResponse = LmsContentControllerUpdateResponses[keyof LmsContentControllerUpdateResponses];
-
-export type LmsContentControllerPublishData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
-};
-
-export type LmsContentControllerPublishErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerPublishError = LmsContentControllerPublishErrors[keyof LmsContentControllerPublishErrors];
-
-export type LmsContentControllerPublishResponses = {
-    200: MessageDto;
-};
-
-export type LmsContentControllerPublishResponse = LmsContentControllerPublishResponses[keyof LmsContentControllerPublishResponses];
-
-export type LmsContentControllerUnpublishData = {
-    body?: never;
-    path: {
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
-};
-
-export type LmsContentControllerUnpublishErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    409: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerUnpublishError = LmsContentControllerUnpublishErrors[keyof LmsContentControllerUnpublishErrors];
-
-export type LmsContentControllerUnpublishResponses = {
-    200: MessageDto;
-};
-
-export type LmsContentControllerUnpublishResponse = LmsContentControllerUnpublishResponses[keyof LmsContentControllerUnpublishResponses];
-
-export type LmsContentControllerFindAllContentProgressData = {
-    body?: never;
-    path: {
-        moduleId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
-};
-
-export type LmsContentControllerFindAllContentProgressErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
-
-export type LmsContentControllerFindAllContentProgressResponses = {
-    200: Array<DetailedContentProgressDto>;
-};
-
-export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
-
-export type LmsContentControllerCreateContentProgressData = {
-    body?: never;
-    path: {
-        moduleId: string;
-        moduleContentId: string;
-    };
-    query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
-};
-
-export type LmsContentControllerCreateContentProgressErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsContentControllerCreateContentProgressError = LmsContentControllerCreateContentProgressErrors[keyof LmsContentControllerCreateContentProgressErrors];
-
-export type LmsContentControllerCreateContentProgressResponses = {
-    201: DetailedContentProgressDto;
-};
-
-export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
 
 export type MajorControllerFindAllData = {
     body?: never;
@@ -5691,6 +5636,321 @@ export type LmsSectionControllerUnpublishSectionResponses = {
     201: unknown;
 };
 
+export type LmsContentControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        contentType?: ContentType;
+        progress?: ProgressStatus;
+    };
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerFindAllErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindAllError = LmsContentControllerFindAllErrors[keyof LmsContentControllerFindAllErrors];
+
+export type LmsContentControllerFindAllResponses = {
+    200: PaginatedModuleContentDto;
+};
+
+export type LmsContentControllerFindAllResponse = LmsContentControllerFindAllResponses[keyof LmsContentControllerFindAllResponses];
+
+export type LmsContentControllerCreateData = {
+    body: CreateModuleContentDto;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents';
+};
+
+export type LmsContentControllerCreateErrors = {
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerCreateError = LmsContentControllerCreateErrors[keyof LmsContentControllerCreateErrors];
+
+export type LmsContentControllerCreateResponses = {
+    201: ({
+        contentType: 'LESSON';
+    } & LessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & AssignmentItemDto);
+};
+
+export type LmsContentControllerCreateResponse = LmsContentControllerCreateResponses[keyof LmsContentControllerCreateResponses];
+
+export type LmsContentControllerRemoveData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: {
+        /**
+         * If set to true, will skip the soft delete process
+         */
+        directDelete?: boolean;
+    };
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerRemoveErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerRemoveError = LmsContentControllerRemoveErrors[keyof LmsContentControllerRemoveErrors];
+
+export type LmsContentControllerRemoveResponses = {
+    200: {
+        message?: string;
+    };
+};
+
+export type LmsContentControllerRemoveResponse = LmsContentControllerRemoveResponses[keyof LmsContentControllerRemoveResponses];
+
+export type LmsContentControllerFindOneData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerFindOneErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindOneError = LmsContentControllerFindOneErrors[keyof LmsContentControllerFindOneErrors];
+
+export type LmsContentControllerFindOneResponses = {
+    200: ({
+        contentType: 'LESSON';
+    } & LessonItemDto) | ({
+        contentType: 'ASSIGNMENT';
+    } & AssignmentItemDto);
+};
+
+export type LmsContentControllerFindOneResponse = LmsContentControllerFindOneResponses[keyof LmsContentControllerFindOneResponses];
+
+export type LmsContentControllerUpdateData = {
+    body: UpdateModuleContentDto;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}';
+};
+
+export type LmsContentControllerUpdateErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerUpdateError = LmsContentControllerUpdateErrors[keyof LmsContentControllerUpdateErrors];
+
+export type LmsContentControllerUpdateResponses = {
+    200: ModuleContent;
+};
+
+export type LmsContentControllerUpdateResponse = LmsContentControllerUpdateResponses[keyof LmsContentControllerUpdateResponses];
+
+export type LmsContentControllerPublishData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
+};
+
+export type LmsContentControllerPublishErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerPublishError = LmsContentControllerPublishErrors[keyof LmsContentControllerPublishErrors];
+
+export type LmsContentControllerPublishResponses = {
+    200: MessageDto;
+};
+
+export type LmsContentControllerPublishResponse = LmsContentControllerPublishResponses[keyof LmsContentControllerPublishResponses];
+
+export type LmsContentControllerUnpublishData = {
+    body?: never;
+    path: {
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
+};
+
+export type LmsContentControllerUnpublishErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    409: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerUnpublishError = LmsContentControllerUnpublishErrors[keyof LmsContentControllerUnpublishErrors];
+
+export type LmsContentControllerUnpublishResponses = {
+    200: MessageDto;
+};
+
+export type LmsContentControllerUnpublishResponse = LmsContentControllerUnpublishResponses[keyof LmsContentControllerUnpublishResponses];
+
+export type LmsContentControllerFindAllContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+};
+
+export type LmsContentControllerFindAllContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerFindAllContentProgressError = LmsContentControllerFindAllContentProgressErrors[keyof LmsContentControllerFindAllContentProgressErrors];
+
+export type LmsContentControllerFindAllContentProgressResponses = {
+    200: Array<DetailedContentProgressDto>;
+};
+
+export type LmsContentControllerFindAllContentProgressResponse = LmsContentControllerFindAllContentProgressResponses[keyof LmsContentControllerFindAllContentProgressResponses];
+
+export type LmsContentControllerCreateContentProgressData = {
+    body?: never;
+    path: {
+        moduleId: string;
+        moduleContentId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+};
+
+export type LmsContentControllerCreateContentProgressErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsContentControllerCreateContentProgressError = LmsContentControllerCreateContentProgressErrors[keyof LmsContentControllerCreateContentProgressErrors];
+
+export type LmsContentControllerCreateContentProgressResponses = {
+    201: DetailedContentProgressDto;
+};
+
+export type LmsContentControllerCreateContentProgressResponse = LmsContentControllerCreateContentProgressResponses[keyof LmsContentControllerCreateContentProgressResponses];
+
 export type SubmissionControllerFindAssignmentSubmissionsForAssignmentData = {
     body?: never;
     path: {
@@ -6408,266 +6668,6 @@ export type PricingGroupControllerUpdateResponses = {
 };
 
 export type PricingGroupControllerUpdateResponse = PricingGroupControllerUpdateResponses[keyof PricingGroupControllerUpdateResponses];
-
-export type AppointmentsControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        status?: Array<AppointmentStatus>;
-    };
-    url: '/appointments';
-};
-
-export type AppointmentsControllerFindAllErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerFindAllError = AppointmentsControllerFindAllErrors[keyof AppointmentsControllerFindAllErrors];
-
-export type AppointmentsControllerFindAllResponses = {
-    200: PaginatedAppointmentDto;
-};
-
-export type AppointmentsControllerFindAllResponse = AppointmentsControllerFindAllResponses[keyof AppointmentsControllerFindAllResponses];
-
-export type AppointmentsControllerCreateData = {
-    body: CreateAppointmentItemDto;
-    path?: never;
-    query?: never;
-    url: '/appointments';
-};
-
-export type AppointmentsControllerCreateErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerCreateError = AppointmentsControllerCreateErrors[keyof AppointmentsControllerCreateErrors];
-
-export type AppointmentsControllerCreateResponses = {
-    201: AppointmentItemDto;
-};
-
-export type AppointmentsControllerCreateResponse = AppointmentsControllerCreateResponses[keyof AppointmentsControllerCreateResponses];
-
-export type AppointmentsControllerFindMentorData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-    };
-    url: '/appointments/mentors';
-};
-
-export type AppointmentsControllerFindMentorResponses = {
-    200: PaginatedUsersDto;
-};
-
-export type AppointmentsControllerFindMentorResponse = AppointmentsControllerFindMentorResponses[keyof AppointmentsControllerFindMentorResponses];
-
-export type AppointmentsControllerFindCoursesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/appointments/courses';
-};
-
-export type AppointmentsControllerFindCoursesResponses = {
-    200: Array<DetailedCourseEnrollmentDto>;
-};
-
-export type AppointmentsControllerFindCoursesResponse = AppointmentsControllerFindCoursesResponses[keyof AppointmentsControllerFindCoursesResponses];
-
-export type AppointmentsControllerFindBookedRangeData = {
-    body?: never;
-    path?: never;
-    query: {
-        from: string;
-        to: string;
-        courseId: string;
-        mentorId: string;
-    };
-    url: '/appointments/booked';
-};
-
-export type AppointmentsControllerFindBookedRangeResponses = {
-    200: Array<BookedAppointment>;
-};
-
-export type AppointmentsControllerFindBookedRangeResponse = AppointmentsControllerFindBookedRangeResponses[keyof AppointmentsControllerFindBookedRangeResponses];
-
-export type AppointmentsControllerFindAllBookedData = {
-    body?: never;
-    path: {
-        mentorId: string;
-    };
-    query?: {
-        startAt?: string;
-        endAt?: string;
-    };
-    url: '/appointments/{mentorId}/mentor';
-};
-
-export type AppointmentsControllerFindAllBookedErrors = {
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerFindAllBookedError = AppointmentsControllerFindAllBookedErrors[keyof AppointmentsControllerFindAllBookedErrors];
-
-export type AppointmentsControllerFindAllBookedResponses = {
-    200: Array<BookedAppointmentDto>;
-};
-
-export type AppointmentsControllerFindAllBookedResponse = AppointmentsControllerFindAllBookedResponses[keyof AppointmentsControllerFindAllBookedResponses];
-
-export type AppointmentsControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: {
-        /**
-         * If set to true, will skip the soft delete process
-         */
-        directDelete?: boolean;
-    };
-    url: '/appointments/{id}';
-};
-
-export type AppointmentsControllerRemoveErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerRemoveError = AppointmentsControllerRemoveErrors[keyof AppointmentsControllerRemoveErrors];
-
-export type AppointmentsControllerRemoveResponses = {
-    200: unknown;
-};
-
-export type AppointmentsControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/appointments/{id}';
-};
-
-export type AppointmentsControllerFindOneErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerFindOneError = AppointmentsControllerFindOneErrors[keyof AppointmentsControllerFindOneErrors];
-
-export type AppointmentsControllerFindOneResponses = {
-    200: AppointmentDetailsDto;
-};
-
-export type AppointmentsControllerFindOneResponse = AppointmentsControllerFindOneResponses[keyof AppointmentsControllerFindOneResponses];
-
-export type AppointmentsControllerUpdateDetailsData = {
-    body: UpdateAppointmentItemDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/appointments/{id}';
-};
-
-export type AppointmentsControllerUpdateDetailsErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerUpdateDetailsError = AppointmentsControllerUpdateDetailsErrors[keyof AppointmentsControllerUpdateDetailsErrors];
-
-export type AppointmentsControllerUpdateDetailsResponses = {
-    200: AppointmentItemDto;
-};
-
-export type AppointmentsControllerUpdateDetailsResponse = AppointmentsControllerUpdateDetailsResponses[keyof AppointmentsControllerUpdateDetailsResponses];
-
-export type AppointmentsControllerUpdateStatusData = {
-    body: UpdateAppointmentStatusDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/appointments/{id}/status';
-};
-
-export type AppointmentsControllerUpdateStatusErrors = {
-    400: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type AppointmentsControllerUpdateStatusError = AppointmentsControllerUpdateStatusErrors[keyof AppointmentsControllerUpdateStatusErrors];
-
-export type AppointmentsControllerUpdateStatusResponses = {
-    200: AppointmentItemDto;
-};
-
-export type AppointmentsControllerUpdateStatusResponse = AppointmentsControllerUpdateStatusResponses[keyof AppointmentsControllerUpdateStatusResponses];
 
 export type TranscriptControllerFindAllData = {
     body?: never;
