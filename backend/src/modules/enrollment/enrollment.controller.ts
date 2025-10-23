@@ -1,5 +1,4 @@
 import { Roles } from '@/common/decorators/roles.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Role } from '@/common/enums/roles.enum';
 import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
@@ -20,6 +19,7 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
+import { FilterEnrollmentDto } from './dto/filter-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
 import { EnrollmentService } from './enrollment.service';
@@ -54,7 +54,7 @@ export class EnrollmentController {
   @ApiException(() => [BadRequestException])
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @Get()
-  findAllEnrollments(@Query() filters: BaseFilterDto) {
+  findAllEnrollments(@Query() filters: FilterEnrollmentDto) {
     return this.enrollmentService.findAllEnrollments(filters);
   }
 

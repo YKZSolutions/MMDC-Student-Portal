@@ -8,8 +8,32 @@ import {
 } from '@/common/utils/date-range.util';
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { N8nService } from '@/lib/n8n/n8n.service';
+import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
+import {
+  Injectable,
+  NotImplementedException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { Role } from '@prisma/client';
+import { AppointmentsService } from '../appointments/appointments.service';
+import { FilterAppointmentDto } from '../appointments/dto/filter-appointment.dto';
 import { BillingService } from '../billing/billing.service';
+import { DetailedBillDto } from '../billing/dto/detailed-bill.dto';
 import { FilterBillDto } from '../billing/dto/filter-bill.dto';
+import { CoursesService } from '../courses/courses.service';
+import { CourseEnrollmentService } from '../enrollment/course-enrollment.service';
+import { FilterEnrollmentDto } from '../enrollment/dto/filter-enrollment.dto';
+import { FilterModulesDto } from '../lms/lms-module/dto/filter-modules.dto';
+import { PaginatedModulesDto } from '../lms/lms-module/dto/paginated-module.dto';
+import { LmsService } from '../lms/lms-module/lms.service';
+import { FilterNotificationDto } from '../notifications/dto/filter-notification.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { FilterUserDto } from '../users/dto/filter-user.dto';
+import {
+  UserStaffDetailsDto,
+  UserStudentDetailsDto,
+} from '../users/dto/user-details.dto';
+import { UsersService } from '../users/users.service';
 import { ChatbotResponseDto } from './dto/chatbot-response.dto';
 import { PromptDto } from './dto/prompt.dto';
 import {
@@ -17,29 +41,6 @@ import {
   UserStaffContext,
   UserStudentContext,
 } from './dto/user-context.dto';
-import { CoursesService } from '../courses/courses.service';
-import { CourseEnrollmentService } from '../enrollment/course-enrollment.service';
-import { FilterModulesDto } from '../lms/lms-module/dto/filter-modules.dto';
-import { LmsService } from '../lms/lms-module/lms.service';
-import { FilterUserDto } from '../users/dto/filter-user.dto';
-import { AppointmentsService } from '../appointments/appointments.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import {
-  UserStaffDetailsDto,
-  UserStudentDetailsDto,
-} from '../users/dto/user-details.dto';
-import { UsersService } from '../users/users.service';
-import {
-  Injectable,
-  NotImplementedException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { PaginatedModulesDto } from '../lms/lms-module/dto/paginated-module.dto';
-import { DetailedBillDto } from '../billing/dto/detailed-bill.dto';
-import { FilterAppointmentDto } from '../appointments/dto/filter-appointment.dto';
-import { FilterNotificationDto } from '../notifications/dto/filter-notification.dto';
-import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 
 @Injectable()
 export class ChatbotService {
@@ -172,7 +173,7 @@ export class ChatbotService {
           }
 
           case 'enrollment_find_all': {
-            const args = functionCall.args as BaseFilterDto;
+            const args = functionCall.args as FilterEnrollmentDto;
             const enrollments =
               await this.enrollmentsService.findAllEnrollments(args);
             return `Enrollment periods: ${JSON.stringify(enrollments)}`;

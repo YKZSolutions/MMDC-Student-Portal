@@ -4,7 +4,6 @@ import {
   PrismaError,
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
-import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { EnrollmentPeriodDto } from '@/generated/nestjs-dto/enrollmentPeriod.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
@@ -14,10 +13,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { LmsService } from '../lms/lms-module/lms.service';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 import { EnrollmentPeriodItemDto } from './dto/enrollment-period-item.dto';
+import { FilterEnrollmentDto } from './dto/filter-enrollment.dto';
 import { PaginatedEnrollmentPeriodsDto } from './dto/paginated-enrollment-period.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
 import { UpdateEnrollmentPeriodItemDto } from './dto/update-enrollment.dto';
@@ -86,12 +87,17 @@ export class EnrollmentService {
       `Error fetching enrollment periods | page: ${filters.page ?? 1} | Error: ${err.message}`,
   })
   async findAllEnrollments(
-    @LogParam('filters') filters: BaseFilterDto,
+    @LogParam('filters') filters: FilterEnrollmentDto,
   ): Promise<PaginatedEnrollmentPeriodsDto> {
     const page = filters.page || 1;
+    const where: Prisma.EnrollmentPeriodWhereInput = {};
+
+    where.status = filters.status ?? undefined;
+    where.term = filters.term ? Number(filters.term) : undefined;
 
     const [enrollments, meta] = await this.prisma.client.enrollmentPeriod
       .paginate({
+        where,
         orderBy: {
           createdAt: 'desc',
         },
