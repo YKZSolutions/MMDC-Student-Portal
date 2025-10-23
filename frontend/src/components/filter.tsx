@@ -37,7 +37,14 @@ function Filter<TOption extends string, TMatchedSearch>({
   handleResetFilter,
 }: FilterProps<TOption, TMatchedSearch>) {
   return (
-    <Popover position="bottom" width={rem(300)}>
+    <Popover
+      radius={'md'}
+      shadow="xl"
+      withArrow
+      arrowSize={14}
+      position="bottom"
+      width={rem(300)}
+    >
       <Popover.Target>
         <Button
           variant="default"
