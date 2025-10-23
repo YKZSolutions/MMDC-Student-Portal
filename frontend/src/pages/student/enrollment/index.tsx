@@ -300,26 +300,40 @@ function CourseSelectionPanel() {
   return (
     <Stack>
       <Paper radius={'md'}>
-        <Group py={'sm'} justify={'space-between'}>
-          <SegmentedControl
-            className="grow xs:max-w-2xs xs:min-w-2xs"
-            bd={'1px solid gray.2'}
-            radius={'md'}
-            data-cy="enrollment-tabs" // Add to the container
-            data={[...enrollmentStatusOptions]}
-            color="primary"
-            defaultValue={search.status}
-            onChange={(e) =>
-              handleSegmentedControlChange(
-                e as EnrollmentSearchSchema['status'],
-              )
-            }
-            fullWidth
-            w={{
-              base: '100%',
-              xs: 'auto',
-            }}
-          />
+        <Group py={'sm'} justify={'space-between'} align="start">
+          <Stack gap={rem(10)}>
+            <SegmentedControl
+              className="grow xs:max-w-2xs xs:min-w-2xs"
+              bd={'1px solid gray.2'}
+              radius={'md'}
+              data-cy="enrollment-tabs" // Add to the container
+              data={[...enrollmentStatusOptions]}
+              color="primary"
+              defaultValue={search.status}
+              onChange={(e) =>
+                handleSegmentedControlChange(
+                  e as EnrollmentSearchSchema['status'],
+                )
+              }
+              fullWidth
+              w={{
+                base: '100%',
+                xs: 'auto',
+              }}
+            />
+            <EnrollmentStudentFinalizationQueryProvider>
+              {({ enrolledCourses }) => (
+                <Text c="dark.3" size="sm">
+                  Total Units Enrolled:{' '}
+                  {enrolledCourses.reduce(
+                    (acc, course) =>
+                      acc + (course.courseOffering?.course.units || 0),
+                    0,
+                  )}{' '}
+                </Text>
+              )}
+            </EnrollmentStudentFinalizationQueryProvider>
+          </Stack>
 
           <Flex
             wrap={'wrap'}
@@ -842,6 +856,7 @@ function CourseOfferingSubjectCard({
       },
       {
         onSuccess: async () => {
+          // Invalidate the active enrollment and course offerings queries
           const activeEnrollmentKey =
             enrollmentControllerFindActiveEnrollmentQueryKey()
 
@@ -861,6 +876,16 @@ function CourseOfferingSubjectCard({
               Array.isArray(query.queryKey) &&
               query.queryKey[0]?._id ===
                 'courseOfferingControllerFindCourseOfferingsByPeriod',
+          })
+
+          // Invalidate fetched course enrollments
+          const courseEnrollmentsKey =
+            courseEnrollmentControllerGetCourseEnrollmentsQueryKey()
+
+          await queryClient.cancelQueries({ queryKey: courseEnrollmentsKey })
+
+          await queryClient.invalidateQueries({
+            queryKey: courseEnrollmentsKey,
           })
         },
       },
@@ -884,6 +909,7 @@ function CourseOfferingSubjectCard({
     },
     {
       onSuccess: async () => {
+        // Invalidate the active enrollment and course offerings queries
         const activeEnrollmentKey =
           enrollmentControllerFindActiveEnrollmentQueryKey()
 
@@ -907,6 +933,16 @@ function CourseOfferingSubjectCard({
                 'courseOfferingControllerFindCourseOfferingsByPeriod'
             )
           },
+        })
+
+        // Invalidate fetched course enrollments
+        const courseEnrollmentsKey =
+          courseEnrollmentControllerGetCourseEnrollmentsQueryKey()
+
+        await queryClient.cancelQueries({ queryKey: courseEnrollmentsKey })
+
+        await queryClient.invalidateQueries({
+          queryKey: courseEnrollmentsKey,
         })
       },
     },
