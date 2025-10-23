@@ -448,6 +448,10 @@ export const zUpdateCourseDto = z.object({
     coreqIds: z.optional(z.array(z.uuid()))
 });
 
+export const zMessageDto = z.object({
+    message: z.string()
+});
+
 export const zEnrollmentStatus = z.enum([
     'draft',
     'upcoming',
@@ -1316,21 +1320,6 @@ export const zCreateProgramDto = z.object({
     yearDuration: z.int()
 });
 
-export const zProgram = z.object({
-    id: z.string(),
-    programCode: z.string(),
-    name: z.string(),
-    description: z.string(),
-    yearDuration: z.int(),
-    isActive: z.boolean(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
 export const zProgramDto = z.object({
     id: z.string(),
     programCode: z.string(),
@@ -1369,6 +1358,21 @@ export const zMajorItemDto = z.object({
 export const zPaginatedMajorsDto = z.object({
     meta: zPaginationMetaDto,
     majors: z.array(zMajorItemDto)
+});
+
+export const zProgram = z.object({
+    id: z.string(),
+    programCode: z.string(),
+    name: z.string(),
+    description: z.string(),
+    yearDuration: z.int(),
+    isActive: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
 });
 
 export const zUpdateProgramDto = z.object({
@@ -2350,7 +2354,8 @@ export const zAssignmentItemDto = z.object({
         z.iso.datetime(),
         z.null()
     ]),
-    assignment: zAssignmentConfigDto
+    assignment: zAssignmentConfigDto,
+    studentProgress: z.optional(z.array(zContentProgress))
 });
 
 export const zLessonItemDto = z.object({
@@ -2376,7 +2381,8 @@ export const zLessonItemDto = z.object({
     deletedAt: z.union([
         z.iso.datetime(),
         z.null()
-    ])
+    ]),
+    studentProgress: z.optional(z.array(zContentProgress))
 });
 
 export const zConnectModuleSectionDto = z.object({
@@ -2439,10 +2445,6 @@ export const zPaginatedModuleContentDto = z.object({
             contentType: z.literal('ASSIGNMENT')
         }).and(zAssignmentItemDto)
     ]))
-});
-
-export const zMessageDto = z.object({
-    message: z.string()
 });
 
 export const zModuleContentInfoDto = z.object({
@@ -3150,6 +3152,8 @@ export const zCoursesControllerRemoveData = z.object({
     }))
 });
 
+export const zCoursesControllerRemoveResponse = zMessageDto;
+
 export const zCoursesControllerFindOneData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3596,7 +3600,7 @@ export const zProgramControllerCreateData = z.object({
     query: z.optional(z.never())
 });
 
-export const zProgramControllerCreateResponse = zProgram;
+export const zProgramControllerCreateResponse = zProgramDto;
 
 export const zProgramControllerFindAllMajorsData = z.object({
     body: z.optional(z.never()),
@@ -4138,6 +4142,8 @@ export const zCurriculumControllerRemoveData = z.object({
         directDelete: z.optional(z.boolean())
     }))
 });
+
+export const zCurriculumControllerRemoveResponse = zMessageDto;
 
 export const zCurriculumControllerFindOneData = z.object({
     body: z.optional(z.never()),

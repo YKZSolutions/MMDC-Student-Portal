@@ -1,4 +1,4 @@
-import { UserMetadata } from '../../src/common/interfaces/auth.user-metadata';
+import { UserMetadata } from '@/common/interfaces/auth.user-metadata';
 
 type MockUserType = 'admin' | 'mentor' | 'student' | 'unauth';
 

@@ -900,8 +900,8 @@ export const programControllerCreate = <ThrowOnError extends boolean = false>(op
 };
 
 /**
- * Retrive all majors of a program
- * Retrives a paginated list of majors based on the program id and provided filters.
+ * Retrieve all majors of a program
+ * Retrieves a paginated list of majors based on the program id and provided filters.
  * Requires `ADMIN` role.
  */
 export const programControllerFindAllMajors = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerFindAllMajorsData, ThrowOnError>) => {
@@ -1397,8 +1397,8 @@ export const courseEnrollmentControllerFinalizeCourseEnrollment = <ThrowOnError 
 };
 
 /**
- * Retrive all majors
- * Retrives a paginated list of majors based on the provided filters.
+ * Retrieve all majors
+ * Retrieves a paginated list of majors based on the provided filters.
  * Requires `ADMIN` role.
  */
 export const majorControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<MajorControllerFindAllData, ThrowOnError>) => {
@@ -1411,7 +1411,7 @@ export const majorControllerFindAll = <ThrowOnError extends boolean = false>(opt
 /**
  * Creates a major.
  * This operation creates a new academic major.
- * Requries `ADMIN` role.
+ * Requires `ADMIN` role.
  */
 export const majorControllerCreate = <ThrowOnError extends boolean = false>(options: Options<MajorControllerCreateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<MajorControllerCreateResponses, MajorControllerCreateErrors, ThrowOnError>({
@@ -1465,7 +1465,7 @@ export const majorControllerUpdate = <ThrowOnError extends boolean = false>(opti
 
 /**
  * Fetch curriculums
- * Fetches all of the curriculums
+ * Fetches all the curriculums
  * Returns a list
  */
 export const curriculumControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<CurriculumControllerFindAllData, ThrowOnError>) => {

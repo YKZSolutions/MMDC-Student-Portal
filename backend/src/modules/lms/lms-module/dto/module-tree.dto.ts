@@ -19,7 +19,6 @@ export class ModuleTreeDto extends PickType(Module, [
   'id',
   'title',
   'courseId',
-  'progresses',
   'publishedAt',
   'unpublishedAt',
 ] as const) {

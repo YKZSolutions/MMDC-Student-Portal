@@ -18,11 +18,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
   Query,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -31,7 +32,7 @@ import {
   ApiOkResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
@@ -268,12 +269,15 @@ export class UsersController {
    *
    */
   @Get(':id')
+  @Roles(Role.ADMIN)
   @ApiException(() => [
     BadRequestException,
     NotFoundException,
     InternalServerErrorException,
   ])
-  async findOne(@Param('id') id: string): Promise<UserWithRelations> {
+  async findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<UserWithRelations> {
     return this.usersService.findOne(id);
   }
 
@@ -302,7 +306,9 @@ export class UsersController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  async updateUserStatus(@Param('id') id: string): Promise<MessageDto> {
+  async updateUserStatus(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<MessageDto> {
     return this.usersService.updateStatus(id);
   }
 
@@ -339,7 +345,7 @@ export class UsersController {
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   remove(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query?: DeleteQueryDto,
   ): Promise<MessageDto> {
     return this.usersService.remove(id, query?.directDelete);

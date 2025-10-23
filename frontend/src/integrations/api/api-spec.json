@@ -2303,7 +2303,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageDto"
+                }
+              }
+            }
           },
           "404": {
             "content": {
@@ -5951,7 +5958,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Program"
+                  "$ref": "#/components/schemas/ProgramDto"
                 }
               }
             }
@@ -6167,7 +6174,7 @@
     },
     "/programs/{programId}/majors": {
       "get": {
-        "description": "Retrives a paginated list of majors based on the program id and provided filters.\nRequires `ADMIN` role.",
+        "description": "Retrieves a paginated list of majors based on the program id and provided filters.\nRequires `ADMIN` role.",
         "operationId": "ProgramController_findAllMajors",
         "parameters": [
           {
@@ -6333,7 +6340,7 @@
             "description": ""
           }
         },
-        "summary": "Retrive all majors of a program",
+        "summary": "Retrieve all majors of a program",
         "tags": [
           "Program"
         ]
@@ -10428,7 +10435,7 @@
     },
     "/majors": {
       "post": {
-        "description": "This operation creates a new academic major.\nRequries `ADMIN` role.",
+        "description": "This operation creates a new academic major.\nRequires `ADMIN` role.",
         "operationId": "MajorController_create",
         "parameters": [],
         "requestBody": {
@@ -10456,15 +10463,7 @@
             "content": {
               "application/json": {
                 "examples": {
-                  "ConflictException #1": {
-                    "description": "Conflict",
-                    "value": {
-                      "statusCode": 409,
-                      "message": "Conflict",
-                      "error": "Conflict"
-                    }
-                  },
-                  "ConflictException #2": {
+                  "ConflictException": {
                     "description": "Conflict",
                     "value": {
                       "statusCode": 409,
@@ -10543,7 +10542,7 @@
         ]
       },
       "get": {
-        "description": "Retrives a paginated list of majors based on the provided filters.\nRequires `ADMIN` role.",
+        "description": "Retrieves a paginated list of majors based on the provided filters.\nRequires `ADMIN` role.",
         "operationId": "MajorController_findAll",
         "parameters": [
           {
@@ -10701,7 +10700,7 @@
             "description": ""
           }
         },
-        "summary": "Retrive all majors",
+        "summary": "Retrieve all majors",
         "tags": [
           "Major"
         ]
@@ -11203,7 +11202,7 @@
         ]
       },
       "get": {
-        "description": "Fetches all of the curriculums\nReturns a list",
+        "description": "Fetches all the curriculums\nReturns a list",
         "operationId": "CurriculumController_findAll",
         "parameters": [],
         "responses": {
@@ -11603,7 +11602,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageDto"
+                }
+              }
+            }
           },
           "404": {
             "content": {
@@ -18627,6 +18633,17 @@
           }
         }
       },
+      "MessageDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
       "EnrollmentStatus": {
         "type": "string",
         "enum": [
@@ -21005,54 +21022,6 @@
           "yearDuration"
         ]
       },
-      "Program": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "programCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "yearDuration": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "programCode",
-          "name",
-          "description",
-          "yearDuration",
-          "isActive",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
       "ProgramDto": {
         "type": "object",
         "properties": {
@@ -21194,6 +21163,54 @@
         "required": [
           "meta",
           "majors"
+        ]
+      },
+      "Program": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "programCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "yearDuration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "programCode",
+          "name",
+          "description",
+          "yearDuration",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
         ]
       },
       "UpdateProgramDto": {
@@ -23909,6 +23926,12 @@
           },
           "assignment": {
             "$ref": "#/components/schemas/AssignmentConfigDto"
+          },
+          "studentProgress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentProgress"
+            }
           }
         },
         "required": [
@@ -23979,6 +24002,12 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
+          },
+          "studentProgress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentProgress"
+            }
           }
         },
         "required": [
@@ -24149,17 +24178,6 @@
         "required": [
           "meta",
           "moduleContents"
-        ]
-      },
-      "MessageDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "message"
         ]
       },
       "ModuleContentInfoDto": {
