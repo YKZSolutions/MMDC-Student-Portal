@@ -228,6 +228,7 @@ export class CourseEnrollmentService {
     }
 
     const enrollment = await this.prisma.client.$transaction(async (tx) => {
+      
       const enrolled = await tx.courseEnrollment.findFirst({
         where: {
           studentId: studentId,
@@ -237,7 +238,6 @@ export class CourseEnrollmentService {
         },
       });
 
-      // Validate if student is already enrolled in the course
       if (enrolled) {
         throw new ConflictException('Already enrolled in this course offering');
       }
@@ -256,14 +256,26 @@ export class CourseEnrollmentService {
         );
       }
 
-      // create course enrollment record
-      return tx.courseEnrollment.create({
-        data: {
+      // fix: upsert instead of create
+      return tx.courseEnrollment.upsert({
+        where: {
+          courseOfferingId_studentId: {
+            courseOfferingId: offeringId,
+            studentId: studentId,
+          },
+        },
+        create: {
           studentId: studentId,
           courseOfferingId: offeringId,
           courseSectionId: sectionId,
           status: 'enlisted',
           startedAt: new Date(),
+        },
+        update: {
+          courseSectionId: sectionId,
+          status: 'enlisted',
+          startedAt: new Date(),
+          deletedAt: null,
         },
       });
     });
