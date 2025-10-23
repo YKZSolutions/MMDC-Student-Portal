@@ -28,7 +28,7 @@ export const roleStyles: Record<
   },
 }
 
-export const roleOptions = [
+export const roleFilterOptions = [
   {
     label: 'All roles',
     value: null,

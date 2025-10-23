@@ -1,7 +1,7 @@
 import Filter from '@/components/filter'
 import SupabaseAvatar from '@/components/supabase-avatar'
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import { roleOptions, roleStyles } from '@/features/user-management/constants'
+import { roleFilterOptions, roleStyles } from '@/features/user-management/constants'
 import { SuspendedUserTableRows } from '@/features/user-management/suspense'
 import type { IUsersQuery } from '@/features/user-management/types'
 import { useSearchState } from '@/hooks/use-search-state'
@@ -173,7 +173,7 @@ function UsersPage() {
               section={[
                 {
                   label: 'Role',
-                  options: roleOptions,
+                  options: roleFilterOptions,
                   matchedSearch: search.role,
                   handleSelectFilter: handleRoleFilter,
                 },
