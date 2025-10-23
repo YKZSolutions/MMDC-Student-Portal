@@ -11,7 +11,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { CourseEnrollmentStatus, Role } from '@prisma/client';
 import { addDays, addMonths } from 'date-fns';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { BillingService } from '../billing/billing.service';
@@ -57,7 +57,7 @@ export class CourseEnrollmentService {
   ): Promise<DetailedCourseEnrollmentDto[]> {
     const isStudent = role === Role.student;
 
-    const enrollments = await this.prisma.client.courseEnrollment.findMany({
+    return await this.prisma.client.courseEnrollment.findMany({
       where: {
         status: { in: ['enlisted', 'finalized'] },
         ...(isStudent && { studentId: userId }),
@@ -87,8 +87,6 @@ export class CourseEnrollmentService {
         },
       },
     });
-
-    return enrollments;
   }
 
   /**
@@ -175,11 +173,30 @@ export class CourseEnrollmentService {
    * @throws ConflictException - If the student is already enrolled in the offering
    */
   @Log({
-    logArgsMessage: ({ courseSectionId, dto, user }) =>
+    logArgsMessage: ({
+      courseSectionId,
+      dto,
+      user,
+    }: {
+      courseSectionId: string;
+      dto: StudentIdentifierDto;
+      user: CurrentAuthUser;
+    }) =>
       `Creating enrollment for section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'}`,
     logSuccessMessage: (enrollment) =>
       `Enrollment [${enrollment.id}] successfully created`,
-    logErrorMessage: (err, { courseSectionId, dto, user }) =>
+    logErrorMessage: (
+      err,
+      {
+        courseSectionId,
+        dto,
+        user,
+      }: {
+        courseSectionId: string;
+        dto: StudentIdentifierDto;
+        user: CurrentAuthUser;
+      },
+    ) =>
       `Error creating enrollment in section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'} | Error: ${err.message}`,
   })
   async createCourseEnrollment(
@@ -227,19 +244,29 @@ export class CourseEnrollmentService {
       throw new BadRequestException('Enrollment period already closed.');
     }
 
-    const enrollment = await this.prisma.client.$transaction(async (tx) => {
-      
+    return await this.prisma.client.$transaction(async (tx) => {
       const enrolled = await tx.courseEnrollment.findFirst({
         where: {
           studentId: studentId,
           courseOfferingId: offeringId,
           deletedAt: null,
-          status: { not: 'dropped' },
-        },
+        }, //removed dropped status check to allow re-enrollment for the same course offering
       });
 
       if (enrolled) {
-        throw new ConflictException('Already enrolled in this course offering');
+        if (
+          enrolled.status === CourseEnrollmentStatus.enlisted ||
+          CourseEnrollmentStatus.finalized ||
+          CourseEnrollmentStatus.enrolled
+        ) {
+          throw new ConflictException(
+            'Already enrolled in this course offering',
+          );
+        }
+
+        if (enrolled.status === CourseEnrollmentStatus.completed) {
+          throw new BadRequestException('Already finished this course');
+        }
       }
 
       const count = await tx.courseEnrollment.count({
@@ -279,7 +306,6 @@ export class CourseEnrollmentService {
         },
       });
     });
-    return enrollment;
   }
 
   /**
@@ -294,11 +320,37 @@ export class CourseEnrollmentService {
    * @throws BadRequestException - If `studentId` is missing
    */
   @Log({
-    logArgsMessage: ({ sectionId, dto, user }) =>
+    logArgsMessage: ({
+      sectionId,
+      dto,
+      user,
+    }: {
+      sectionId: string;
+      dto: StudentIdentifierDto;
+      user: CurrentAuthUser;
+    }) =>
       `Dropping enrollment for section [${sectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'}`,
-    logSuccessMessage: (_, { sectionId, user }) =>
+    logSuccessMessage: (
+      _,
+      {
+        sectionId,
+        user,
+      }: {
+        sectionId: string;
+        user: CurrentAuthUser;
+      },
+    ) =>
       `Successfully dropped enrollment in section [${sectionId}] by user [${user.user_metadata.user_id}]`,
-    logErrorMessage: (err, { sectionId, user }) =>
+    logErrorMessage: (
+      err,
+      {
+        sectionId,
+        user,
+      }: {
+        sectionId: string;
+        user: CurrentAuthUser;
+      },
+    ) =>
       `Error dropping enrollment in section [${sectionId}] by user [${user.user_metadata.user_id}] | Error: ${err.message}`,
   })
   async dropCourseEnrollment(
