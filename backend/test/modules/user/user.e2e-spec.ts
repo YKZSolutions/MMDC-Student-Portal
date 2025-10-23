@@ -1,7 +1,4 @@
 import request from 'supertest';
-import { TestAppService } from './utils/test-app.service';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { INestApplication } from '@nestjs/common';
 import { v4 } from 'uuid';
 import {
   createUser,
@@ -10,7 +7,12 @@ import {
   createInvite,
   createUpdate,
   createInvalid,
-} from './factories/user.factory';
+} from '../../factories/user.factory';
+import {
+  setupTestEnvironment,
+  teardownTestEnvironment,
+  TestContext,
+} from '../../test-setup';
 
 /* eslint-disable @typescript-eslint/no-unsafe-call,
                   @typescript-eslint/no-unsafe-argument,
@@ -19,14 +21,7 @@ import {
                   @typescript-eslint/no-unsafe-return,
 */
 describe('UsersController (Integration)', () => {
-  let testService: TestAppService;
-  let prismaClient: ExtendedPrismaClient;
-
-  // Cache for frequently used app instances
-  let adminApp: INestApplication;
-  let mentorApp: INestApplication;
-  let studentApp: INestApplication;
-  let unauthApp: INestApplication;
+  let context: TestContext;
 
   // Test payloads using simple factory functions
   const validUserPayload = createUser({ role: 'student' });
@@ -34,42 +29,16 @@ describe('UsersController (Integration)', () => {
   const validStaffPayload = createStaff({ role: 'mentor' });
 
   beforeAll(async () => {
-    testService = new TestAppService();
-    await testService.start();
-    const { prismaClient: p } = await testService.start();
-    prismaClient = p;
-
-    // Pre-create frequently used app instances
-    const { app: admin } = await testService.createTestApp();
-    const { app: mentor } = await testService.createTestApp(
-      testService.getMockUser('mentor'),
-    );
-    const { app: student } = await testService.createTestApp(
-      testService.getMockUser('student'),
-    );
-    const { app: unauth } = await testService.createTestApp(
-      testService.getMockUser('unauth'),
-    );
-
-    adminApp = admin;
-    mentorApp = mentor;
-    studentApp = student;
-    unauthApp = unauth;
+    context = await setupTestEnvironment();
   }, 30000);
 
-  beforeEach(async () => {
-    // Reset the database before each test group or use for specific tests
-    await testService.resetDatabase();
-  }, 10000); // Timeout for reset operation
-
   afterAll(async () => {
-    await testService.close();
-    await TestAppService.closeAll(); // Clean up static resources
-  }, 15000); // Timeout for cleanup
+    await teardownTestEnvironment(context);
+  }, 15000);
 
   describe('POST /users', () => {
     it('should create a new user with valid data when authenticated as admin (201)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
@@ -82,7 +51,7 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when required fields are missing', async () => {
       const invalidPayload = createInvalid.user.missingFields();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(invalidPayload)
         .expect(400);
@@ -91,21 +60,21 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when an invalid role is provided', async () => {
       const invalidPayload = createInvalid.user.invalidRole();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(403);
@@ -114,7 +83,7 @@ describe('UsersController (Integration)', () => {
 
   describe('GET /users', () => {
     it('should retrieve a paginated list of users when authenticated as admin (200)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users')
         .expect(200);
 
@@ -124,7 +93,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should filter users by role query parameter', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users?role=student')
         .expect(200);
 
@@ -134,7 +103,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should filter users by search query parameter', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users?search=Dog')
         .expect(200);
 
@@ -144,7 +113,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should paginate results correctly with page query parameter', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users?page=1')
         .expect(200);
 
@@ -152,17 +121,21 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer()).get('/users').expect(401);
+      await request(context.unauthApp.getHttpServer())
+        .get('/users')
+        .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer()).get('/users').expect(403);
+      await request(context.studentApp.getHttpServer())
+        .get('/users')
+        .expect(403);
     });
   });
 
   describe('GET /users/me', () => {
     it('should retrieve the full profile of the authenticated admin (200)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get('/users/me')
         .expect(200);
 
@@ -171,7 +144,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should retrieve the full profile of the authenticated mentor (200)', async () => {
-      const response = await request(mentorApp.getHttpServer())
+      const response = await request(context.mentorApp.getHttpServer())
         .get('/users/me')
         .expect(200);
 
@@ -180,7 +153,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should retrieve the full profile of the authenticated student (200)', async () => {
-      const response = await request(studentApp.getHttpServer())
+      const response = await request(context.studentApp.getHttpServer())
         .get('/users/me')
         .expect(200);
 
@@ -189,7 +162,9 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer()).get('/users/me').expect(401);
+      await request(context.unauthApp.getHttpServer())
+        .get('/users/me')
+        .expect(401);
     });
   });
 
@@ -197,7 +172,7 @@ describe('UsersController (Integration)', () => {
     const updatedUserPayload = createUpdate.user();
 
     it('should update the personal details of the authenticated user (200)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .put('/users/me')
         .send(updatedUserPayload)
         .expect(200);
@@ -208,14 +183,14 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when invalid data is provided', async () => {
       const invalidPayload = createInvalid.user.invalidType();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put('/users/me')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .put('/users/me')
         .send(updatedUserPayload)
         .expect(401);
@@ -224,14 +199,14 @@ describe('UsersController (Integration)', () => {
 
   describe('GET /users/{id}', () => {
     it('should retrieve a specific user by ID when authenticated as admin (200)', async () => {
-      const createUserResponse = await request(adminApp.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
 
       const createdUserId = createUserResponse.body.id;
 
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .get(`/users/${createdUserId}`)
         .expect(200);
 
@@ -239,26 +214,26 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should return 400 for an invalid ID format', async () => {
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .get('/users/invalid-id')
         .expect(400);
     });
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .get(`/users/${nonExistentId}`)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .get(`/users/${v4()}`)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .get(`/users/${v4()}`)
         .expect(403);
     });
@@ -268,7 +243,7 @@ describe('UsersController (Integration)', () => {
     let createdUserId: string;
 
     beforeAll(async () => {
-      const createUserResponse = await request(adminApp.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
@@ -277,7 +252,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should successfully disable a user when authenticated as admin (200)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send()
         .expect(200);
@@ -289,7 +264,7 @@ describe('UsersController (Integration)', () => {
     });
 
     it('should successfully enable a user when authenticated as admin (200)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send({ status: 'active' })
         .expect(200);
@@ -302,21 +277,21 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .patch(`/users/${nonExistentId}/status`)
         .send({ status: 'disabled' })
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send({ status: 'disabled' })
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .patch(`/users/${createdUserId}/status`)
         .send({ status: 'disabled' })
         .expect(403);
@@ -325,14 +300,14 @@ describe('UsersController (Integration)', () => {
 
   describe('DELETE /users/{id}', () => {
     it('should soft-delete a user by default when authenticated as admin (200)', async () => {
-      const createUserResponse = await request(adminApp.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
 
       const createdUserId = createUserResponse.body.id;
 
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .delete(`/users/${createdUserId}`)
         .expect(200);
 
@@ -340,20 +315,20 @@ describe('UsersController (Integration)', () => {
         'message',
         'User has been soft deleted',
       );
-      const user = await prismaClient.user.findUnique({
+      const user = await context.prismaClient.user.findUnique({
         where: { id: createdUserId },
       });
       expect(user.deletedAt).not.toBeNull();
     });
 
     it('should permanently delete a user with directDelete=true query parameter when authenticated as admin (200)', async () => {
-      const createUserResponse = await request(adminApp.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validUserPayload)
         .expect(201);
       const tempUserId = createUserResponse.body.id;
 
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .delete(`/users/${tempUserId}?directDelete=true`)
         .expect(200);
 
@@ -361,7 +336,7 @@ describe('UsersController (Integration)', () => {
         'message',
         'User has been permanently deleted',
       );
-      const user = await prismaClient.user.findUnique({
+      const user = await context.prismaClient.user.findUnique({
         where: { id: tempUserId },
       });
       expect(user).toBeNull();
@@ -369,19 +344,19 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .delete(`/users/${nonExistentId}`)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .delete(`/users/${v4()}`)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .delete(`/users/${v4()}`)
         .expect(403);
     });
@@ -389,7 +364,7 @@ describe('UsersController (Integration)', () => {
 
   describe('POST /users/student', () => {
     it('should create a new student user when authenticated as admin (201)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users/student')
         .send(validStudentPayload)
         .expect(201);
@@ -401,21 +376,21 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when required fields are missing', async () => {
       const invalidPayload = createInvalid.student.missingFields();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users/student')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users/student')
         .send(validStudentPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users/student')
         .send(validStudentPayload)
         .expect(403);
@@ -424,7 +399,7 @@ describe('UsersController (Integration)', () => {
 
   describe('POST /users/staff', () => {
     it('should create a new staff user (mentor or admin) when authenticated as admin (201)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users/staff')
         .send(validStaffPayload)
         .expect(201);
@@ -436,21 +411,21 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when required fields are missing', async () => {
       const invalidPayload = createInvalid.staff.missingFields();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users/staff')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users/staff')
         .send(validStaffPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users/staff')
         .send(validStaffPayload)
         .expect(403);
@@ -461,7 +436,7 @@ describe('UsersController (Integration)', () => {
     const invitePayload = createInvite({ role: 'student' });
 
     it('should invite a new user with a valid email and role when authenticated as admin (201)', async () => {
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .post('/users/invite')
         .send(invitePayload)
         .expect(201);
@@ -473,21 +448,21 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when required fields are missing', async () => {
       const invalidPayload = createInvalid.invite.missingFields();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/users/invite')
         .send(invalidPayload)
         .expect(400);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .post('/users/invite')
         .send(invitePayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .post('/users/invite')
         .send(invitePayload)
         .expect(403);
@@ -498,14 +473,14 @@ describe('UsersController (Integration)', () => {
     const updateStudentPayload = createUpdate.student();
 
     it("should update a student's specific details when authenticated as admin (200)", async () => {
-      const createUserResponse = await request(adminApp.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validStudentPayload)
         .expect(201);
 
       const createdStudentId = createUserResponse.body.id;
 
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .put(`/users/${createdStudentId}/student`)
         .send(updateStudentPayload)
         .expect(200);
@@ -516,7 +491,7 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when invalid data is provided', async () => {
       const invalidPayload = createInvalid.student.invalidType();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put(`/users/${v4()}/student`)
         .send(invalidPayload)
         .expect(400);
@@ -524,21 +499,21 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent student ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put(`/users/${nonExistentId}/student`)
         .send(updateStudentPayload)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .put(`/users/${v4()}/student`)
         .send(updateStudentPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .put(`/users/${v4()}/student`)
         .send(updateStudentPayload)
         .expect(403);
@@ -549,14 +524,14 @@ describe('UsersController (Integration)', () => {
     const updateStaffPayload = createUpdate.staff();
 
     it("should update a staff member's specific details when authenticated as admin (200)", async () => {
-      const createUserResponse = await request(adminApp.getHttpServer())
+      const createUserResponse = await request(context.adminApp.getHttpServer())
         .post('/users')
         .send(validStaffPayload)
         .expect(201);
 
       const createdStaffId = createUserResponse.body.id;
 
-      const response = await request(adminApp.getHttpServer())
+      const response = await request(context.adminApp.getHttpServer())
         .put(`/users/${createdStaffId}/staff`)
         .send(updateStaffPayload)
         .expect(200);
@@ -567,7 +542,7 @@ describe('UsersController (Integration)', () => {
     it('should return 400 when invalid data is provided', async () => {
       const invalidPayload = createInvalid.staff.invalidNumber();
 
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put(`/users/${v4()}/staff`)
         .send(invalidPayload)
         .expect(400);
@@ -575,21 +550,21 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent staff ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
-      await request(adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .put(`/users/${nonExistentId}/staff`)
         .send(updateStaffPayload)
         .expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
-      await request(unauthApp.getHttpServer())
+      await request(context.unauthApp.getHttpServer())
         .put(`/users/${v4()}/staff`)
         .send(updateStaffPayload)
         .expect(401);
     });
 
     it('should return 403 when authenticated as a student (insufficient permissions)', async () => {
-      await request(studentApp.getHttpServer())
+      await request(context.studentApp.getHttpServer())
         .put(`/users/${v4()}/staff`)
         .send(updateStaffPayload)
         .expect(403);
