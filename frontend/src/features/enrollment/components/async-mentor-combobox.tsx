@@ -24,8 +24,8 @@ import { useDebouncedValue } from '@mantine/hooks'
 import { IconUserOff, IconX } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Fragment, Suspense, useState, type ReactNode } from 'react'
-import type { IUsersQuery } from '../user-management/types'
-import type { EditSectionFormValues } from '../validation/edit-course-offering-subject'
+import type { IUsersQuery } from '../../user-management/types'
+import type { EditSectionFormValues } from '../../validation/edit-course-offering-subject'
 
 function AsyncMentorComboboxQueryProvider({
   children,

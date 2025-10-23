@@ -1,7 +1,7 @@
 import { AsyncSearchable } from '@/components/async-searchable'
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
-import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
+import EnrollmentBadgeStatus from '@/features/enrollment/components/enrollment-badge-status'
+import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/components/suspense'
 import {
   enrollmentPeriodFormSchema,
   type EnrollmentPeriodFormInput,

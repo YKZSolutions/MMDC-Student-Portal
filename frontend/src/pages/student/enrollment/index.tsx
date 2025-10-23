@@ -1,10 +1,10 @@
 import ErrorFallback from '@/components/error-component'
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
 import {
   SuspendedAdminEnrollmentCourseOfferingCards,
   SuspendedStudentEnrollmentFinalizationSectionCards,
-} from '@/features/enrollment/suspense'
+} from '@/features/enrollment/components/suspense'
+import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
 import type { IPaymentScheme } from '@/features/enrollment/types'
 import {
   enrollmentStatusOptions,
