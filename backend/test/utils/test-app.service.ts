@@ -46,7 +46,6 @@ export class TestAppService {
 
   private prismaClient: ExtendedPrismaClient;
   private pgClient: Client;
-  private app: INestApplication;
   private instanceMockUsers: typeof mockUsers;
   private databaseUrl: string;
 
@@ -99,31 +98,53 @@ export class TestAppService {
       if (!TestAppService.container) {
         TestAppService.container = await new PostgreSqlContainer(
           TestAppService.IMAGE,
-        ).start();
+        )
+          .withCommand([
+            '-c',
+            'fsync=off',
+            '-c',
+            'full_page_writes=off',
+            '-c',
+            'synchronous_commit=off',
+            '-c',
+            'shared_buffers=256MB',
+            '-c',
+            'max_connections=100',
+          ])
+          .withTmpFs({ '/var/lib/postgresql/data': 'rw' })
+          .start();
+
+        console.log(
+          `[TestAppService] PostgreSQL container started on port ${TestAppService.container.getPort()}`,
+        );
+
+        // Wait for the database to be ready
+        await this.waitForDatabase();
       }
-
-      this.databaseUrl = TestAppService.container.getConnectionUri();
-
-      // Wait for the database to be fully ready
-      await this.waitForDatabase();
-
-      // Run migrations once
-      execSync(
-        'npx prisma db push --skip-generate --force-reset --accept-data-loss --schema=./prisma/schema.prisma',
-        {
-          stdio: 'inherit',
-          env: {
-            ...process.env,
-            DATABASE_URL: this.databaseUrl,
-            DATABASE_CLOUD_URL: this.databaseUrl,
-            DIRECT_CLOUD_URL: this.databaseUrl,
-          },
-          cwd: process.cwd(),
-        },
-      );
 
       // Initialize the Prisma client only once
       if (!TestAppService.prismaService) {
+        this.databaseUrl = TestAppService.container.getConnectionUri();
+        console.log('[TestAppService] Database URL:', this.databaseUrl);
+
+        // Run Prisma migrations
+        console.log('[TestAppService] Running Prisma migrations...');
+
+        // Run migrations once
+        execSync(
+          'npx prisma db push --skip-generate --force-reset --accept-data-loss --schema=./prisma/schema.prisma',
+          {
+            stdio: 'inherit',
+            env: {
+              ...process.env,
+              DATABASE_URL: this.databaseUrl,
+              DATABASE_CLOUD_URL: this.databaseUrl,
+              DIRECT_CLOUD_URL: this.databaseUrl,
+            },
+            cwd: process.cwd(),
+          },
+        );
+
         const extendedPrismaClient = new PrismaClient({
           datasources: { db: { url: this.databaseUrl } },
           // Add retry logic for connection issues
@@ -150,7 +171,9 @@ export class TestAppService {
   /**
    * Wait for the database to be ready with retry logic
    */
-  private async waitForDatabase(retries = 10, delay = 3000): Promise<void> {
+  private async waitForDatabase(retries = 20, delay = 1000): Promise<void> {
+    let lastError: Error | null = null;
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       this.pgClient = new Client({
         host: TestAppService.container.getHost(),
@@ -163,12 +186,12 @@ export class TestAppService {
       try {
         await this.pgClient.connect();
         await this.pgClient.query('SELECT 1'); // Test query
-        console.log('Database connection established');
+        console.log('[TestAppService] Database ready');
         return;
       } catch (error) {
-        console.warn(
-          `Database connection attempt ${attempt}/${retries} failed:`,
-          error instanceof Error ? error.message : String(error),
+        lastError = error as Error;
+        console.log(
+          `[TestAppService] Waiting for database (attempt ${attempt}/${retries})...`,
         );
         if (this.pgClient) {
           try {
@@ -221,80 +244,83 @@ export class TestAppService {
       const userCreationPromises = Object.entries(this.instanceMockUsers)
         .filter(([_, value]) => value !== null)
         .map(async ([userType, mockUser]) => {
-          const role = userType === 'unauth' ? 'student' : userType; // Handle unauth case
+          if (!mockUser) return;
 
-          return await this.prismaClient.$transaction(async (tx) => {
-            // Create user
-            const user = await tx.user.create({
-              data: {
-                firstName: userType.charAt(0).toUpperCase() + userType.slice(1),
-                lastName: 'User',
-                role: role as Role,
-              },
-            });
+          const role = userType; // Handle unauth case
 
-            // Update metadata with actual user ID
-            if (mockUser.user_metadata) {
-              mockUser.user_metadata.user_id = user.id;
-            }
-
-            const uniqueSuffix = uuidv4().substring(0, 8);
-
-            const [account, details, roleDetails] = await Promise.all([
-              tx.userAccount.create({
+          return await this.prismaClient.$transaction(
+            async (tx) => {
+              // Create user
+              const user = await tx.user.create({
                 data: {
-                  userId: user.id,
-                  authUid: mockUser.id,
-                  email: `${userType}-${uniqueSuffix}@user.com`,
+                  firstName:
+                    userType.charAt(0).toUpperCase() + userType.slice(1),
+                  lastName: 'User',
+                  role: role as Role,
                 },
-              }),
-              tx.userDetails.create({
-                data: {
-                  userId: user.id,
-                  dateJoined: new Date().toISOString(),
-                  dob: new Date().toISOString(),
-                  gender: 'male',
-                },
-              }),
-              userType === 'student'
-                ? tx.studentDetails.create({
-                    data: {
-                      userId: user.id,
-                      studentNumber: Math.random().toString().substring(2, 8),
-                      studentType: StudentType.regular,
-                      admissionDate: new Date().toISOString(),
-                      otherDetails: {},
-                    },
-                  })
-                : tx.staffDetails.create({
-                    data: {
-                      userId: user.id,
-                      employeeNumber: parseInt(
-                        Math.random().toString().substring(2, 8),
-                      ),
-                      department: 'System Administration',
-                      position: 'Specialist',
-                      otherDetails: {},
-                    },
-                  }),
-            ]);
+              });
 
-            return { user, account, details, roleDetails };
-          });
+              // Update metadata with actual user ID
+              if (mockUser.user_metadata) {
+                mockUser.user_metadata.user_id = user.id;
+              }
+
+              const uniqueSuffix = uuidv4().substring(0, 8);
+
+              const [account, details, roleDetails] = await Promise.all([
+                tx.userAccount.create({
+                  data: {
+                    userId: user.id,
+                    authUid: mockUser.id,
+                    email: `${userType}-${uniqueSuffix}@user.com`,
+                  },
+                }),
+                tx.userDetails.create({
+                  data: {
+                    userId: user.id,
+                    dateJoined: new Date().toISOString(),
+                    dob: new Date().toISOString(),
+                    gender: 'male',
+                  },
+                }),
+                userType === 'student'
+                  ? tx.studentDetails.create({
+                      data: {
+                        userId: user.id,
+                        studentNumber: Math.random().toString().substring(2, 8),
+                        studentType: StudentType.regular,
+                        admissionDate: new Date().toISOString(),
+                        otherDetails: {},
+                      },
+                    })
+                  : tx.staffDetails.create({
+                      data: {
+                        userId: user.id,
+                        employeeNumber: parseInt(
+                          Math.random().toString().substring(2, 8),
+                        ),
+                        department: 'System Administration',
+                        position: 'Specialist',
+                        otherDetails: {},
+                      },
+                    }),
+              ]);
+
+              return { user, account, details, roleDetails };
+            },
+            {
+              timeout: 30000,
+              maxWait: 5000,
+            },
+          );
         });
-
       await Promise.all(userCreationPromises);
-      console.log('User data setup completed');
+      console.log(`[User data setup completed`);
     } catch (error) {
-      console.error('Failed to setup user data:', error);
-      // More detailed error logging
-      if (error instanceof Error) {
-        console.error('Error details:', error.message, error.stack);
-      }
+      console.error(`[Failed to setup user data:`, error);
       throw error;
     }
   }
-
   /**
    * Get a mock user for this test instance
    */
@@ -315,26 +341,29 @@ export class TestAppService {
    *
    */
   async resetDatabase() {
-    try {
-      await this.prismaClient.$executeRawUnsafe(`
-        DO $$ DECLARE
-            tables text;
-        BEGIN
-            SELECT string_agg(format('TRUNCATE TABLE %I.%I RESTART IDENTITY CASCADE', schemaname, tablename), '; ')
-            INTO tables
-            FROM pg_tables
-            WHERE schemaname = 'public';
+    const tableNames = await this.prismaClient.$queryRaw<
+      Array<{ tablename: string }>
+    >`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE '_prisma%';
+    `;
 
-            EXECUTE tables;
-        END $$;
-      `);
+    const tablesToTruncate = tableNames
+      .map((t) => `"${t.tablename}"`)
+      .join(', ');
 
-      // Re-setup user data after reset
-      await this.setupUserData();
-    } catch (error) {
-      console.error('Failed to reset database:', error);
-      throw error;
+    if (tablesToTruncate) {
+      try {
+        await this.prismaClient.$executeRawUnsafe(
+          `TRUNCATE TABLE ${tablesToTruncate} RESTART IDENTITY CASCADE;`,
+        );
+      } catch (error) {
+        console.error('Failed to reset database with TRUNCATE:', error);
+        throw error;
+      }
     }
+
+    // Re-seed the database with base users after truncating
+    await this.setupUserData();
   }
 
   /**
@@ -351,7 +380,9 @@ export class TestAppService {
    * @param mockUser - The user to authenticate requests with (default: admin)
    * @returns An object containing the initialized NestJS app
    */
-  async createTestApp(mockUser: MockUser = this.instanceMockUsers.admin) {
+  async createTestApp(
+    mockUser: MockUser | null = this.instanceMockUsers.admin,
+  ) {
     const cacheKey = mockUser?.id || 'unauth';
 
     if (this.appCache.has(cacheKey)) {
@@ -366,7 +397,8 @@ export class TestAppService {
       .overrideProvider(AuthGuard)
       .useValue({
         canActivate: (ctx: ExecutionContext) => {
-          if (mockUser === null) return false;
+          if (mockUser === null)
+            throw new UnauthorizedException('Invalid token');
 
           const req = ctx
             .switchToHttp()
