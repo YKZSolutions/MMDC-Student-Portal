@@ -11,31 +11,31 @@ import {
 } from '@mantine/core'
 import { IconFilter2, type ReactNode } from '@tabler/icons-react'
 
-export type FilterOption<TValue = string> = {
+export type FilterOption<TValue> = {
   label: string
-  value: TValue | null
+  value: TValue | null | undefined
   icon: ReactNode | null
   color: MantineColor
 }
 
-interface FilterProps<TOption, TMatchedSearch> {
+export interface FilterSection<TOption> {
+  label: string
+  options: FilterOption<TOption>[]
+  matchedSearch: FilterOption<TOption>['value']
+  handleSelectFilter: (value: TOption | null | undefined) => void
+}
+
+export interface FilterProps<TSections extends readonly FilterSection<any>[]> {
   title: string
-  section: FilterSection<TOption, TMatchedSearch>[]
+  section: TSections
   handleResetFilter: () => void
 }
 
-interface FilterSection<TOption, TMatchedSearch> {
-  label: string
-  options: FilterOption<TOption>[]
-  matchedSearch: TMatchedSearch
-  handleSelectFilter: (option: TOption | null) => void
-}
-
-function Filter<TOption extends string, TMatchedSearch>({
+function Filter<const TSections extends readonly FilterSection<any>[]>({
   title,
   section,
   handleResetFilter,
-}: FilterProps<TOption, TMatchedSearch>) {
+}: FilterProps<TSections>) {
   return (
     <Popover
       radius={'md'}
@@ -93,7 +93,7 @@ function Filter<TOption extends string, TMatchedSearch>({
                 {section.options.map((option) => (
                   <Button
                     className="flex-[47%]"
-                    key={option.value}
+                    key={option.label}
                     variant={
                       section.matchedSearch === option.value
                         ? 'filled'
