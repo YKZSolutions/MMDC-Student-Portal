@@ -238,7 +238,7 @@ function EnrollmentStudentPage() {
                   <EnrollmentStudentFinalizationQueryProvider>
                     {({ enrolledCourses, refetch }) => (
                       <>
-                        {tabsData.map((tab) => (
+                        {tabsData.map((tab, index) => (
                           <Tabs.Tab
                             disabled={
                               tab.value === 'course-selection' &&
@@ -255,9 +255,23 @@ function EnrollmentStudentPage() {
                               tab.value == 'finalization' && refetch()
                             }
                           >
-                            <Text fw={500} fz={'sm'} c={'dark.5'}>
-                              {tab.label}
-                            </Text>
+                            <Group gap="xs">
+                              <Badge
+                                size="lg"
+                                circle
+                                variant="light"
+                                color={
+                                  tab.value === 'finalization'
+                                    ? 'green'
+                                    : 'gray'
+                                }
+                              >
+                                {index + 1}
+                              </Badge>
+                              <Text fw={500} fz={'sm'} c={'dark.5'}>
+                                {tab.label}
+                              </Text>
+                            </Group>
                           </Tabs.Tab>
                         ))}
                       </>
@@ -1006,6 +1020,7 @@ function CourseOfferingSubjectCard({
                 <Button
                   size="xs"
                   radius={'lg'}
+                  color="red"
                   onClick={() =>
                     dropMutate({
                       path: {
