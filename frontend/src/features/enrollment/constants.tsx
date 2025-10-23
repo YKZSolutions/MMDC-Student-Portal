@@ -1,5 +1,9 @@
 import type { FilterOption } from '@/components/filter'
 import { IconListNumbers } from '@tabler/icons-react'
+import {
+    zodStatusEnum,
+    type EnrollmentStatus,
+} from './schema/create-enrollment.schema'
 import type { IPaymentScheme } from './types'
 
 export const enrollmentStatusOptions = [
@@ -40,6 +44,19 @@ export const paymentSchemeData = [
   },
 ] as IPaymentScheme[]
 
+export const enrollmentBadgeStatus: Record<
+  EnrollmentStatus,
+  { color: string; label: string }
+> = {
+  draft: { color: 'gray', label: 'Draft' },
+  upcoming: { color: 'indigo', label: 'Upcoming' },
+  active: { color: 'green.9', label: 'Active' },
+  extended: { color: 'blue', label: 'Extended' },
+  closed: { color: 'orange', label: 'Closed' },
+  canceled: { color: 'red', label: 'Canceled' },
+  archived: { color: 'dark', label: 'Archived' },
+}
+
 export const termFilterOptions = [
   {
     label: 'All terms',
@@ -67,14 +84,17 @@ export const termFilterOptions = [
   },
 ] satisfies FilterOption[]
 
-export const enrollmentStatusFilterOptions = [
+export const enrollmentAdminStatusFilterOptions = [
   {
     label: 'All statuses',
     value: null,
     icon: <IconListNumbers size={16} />,
     color: 'gray',
   },
-  {
-    label: 'Pending',
-  },
-] satisfies FilterOption[]
+  ...(zodStatusEnum.options.map((statusOption) => ({
+    label: statusOption.charAt(0).toUpperCase() + statusOption.slice(1),
+    value: statusOption,
+    icon: null,
+    color: enrollmentBadgeStatus[statusOption].color,
+  })) satisfies FilterOption<EnrollmentStatus>[]),
+] satisfies FilterOption<EnrollmentStatus>[]
