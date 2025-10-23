@@ -1,3 +1,4 @@
+import ErrorFallback from '@/components/error-component'
 import { Loader } from '@/components/loader-component'
 import { useNotificationSubscription } from '@/features/notification/use-notification-subscription'
 import { SSEProvider } from '@/features/sse/sse-provider'
@@ -15,6 +16,7 @@ import { Box, Burger, Group, Stack } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 
 export const Route = createFileRoute('/(protected)')({
   component: RouteComponent,
@@ -111,8 +113,10 @@ function PageLayoutComponent() {
                 scrollbarGutter: 'stable',
               }}
             >
-              {/*Main Content*/}
-              <Outlet />
+              <ErrorBoundary FallbackComponent={() => <ErrorFallback />}>
+                {/*Main Content*/}
+                <Outlet />
+              </ErrorBoundary>
             </Box>
           </Stack>
         </Box>

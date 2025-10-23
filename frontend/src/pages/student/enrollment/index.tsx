@@ -1,3 +1,4 @@
+import ErrorFallback from '@/components/error-component'
 import { SuspendedPagination } from '@/components/suspense-pagination'
 import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
 import {
@@ -78,6 +79,7 @@ import {
 } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { Fragment } from 'react/jsx-runtime'
 
 const route = getRouteApi('/(protected)/enrollment/')
@@ -166,119 +168,122 @@ function EnrollmentStudentFinalizationQueryProvider({
 }
 
 function EnrollmentStudentPage() {
-  const { search, setDebouncedSearch } = useSearchState(route)
+  const { search, setSearch } = useSearchState(route)
 
   const handleChangeTab = (
     value: (typeof tabsData)[number]['value'] | null,
   ) => {
     if (!value) return
 
-    setDebouncedSearch({
+    setSearch({
       tab: value !== 'course-selection' ? value : undefined,
     })
   }
 
   return (
-    <Container size={'md'} w={'100%'} pb={'xl'}>
-      <Stack gap={'xl'}>
-        {/* Page Hero */}
-        <Group justify="space-between" align="start">
-          <Box>
-            <Title c={'dark.7'} order={2} fw={700}>
-              Enrollment
-            </Title>
-            <Text c={'dark.3'} fw={500}>
-              Manage your enrollment for this semester.
-            </Text>
-          </Box>
-          <Suspense
-            fallback={<Skeleton height={40} width={rem(250)} radius="md" />}
-          >
-            <EnrollmentStudentQueryProvider>
-              {({ enrollmentPeriodData }) => (
-                <Group>
-                  <Title c={'dark.7'} order={2} fw={700}>
-                    {enrollmentPeriodData?.startYear
-                      ? formatToSchoolYear(
-                          enrollmentPeriodData.startYear,
-                          enrollmentPeriodData.endYear,
-                        )
-                      : 'No active enrollment period'}
-                  </Title>
-                  <Divider orientation="vertical" />
-                  <Title c={'dark.7'} order={2} fw={700}>
-                    {enrollmentPeriodData?.term
-                      ? 'Term ' + enrollmentPeriodData.term
-                      : 'N/A'}
-                  </Title>
-                </Group>
-              )}
-            </EnrollmentStudentQueryProvider>
-          </Suspense>
-        </Group>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Container size={'md'} w={'100%'} pb={'xl'}>
+        <Stack gap={'xl'}>
+          {/* Page Hero */}
+          <Group justify="space-between" align="start">
+            <Box>
+              <Title c={'dark.7'} order={2} fw={700}>
+                Enrollment
+              </Title>
+              <Text c={'dark.3'} fw={500}>
+                Manage your enrollment for this semester.
+              </Text>
+            </Box>
 
-        {/* Main Tabs */}
-        {/* Don't modify the page layout here. Instead,
+            <Suspense
+              fallback={<Skeleton height={40} width={rem(250)} radius="md" />}
+            >
+              <EnrollmentStudentQueryProvider>
+                {({ enrollmentPeriodData }) => (
+                  <Group>
+                    <Title c={'dark.7'} order={2} fw={700}>
+                      {enrollmentPeriodData?.startYear
+                        ? formatToSchoolYear(
+                            enrollmentPeriodData.startYear,
+                            enrollmentPeriodData.endYear,
+                          )
+                        : 'No active enrollment period'}
+                    </Title>
+                    <Divider orientation="vertical" />
+                    <Title c={'dark.7'} order={2} fw={700}>
+                      {enrollmentPeriodData?.term
+                        ? 'Term ' + enrollmentPeriodData.term
+                        : 'N/A'}
+                    </Title>
+                  </Group>
+                )}
+              </EnrollmentStudentQueryProvider>
+            </Suspense>
+          </Group>
+
+          {/* Main Tabs */}
+          {/* Don't modify the page layout here. Instead,
         modify each component provided in tabsData */}
 
-        <Tabs
-          defaultValue={search.tab || tabsData[0].value}
-          onChange={(e) => handleChangeTab(e)}
-          inverted
-          radius={'md'}
-        >
-          <Stack>
-            <Tabs.List grow>
-              <Suspense fallback={<Skeleton height={30} radius="md" />}>
-                <EnrollmentStudentFinalizationQueryProvider>
-                  {({ enrolledCourses, refetch }) => (
-                    <>
-                      {tabsData.map((tab) => (
-                        <Tabs.Tab
-                          disabled={
-                            tab.value === 'course-selection' &&
-                            isEnrollmentFinalized(enrolledCourses)
-                          }
-                          style={{
-                            borderTopWidth: rem(5),
-                          }}
-                          key={tab.value}
-                          value={tab.value}
-                          onClick={() =>
-                            // This will refetch the enrolled courses when switching to finalization tab
-                            // Which is useful when the user has enrolled something in the course selection tab
-                            tab.value == 'finalization' && refetch()
-                          }
-                        >
-                          <Text fw={500} fz={'sm'} c={'dark.5'}>
-                            {tab.label}
-                          </Text>
-                        </Tabs.Tab>
-                      ))}
-                    </>
-                  )}
-                </EnrollmentStudentFinalizationQueryProvider>
-              </Suspense>
-            </Tabs.List>
-            {tabsData.map((tab) => (
-              <Tabs.Panel key={tab.value + '-panel'} value={tab.value}>
-                <tab.Component />
-              </Tabs.Panel>
-            ))}
-          </Stack>
-        </Tabs>
-      </Stack>
-    </Container>
+          <Tabs
+            defaultValue={search.tab || tabsData[0].value}
+            onChange={(e) => handleChangeTab(e)}
+            inverted
+            radius={'md'}
+          >
+            <Stack>
+              <Tabs.List grow>
+                <Suspense fallback={<Skeleton height={30} radius="md" />}>
+                  <EnrollmentStudentFinalizationQueryProvider>
+                    {({ enrolledCourses, refetch }) => (
+                      <>
+                        {tabsData.map((tab) => (
+                          <Tabs.Tab
+                            disabled={
+                              tab.value === 'course-selection' &&
+                              isEnrollmentFinalized(enrolledCourses)
+                            }
+                            style={{
+                              borderTopWidth: rem(5),
+                            }}
+                            key={tab.value}
+                            value={tab.value}
+                            onClick={() =>
+                              // This will refetch the enrolled courses when switching to finalization tab
+                              // Which is useful when the user has enrolled something in the course selection tab
+                              tab.value == 'finalization' && refetch()
+                            }
+                          >
+                            <Text fw={500} fz={'sm'} c={'dark.5'}>
+                              {tab.label}
+                            </Text>
+                          </Tabs.Tab>
+                        ))}
+                      </>
+                    )}
+                  </EnrollmentStudentFinalizationQueryProvider>
+                </Suspense>
+              </Tabs.List>
+              {tabsData.map((tab) => (
+                <Tabs.Panel key={tab.value + '-panel'} value={tab.value}>
+                  <tab.Component />
+                </Tabs.Panel>
+              ))}
+            </Stack>
+          </Tabs>
+        </Stack>
+      </Container>
+    </ErrorBoundary>
   )
 }
 
 function CourseSelectionPanel() {
-  const { search, setDebouncedSearch } = useSearchState(route)
+  const { search, setSearch } = useSearchState(route)
 
   const handleSegmentedControlChange = (
     value: EnrollmentSearchSchema['status'],
   ) => {
-    setDebouncedSearch({ status: value })
+    setSearch({ status: value })
 
     // Invalidate the course offerings query here so it only refetches
     // on the enrolled and not enrolled tab and it retriggers suspense
