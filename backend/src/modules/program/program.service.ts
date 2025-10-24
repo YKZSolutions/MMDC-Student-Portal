@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -51,6 +52,10 @@ export class ProgramService {
   async create(
     @LogParam('dto') createProgramDto: CreateProgramDto,
   ): Promise<ProgramDto> {
+    if (createProgramDto.yearDuration && createProgramDto.yearDuration < 0) {
+      throw new BadRequestException('Year duration must not be negative');
+    }
+
     return await this.prisma.client.$transaction(async (tx) => {
       await tx.program
         .findFirst({
@@ -192,6 +197,10 @@ export class ProgramService {
     @LogParam('id') id: string,
     @LogParam('dto') updateProgramDto: UpdateProgramDto,
   ): Promise<ProgramDto> {
+    if (updateProgramDto.yearDuration && updateProgramDto.yearDuration < 0) {
+      throw new BadRequestException('Year duration must not be negative');
+    }
+
     return await this.prisma.client.$transaction(async (tx) => {
       //Validate for unique program code and name
       await tx.program
