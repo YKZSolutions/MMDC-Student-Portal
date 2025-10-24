@@ -194,11 +194,22 @@ export class ProgramService {
   ): Promise<ProgramDto> {
     return await this.prisma.client.$transaction(async (tx) => {
       await tx.program
-        .findUnique({
-          where: { programCode: updateProgramDto.programCode },
+        .findFirst({
+          where: {
+            OR: [
+              {
+                programCode: updateProgramDto.programCode,
+              },
+              {
+                name: updateProgramDto.name,
+              },
+            ],
+          },
         })
         .then((program) => {
-          if (program && program.id !== id) {
+          if (!program) throw new NotFoundException(`Program not found`);
+
+          if (program.id !== id) {
             if (program.programCode === updateProgramDto.programCode) {
               throw new ConflictException('Program code already exists');
             }
