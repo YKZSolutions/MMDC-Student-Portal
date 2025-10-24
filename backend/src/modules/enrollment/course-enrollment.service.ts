@@ -256,8 +256,8 @@ export class CourseEnrollmentService {
       if (enrolled) {
         if (
           enrolled.status === CourseEnrollmentStatus.enlisted ||
-          CourseEnrollmentStatus.finalized ||
-          CourseEnrollmentStatus.enrolled
+          enrolled.status === CourseEnrollmentStatus.finalized ||
+          enrolled.status === CourseEnrollmentStatus.enrolled
         ) {
           throw new ConflictException(
             'Already enrolled in this course offering',
