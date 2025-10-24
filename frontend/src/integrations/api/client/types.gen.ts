@@ -4407,6 +4407,60 @@ export type EnrollmentControllerUpdateEnrollmentStatusResponses = {
 
 export type EnrollmentControllerUpdateEnrollmentStatusResponse = EnrollmentControllerUpdateEnrollmentStatusResponses[keyof EnrollmentControllerUpdateEnrollmentStatusResponses];
 
+export type EnrollmentControllerExportActiveEnrollmentDataData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/enrollments/active/export';
+};
+
+export type EnrollmentControllerExportActiveEnrollmentDataErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerExportActiveEnrollmentDataError = EnrollmentControllerExportActiveEnrollmentDataErrors[keyof EnrollmentControllerExportActiveEnrollmentDataErrors];
+
+export type EnrollmentControllerExportActiveEnrollmentDataResponses = {
+    /**
+     * Excel file containing enrollment data
+     */
+    200: Blob | File;
+};
+
+export type EnrollmentControllerExportActiveEnrollmentDataResponse = EnrollmentControllerExportActiveEnrollmentDataResponses[keyof EnrollmentControllerExportActiveEnrollmentDataResponses];
+
+export type EnrollmentControllerExportEnrollmentDataData = {
+    body?: never;
+    path: {
+        enrollmentPeriodId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentPeriodId}/export';
+};
+
+export type EnrollmentControllerExportEnrollmentDataErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerExportEnrollmentDataError = EnrollmentControllerExportEnrollmentDataErrors[keyof EnrollmentControllerExportEnrollmentDataErrors];
+
+export type EnrollmentControllerExportEnrollmentDataResponses = {
+    /**
+     * Excel file containing enrollment data
+     */
+    200: Blob | File;
+};
+
+export type EnrollmentControllerExportEnrollmentDataResponse = EnrollmentControllerExportEnrollmentDataResponses[keyof EnrollmentControllerExportEnrollmentDataResponses];
+
 export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
     body?: never;
     path: {
