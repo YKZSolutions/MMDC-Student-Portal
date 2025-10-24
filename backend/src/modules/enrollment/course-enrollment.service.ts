@@ -384,7 +384,7 @@ export class CourseEnrollmentService {
       }
 
       if (
-        role === 'student' &&
+        role === Role.student &&
         courseEnrollment.status === CourseEnrollmentStatus.finalized
       ) {
         throw new BadRequestException(
