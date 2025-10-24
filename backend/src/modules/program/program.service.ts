@@ -201,10 +201,12 @@ export class ProgramService {
               { programCode: updateProgramDto.programCode },
               { name: updateProgramDto.name },
             ],
+            deletedAt: null,
+            NOT: { id },
           },
         })
         .then((program) => {
-          if (program && program.id !== id) {
+          if (program) {
             if (program.programCode === updateProgramDto.programCode) {
               throw new ConflictException(
                 'A program with this program code already exists',
