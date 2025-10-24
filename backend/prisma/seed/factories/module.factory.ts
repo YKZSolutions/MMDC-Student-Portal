@@ -24,15 +24,15 @@ export function createModuleData(
   courseId: string,
   courseOfferingId: string | null,
   index: number,
-): Prisma.ModuleCreateInput {
-  const baseData: Prisma.ModuleCreateInput = {
+): Prisma.ModuleCreateManyInput {
+  const baseData: Prisma.ModuleCreateManyInput = {
     title: `Module ${index + 1}: ${MODULE_TITLES[index] || faker.helpers.arrayElement(MODULE_TITLES)}`,
-    course: { connect: { id: courseId } },
+    courseId,
     publishedAt: faker.date.recent({ days: 30 }),
   };
 
   if (courseOfferingId) {
-    baseData.courseOffering = { connect: { id: courseOfferingId } };
+    baseData.courseOfferingId = courseOfferingId;
   }
 
   return baseData;
@@ -42,7 +42,7 @@ export function createModuleSectionData(
   moduleId: string,
   order: number,
   parentSectionId?: string,
-): Prisma.ModuleSectionCreateInput {
+): Prisma.ModuleSectionCreateManyInput {
   const title = parentSectionId
     ? `Topic ${order}: ${faker.lorem.words(2)}`
     : `Section ${order}: ${SECTION_TITLES[order - 1] || faker.helpers.arrayElement(SECTION_TITLES)}`;
@@ -50,9 +50,9 @@ export function createModuleSectionData(
   return {
     title,
     order,
-    module: { connect: { id: moduleId } },
+    moduleId,
     ...(parentSectionId && {
-      parentSection: { connect: { id: parentSectionId } },
+      parentSectionId,
     }),
     publishedAt: faker.date.recent({ days: 20 }),
   };
@@ -62,7 +62,7 @@ export function createModuleContentData(
   moduleSectionId: string,
   order: number,
   contentType: ContentType,
-): Prisma.ModuleContentCreateInput {
+): Prisma.ModuleContentCreateManyInput {
   const assignmentTitles = [
     'Assignment 1: Introduction to Programming',
     'Assignment 2: Data Structures and Algorithms',
@@ -78,7 +78,7 @@ export function createModuleContentData(
   return {
     order,
     contentType,
-    moduleSection: { connect: { id: moduleSectionId } },
+    moduleSectionId,
     publishedAt: faker.date.recent({ days: 10 }),
     title:
       contentType === ContentType.ASSIGNMENT
@@ -89,9 +89,9 @@ export function createModuleContentData(
 
 export function createAssignmentData(
   moduleContentId: string,
-): Prisma.AssignmentCreateInput {
+): Prisma.AssignmentCreateManyInput {
   return {
-    moduleContent: { connect: { id: moduleContentId } },
+    moduleContentId,
     mode: pickRandomEnum(AssignmentMode),
     dueDate: faker.date.soon({ days: 30 }),
     allowLateSubmission: Math.random() > 0.3,

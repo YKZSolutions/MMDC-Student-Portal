@@ -6,7 +6,6 @@ import { seedModules } from './seeders/modules.seeder';
 import { seedSubmissions } from './seeders/submissions.seeder';
 import { seedBilling } from './seeders/billing.seeder';
 import { seedNotifications } from './seeders/notifications.seeder';
-import { seedGrades } from './seeders/grades.seeder';
 import { seedSectionModules } from './seeders/section-modules.seeder';
 import { seedConfig } from './seed.config';
 import { deleteAllData } from './utils/delete-all-data';
@@ -43,18 +42,13 @@ async function main() {
 
       // Step 2: Seed Academics
       console.time('Seeded Academics');
-      const { programs, majors, courses, curriculums } =
-        await seedAcademics(tx);
+      const { programs, majors, courses } = await seedAcademics(tx);
       console.timeEnd('Seeded Academics');
 
       // Step 3: Seed Enrollments
       console.time('Seeded Enrollments');
-      const {
-        enrollmentPeriods,
-        courseOfferings,
-        courseSections,
-        courseEnrollments,
-      } = await seedEnrollments(tx, courses, mentors, students);
+      const { courseOfferings, courseSections, courseEnrollments } =
+        await seedEnrollments(tx, courses, mentors, students);
       console.timeEnd('Seeded Enrollments');
 
       // Step 4: Seed Modules and Content
@@ -68,32 +62,27 @@ async function main() {
 
       // Step 5: Link Sections to Modules
       console.time('Seeded Section Modules');
-      await seedSectionModules(tx, courseSections, modules);
+      const { sectionModules } = await seedSectionModules(
+        tx,
+        courseSections,
+        modules,
+      );
       console.timeEnd('Seeded Section Modules');
 
-      // Step 6: Seed Submissions & Progress
-      console.time('Seeded Submissions & Progress');
-      const { assignmentSubmissions, contentProgress } = await seedSubmissions(
-        tx,
-        courseEnrollments,
-        contents,
-        assignments,
-      );
-      console.timeEnd('Seeded Submissions & Progress');
-
-      // Step 7: Seed Grades
-      console.time('Seeded Grades');
-      await seedGrades(tx, [...assignmentSubmissions]);
-      console.timeEnd('Seeded Grades');
+      // Step 6: Seed Submissions, Progress, & Grades
+      console.time('Seeded Submissions, Progress, & Grades');
+      const { assignmentSubmissions, contentProgress, gradeRecords } =
+        await seedSubmissions(tx, courseEnrollments, contents, assignments);
+      console.timeEnd('Seeded Submissions, Progress, & Grades');
 
       // Step 9: Seed Billing
       console.time('Seeded Billing');
-      await seedBilling(tx, students);
+      const { bills, installments, payments } = await seedBilling(tx, students);
       console.timeEnd('Seeded Billing');
 
       // Step 10: Seed Notifications
       console.time('Seeded Notifications');
-      await seedNotifications(tx, users);
+      const { notifications, receipts } = await seedNotifications(tx, users);
       console.timeEnd('Seeded Notifications');
 
       console.timeEnd('Database seeded in');
@@ -110,10 +99,21 @@ async function main() {
       console.log(
         `📚 Course Content: ${modules.length} modules, ${contents.length} content items`,
       );
+      console.log(`🔗 Section Modules: ${sectionModules.length} relationships`);
       console.log(`📈 Progress: ${contentProgress.length} progress records`);
+      console.log(
+        `📝 Submissions: ${assignmentSubmissions.length} assignment submissions`,
+      );
+      console.log(`🏆 Grades: ${gradeRecords.length} grade records`);
+      console.log(
+        `💰 Billing: ${bills.length} bills, ${installments.length} installments, ${payments.length} payments`,
+      );
+      console.log(
+        `📢 Notifications: ${notifications.length} notifications, ${receipts.length} receipts`,
+      );
     },
     {
-      timeout: 120000, // 120-second timeout
+      timeout: 300000, // 300-second timeout
       maxWait: 30000, // Maximum wait time for the transaction
     },
   );

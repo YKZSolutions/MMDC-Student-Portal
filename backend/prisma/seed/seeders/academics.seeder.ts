@@ -1,4 +1,11 @@
-import { Course, Curriculum, Major, Program } from '@prisma/client';
+import {
+  Course,
+  Curriculum,
+  CurriculumCourse,
+  Major,
+  Prisma,
+  Program,
+} from '@prisma/client';
 
 import { log, pickRandom } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
@@ -6,6 +13,8 @@ import {
   createCourseData,
   createMajorData,
   createProgramData,
+  createCurriculumData,
+  createCurriculumCourseData,
 } from '../factories/academic.factory';
 import {
   MAJOR_SPECIALIZATIONS,
@@ -16,92 +25,208 @@ import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 export async function seedAcademics(prisma: PrismaTransaction) {
   log('Seeding academics (Programs, Majors, Courses, Curriculums)...');
 
-  // 1. Create Programs
-  const programs: Program[] = [];
+  // 1. Pre-calculate programs data for batch creation
+  const programsToCreate: Prisma.ProgramCreateManyInput[] = [];
   for (const programName of PROGRAM_NAMES) {
-    const program = await prisma.program.create({
-      data: createProgramData(programName),
-    });
-    programs.push(program);
+    programsToCreate.push(createProgramData(programName));
   }
+
+  // Batch create programs
+  if (programsToCreate.length > 0) {
+    await prisma.program.createMany({
+      data: programsToCreate,
+    });
+  }
+
+  // Fetch created programs
+  const programs = await prisma.program.findMany({
+    orderBy: [{ programCode: 'asc' }],
+  });
   log(`-> Created ${programs.length} programs.`);
 
-  // 2. Create Majors for each Program
-  const majors: Major[] = [];
+  // 2. Pre-calculate majors data for batch creation
+  const majorsToCreate: Prisma.MajorCreateManyInput[] = [];
   for (const specialization of MAJOR_SPECIALIZATIONS) {
     for (const program of programs) {
-      const major = await prisma.major.create({
-        data: createMajorData(
-          specialization,
-          program.id,
-          program.programCode,
-          program.name,
-        ),
-      });
-
-      majors.push(major);
+      majorsToCreate.push(createMajorData(
+        specialization,
+        program.id,
+        program.programCode,
+        program.name,
+      ));
     }
   }
+
+  // Batch create majors
+  if (majorsToCreate.length > 0) {
+    await prisma.major.createMany({
+      data: majorsToCreate,
+    });
+  }
+
+  // Fetch created majors
+  const majors = await prisma.major.findMany({
+    where: {
+      programId: {
+        in: programs.map(p => p.id),
+      },
+    },
+    include: {
+      program: true,
+    },
+  });
   log(`-> Created ${majors.length} majors.`);
 
-  // 3. Create Courses and link them to Majors
-  const courses: Course[] = [];
-  const majorCourseMap = new Map<string, Course[]>();
-  let index = 0;
+  // 3. Pre-calculate courses data for batch creation
+  const coursesToCreate: Prisma.CourseCreateManyInput[] = [];
+  const majorToCoursesMap = new Map<string, Course[]>();
+  let globalCourseIndex = 0;
 
   for (const major of majors) {
-    // Create courses sequentially to ensure unique course codes
-    const createdCourses: Course[] = [];
+    const majorCourses: Course[] = [];
+
     for (let i = 0; i < seedConfig.COURSES_PER_MAJOR; i++) {
-      const course = await prisma.course.create({
-        data: {
-          ...createCourseData(index, major.majorCode),
-          majors: { connect: { id: major.id } },
-        },
-      });
-      index++;
-      createdCourses.push(course);
-    }
-    courses.push(...createdCourses);
-    majorCourseMap.set(major.id, createdCourses);
-  }
-  log(`-> Created ${courses.length} courses.`);
-
-  // 4. Link some courses as prerequisites
-  for (const majorId of Array.from(majorCourseMap.keys())) {
-    const majorCourses = majorCourseMap.get(majorId)!;
-    for (let i = 0; i < majorCourses.length / 2; i++) {
-      const course = pickRandom(majorCourses);
-      const prereq = pickRandom(majorCourses.filter((c) => c.id !== course.id));
-      await prisma.course.update({
-        where: { id: course.id },
-        data: { prereqs: { connect: { id: prereq.id } } },
-      });
+      const courseData = createCourseData(globalCourseIndex, major.majorCode);
+      coursesToCreate.push(courseData);
+      globalCourseIndex++;
     }
   }
-  log(`-> Linked random course prerequisites.`);
 
-  // 5. Create a Curriculum for each Major and add courses to it
-  const curriculums: Curriculum[] = [];
+  // Batch create courses
+  if (coursesToCreate.length > 0) {
+    await prisma.course.createMany({
+      data: coursesToCreate,
+    });
+  }
+
+  // Fetch created courses
+  const courses = await prisma.course.findMany({
+    orderBy: [{ courseCode: 'asc' }],
+  });
+
+  // Create major-course relationships
+  const majorCourseConnections: Array<{ majorId: string; courseId: string }> = [];
+  let courseIndex = 0;
+
   for (const major of majors) {
-    const curriculum = await prisma.curriculum.create({
-      data: {
+    for (let i = 0; i < seedConfig.COURSES_PER_MAJOR; i++) {
+      majorCourseConnections.push({
         majorId: major.id,
-        name: `${major.name} Curriculum`,
-        description: `Official curriculum for ${major.name}`,
-        courses: {
-          create: majorCourseMap.get(major.id)!.map((course, i) => ({
-            courseId: course.id,
-            order: i + 1,
-            year: Math.floor(i / 5) + 1, // Simple logic for year/sem
-            semester: (i % 2) + 1,
-          })),
+        courseId: courses[courseIndex].id,
+      });
+      courseIndex++;
+    }
+  }
+
+  // Update courses with major relationships
+  for (const connection of majorCourseConnections) {
+    await prisma.course.update({
+      where: { id: connection.courseId },
+      data: {
+        majors: {
+          connect: { id: connection.majorId },
         },
       },
     });
-    curriculums.push(curriculum);
   }
+
+  log(`-> Created ${courses.length} courses and linked to majors.`);
+
+  // 4. Pre-calculate curriculums data for batch creation
+  const curriculumsToCreate: Prisma.CurriculumCreateManyInput[] = [];
+  for (const major of majors) {
+    curriculumsToCreate.push(createCurriculumData(major.id, major.name));
+  }
+
+  // Batch create curriculums
+  if (curriculumsToCreate.length > 0) {
+    await prisma.curriculum.createMany({
+      data: curriculumsToCreate,
+    });
+  }
+
+  // Fetch created curriculums
+  const curriculums = await prisma.curriculum.findMany({
+    where: {
+      majorId: {
+        in: majors.map(m => m.id),
+      },
+    },
+    include: {
+      major: true,
+    },
+  });
   log(`-> Created ${curriculums.length} curriculums.`);
+
+  // 5. Pre-calculate curriculum courses data for batch creation
+  const curriculumCoursesToCreate: Prisma.CurriculumCourseCreateManyInput[] = [];
+  courseIndex = 0;
+
+  for (const curriculum of curriculums) {
+    for (let i = 0; i < seedConfig.COURSES_PER_MAJOR; i++) {
+      curriculumCoursesToCreate.push(createCurriculumCourseData(
+        curriculum.id,
+        courses[courseIndex].id,
+        i,
+      ));
+      courseIndex++;
+    }
+  }
+
+  // Batch create curriculum courses
+  if (curriculumCoursesToCreate.length > 0) {
+    await prisma.curriculumCourse.createMany({
+      data: curriculumCoursesToCreate,
+    });
+  }
+
+  // Fetch created curriculum courses
+  const curriculumCourses = await prisma.curriculumCourse.findMany({
+    where: {
+      curriculumId: {
+        in: curriculums.map(c => c.id),
+      },
+    },
+    include: {
+      curriculum: true,
+      course: true,
+    },
+  });
+  log(`-> Created ${curriculumCourses.length} curriculum courses.`);
+
+  // 6. Set up some course prerequisites (optional optimization)
+  const prereqUpdates: Array<{ courseId: string; prereqId: string }> = [];
+  for (const curriculum of curriculums) {
+    const curriculumCourseIds = curriculumCourses
+      .filter(cc => cc.curriculumId === curriculum.id)
+      .map(cc => cc.courseId);
+
+    // Create prerequisites for about half the courses
+    for (let i = 0; i < curriculumCourseIds.length / 2; i++) {
+      const courseIndex = Math.floor(Math.random() * curriculumCourseIds.length);
+      const prereqIndex = Math.floor(Math.random() * curriculumCourseIds.length);
+
+      if (courseIndex !== prereqIndex) {
+        prereqUpdates.push({
+          courseId: curriculumCourseIds[courseIndex],
+          prereqId: curriculumCourseIds[prereqIndex],
+        });
+      }
+    }
+  }
+
+  // Update courses with prerequisites in batch
+  for (const update of prereqUpdates) {
+    await prisma.course.update({
+      where: { id: update.courseId },
+      data: {
+        prereqs: {
+          connect: { id: update.prereqId },
+        },
+      },
+    });
+  }
+  log(`-> Linked ${prereqUpdates.length} course prerequisites.`);
 
   return { programs, majors, courses, curriculums };
 }

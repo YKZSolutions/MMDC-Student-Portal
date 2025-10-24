@@ -10,10 +10,10 @@ import {
 import { pickRandomEnum } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 
-export function createBillData(student: User): Prisma.BillCreateInput {
+export function createBillData(student: User): Prisma.BillCreateManyInput {
   const totalAmount = faker.number.int({ min: 15000, max: 40000 });
   return {
-    user: { connect: { id: student.id } },
+    userId: student.id,
     payerName: `${student.firstName} ${student.lastName}`,
     payerEmail: faker.internet.email(),
     billType: pickRandomEnum(BillType),
@@ -38,10 +38,10 @@ export function createBillInstallmentData(
   billId: string,
   totalAmount: Prisma.Decimal,
   index: number,
-): Prisma.BillInstallmentCreateInput {
+): Prisma.BillInstallmentCreateManyInput {
   const amountToPay = totalAmount.toNumber() / seedConfig.BILL_INSTALLMENTS;
   return {
-    bill: { connect: { id: billId } },
+    billId,
     name: `Installment ${index + 1}`,
     installmentOrder: index + 1,
     amountToPay: new Prisma.Decimal(amountToPay),
@@ -54,10 +54,10 @@ export function createBillPaymentData(
   installmentId: string,
   installmentOrder: number,
   amountPaid: Prisma.Decimal,
-): Prisma.BillPaymentCreateInput {
+): Prisma.BillPaymentCreateManyInput {
   return {
-    bill: { connect: { id: billId } },
-    installment: { connect: { id: installmentId } },
+    billId,
+    installmentId,
     installmentOrder,
     amountPaid,
     paymentType: pickRandomEnum(PaymentType),
