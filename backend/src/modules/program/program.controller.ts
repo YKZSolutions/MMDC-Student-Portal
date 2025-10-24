@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  ValidationPipe,
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
@@ -15,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
 
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { Program } from '@/generated/nestjs-dto/program.entity';
@@ -97,7 +96,6 @@ export class ProgramController {
   /**
    * Retrieve a specific program by ID
    *
-   * @remarks Requires `ADMIN` role.
    *
    */
   @Get(':id')
@@ -127,8 +125,11 @@ export class ProgramController {
     description: 'Program updated successfully',
     type: Program,
   })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateProgramDto: UpdateProgramDto,

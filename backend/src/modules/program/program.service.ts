@@ -141,8 +141,8 @@ export class ProgramService {
       `Failed to find program id=${id} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Program not found`),
   })
   async findOne(@LogParam('id') id: string): Promise<ProgramDto> {
     return await this.prisma.client.program.findUniqueOrThrow({
@@ -212,8 +212,8 @@ export class ProgramService {
       `Failed to remove program id=${id} directDelete=${directDelete ?? false} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Program not found`),
     [PrismaErrorCode.TransactionDeadlock]: () =>
       new InternalServerErrorException(
         'Deleting program failed due to transaction deadlock',
