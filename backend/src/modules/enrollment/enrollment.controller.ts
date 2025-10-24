@@ -219,7 +219,7 @@ export class EnrollmentController {
    *
    * @throws NotFoundException If the enrollment period does not exist or no active period found
    */
-  @Get(':enrollmentId/export')
+  @Get(':enrollmentPeriodId/export')
   @Roles(Role.ADMIN)
   @ApiProduces(
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -237,15 +237,16 @@ export class EnrollmentController {
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   )
   async exportEnrollmentData(
-    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Param('enrollmentPeriodId', new ParseUUIDPipe())
+    enrollmentPeriodId: string,
     @Res() res: Response,
   ) {
     const buffer =
-      await this.enrollmentService.exportEnrollmentData(enrollmentId);
+      await this.enrollmentService.exportEnrollmentData(enrollmentPeriodId);
 
     // Get enrollment period info for filename
     const enrollmentPeriod =
-      await this.enrollmentService.findOneEnrollment(enrollmentId);
+      await this.enrollmentService.findOneEnrollment(enrollmentPeriodId);
 
     const filename = `enrollment-data-${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear}-term${enrollmentPeriod.term}.xlsx`;
 
