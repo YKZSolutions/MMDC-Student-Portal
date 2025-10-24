@@ -122,7 +122,7 @@ function BillingPage() {
   }
 
   return (
-    <Container size={'md'} pb={'xl'}>
+    <Container size={'md'} w={'100%'} pb={'xl'}>
       <Group align={'start'} pb={'lg'}>
         <Box>
           <Title c={'dark.7'} variant="hero" order={2} fw={700}>

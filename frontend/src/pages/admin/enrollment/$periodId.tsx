@@ -1,7 +1,7 @@
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import AsyncMentorCombobox from '@/features/enrollment/async-mentor-combobox'
-import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
-import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/suspense'
+import AsyncMentorCombobox from '@/features/enrollment/components/async-mentor-combobox'
+import EnrollmentBadgeStatus from '@/features/enrollment/components/enrollment-badge-status'
+import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/components/suspense'
 import type { PaginationSearch } from '@/features/pagination/search-validation'
 import {
   EditSectionFormSchema,

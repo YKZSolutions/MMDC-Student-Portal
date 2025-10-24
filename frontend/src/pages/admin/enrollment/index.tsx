@@ -1,12 +1,17 @@
 import { AsyncSearchable } from '@/components/async-searchable'
+import Filter from '@/components/filter'
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import EnrollmentBadgeStatus from '@/features/enrollment/enrollment-badge-status'
-import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/suspense'
+import EnrollmentBadgeStatus from '@/features/enrollment/components/enrollment-badge-status'
+import { SuspendedAdminEnrollmentTableRows } from '@/features/enrollment/components/suspense'
+import {
+  statusAdminFilterOptions,
+  termAdminFilterOptions,
+} from '@/features/enrollment/constants'
 import {
   enrollmentPeriodFormSchema,
   type EnrollmentPeriodFormInput,
   type EnrollmentPeriodFormOutput,
-} from '@/features/validation/create-enrollment.schema'
+} from '@/features/enrollment/schema/create-enrollment.schema'
 import { useQuickForm } from '@/hooks/use-quick-form'
 import { useSearchState } from '@/hooks/use-search-state'
 import type {
@@ -25,6 +30,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { getContext } from '@/integrations/tanstack-query/root-provider'
 import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
+import type { EnrollmentSearchSchema } from '@/routes/(protected)/enrollment'
 import { formatMetaToPagination, formatToSchoolYear } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -41,7 +47,6 @@ import {
   Stack,
   Table,
   Text,
-  TextInput,
   Title,
 } from '@mantine/core'
 import { DatePickerInput, YearPickerInput } from '@mantine/dates'
@@ -49,10 +54,8 @@ import { modals } from '@mantine/modals'
 import {
   IconDotsVertical,
   IconEye,
-  IconFilter2,
   IconPencil,
   IconPlus,
-  IconSearch,
   IconTrash,
   type ReactNode,
 } from '@tabler/icons-react'
@@ -67,6 +70,7 @@ const route = getRouteApi('/(protected)/enrollment/')
 
 function EnrollmentAdminQueryProvider({
   children,
+  props = { page: 1 },
 }: {
   children: (props: {
     enrollmentPeriods: EnrollmentPeriodDto[]
@@ -74,14 +78,16 @@ function EnrollmentAdminQueryProvider({
     message: string
     totalPages: number
   }) => ReactNode
+  props?: EnrollmentSearchSchema
 }) {
-  const { search, page } = route.useSearch()
+  const { page, activity, term } = props
 
   const { data } = useSuspenseQuery(
     enrollmentControllerFindAllEnrollmentsOptions({
       query: {
         page: page,
-        search: search || undefined,
+        status: activity,
+        term: term,
       },
     }),
   )
@@ -104,8 +110,24 @@ function EnrollmentAdminQueryProvider({
 }
 
 export default function EnrollmentAdminPage() {
-  const { search, handlePage } = useSearchState(route)
+  const { search, setSearch, handlePage, clearSearchParam } =
+    useSearchState(route)
   const navigate = route.useNavigate()
+
+  const handleTermFilter = (
+    term: EnrollmentSearchSchema['term'] | null,
+  ): void => {
+    setSearch({ term: term ?? undefined, page: undefined })
+  }
+
+  const handleStatusFilter = (
+    status: EnrollmentSearchSchema['activity'] | null,
+  ): void => {
+    setSearch({
+      activity: status ?? undefined,
+      page: undefined,
+    })
+  }
 
   return (
     <Container size={'md'} w="100%" pb={'xl'}>
@@ -132,28 +154,24 @@ export default function EnrollmentAdminPage() {
             align="center"
           >
             {/* Changed spacing to gap */}
-            <TextInput
-              placeholder="Search year/term/date"
-              radius={'md'}
-              leftSection={<IconSearch size={18} stroke={1} />}
-              w={{
-                base: '100%',
-                xs: rem(250),
-              }}
-              // onChange={(e) => handleSearch(e.currentTarget.value)}
-            />
-            <Button
-              w={{
-                base: '100%',
-                xs: 'auto',
-              }}
-              variant="default"
-              radius={'md'}
-              leftSection={<IconFilter2 color="gray" size={20} />}
-              lts={rem(0.25)}
+            <Filter
+              title="Filter Enrollments"
+              shouldExpand
+              handleResetFilter={clearSearchParam}
             >
-              Filters
-            </Button>
+              <Filter.Category
+                label="Term"
+                options={termAdminFilterOptions}
+                matchedSearch={search.term}
+                handleSelectFilter={handleTermFilter}
+              />
+              <Filter.Category
+                label="Status"
+                options={statusAdminFilterOptions}
+                matchedSearch={search.activity}
+                handleSelectFilter={handleStatusFilter}
+              />
+            </Filter>
             <Button
               w={{
                 base: '100%',
@@ -183,7 +201,7 @@ export default function EnrollmentAdminPage() {
 
           {/* Pagination */}
           <Suspense fallback={<SuspendedPagination />}>
-            <EnrollmentAdminQueryProvider>
+            <EnrollmentAdminQueryProvider props={search}>
               {(props) => (
                 <Group justify="flex-end">
                   <Text size="sm">{props.message}</Text>
@@ -204,6 +222,7 @@ export default function EnrollmentAdminPage() {
 }
 
 function EnrollmentTable() {
+  const { search } = useSearchState(route)
   const navigate = route.useNavigate()
 
   const { mutateAsync: remove } = useAppMutation(
@@ -320,7 +339,7 @@ function EnrollmentTable() {
           }}
         >
           <Suspense fallback={<SuspendedAdminEnrollmentTableRows />}>
-            <EnrollmentAdminQueryProvider>
+            <EnrollmentAdminQueryProvider props={search}>
               {(props) =>
                 props.enrollmentPeriods.map((period) => (
                   <Table.Tr

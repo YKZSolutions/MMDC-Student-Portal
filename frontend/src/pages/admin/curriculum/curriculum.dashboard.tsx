@@ -15,11 +15,8 @@ import {
 } from '@mantine/core'
 import {
   IconBox,
-  IconChartAreaLineFilled,
-  IconCode,
   IconPlus,
   IconSearch,
-  IconShieldFilled,
   type ReactNode,
 } from '@tabler/icons-react'
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -33,7 +30,7 @@ export default function CurriculumDashboard() {
   )
 
   return (
-    <Container fluid m={0}>
+    <Container size={'md'} w={'100%'}>
       <Box pb={'xl'}>
         <Title c={'dark.7'} variant="hero" order={2} fw={700}>
           Curriculum Management
@@ -59,10 +56,9 @@ export default function CurriculumDashboard() {
         <SimpleGrid
           cols={{
             base: 1,
-            sm: 2,
             md: 2,
-            lg: 3,
-            xl: 4,
+            lg: 2,
+            xl: 2,
           }}
         >
           {curriculums.map((curriculum) => (

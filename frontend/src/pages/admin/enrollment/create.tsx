@@ -1,8 +1,7 @@
 import {
   enrollmentPeriodFormSchema,
-  type EnrollmentPeriodFormInput,
-  type EnrollmentPeriodFormOutput,
-} from '@/features/validation/create-enrollment.schema'
+  type EnrollmentPeriodFormInput
+} from '@/features/enrollment/schema/create-enrollment.schema'
 import {
   billingControllerFindAllQueryKey,
   enrollmentControllerCreateEnrollmentMutation,

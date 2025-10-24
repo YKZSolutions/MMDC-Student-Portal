@@ -9,26 +9,14 @@ import { useAppMutation } from '@/integrations/tanstack-query/useAppMutation'
 import { Badge, Box, Menu, rem, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useLocation } from '@tanstack/react-router'
+import { enrollmentBadgeStatus } from '../constants'
 import {
   zodStatusEnum,
   type EnrollmentStatus,
-} from '../validation/create-enrollment.schema'
-
-const STATUS_STYLES: Record<
-  EnrollmentStatus,
-  { color: string; label: string }
-> = {
-  draft: { color: 'gray', label: 'Draft' },
-  upcoming: { color: 'indigo', label: 'Upcoming' },
-  active: { color: 'green.9', label: 'Active' },
-  extended: { color: 'blue', label: 'Extended' },
-  closed: { color: 'orange', label: 'Closed' },
-  canceled: { color: 'red', label: 'Canceled' },
-  archived: { color: 'dark', label: 'Archived' },
-}
+} from '../schema/create-enrollment.schema'
 
 function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
-  const { color, label } = STATUS_STYLES[period.status]
+  const { color, label } = enrollmentBadgeStatus[period.status]
   const location = useLocation()
 
   const { mutateAsync: updateStatus } = useAppMutation(
@@ -167,7 +155,7 @@ function EnrollmentBadgeStatus({ period }: { period: EnrollmentPeriodDto }) {
           >
             <Badge
               style={{ cursor: 'pointer' }}
-              color={STATUS_STYLES[statusOption].color}
+              color={enrollmentBadgeStatus[statusOption].color}
               radius="xl"
               size={'lg'}
               variant="dot"

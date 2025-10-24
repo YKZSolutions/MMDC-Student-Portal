@@ -16,11 +16,7 @@ import {
   TextInput,
   useCombobox,
 } from '@mantine/core'
-import {
-  useQuery,
-  useSuspenseQuery,
-  type UseSuspenseQueryOptions,
-} from '@tanstack/react-query'
+import { useQuery, type UseSuspenseQueryOptions } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 
 import { Suspense, useState, type ReactNode } from 'react'
@@ -79,7 +75,8 @@ export default function AsyncTermCombobox() {
     setSelected(parsed)
     navigate({
       to: '.',
-      search: (old) => ({
+      // Fixes issue with inferring validateSearch schema
+      search: (old: any) => ({
         ...old,
         term: parsed.id,
       }),
