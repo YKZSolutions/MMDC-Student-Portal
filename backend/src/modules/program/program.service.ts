@@ -195,10 +195,10 @@ export class ProgramService {
     return await this.prisma.client.$transaction(async (tx) => {
       await tx.program
         .findUnique({
-          where: { id },
+          where: { programCode: updateProgramDto.programCode },
         })
         .then((program) => {
-          if (program) {
+          if (program && program.id !== id) {
             if (program.programCode === updateProgramDto.programCode) {
               throw new ConflictException('Program code already exists');
             }
