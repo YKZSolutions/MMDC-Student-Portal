@@ -193,28 +193,27 @@ export class ProgramService {
     @LogParam('dto') updateProgramDto: UpdateProgramDto,
   ): Promise<ProgramDto> {
     return await this.prisma.client.$transaction(async (tx) => {
+      //Validate for unique program code and name
       await tx.program
         .findFirst({
           where: {
             OR: [
-              {
-                programCode: updateProgramDto.programCode,
-              },
-              {
-                name: updateProgramDto.name,
-              },
+              { programCode: updateProgramDto.programCode },
+              { name: updateProgramDto.name },
             ],
           },
         })
         .then((program) => {
-          if (!program) throw new NotFoundException(`Program not found`);
-
-          if (program.id !== id) {
+          if (program && program.id !== id) {
             if (program.programCode === updateProgramDto.programCode) {
-              throw new ConflictException('Program code already exists');
+              throw new ConflictException(
+                'A program with this program code already exists',
+              );
             }
             if (program.name === updateProgramDto.name) {
-              throw new ConflictException('Program name already exists');
+              throw new ConflictException(
+                'A program with this name already exists',
+              );
             }
           }
         });
