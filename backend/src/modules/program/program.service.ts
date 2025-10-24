@@ -8,7 +8,10 @@ import {
 } from '@nestjs/common';
 
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { Prisma } from '@prisma/client';
@@ -52,34 +55,12 @@ export class ProgramService {
   async create(
     @LogParam('dto') createProgramDto: CreateProgramDto,
   ): Promise<ProgramDto> {
-    if (createProgramDto.yearDuration && createProgramDto.yearDuration < 0) {
-      throw new BadRequestException('Year duration must not be negative');
-    }
-
     return await this.prisma.client.$transaction(async (tx) => {
-      await tx.program
-        .findFirst({
-          where: {
-            deletedAt: null,
-            OR: [
-              { programCode: createProgramDto.programCode },
-              { name: createProgramDto.name },
-            ],
-          },
-        })
-        .then((program) => {
-          if (program) {
-            if (program.programCode === createProgramDto.programCode) {
-              throw new ConflictException('Program code already exists');
-            }
+      // Validate data
+      await this.validateMutationData(createProgramDto, tx);
 
-            if (program.name === createProgramDto.name) {
-              throw new ConflictException('Program name already exists');
-            }
-          }
-        });
-
-      return this.prisma.client.program.create({
+      // If no conflict, create the new program
+      return tx.program.create({
         data: createProgramDto,
       });
     });
@@ -197,37 +178,9 @@ export class ProgramService {
     @LogParam('id') id: string,
     @LogParam('dto') updateProgramDto: UpdateProgramDto,
   ): Promise<ProgramDto> {
-    if (updateProgramDto.yearDuration && updateProgramDto.yearDuration < 0) {
-      throw new BadRequestException('Year duration must not be negative');
-    }
-
     return await this.prisma.client.$transaction(async (tx) => {
-      //Validate for unique program code and name
-      await tx.program
-        .findFirst({
-          where: {
-            OR: [
-              { programCode: updateProgramDto.programCode },
-              { name: updateProgramDto.name },
-            ],
-            deletedAt: null,
-            NOT: { id },
-          },
-        })
-        .then((program) => {
-          if (program) {
-            if (program.programCode === updateProgramDto.programCode) {
-              throw new ConflictException(
-                'A program with this program code already exists',
-              );
-            }
-            if (program.name === updateProgramDto.name) {
-              throw new ConflictException(
-                'A program with this name already exists',
-              );
-            }
-          }
-        });
+      // Validate data
+      await this.validateMutationData(updateProgramDto, tx, id);
 
       return tx.program.update({
         where: { id, deletedAt: null },
@@ -287,5 +240,65 @@ export class ProgramService {
     });
 
     return new MessageDto('Program deleted permanently');
+  }
+
+  async validateMutationData(
+    programToCheck: UpdateProgramDto | CreateProgramDto,
+    transactionClient: PrismaTransaction,
+    id?: string,
+  ) {
+    if (programToCheck.yearDuration && programToCheck.yearDuration < 0) {
+      throw new BadRequestException('Year duration must not be negative');
+    }
+
+    // Case-insensitive search to find any existing program with a matching programCode or name
+    const existingProgram = await transactionClient.program.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [
+          {
+            programCode: {
+              equals: programToCheck.programCode,
+              mode: Prisma.QueryMode.insensitive, // Case-insensitive search for programCode
+            },
+          },
+          {
+            name: {
+              equals: programToCheck.name,
+              mode: Prisma.QueryMode.insensitive, // Case-insensitive search for name
+            },
+          },
+        ],
+        NOT: { id },
+      },
+    });
+
+    if (existingProgram) {
+      // Check if the existing program's programCode matches the new one
+      if (programToCheck.programCode) {
+        const incomingCodeLower = programToCheck.programCode.toLowerCase();
+        const existingCodeLower = existingProgram.programCode.toLowerCase();
+
+        // Check if the programCode is a match
+        if (existingCodeLower === incomingCodeLower) {
+          throw new ConflictException(
+            `Program code '${existingProgram.programCode}' already exists`,
+          );
+        }
+      }
+
+      // Check if the existing program's name matches the new one
+      if (programToCheck.name) {
+        const incomingNameLower = programToCheck.name.toLowerCase();
+        const existingNameLower = existingProgram.name.toLowerCase();
+
+        // Check if the name is a match
+        if (existingNameLower === incomingNameLower) {
+          throw new ConflictException(
+            `Program name '${existingProgram.name}' already exists`,
+          );
+        }
+      }
+    }
   }
 }
