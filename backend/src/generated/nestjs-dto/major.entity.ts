@@ -31,8 +31,9 @@ export class Major {
   name: string;
   @ApiProperty({
     type: 'string',
+    nullable: true,
   })
-  description: string;
+  description: string | null;
   @ApiProperty({
     type: 'boolean',
   })

@@ -21141,7 +21141,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -21151,7 +21152,6 @@
         "required": [
           "programCode",
           "name",
-          "description",
           "yearDuration"
         ]
       },
@@ -21168,7 +21168,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -21240,7 +21241,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean"
@@ -21311,7 +21313,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -21356,7 +21359,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -22713,13 +22717,13 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
           "majorCode",
-          "name",
-          "description"
+          "name"
         ]
       },
       "CreateProgramMajorDto": {
@@ -22751,7 +22755,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean"
@@ -22791,7 +22796,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -22811,7 +22817,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean"

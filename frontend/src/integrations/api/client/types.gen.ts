@@ -901,7 +901,7 @@ export type UpdateBillPaymentDto = {
 export type CreateProgramDto = {
     programCode: string;
     name: string;
-    description: string;
+    description?: string | null;
     yearDuration: number;
 };
 
@@ -909,7 +909,7 @@ export type ProgramDto = {
     id: string;
     programCode: string;
     name: string;
-    description: string;
+    description: string | null;
     yearDuration: number;
     isActive: boolean;
     createdAt: string;
@@ -926,7 +926,7 @@ export type MajorItemDto = {
     id: string;
     majorCode: string;
     name: string;
-    description: string;
+    description: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -943,7 +943,7 @@ export type Program = {
     id: string;
     programCode: string;
     name: string;
-    description: string;
+    description: string | null;
     yearDuration: number;
     isActive: boolean;
     createdAt: string;
@@ -954,7 +954,7 @@ export type Program = {
 export type UpdateProgramDto = {
     programCode?: string;
     name?: string;
-    description?: string;
+    description?: string | null;
     yearDuration?: number;
 };
 
@@ -1301,7 +1301,7 @@ export type FinalizeEnrollmentDto = {
 export type CreateMajorDto = {
     majorCode: string;
     name: string;
-    description: string;
+    description?: string | null;
 };
 
 export type CreateProgramMajorDto = {
@@ -1313,7 +1313,7 @@ export type MajorDto = {
     id: string;
     majorCode: string;
     name: string;
-    description: string;
+    description: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -1323,7 +1323,7 @@ export type MajorDto = {
 export type UpdateMajorDto = {
     majorCode?: string;
     name?: string;
-    description?: string;
+    description?: string | null;
 };
 
 export type Major = {
@@ -1331,7 +1331,7 @@ export type Major = {
     programId: string;
     majorCode: string;
     name: string;
-    description: string;
+    description: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
