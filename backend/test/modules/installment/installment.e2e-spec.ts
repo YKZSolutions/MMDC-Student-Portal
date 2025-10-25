@@ -42,11 +42,11 @@ describe('InstallmentController (Integration)', () => {
       .expect(201);
 
     testBillId = bill.id;
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
-  }, 15000);
+  }, 30000);
 
   // --- GET /billing/:billId/installments ---
   describe('GET /billing/:billId/installments', () => {

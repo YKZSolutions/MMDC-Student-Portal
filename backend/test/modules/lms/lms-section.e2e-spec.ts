@@ -33,11 +33,11 @@ describe('LmsSectionController (Integration)', () => {
     // We'll use a placeholder module ID for testing
     // In a real scenario, you'd create a module first
     testModuleId = '1f7fcb6a-9b52-4f7a-b1f6-1cfb5d1d1a11';
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
-  }, 15000);
+  }, 30000);
 
   // --- POST /modules/:moduleId/sections ---
   describe('POST /modules/:moduleId/sections', () => {

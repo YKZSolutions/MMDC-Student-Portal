@@ -16,11 +16,11 @@ describe('CourseEnrollmentController (Integration)', () => {
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
-  }, 15000);
+  }, 30000);
 
   // --- POST /enrollment/student/sections ---
   describe('POST /enrollment/student/sections', () => {

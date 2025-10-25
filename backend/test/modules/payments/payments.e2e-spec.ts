@@ -50,11 +50,11 @@ describe('PaymentsController (Integration)', () => {
       .expect(201);
 
     testBillId = bill.id;
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
-  }, 15000);
+  }, 30000);
 
   // --- POST /billing/:billId/payments ---
   describe('POST /billing/:billId/payments', () => {

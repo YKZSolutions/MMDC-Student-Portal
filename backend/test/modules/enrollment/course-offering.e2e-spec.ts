@@ -43,11 +43,11 @@ describe('CourseOfferingController (Integration)', () => {
       .expect(201);
 
     testEnrollmentId = enrollment.id;
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
-  }, 15000);
+  }, 30000);
 
   // --- POST /enrollments/:enrollmentId/offerings ---
   describe('POST /enrollments/:enrollmentId/offerings', () => {

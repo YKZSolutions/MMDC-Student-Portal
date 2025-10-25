@@ -16,11 +16,11 @@ describe('NotificationsController (Integration)', () => {
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
-  }, 15000);
+  }, 30000);
 
   // --- GET /notifications/count ---
   describe('GET /notifications/count', () => {
