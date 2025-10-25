@@ -3,12 +3,14 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsUUID,
   ValidateNested,
 } from 'class-validator';
 
 export class UpdateCurriculumWithCourseDto {
+  @IsOptional()
   @IsUUID()
   majorId?: string;
 
@@ -22,7 +24,7 @@ export class UpdateCurriculumWithCourseDto {
   courses: UpdateCurriculumCourseItemDto[];
 }
 
-class UpdateCurriculumCourseItemDto {
+export class UpdateCurriculumCourseItemDto {
   @IsUUID()
   courseId: string;
 

@@ -217,6 +217,10 @@ export class CurriculumService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Curriculum with id=${id} was not found`),
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new BadRequestException(
+        `Missing relevant records to update the curriculum.`,
+      ),
   })
   async update(
     @LogParam('id') id: string,
@@ -233,27 +237,37 @@ export class CurriculumService {
 
       // Update or create curriculum courses
       for (const course of updateCurriculumDto.courses) {
-        await tx.curriculumCourse.upsert({
+        // Find existing non-deleted record
+        const existing = await tx.curriculumCourse.findFirst({
           where: {
-            curriculumId_courseId_deletedAt: {
-              curriculumId: id,
-              courseId: course.courseId,
-              deletedAt: null as any,
-            },
-          },
-          update: {
-            year: course.year,
-            semester: course.semester,
-            order: course.order,
-          },
-          create: {
             curriculumId: id,
             courseId: course.courseId,
-            year: course.year,
-            semester: course.semester,
-            order: course.order,
+            deletedAt: null,
           },
         });
+
+        if (existing) {
+          // Update existing
+          await tx.curriculumCourse.update({
+            where: { id: existing.id },
+            data: {
+              year: course.year,
+              semester: course.semester,
+              order: course.order,
+            },
+          });
+        } else {
+          // Create new
+          await tx.curriculumCourse.create({
+            data: {
+              curriculumId: id,
+              courseId: course.courseId,
+              year: course.year,
+              semester: course.semester,
+              order: course.order,
+            },
+          });
+        }
       }
 
       await tx.curriculumCourse.updateMany({
@@ -320,7 +334,7 @@ export class CurriculumService {
           });
         });
 
-        return new MessageDto('Curriculum has been soft deleted');
+        return new MessageDto('Curriculum marked for deletion');
       }
     }
 
@@ -334,6 +348,6 @@ export class CurriculumService {
       });
     });
 
-    return new MessageDto('Curriculum has been permanently deleted');
+    return new MessageDto('Curriculum permanently deleted');
   }
 }

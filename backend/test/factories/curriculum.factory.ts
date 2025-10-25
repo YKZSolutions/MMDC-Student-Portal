@@ -11,7 +11,10 @@
  */
 
 import { CreateCurriculumWithCoursesDto } from '@/modules/curriculum/dto/create-curriculum.dto';
-import { UpdateCurriculumWithCourseDto } from '@/modules/curriculum/dto/update-curriculum.dto';
+import {
+  UpdateCurriculumCourseItemDto,
+  UpdateCurriculumWithCourseDto,
+} from '@/modules/curriculum/dto/update-curriculum.dto';
 import { CreateCurriculumDto } from '@/generated/nestjs-dto/create-curriculum.dto';
 import { v4 } from 'uuid';
 
@@ -37,7 +40,7 @@ const generateCourseItem = (
   order: number,
   year: number,
   semester: number,
-) => ({
+): UpdateCurriculumCourseItemDto => ({
   courseId,
   order,
   year,
@@ -91,7 +94,7 @@ export const createCurriculumUpdate = (
     courseIds?: string[];
   } = {},
 ): UpdateCurriculumWithCourseDto => {
-  const majorId = overrides.majorId || v4();
+  const majorId = overrides.majorId;
   const courseIds = overrides.courseIds || [v4(), v4()];
 
   return {

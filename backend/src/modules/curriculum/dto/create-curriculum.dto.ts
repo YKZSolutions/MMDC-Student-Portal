@@ -22,7 +22,7 @@ export class CreateCurriculumWithCoursesDto {
   courses: CreateCurriculumCourseItemDto[];
 }
 
-class CreateCurriculumCourseItemDto {
+export class CreateCurriculumCourseItemDto {
   @IsUUID()
   courseId: string;
 
