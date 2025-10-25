@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class AppointmentStudentIdMentorIdStartAtUniqueInputDto {
+export class AppointmentStudentIdMentorIdStartAtDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -28,9 +28,16 @@ export class AppointmentStudentIdMentorIdStartAtUniqueInputDto {
   @IsNotEmpty()
   @IsDateString()
   startAt: Date;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
-@ApiExtraModels(AppointmentStudentIdMentorIdStartAtUniqueInputDto)
+@ApiExtraModels(AppointmentStudentIdMentorIdStartAtDeletedAtUniqueInputDto)
 export class ConnectAppointmentDto {
   @ApiProperty({
     type: 'string',
@@ -40,11 +47,11 @@ export class ConnectAppointmentDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: AppointmentStudentIdMentorIdStartAtUniqueInputDto,
+    type: AppointmentStudentIdMentorIdStartAtDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => AppointmentStudentIdMentorIdStartAtUniqueInputDto)
-  studentId_mentorId_startAt?: AppointmentStudentIdMentorIdStartAtUniqueInputDto;
+  @Type(() => AppointmentStudentIdMentorIdStartAtDeletedAtUniqueInputDto)
+  studentId_mentorId_startAt_deletedAt?: AppointmentStudentIdMentorIdStartAtDeletedAtUniqueInputDto;
 }

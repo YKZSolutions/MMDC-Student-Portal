@@ -1,5 +1,6 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -7,7 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class CurriculumCourseCurriculumIdCourseIdUniqueInputDto {
+export class CurriculumCourseCurriculumIdCourseIdDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -20,9 +21,16 @@ export class CurriculumCourseCurriculumIdCourseIdUniqueInputDto {
   @IsNotEmpty()
   @IsString()
   courseId: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
-@ApiExtraModels(CurriculumCourseCurriculumIdCourseIdUniqueInputDto)
+@ApiExtraModels(CurriculumCourseCurriculumIdCourseIdDeletedAtUniqueInputDto)
 export class ConnectCurriculumCourseDto {
   @ApiProperty({
     type: 'string',
@@ -32,11 +40,11 @@ export class ConnectCurriculumCourseDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: CurriculumCourseCurriculumIdCourseIdUniqueInputDto,
+    type: CurriculumCourseCurriculumIdCourseIdDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => CurriculumCourseCurriculumIdCourseIdUniqueInputDto)
-  curriculumId_courseId?: CurriculumCourseCurriculumIdCourseIdUniqueInputDto;
+  @Type(() => CurriculumCourseCurriculumIdCourseIdDeletedAtUniqueInputDto)
+  curriculumId_courseId_deletedAt?: CurriculumCourseCurriculumIdCourseIdDeletedAtUniqueInputDto;
 }

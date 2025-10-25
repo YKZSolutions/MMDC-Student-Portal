@@ -1,6 +1,48 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
+export class ProgramProgramCodeDeletedAtUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  programCode: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
+}
+export class ProgramNameDeletedAtUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
+}
+
+@ApiExtraModels(
+  ProgramProgramCodeDeletedAtUniqueInputDto,
+  ProgramNameDeletedAtUniqueInputDto,
+)
 export class ConnectProgramDto {
   @ApiProperty({
     type: 'string',
@@ -10,17 +52,19 @@ export class ConnectProgramDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: 'string',
+    type: ProgramProgramCodeDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  programCode?: string;
+  @ValidateNested()
+  @Type(() => ProgramProgramCodeDeletedAtUniqueInputDto)
+  programCode_deletedAt?: ProgramProgramCodeDeletedAtUniqueInputDto;
   @ApiProperty({
-    type: 'string',
+    type: ProgramNameDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  name?: string;
+  @ValidateNested()
+  @Type(() => ProgramNameDeletedAtUniqueInputDto)
+  name_deletedAt?: ProgramNameDeletedAtUniqueInputDto;
 }

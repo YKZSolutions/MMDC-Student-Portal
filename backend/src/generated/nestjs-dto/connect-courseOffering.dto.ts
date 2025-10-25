@@ -1,5 +1,6 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -7,7 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class CourseOfferingCourseIdPeriodIdUniqueInputDto {
+export class CourseOfferingCourseIdPeriodIdDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -20,9 +21,16 @@ export class CourseOfferingCourseIdPeriodIdUniqueInputDto {
   @IsNotEmpty()
   @IsString()
   periodId: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
-@ApiExtraModels(CourseOfferingCourseIdPeriodIdUniqueInputDto)
+@ApiExtraModels(CourseOfferingCourseIdPeriodIdDeletedAtUniqueInputDto)
 export class ConnectCourseOfferingDto {
   @ApiProperty({
     type: 'string',
@@ -32,11 +40,11 @@ export class ConnectCourseOfferingDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: CourseOfferingCourseIdPeriodIdUniqueInputDto,
+    type: CourseOfferingCourseIdPeriodIdDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => CourseOfferingCourseIdPeriodIdUniqueInputDto)
-  courseId_periodId?: CourseOfferingCourseIdPeriodIdUniqueInputDto;
+  @Type(() => CourseOfferingCourseIdPeriodIdDeletedAtUniqueInputDto)
+  courseId_periodId_deletedAt?: CourseOfferingCourseIdPeriodIdDeletedAtUniqueInputDto;
 }

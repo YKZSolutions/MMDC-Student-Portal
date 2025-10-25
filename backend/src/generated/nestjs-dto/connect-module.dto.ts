@@ -1,5 +1,6 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -7,7 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ModuleCourseIdCourseOfferingIdUniqueInputDto {
+export class ModuleCourseIdCourseOfferingIdDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -20,8 +21,15 @@ export class ModuleCourseIdCourseOfferingIdUniqueInputDto {
   @IsNotEmpty()
   @IsString()
   courseOfferingId: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
-export class ModuleCourseIdCourseOfferingIdTitleUniqueInputDto {
+export class ModuleCourseIdCourseOfferingIdTitleDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -40,11 +48,18 @@ export class ModuleCourseIdCourseOfferingIdTitleUniqueInputDto {
   @IsNotEmpty()
   @IsString()
   title: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
 @ApiExtraModels(
-  ModuleCourseIdCourseOfferingIdUniqueInputDto,
-  ModuleCourseIdCourseOfferingIdTitleUniqueInputDto,
+  ModuleCourseIdCourseOfferingIdDeletedAtUniqueInputDto,
+  ModuleCourseIdCourseOfferingIdTitleDeletedAtUniqueInputDto,
 )
 export class ConnectModuleDto {
   @ApiProperty({
@@ -55,19 +70,19 @@ export class ConnectModuleDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: ModuleCourseIdCourseOfferingIdUniqueInputDto,
+    type: ModuleCourseIdCourseOfferingIdDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => ModuleCourseIdCourseOfferingIdUniqueInputDto)
-  courseId_courseOfferingId?: ModuleCourseIdCourseOfferingIdUniqueInputDto;
+  @Type(() => ModuleCourseIdCourseOfferingIdDeletedAtUniqueInputDto)
+  courseId_courseOfferingId_deletedAt?: ModuleCourseIdCourseOfferingIdDeletedAtUniqueInputDto;
   @ApiProperty({
-    type: ModuleCourseIdCourseOfferingIdTitleUniqueInputDto,
+    type: ModuleCourseIdCourseOfferingIdTitleDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => ModuleCourseIdCourseOfferingIdTitleUniqueInputDto)
-  courseId_courseOfferingId_title?: ModuleCourseIdCourseOfferingIdTitleUniqueInputDto;
+  @Type(() => ModuleCourseIdCourseOfferingIdTitleDeletedAtUniqueInputDto)
+  courseId_courseOfferingId_title_deletedAt?: ModuleCourseIdCourseOfferingIdTitleDeletedAtUniqueInputDto;
 }

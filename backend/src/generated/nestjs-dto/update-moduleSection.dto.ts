@@ -12,11 +12,10 @@ export class UpdateModuleSectionDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
-    default: 0,
+    default: 1,
     required: false,
-    nullable: true,
   })
   @IsOptional()
   @IsInt()
-  order?: number | null;
+  order?: number;
 }

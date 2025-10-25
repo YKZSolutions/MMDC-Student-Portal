@@ -1,43 +1,14 @@
 import { Prisma } from '@prisma/client';
-import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
   IsInt,
-  IsNotEmpty,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  ConnectModuleSectionDto,
-  type ConnectModuleSectionDto as ConnectModuleSectionDtoAsType,
-} from './connect-moduleSection.dto';
 
-export class UpdateModuleContentModuleSectionRelationInputDto {
-  @ApiProperty({
-    type: ConnectModuleSectionDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ConnectModuleSectionDto)
-  connect: ConnectModuleSectionDtoAsType;
-}
-
-@ApiExtraModels(
-  ConnectModuleSectionDto,
-  UpdateModuleContentModuleSectionRelationInputDto,
-)
 export class UpdateModuleContentDto {
-  @ApiProperty({
-    required: false,
-    type: UpdateModuleContentModuleSectionRelationInputDto,
-  })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateModuleContentModuleSectionRelationInputDto)
-  moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
   @ApiProperty({
     type: 'string',
     required: false,

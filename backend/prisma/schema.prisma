@@ -178,8 +178,8 @@ model Program {
   /// @DtoApiHidden
   majors Major[]
 
-  programCode  String  @unique
-  name         String  @unique
+  programCode  String
+  name         String
   description  String
   yearDuration Int
   isActive     Boolean @default(true)
@@ -190,6 +190,9 @@ model Program {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([programCode, deletedAt]) // Unique constraint on programCode AND deletedAt
+  @@unique([name, deletedAt]) // Unique constraint on name AND deletedAt
 }
 
 model Major {
@@ -204,8 +207,8 @@ model Major {
   /// @DtoApiHidden
   curriculums Curriculum[]
 
-  majorCode   String  @unique
-  name        String  @unique
+  majorCode   String
+  name        String
   description String
   isActive    Boolean @default(true)
 
@@ -215,6 +218,9 @@ model Major {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([majorCode, deletedAt]) // Unique constraint on majorCode AND deletedAt
+  @@unique([name, deletedAt]) // Unique constraint on name AND deletedAt
 }
 
 model Course {
@@ -234,8 +240,8 @@ model Course {
 
   curriculumCourses CurriculumCourse[]
 
-  courseCode  String  @unique
-  name        String  @unique
+  courseCode  String
+  name        String
   description String?
   units       Int
   type        String
@@ -250,6 +256,9 @@ model Course {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([courseCode, deletedAt]) // Unique constraint on courseCode AND deletedAt
+  @@unique([name, deletedAt]) // Unique constraint on name AND deletedAt
 }
 
 model Curriculum {
@@ -296,7 +305,7 @@ model CurriculumCourse {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([curriculumId, courseId])
+  @@unique([curriculumId, courseId, deletedAt]) // Unique constraint on curriculumId, courseId AND deletedAt
 }
 
 enum EnrollmentStatus {
@@ -334,7 +343,7 @@ model EnrollmentPeriod {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([startYear, endYear, term])
+  @@unique([startYear, endYear, term, deletedAt]) // Unique constraint on startYear, endYear, term AND deletedAt
 }
 
 model CourseOffering {
@@ -366,7 +375,7 @@ model CourseOffering {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([courseId, periodId])
+  @@unique([courseId, periodId, deletedAt]) // Unique constraint on courseId, periodId AND deletedAt
 }
 
 enum Days {
@@ -410,8 +419,8 @@ model CourseSection {
   /// @DtoApiHidden
   sectionModules SectionModule[]
 
-  @@unique([courseOfferingId, name])
-  @@unique([courseOfferingId, mentorId, startSched, endSched, days])
+  @@unique([courseOfferingId, name, deletedAt]) // Unique constraint on courseOfferingId, name AND deletedAt
+  @@unique([courseOfferingId, mentorId, startSched, endSched, days, deletedAt]) // Unique constraint on courseOfferingId, mentorId, startSched, endSched, days AND deletedAt
 }
 
 enum CourseEnrollmentStatus {
@@ -450,7 +459,7 @@ model CourseEnrollment {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([courseOfferingId, studentId])
+  @@unique([courseOfferingId, studentId, deletedAt]) // Unique constraint on courseOfferingId, studentId AND deletedAt
 }
 
 enum BillType {
@@ -564,7 +573,7 @@ model Pricing {
   priceGroups PricingGroup[]
 
   type    PricingType
-  name    String      @unique
+  name    String
   amount  Decimal     @db.Decimal(10, 2)
   enabled Boolean     @default(true)
 
@@ -574,6 +583,8 @@ model Pricing {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([name, deletedAt]) // Unique constraint on name AND deletedAt
 }
 
 model PricingGroup {
@@ -583,7 +594,7 @@ model PricingGroup {
   /// @DtoApiHidden
   enrollmentPeriods EnrollmentPeriod[]
 
-  name    String  @unique
+  name    String
   amount  Decimal @db.Decimal(10, 2)
   enabled Boolean @default(true)
 
@@ -593,6 +604,8 @@ model PricingGroup {
   updatedAt DateTime  @updatedAt
   /// @DtoReadOnly
   deletedAt DateTime?
+
+  @@unique([name, deletedAt]) // Unique constraint on name AND deletedAt
 }
 
 model Group {
@@ -664,8 +677,8 @@ model Module {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([courseId, courseOfferingId])
-  @@unique([courseId, courseOfferingId, title])
+  @@unique([courseId, courseOfferingId, deletedAt]) // Unique constraint on courseId, courseOfferingId AND deletedAt
+  @@unique([courseId, courseOfferingId, title, deletedAt]) // Unique constraint on courseId, courseOfferingId, title AND deletedAt
 }
 
 model SectionModule {
@@ -708,7 +721,9 @@ model ModuleSection {
   moduleContents ModuleContent[]
 
   title String @db.VarChar(255)
-  order Int?   @default(0)
+
+  /// @DtoUpdateOptional
+  order Int @default(1) @db.SmallInt
 
   /// @DtoReadOnly
   publishedAt   DateTime?
@@ -722,6 +737,10 @@ model ModuleSection {
   /// @DtoReadOnly
   deletedAt DateTime?
 
+  //Although order is auto-incremented, it needs extra uniqueness constraints
+  //For future implementation of re-ordering sections and subsections
+  @@unique([moduleId, order, deletedAt]) // Unique constraint on moduleId, order, and deletedAt
+  @@unique([parentSectionId, order, deletedAt]) // Unique constraint on parentSectionId, order, and deletedAt
   @@index([moduleId, order])
   @@index([moduleId])
   @@index([parentSectionId])
@@ -737,8 +756,6 @@ enum ContentType {
 model ModuleContent {
   id String @id @default(uuid()) @db.Uuid
 
-  /// @DtoRelationCanConnectOnCreate
-  /// @DtoRelationCanConnectOnUpdate
   moduleSection   ModuleSection @relation(fields: [moduleSectionId], references: [id], onDelete: Cascade)
   moduleSectionId String        @db.Uuid
 
@@ -767,7 +784,9 @@ model ModuleContent {
 
   studentProgress ContentProgress[]
 
-  @@unique([moduleSectionId, order])
+  //Although order is auto-incremented, it needs extra uniqueness constraints
+  //For future implementation of re-ordering module contents
+  @@unique([moduleSectionId, order, deletedAt]) // Unique constraint on moduleSectionId, order, and deletedAt
   @@index([moduleSectionId])
   @@index([publishedAt])
   @@index([contentType, publishedAt])
@@ -777,7 +796,7 @@ model RubricTemplate {
   id String @id @default(uuid()) @db.Uuid
 
   // Identification fields (for editors/developers)
-  name        String  @unique @db.VarChar(255)
+  name        String  @db.VarChar(255)
   description String? @db.VarChar(1000)
 
   // Force using analytics for now since it's the most common in MMDC
@@ -802,6 +821,7 @@ model RubricTemplate {
   /// @DtoApiHidden
   assignments Assignment[]
 
+  @@unique([name, deletedAt]) // Unique constraint on name AND deletedAt
   @@index([name])
   @@index([tags], type: Gin)
 }
@@ -931,7 +951,8 @@ model AssignmentSubmission {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([assignmentId, studentId, attemptNumber])
+  //Attemp should be unique per student per assignment even if deleted
+  @@unique([assignmentId, studentId, attemptNumber]) // Unique constraint on assignmentId, studentId, attemptNumber
   @@index([assignmentId, studentId])
   @@index([submittedAt])
 }
@@ -1060,7 +1081,7 @@ model Appointment {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  @@unique([studentId, mentorId, startAt])
+  @@unique([studentId, mentorId, startAt, deletedAt]) // Unique constraint on studentId, mentorId, startAt AND deletedAt
 }
 
 model Notification {
