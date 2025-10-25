@@ -4,7 +4,6 @@ import {
   createInvalidMajor,
   createMajor,
   createMajorUpdate,
-  testMajors,
 } from '../../factories/major.factory';
 import {
   setupTestEnvironment,
@@ -69,7 +68,8 @@ describe('MajorsController (Integration)', () => {
       await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(
-          createMajorUpdate({
+          createMajor({
+            programId: validMajorPayload.programId,
             majorCode: 'DupeCode',
           }),
         )
@@ -208,19 +208,18 @@ describe('MajorsController (Integration)', () => {
     it('should return 404 for non-existent ID', async () => {
       await request(context.adminApp.getHttpServer())
         .patch(`/majors/${v4()}`)
-        .send(testMajors.update.basic)
+        .send(
+          createMajorUpdate({
+            majorCode: 'NonConflictingCode',
+            name: 'NonConflictingName',
+          }),
+        )
         .expect(404);
     });
 
     it('should return 403 for student', async () => {
-      const validMajorPayload = createMajor({ programId });
-      const { body: created } = await request(context.adminApp.getHttpServer())
-        .post('/majors')
-        .send(validMajorPayload)
-        .expect(201);
-
       await request(context.studentApp.getHttpServer())
-        .patch(`/majors/${created.id}`)
+        .patch(`/majors/${v4()}`)
         .expect(403);
     });
   });
