@@ -5,13 +5,13 @@ import { AssignmentMode, ContentType, Prisma } from '@prisma/client';
  * Basic single module DTO generator
  */
 export const createModule = (
-  ovrrides: {
+  overrides: {
     title?: string;
     publishedAt?: Date;
   } = {},
 ): CreateModuleDto => {
   return {
-    title: ovrrides?.title || 'Test Module',
+    title: overrides?.title || 'Test Module',
   };
 };
 
