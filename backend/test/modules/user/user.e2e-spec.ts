@@ -23,8 +23,8 @@ import {
 describe('UsersController (Integration)', () => {
   let context: TestContext;
 
-  // Test payloads using simple factory functions
-  const validUserPayload = createUser({ role: 'student' });
+  // Test payloads using factory functions
+  const validUserPayload = createUser({ role: 'student' }); // For POST /users which requires a role field
   const validStudentPayload = createStudent();
   const validStaffPayload = createStaff({ role: 'mentor' });
 
@@ -474,8 +474,8 @@ describe('UsersController (Integration)', () => {
 
     it("should update a student's specific details when authenticated as admin (200)", async () => {
       const createUserResponse = await request(context.adminApp.getHttpServer())
-        .post('/users')
-        .send(validStudentPayload)
+        .post('/users/student')
+        .send(createStudent())
         .expect(201);
 
       const createdStudentId = createUserResponse.body.id;
@@ -525,8 +525,8 @@ describe('UsersController (Integration)', () => {
 
     it("should update a staff member's specific details when authenticated as admin (200)", async () => {
       const createUserResponse = await request(context.adminApp.getHttpServer())
-        .post('/users')
-        .send(validStaffPayload)
+        .post('/users/staff')
+        .send(createStaff({ role: 'mentor' }))
         .expect(201);
 
       const createdStaffId = createUserResponse.body.id;
