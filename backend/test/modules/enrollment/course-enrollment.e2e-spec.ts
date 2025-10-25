@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { createModuleSetup } from '../../factories/lms.factory';
 import {
     setupTestEnvironment,
     teardownTestEnvironment,
@@ -13,9 +14,47 @@ import {
 */
 describe('CourseEnrollmentController (Integration)', () => {
   let context: TestContext;
+  let testSectionId: string;
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
+
+    // Create test data for enrollment tests
+    const setup = createModuleSetup({ type: 'tree' });
+    const studentUserId = context.testService.getMockUser('student').user_metadata.user_id;
+
+    // Create enrollment period
+    const period = await context.prismaClient.enrollmentPeriod.create({
+      data: setup.enrollmentPeriod,
+    });
+
+    // Create course
+    const course = await context.prismaClient.course.create({
+      data: setup.course,
+    });
+
+    // Create course offering
+    const offering = await context.prismaClient.courseOffering.create({
+      data: setup.courseOffering(course.id, period.id),
+    });
+
+    // Create course section
+    const section = await context.prismaClient.courseSection.create({
+      data: setup.courseSection(offering.id),
+    });
+
+    testSectionId = section.id;
+
+    // Create an enrollment for the student with 'enlisted' status
+    await context.prismaClient.courseEnrollment.create({
+      data: {
+        courseOfferingId: offering.id,
+        courseSectionId: section.id,
+        studentId: studentUserId,
+        status: 'enlisted', // Must be 'enlisted' or 'finalized' to be returned by the endpoint
+        startedAt: new Date(),
+      },
+    });
   }, 60000);
 
   afterAll(async () => {
@@ -29,8 +68,13 @@ describe('CourseEnrollmentController (Integration)', () => {
         .post('/enrollment/student/sections')
         .expect(201);
 
-      expect(body).toHaveProperty('enrollments');
-      expect(Array.isArray(body.enrollments)).toBe(true);
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.length).toBeGreaterThan(0);
+      if (body.length > 0) {
+        expect(body[0]).toHaveProperty('id');
+        expect(body[0]).toHaveProperty('courseSection');
+        expect(body[0]).toHaveProperty('courseOffering');
+      }
     });
 
     it('should allow admin to get enrollments (201)', async () => {
@@ -38,8 +82,7 @@ describe('CourseEnrollmentController (Integration)', () => {
         .post('/enrollment/student/sections')
         .expect(201);
 
-      expect(body).toHaveProperty('enrollments');
-      expect(Array.isArray(body.enrollments)).toBe(true);
+      expect(Array.isArray(body)).toBe(true);
     });
 
     it('should allow mentor to get enrollments (201)', async () => {
@@ -47,8 +90,7 @@ describe('CourseEnrollmentController (Integration)', () => {
         .post('/enrollment/student/sections')
         .expect(201);
 
-      expect(body).toHaveProperty('enrollments');
-      expect(Array.isArray(body.enrollments)).toBe(true);
+      expect(Array.isArray(body)).toBe(true);
     });
 
     it('should return 401 (Unauthorized) when not authenticated', async () => {
