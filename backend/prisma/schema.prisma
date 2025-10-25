@@ -180,7 +180,7 @@ model Program {
 
   programCode  String
   name         String
-  description  String
+  description  String?
   yearDuration Int
   isActive     Boolean @default(true)
 
@@ -209,7 +209,7 @@ model Major {
 
   majorCode   String
   name        String
-  description String
+  description String?
   isActive    Boolean @default(true)
 
   /// @DtoReadOnly

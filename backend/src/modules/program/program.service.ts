@@ -251,54 +251,48 @@ export class ProgramService {
       throw new BadRequestException('Year duration must not be negative');
     }
 
-    // Case-insensitive search to find any existing program with a matching programCode or name
-    const existingProgram = await transactionClient.program.findFirst({
-      where: {
-        deletedAt: null,
-        OR: [
-          {
-            programCode: {
-              equals: programToCheck.programCode,
-              mode: Prisma.QueryMode.insensitive, // Case-insensitive search for programCode
-            },
+    const excludeId = { NOT: { id } };
+
+    // 1. Check for Program Code Conflict (if code is provided)
+    if (programToCheck.programCode) {
+      const existingCodeProgram = await transactionClient.program.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          programCode: {
+            equals: programToCheck.programCode,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
           },
-          {
-            name: {
-              equals: programToCheck.name,
-              mode: Prisma.QueryMode.insensitive, // Case-insensitive search for name
-            },
-          },
-        ],
-        NOT: { id },
-      },
-    });
+        },
+      });
 
-    if (existingProgram) {
-      // Check if the existing program's programCode matches the new one
-      if (programToCheck.programCode) {
-        const incomingCodeLower = programToCheck.programCode.toLowerCase();
-        const existingCodeLower = existingProgram.programCode.toLowerCase();
-
-        // Check if the programCode is a match
-        if (existingCodeLower === incomingCodeLower) {
-          throw new ConflictException(
-            `Program code '${existingProgram.programCode}' already exists`,
-          );
-        }
-      }
-
-      // Check if the existing program's name matches the new one
-      if (programToCheck.name) {
-        const incomingNameLower = programToCheck.name.toLowerCase();
-        const existingNameLower = existingProgram.name.toLowerCase();
-
-        // Check if the name is a match
-        if (existingNameLower === incomingNameLower) {
-          throw new ConflictException(
-            `Program name '${existingProgram.name}' already exists`,
-          );
-        }
+      if (existingCodeProgram) {
+        throw new ConflictException(
+          `Program code '${existingCodeProgram.programCode}' already exists`,
+        );
       }
     }
+
+    // 2. Check for Name Conflict (if a name is provided)
+    if (programToCheck.name) {
+      const existingNameProgram = await transactionClient.program.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          name: {
+            equals: programToCheck.name,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingNameProgram) {
+        throw new ConflictException(
+          `Program name '${existingNameProgram.name}' already exists`,
+        );
+      }
+    }
+
+    // If neither check throws an error, the data is valid.
   }
 }

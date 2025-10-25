@@ -8508,6 +8508,139 @@
         ]
       }
     },
+    "/enrollments/active/export": {
+      "get": {
+        "description": "Exports all course enrollments for the active enrollment period.\nRequires `ADMIN` role.",
+        "operationId": "EnrollmentController_exportActiveEnrollmentData",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Excel file containing enrollment data",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Exports active enrollment period data as an Excel file",
+        "tags": [
+          "Enrollment"
+        ]
+      }
+    },
+    "/enrollments/{enrollmentPeriodId}/export": {
+      "get": {
+        "description": "Exports all course enrollments for the specified enrollment period (or active period if not specified).\nRequires `ADMIN` role.",
+        "operationId": "EnrollmentController_exportEnrollmentData",
+        "parameters": [
+          {
+            "name": "enrollmentPeriodId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file containing enrollment data",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Exports enrollment data for a specific enrollment period as an Excel file",
+        "tags": [
+          "Enrollment"
+        ]
+      }
+    },
     "/enrollments/{enrollmentId}/offerings": {
       "post": {
         "description": "Requires `ADMIN` role.",
@@ -21051,7 +21184,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -21061,7 +21195,6 @@
         "required": [
           "programCode",
           "name",
-          "description",
           "yearDuration"
         ]
       },
@@ -21078,7 +21211,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -21150,7 +21284,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean"
@@ -21221,7 +21356,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -21266,7 +21402,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "yearDuration": {
             "type": "integer",
@@ -22623,13 +22760,13 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
           "majorCode",
-          "name",
-          "description"
+          "name"
         ]
       },
       "CreateProgramMajorDto": {
@@ -22666,7 +22803,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean"
@@ -22706,7 +22844,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -22726,7 +22865,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean"

@@ -10,14 +10,17 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   NotFoundException,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiProduces } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CreateEnrollmentPeriodItemDto } from './dto/create-enrollment-period.dto';
 import { FilterEnrollmentDto } from './dto/filter-enrollment.dto';
 import { UpdateEnrollmentStatusDto } from './dto/update-enrollment-status.dto';
@@ -158,5 +161,99 @@ export class EnrollmentController {
       enrollmentId,
       query?.directDelete,
     );
+  }
+
+  /**
+   * Exports active enrollment period data as an Excel file
+   *
+   * @remarks
+   * Exports all course enrollments for the active enrollment period.
+   * Requires `ADMIN` role.
+   *
+   * @returns Excel file with enrollment data
+   *
+   * @throws NotFoundException If no active enrollment period found
+   */
+  @Get('active/export')
+  @Roles(Role.ADMIN)
+  @ApiProduces(
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  @ApiOkResponse({
+    description: 'Excel file containing enrollment data',
+    schema: {
+      type: 'string',
+      format: 'binary',
+    },
+  })
+  @ApiException(() => [NotFoundException])
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  async exportActiveEnrollmentData(@Res() res: Response) {
+    const buffer = await this.enrollmentService.exportEnrollmentData();
+
+    // Get active enrollment period info for filename
+    const enrollmentPeriod =
+      await this.enrollmentService.findActiveEnrollment();
+
+    const filename = `enrollment-data-${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear}-term${enrollmentPeriod.term}-active.xlsx`;
+
+    res.set({
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+
+    res.send(buffer);
+  }
+
+  /**
+   * Exports enrollment data for a specific enrollment period as an Excel file
+   *
+   * @remarks
+   * Exports all course enrollments for the specified enrollment period (or active period if not specified).
+   * Requires `ADMIN` role.
+   *
+   * @param enrollmentId - Optional enrollment period ID. If not provided, exports active period.
+   * @returns Excel file with enrollment data
+   *
+   * @throws NotFoundException If the enrollment period does not exist or no active period found
+   */
+  @Get(':enrollmentPeriodId/export')
+  @Roles(Role.ADMIN)
+  @ApiProduces(
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  @ApiOkResponse({
+    description: 'Excel file containing enrollment data',
+    schema: {
+      type: 'string',
+      format: 'binary',
+    },
+  })
+  @ApiException(() => [NotFoundException])
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  async exportEnrollmentData(
+    @Param('enrollmentPeriodId', new ParseUUIDPipe())
+    enrollmentPeriodId: string,
+    @Res() res: Response,
+  ) {
+    const buffer =
+      await this.enrollmentService.exportEnrollmentData(enrollmentPeriodId);
+
+    // Get enrollment period info for filename
+    const enrollmentPeriod =
+      await this.enrollmentService.findOneEnrollment(enrollmentPeriodId);
+
+    const filename = `enrollment-data-${enrollmentPeriod.startYear}-${enrollmentPeriod.endYear}-term${enrollmentPeriod.term}.xlsx`;
+
+    res.set({
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+
+    res.send(buffer);
   }
 }
