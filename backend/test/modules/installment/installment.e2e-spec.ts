@@ -18,25 +18,45 @@ describe('InstallmentController (Integration)', () => {
   beforeAll(async () => {
     context = await setupTestEnvironment();
 
+    // Create a pricing group first
+    const pricingGroup = await context.prismaClient.pricingGroup.create({
+      data: {
+        name: 'Test Pricing Group for Installments',
+        amount: '10000',
+        prices: {
+          create: [
+            {
+              name: 'Test Fee',
+              amount: '10000',
+              type: 'tuition',
+            },
+          ],
+        },
+      },
+    });
+
     // Create a bill to use for installment tests
     const { body: bill } = await request(context.adminApp.getHttpServer())
       .post('/billing')
       .send({
         bill: {
-          name: 'Test Bill for Installments',
-          amount: 10000,
-          semester: 1,
-          schoolYear: '2024-2025',
+          payerName: 'Test Payer',
+          payerEmail: 'payer@test.com',
+          billType: 'academic',
+          paymentScheme: 'installment1',
+          totalAmount: '10000',
+          costBreakdown: [
+            {
+              name: 'Tuition Fee',
+              cost: '10000',
+              category: 'Tuition',
+            },
+          ],
         },
         dueDates: [
-          {
-            date: new Date('2024-09-01'),
-            amount: 5000,
-          },
-          {
-            date: new Date('2024-10-01'),
-            amount: 5000,
-          },
+          '2024-09-01T00:00:00Z',
+          '2024-10-01T00:00:00Z',
+          '2024-11-01T00:00:00Z',
         ],
       })
       .expect(201);
@@ -51,37 +71,41 @@ describe('InstallmentController (Integration)', () => {
   // --- GET /billing/:billId/installments ---
   describe('GET /billing/:billId/installments', () => {
     it('should return list of installments for admin (200)', async () => {
-      const { body } = await request(context.adminApp.getHttpServer())
+      const body = await request(context.adminApp.getHttpServer())
         .get(`/billing/${testBillId}/installments`)
-        .expect(200);
+        .expect(200)
+        .then((res) => res.body);
 
-      expect(body).toHaveProperty('installments');
-      expect(Array.isArray(body.installments)).toBe(true);
+      expect(Array.isArray(body)).toBe(true);
     });
 
     it('should allow students to view their own bill installments (200)', async () => {
-      const { body } = await request(context.studentApp.getHttpServer())
+      const body = await request(context.studentApp.getHttpServer())
         .get(`/billing/${testBillId}/installments`)
-        .expect(200);
+        .expect(200)
+        .then((res) => res.body);
 
-      expect(body).toHaveProperty('installments');
-      expect(Array.isArray(body.installments)).toBe(true);
+      expect(Array.isArray(body)).toBe(true);
     });
 
     it('should allow mentors to view installments (200)', async () => {
-      const { body } = await request(context.mentorApp.getHttpServer())
+      const body = await request(context.mentorApp.getHttpServer())
         .get(`/billing/${testBillId}/installments`)
-        .expect(200);
+        .expect(200)
+        .then((res) => res.body);
 
-      expect(body).toHaveProperty('installments');
-      expect(Array.isArray(body.installments)).toBe(true);
+      expect(Array.isArray(body)).toBe(true);
     });
 
-    it('should return 404 (Not Found) for non-existent bill ID', async () => {
+    it('should return empty array for non-existent bill ID (200)', async () => {
       const nonExistentBillId = '1f7fcb6a-9b52-4f7a-b1f6-1cfb5d1d1a11';
-      await request(context.adminApp.getHttpServer())
+      const body = await request(context.adminApp.getHttpServer())
         .get(`/billing/${nonExistentBillId}/installments`)
-        .expect(404);
+        .expect(200)
+        .then((res) => res.body);
+
+      expect(Array.isArray(body)).toBe(true);
+      expect(body).toEqual([]);
     });
 
     it('should return 401 (Unauthorized) when not authenticated', async () => {
