@@ -2,6 +2,7 @@ import { SuspendedPagination } from '@/components/suspense-pagination'
 import AsyncMentorCombobox from '@/features/enrollment/components/async-mentor-combobox'
 import EnrollmentBadgeStatus from '@/features/enrollment/components/enrollment-badge-status'
 import { SuspendedAdminEnrollmentCourseOfferingCards } from '@/features/enrollment/components/suspense'
+import { useExportEnrollmentData } from '@/features/enrollment/hooks/useExportEnrollmentData'
 import type { PaginationSearch } from '@/features/pagination/search-validation'
 import {
   EditSectionFormSchema,
@@ -78,6 +79,7 @@ import {
   IconSchool,
   IconSearch,
   IconTrash,
+  IconUpload,
   IconX,
   type ReactNode,
 } from '@tabler/icons-react'
@@ -151,6 +153,7 @@ function EnrollmentPeriodIdPage() {
   const { periodId } = route.useParams()
 
   const { search } = useSearchState(route)
+  const exportMutation = useExportEnrollmentData()
 
   const { mutateAsync: addCourseOffering, isPending: addCourseIsPending } =
     useAppMutation(
@@ -256,7 +259,7 @@ function EnrollmentPeriodIdPage() {
   return (
     <Container size={'md'} pb={'lg'}>
       <Stack>
-        <Flex align={'center'}>
+        <Flex align={'center'} justify={'space-between'}>
           <Group align="start">
             <ActionIcon
               radius={'xl'}
@@ -291,6 +294,21 @@ function EnrollmentPeriodIdPage() {
               </EnrollmentPeriodAdminQueryProvider>
             </Suspense>
           </Group>
+          <Button
+            variant="outline"
+            radius={'md'}
+            leftSection={<IconUpload size={20} />}
+            c={'gray.7'}
+            color="gray.4"
+            lts={rem(0.25)}
+            onClick={() => exportMutation.mutateAsync(periodId)}
+            loading={exportMutation.isPending}
+            loaderProps={{
+              color: 'primary',
+            }}
+          >
+            Export Enrollment Data
+          </Button>
         </Flex>
 
         <Stack gap={0}>

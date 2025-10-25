@@ -3856,6 +3856,30 @@ export const zEnrollmentControllerUpdateEnrollmentStatusData = z.object({
 
 export const zEnrollmentControllerUpdateEnrollmentStatusResponse = zEnrollmentPeriodDto;
 
+export const zEnrollmentControllerExportActiveEnrollmentDataData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Excel file containing enrollment data
+ */
+export const zEnrollmentControllerExportActiveEnrollmentDataResponse = z.string();
+
+export const zEnrollmentControllerExportEnrollmentDataData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        enrollmentPeriodId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Excel file containing enrollment data
+ */
+export const zEnrollmentControllerExportEnrollmentDataResponse = z.string();
+
 export const zCourseOfferingControllerFindCourseOfferingsByPeriodData = z.object({
     body: z.optional(z.never()),
     path: z.object({
