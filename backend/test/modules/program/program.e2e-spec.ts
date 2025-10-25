@@ -19,14 +19,10 @@ import {
 */
 describe('ProgramController (Integration)', () => {
   let context: TestContext;
-  let createdProgramId: string;
-
-  // Test data using factory functions with a proper API structure
-  const validProgramPayload = testPrograms.default;
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
-  }, 30000);
+  });
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
@@ -35,6 +31,7 @@ describe('ProgramController (Integration)', () => {
   // POST /programs tests
   describe('POST /programs', () => {
     it('should allow an admin to create a new program with valid data (201)', async () => {
+      const validProgramPayload = createProgram();
       const { body } = await request(context.adminApp.getHttpServer())
         .post('/programs')
         .send(validProgramPayload)
@@ -47,11 +44,15 @@ describe('ProgramController (Integration)', () => {
       expect(body.yearDuration).toBe(validProgramPayload.yearDuration);
       expect(body).toHaveProperty('createdAt');
       expect(body).toHaveProperty('updatedAt');
-
-      createdProgramId = body.id;
     });
 
     it('should reject creating a duplicate program code (400 or 409)', async () => {
+      const validProgramPayload = createProgram();
+      await request(context.adminApp.getHttpServer())
+        .post(`/programs/`)
+        .send(validProgramPayload)
+        .expect(201);
+
       const res = await request(context.adminApp.getHttpServer())
         .post('/programs')
         .send(validProgramPayload);
@@ -81,6 +82,7 @@ describe('ProgramController (Integration)', () => {
     });
 
     it('should return 403 (Forbidden) if a student tries to create a program', async () => {
+      const validProgramPayload = createProgram();
       await request(context.studentApp.getHttpServer())
         .post('/programs')
         .send(validProgramPayload)
@@ -90,14 +92,14 @@ describe('ProgramController (Integration)', () => {
     it('should return 403 (Forbidden) if a mentor tries to create a program', async () => {
       await request(context.mentorApp.getHttpServer())
         .post('/programs')
-        .send(validProgramPayload)
+        .send(createProgram())
         .expect(403);
     });
 
     it('should return 401 (Unauthorized) if no token is provided', async () => {
       await request(context.unauthApp.getHttpServer())
         .post('/programs')
-        .send(validProgramPayload)
+        .send(createProgram())
         .expect(401);
     });
   });
@@ -160,8 +162,16 @@ describe('ProgramController (Integration)', () => {
   // GET /programs/{id} tests
   describe('GET /programs/{id}', () => {
     it('should allow an admin to retrieve a single program by its ID (200)', async () => {
+      const validProgramPayload = createProgram();
+      const { body: createdProgram } = await request(
+        context.adminApp.getHttpServer(),
+      )
+        .post(`/programs/`)
+        .send(validProgramPayload)
+        .expect(201);
+
       const { body } = await request(context.adminApp.getHttpServer())
-        .get(`/programs/${createdProgramId}`)
+        .get(`/programs/${createdProgram.id}`)
         .expect(200);
 
       expect(body).toHaveProperty('id');
@@ -185,7 +195,7 @@ describe('ProgramController (Integration)', () => {
 
     it('should return 401 (Unauthorized) when not authenticated', async () => {
       await request(context.unauthApp.getHttpServer())
-        .get(`/programs/${createdProgramId}`)
+        .get(`/programs/${v4()}`)
         .expect(401);
     });
   });
@@ -193,8 +203,16 @@ describe('ProgramController (Integration)', () => {
   // PATCH /programs/{id} tests
   describe('PATCH /programs/{id}', () => {
     it('should allow an admin to update an existing program (200)', async () => {
+      const validProgramPayload = createProgram();
+      const { body: createdProgram } = await request(
+        context.adminApp.getHttpServer(),
+      )
+        .post(`/programs/`)
+        .send(validProgramPayload)
+        .expect(201);
+
       const { body } = await request(context.adminApp.getHttpServer())
-        .patch(`/programs/${createdProgramId}`)
+        .patch(`/programs/${createdProgram.id}`)
         .send(testPrograms.ba)
         .expect(200);
 
@@ -213,21 +231,21 @@ describe('ProgramController (Integration)', () => {
 
     it('should return 403 (Forbidden) when student tries to update program', async () => {
       await request(context.studentApp.getHttpServer())
-        .patch(`/programs/${createdProgramId}`)
+        .patch(`/programs/${v4()}`)
         .send(testPrograms.update.basic)
         .expect(403);
     });
 
     it('should return 403 (Forbidden) when mentor tries to update program', async () => {
       await request(context.mentorApp.getHttpServer())
-        .patch(`/programs/${createdProgramId}`)
+        .patch(`/programs/${v4()}`)
         .send(testPrograms.update.basic)
         .expect(403);
     });
 
     it('should return 401 (Unauthorized) when not authenticated', async () => {
       await request(context.unauthApp.getHttpServer())
-        .patch(`/programs/${createdProgramId}`)
+        .patch(`/programs/${v4()}`)
         .send(testPrograms.update.basic)
         .expect(401);
     });
@@ -236,6 +254,8 @@ describe('ProgramController (Integration)', () => {
   // DELETE /programs/{id} tests
   describe('DELETE /programs/{id}', () => {
     it('should allow an admin to delete a program (200) and then return 404 on fetch', async () => {
+      const validProgramPayload = createProgram();
+
       const { body } = await request(context.adminApp.getHttpServer())
         .post('/programs')
         .send(validProgramPayload)
@@ -262,19 +282,19 @@ describe('ProgramController (Integration)', () => {
 
     it('should return 403 (Forbidden) when student tries to delete program', async () => {
       await request(context.studentApp.getHttpServer())
-        .delete(`/programs/${createdProgramId}`)
+        .delete(`/programs/${v4()}`)
         .expect(403);
     });
 
     it('should return 403 (Forbidden) when mentor tries to delete program', async () => {
       await request(context.mentorApp.getHttpServer())
-        .delete(`/programs/${createdProgramId}`)
+        .delete(`/programs/${v4()}`)
         .expect(403);
     });
 
     it('should return 401 (Unauthorized) when not authenticated', async () => {
       await request(context.unauthApp.getHttpServer())
-        .delete(`/programs/${createdProgramId}`)
+        .delete(`/programs/${v4()}`)
         .expect(401);
     });
   });
@@ -282,6 +302,8 @@ describe('ProgramController (Integration)', () => {
   // Edge cases and error handling
   describe('Edge Cases', () => {
     it('should validate program code uniqueness case-insensitively (409)', async () => {
+      const validProgramPayload = createProgram();
+
       await request(context.adminApp.getHttpServer())
         .post('/programs')
         .send(validProgramPayload)
