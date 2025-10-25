@@ -119,7 +119,7 @@ export class TestAppService {
 
         // Run migrations once
         execSync(
-          'npx prisma db push --force-reset --accept-data-loss --schema=./prisma/schema.prisma ',
+          'npx prisma db push --skip-generate --force-reset --accept-data-loss --schema=./prisma/schema.prisma ',
           {
             stdio: 'inherit',
             env: {
