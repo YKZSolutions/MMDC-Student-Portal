@@ -13,27 +13,51 @@ import {
 */
 describe('EnrollmentController (Integration)', () => {
   let context: TestContext;
+  let testPricingGroupId: string;
 
   const createEnrollmentPayload = {
     startYear: 2024,
     endYear: 2025,
     term: 1,
-    startDate: new Date('2024-09-01'),
-    endDate: new Date('2024-12-20'),
-    status: 'OPEN',
+    startDate: '2024-09-01T00:00:00Z',
+    endDate: '2024-12-20T00:00:00Z',
+    status: 'draft',
+    pricingGroupId: '', // Will be set in beforeAll
   };
 
   const updateEnrollmentPayload = {
-    startDate: new Date('2024-09-15'),
-    endDate: new Date('2024-12-31'),
+    startDate: '2024-09-15T00:00:00Z',
+    endDate: '2024-12-31T00:00:00Z',
+    pricingGroupId: '', // Will be set in beforeAll
   };
 
   const updateStatusPayload = {
-    status: 'CLOSED',
+    status: 'closed',
   };
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
+
+    // Create a pricing group that can be reused
+    const pricingGroup = await context.prismaClient.pricingGroup.create({
+      data: {
+        name: 'Test Pricing Group',
+        amount: '50000',
+        prices: {
+          create: [
+            {
+              name: 'Tuition Fee',
+              amount: '45000',
+              type: 'tuition',
+            },
+          ],
+        },
+      },
+    });
+
+    testPricingGroupId = pricingGroup.id;
+    createEnrollmentPayload.pricingGroupId = testPricingGroupId;
+    updateEnrollmentPayload.pricingGroupId = testPricingGroupId;
   }, 60000);
 
   afterAll(async () => {
@@ -56,16 +80,22 @@ describe('EnrollmentController (Integration)', () => {
     });
 
     it('should return 409 (Conflict) if enrollment period already exists for the same year/term', async () => {
-      // First create an enrollment
+      // First create an enrollment with unique year/term
+      const uniquePayload = {
+        ...createEnrollmentPayload,
+        startYear: 2099,
+        endYear: 2100,
+      };
+      
       await request(context.adminApp.getHttpServer())
         .post('/enrollments')
-        .send(createEnrollmentPayload)
+        .send(uniquePayload)
         .expect(201);
 
       // Try to create duplicate
       await request(context.adminApp.getHttpServer())
         .post('/enrollments')
-        .send(createEnrollmentPayload)
+        .send(uniquePayload)
         .expect(409);
     });
 
@@ -164,7 +194,7 @@ describe('EnrollmentController (Integration)', () => {
           ...createEnrollmentPayload,
           startYear: 2026,
           endYear: 2027,
-          status: 'ACTIVE',
+          status: 'active',
         })
         .expect(201);
 
@@ -173,7 +203,7 @@ describe('EnrollmentController (Integration)', () => {
         .expect(200);
 
       expect(body).toHaveProperty('id');
-      expect(body.status).toBe('ACTIVE');
+      expect(body.status).toBe('active');
     });
 
     it('should allow students to view active enrollment (200)', async () => {
