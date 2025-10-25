@@ -1,27 +1,25 @@
 import request from 'supertest';
 import { createModuleSetup } from '../../factories/lms.factory';
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  setupTestEnvironment,
+  teardownTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
+/* eslint-disable @typescript-eslint/no-unsafe-argument,
                   @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
 */
 describe('CourseEnrollmentController (Integration)', () => {
   let context: TestContext;
-  let testSectionId: string;
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
 
     // Create test data for enrollment tests
     const setup = createModuleSetup({ type: 'tree' });
-    const studentUserId = context.testService.getMockUser('student').user_metadata.user_id;
+    const studentUserId =
+      context.testService.getMockUser('student').user_metadata.user_id;
 
     // Create enrollment period
     const period = await context.prismaClient.enrollmentPeriod.create({
@@ -33,17 +31,15 @@ describe('CourseEnrollmentController (Integration)', () => {
       data: setup.course,
     });
 
-    // Create course offering
+    // Create a course offering
     const offering = await context.prismaClient.courseOffering.create({
       data: setup.courseOffering(course.id, period.id),
     });
 
-    // Create course section
+    // Create a course section
     const section = await context.prismaClient.courseSection.create({
       data: setup.courseSection(offering.id),
     });
-
-    testSectionId = section.id;
 
     // Create an enrollment for the student with 'enlisted' status
     await context.prismaClient.courseEnrollment.create({

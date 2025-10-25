@@ -23,6 +23,10 @@ import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dt
 import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
 import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class CourseEnrollmentService {
@@ -199,6 +203,10 @@ export class CourseEnrollmentService {
     ) =>
       `Error creating enrollment in section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'} | Error: ${err.message}`,
   })
+  @PrismaError({
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new NotFoundException(`Program not found`),
+  })
   async createCourseEnrollment(
     @LogParam('courseSectionId') courseSectionId: string,
     @LogParam('dto') dto: StudentIdentifierDto,
@@ -250,7 +258,8 @@ export class CourseEnrollmentService {
           studentId: studentId,
           courseOfferingId: offeringId,
           deletedAt: null,
-        }, //removed dropped status check to allow re-enrollment for the same course offering
+          status: { not: 'dropped' },
+        },
       });
 
       if (enrolled) {
@@ -276,36 +285,45 @@ export class CourseEnrollmentService {
         },
       });
 
-      // Validate number of currently enrolled student
+      // Validate number of currently enrolled students
       if (count >= maxSlot) {
         throw new BadRequestException(
           'This section has reached its maximum capacity.',
         );
       }
 
-      // fix: upsert instead of create
-      return tx.courseEnrollment.upsert({
+      // Find existing non-deleted enrollment
+      const existing = await tx.courseEnrollment.findFirst({
         where: {
-          courseOfferingId_studentId_deletedAt: {
-            courseOfferingId: offeringId,
-            studentId: studentId,
-            deletedAt: null as any,
-          },
-        },
-        create: {
-          studentId: studentId,
           courseOfferingId: offeringId,
-          courseSectionId: sectionId,
-          status: 'enlisted',
-          startedAt: new Date(),
-        },
-        update: {
-          courseSectionId: sectionId,
-          status: 'enlisted',
-          startedAt: new Date(),
+          studentId: studentId,
           deletedAt: null,
         },
       });
+
+      if (existing) {
+        // Update existing enrollment
+        return tx.courseEnrollment.update({
+          where: { id: existing.id },
+          data: {
+            courseSectionId: sectionId,
+            status: 'enlisted',
+            startedAt: new Date(),
+            deletedAt: null,
+          },
+        });
+      } else {
+        // Create new enrollment
+        return tx.courseEnrollment.create({
+          data: {
+            studentId: studentId,
+            courseOfferingId: offeringId,
+            courseSectionId: sectionId,
+            status: 'enlisted',
+            startedAt: new Date(),
+          },
+        });
+      }
     });
   }
 
@@ -397,6 +415,7 @@ export class CourseEnrollmentService {
         where: { id: courseEnrollment.id },
         data: {
           status: 'dropped',
+          deletedAt: new Date(),
         },
       });
 
