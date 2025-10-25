@@ -21,9 +21,7 @@ import { testPrograms } from '../../factories/program.factory';
 */
 describe('MajorsController (Integration)', () => {
   let context: TestContext;
-
-  // Test data using factory functions with a proper API structure
-  const validMajorPayload = testMajors.default;
+  let programId: string;
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
@@ -32,8 +30,8 @@ describe('MajorsController (Integration)', () => {
       .send(testPrograms.default)
       .expect(201);
 
-    validMajorPayload.programId = program.id;
-  }, 30000);
+    programId = program.id;
+  });
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
@@ -42,6 +40,7 @@ describe('MajorsController (Integration)', () => {
   describe('POST /majors', () => {
     // POST /majors tests
     it('should allow admin to create a major (201)', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -56,6 +55,7 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should return 409 when creating duplicate code (409)', async () => {
+      const validMajorPayload = createMajor({ programId });
       await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(
@@ -69,8 +69,7 @@ describe('MajorsController (Integration)', () => {
       await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(
-          createMajor({
-            programId: validMajorPayload.programId,
+          createMajorUpdate({
             majorCode: 'DupeCode',
           }),
         )
@@ -85,6 +84,7 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should return 403 when student tries to create', async () => {
+      const validMajorPayload = createMajor({ programId });
       await request(context.studentApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -92,6 +92,7 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should return 403 when mentor tries to create', async () => {
+      const validMajorPayload = createMajor({ programId });
       await request(context.mentorApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -115,7 +116,7 @@ describe('MajorsController (Integration)', () => {
         .post('/majors')
         .send(
           createMajor({
-            programId: validMajorPayload.programId,
+            programId: programId,
             name: 'Major in Computer Program',
           }),
         )
@@ -150,6 +151,7 @@ describe('MajorsController (Integration)', () => {
 
   describe('GET /majors/:id', () => {
     it('should return a major by ID (200)', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body: created } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -171,6 +173,7 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should return 403 for student', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body: created } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -184,6 +187,7 @@ describe('MajorsController (Integration)', () => {
 
   describe('PATCH /majors/:id', () => {
     it('should allow admin to update (200)', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body: created } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -209,6 +213,7 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should return 403 for student', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body: created } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -222,6 +227,7 @@ describe('MajorsController (Integration)', () => {
 
   describe('DELETE /majors/:id', () => {
     it('should soft delete then permanently delete', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body: created } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)
@@ -245,6 +251,7 @@ describe('MajorsController (Integration)', () => {
     });
 
     it('should return 403 for student', async () => {
+      const validMajorPayload = createMajor({ programId });
       const { body: created } = await request(context.adminApp.getHttpServer())
         .post('/majors')
         .send(validMajorPayload)

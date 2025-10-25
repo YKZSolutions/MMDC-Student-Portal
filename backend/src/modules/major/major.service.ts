@@ -1,5 +1,8 @@
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
   ConflictException,
@@ -21,6 +24,7 @@ import {
 import { MajorItemDto } from './dto/major-item.dto';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { MessageDto } from '@/common/dto/message.dto';
+import { CreateMajorDto } from '@/generated/nestjs-dto/create-major.dto';
 
 @Injectable()
 export class MajorService {
@@ -56,13 +60,17 @@ export class MajorService {
   async create(
     @LogParam('dto') createProgramMajorDto: CreateProgramMajorDto,
   ): Promise<MajorDto> {
-    return await this.prisma.client.major.create({
-      data: {
-        ...createProgramMajorDto.major,
-        program: {
-          connect: { id: createProgramMajorDto.programId },
+    return await this.prisma.client.$transaction(async (tx) => {
+      await this.validateMutationData(createProgramMajorDto.major, tx);
+
+      return tx.major.create({
+        data: {
+          ...createProgramMajorDto.major,
+          program: {
+            connect: { id: createProgramMajorDto.programId },
+          },
         },
-      },
+      });
     });
   }
 
@@ -178,9 +186,13 @@ export class MajorService {
     @LogParam('id') id: string,
     @LogParam('dto') updateMajorDto: UpdateMajorDto,
   ): Promise<MajorDto> {
-    return await this.prisma.client.major.update({
-      where: { id, deletedAt: null },
-      data: { ...updateMajorDto },
+    return await this.prisma.client.$transaction(async (tx) => {
+      await this.validateMutationData(updateMajorDto, tx, id);
+
+      return tx.major.update({
+        where: { id, deletedAt: null },
+        data: { ...updateMajorDto },
+      });
     });
   }
 
@@ -232,5 +244,55 @@ export class MajorService {
 
       return new MessageDto('Major permanently deleted');
     });
+  }
+
+  async validateMutationData(
+    majorToCheck: UpdateMajorDto | CreateMajorDto,
+    transactionClient: PrismaTransaction,
+    id?: string,
+  ) {
+    const excludeId = { NOT: { id } };
+
+    // 1. Check for Major Code Conflict (if code is provided)
+    if (majorToCheck.majorCode) {
+      const existingCodeMajor = await transactionClient.major.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          majorCode: {
+            equals: majorToCheck.majorCode,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingCodeMajor) {
+        throw new ConflictException(
+          `Major code '${existingCodeMajor.majorCode}' already exists`,
+        );
+      }
+    }
+
+    // 2. Check for Name Conflict (if a name is provided)
+    if (majorToCheck.name) {
+      const existingNameMajor = await transactionClient.major.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          name: {
+            equals: majorToCheck.name,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingNameMajor) {
+        throw new ConflictException(
+          `Major name '${existingNameMajor.name}' already exists`,
+        );
+      }
+    }
+
+    // If neither check throws an error, the data is valid.
   }
 }
