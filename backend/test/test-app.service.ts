@@ -40,7 +40,6 @@ import { v4 as uuidv4 } from 'uuid';
  */
 export class TestAppService {
   private static IMAGE = 'postgres:14-alpine';
-  private static isInitialized = false;
   private static initializationInProgress = false;
   private static container: StartedPostgreSqlContainer;
   private static prismaService: CustomPrismaService<ExtendedPrismaClient>;
@@ -58,10 +57,7 @@ export class TestAppService {
    */
   async start(): Promise<{ prismaClient: ExtendedPrismaClient }> {
     try {
-      // Initialize static container and Prisma client if not already done
-      if (!TestAppService.isInitialized) {
-        await this.initializeStaticResources();
-      }
+      await this.initializeStaticResources();
 
       this.prismaClient = TestAppService.prismaService.client;
 
@@ -84,7 +80,6 @@ export class TestAppService {
    * Initialize static resources (container, Prisma client) that can be reused
    */
   private async initializeStaticResources() {
-    if (TestAppService.isInitialized) return;
     if (TestAppService.initializationInProgress) {
       // Wait for initialization to complete
       while (TestAppService.initializationInProgress) {
@@ -146,7 +141,6 @@ export class TestAppService {
       }
 
       console.log('Test environment initialized successfully');
-      TestAppService.isInitialized = true;
     } catch (error) {
       TestAppService.initializationInProgress = false;
       throw error;
@@ -323,37 +317,6 @@ export class TestAppService {
   }
 
   /**
-   * Resets the database by truncating all public schema tables.
-   * This ensures tests can start with a clean slate.
-   *
-   */
-  async resetDatabase() {
-    const tableNames = await this.prismaClient.$queryRaw<
-      Array<{ tablename: string }>
-    >`
-      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE '_prisma%';
-    `;
-
-    const tablesToTruncate = tableNames
-      .map((t) => `"${t.tablename}"`)
-      .join(', ');
-
-    if (tablesToTruncate) {
-      try {
-        await this.prismaClient.$executeRawUnsafe(
-          `TRUNCATE TABLE ${tablesToTruncate} RESTART IDENTITY CASCADE;`,
-        );
-      } catch (error) {
-        console.error('Failed to reset database with TRUNCATE:', error);
-        throw error;
-      }
-    }
-
-    // Re-seed the database with base users after truncating
-    await this.setupUserData();
-  }
-
-  /**
    * Create and cache app instances to avoid recreating for every test
    */
   private appCache = new Map<string, INestApplication>();
@@ -445,10 +408,15 @@ export class TestAppService {
       })
       .compile();
 
+    const logger =
+      process.env.TEST_LOGS === 'true'
+        ? new Logger('E2E-Test', {
+            timestamp: true,
+          })
+        : false; // Disable logging by default
+
     const app = moduleRef.createNestApplication({
-      logger: new Logger('E2E-Test', {
-        timestamp: true,
-      }),
+      logger,
     });
 
     app.useGlobalFilters(new GlobalHttpExceptionFilter());
@@ -464,6 +432,13 @@ export class TestAppService {
     this.appCache.set(cacheKey, app);
 
     return { app };
+  }
+
+  /**
+   * Close instance-specific resources
+   */
+  async close() {
+    await this.cleanup();
   }
 
   /**
@@ -493,42 +468,6 @@ export class TestAppService {
 
     if (errors.length > 0) {
       console.warn(`Cleanup completed with ${errors.length} errors`);
-    }
-  }
-
-  /**
-   * Close instance-specific resources
-   */
-  async close() {
-    await this.cleanup();
-  }
-
-  /**
-   * Static method to close all shared resources (call in afterAll)
-   */
-  static async closeAll() {
-    const errors: Error[] = [];
-
-    if (TestAppService.prismaService) {
-      try {
-        await TestAppService.prismaService.client.$disconnect();
-      } catch (error) {
-        errors.push(error as Error);
-      }
-    }
-
-    if (TestAppService.container) {
-      try {
-        await TestAppService.container.stop();
-      } catch (error) {
-        errors.push(error as Error);
-      }
-    }
-
-    TestAppService.isInitialized = false;
-
-    if (errors.length > 0) {
-      console.warn(`Static cleanup completed with ${errors.length} errors`);
     }
   }
 }

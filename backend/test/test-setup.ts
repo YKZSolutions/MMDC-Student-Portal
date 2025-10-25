@@ -2,23 +2,6 @@ import { INestApplication } from '@nestjs/common';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { TestAppService } from './test-app.service';
 
-// Configure console to ensure logs are visible during tests
-const originalConsoleLog = console.log;
-const originalConsoleError = console.error;
-const originalConsoleWarn = console.warn;
-
-console.log = (...args: any[]) => {
-  originalConsoleLog('[E2E-TEST]', ...args);
-};
-
-console.error = (...args: any[]) => {
-  originalConsoleError('[E2E-TEST]', ...args);
-};
-
-console.warn = (...args: any[]) => {
-  originalConsoleWarn('[E2E-TEST]', ...args);
-};
-
 export interface TestContext {
   testService: TestAppService;
   prismaClient: ExtendedPrismaClient;
@@ -31,7 +14,7 @@ export interface TestContext {
 export async function setupTestEnvironment(): Promise<TestContext> {
   const testService = new TestAppService();
   await testService.start();
-  const { prismaClient } = await testService.start();
+  const { prismaClient } = await testService.start(); //this already resets the database
 
   // Pre-create frequently used app instances
   const { app: adminApp } = await testService.createTestApp();
@@ -45,9 +28,6 @@ export async function setupTestEnvironment(): Promise<TestContext> {
     testService.getMockUser('unauth'),
   );
 
-  // Reset the database at once for all tests
-  await testService.resetDatabase();
-
   return {
     testService,
     prismaClient,
@@ -58,8 +38,6 @@ export async function setupTestEnvironment(): Promise<TestContext> {
   };
 }
 
-export async function teardownTestEnvironment(
-  context: TestContext,
-): Promise<void> {
-  await context.testService.close();
+export async function teardownTestEnvironment(testContext: TestContext) {
+  await testContext.testService.close();
 }

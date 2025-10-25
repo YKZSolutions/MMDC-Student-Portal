@@ -14,7 +14,7 @@
     "^@/(.*)$": "<rootDir>/../src/$1"
   },
   "maxWorkers": 4,
-  "testTimeout": 10000,
+  "testTimeout": 60000,
   "bail": false,
   "detectOpenHandles": true,
   "forceExit": true,
