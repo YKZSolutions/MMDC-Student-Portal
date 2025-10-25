@@ -89,7 +89,7 @@ export class LmsPublishService {
   async unpublishModule(
     @LogParam('moduleId') moduleId: string,
   ): Promise<{ message: string }> {
-    const unpublishPayload = { publishedAt: null, unpublishAt: new Date() };
+    const unpublishPayload = { publishedAt: null, unpublishedAt: new Date() };
 
     // Use a transaction to ensure all updates succeed or fail together
     await this.prisma.client.$transaction(async (tx) => {
