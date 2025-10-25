@@ -16,26 +16,31 @@ describe('BillingController (Integration)', () => {
 
   const createBillingPayload = {
     bill: {
-      name: 'Tuition Fee',
-      amount: 50000,
-      semester: 1,
-      schoolYear: '2024-2025',
+      payerName: 'John Doe',
+      payerEmail: 'john.doe@example.com',
+      billType: 'academic',
+      paymentScheme: 'installment1',
+      totalAmount: '50000',
+      costBreakdown: [
+        {
+          name: 'Tuition Fee',
+          cost: '45000',
+          category: 'Tuition',
+        },
+        {
+          name: 'Laboratory Fee',
+          cost: '5000',
+          category: 'Laboratory',
+        },
+      ],
     },
-    dueDates: [
-      {
-        date: new Date('2024-09-01'),
-        amount: 25000,
-      },
-      {
-        date: new Date('2024-10-01'),
-        amount: 25000,
-      },
-    ],
+    // installment1 scheme requires 3 due dates: down payment, first installment, second installment
+    dueDates: ['2024-09-01T00:00:00Z', '2024-10-01T00:00:00Z', '2024-11-01T00:00:00Z'],
   };
 
   const updateBillingPayload = {
-    name: 'Updated Tuition Fee',
-    amount: 55000,
+    payerName: 'Jane Doe',
+    totalAmount: '55000',
   };
 
   beforeAll(async () => {
@@ -55,12 +60,13 @@ describe('BillingController (Integration)', () => {
         .expect(201);
 
       expect(body).toHaveProperty('id');
-      expect(body.name).toBe(createBillingPayload.bill.name);
-      expect(body.amount).toBe(createBillingPayload.bill.amount);
-      expect(body.semester).toBe(createBillingPayload.bill.semester);
-      expect(body.schoolYear).toBe(createBillingPayload.bill.schoolYear);
-      expect(body).toHaveProperty('dueDates');
-      expect(Array.isArray(body.dueDates)).toBe(true);
+      expect(body.payerName).toBe(createBillingPayload.bill.payerName);
+      expect(body.payerEmail).toBe(createBillingPayload.bill.payerEmail);
+      expect(body.billType).toBe(createBillingPayload.bill.billType);
+      expect(body.paymentScheme).toBe(createBillingPayload.bill.paymentScheme);
+      expect(body.totalAmount).toBe(createBillingPayload.bill.totalAmount);
+      expect(body).toHaveProperty('costBreakdown');
+      expect(Array.isArray(body.costBreakdown)).toBe(true);
     });
 
     it('should return 403 (Forbidden) if a student tries to create a bill', async () => {
@@ -157,7 +163,7 @@ describe('BillingController (Integration)', () => {
         .expect(200);
 
       expect(body).toHaveProperty('id', createdBillId);
-      expect(body.name).toBe(createBillingPayload.bill.name);
+      expect(body.payerName).toBe(createBillingPayload.bill.payerName);
     });
 
     it('should return 404 (Not Found) for non-existent bill ID', async () => {
@@ -192,8 +198,8 @@ describe('BillingController (Integration)', () => {
         .send(updateBillingPayload)
         .expect(200);
 
-      expect(body.name).toBe(updateBillingPayload.name);
-      expect(body.amount).toBe(updateBillingPayload.amount);
+      expect(body.payerName).toBe(updateBillingPayload.payerName);
+      expect(body.totalAmount).toBe(updateBillingPayload.totalAmount);
     });
 
     it('should return 404 (Not Found) for non-existent bill ID', async () => {
@@ -237,7 +243,7 @@ describe('BillingController (Integration)', () => {
       const soft = await request(context.adminApp.getHttpServer())
         .delete(`/billing/${bill.id}`)
         .expect(200);
-      expect(soft.body.message).toContain('marked for deletion');
+      expect(soft.body.message).toContain('soft deleted');
 
       const second = await request(context.adminApp.getHttpServer())
         .delete(`/billing/${bill.id}`)
