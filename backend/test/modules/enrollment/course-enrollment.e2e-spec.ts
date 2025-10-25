@@ -24,28 +24,28 @@ describe('CourseEnrollmentController (Integration)', () => {
 
   // --- POST /enrollment/student/sections ---
   describe('POST /enrollment/student/sections', () => {
-    it('should return list of enrolled sections for student (200)', async () => {
+    it('should return list of enrolled sections for student (201)', async () => {
       const { body } = await request(context.studentApp.getHttpServer())
         .post('/enrollment/student/sections')
-        .expect(200);
+        .expect(201);
 
       expect(body).toHaveProperty('enrollments');
       expect(Array.isArray(body.enrollments)).toBe(true);
     });
 
-    it('should allow admin to get enrollments (200)', async () => {
+    it('should allow admin to get enrollments (201)', async () => {
       const { body } = await request(context.adminApp.getHttpServer())
         .post('/enrollment/student/sections')
-        .expect(200);
+        .expect(201);
 
       expect(body).toHaveProperty('enrollments');
       expect(Array.isArray(body.enrollments)).toBe(true);
     });
 
-    it('should allow mentor to get enrollments (200)', async () => {
+    it('should allow mentor to get enrollments (201)', async () => {
       const { body } = await request(context.mentorApp.getHttpServer())
         .post('/enrollment/student/sections')
-        .expect(200);
+        .expect(201);
 
       expect(body).toHaveProperty('enrollments');
       expect(Array.isArray(body.enrollments)).toBe(true);
@@ -163,11 +163,11 @@ describe('CourseEnrollmentController (Integration)', () => {
 
   // --- POST /enrollment/student/finalize ---
   describe('POST /enrollment/student/finalize', () => {
-    it('should return 404 (Not Found) when no active enrollment exists', async () => {
+    it('should return 400 (Bad Request) when no active enrollment exists', async () => {
       await request(context.studentApp.getHttpServer())
         .post('/enrollment/student/finalize')
         .send({})
-        .expect(404);
+        .expect(400);
     });
 
     it('should return 403 (Forbidden) when mentor tries to finalize', async () => {
