@@ -1316,7 +1316,10 @@ export const zUpdateBillPaymentDto = z.object({
 export const zCreateProgramDto = z.object({
     programCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     yearDuration: z.int()
 });
 
@@ -1324,7 +1327,10 @@ export const zProgramDto = z.object({
     id: z.string(),
     programCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     yearDuration: z.int(),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
@@ -1344,7 +1350,10 @@ export const zMajorItemDto = z.object({
     id: z.string(),
     majorCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -1364,7 +1373,10 @@ export const zProgram = z.object({
     id: z.string(),
     programCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     yearDuration: z.int(),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
@@ -1378,7 +1390,10 @@ export const zProgram = z.object({
 export const zUpdateProgramDto = z.object({
     programCode: z.optional(z.string()),
     name: z.optional(z.string()),
-    description: z.optional(z.string()),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     yearDuration: z.optional(z.int())
 });
 
@@ -1807,7 +1822,10 @@ export const zFinalizeEnrollmentDto = z.object({
 export const zCreateMajorDto = z.object({
     majorCode: z.string(),
     name: z.string(),
-    description: z.string()
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zCreateProgramMajorDto = z.object({
@@ -1819,7 +1837,10 @@ export const zMajorDto = z.object({
     id: z.string(),
     majorCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -1832,7 +1853,10 @@ export const zMajorDto = z.object({
 export const zUpdateMajorDto = z.object({
     majorCode: z.optional(z.string()),
     name: z.optional(z.string()),
-    description: z.optional(z.string())
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zMajor = z.object({
@@ -1840,7 +1864,10 @@ export const zMajor = z.object({
     programId: z.string(),
     majorCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
