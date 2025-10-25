@@ -257,9 +257,10 @@ export class CourseSectionService {
         await tx.courseSection
           .findUnique({
             where: {
-              courseOfferingId_name: {
+              courseOfferingId_name_deletedAt: {
                 courseOfferingId: offeringId,
                 name: updateCourseSectionDto.name,
+                deletedAt: null as any,
               },
             },
           })

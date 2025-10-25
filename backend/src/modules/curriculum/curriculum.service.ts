@@ -106,6 +106,10 @@ export class CurriculumService {
   async findAll(): Promise<CurriculumItemDto[]> {
     return (
       await this.prisma.client.curriculum.findMany({
+        where: {
+          deletedAt: null,
+          major: { deletedAt: null, program: { deletedAt: null } },
+        },
         include: {
           major: {
             include: {
@@ -177,6 +181,7 @@ export class CurriculumService {
       const courses = await tx.curriculumCourse.findMany({
         where: {
           curriculumId: curriculum.id,
+          deletedAt: null,
         },
         include: {
           course: true,
@@ -219,19 +224,21 @@ export class CurriculumService {
   ): Promise<CurriculumDto> {
     return this.prisma.client.$transaction(async (tx) => {
       const curriculum = await tx.curriculum.update({
-        where: { id },
+        where: { id, deletedAt: null },
         data: {
           majorId: updateCurriculumDto.majorId,
           ...updateCurriculumDto.curriculum,
         },
       });
 
+      // Update or create curriculum courses
       for (const course of updateCurriculumDto.courses) {
         await tx.curriculumCourse.upsert({
           where: {
-            curriculumId_courseId: {
+            curriculumId_courseId_deletedAt: {
               curriculumId: id,
               courseId: course.courseId,
+              deletedAt: null as any,
             },
           },
           update: {
@@ -249,12 +256,16 @@ export class CurriculumService {
         });
       }
 
-      await tx.curriculumCourse.deleteMany({
+      await tx.curriculumCourse.updateMany({
         where: {
           curriculumId: id,
           courseId: {
             notIn: updateCurriculumDto.courses.map((c) => c.courseId),
           },
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
         },
       });
 

@@ -1,6 +1,7 @@
 import { UpdateMajorDto } from '@/generated/nestjs-dto/update-major.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -47,10 +48,10 @@ export class MajorService {
       `Failed to create major name=${dto.major.name} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: (
-      _,
-      { dto }: { dto: CreateProgramMajorDto },
-    ) => new ConflictException(`Major name already exists: ${dto.major.name}`),
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException(`Major already exists`),
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new BadRequestException(`Period not found`),
   })
   async create(
     @LogParam('dto') createProgramMajorDto: CreateProgramMajorDto,
@@ -170,8 +171,8 @@ export class MajorService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException(`Major not found`),
-    [PrismaErrorCode.UniqueConstraint]: (_, { dto }: { dto: UpdateMajorDto }) =>
-      new ConflictException(`Major name already exists: ${dto?.name}`),
+    [PrismaErrorCode.UniqueConstraint]: () =>
+      new ConflictException(`Major already exists`),
   })
   async update(
     @LogParam('id') id: string,

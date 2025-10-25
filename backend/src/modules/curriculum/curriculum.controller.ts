@@ -68,9 +68,7 @@ export class CurriculumController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  findOne(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<CurriculumWithCoursesDto> {
+  findOne(@Param('id') id: string): Promise<CurriculumWithCoursesDto> {
     return this.curriculumService.findOne(id);
   }
 

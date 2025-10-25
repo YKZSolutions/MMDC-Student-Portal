@@ -93,7 +93,7 @@ export class CourseEnrollmentService {
    * Retrieves all (enlisted or finalized) course enrollments across all students
    * within the active enrollment period.
    *
-   * This returns detailed enrollment records including the associated
+   * This returns detailed enrollment records, including the associated
    * course offering and course section (with mentor/user data).
    *
    * @param filters - Optional filters for pagination and sorting
@@ -276,7 +276,7 @@ export class CourseEnrollmentService {
         },
       });
 
-      // Validate no of currently enrolled student
+      // Validate number of currently enrolled student
       if (count >= maxSlot) {
         throw new BadRequestException(
           'This section has reached its maximum capacity.',
@@ -286,9 +286,10 @@ export class CourseEnrollmentService {
       // fix: upsert instead of create
       return tx.courseEnrollment.upsert({
         where: {
-          courseOfferingId_studentId: {
+          courseOfferingId_studentId_deletedAt: {
             courseOfferingId: offeringId,
             studentId: studentId,
+            deletedAt: null as any,
           },
         },
         create: {
@@ -396,7 +397,6 @@ export class CourseEnrollmentService {
         where: { id: courseEnrollment.id },
         data: {
           status: 'dropped',
-          deletedAt: new Date(),
         },
       });
 

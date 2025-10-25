@@ -107,7 +107,9 @@ export class CoursesService {
   async findAll(
     @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedCoursesDto> {
-    const where: Prisma.CourseWhereInput = {};
+    const where: Prisma.CourseWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     if (filters.search?.trim()) {
