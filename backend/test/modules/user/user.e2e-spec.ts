@@ -30,7 +30,7 @@ describe('UsersController (Integration)', () => {
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
-  }, 30000);
+  });
 
   afterAll(async () => {
     await teardownTestEnvironment(context);

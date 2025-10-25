@@ -6,6 +6,11 @@ import {
 } from '../../test-setup';
 import { createModule, createModuleSetup } from '../../factories/lms.factory';
 
+/* eslint-disable @typescript-eslint/no-unsafe-call,
+                  @typescript-eslint/no-unsafe-argument,
+                  @typescript-eslint/no-unsafe-member-access,
+                  @typescript-eslint/no-unsafe-assignment,
+*/
 describe('LmsController (Integration)', () => {
   let context: TestContext;
   let module: { id: string };
@@ -321,7 +326,7 @@ describe('LmsController (Integration)', () => {
       expect(body).toHaveProperty('message');
       expect(body.message).toContain('marked as deleted');
 
-      // Verify soft delete: record still exists, but deletedAt is set
+      // Verify softly delete: record still exists, but deletedAt is set
       const deleted = await context.prismaClient.module.findUnique({
         where: { id: moduleToSoftDelete.id },
       });

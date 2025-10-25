@@ -1,15 +1,13 @@
 import request from 'supertest';
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  setupTestEnvironment,
+  teardownTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
+/* eslint-disable @typescript-eslint/no-unsafe-argument,
                   @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
 */
 describe('BillingController (Integration)', () => {
   let context: TestContext;
@@ -35,7 +33,11 @@ describe('BillingController (Integration)', () => {
       ],
     },
     // installment1 scheme requires 3 due dates: down payment, first installment, second installment
-    dueDates: ['2024-09-01T00:00:00Z', '2024-10-01T00:00:00Z', '2024-11-01T00:00:00Z'],
+    dueDates: [
+      '2024-09-01T00:00:00Z',
+      '2024-10-01T00:00:00Z',
+      '2024-11-01T00:00:00Z',
+    ],
   };
 
   const updateBillingPayload = {
@@ -100,14 +102,11 @@ describe('BillingController (Integration)', () => {
 
   // --- GET /billing ---
   describe('GET /billing', () => {
-    let createdBillId: string;
-
     beforeAll(async () => {
-      const { body } = await request(context.adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/billing')
         .send(createBillingPayload)
         .expect(201);
-      createdBillId = body.id;
     });
 
     it('should return paginated list of bills for admin (200)', async () => {

@@ -67,7 +67,7 @@ describe('CurriculumController (Integration)', () => {
         order: order % 2 === 0 ? order++ : order--,
       };
     });
-  }, 30000);
+  });
 
   afterAll(async () => {
     await teardownTestEnvironment(context);

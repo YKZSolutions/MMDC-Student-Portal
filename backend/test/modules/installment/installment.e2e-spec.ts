@@ -1,12 +1,11 @@
 import request from 'supertest';
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  setupTestEnvironment,
+  teardownTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
+/* eslint-disable @typescript-eslint/no-unsafe-argument,
                   @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
                   @typescript-eslint/no-unsafe-return,
@@ -17,23 +16,6 @@ describe('InstallmentController (Integration)', () => {
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
-
-    // Create a pricing group first
-    const pricingGroup = await context.prismaClient.pricingGroup.create({
-      data: {
-        name: 'Test Pricing Group for Installments',
-        amount: '10000',
-        prices: {
-          create: [
-            {
-              name: 'Test Fee',
-              amount: '10000',
-              type: 'tuition',
-            },
-          ],
-        },
-      },
-    });
 
     // Create a bill to use for installment tests
     const { body: bill } = await request(context.adminApp.getHttpServer())

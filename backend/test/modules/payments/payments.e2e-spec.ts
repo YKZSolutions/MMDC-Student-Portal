@@ -1,12 +1,11 @@
 import request from 'supertest';
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  setupTestEnvironment,
+  teardownTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
+/* eslint-disable @typescript-eslint/no-unsafe-argument,
                   @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
                   @typescript-eslint/no-unsafe-return,

@@ -20,14 +20,9 @@ import { v4 } from 'uuid';
 describe('CoursesController (Integration)', () => {
   let context: TestContext;
 
-  // Test data using factory functions with unique data
-  const validCoursePayload = createCourse();
-
-  const updateCoursePayload = createCourseUpdate();
-
   beforeAll(async () => {
     context = await setupTestEnvironment();
-  }, 30000);
+  });
 
   afterAll(async () => {
     await teardownTestEnvironment(context);
@@ -36,6 +31,7 @@ describe('CoursesController (Integration)', () => {
   // --- POST /courses ---
   describe('POST /courses', () => {
     it('should allow an admin to create a new course with valid data (201)', async () => {
+      const validCoursePayload = createCourse();
       const { body } = await request(context.adminApp.getHttpServer())
         .post('/courses')
         .send(validCoursePayload)
@@ -72,21 +68,21 @@ describe('CoursesController (Integration)', () => {
     it('should return 403 (Forbidden) if a student tries to create a course', async () => {
       await request(context.studentApp.getHttpServer())
         .post('/courses')
-        .send(validCoursePayload)
+        .send(createCourse())
         .expect(403);
     });
 
     it('should return 403 (Forbidden) if a mentor tries to create a course', async () => {
       await request(context.mentorApp.getHttpServer())
         .post('/courses')
-        .send(validCoursePayload)
+        .send(createCourse())
         .expect(403);
     });
 
     it('should return 401 (Unauthorized) if no token is provided', async () => {
       await request(context.unauthApp.getHttpServer())
         .post('/courses')
-        .send(validCoursePayload)
+        .send(createCourse())
         .expect(401);
     });
 
@@ -267,6 +263,8 @@ describe('CoursesController (Integration)', () => {
       .send(createCourse())
       .expect(201);
 
+    const updateCoursePayload = createCourseUpdate();
+
     const { body } = await request(context.adminApp.getHttpServer())
       .patch(`/courses/${createdCourse.id}`)
       .send(updateCoursePayload)
@@ -338,6 +336,8 @@ describe('CoursesController (Integration)', () => {
       .send(createCourse())
       .expect(201);
 
+    const updateCoursePayload = createCourseUpdate();
+
     await request(context.mentorApp.getHttpServer())
       .patch(`/courses/${createdCourse.id}`)
       .send(updateCoursePayload)
@@ -352,6 +352,8 @@ describe('CoursesController (Integration)', () => {
       .post('/courses')
       .send(createCourse())
       .expect(201);
+
+    const updateCoursePayload = createCourseUpdate();
 
     await request(context.studentApp.getHttpServer())
       .patch(`/courses/${createdCourse.id}`)
@@ -368,14 +370,9 @@ describe('CoursesController (Integration)', () => {
       .send(createCourse())
       .expect(201);
 
-    const uniqueUpdatePayload = createCourseUpdate({
-      name: 'Unauthorized Update Test',
-      courseCode: 'CS_UNAUTH_UPDATE',
-    });
-
     await request(context.unauthApp.getHttpServer())
       .patch(`/courses/${createdCourse.id}`)
-      .send(uniqueUpdatePayload)
+      .send(createCourseUpdate())
       .expect(401);
   });
 
