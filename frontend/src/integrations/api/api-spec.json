@@ -10016,7 +10016,7 @@
     },
     "/enrollment/student/sections": {
       "post": {
-        "description": "- `STUDENT` will receive their own enlisted enrollments for the active enrollment period.\n- `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.\n- Each returned record includes related course offering, course section and mentor/user data.",
+        "description": "- `STUDENT` will receive their own enlisted enrollments for the active enrollment period.\n- `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.\n- Each returned record includes a related course offering, course section and mentor/user data.",
         "operationId": "CourseEnrollmentController_getCourseEnrollments",
         "parameters": [],
         "responses": {
