@@ -2969,7 +2969,7 @@ export const courseEnrollmentControllerGetCourseEnrollmentsQueryKey = (options?:
  * Retrieve all active (enlisted) course enrollments for the authenticated user.
  * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
  * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
- * - Each returned record includes related course offering, course section and mentor/user data.
+ * - Each returned record includes a related course offering, course section and mentor/user data.
  */
 export const courseEnrollmentControllerGetCourseEnrollmentsOptions = (options?: Options<CourseEnrollmentControllerGetCourseEnrollmentsData>) => {
     return queryOptions({
@@ -2990,7 +2990,7 @@ export const courseEnrollmentControllerGetCourseEnrollmentsOptions = (options?: 
  * Retrieve all active (enlisted) course enrollments for the authenticated user.
  * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
  * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
- * - Each returned record includes related course offering, course section and mentor/user data.
+ * - Each returned record includes a related course offering, course section and mentor/user data.
  */
 export const courseEnrollmentControllerGetCourseEnrollmentsMutation = (options?: Partial<Options<CourseEnrollmentControllerGetCourseEnrollmentsData>>): UseMutationOptions<CourseEnrollmentControllerGetCourseEnrollmentsResponse, CourseEnrollmentControllerGetCourseEnrollmentsError, Options<CourseEnrollmentControllerGetCourseEnrollmentsData>> => {
     const mutationOptions: UseMutationOptions<CourseEnrollmentControllerGetCourseEnrollmentsResponse, CourseEnrollmentControllerGetCourseEnrollmentsError, Options<CourseEnrollmentControllerGetCourseEnrollmentsData>> = {

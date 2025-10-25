@@ -1351,7 +1351,7 @@ export const courseSectionControllerFindOneCourseSectionById = <ThrowOnError ext
  * Retrieve all active (enlisted) course enrollments for the authenticated user.
  * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
  * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
- * - Each returned record includes related course offering, course section and mentor/user data.
+ * - Each returned record includes a related course offering, course section and mentor/user data.
  */
 export const courseEnrollmentControllerGetCourseEnrollments = <ThrowOnError extends boolean = false>(options?: Options<CourseEnrollmentControllerGetCourseEnrollmentsData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).post<CourseEnrollmentControllerGetCourseEnrollmentsResponses, CourseEnrollmentControllerGetCourseEnrollmentsErrors, ThrowOnError>({
