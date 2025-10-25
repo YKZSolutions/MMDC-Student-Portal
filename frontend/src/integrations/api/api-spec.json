@@ -6348,7 +6348,6 @@
     },
     "/programs/{id}": {
       "get": {
-        "description": "Requires `ADMIN` role.",
         "operationId": "ProgramController_findOne",
         "parameters": [
           {
@@ -6552,6 +6551,44 @@
                     "error": {
                       "type": "string",
                       "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
                     }
                   },
                   "required": [
@@ -9883,7 +9920,7 @@
     },
     "/enrollment/student/sections": {
       "post": {
-        "description": "- `STUDENT` will receive their own enlisted enrollments for the active enrollment period.\n- `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.\n- Each returned record includes related course offering, course section and mentor/user data.",
+        "description": "- `STUDENT` will receive their own enlisted enrollments for the active enrollment period.\n- `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.\n- Each returned record includes a related course offering, course section and mentor/user data.",
         "operationId": "CourseEnrollmentController_getCourseEnrollments",
         "parameters": [],
         "responses": {
@@ -13060,13 +13097,21 @@
         ]
       }
     },
-    "/modules/{moduleId}/contents": {
+    "/modules/{moduleId}/sections/{moduleSectionId}/content": {
       "post": {
         "description": "This operation creates a new module content.\nRequires `ADMIN` role.",
         "operationId": "LmsContentController_create",
         "parameters": [
           {
             "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "moduleSectionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13333,7 +13378,7 @@
         ]
       }
     },
-    "/modules/{moduleId}/contents/{moduleContentId}": {
+    "/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}": {
       "get": {
         "operationId": "LmsContentController_findOne",
         "parameters": [
@@ -13732,7 +13777,7 @@
         ]
       }
     },
-    "/modules/{moduleId}/contents/{moduleContentId}/publish": {
+    "/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/publish": {
       "patch": {
         "description": "This operation publishes a module content.\nRequires `ADMIN` role.",
         "operationId": "LmsContentController_publish",
@@ -13878,7 +13923,7 @@
         ]
       }
     },
-    "/modules/{moduleId}/contents/{moduleContentId}/unpublish": {
+    "/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/unpublish": {
       "patch": {
         "description": "This operation unpublishes a module content\nRequires `ADMIN` role.",
         "operationId": "LmsContentController_unpublish",
@@ -14024,7 +14069,7 @@
         ]
       }
     },
-    "/modules/{moduleId}/contents/{moduleContentId}/progress": {
+    "/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress": {
       "post": {
         "description": "Requires `STUDENT` role",
         "operationId": "LmsContentController_createContentProgress",
@@ -19054,7 +19099,6 @@
           },
           "order": {
             "type": "integer",
-            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -19624,7 +19668,6 @@
           },
           "order": {
             "type": "integer",
-            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -22593,7 +22636,12 @@
         "type": "object",
         "properties": {
           "major": {
-            "$ref": "#/components/schemas/CreateMajorDto"
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateMajorDto"
+              }
+            ]
           },
           "programId": {
             "type": "string",
@@ -23708,12 +23756,6 @@
           "title": {
             "type": "string"
           },
-          "order": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32",
-            "default": 0
-          },
           "parentSectionId": {
             "type": "string",
             "nullable": true
@@ -23738,7 +23780,6 @@
           },
           "order": {
             "type": "integer",
-            "nullable": true,
             "format": "int32"
           },
           "publishedAt": {
@@ -24024,34 +24065,9 @@
           "deletedAt"
         ]
       },
-      "ConnectModuleSectionDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
-      "CreateModuleContentModuleSectionRelationInputDto": {
-        "type": "object",
-        "properties": {
-          "connect": {
-            "$ref": "#/components/schemas/ConnectModuleSectionDto"
-          }
-        },
-        "required": [
-          "connect"
-        ]
-      },
       "CreateModuleContentDto": {
         "type": "object",
         "properties": {
-          "moduleSection": {
-            "$ref": "#/components/schemas/CreateModuleContentModuleSectionRelationInputDto"
-          },
           "contentType": {
             "default": "LESSON",
             "allOf": [
@@ -24085,28 +24101,13 @@
           }
         },
         "required": [
-          "moduleSection",
           "title",
           "content"
-        ]
-      },
-      "UpdateModuleContentModuleSectionRelationInputDto": {
-        "type": "object",
-        "properties": {
-          "connect": {
-            "$ref": "#/components/schemas/ConnectModuleSectionDto"
-          }
-        },
-        "required": [
-          "connect"
         ]
       },
       "UpdateModuleContentDto": {
         "type": "object",
         "properties": {
-          "moduleSection": {
-            "$ref": "#/components/schemas/UpdateModuleContentModuleSectionRelationInputDto"
-          },
           "title": {
             "type": "string"
           },

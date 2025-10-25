@@ -616,10 +616,7 @@ export const zModuleSection = z.object({
         z.null()
     ]),
     title: z.string(),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
+    order: z.int(),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -857,10 +854,7 @@ export const zModuleTreeSectionDto = z.object({
         z.null()
     ]),
     title: z.string(),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
+    order: z.int(),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -2245,10 +2239,6 @@ export const zUpdateAssignmentConfigDto = z.object({
 
 export const zCreateModuleSectionDto = z.object({
     title: z.string(),
-    order: z.optional(z.union([
-        z.int().default(0),
-        z.null()
-    ])).default(0),
     parentSectionId: z.optional(z.union([
         z.string(),
         z.null()
@@ -2262,10 +2252,7 @@ export const zCreateModuleSectionDto = z.object({
 export const zDetailedModuleSectionDto = z.object({
     id: z.string(),
     title: z.string(),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
+    order: z.int(),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -2385,16 +2372,7 @@ export const zLessonItemDto = z.object({
     studentProgress: z.optional(z.array(zContentProgress))
 });
 
-export const zConnectModuleSectionDto = z.object({
-    id: z.string()
-});
-
-export const zCreateModuleContentModuleSectionRelationInputDto = z.object({
-    connect: zConnectModuleSectionDto
-});
-
 export const zCreateModuleContentDto = z.object({
-    moduleSection: zCreateModuleContentModuleSectionRelationInputDto,
     contentType: z.optional(zContentType),
     title: z.string(),
     subtitle: z.optional(z.union([
@@ -2412,12 +2390,7 @@ export const zCreateModuleContentDto = z.object({
     ]))
 });
 
-export const zUpdateModuleContentModuleSectionRelationInputDto = z.object({
-    connect: zConnectModuleSectionDto
-});
-
 export const zUpdateModuleContentDto = z.object({
-    moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
     title: z.optional(z.string()),
     subtitle: z.optional(z.union([
         z.string(),
@@ -4326,7 +4299,8 @@ export const zLmsContentControllerFindAllResponse = zPaginatedModuleContentDto;
 export const zLmsContentControllerCreateData = z.object({
     body: zCreateModuleContentDto,
     path: z.object({
-        moduleId: z.string()
+        moduleId: z.string(),
+        moduleSectionId: z.string()
     }),
     query: z.optional(z.never())
 });

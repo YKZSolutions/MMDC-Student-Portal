@@ -925,7 +925,6 @@ export const programControllerRemove = <ThrowOnError extends boolean = false>(op
 
 /**
  * Retrieve a specific program by ID
- * Requires `ADMIN` role.
  */
 export const programControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<ProgramControllerFindOneData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<ProgramControllerFindOneResponses, ProgramControllerFindOneErrors, ThrowOnError>({
@@ -1327,7 +1326,7 @@ export const courseSectionControllerFindOneCourseSectionById = <ThrowOnError ext
  * Retrieve all active (enlisted) course enrollments for the authenticated user.
  * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
  * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
- * - Each returned record includes related course offering, course section and mentor/user data.
+ * - Each returned record includes a related course offering, course section and mentor/user data.
  */
 export const courseEnrollmentControllerGetCourseEnrollments = <ThrowOnError extends boolean = false>(options?: Options<CourseEnrollmentControllerGetCourseEnrollmentsData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).post<CourseEnrollmentControllerGetCourseEnrollmentsResponses, CourseEnrollmentControllerGetCourseEnrollmentsErrors, ThrowOnError>({
@@ -1710,7 +1709,7 @@ export const lmsSectionControllerUnpublishSection = <ThrowOnError extends boolea
  */
 export const lmsContentControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<LmsContentControllerFindAllData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<LmsContentControllerFindAllResponses, LmsContentControllerFindAllErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content',
         ...options
     });
 };
@@ -1722,7 +1721,7 @@ export const lmsContentControllerFindAll = <ThrowOnError extends boolean = false
  */
 export const lmsContentControllerCreate = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerCreateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<LmsContentControllerCreateResponses, LmsContentControllerCreateErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -1738,7 +1737,7 @@ export const lmsContentControllerCreate = <ThrowOnError extends boolean = false>
  */
 export const lmsContentControllerRemove = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerRemoveData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).delete<LmsContentControllerRemoveResponses, LmsContentControllerRemoveErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}',
         ...options
     });
 };
@@ -1748,7 +1747,7 @@ export const lmsContentControllerRemove = <ThrowOnError extends boolean = false>
  */
 export const lmsContentControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerFindOneData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<LmsContentControllerFindOneResponses, LmsContentControllerFindOneErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}',
         ...options
     });
 };
@@ -1760,7 +1759,7 @@ export const lmsContentControllerFindOne = <ThrowOnError extends boolean = false
  */
 export const lmsContentControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerUpdateData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).patch<LmsContentControllerUpdateResponses, LmsContentControllerUpdateErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -1776,7 +1775,7 @@ export const lmsContentControllerUpdate = <ThrowOnError extends boolean = false>
  */
 export const lmsContentControllerPublish = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerPublishData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).patch<LmsContentControllerPublishResponses, LmsContentControllerPublishErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}/publish',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/publish',
         ...options
     });
 };
@@ -1788,7 +1787,7 @@ export const lmsContentControllerPublish = <ThrowOnError extends boolean = false
  */
 export const lmsContentControllerUnpublish = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerUnpublishData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).patch<LmsContentControllerUnpublishResponses, LmsContentControllerUnpublishErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/unpublish',
         ...options
     });
 };
@@ -1800,7 +1799,7 @@ export const lmsContentControllerUnpublish = <ThrowOnError extends boolean = fal
  */
 export const lmsContentControllerFindAllContentProgress = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerFindAllContentProgressData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).get<LmsContentControllerFindAllContentProgressResponses, LmsContentControllerFindAllContentProgressErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}/progress',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress',
         ...options
     });
 };
@@ -1811,7 +1810,7 @@ export const lmsContentControllerFindAllContentProgress = <ThrowOnError extends 
  */
 export const lmsContentControllerCreateContentProgress = <ThrowOnError extends boolean = false>(options: Options<LmsContentControllerCreateContentProgressData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<LmsContentControllerCreateContentProgressResponses, LmsContentControllerCreateContentProgressErrors, ThrowOnError>({
-        url: '/modules/{moduleId}/contents/{moduleContentId}/progress',
+        url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress',
         ...options
     });
 };

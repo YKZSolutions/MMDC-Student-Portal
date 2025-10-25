@@ -407,7 +407,7 @@ export type ModuleSection = {
     parentSectionId: string | null;
     prerequisiteSectionId: string | null;
     title: string;
-    order: number | null;
+    order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
@@ -534,7 +534,7 @@ export type ModuleTreeSectionDto = {
     parentSectionId: string | null;
     prerequisiteSectionId: string | null;
     title: string;
-    order: number | null;
+    order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
     subsections?: Array<ModuleTreeSectionDto> | null;
@@ -1582,7 +1582,6 @@ export type UpdateAssignmentConfigDto = {
 
 export type CreateModuleSectionDto = {
     title: string;
-    order?: number | null;
     parentSectionId?: string | null;
     prerequisiteSectionId?: string | null;
 };
@@ -1590,7 +1589,7 @@ export type CreateModuleSectionDto = {
 export type DetailedModuleSectionDto = {
     id: string;
     title: string;
-    order: number | null;
+    order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
@@ -1656,16 +1655,7 @@ export type LessonItemDto = {
     studentProgress?: Array<ContentProgress>;
 };
 
-export type ConnectModuleSectionDto = {
-    id: string;
-};
-
-export type CreateModuleContentModuleSectionRelationInputDto = {
-    connect: ConnectModuleSectionDto;
-};
-
 export type CreateModuleContentDto = {
-    moduleSection: CreateModuleContentModuleSectionRelationInputDto;
     contentType?: ContentType;
     title: string;
     subtitle?: string | null;
@@ -1676,12 +1666,7 @@ export type CreateModuleContentDto = {
     unpublishedAt?: string | null;
 };
 
-export type UpdateModuleContentModuleSectionRelationInputDto = {
-    connect: ConnectModuleSectionDto;
-};
-
 export type UpdateModuleContentDto = {
-    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
     title?: string;
     subtitle?: string | null;
     content?: Array<{
@@ -3899,6 +3884,11 @@ export type ProgramControllerUpdateErrors = {
         message: string;
         error?: string;
     };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
     500: {
         statusCode: number;
         message: string;
@@ -5654,7 +5644,7 @@ export type LmsContentControllerFindAllData = {
         contentType?: ContentType;
         progress?: ProgressStatus;
     };
-    url: '/modules/{moduleId}/contents';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content';
 };
 
 export type LmsContentControllerFindAllErrors = {
@@ -5682,9 +5672,10 @@ export type LmsContentControllerCreateData = {
     body: CreateModuleContentDto;
     path: {
         moduleId: string;
+        moduleSectionId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content';
 };
 
 export type LmsContentControllerCreateErrors = {
@@ -5723,7 +5714,7 @@ export type LmsContentControllerRemoveData = {
          */
         directDelete?: boolean;
     };
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}';
 };
 
 export type LmsContentControllerRemoveErrors = {
@@ -5755,7 +5746,7 @@ export type LmsContentControllerFindOneData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}';
 };
 
 export type LmsContentControllerFindOneErrors = {
@@ -5789,7 +5780,7 @@ export type LmsContentControllerUpdateData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}';
 };
 
 export type LmsContentControllerUpdateErrors = {
@@ -5824,7 +5815,7 @@ export type LmsContentControllerPublishData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/publish';
 };
 
 export type LmsContentControllerPublishErrors = {
@@ -5859,7 +5850,7 @@ export type LmsContentControllerUnpublishData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/unpublish';
 };
 
 export type LmsContentControllerUnpublishErrors = {
@@ -5894,7 +5885,7 @@ export type LmsContentControllerFindAllContentProgressData = {
         moduleId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress';
 };
 
 export type LmsContentControllerFindAllContentProgressErrors = {
@@ -5930,7 +5921,7 @@ export type LmsContentControllerCreateContentProgressData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress';
 };
 
 export type LmsContentControllerCreateContentProgressErrors = {
