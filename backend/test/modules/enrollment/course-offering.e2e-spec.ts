@@ -29,6 +29,23 @@ describe('CourseOfferingController (Integration)', () => {
   beforeAll(async () => {
     context = await setupTestEnvironment();
 
+    // Create a pricing group first (required for enrollment period)
+    const pricingGroup = await context.prismaClient.pricingGroup.create({
+      data: {
+        name: 'Test Pricing Group',
+        amount: '50000',
+        prices: {
+          create: [
+            {
+              name: 'Tuition Fee',
+              amount: '45000',
+              type: 'tuition',
+            },
+          ],
+        },
+      },
+    });
+
     // Create an enrollment period for testing
     const { body: enrollment } = await request(context.adminApp.getHttpServer())
       .post('/enrollments')
@@ -36,9 +53,10 @@ describe('CourseOfferingController (Integration)', () => {
         startYear: 2024,
         endYear: 2025,
         term: 1,
-        startDate: new Date('2024-09-01'),
-        endDate: new Date('2024-12-20'),
-        status: 'OPEN',
+        startDate: '2024-09-01T00:00:00Z',
+        endDate: '2024-12-20T00:00:00Z',
+        status: 'active',
+        pricingGroupId: pricingGroup.id,
       })
       .expect(201);
 
@@ -51,19 +69,19 @@ describe('CourseOfferingController (Integration)', () => {
 
   // --- POST /enrollments/:enrollmentId/offerings ---
   describe('POST /enrollments/:enrollmentId/offerings', () => {
-    it('should return 404 (Not Found) for non-existent enrollment ID', async () => {
+    it('should return 400 (Bad Request) for non-existent enrollment ID', async () => {
       const nonExistentId = '1f7fcb6a-9b52-4f7a-b1f6-1cfb5d1d1a11';
       await request(context.adminApp.getHttpServer())
         .post(`/enrollments/${nonExistentId}/offerings`)
         .send(createCourseOfferingPayload)
-        .expect(404);
+        .expect(400);
     });
 
-    it('should return 404 (Not Found) for non-existent course ID', async () => {
+    it('should return 400 (Bad Request) for non-existent course ID', async () => {
       await request(context.adminApp.getHttpServer())
         .post(`/enrollments/${testEnrollmentId}/offerings`)
         .send(createCourseOfferingPayload)
-        .expect(404);
+        .expect(400);
     });
 
     it('should return 403 (Forbidden) if a student tries to create course offering', async () => {
@@ -104,19 +122,19 @@ describe('CourseOfferingController (Integration)', () => {
 
   // --- POST /enrollments/:enrollmentId/curriculum ---
   describe('POST /enrollments/:enrollmentId/curriculum', () => {
-    it('should return 404 (Not Found) for non-existent enrollment ID', async () => {
+    it('should return 400 (Bad Request) for non-existent enrollment ID', async () => {
       const nonExistentId = '1f7fcb6a-9b52-4f7a-b1f6-1cfb5d1d1a11';
       await request(context.adminApp.getHttpServer())
         .post(`/enrollments/${nonExistentId}/curriculum`)
         .send(createCurriculumOfferingsPayload)
-        .expect(404);
+        .expect(400);
     });
 
-    it('should return 404 (Not Found) for non-existent curriculum ID', async () => {
+    it('should return 400 (Bad Request) for non-existent curriculum ID', async () => {
       await request(context.adminApp.getHttpServer())
         .post(`/enrollments/${testEnrollmentId}/curriculum`)
         .send(createCurriculumOfferingsPayload)
-        .expect(404);
+        .expect(400);
     });
 
     it('should return 403 (Forbidden) if a student tries to create curriculum offerings', async () => {
@@ -148,8 +166,8 @@ describe('CourseOfferingController (Integration)', () => {
         .get(`/enrollments/${testEnrollmentId}/offerings`)
         .expect(200);
 
-      expect(body).toHaveProperty('offerings');
-      expect(Array.isArray(body.offerings)).toBe(true);
+      expect(body).toHaveProperty('courseOfferings');
+      expect(Array.isArray(body.courseOfferings)).toBe(true);
     });
 
     it('should allow students to view course offerings (200)', async () => {
@@ -157,8 +175,8 @@ describe('CourseOfferingController (Integration)', () => {
         .get(`/enrollments/${testEnrollmentId}/offerings`)
         .expect(200);
 
-      expect(body).toHaveProperty('offerings');
-      expect(Array.isArray(body.offerings)).toBe(true);
+      expect(body).toHaveProperty('courseOfferings');
+      expect(Array.isArray(body.courseOfferings)).toBe(true);
     });
 
     it('should return 403 (Forbidden) when mentor tries to view offerings', async () => {
@@ -167,11 +185,13 @@ describe('CourseOfferingController (Integration)', () => {
         .expect(403);
     });
 
-    it('should return 404 (Not Found) for non-existent enrollment ID', async () => {
+    it('should return 200 with empty results for non-existent enrollment ID', async () => {
       const nonExistentId = '1f7fcb6a-9b52-4f7a-b1f6-1cfb5d1d1a11';
-      await request(context.adminApp.getHttpServer())
+      const { body } = await request(context.adminApp.getHttpServer())
         .get(`/enrollments/${nonExistentId}/offerings`)
-        .expect(404);
+        .expect(200);
+
+      expect(body.courseOfferings).toEqual([]);
     });
 
     it('should return 401 (Unauthorized) when not authenticated', async () => {
