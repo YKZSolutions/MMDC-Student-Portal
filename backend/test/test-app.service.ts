@@ -8,6 +8,7 @@ import { AppModule } from '@/app.module';
 import {
   ExecutionContext,
   INestApplication,
+  Logger,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
@@ -98,21 +99,7 @@ export class TestAppService {
       if (!TestAppService.container) {
         TestAppService.container = await new PostgreSqlContainer(
           TestAppService.IMAGE,
-        )
-          .withCommand([
-            '-c',
-            'fsync=off',
-            '-c',
-            'full_page_writes=off',
-            '-c',
-            'synchronous_commit=off',
-            '-c',
-            'shared_buffers=256MB',
-            '-c',
-            'max_connections=100',
-          ])
-          .withTmpFs({ '/var/lib/postgresql/data': 'rw' })
-          .start();
+        ).start();
 
         console.log(
           `[TestAppService] PostgreSQL container started on port ${TestAppService.container.getPort()}`,
@@ -132,7 +119,7 @@ export class TestAppService {
 
         // Run migrations once
         execSync(
-          'npx prisma db push --skip-generate --force-reset --accept-data-loss --schema=./prisma/schema.prisma',
+          'npx prisma db push --force-reset --accept-data-loss --schema=./prisma/schema.prisma ',
           {
             stdio: 'inherit',
             env: {
@@ -458,7 +445,11 @@ export class TestAppService {
       })
       .compile();
 
-    const app = moduleRef.createNestApplication();
+    const app = moduleRef.createNestApplication({
+      logger: new Logger('E2E-Test', {
+        timestamp: true,
+      }),
+    });
 
     app.useGlobalFilters(new GlobalHttpExceptionFilter());
     app.useGlobalPipes(
