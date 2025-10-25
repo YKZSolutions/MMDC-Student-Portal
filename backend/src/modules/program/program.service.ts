@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -7,7 +8,10 @@ import {
 } from '@nestjs/common';
 
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { Prisma } from '@prisma/client';
@@ -52,29 +56,11 @@ export class ProgramService {
     @LogParam('dto') createProgramDto: CreateProgramDto,
   ): Promise<ProgramDto> {
     return await this.prisma.client.$transaction(async (tx) => {
-      await tx.program
-        .findFirst({
-          where: {
-            deletedAt: null,
-            OR: [
-              { programCode: createProgramDto.programCode },
-              { name: createProgramDto.name },
-            ],
-          },
-        })
-        .then((program) => {
-          if (program) {
-            if (program.programCode === createProgramDto.programCode) {
-              throw new ConflictException('Program code already exists');
-            }
+      // Validate data
+      await this.validateMutationData(createProgramDto, tx);
 
-            if (program.name === createProgramDto.name) {
-              throw new ConflictException('Program name already exists');
-            }
-          }
-        });
-
-      return this.prisma.client.program.create({
+      // If no conflict, create the new program
+      return tx.program.create({
         data: createProgramDto,
       });
     });
@@ -193,20 +179,8 @@ export class ProgramService {
     @LogParam('dto') updateProgramDto: UpdateProgramDto,
   ): Promise<ProgramDto> {
     return await this.prisma.client.$transaction(async (tx) => {
-      await tx.program
-        .findUnique({
-          where: { id },
-        })
-        .then((program) => {
-          if (program) {
-            if (program.programCode === updateProgramDto.programCode) {
-              throw new ConflictException('Program code already exists');
-            }
-            if (program.name === updateProgramDto.name) {
-              throw new ConflictException('Program name already exists');
-            }
-          }
-        });
+      // Validate data
+      await this.validateMutationData(updateProgramDto, tx, id);
 
       return tx.program.update({
         where: { id, deletedAt: null },
@@ -266,5 +240,59 @@ export class ProgramService {
     });
 
     return new MessageDto('Program deleted permanently');
+  }
+
+  async validateMutationData(
+    programToCheck: UpdateProgramDto | CreateProgramDto,
+    transactionClient: PrismaTransaction,
+    id?: string,
+  ) {
+    if (programToCheck.yearDuration && programToCheck.yearDuration < 0) {
+      throw new BadRequestException('Year duration must not be negative');
+    }
+
+    const excludeId = { NOT: { id } };
+
+    // 1. Check for Program Code Conflict (if code is provided)
+    if (programToCheck.programCode) {
+      const existingCodeProgram = await transactionClient.program.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          programCode: {
+            equals: programToCheck.programCode,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingCodeProgram) {
+        throw new ConflictException(
+          `Program code '${existingCodeProgram.programCode}' already exists`,
+        );
+      }
+    }
+
+    // 2. Check for Name Conflict (if a name is provided)
+    if (programToCheck.name) {
+      const existingNameProgram = await transactionClient.program.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          name: {
+            equals: programToCheck.name,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingNameProgram) {
+        throw new ConflictException(
+          `Program name '${existingNameProgram.name}' already exists`,
+        );
+      }
+    }
+
+    // If neither check throws an error, the data is valid.
   }
 }
