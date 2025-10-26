@@ -255,13 +255,11 @@ export class CourseSectionService {
 
       if (updateCourseSectionDto.name) {
         await tx.courseSection
-          .findUnique({
+          .findFirst({
             where: {
-              courseOfferingId_name_deletedAt: {
-                courseOfferingId: offeringId,
-                name: updateCourseSectionDto.name,
-                deletedAt: null as any,
-              },
+              courseOfferingId: offeringId,
+              name: updateCourseSectionDto.name,
+              deletedAt: null,
             },
           })
           .then((existingSection) => {
