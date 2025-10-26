@@ -55,8 +55,8 @@ export class TestAppService {
       // Create instance-specific mock users to avoid test interference
       this.instanceMockUsers = this.cloneMockUsers();
 
-      // Setup user data for this test instance
-      await this.setupUserData();
+      // Reset database and setup user data for this test instance
+      await this.resetDatabase();
 
       console.log('[TestAppService] ✓ Test service initialized');
     } catch (error) {

@@ -1,9 +1,5 @@
 {
-  "moduleFileExtensions": [
-    "js",
-    "json",
-    "ts"
-  ],
+  "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
@@ -13,18 +9,26 @@
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/../src/$1"
   },
-  "maxWorkers": 4,
+  "globalSetup": "<rootDir>/global-setup.ts",
+  "globalTeardown": "<rootDir>/global-teardown.ts",
+  "maxWorkers": 1,
   "testTimeout": 100000,
   "bail": false,
   "detectOpenHandles": true,
   "forceExit": true,
   "verbose": false,
-  "testPathIgnorePatterns": [
-    "/node_modules/"
-  ],
+  "testPathIgnorePatterns": ["/node_modules/"],
   "collectCoverageFrom": [
-    "../src/**/*.ts",
-    "!../src/**/*.interface.ts",
-    "!../src/**/*.module.ts"
+    "src/**/*.{js,ts}",
+    "!src/main.ts",
+    "!**/node_modules/**",
+    "!**/test/**",
+    "!**/*.module.ts",
+    "!**/*.controller.ts",
+    "!**/*.service.ts",
+    "!**/*.dto.ts",
+    "!**/*.entity.ts",
+    "!**/interfaces/**",
+    "!**/constants/**"
   ]
 }

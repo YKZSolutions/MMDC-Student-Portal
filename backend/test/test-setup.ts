@@ -21,13 +21,6 @@ let testContext: TestContext | null = null;
  * It reuses the global database and creates app instances.
  */
 export async function setupTestEnvironment(): Promise<TestContext> {
-  // If context exists, reset database and return
-  if (testContext) {
-    console.log('[TEST-SETUP] ✓ Reusing test context, resetting database');
-    await testContext.testService.resetDatabase();
-    return testContext;
-  }
-
   console.log('[TEST-SETUP] ⚙️  Creating test context...');
 
   // Create a test service instance
