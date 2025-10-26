@@ -31,7 +31,7 @@ export default async function globalSetup() {
       `[GLOBAL-SETUP] ✓ PostgreSQL container started on port ${container.getPort()}`,
     );
 
-    // Wait for database to be ready
+    // Wait for the database to be ready
     await waitForDatabase(container);
 
     // Get connection URL

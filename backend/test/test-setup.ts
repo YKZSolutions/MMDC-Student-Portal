@@ -62,15 +62,8 @@ export async function cleanupTestEnvironment(): Promise<void> {
   if (testContext) {
     console.log('[TEST-SETUP] 🧹 Cleaning up test context...');
     await testContext.testService?.close();
+    await testContext.testService.resetDatabase();
     testContext = null;
     console.log('[TEST-SETUP] ✓ Cleanup completed');
   }
 }
-
-/**
- * Reset database between tests
- *
- * Optional: Call this in beforeEach() if you need a clean database for each test.
- * Otherwise, tests will share the same database state within a suite.
- */
-export async function resetTestDatabase(): Promise<void> {}

@@ -55,8 +55,8 @@ export class TestAppService {
       // Create instance-specific mock users to avoid test interference
       this.instanceMockUsers = this.cloneMockUsers();
 
-      // Reset database and setup user data for this test instance
-      await this.resetDatabase();
+      // Setup user data for this test instance
+      await this.setupUserData();
 
       console.log('[TestAppService] ✓ Test service initialized');
     } catch (error) {
@@ -216,9 +216,6 @@ export class TestAppService {
           `TRUNCATE TABLE ${tablesToTruncate} RESTART IDENTITY CASCADE;`,
         );
       }
-
-      // Re-seed the database with base users after truncating
-      await this.setupUserData();
 
       console.log('[TestAppService] ✓ Database reset completed');
     } catch (error) {

@@ -326,7 +326,9 @@ export class LmsService {
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Module ${id} not found`),
+      new NotFoundException(`Module not found`),
+    [PrismaErrorCode.RelatedRecordNotFound]: (_, { id }) =>
+      new NotFoundException(`Module not found`),
   })
   async findOne(
     @LogParam('id') id: string,

@@ -153,7 +153,6 @@ export class ProgramService {
   /**
    * Updates the details of an existing program.
    *
-   * @async
    * @param {string} id - The UUID of the program to update.
    * @param {UpdateProgramDto} updateProgramDto - Data Transfer Object containing updated program details.
    * @returns {Promise<ProgramDto>} The updated program record.

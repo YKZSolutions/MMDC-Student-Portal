@@ -383,7 +383,9 @@ export class EnrollmentService {
           },
           courseOffering: { include: { course: true } },
           courseSection: {
-            include: { mentor: { select: { firstName: true, lastName: true } } },
+            include: {
+              mentor: { select: { firstName: true, lastName: true } },
+            },
           },
         },
         orderBy: [
