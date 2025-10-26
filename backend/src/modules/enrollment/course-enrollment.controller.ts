@@ -43,7 +43,7 @@ export class CourseEnrollmentController {
    */
   @ApiException(() => [BadRequestException, NotFoundException])
   @Roles(Role.MENTOR, Role.STUDENT, Role.ADMIN)
-  @Post('/sections')
+  @Get('/sections')
   getCourseEnrollments(@CurrentUser() user: CurrentAuthUser) {
     const { role, user_id } = user.user_metadata;
     return this.courseEnrollmentService.getCourseEnrollments(user_id, role);
