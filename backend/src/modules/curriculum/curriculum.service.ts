@@ -235,7 +235,7 @@ export class CurriculumService {
         },
       });
 
-      // Update or create curriculum courses
+      // Manually upsert curriculum courses: for each course, find an existing record and update it, or create a new one if it does not exist
       for (const course of updateCurriculumDto.courses) {
         // Find existing non-deleted record
         const existing = await tx.curriculumCourse.findFirst({
