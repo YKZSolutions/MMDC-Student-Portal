@@ -62,7 +62,6 @@ export default async function globalSetup() {
     console.log('[GLOBAL-SETUP] ⚙️  Initializing Prisma client...');
     const extendedPrismaClient = new PrismaClient({
       datasources: { db: { url: databaseUrl } },
-      log: ['warn', 'error'],
     }).$extends(pagination());
 
     await extendedPrismaClient.$connect();

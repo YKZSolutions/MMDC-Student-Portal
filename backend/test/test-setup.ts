@@ -43,11 +43,11 @@ export async function setupTestEnvironment(): Promise<TestContext> {
   testContext = {
     testService,
     prismaClient: testService.prismaClient,
-    adminApp,
-    mentorApp,
-    studentApp,
-    unauthApp,
-  };
+    adminApp: adminApp,
+    mentorApp: mentorApp,
+    studentApp: studentApp,
+    unauthApp: unauthApp,
+  } as TestContext;
 
   console.log('[TEST-SETUP] ✓ Test context ready');
   return testContext;
