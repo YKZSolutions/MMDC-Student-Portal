@@ -325,9 +325,9 @@ export class LmsService {
       `Fetching module ${id} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
+    [PrismaErrorCode.RecordNotFound]: () =>
       new NotFoundException(`Module not found`),
-    [PrismaErrorCode.RelatedRecordNotFound]: (_, { id }) =>
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
       new NotFoundException(`Module not found`),
   })
   async findOne(
@@ -887,6 +887,7 @@ export class LmsService {
     const activeTerm = await this.prisma.client.enrollmentPeriod.findFirst({
       where: {
         status: EnrollmentStatus.active,
+        deletedAt: null,
       },
     });
 
@@ -912,7 +913,9 @@ export class LmsService {
         status: CourseEnrollmentStatus.enrolled,
         courseOffering: {
           periodId: activeTerm.id,
+          deletedAt: null,
         },
+        deletedAt: null,
       },
       include: {
         courseOffering: {
@@ -929,32 +932,41 @@ export class LmsService {
 
     // Get todos (assignments with due dates)
     const whereCondition: Prisma.ModuleContentWhereInput = {
+      // 1. Filters by Course Offerings
       moduleSection: {
         module: {
           courseOfferingId: { in: courseOfferingIds },
         },
       },
-      studentProgress: {
-        every: {
-          studentId,
-          status: { not: ProgressStatus.COMPLETED },
-        },
-      },
+
+      // 2. Filters for Assignments that are either due in the future or have no due date
       OR: [
         {
           contentType: ContentType.ASSIGNMENT,
           assignment: {
-            dueDate: { gte: new Date() },
+            dueDate: { gte: new Date() }, // Due in the future (or now)
           },
         },
         {
           contentType: ContentType.ASSIGNMENT,
           assignment: {
-            dueDate: null,
+            dueDate: null, // No due date
           },
         },
       ],
+
+      // 3. Filters for content that is published
       publishedAt: { lte: new Date() },
+
+      // 4. Filters out content that has been completed by this specific student
+      NOT: {
+        studentProgress: {
+          some: {
+            studentId,
+            status: ProgressStatus.COMPLETED,
+          },
+        },
+      },
     };
 
     const [todos, meta] = await this.prisma.client.moduleContent
@@ -996,13 +1008,10 @@ export class LmsService {
     // Transform the results to include progress status
     const items = todos.map((todo) => {
       const title = todo?.title;
-      const dueDate = todo?.assignment?.dueDate;
+      const dueDate = todo?.assignment?.dueDate ?? null;
 
       if (!title) {
         throw new Error(`Content ${todo.id} is missing a title`);
-      }
-      if (!dueDate) {
-        throw new Error(`Content ${todo.id} is missing a due date`);
       }
 
       return {

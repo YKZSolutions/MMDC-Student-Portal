@@ -1,5 +1,11 @@
+import {
+  AssignmentMode,
+  ContentType,
+  EnrollmentStatus,
+  CourseEnrollmentStatus,
+} from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { CreateModuleDto } from '@/generated/nestjs-dto/create-module.dto';
-import { AssignmentMode, ContentType, Prisma } from '@prisma/client';
 
 /**
  * Basic single module DTO generator
@@ -7,11 +13,10 @@ import { AssignmentMode, ContentType, Prisma } from '@prisma/client';
 export const createModule = (
   overrides: {
     title?: string;
-    publishedAt?: Date;
   } = {},
 ): CreateModuleDto => {
   return {
-    title: overrides?.title || 'Test Module',
+    title: overrides.title || 'Test Module',
   };
 };
 
@@ -50,7 +55,8 @@ export const createModuleSetup = (
     startDate:
       type === 'todo' ? new Date('2025-01-01') : new Date('2025-06-01'),
     endDate: type === 'todo' ? new Date('2025-12-31') : new Date('2025-10-01'),
-    status: 'active' as Prisma.EnrollmentPeriodCreateInput['status'],
+    status:
+      EnrollmentStatus.active as Prisma.EnrollmentPeriodCreateInput['status'],
   };
 
   const course = {
@@ -86,7 +92,8 @@ export const createModuleSetup = (
     courseOfferingId: offeringId,
     courseSectionId: sectionId,
     studentId,
-    status: 'enrolled' as Prisma.CourseEnrollmentCreateInput['status'],
+    status:
+      CourseEnrollmentStatus.enrolled as Prisma.CourseEnrollmentCreateInput['status'],
     startedAt: now,
   });
 
@@ -144,7 +151,7 @@ export const createModuleSetup = (
       contentType: ContentType.LESSON,
       order: i + 1,
       publishedAt: now,
-      moduleSectionId: i < 2 ? rootId : subId!,
+      moduleSectionId: i < 2 ? rootId : subId,
       content: [],
     }));
     return lessons;

@@ -228,10 +228,10 @@ export class LmsController {
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   @Roles(Role.STUDENT)
-  @Get('/todo')
-  findTodos(
-    @CurrentUser() user: CurrentAuthUser,
+  @Get('todo')
+  async findTodos(
     @Query() filters: FilterTodosDto,
+    @CurrentUser() user: CurrentAuthUser,
   ): Promise<PaginatedTodosDto> {
     const { user_id } = user.user_metadata;
     return this.lmsService.findTodos(user_id, filters);
@@ -275,8 +275,9 @@ export class LmsController {
   }
 
   @Get(':id/progress/overview')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   async getModuleProgressOverview(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Query() queryParams: ProgressQueryParams,
     @CurrentUser() currentUser: CurrentAuthUser,
   ): Promise<ModuleProgressOverview> {
@@ -290,8 +291,9 @@ export class LmsController {
   }
 
   @Get(':id/progress/detail')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   async getModuleProgressDetail(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Query() queryParams: ProgressQueryParams,
     @CurrentUser() currentUser: CurrentAuthUser,
   ): Promise<ModuleProgressDetail> {
@@ -305,6 +307,7 @@ export class LmsController {
   }
 
   @Get('dashboard')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   async getDashboardProgress(
     @Query() queryParams: ProgressQueryParams,
     @CurrentUser() currentUser: CurrentAuthUser,
