@@ -31,6 +31,7 @@ export default function NotificationItemCard({
       )}
 
       <Group
+        data-cy="notification-item"
         px="md"
         py={fullContent ? 'lg' : 'sm'}
         align="start"

@@ -106,6 +106,7 @@ function AddCurriculumCourse() {
         <Group justify="end">
           {/* <Button variant="light">Cancel</Button> */}
           <Button
+            data-cy="course-save-button"
             onClick={() => handleFinish(form.getValues() as CourseFormOutput)}
             disabled={isPending}
           >
@@ -118,6 +119,7 @@ function AddCurriculumCourse() {
         <Stack>
           <Group align="start">
             <TextInput
+              data-cy="course-name-input"
               variant="filled"
               label="Name"
               placeholder="Course name"
@@ -128,6 +130,7 @@ function AddCurriculumCourse() {
               {...form.getInputProps('name')}
             />
             <TextInput
+              data-cy="course-code-input"
               variant="filled"
               label="Course Code"
               placeholder="MO-IT100"
@@ -141,6 +144,7 @@ function AddCurriculumCourse() {
 
           <Group>
             <Select
+              data-cy="course-type-select"
               variant="filled"
               label="Type"
               placeholder="Select type"
@@ -158,6 +162,7 @@ function AddCurriculumCourse() {
               {...form.getInputProps('type')}
             />
             <NumberInput
+              data-cy="course-units-input"
               variant="filled"
               label="Units"
               placeholder="0"
@@ -184,6 +189,7 @@ function AddCurriculumCourse() {
           </Group>
 
           <Textarea
+            data-cy="course-description-input"
             variant="filled"
             label="Description"
             placeholder="Write the description here..."

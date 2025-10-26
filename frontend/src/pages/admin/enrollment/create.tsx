@@ -1,6 +1,6 @@
 import {
   enrollmentPeriodFormSchema,
-  type EnrollmentPeriodFormInput
+  type EnrollmentPeriodFormInput,
 } from '@/features/enrollment/schema/create-enrollment.schema'
 import {
   billingControllerFindAllQueryKey,
@@ -99,6 +99,7 @@ function CreateEnrollmentPage() {
         <Group grow align="start">
           {/* Term */}
           <Select
+            data-cy="enrollment-term-select"
             allowDeselect={false}
             label="Term"
             placeholder="Pick one"
@@ -118,6 +119,7 @@ function CreateEnrollmentPage() {
 
           {/* Term Dates */}
           <DatePickerInput
+            data-cy="enrollment-term-duration-input"
             type="range"
             label={'Term Duration'}
             placeholder="Pick date"
@@ -169,6 +171,7 @@ function CreateEnrollmentPage() {
 
         {/* School Year */}
         <YearPickerInput
+          data-cy="enrollment-school-year-input"
           type="range"
           label={'School Year'}
           placeholder="Pick date"
@@ -192,12 +195,18 @@ function CreateEnrollmentPage() {
       {/* Action buttons */}
       <Group mt="xl" justify="flex-end">
         <Button
+          data-cy="enrollment-cancel-button"
           variant="subtle"
           onClick={() => navigate({ to: '/enrollment' })}
         >
           Cancel
         </Button>
-        <Button variant="filled" color="primary" onClick={() => handleCreate()}>
+        <Button
+          data-cy="enrollment-create-button"
+          variant="filled"
+          color="primary"
+          onClick={() => handleCreate()}
+        >
           Create
         </Button>
       </Group>

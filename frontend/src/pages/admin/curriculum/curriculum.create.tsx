@@ -117,6 +117,7 @@ function CurriculumCreate() {
 
         <Group>
           <Button
+            data-cy="curriculum-save-button"
             leftSection={<IconDeviceFloppy size={20} />}
             onClick={() =>
               handleSubmit(form.getValues() as CurriculumFormOutput)
@@ -130,6 +131,7 @@ function CurriculumCreate() {
       <Stack>
         <Group align="start">
           <AsyncSearchSelect
+            data-cy="curriculum-program-select"
             variant="filled"
             label="Program"
             placeholder="Pick a program"
@@ -156,6 +158,7 @@ function CurriculumCreate() {
             }}
           />
           <AsyncSearchSelect
+            data-cy="curriculum-major-select"
             variant="filled"
             label="Major"
             placeholder="Pick a major"
@@ -183,6 +186,7 @@ function CurriculumCreate() {
         </Group>
 
         <Textarea
+          data-cy="curriculum-description-input"
           variant="filled"
           label="Description"
           placeholder="Write the description here..."

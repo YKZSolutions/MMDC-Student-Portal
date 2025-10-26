@@ -96,6 +96,7 @@ function NotificationAction() {
   return (
     <Group flex={1} justify="space-between">
       <Tabs
+        data-cy="notification-tabs"
         mb={4}
         // w="50%"
         flex={1}
@@ -126,6 +127,7 @@ function NotificationAction() {
 
       <Tooltip label="Mark All as Read">
         <ActionIcon
+          data-cy="notification-mark-all-read-button"
           variant="subtle"
           radius="xl"
           disabled={unread === 0}

@@ -198,6 +198,7 @@ function AddModuleItemDrawer({
           </Box>
 
           <TextInput
+            data-cy="module-item-title-input"
             radius={'md'}
             placeholder={isSubsection ? 'Content title' : 'Subsection title'}
             required
@@ -207,6 +208,7 @@ function AddModuleItemDrawer({
 
           {isSubsection && (
             <Select
+              data-cy="module-item-content-type-select"
               radius={'md'}
               placeholder="Select content type"
               required
@@ -223,6 +225,7 @@ function AddModuleItemDrawer({
 
           <Group style={{ justifyContent: 'flex-end' }}>
             <Button
+              data-cy="module-item-cancel-button"
               variant="light"
               onClick={() => setDrawer(false)}
               disabled={creatingSubsection}
@@ -230,6 +233,7 @@ function AddModuleItemDrawer({
               Cancel
             </Button>
             <Button
+              data-cy="module-item-create-button"
               leftSection={<IconPlus />}
               type="submit"
               loading={creatingSubsection}

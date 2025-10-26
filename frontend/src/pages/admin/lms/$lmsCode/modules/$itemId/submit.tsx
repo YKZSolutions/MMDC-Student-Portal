@@ -1,18 +1,18 @@
 import '@blocknote/mantine/style.css'
 import {
-    ActionIcon,
-    Badge,
-    Button,
-    Card,
-    Container,
-    FileInput,
-    Group,
-    Stack,
-    Tabs,
-    Textarea,
-    TextInput,
-    Title,
-    Tooltip,
+  ActionIcon,
+  Badge,
+  Button,
+  Card,
+  Container,
+  FileInput,
+  Group,
+  Stack,
+  Tabs,
+  Textarea,
+  TextInput,
+  Title,
+  Tooltip,
 } from '@mantine/core'
 import { IconHistory, IconPencil, IconUpload } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -108,11 +108,13 @@ const SubmissionPage = ({ assignmentId }: { assignmentId: string }) => {
             <Tabs.Panel value="upload" pt="md">
               <Stack gap="sm">
                 <FileInput
+                  data-cy="submit-file-input"
                   placeholder="Attach a file"
                   value={file}
                   onChange={setFile}
                 />
                 <TextInput
+                  data-cy="submit-link-input"
                   placeholder="https://example.com/your-work"
                   label="Or submit a link"
                   value={link}
@@ -133,6 +135,7 @@ const SubmissionPage = ({ assignmentId }: { assignmentId: string }) => {
 
           {/* Comments */}
           <Textarea
+            data-cy="submit-comments-input"
             placeholder="Add a description or comments (optional)"
             label="Comments"
             minRows={3}
@@ -142,13 +145,25 @@ const SubmissionPage = ({ assignmentId }: { assignmentId: string }) => {
 
           {/* Action buttons */}
           <Group justify="flex-end" gap="sm">
-            <Button variant="light" onClick={handleSaveDraft}>
+            <Button
+              data-cy="submit-save-draft-button"
+              variant="light"
+              onClick={handleSaveDraft}
+            >
               Save Draft
             </Button>
-            <Button variant="light" onClick={handleSubmitFeedback}>
+            <Button
+              data-cy="submit-feedback-button"
+              variant="light"
+              onClick={handleSubmitFeedback}
+            >
               Submit for Feedback
             </Button>
-            <Button color="primary" onClick={handleSubmitFinal}>
+            <Button
+              data-cy="submit-final-button"
+              color="primary"
+              onClick={handleSubmitFinal}
+            >
               Submit Final
             </Button>
           </Group>

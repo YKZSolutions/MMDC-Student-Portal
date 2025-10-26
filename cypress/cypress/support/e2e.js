@@ -14,4 +14,18 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+import "./commands";
+
+// Handle uncaught exceptions from the application (e.g., network errors)
+Cypress.on("uncaught:exception", (err, runnable) => {
+  // Ignore network errors and promise rejections from the app
+  if (
+    err.message.includes("Failed to fetch") ||
+    err.message.includes("NetworkError") ||
+    err.message.includes("An unknown error has occurred")
+  ) {
+    return false;
+  }
+  // We still want to ensure there are no other unexpected errors
+  return true;
+});

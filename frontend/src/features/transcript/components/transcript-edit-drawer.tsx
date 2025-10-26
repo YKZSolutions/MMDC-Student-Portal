@@ -162,6 +162,7 @@ function TranscriptEditForm({
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
           <Select
+            data-cy="transcript-grade-select"
             required
             radius="md"
             label="Grade (Numeric)"
@@ -173,6 +174,7 @@ function TranscriptEditForm({
           />
 
           <Select
+            data-cy="transcript-grade-letter-select"
             radius="md"
             label="Grade (Letter)"
             placeholder="Select a letter grade"
@@ -183,10 +185,16 @@ function TranscriptEditForm({
           />
 
           <Group style={{ justifyContent: 'flex-end' }}>
-            <Button variant="light" onClick={onClose} disabled={isUpdating}>
+            <Button
+              data-cy="transcript-cancel-button"
+              variant="light"
+              onClick={onClose}
+              disabled={isUpdating}
+            >
               Cancel
             </Button>
             <Button
+              data-cy="transcript-update-button"
               leftSection={<IconCheck size={16} />}
               type="submit"
               loading={isUpdating}

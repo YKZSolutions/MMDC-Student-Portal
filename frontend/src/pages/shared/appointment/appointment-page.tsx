@@ -84,6 +84,7 @@ function AppointmentPage() {
         <Stack flex={1}>
           <Group justify="space-between">
             <SegmentedControl
+              data-cy="appointment-status-filter"
               data={[
                 { label: 'Upcoming', value: 'upcoming' },
                 { label: 'Finished', value: 'finished' },
@@ -148,6 +149,7 @@ function AppointmentList() {
             key={appointment.id}
             to="/appointment/$appointmentId"
             params={{ appointmentId: appointment.id }}
+            data-cy="appointment-item"
           >
             <Card py="sm" radius="md" withBorder>
               <Group justify="space-between">
@@ -209,6 +211,7 @@ function AppointmentCalendarSection() {
     <Stack mr={50} align="end">
       {role === 'student' ? (
         <Button
+          data-cy="book-appointment-button"
           leftSection={<IconCalendarPlus size={20} />}
           onClick={() => handleOpenDrawer()}
         >
@@ -464,6 +467,7 @@ function AppointmentForm() {
     >
       <Stack gap="md">
         <AsyncSearchSelect
+          data-cy="appointment-course-select"
           // variant="filled"
           label="Course"
           placeholder="Pick a course"
@@ -531,6 +535,7 @@ function AppointmentForm() {
           </Card>
         </Stack>
         <TextInput
+          data-cy="appointment-topic-input"
           label="Topic"
           placeholder="The appointment's topic"
           radius="md"
@@ -540,6 +545,7 @@ function AppointmentForm() {
           {...form.getInputProps('topic')}
         />
         <Textarea
+          data-cy="appointment-description-input"
           label="Description"
           placeholder="Additional details..."
           radius="md"
@@ -553,6 +559,7 @@ function AppointmentForm() {
         <Stack gap="sm">
           <Group gap="sm">
             <DatePickerInput
+              data-cy="appointment-date-input"
               label="Appointment Date"
               placeholder="Pick a Date"
               flex={1}
@@ -579,6 +586,7 @@ function AppointmentForm() {
               {...form.getInputProps('date')}
             />
             <Select
+              data-cy="appointment-time-select"
               label="Appointment Time"
               placeholder="Pick a Time Slot"
               flex={1}
@@ -593,6 +601,7 @@ function AppointmentForm() {
 
         <Group justify="flex-end" mt="md">
           <Button
+            data-cy="appointment-cancel-button"
             variant="subtle"
             onClick={() => handleCloseDrawer()}
             disabled={isPending}
@@ -600,6 +609,7 @@ function AppointmentForm() {
             Cancel
           </Button>
           <Button
+            data-cy="appointment-save-button"
             disabled={isPending}
             onClick={() => handleBookAppointment(form.getValues())}
           >

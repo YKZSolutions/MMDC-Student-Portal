@@ -305,6 +305,7 @@ function AppointmentActions() {
       {role === 'mentor' ? (
         <>
           <Button
+            data-cy="appointment-reject-button"
             color="red"
             onClick={() => handleReject()}
             disabled={appointment.status !== 'booked'}
@@ -312,6 +313,7 @@ function AppointmentActions() {
             Reject
           </Button>
           <Button
+            data-cy="appointment-approve-button"
             onClick={() => handleApprove()}
             disabled={appointment.status !== 'booked'}
           >
@@ -321,6 +323,7 @@ function AppointmentActions() {
       ) : role === 'student' ? (
         <>
           <Button
+            data-cy="appointment-cancel-student-button"
             color="red"
             onClick={() => handleCancel()}
             disabled={appointment.status !== 'booked'}
@@ -344,10 +347,9 @@ function ReasonModal({
 
   return (
     <Stack>
-      <Text size="sm">
-        {description}
-      </Text>
+      <Text size="sm">{description}</Text>
       <Textarea
+        data-cy="appointment-cancel-reason-input"
         label="Reason"
         placeholder="Why you want to cancel the appointment"
         data-autofocus
@@ -358,6 +360,7 @@ function ReasonModal({
       />
       <Group justify="end">
         <Button
+          data-cy="appointment-cancel-reason-cancel-button"
           variant="outline"
           color="dark"
           className=" border-neutral-300"
@@ -366,6 +369,7 @@ function ReasonModal({
           Cancel
         </Button>
         <Button
+          data-cy="appointment-cancel-reason-confirm-button"
           onClick={() => {
             onConfirm(reason)
             modals.closeAll()

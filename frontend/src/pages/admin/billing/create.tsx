@@ -152,6 +152,7 @@ function CreateBillingPage() {
         {/* Due Date and Bill Type */}
         <Group grow gap="md" align="start">
           <Select
+            data-cy="billing-payment-scheme-select"
             allowDeselect={false}
             label="Payment Scheme"
             placeholder="Pick one"
@@ -162,6 +163,7 @@ function CreateBillingPage() {
           />
 
           <Select
+            data-cy="billing-type-select"
             allowDeselect={false}
             label="Bill Type"
             placeholder="Pick one"
@@ -174,6 +176,7 @@ function CreateBillingPage() {
 
         <Stack>
           <DatePickerInput
+            data-cy="billing-due-date-input"
             label={
               form.getValues().bill.paymentScheme === 'full'
                 ? 'Due Date'
@@ -242,6 +245,7 @@ function CreateBillingPage() {
                       <Grid align="start">
                         <Grid.Col span={{ base: 12, sm: 4 }}>
                           <Select
+                            data-cy={`billing-category-select-${index}`}
                             searchable
                             label="Category"
                             placeholder="Pick category"
@@ -262,6 +266,7 @@ function CreateBillingPage() {
 
                         <Grid.Col span={{ base: 12, sm: 4 }}>
                           <TextInput
+                            data-cy={`billing-item-name-input-${index}`}
                             label="Name"
                             placeholder="Enter name"
                             withAsterisk
@@ -283,6 +288,7 @@ function CreateBillingPage() {
                             }
                           >
                             <NumberInput
+                              data-cy={`billing-item-cost-input-${index}`}
                               w={'100%'}
                               label="Cost"
                               placeholder="Enter cost"
@@ -297,6 +303,7 @@ function CreateBillingPage() {
                             />
 
                             <ActionIcon
+                              data-cy={`billing-item-remove-button-${index}`}
                               variant="subtle"
                               color="red"
                               radius={'xl'}
@@ -338,6 +345,7 @@ function CreateBillingPage() {
           </Tabs>
 
           <Button
+            data-cy="billing-add-item-button"
             size="md"
             className="border-gray-300"
             variant="default"
@@ -378,6 +386,7 @@ function CreateBillingPage() {
       {/* Action buttons */}
       <Group mt="xl" justify="flex-end">
         <Button
+          data-cy="billing-cancel-button"
           variant="subtle"
           onClick={() =>
             navigate({
@@ -387,7 +396,12 @@ function CreateBillingPage() {
         >
           Cancel
         </Button>
-        <Button variant="filled" color="primary" onClick={() => handleCreate()}>
+        <Button
+          data-cy="billing-create-button"
+          variant="filled"
+          color="primary"
+          onClick={() => handleCreate()}
+        >
           Create
         </Button>
       </Group>

@@ -53,6 +53,7 @@ export default function CurriculumCourses() {
       <Stack gap={'md'} flex={1}>
         <Group gap={rem(5)} justify="end" align="center">
           <TextInput
+            data-cy="search-input"
             placeholder="Search year/term/date"
             radius={'md'}
             leftSection={<IconSearch size={18} stroke={1} />}
@@ -346,6 +347,7 @@ function CreateCourseForm() {
         <Stack>
           <Group align="start">
             <TextInput
+              data-cy="course-name-input"
               variant="filled"
               label="Name"
               placeholder="Course name"
@@ -356,6 +358,7 @@ function CreateCourseForm() {
               {...form.getInputProps('name')}
             />
             <TextInput
+              data-cy="course-code-input"
               variant="filled"
               label="Course Code"
               placeholder="MO-IT100"
@@ -369,6 +372,7 @@ function CreateCourseForm() {
 
           <Group>
             <Select
+              data-cy="course-type-select"
               variant="filled"
               label="Type"
               placeholder="Select type"
@@ -386,6 +390,7 @@ function CreateCourseForm() {
               {...form.getInputProps('type')}
             />
             <NumberInput
+              data-cy="course-units-input"
               variant="filled"
               label="Units"
               placeholder="0"
@@ -412,6 +417,7 @@ function CreateCourseForm() {
           </Group>
 
           <Textarea
+            data-cy="course-description-input"
             variant="filled"
             label="Description"
             placeholder="Write the description here..."
@@ -440,6 +446,7 @@ function CreateCourseForm() {
             Cancel
           </Button>
           <Button
+            data-cy="course-save-button"
             onClick={() =>
               updateCourse
                 ? handleUpdate(form.getValues())

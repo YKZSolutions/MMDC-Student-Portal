@@ -49,6 +49,7 @@ export const SubmissionForm = ({
   return (
     <Stack gap="md">
       <FileInput
+        data-cy="submission-file-input"
         placeholder="Attach a file"
         leftSection={<IconUpload size={16} />}
         value={file}
@@ -57,6 +58,7 @@ export const SubmissionForm = ({
       />
 
       <TextInput
+        data-cy="submission-link-input"
         placeholder="https://example.com/your-work"
         label="Submit a link"
         leftSection={<IconLink size={16} />}
@@ -66,6 +68,7 @@ export const SubmissionForm = ({
       />
 
       <Textarea
+        data-cy="submission-comments-input"
         placeholder="Add a description or comments (optional)"
         label="Comments"
         minRows={3}
@@ -75,7 +78,12 @@ export const SubmissionForm = ({
       />
 
       <Group justify="flex-end">
-        <Button onClick={handleSubmit} disabled={!canSubmit} loading={loading}>
+        <Button
+          data-cy="submission-submit-button"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          loading={loading}
+        >
           {buttonLabel}
         </Button>
 

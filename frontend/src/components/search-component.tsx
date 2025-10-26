@@ -69,6 +69,7 @@ const SearchComponent = <T extends object>({
 
   return (
     <TextInput
+      data-cy="search-input"
       placeholder={placeholder}
       radius="md"
       leftSection={<IconSearch size="75%" />}
