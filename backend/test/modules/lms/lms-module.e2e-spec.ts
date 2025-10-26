@@ -390,7 +390,7 @@ describe('LmsController (Integration)', () => {
       expect(body).toHaveProperty('message');
       expect(body.message).toContain('marked as deleted');
 
-      // Verify softly delete: record still exists, but deletedAt is set
+      // Verify soft delete: record still exists, but deletedAt is set
       const deleted = await context.prismaClient.module.findUnique({
         where: { id: moduleToSoftDelete.id },
       });
