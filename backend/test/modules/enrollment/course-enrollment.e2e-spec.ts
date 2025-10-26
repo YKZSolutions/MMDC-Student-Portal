@@ -132,7 +132,7 @@ describe('CourseEnrollmentController (Integration)', () => {
 
   // --- GET /enrollment/student/sections/ ---
   describe('GET /enrollment/student/sections', () => {
-    it('should allow admin to get enrollments (201)', async () => {
+    it('should allow admin to get enrollments (200)', async () => {
       const { body } = await request(context.adminApp.getHttpServer())
         .get('/enrollment/student/sections')
         .expect(200);
@@ -140,7 +140,7 @@ describe('CourseEnrollmentController (Integration)', () => {
       expect(Array.isArray(body)).toBe(true);
     });
 
-    it('should allow mentor to get enrollments (201)', async () => {
+    it('should allow mentor to get enrollments (200)', async () => {
       const { body } = await request(context.mentorApp.getHttpServer())
         .get('/enrollment/student/sections')
         .expect(200);
@@ -148,7 +148,7 @@ describe('CourseEnrollmentController (Integration)', () => {
       expect(Array.isArray(body)).toBe(true);
     });
 
-    it('should allow student to get enrollments (201)', async () => {
+    it('should allow student to get enrollments (200)', async () => {
       const { body } = await request(context.studentApp.getHttpServer())
         .get('/enrollment/student/sections')
         .expect(200);

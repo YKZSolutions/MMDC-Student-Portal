@@ -2809,6 +2809,192 @@
         ]
       }
     },
+    "/modules/todo": {
+      "get": {
+        "description": "Requires `STUDENT` role.",
+        "operationId": "LmsController_findTodos",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "dueDateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dueDateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleContent"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Retrieve multiple todos",
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
+    "/modules/dashboard": {
+      "get": {
+        "operationId": "LmsController_getDashboardProgress",
+        "parameters": [
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardProgress"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Lms"
+        ]
+      }
+    },
     "/modules/{id}": {
       "get": {
         "description": "Response includes the module with its course offering and filtered course sections\nappropriate for the requesting user. Requires `STUDENT`, `MENTOR`, or `ADMIN` role.",
@@ -3392,152 +3578,6 @@
         ]
       }
     },
-    "/modules/todo": {
-      "get": {
-        "description": "Requires `STUDENT` role.",
-        "operationId": "LmsController_findTodos",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "dueDateFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "name": "dueDateTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModuleContent"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Retrieve multiple todos",
-        "tags": [
-          "Lms"
-        ]
-      }
-    },
     "/modules/{id}/tree": {
       "get": {
         "description": "Retrieves the complete hierarchical structure of a module including all sections and content items",
@@ -3770,46 +3810,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ModuleProgressDetail"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Lms"
-        ]
-      }
-    },
-    "/modules/dashboard": {
-      "get": {
-        "operationId": "LmsController_getDashboardProgress",
-        "parameters": [
-          {
-            "name": "studentId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "name": "courseOfferingId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DashboardProgress"
                 }
               }
             }
@@ -19214,57 +19214,6 @@
           "modules"
         ]
       },
-      "UpdateModuleDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "ModuleDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "publishedAt",
-          "unpublishedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
       "ModuleSection": {
         "type": "object",
         "properties": {
@@ -19630,6 +19579,193 @@
           "deletedAt"
         ]
       },
+      "ModuleProgressOverview": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleTitle": {
+            "type": "string"
+          },
+          "completedContentItems": {
+            "type": "number"
+          },
+          "totalContentItems": {
+            "type": "number"
+          },
+          "notStartedContentItems": {
+            "type": "number"
+          },
+          "overdueAssignmentsCount": {
+            "type": "number"
+          },
+          "progressPercentage": {
+            "type": "number"
+          },
+          "status": {
+            "type": "object"
+          },
+          "lastAccessedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "completedStudentsCount": {
+            "type": "number"
+          },
+          "totalStudentsCount": {
+            "type": "number"
+          },
+          "moduleCompletionPercentage": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "moduleId",
+          "moduleTitle",
+          "completedContentItems",
+          "totalContentItems",
+          "notStartedContentItems",
+          "overdueAssignmentsCount",
+          "progressPercentage",
+          "status",
+          "completedStudentsCount",
+          "totalStudentsCount",
+          "moduleCompletionPercentage"
+        ]
+      },
+      "StudentProgressStats": {
+        "type": "object",
+        "properties": {
+          "studentId": {
+            "type": "string"
+          },
+          "studentName": {
+            "type": "string"
+          },
+          "completedModules": {
+            "type": "number"
+          },
+          "totalModules": {
+            "type": "number"
+          },
+          "averageProgress": {
+            "type": "number"
+          },
+          "lastActivity": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "studentId",
+          "studentName",
+          "completedModules",
+          "totalModules",
+          "averageProgress",
+          "lastActivity"
+        ]
+      },
+      "DashboardProgress": {
+        "type": "object",
+        "properties": {
+          "studentProgress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleProgressOverview"
+            }
+          },
+          "overallStats": {
+            "type": "object",
+            "properties": {
+              "totalStudents": {
+                "type": "number"
+              },
+              "averageProgress": {
+                "type": "number"
+              },
+              "completedModules": {
+                "type": "number"
+              },
+              "inProgressModules": {
+                "type": "number"
+              },
+              "notStartedModules": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalStudents",
+              "averageProgress",
+              "completedModules",
+              "inProgressModules",
+              "notStartedModules"
+            ]
+          },
+          "studentStats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentProgressStats"
+            }
+          }
+        },
+        "required": [
+          "studentProgress"
+        ]
+      },
+      "UpdateModuleDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "ModuleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publishedAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
       "ModuleTreeLessonItemDto": {
         "type": "object",
         "properties": {
@@ -19951,62 +20087,6 @@
           "unpublishedAt"
         ]
       },
-      "ModuleProgressOverview": {
-        "type": "object",
-        "properties": {
-          "moduleId": {
-            "type": "string"
-          },
-          "moduleTitle": {
-            "type": "string"
-          },
-          "completedContentItems": {
-            "type": "number"
-          },
-          "totalContentItems": {
-            "type": "number"
-          },
-          "notStartedContentItems": {
-            "type": "number"
-          },
-          "overdueAssignmentsCount": {
-            "type": "number"
-          },
-          "progressPercentage": {
-            "type": "number"
-          },
-          "status": {
-            "type": "object"
-          },
-          "lastAccessedAt": {
-            "format": "date-time",
-            "type": "string",
-            "nullable": true
-          },
-          "completedStudentsCount": {
-            "type": "number"
-          },
-          "totalStudentsCount": {
-            "type": "number"
-          },
-          "moduleCompletionPercentage": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "moduleId",
-          "moduleTitle",
-          "completedContentItems",
-          "totalContentItems",
-          "notStartedContentItems",
-          "overdueAssignmentsCount",
-          "progressPercentage",
-          "status",
-          "completedStudentsCount",
-          "totalStudentsCount",
-          "moduleCompletionPercentage"
-        ]
-      },
       "ContentItemProgress": {
         "type": "object",
         "properties": {
@@ -20150,86 +20230,6 @@
           "moduleTitle",
           "sections",
           "overallProgress"
-        ]
-      },
-      "StudentProgressStats": {
-        "type": "object",
-        "properties": {
-          "studentId": {
-            "type": "string"
-          },
-          "studentName": {
-            "type": "string"
-          },
-          "completedModules": {
-            "type": "number"
-          },
-          "totalModules": {
-            "type": "number"
-          },
-          "averageProgress": {
-            "type": "number"
-          },
-          "lastActivity": {
-            "format": "date-time",
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "studentId",
-          "studentName",
-          "completedModules",
-          "totalModules",
-          "averageProgress",
-          "lastActivity"
-        ]
-      },
-      "DashboardProgress": {
-        "type": "object",
-        "properties": {
-          "studentProgress": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ModuleProgressOverview"
-            }
-          },
-          "overallStats": {
-            "type": "object",
-            "properties": {
-              "totalStudents": {
-                "type": "number"
-              },
-              "averageProgress": {
-                "type": "number"
-              },
-              "completedModules": {
-                "type": "number"
-              },
-              "inProgressModules": {
-                "type": "number"
-              },
-              "notStartedModules": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "totalStudents",
-              "averageProgress",
-              "completedModules",
-              "inProgressModules",
-              "notStartedModules"
-            ]
-          },
-          "studentStats": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StudentProgressStats"
-            }
-          }
-        },
-        "required": [
-          "studentProgress"
         ]
       },
       "CreateDetailedGroupDto": {

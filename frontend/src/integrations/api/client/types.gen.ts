@@ -387,20 +387,6 @@ export type PaginatedModulesDto = {
     modules: Array<DetailedModulesDto>;
 };
 
-export type UpdateModuleDto = {
-    title?: string;
-};
-
-export type ModuleDto = {
-    id: string;
-    title: string;
-    publishedAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type ModuleSection = {
     id: string;
     moduleId: string;
@@ -484,6 +470,58 @@ export type ModuleContent = {
     studentProgress?: Array<ContentProgress>;
 };
 
+export type ModuleProgressOverview = {
+    moduleId: string;
+    moduleTitle: string;
+    completedContentItems: number;
+    totalContentItems: number;
+    notStartedContentItems: number;
+    overdueAssignmentsCount: number;
+    progressPercentage: number;
+    status: {
+        [key: string]: unknown;
+    };
+    lastAccessedAt?: string | null;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    moduleCompletionPercentage: number;
+};
+
+export type StudentProgressStats = {
+    studentId: string;
+    studentName: string;
+    completedModules: number;
+    totalModules: number;
+    averageProgress: number;
+    lastActivity: string | null;
+};
+
+export type DashboardProgress = {
+    studentProgress: Array<ModuleProgressOverview>;
+    overallStats?: {
+        totalStudents: number;
+        averageProgress: number;
+        completedModules: number;
+        inProgressModules: number;
+        notStartedModules: number;
+    };
+    studentStats?: Array<StudentProgressStats>;
+};
+
+export type UpdateModuleDto = {
+    title?: string;
+};
+
+export type ModuleDto = {
+    id: string;
+    title: string;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
 export type ModuleTreeLessonItemDto = {
     id: string;
     moduleSectionId: string;
@@ -554,23 +592,6 @@ export type ModuleTreeDto = {
     moduleSections?: Array<ModuleTreeSectionDto>;
 };
 
-export type ModuleProgressOverview = {
-    moduleId: string;
-    moduleTitle: string;
-    completedContentItems: number;
-    totalContentItems: number;
-    notStartedContentItems: number;
-    overdueAssignmentsCount: number;
-    progressPercentage: number;
-    status: {
-        [key: string]: unknown;
-    };
-    lastAccessedAt?: string | null;
-    completedStudentsCount: number;
-    totalStudentsCount: number;
-    moduleCompletionPercentage: number;
-};
-
 export type ContentItemProgress = {
     id: string;
     title: string;
@@ -611,27 +632,6 @@ export type ModuleProgressDetail = {
         totalStudentsCount: number;
         moduleCompletionPercentage: number;
     };
-};
-
-export type StudentProgressStats = {
-    studentId: string;
-    studentName: string;
-    completedModules: number;
-    totalModules: number;
-    averageProgress: number;
-    lastActivity: string | null;
-};
-
-export type DashboardProgress = {
-    studentProgress: Array<ModuleProgressOverview>;
-    overallStats?: {
-        totalStudents: number;
-        averageProgress: number;
-        completedModules: number;
-        inProgressModules: number;
-        notStartedModules: number;
-    };
-    studentStats?: Array<StudentProgressStats>;
 };
 
 export type CreateDetailedGroupDto = {
@@ -2776,6 +2776,56 @@ export type LmsControllerFindAllForAdminResponses = {
 
 export type LmsControllerFindAllForAdminResponse = LmsControllerFindAllForAdminResponses[keyof LmsControllerFindAllForAdminResponses];
 
+export type LmsControllerFindTodosData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        dueDateFrom?: string;
+        dueDateTo?: string;
+    };
+    url: '/modules/todo';
+};
+
+export type LmsControllerFindTodosErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerFindTodosError = LmsControllerFindTodosErrors[keyof LmsControllerFindTodosErrors];
+
+export type LmsControllerFindTodosResponses = {
+    200: ModuleContent;
+};
+
+export type LmsControllerFindTodosResponse = LmsControllerFindTodosResponses[keyof LmsControllerFindTodosResponses];
+
+export type LmsControllerGetDashboardProgressData = {
+    body?: never;
+    path?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
+    url: '/modules/dashboard';
+};
+
+export type LmsControllerGetDashboardProgressResponses = {
+    200: DashboardProgress;
+};
+
+export type LmsControllerGetDashboardProgressResponse = LmsControllerGetDashboardProgressResponses[keyof LmsControllerGetDashboardProgressResponses];
+
 export type LmsControllerRemoveData = {
     body?: never;
     path: {
@@ -2937,40 +2987,6 @@ export type LmsControllerUnpublishResponses = {
     201: unknown;
 };
 
-export type LmsControllerFindTodosData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        dueDateFrom?: string;
-        dueDateTo?: string;
-    };
-    url: '/modules/todo';
-};
-
-export type LmsControllerFindTodosErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsControllerFindTodosError = LmsControllerFindTodosErrors[keyof LmsControllerFindTodosErrors];
-
-export type LmsControllerFindTodosResponses = {
-    200: ModuleContent;
-};
-
-export type LmsControllerFindTodosResponse = LmsControllerFindTodosResponses[keyof LmsControllerFindTodosResponses];
-
 export type LmsControllerFindModuleTreeData = {
     body?: never;
     path: {
@@ -3044,22 +3060,6 @@ export type LmsControllerGetModuleProgressDetailResponses = {
 };
 
 export type LmsControllerGetModuleProgressDetailResponse = LmsControllerGetModuleProgressDetailResponses[keyof LmsControllerGetModuleProgressDetailResponses];
-
-export type LmsControllerGetDashboardProgressData = {
-    body?: never;
-    path?: never;
-    query?: {
-        studentId?: string;
-        courseOfferingId?: string;
-    };
-    url: '/modules/dashboard';
-};
-
-export type LmsControllerGetDashboardProgressResponses = {
-    200: DashboardProgress;
-};
-
-export type LmsControllerGetDashboardProgressResponse = LmsControllerGetDashboardProgressResponses[keyof LmsControllerGetDashboardProgressResponses];
 
 export type GroupControllerFindAllData = {
     body?: never;

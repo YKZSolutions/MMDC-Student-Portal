@@ -16,11 +16,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CourseEnrollmentService } from './course-enrollment.service';
 import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
 import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
+import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 
 @Controller('enrollment/student')
 export class CourseEnrollmentController {
@@ -79,6 +80,7 @@ export class CourseEnrollmentController {
    * @throws BadRequestException If the enrollment period is closed or section full
    * @throws NotFoundException If the course section does not exist
    */
+  @ApiCreatedResponse({ type: CourseEnrollmentDto })
   @ApiException(() => [BadRequestException, NotFoundException])
   @Roles(Role.STUDENT, Role.ADMIN)
   @Post('/sections/:sectionId')
