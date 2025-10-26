@@ -108,6 +108,41 @@ export class LmsController {
   }
 
   /**
+   * Retrieve multiple todos
+   *
+   * @remarks Requires `STUDENT` role.
+   *
+   *
+   */
+  @ApiOkResponse({
+    type: ModuleContent,
+  })
+  @ApiException(() => [NotFoundException, InternalServerErrorException])
+  @Roles(Role.STUDENT)
+  @Get('todo')
+  async findTodos(
+    @Query() filters: FilterTodosDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<PaginatedTodosDto> {
+    const { user_id } = user.user_metadata;
+    return this.lmsService.findTodos(user_id, filters);
+  }
+
+  @Get('dashboard')
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
+  async getDashboardProgress(
+    @Query() queryParams: ProgressQueryParams,
+    @CurrentUser() currentUser: CurrentAuthUser,
+  ): Promise<DashboardProgress> {
+    const { role, user_id } = currentUser.user_metadata;
+    return this.progressService.getDashboardProgress(
+      user_id,
+      role,
+      queryParams,
+    );
+  }
+
+  /**
    * Retrieve a single module by id
    *
    * @remarks
@@ -217,27 +252,6 @@ export class LmsController {
   }
 
   /**
-   * Retrieve multiple todos
-   *
-   * @remarks Requires `STUDENT` role.
-   *
-   *
-   */
-  @ApiOkResponse({
-    type: ModuleContent,
-  })
-  @ApiException(() => [NotFoundException, InternalServerErrorException])
-  @Roles(Role.STUDENT)
-  @Get('todo')
-  async findTodos(
-    @Query() filters: FilterTodosDto,
-    @CurrentUser() user: CurrentAuthUser,
-  ): Promise<PaginatedTodosDto> {
-    const { user_id } = user.user_metadata;
-    return this.lmsService.findTodos(user_id, filters);
-  }
-
-  /**
    * Retrieves the complete module tree structure
    *
    * @remarks
@@ -300,20 +314,6 @@ export class LmsController {
     const { role, user_id } = currentUser.user_metadata;
     return this.progressService.getModuleProgressDetail(
       id,
-      user_id,
-      role,
-      queryParams,
-    );
-  }
-
-  @Get('dashboard')
-  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
-  async getDashboardProgress(
-    @Query() queryParams: ProgressQueryParams,
-    @CurrentUser() currentUser: CurrentAuthUser,
-  ): Promise<DashboardProgress> {
-    const { role, user_id } = currentUser.user_metadata;
-    return this.progressService.getDashboardProgress(
       user_id,
       role,
       queryParams,

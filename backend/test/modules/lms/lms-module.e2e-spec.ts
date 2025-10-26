@@ -593,7 +593,7 @@ describe('LmsController (Integration)', () => {
     it('should return todos for a student (200)', async () => {
       const { body } = await request(context.studentApp.getHttpServer())
         .get('/modules/todo')
-        .expect(400); //TODO: for some reason this is always returning 400, fix it later
+        .expect(200);
 
       expect(body).toHaveProperty('todos');
       expect(Array.isArray(body.todos)).toBe(true);
@@ -602,11 +602,11 @@ describe('LmsController (Integration)', () => {
     it('should return 403 if mentor or admin tries', async () => {
       await request(context.mentorApp.getHttpServer())
         .get('/modules/todo')
-        .expect(400); //TODO: for some reason this is always returning 400, fix it later
+        .expect(403);
 
       await request(context.adminApp.getHttpServer())
         .get('/modules/todo')
-        .expect(400); //TODO: for some reason this is always returning 400, fix it later
+        .expect(403);
     });
   });
 
@@ -678,9 +678,9 @@ describe('LmsController (Integration)', () => {
     it('should return dashboard progress summary (200)', async () => {
       const { body } = await request(context.studentApp.getHttpServer())
         .get('/modules/dashboard')
-        .expect(400); //TODO: for some reason this is always returning 400, fix it later
+        .expect(200);
 
-      expect(body).toHaveProperty('overallCompletion');
+      expect(Array.isArray(body)).toBe(true);
     });
 
     it('should return 401 if unauthenticated', async () => {
