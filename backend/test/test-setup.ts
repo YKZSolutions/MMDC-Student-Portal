@@ -11,12 +11,31 @@ export interface TestContext {
   unauthApp: INestApplication;
 }
 
+// Test context for the current test suite
+let testContext: TestContext | null = null;
+
+/**
+ * Setup test environment for a test suite
+ *
+ * This should be called in beforeAll() of each test file.
+ * It reuses the global database and creates app instances.
+ */
 export async function setupTestEnvironment(): Promise<TestContext> {
+  // If context exists, reset database and return
+  if (testContext) {
+    console.log('[TEST-SETUP] ✓ Reusing test context, resetting database');
+    await testContext.testService.resetDatabase();
+    return testContext;
+  }
+
+  console.log('[TEST-SETUP] ⚙️  Creating test context...');
+
+  // Create a test service instance
   const testService = new TestAppService();
   await testService.start();
-  const { prismaClient } = await testService.start(); //this already resets the database
 
-  // Pre-create frequently used app instances
+  // Create app instances for different user roles
+  console.log('[TEST-SETUP] ⚙️  Creating app instances...');
   const { app: adminApp } = await testService.createTestApp();
   const { app: mentorApp } = await testService.createTestApp(
     testService.getMockUser('mentor'),
@@ -28,16 +47,41 @@ export async function setupTestEnvironment(): Promise<TestContext> {
     testService.getMockUser('unauth'),
   );
 
-  return {
+  testContext = {
     testService,
-    prismaClient,
+    prismaClient: testService.prismaClient,
     adminApp,
     mentorApp,
     studentApp,
     unauthApp,
   };
+
+  console.log('[TEST-SETUP] ✓ Test context ready');
+  return testContext;
 }
 
-export async function teardownTestEnvironment(testContext: TestContext) {
-  await testContext.testService.close();
+/**
+ * Cleanup test environment
+ *
+ * This should be called in afterAll() of each test file.
+ */
+export async function cleanupTestEnvironment(): Promise<void> {
+  if (testContext) {
+    console.log('[TEST-SETUP] 🧹 Cleaning up test context...');
+    await testContext.testService?.close();
+    testContext = null;
+    console.log('[TEST-SETUP] ✓ Cleanup completed');
+  }
+}
+
+/**
+ * Reset database between tests
+ *
+ * Optional: Call this in beforeEach() if you need a clean database for each test.
+ * Otherwise, tests will share the same database state within a suite.
+ */
+export async function resetTestDatabase(): Promise<void> {
+  if (testContext) {
+    await testContext.testService.resetDatabase();
+  }
 }

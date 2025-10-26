@@ -1,8 +1,5 @@
-import { PrismaClient, Role, StudentType, UserStatus } from '@prisma/client';
-import { pagination } from 'prisma-extension-pagination';
+import { Role, StudentType, UserStatus } from '@prisma/client';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
-import { execSync } from 'child_process';
-import { Client } from 'pg';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '@/app.module';
 import {
@@ -16,10 +13,6 @@ import { Request } from 'express';
 import { MockUser, mockUsers } from './mocks/mock-users';
 import { AuthGuard } from '@/common/guards/auth.guard';
 import { AuthService } from '@/modules/auth/auth.service';
-import {
-  PostgreSqlContainer,
-  StartedPostgreSqlContainer,
-} from '@testcontainers/postgresql';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { GlobalHttpExceptionFilter } from '@/common/filters/http-exceptions.filters';
 import { AuthUser, UserMetadata } from '@/common/interfaces/auth.user-metadata';
@@ -28,38 +21,36 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * TestAppService
  *
- * A utility service for setting up and tearing down an isolated
- * PostgreSQL + Prisma + NestJS application environment for integration tests.
+ * A utility service for setting up and managing test environments.
+ * Uses global resources initialized by Jest's globalSetup.
  *
  * Responsibilities:
- * - Spin up a PostgreSQL container using Testcontainers
- * - Run Prisma migrations against the test DB
- * - Seed mock user data (admin, mentor, student, etc.)
- * - Create a NestJS app instance with overridden providers
- * - Provide helpers to reset and close the test environment
+ * - Access shared Prisma client from global setup
+ * - Seed mock user data for tests
+ * - Create NestJS app instances with overridden providers
+ * - Provide helpers to reset the database between tests
  */
 export class TestAppService {
-  private static IMAGE = 'postgres:14-alpine';
-  private static initializationInProgress = false;
-  private static container: StartedPostgreSqlContainer;
-  private static prismaService: CustomPrismaService<ExtendedPrismaClient>;
-
-  private prismaClient: ExtendedPrismaClient;
-  private pgClient: Client;
   private instanceMockUsers: typeof mockUsers;
-  private databaseUrl: string;
+  private appCache = new Map<string, INestApplication>();
+
+  public prismaClient: ExtendedPrismaClient;
+  public prismaService: CustomPrismaService<ExtendedPrismaClient>;
 
   /**
-   * Starts a PostgreSQL test container, applies Prisma migrations,
-   * initializes a Prisma client with pagination extension, and seeds user data.
-   *
-   * @returns An object containing the initialized Prisma client
+   * Initialize the test service using global resources
    */
-  async start(): Promise<{ prismaClient: ExtendedPrismaClient }> {
+  async start() {
     try {
-      await this.initializeStaticResources();
+      // Get Prisma client and service from global setup
+      this.prismaClient = (global as any).__PRISMA_CLIENT__;
+      this.prismaService = (global as any).__PRISMA_SERVICE__;
 
-      this.prismaClient = TestAppService.prismaService.client;
+      if (!this.prismaClient || !this.prismaService) {
+        throw new Error(
+          'Prisma client not initialized. Make sure globalSetup is configured in jest config.',
+        );
+      }
 
       // Create instance-specific mock users to avoid test interference
       this.instanceMockUsers = this.cloneMockUsers();
@@ -67,132 +58,18 @@ export class TestAppService {
       // Setup user data for this test instance
       await this.setupUserData();
 
-      return { prismaClient: this.prismaClient };
+      console.log('[TestAppService] ✓ Test service initialized');
     } catch (error) {
-      console.error('Failed to start test environment:', error);
-      // Clean up any partially initialized resources
-      await this.cleanup();
+      console.error(
+        '[TestAppService] ❌ Failed to start test environment:',
+        error,
+      );
       throw error;
     }
   }
 
   /**
-   * Initialize static resources (container, Prisma client) that can be reused
-   */
-  private async initializeStaticResources() {
-    if (TestAppService.initializationInProgress) {
-      // Wait for initialization to complete
-      while (TestAppService.initializationInProgress) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      return;
-    }
-
-    TestAppService.initializationInProgress = true;
-
-    try {
-      if (!TestAppService.container) {
-        TestAppService.container = await new PostgreSqlContainer(
-          TestAppService.IMAGE,
-        ).start();
-
-        console.log(
-          `[TestAppService] PostgreSQL container started on port ${TestAppService.container.getPort()}`,
-        );
-
-        // Wait for the database to be ready
-        await this.waitForDatabase();
-      }
-
-      // Initialize the Prisma client only once
-      if (!TestAppService.prismaService) {
-        this.databaseUrl = TestAppService.container.getConnectionUri();
-        console.log('[TestAppService] Database URL:', this.databaseUrl);
-
-        // Run Prisma migrations
-        console.log('[TestAppService] Running Prisma migrations...');
-
-        // Run migrations once
-        execSync(
-          'npx prisma db push --skip-generate --schema=./prisma/schema.prisma ',
-          {
-            stdio: 'inherit',
-            env: {
-              ...process.env,
-              DATABASE_URL: this.databaseUrl,
-              DATABASE_CLOUD_URL: this.databaseUrl,
-              DIRECT_CLOUD_URL: this.databaseUrl,
-            },
-            cwd: process.cwd(),
-          },
-        );
-
-        const extendedPrismaClient = new PrismaClient({
-          datasources: { db: { url: this.databaseUrl } },
-          // Add retry logic for connection issues
-          log: ['warn', 'error'],
-        }).$extends(pagination());
-
-        // Test the connection
-        await extendedPrismaClient.$connect();
-
-        TestAppService.prismaService =
-          new CustomPrismaService<ExtendedPrismaClient>(extendedPrismaClient);
-      }
-
-      console.log('Test environment initialized successfully');
-    } catch (error) {
-      TestAppService.initializationInProgress = false;
-      throw error;
-    } finally {
-      TestAppService.initializationInProgress = false;
-    }
-  }
-
-  /**
-   * Wait for the database to be ready with retry logic
-   */
-  private async waitForDatabase(retries = 20, delay = 1000): Promise<void> {
-    let lastError: Error | null = null;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      this.pgClient = new Client({
-        host: TestAppService.container.getHost(),
-        port: TestAppService.container.getPort(),
-        database: TestAppService.container.getDatabase(),
-        user: TestAppService.container.getUsername(),
-        password: TestAppService.container.getPassword(),
-      });
-
-      try {
-        await this.pgClient.connect();
-        await this.pgClient.query('SELECT 1'); // Test query
-        console.log('[TestAppService] Database ready');
-        return;
-      } catch (error) {
-        lastError = error as Error;
-        console.log(
-          `[TestAppService] Waiting for database (attempt ${attempt}/${retries})...`,
-        );
-        if (this.pgClient) {
-          try {
-            await this.pgClient.end();
-          } catch (e) {
-            // Ignore cleanup errors
-          }
-        }
-        if (attempt === retries) {
-          throw new Error(
-            `Failed to connect to database after ${retries} attempts`,
-          );
-        }
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-
-  /**
-   * Clone the mock users to avoid test interference
+   * Clone the mock users with new IDs to avoid conflicts
    */
   private cloneMockUsers(): typeof mockUsers {
     const clone = {} as typeof mockUsers;
@@ -295,13 +172,15 @@ export class TestAppService {
             },
           );
         });
+
       await Promise.all(userCreationPromises);
-      console.log(`[User data setup completed`);
+      console.log('[TestAppService] ✓ User data setup completed');
     } catch (error) {
-      console.error(`[Failed to setup user data:`, error);
+      console.error('[TestAppService] ❌ Failed to setup user data:', error);
       throw error;
     }
   }
+
   /**
    * Get a mock user for this test instance
    */
@@ -317,9 +196,36 @@ export class TestAppService {
   }
 
   /**
-   * Create and cache app instances to avoid recreating for every test
+   * Resets the database by truncating all public schema tables.
+   * This ensures tests can start with a clean slate.
    */
-  private appCache = new Map<string, INestApplication>();
+  async resetDatabase() {
+    try {
+      const tableNames = await this.prismaClient.$queryRaw<
+        Array<{ tablename: string }>
+      >`
+        SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT LIKE '_prisma%';
+      `;
+
+      const tablesToTruncate = tableNames
+        .map((t) => `"${t.tablename}"`)
+        .join(', ');
+
+      if (tablesToTruncate) {
+        await this.prismaClient.$executeRawUnsafe(
+          `TRUNCATE TABLE ${tablesToTruncate} RESTART IDENTITY CASCADE;`,
+        );
+      }
+
+      // Re-seed the database with base users after truncating
+      await this.setupUserData();
+
+      console.log('[TestAppService] ✓ Database reset completed');
+    } catch (error) {
+      console.error('[TestAppService] ❌ Failed to reset database:', error);
+      throw error;
+    }
+  }
 
   /**
    * Creates a NestJS test application with overridden dependencies:
@@ -343,7 +249,7 @@ export class TestAppService {
       imports: [AppModule],
     })
       .overrideProvider('PrismaService')
-      .useValue(TestAppService.prismaService)
+      .useValue(this.prismaService)
       .overrideProvider(AuthGuard)
       .useValue({
         canActivate: (ctx: ExecutionContext) => {
@@ -435,16 +341,9 @@ export class TestAppService {
   }
 
   /**
-   * Close instance-specific resources
+   * Close instance-specific resources (cached apps)
    */
   async close() {
-    await this.cleanup();
-  }
-
-  /**
-   * Internal cleanup method for partial cleanups during errors
-   */
-  private async cleanup() {
     const errors: Error[] = [];
 
     // Close all cached apps
@@ -457,17 +356,10 @@ export class TestAppService {
     }
     this.appCache.clear();
 
-    // Close PostgreSQL client
-    if (this.pgClient) {
-      try {
-        await this.pgClient.end();
-      } catch (error) {
-        errors.push(error as Error);
-      }
-    }
-
     if (errors.length > 0) {
-      console.warn(`Cleanup completed with ${errors.length} errors`);
+      console.warn(
+        `[TestAppService] ⚠️  Cleanup completed with ${errors.length} error(s)`,
+      );
     }
   }
 }
