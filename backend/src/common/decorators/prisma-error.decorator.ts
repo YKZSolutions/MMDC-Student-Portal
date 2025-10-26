@@ -142,15 +142,20 @@ export function PrismaError(customMap: Partial<typeof defaultErrorMap> = {}) {
       try {
         return await originalMethod.apply(this, args);
       } catch (err) {
-        if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        const isPrismaError =
+          err?.code &&
+          typeof err.code === 'string' &&
+          err.code.startsWith('P2');
+
+        if (isPrismaError) {
           const handler = mergedMap[err.code as PrismaErrorCodeValue];
           if (handler) {
             const params = Reflect.getMetadata(LOG_PARAM, target, propertyKey);
             const keyArgs = extractArgs(params, args);
-
-            throw handler(err.message, keyArgs);
+            throw handler(err.message || 'Database error', keyArgs);
           }
         }
+
         throw err;
       }
     };
