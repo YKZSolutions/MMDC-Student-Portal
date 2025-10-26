@@ -26,6 +26,7 @@ export interface NavItem {
   >
   fuzzy?: boolean
   subItems?: Omit<NavItem, 'subItems'>[]
+  dataCy?: string;
 }
 
 export interface NavButtonProps {
@@ -49,6 +50,7 @@ export default function NavButton({
         open={open}
         toggle={toggle}
         collapsed={collapsed}
+        
       />
       {!collapsed && open && item.subItems && (
         <Group className="w-full" gap={8}>
@@ -93,7 +95,7 @@ const BaseNavButton = memo(function BaseNavButton({
       to={item.link}
       variant={isActive ? 'light' : 'subtle'}
       color={isActive ? undefined : 'gray'}
-      data-cy={`${item.label.toLowerCase()}-link`}
+      data-cy={item.dataCy || `${item.label.toLowerCase()}-link`}
     >
       {isActive ? (
         <item.Icon size={24} />
@@ -120,7 +122,7 @@ const BaseNavButton = memo(function BaseNavButton({
               e.preventDefault()
               if (toggle) toggle()
             }}
-            data-cy={`${item.label.toLowerCase()}-link-dropdown`}
+            data-cy={item.dataCy || `${item.label.toLowerCase()}-link`}
           />
         )
       }

@@ -64,7 +64,7 @@ function ProfilePage() {
                   />
 
                   <Stack gap={0} my={'auto'}>
-                    <Title order={3} fw={600}>
+                    <Title order={3} fw={600} data-cy="profile-fullname-header">
                       {fullName}
                     </Title>
                     <Text size="lg" fw={500} c="gray.6" tt="capitalize">
@@ -222,6 +222,7 @@ function StudentDetails({ data }: { data: UserStudentDetailsDto }) {
               label="Student Number"
               value={data.studentDetails?.studentNumber ?? '—'}
               icon={<IconId color="gray" size={16} />}
+              dataCy="profile-student-number"
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6 }}>
