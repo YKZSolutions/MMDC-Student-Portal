@@ -169,7 +169,6 @@ function EnrollmentPeriodIdPage() {
         },
         error: {
           title: 'Failed to Add Course Offering',
-          message: 'Something went wrong while adding the course offering.',
         },
       },
       {
@@ -221,7 +220,6 @@ function EnrollmentPeriodIdPage() {
         },
         error: {
           title: 'Failed to Add Course Offering',
-          message: 'Something went wrong while adding the course offering.',
         },
       },
       {
@@ -673,7 +671,6 @@ function CourseOfferingAccordionPanel({
       },
       error: {
         title: 'Failed to Add Course Section',
-        message: 'Something went wrong while adding the course section.',
       },
     },
     {
@@ -773,10 +770,6 @@ function CourseOfferingSubjectCard({
       success: {
         title: 'Course Section Removed',
         message: 'The course section has been removed.',
-      },
-      error: {
-        title: 'Failed to Remove Course Section',
-        message: 'Something went wrong while removing the course section.',
       },
     },
     {

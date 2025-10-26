@@ -238,8 +238,6 @@ function EnrollmentTable() {
       },
       error: {
         title: 'Failed to delete the enrollment period.',
-        message:
-          'An error occurred while trying to delete the enrollment period. Please try again.',
       },
     },
     {

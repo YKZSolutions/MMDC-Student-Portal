@@ -12,7 +12,7 @@ import { getContext } from './root-provider'
 export type NotificationMessages = {
   loading: { title: string; message: string }
   success: { title: string; message: string }
-  error?: { title: string; message: string }
+  error?: { title: string; message?: string } //Allow a null message to allow error messages from the server to be displayed
 }
 
 export function useAppMutation<TData, TError, TVariables, TContext>(
