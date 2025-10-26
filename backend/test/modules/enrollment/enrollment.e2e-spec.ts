@@ -1,15 +1,14 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  cleanupTestEnvironment,
+  setupTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
-                  @typescript-eslint/no-unsafe-member-access,
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
+                  @typescript-eslint/no-unsafe-argument,
 */
 describe('EnrollmentController (Integration)', () => {
   let context: TestContext;
@@ -61,7 +60,7 @@ describe('EnrollmentController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /enrollments ---
@@ -86,7 +85,7 @@ describe('EnrollmentController (Integration)', () => {
         startYear: 2099,
         endYear: 2100,
       };
-      
+
       await request(context.adminApp.getHttpServer())
         .post('/enrollments')
         .send(uniquePayload)
@@ -188,7 +187,7 @@ describe('EnrollmentController (Integration)', () => {
   describe('GET /enrollments/active', () => {
     it('should return the active enrollment period for admin (200)', async () => {
       // Create an active enrollment
-      const { body: created } = await request(context.adminApp.getHttpServer())
+      await request(context.adminApp.getHttpServer())
         .post('/enrollments')
         .send({
           ...createEnrollmentPayload,

@@ -37,12 +37,12 @@ export class LmsContentService {
   @Log({
     logArgsMessage: ({
       moduleId,
-      content,
+      moduleSectionId,
     }: {
       moduleId: string;
-      content: CreateModuleContentDto;
+      moduleSectionId: string;
     }) =>
-      `Creating module content in module ${moduleId} and section ${content.moduleSection.connect.id}`,
+      `Creating module content in module ${moduleId} and section ${moduleSectionId}`,
     logSuccessMessage: (content) =>
       `Module content [${content.id}] with type ${content.contentType} successfully created.`,
     logErrorMessage: (
@@ -55,21 +55,16 @@ export class LmsContentService {
     ) =>
       `An error has occurred while creating module content [${moduleId}] | Error: ${err.message}`,
   })
-  @PrismaError({
-    [PrismaErrorCode.UniqueConstraint]: () =>
-      new ConflictException(
-        'Module content title already exists in this section.',
-      ),
-  })
   async create(
     @LogParam('moduleId') moduleId: string,
+    @LogParam('moduleSectionId') moduleSectionId: string,
     @LogParam('content') createModuleContentDto: CreateModuleContentDto,
   ): Promise<FullModuleContent> {
     const result = await this.prisma.client.$transaction(async (tx) => {
       // 1. Determine the order within the section
       const { _max } = await tx.moduleContent.aggregate({
         where: {
-          moduleSectionId: createModuleContentDto.moduleSection.connect.id,
+          moduleSectionId,
         },
         _max: { order: true },
       });
@@ -80,6 +75,7 @@ export class LmsContentService {
       const newContent = await tx.moduleContent.create({
         data: {
           ...createModuleContentDto,
+          moduleSection: { connect: { id: moduleSectionId } },
           order: appendOrder,
           ...(createModuleContentDto.contentType === ContentType.ASSIGNMENT && {
             assignment: {

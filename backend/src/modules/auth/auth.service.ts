@@ -135,7 +135,7 @@ export class AuthService {
     });
 
     if (account.error) {
-      throw new BadRequestException('Error creating Supabase account');
+      throw new BadRequestException('Account update failed');
     }
 
     return account.data.user;

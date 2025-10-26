@@ -136,13 +136,13 @@ function AddModuleItemDrawer({
     if (isSubsection) {
       await createModuleContent({
         path: {
+          moduleSectionId: section.id,
           moduleId: lmsCode || '',
         },
         body: {
           contentType: values.contentType,
           content: [],
           title: values.title,
-          moduleSection: { connect: { id: section.id } },
         },
       })
     } else {

@@ -1,0 +1,35 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "all": true,
+  "check-coverage": false,
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.d.ts",
+    "**/*.spec.ts",
+    "**/*.e2e-spec.ts",
+    "**/node_modules/**",
+    "**/test/**",
+    "**/*.module.ts",
+    "**/*.dto.ts",
+    "**/*.entity.ts",
+    "**/interfaces/**",
+    "**/constants/**",
+    "src/main.ts"
+  ],
+  "extension": [
+    ".ts"
+  ],
+  "require": [
+    "ts-node/register/transpile-only",
+    "tsconfig-paths/register"
+  ],
+  "sourceMap": true,
+  "instrument": true,
+  "reporter": [
+    "text",
+    "lcov",
+    "json"
+  ]
+}

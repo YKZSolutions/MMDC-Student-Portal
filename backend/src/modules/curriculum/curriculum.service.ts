@@ -106,6 +106,10 @@ export class CurriculumService {
   async findAll(): Promise<CurriculumItemDto[]> {
     return (
       await this.prisma.client.curriculum.findMany({
+        where: {
+          deletedAt: null,
+          major: { deletedAt: null, program: { deletedAt: null } },
+        },
         include: {
           major: {
             include: {
@@ -177,6 +181,7 @@ export class CurriculumService {
       const courses = await tx.curriculumCourse.findMany({
         where: {
           curriculumId: curriculum.id,
+          deletedAt: null,
         },
         include: {
           course: true,
@@ -212,6 +217,10 @@ export class CurriculumService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Curriculum with id=${id} was not found`),
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new BadRequestException(
+        `Missing relevant records to update the curriculum.`,
+      ),
   })
   async update(
     @LogParam('id') id: string,
@@ -219,42 +228,58 @@ export class CurriculumService {
   ): Promise<CurriculumDto> {
     return this.prisma.client.$transaction(async (tx) => {
       const curriculum = await tx.curriculum.update({
-        where: { id },
+        where: { id, deletedAt: null },
         data: {
           majorId: updateCurriculumDto.majorId,
           ...updateCurriculumDto.curriculum,
         },
       });
 
+      // Manually upsert curriculum courses: for each course, find an existing record and update it, or create a new one if it does not exist
       for (const course of updateCurriculumDto.courses) {
-        await tx.curriculumCourse.upsert({
+        // Find existing non-deleted record
+        const existing = await tx.curriculumCourse.findFirst({
           where: {
-            curriculumId_courseId: {
-              curriculumId: id,
-              courseId: course.courseId,
-            },
-          },
-          update: {
-            year: course.year,
-            semester: course.semester,
-            order: course.order,
-          },
-          create: {
             curriculumId: id,
             courseId: course.courseId,
-            year: course.year,
-            semester: course.semester,
-            order: course.order,
+            deletedAt: null,
           },
         });
+
+        if (existing) {
+          // Update existing
+          await tx.curriculumCourse.update({
+            where: { id: existing.id },
+            data: {
+              year: course.year,
+              semester: course.semester,
+              order: course.order,
+            },
+          });
+        } else {
+          // Create new
+          await tx.curriculumCourse.create({
+            data: {
+              curriculumId: id,
+              courseId: course.courseId,
+              year: course.year,
+              semester: course.semester,
+              order: course.order,
+            },
+          });
+        }
       }
 
-      await tx.curriculumCourse.deleteMany({
+      await tx.curriculumCourse.updateMany({
         where: {
           curriculumId: id,
           courseId: {
             notIn: updateCurriculumDto.courses.map((c) => c.courseId),
           },
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
         },
       });
 
@@ -309,7 +334,7 @@ export class CurriculumService {
           });
         });
 
-        return new MessageDto('Curriculum has been soft deleted');
+        return new MessageDto('Curriculum marked for deletion');
       }
     }
 
@@ -323,6 +348,6 @@ export class CurriculumService {
       });
     });
 
-    return new MessageDto('Curriculum has been permanently deleted');
+    return new MessageDto('Curriculum permanently deleted');
   }
 }

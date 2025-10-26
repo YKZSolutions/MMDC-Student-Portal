@@ -1,16 +1,13 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  cleanupTestEnvironment,
+  setupTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
-                  @typescript-eslint/no-unsafe-member-access,
-                  @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
-*/
+/* eslint-disable @typescript-eslint/no-unsafe-argument,
+ */
 describe('AuthController (Integration)', () => {
   let context: TestContext;
 
@@ -24,7 +21,7 @@ describe('AuthController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /auth/login ---

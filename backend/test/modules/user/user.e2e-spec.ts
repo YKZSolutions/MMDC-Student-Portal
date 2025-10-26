@@ -1,4 +1,5 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import { v4 } from 'uuid';
 import {
   createUser,
@@ -9,31 +10,31 @@ import {
   createInvalid,
 } from '../../factories/user.factory';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
 /* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
                   @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
                   @typescript-eslint/no-unsafe-return,
+                  @typescript-eslint/no-unsafe-argument,
 */
 describe('UsersController (Integration)', () => {
   let context: TestContext;
 
-  // Test payloads using simple factory functions
-  const validUserPayload = createUser({ role: 'student' });
+  // Test payloads using factory functions
+  const validUserPayload = createUser({ role: 'student' }); // For POST /users which requires a role field
   const validStudentPayload = createStudent();
   const validStaffPayload = createStaff({ role: 'mentor' });
 
   beforeAll(async () => {
     context = await setupTestEnvironment();
-  }, 30000);
+  });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 15000);
 
   describe('POST /users', () => {
@@ -177,7 +178,7 @@ describe('UsersController (Integration)', () => {
         .send(updatedUserPayload)
         .expect(200);
 
-      expect(response.body.firstName).toBe(updatedUserPayload.user.firstName);
+      expect(response.body.firstName).toBe(updatedUserPayload.user?.firstName);
     });
 
     it('should return 400 when invalid data is provided', async () => {
@@ -318,7 +319,9 @@ describe('UsersController (Integration)', () => {
       const user = await context.prismaClient.user.findUnique({
         where: { id: createdUserId },
       });
-      expect(user.deletedAt).not.toBeNull();
+
+      expect(user).toBeTruthy();
+      expect(user?.deletedAt).not.toBeNull();
     });
 
     it('should permanently delete a user with directDelete=true query parameter when authenticated as admin (200)', async () => {
@@ -344,6 +347,7 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
+
       await request(context.adminApp.getHttpServer())
         .delete(`/users/${nonExistentId}`)
         .expect(404);
@@ -474,8 +478,8 @@ describe('UsersController (Integration)', () => {
 
     it("should update a student's specific details when authenticated as admin (200)", async () => {
       const createUserResponse = await request(context.adminApp.getHttpServer())
-        .post('/users')
-        .send(validStudentPayload)
+        .post('/users/student')
+        .send(createStudent())
         .expect(201);
 
       const createdStudentId = createUserResponse.body.id;
@@ -525,8 +529,8 @@ describe('UsersController (Integration)', () => {
 
     it("should update a staff member's specific details when authenticated as admin (200)", async () => {
       const createUserResponse = await request(context.adminApp.getHttpServer())
-        .post('/users')
-        .send(validStaffPayload)
+        .post('/users/staff')
+        .send(createStaff({ role: 'mentor' }))
         .expect(201);
 
       const createdStaffId = createUserResponse.body.id;

@@ -1,6 +1,30 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
+export class RubricTemplateNameDeletedAtUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
+}
+
+@ApiExtraModels(RubricTemplateNameDeletedAtUniqueInputDto)
 export class ConnectRubricTemplateDto {
   @ApiProperty({
     type: 'string',
@@ -10,10 +34,11 @@ export class ConnectRubricTemplateDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: 'string',
+    type: RubricTemplateNameDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  name?: string;
+  @ValidateNested()
+  @Type(() => RubricTemplateNameDeletedAtUniqueInputDto)
+  name_deletedAt?: RubricTemplateNameDeletedAtUniqueInputDto;
 }

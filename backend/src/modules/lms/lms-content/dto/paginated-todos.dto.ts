@@ -24,7 +24,7 @@ export class TodoDto {
     type: 'string',
     format: 'date-time',
   })
-  dueDate: Date;
+  dueDate: Date | null;
   @ApiProperty({
     type: 'string',
     required: true,

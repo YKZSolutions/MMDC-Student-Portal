@@ -1,15 +1,13 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  cleanupTestEnvironment,
+  setupTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-argument,
-                  @typescript-eslint/no-unsafe-member-access,
-                  @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
 */
 describe('TranscriptController (Integration)', () => {
   let context: TestContext;
@@ -29,7 +27,7 @@ describe('TranscriptController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- PUT /transcript ---
@@ -66,54 +64,54 @@ describe('TranscriptController (Integration)', () => {
   // --- GET /transcript ---
   describe('GET /transcript', () => {
     it('should return list of transcripts for admin (200 or 404 if empty)', async () => {
-      const response = await request(context.adminApp.getHttpServer())
-        .get('/transcript');
+      const response = await request(context.adminApp.getHttpServer()).get(
+        '/transcript',
+      );
 
-      // May return 404 if no transcripts exist, or 200 with empty array
+      // May return 404 if no transcripts exist, or 200 with an empty array
       expect([200, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });
 
     it('should allow students to view their own transcripts (200 or 404 if empty)', async () => {
-      const response = await request(context.studentApp.getHttpServer())
-        .get('/transcript');
+      const response = await request(context.studentApp.getHttpServer()).get(
+        '/transcript',
+      );
 
       // May return 404 if no transcripts exist, or 200 with empty array
       expect([200, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });
 
     it('should allow mentors to view transcripts (200 or 404 if empty)', async () => {
-      const response = await request(context.mentorApp.getHttpServer())
-        .get('/transcript');
+      const response = await request(context.mentorApp.getHttpServer()).get(
+        '/transcript',
+      );
 
       // May return 404 if no transcripts exist, or 200 with empty array
       expect([200, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });
 
     it('should support filtering by studentId (returns 404 if no transcripts)', async () => {
       const testStudentId = '1f7fcb6a-9b52-4f7a-b1f6-1cfb5d1d1a11';
-      const response = await request(context.adminApp.getHttpServer())
-        .get(`/transcript?studentId=${testStudentId}`);
+      const response = await request(context.adminApp.getHttpServer()).get(
+        `/transcript?studentId=${testStudentId}`,
+      );
 
       // May return 404 if student has no transcripts
       expect([200, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });

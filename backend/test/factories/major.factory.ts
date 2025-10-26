@@ -18,7 +18,7 @@ import { v4 } from 'uuid';
 /**
  * Generate unique major data to avoid conflicts between tests
  */
-const generateUniqueMajor = (): CreateMajorDto => {
+export const generateUniqueMajor = (): CreateMajorDto => {
   const timestamp = Date.now();
   const randomId = Math.floor(Math.random() * 1000);
 

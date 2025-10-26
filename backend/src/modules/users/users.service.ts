@@ -732,8 +732,8 @@ export class UsersService {
       `Failed to remove user id=${id} | Error=${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_msg, { id }) =>
-      new NotFoundException(`User with ID ${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`User not found`),
     [PrismaErrorCode.TransactionDeadlock]: () =>
       new InternalServerErrorException(
         'Deleting user failed due to transaction deadlock',

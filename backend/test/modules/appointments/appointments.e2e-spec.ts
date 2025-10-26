@@ -1,15 +1,14 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import {
-    setupTestEnvironment,
-    teardownTestEnvironment,
-    TestContext,
+  cleanupTestEnvironment,
+  setupTestEnvironment,
+  TestContext,
 } from '../../test-setup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
-                  @typescript-eslint/no-unsafe-member-access,
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
+                  @typescript-eslint/no-unsafe-argument,
 */
 describe('AppointmentsController (Integration)', () => {
   let context: TestContext;
@@ -42,8 +41,8 @@ describe('AppointmentsController (Integration)', () => {
       },
     });
 
-    const enrollmentPeriod =
-      await context.prismaClient.enrollmentPeriod.create({
+    const enrollmentPeriod = await context.prismaClient.enrollmentPeriod.create(
+      {
         data: {
           startYear: 2024,
           endYear: 2025,
@@ -53,7 +52,8 @@ describe('AppointmentsController (Integration)', () => {
           status: 'active',
           pricingGroupId: pricingGroup.id,
         },
-      });
+      },
+    );
 
     const course = await context.prismaClient.course.create({
       data: {
@@ -110,7 +110,7 @@ describe('AppointmentsController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /appointments ---
@@ -310,7 +310,10 @@ describe('AppointmentsController (Integration)', () => {
     it('should return 401 (Unauthorized) when not authenticated', async () => {
       await request(context.unauthApp.getHttpServer())
         .get(`/appointments/${testMentorId}/mentor`)
-        .query({ startAt: '2026-10-01T00:00:00Z', endAt: '2026-10-31T23:59:59Z' })
+        .query({
+          startAt: '2026-10-01T00:00:00Z',
+          endAt: '2026-10-31T23:59:59Z',
+        })
         .expect(401);
     });
   });
