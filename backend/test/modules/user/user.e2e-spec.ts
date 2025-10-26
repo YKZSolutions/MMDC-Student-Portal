@@ -9,8 +9,8 @@ import {
   createInvalid,
 } from '../../factories/user.factory';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -33,7 +33,7 @@ describe('UsersController (Integration)', () => {
   });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 15000);
 
   describe('POST /users', () => {
@@ -344,6 +344,7 @@ describe('UsersController (Integration)', () => {
 
     it('should return 404 for a non-existent user ID', async () => {
       const nonExistentId = '11111111-1111-1111-1111-111111111111';
+
       await request(context.adminApp.getHttpServer())
         .delete(`/users/${nonExistentId}`)
         .expect(404);

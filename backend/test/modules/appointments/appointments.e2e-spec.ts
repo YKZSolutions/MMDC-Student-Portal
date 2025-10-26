@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -109,7 +109,7 @@ describe('AppointmentsController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /appointments ---

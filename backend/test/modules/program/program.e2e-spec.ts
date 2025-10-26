@@ -6,8 +6,8 @@ import {
   testPrograms,
 } from '../../factories/program.factory';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -25,7 +25,7 @@ describe('ProgramController (Integration)', () => {
   });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 15000);
 
   // POST /programs tests

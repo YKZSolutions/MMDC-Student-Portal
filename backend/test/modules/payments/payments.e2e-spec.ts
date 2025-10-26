@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -31,23 +31,6 @@ describe('PaymentsController (Integration)', () => {
   beforeAll(async () => {
     context = await setupTestEnvironment();
 
-    // Create a pricing group first
-    const pricingGroup = await context.prismaClient.pricingGroup.create({
-      data: {
-        name: 'Test Pricing Group for Payments',
-        amount: '10000',
-        prices: {
-          create: [
-            {
-              name: 'Test Fee',
-              amount: '10000',
-              type: 'tuition',
-            },
-          ],
-        },
-      },
-    });
-
     // Create a bill to use for payment tests
     const { body: bill } = await request(context.adminApp.getHttpServer())
       .post('/billing')
@@ -74,7 +57,7 @@ describe('PaymentsController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /billing/:billId/payments ---

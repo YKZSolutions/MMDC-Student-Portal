@@ -5,8 +5,8 @@ import {
   createInvalidCourse,
 } from '../../factories/course.factory';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 import { v4 } from 'uuid';
@@ -25,7 +25,7 @@ describe('CoursesController (Integration)', () => {
   });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 15000);
 
   // --- POST /courses ---

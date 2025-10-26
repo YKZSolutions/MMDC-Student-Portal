@@ -6,8 +6,8 @@ import {
   createInvalidCurriculum,
 } from '../../factories/curriculum.factory';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 import { generateUniqueMajor } from '../../factories/major.factory';
@@ -70,7 +70,7 @@ describe('CurriculumController (Integration)', () => {
   });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 15000);
 
   // --- All tests use a shared database state (no more describe blocks or resets) ---

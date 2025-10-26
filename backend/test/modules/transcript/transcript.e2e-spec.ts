@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -26,7 +26,7 @@ describe('TranscriptController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- PUT /transcript ---
@@ -67,11 +67,10 @@ describe('TranscriptController (Integration)', () => {
         '/transcript',
       );
 
-      // May return 404 if no transcripts exist, or 200 with empty array
+      // May return 404 if no transcripts exist, or 200 with an empty array
       expect([200, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });
@@ -85,7 +84,6 @@ describe('TranscriptController (Integration)', () => {
       expect([200, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });
@@ -99,7 +97,6 @@ describe('TranscriptController (Integration)', () => {
       expect([200, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });
@@ -114,7 +111,6 @@ describe('TranscriptController (Integration)', () => {
       expect([200, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('transcripts');
         expect(Array.isArray(response.body.transcripts)).toBe(true);
       }
     });

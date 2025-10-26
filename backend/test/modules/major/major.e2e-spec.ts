@@ -7,7 +7,7 @@ import {
 } from '../../factories/major.factory';
 import {
   setupTestEnvironment,
-  teardownTestEnvironment,
+  cleanupTestEnvironment,
   TestContext,
 } from '../../test-setup';
 import { testPrograms } from '../../factories/program.factory';
@@ -33,7 +33,7 @@ describe('MajorsController (Integration)', () => {
   });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 15000);
 
   describe('POST /majors', () => {

@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { createModuleSetup } from '../../factories/lms.factory';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -54,7 +54,7 @@ describe('CourseEnrollmentController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /enrollment/student/sections ---

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {
+  cleanupTestEnvironment,
   setupTestEnvironment,
-  teardownTestEnvironment,
   TestContext,
 } from '../../test-setup';
 
@@ -27,7 +27,7 @@ describe('CourseOfferingController (Integration)', () => {
   beforeAll(async () => {
     context = await setupTestEnvironment();
 
-    // Create a pricing group first (required for enrollment period)
+    // Create a pricing group first (required for an enrollment period)
     const pricingGroup = await context.prismaClient.pricingGroup.create({
       data: {
         name: 'Test Pricing Group',
@@ -62,7 +62,7 @@ describe('CourseOfferingController (Integration)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   }, 30000);
 
   // --- POST /enrollments/:enrollmentId/offerings ---

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {
   setupTestEnvironment,
-  teardownTestEnvironment,
+  cleanupTestEnvironment,
   TestContext,
 } from '../../test-setup';
 import { createModule, createModuleSetup } from '../../factories/lms.factory';
@@ -125,7 +125,7 @@ describe('LmsController (Integration)', () => {
   });
 
   afterAll(async () => {
-    await teardownTestEnvironment(context);
+    await cleanupTestEnvironment();
   });
 
   // ------------------------------------------------------
