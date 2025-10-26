@@ -1,4 +1,5 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import {
   cleanupTestEnvironment,
   setupTestEnvironment,

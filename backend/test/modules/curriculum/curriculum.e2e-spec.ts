@@ -1,4 +1,5 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import { v4 } from 'uuid';
 import {
   createCurriculum,
@@ -15,9 +16,9 @@ import { createProgram } from '../../factories/program.factory';
 import { createMultipleCourses } from '../../factories/course.factory';
 import { CreateCurriculumCourseItemDto } from '@/modules/curriculum/dto/create-curriculum.dto';
 
-/* eslint-disable @typescript-eslint/no-unsafe-argument,
-                  @typescript-eslint/no-unsafe-member-access,
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
+                  @typescript-eslint/no-unsafe-argument,
 */
 describe('CurriculumController (Integration)', () => {
   let context: TestContext;

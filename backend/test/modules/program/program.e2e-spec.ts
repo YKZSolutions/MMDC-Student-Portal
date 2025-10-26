@@ -1,4 +1,5 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import request = require('supertest');
 import { v4 } from 'uuid';
 import {
   createProgram,
@@ -12,10 +13,9 @@ import {
 } from '../../test-setup';
 
 /* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-argument,
                   @typescript-eslint/no-unsafe-member-access,
                   @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-return,
+                  @typescript-eslint/no-unsafe-argument,
 */
 describe('ProgramController (Integration)', () => {
   let context: TestContext;
