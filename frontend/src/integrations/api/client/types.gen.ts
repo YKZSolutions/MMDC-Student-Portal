@@ -3014,7 +3014,10 @@ export type LmsControllerGetModuleProgressOverviewData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
     url: '/modules/{id}/progress/overview';
 };
 
@@ -3029,7 +3032,10 @@ export type LmsControllerGetModuleProgressDetailData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
     url: '/modules/{id}/progress/detail';
 };
 
@@ -3042,7 +3048,10 @@ export type LmsControllerGetModuleProgressDetailResponse = LmsControllerGetModul
 export type LmsControllerGetDashboardProgressData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
     url: '/modules/dashboard';
 };
 
@@ -4842,7 +4851,7 @@ export type CourseEnrollmentControllerGetCourseEnrollmentsErrors = {
 export type CourseEnrollmentControllerGetCourseEnrollmentsError = CourseEnrollmentControllerGetCourseEnrollmentsErrors[keyof CourseEnrollmentControllerGetCourseEnrollmentsErrors];
 
 export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
-    201: Array<DetailedCourseEnrollmentDto>;
+    200: Array<DetailedCourseEnrollmentDto>;
 };
 
 export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];

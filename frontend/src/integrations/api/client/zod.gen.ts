@@ -3298,7 +3298,10 @@ export const zLmsControllerGetModuleProgressOverviewData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        studentId: z.optional(z.uuid()),
+        courseOfferingId: z.optional(z.uuid())
+    }))
 });
 
 export const zLmsControllerGetModuleProgressOverviewResponse = zModuleProgressOverview;
@@ -3308,7 +3311,10 @@ export const zLmsControllerGetModuleProgressDetailData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        studentId: z.optional(z.uuid()),
+        courseOfferingId: z.optional(z.uuid())
+    }))
 });
 
 export const zLmsControllerGetModuleProgressDetailResponse = zModuleProgressDetail;
@@ -3316,7 +3322,10 @@ export const zLmsControllerGetModuleProgressDetailResponse = zModuleProgressDeta
 export const zLmsControllerGetDashboardProgressData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        studentId: z.optional(z.uuid()),
+        courseOfferingId: z.optional(z.uuid())
+    }))
 });
 
 export const zLmsControllerGetDashboardProgressResponse = zDashboardProgress;

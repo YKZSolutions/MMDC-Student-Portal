@@ -1353,7 +1353,7 @@ export const courseSectionControllerFindOneCourseSectionById = <ThrowOnError ext
  * - Each returned record includes a related course offering, course section and mentor/user data.
  */
 export const courseEnrollmentControllerGetCourseEnrollments = <ThrowOnError extends boolean = false>(options?: Options<CourseEnrollmentControllerGetCourseEnrollmentsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CourseEnrollmentControllerGetCourseEnrollmentsResponses, CourseEnrollmentControllerGetCourseEnrollmentsErrors, ThrowOnError>({
+    return (options?.client ?? _heyApiClient).get<CourseEnrollmentControllerGetCourseEnrollmentsResponses, CourseEnrollmentControllerGetCourseEnrollmentsErrors, ThrowOnError>({
         url: '/enrollment/student/sections',
         ...options
     });

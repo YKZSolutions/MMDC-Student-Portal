@@ -3695,6 +3695,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3725,6 +3743,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3747,7 +3783,26 @@
     "/modules/dashboard": {
       "get": {
         "operationId": "LmsController_getDashboardProgress",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "studentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -10052,12 +10107,12 @@
       }
     },
     "/enrollment/student/sections": {
-      "post": {
+      "get": {
         "description": "- `STUDENT` will receive their own enlisted enrollments for the active enrollment period.\n- `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.\n- Each returned record includes a related course offering, course section and mentor/user data.",
         "operationId": "CourseEnrollmentController_getCourseEnrollments",
         "parameters": [],
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
