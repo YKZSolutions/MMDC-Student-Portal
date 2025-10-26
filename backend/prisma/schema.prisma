@@ -951,7 +951,7 @@ model AssignmentSubmission {
   /// @DtoReadOnly
   deletedAt DateTime?
 
-  //Attemp should be unique per student per assignment even if deleted
+  // Attempt should be unique per student per assignment even if deleted
   @@unique([assignmentId, studentId, attemptNumber]) // Unique constraint on assignmentId, studentId, attemptNumber
   @@index([assignmentId, studentId])
   @@index([submittedAt])
