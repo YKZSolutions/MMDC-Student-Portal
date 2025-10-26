@@ -19,6 +19,7 @@
     "backend:test": "pnpm --filter backend test:e2e",
     "supabase": "pnpm --filter supabase supabase:start",
     "supabase:stop": "pnpm --filter supabase supabase:stop",
+    "supabase:reset": "pnpm --filter supabase supabase:reset && cd backend && npx prisma db push && cd .. && pnpm db:seed",
     "cypress": "pnpm --filter cypress cy:open",
     "db:seed": "pnpm --filter backend db:seed"
   },

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "supabase:start": "pnpx supabase start",
-    "supabase:stop": "pnpx supabase stop"
+    "supabase:stop": "pnpx supabase stop",
+    "supabase:reset": "pnpx supabase db reset"
   },
   "keywords": [],
   "author": "",
