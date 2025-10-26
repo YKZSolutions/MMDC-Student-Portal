@@ -35,7 +35,7 @@ export class TestAppService {
   private appCache = new Map<string, INestApplication>();
 
   public prismaClient: ExtendedPrismaClient;
-  public prismaService: CustomPrismaService<ExtendedPrismaClient>;
+  public static prismaService: CustomPrismaService<ExtendedPrismaClient>;
 
   /**
    * Initialize the test service using global resources
@@ -44,9 +44,9 @@ export class TestAppService {
     try {
       // Get Prisma client and service from global setup
       this.prismaClient = (global as any).__PRISMA_CLIENT__;
-      this.prismaService = (global as any).__PRISMA_SERVICE__;
+      TestAppService.prismaService = (global as any).__PRISMA_SERVICE__;
 
-      if (!this.prismaClient || !this.prismaService) {
+      if (!this.prismaClient || !TestAppService.prismaService) {
         throw new Error(
           'Prisma client not initialized. Make sure globalSetup is configured in jest config.',
         );
@@ -249,7 +249,7 @@ export class TestAppService {
       imports: [AppModule],
     })
       .overrideProvider('PrismaService')
-      .useValue(this.prismaService)
+      .useValue(TestAppService.prismaService)
       .overrideProvider(AuthGuard)
       .useValue({
         canActivate: (ctx: ExecutionContext) => {
