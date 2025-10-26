@@ -124,8 +124,10 @@ function NotificationAction() {
 
   const { paginated, count, markAllAsRead } = useNotificationQuery()
 
-  const { notifications, meta } = paginated
-  const unread = count.unread
+  // FIX #1: Destructure safely with default values
+  // This prevents the app from crashing if 'paginated' is undefined
+  const { notifications = [], meta } = paginated ?? {}
+  const unread = count?.unread ?? 0
 
   return (
     <Popover
@@ -167,7 +169,9 @@ function NotificationAction() {
           </Group>
           <Divider />
 
-          {meta.totalCount === 0 ? (
+          {/* FIX #2: Use optional chaining and a fallback for the count */}
+          {/* This ensures 'totalCount' is never read from an undefined object */}
+          {(meta?.totalCount ?? 0) === 0 ? (
             <EmptyState
               icon={<IconBellRinging2 size={48} stroke={1.5} />}
               title="No Notifications"
