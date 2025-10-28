@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Affix,
   Box,
   Button,
@@ -459,6 +460,102 @@ const UserMessage = ({ message }: { message: string }) => {
   )
 }
 
+// Loading indicator component
+const TypingIndicator = () => {
+  const theme = useMantineTheme()
+  return (
+    <Box
+      p={'md'}
+      bdrs={'12px 12px 12px 4px'}
+      bg={theme.colors.gray[1]}
+      maw="95%"
+      style={{
+        alignSelf: 'flex-start',
+      }}
+    >
+      <Flex align="center" gap="xs">
+        <Flex gap={4}>
+          <Box
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: theme.colors.gray[5],
+              animation: 'typing 1.4s infinite ease-in-out',
+              root: {
+                '@keyframes typing': {
+                  '0%, 60%, 100%': {
+                    transform: 'translateY(0)',
+                    opacity: 0.4,
+                  },
+                  '30%': {
+                    transform: 'translateY(-10px)',
+                    opacity: 1,
+                  },
+                },
+                '&:nth-of-type(1)': { animationDelay: '0s' },
+                '&:nth-of-type(2)': { animationDelay: '0.2s' },
+                '&:nth-of-type(3)': { animationDelay: '0.4s' },
+              },
+            }}
+          />
+          <Box
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: theme.colors.gray[5],
+              animation: 'typing 1.4s infinite ease-in-out',
+              root: {
+                '@keyframes typing': {
+                  '0%, 60%, 100%': {
+                    transform: 'translateY(0)',
+                    opacity: 0.4,
+                  },
+                  '30%': {
+                    transform: 'translateY(-10px)',
+                    opacity: 1,
+                  },
+                },
+                '&:nth-of-type(1)': { animationDelay: '0s' },
+                '&:nth-of-type(2)': { animationDelay: '0.2s' },
+                '&:nth-of-type(3)': { animationDelay: '0.4s' },
+              },
+            }}
+          />
+          <Box
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: theme.colors.gray[5],
+              animation: 'typing 1.4s infinite ease-in-out',
+              root: {
+                '@keyframes typing': {
+                  '0%, 60%, 100%': {
+                    transform: 'translateY(0)',
+                    opacity: 0.4,
+                  },
+                  '30%': {
+                    transform: 'translateY(-10px)',
+                    opacity: 1,
+                  },
+                },
+                '&:nth-of-type(1)': { animationDelay: '0s' },
+                '&:nth-of-type(2)': { animationDelay: '0.2s' },
+                '&:nth-of-type(3)': { animationDelay: '0.4s' },
+              },
+            }}
+          />
+        </Flex>
+        <Text size="sm" c="dimmed">
+          AI is thinking...
+        </Text>
+      </Flex>
+    </Box>
+  )
+}
+
 type ChatMessagesProps = {
   messages: Turn[]
   isSending?: boolean
@@ -470,8 +567,21 @@ const ChatMessages = ({
   isSending = false,
   isError = false,
 }: ChatMessagesProps) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when messages change or when sending starts/stops
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, isSending])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <Stack
+      ref={messagesContainerRef}
       gap="sm"
       p={'lg'}
       flex={1}
@@ -489,9 +599,7 @@ const ChatMessages = ({
         ),
       )}
 
-      {isSending && (
-        <Skeleton visible={isSending} height={36} bdrs={'12px 12px 12px 4px'} />
-      )}
+      {isSending && <TypingIndicator />}
 
       {isError && (
         <BotMessage
@@ -500,6 +608,9 @@ const ChatMessages = ({
           }
         />
       )}
+
+      {/* Invisible element at the bottom for auto-scrolling */}
+      <div ref={messagesEndRef} />
     </Stack>
   )
 }
@@ -533,59 +644,74 @@ const ChatInput = ({
     }
   }
 
+  const handleSend = () => {
+    if (!canSend) return
+    onSendInput(value)
+  }
+
   return (
     <Flex
-      p={'md'}
+      direction="column"
+      p="xs"
       style={{
         borderTop: `1px solid ${theme.colors.gray[3]}`,
-        position: 'relative',
       }}
     >
-      <Textarea
-        placeholder="Type your message..."
-        value={value}
-        onChange={(event) => setValue(event.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-        rightSectionPointerEvents="all"
-        radius="lg"
-        w={'100%'}
-        autosize={true}
-        minRows={1}
-        maxRows={3}
-        disabled={isSending}
-        styles={{
-          input: {
-            paddingRight: '2.5rem',
-            resize: 'none',
-            overflow: 'hidden',
-            '&:focus': {
-              overflow: 'auto',
-            },
-          },
+      {/* Message Input Box */}
+      <Flex
+        direction="column"
+        bg={theme.white}
+        w="100%"
+        style={{
+          border: `1px solid ${theme.colors.gray[3]}`,
+          borderRadius: theme.radius.lg,
         }}
-        rightSection={
-          <Flex
-            align={'flex-end'}
-            justify={'flex-end'}
-            h={'100%'}
-            p={'0.25rem'}
+      >
+        <Textarea
+          placeholder="Type your message..."
+          value={value}
+          onChange={(event) => setValue(event.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+          autosize
+          minRows={1}
+          maxRows={4}
+          disabled={isSending}
+          variant="unstyled"
+          px="sm"
+          pt="xs"
+          styles={{
+            input: {
+              resize: 'none',
+              overflowY: 'auto',
+              lineHeight: 1.5,
+            },
+          }}
+        />
+
+        {/* Bottom Toolbar */}
+        <Flex align="center" justify="flex-end" gap="xs" px="sm" py="xs">
+          {/* Future tool buttons can go here */}
+
+          <ActionIcon
+            onClick={handleSend}
+            size="md"
+            radius="xl"
+            loading={isSending}
+            disabled={!canSend}
+            bg={canSend ? theme.colors.primary[0] : theme.colors.gray[1]}
+            style={{
+              opacity: canSend ? 1 : 0.5,
+              cursor: canSend ? 'pointer' : 'not-allowed',
+              flexShrink: 0,
+            }}
           >
-            <Button
-              onClick={() => {
-                if (!canSend) return
-                onSendInput(value)
-              }}
-              size="xs"
-              radius="xl"
-              loading={isSending}
-              hidden={!canSend}
-              bg="transparent"
-            >
-              <IconSend color={theme.colors.primary[0]} />
-            </Button>
-          </Flex>
-        }
-      />
+            <IconSend
+              size={16}
+              color={canSend ? theme.white : theme.colors.gray[6]}
+            />
+          </ActionIcon>
+        </Flex>
+      </Flex>
     </Flex>
   )
 }
