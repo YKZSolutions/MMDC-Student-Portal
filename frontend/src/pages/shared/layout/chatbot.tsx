@@ -6,20 +6,26 @@ import {
   Flex,
   Group,
   Popover,
-  Skeleton,
   Stack,
   Text,
   Textarea,
   useMantineTheme,
+  Transition,
+  Badge,
 } from '@mantine/core'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Draggable from 'react-draggable'
-import { IconMessageChatbot, IconSend, IconX } from '@tabler/icons-react'
+import {
+  IconMessageChatbot,
+  IconSend,
+  IconX,
+  IconRefresh,
+} from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 import type { Turn } from '@/integrations/api/client'
 import ReactMarkdown, { type Components } from 'react-markdown'
-import { useResizeObserver } from '@mantine/hooks'
+import { useResizeObserver, useMediaQuery } from '@mantine/hooks'
 
 type ChatbotProps = {
   isChatbotOpen: boolean
@@ -35,15 +41,18 @@ const Chatbot = ({
   setChatbotFabHidden,
 }: ChatbotProps) => {
   const theme = useMantineTheme()
-  const nodeRef = useRef<HTMLDivElement>(null) // Ref to the draggable node
+  const nodeRef = useRef<HTMLDivElement>(null)
   const [fabRef, { width: fabWidth, height: fabHeight }] = useResizeObserver()
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isTablet = useMediaQuery('(max-width: 1024px)')
 
-  const DROP_ZONE_RADIUS = 150
+  const DROP_ZONE_RADIUS = isMobile ? 120 : 150
   const DROPZONE_X = window.innerWidth / 2
   const DROPZONE_Y = window.innerHeight / 6
-  const MAX_MESSAGES = 10
+  const MAX_MESSAGES = 20 // Increased for better conversation history
 
   const [messages, setMessages] = useState<Turn[]>([])
+  const [errorMessage, setErrorMessage] = useState<string>('')
   const {
     mutateAsync: create,
     isPending,
@@ -51,33 +60,36 @@ const Chatbot = ({
     isSuccess,
   } = useMutation(chatbotControllerPromptMutation())
 
-  // Compute "show" snap position (bottom-right)
-  const getShowPosition = () => {
+  // Compute "show" snap position (bottom-right or full screen on mobile)
+  const getShowPosition = useCallback(() => {
+    if (isMobile) {
+      return { x: 10, y: window.innerHeight - fabHeight - 10 }
+    }
     return {
       x: window.innerWidth - fabWidth - 20,
       y: window.innerHeight - fabHeight - 20,
     }
-  }
+  }, [isMobile, fabWidth, fabHeight])
 
-  const clampPosition = (pos: { x: number; y: number }) => {
-    return {
-      x: Math.min(
-        Math.max(pos.x, 0),
-        window.innerWidth - fabWidth - 20, // keep inside screen
-      ),
-      y: Math.min(Math.max(pos.y, 0), window.innerHeight - fabHeight - 20),
-    }
-  }
+  const clampPosition = useCallback(
+    (pos: { x: number; y: number }) => {
+      return {
+        x: Math.min(Math.max(pos.x, 10), window.innerWidth - fabWidth - 20),
+        y: Math.min(Math.max(pos.y, 10), window.innerHeight - fabHeight - 20),
+      }
+    },
+    [fabWidth, fabHeight],
+  )
 
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
 
-  // Initial positioning only when showing
+  // Initial positioning
   useEffect(() => {
     if (!isChatbotFabHidden) {
       setPosition(getShowPosition())
     }
-  }, [isChatbotFabHidden, fabWidth, fabHeight])
+  }, [isChatbotFabHidden, fabWidth, fabHeight, getShowPosition])
 
   // Clamp on resize
   useEffect(() => {
@@ -89,45 +101,54 @@ const Chatbot = ({
 
     window.addEventListener('resize', updatePosition)
     return () => window.removeEventListener('resize', updatePosition)
-  }, [isChatbotFabHidden, fabWidth, fabHeight])
+  }, [isChatbotFabHidden, clampPosition])
 
   const addMessage = async (userInput: string) => {
-    // Add the user's message to the state
+    setErrorMessage('')
     const userMessage = { role: 'user' as const, content: userInput }
-
-    // Get the current messages including the new user message
     const updatedMessages = [...messages, userMessage]
-
-    // Update the UI immediately with the user's message
     setMessages(updatedMessages)
 
-    const res = await create({
-      body: {
-        question: userInput,
-        sessionHistory: messages, // Send all previous messages
-      },
-    })
+    try {
+      const res = await create({
+        body: {
+          question: userInput,
+          sessionHistory: messages,
+        },
+      })
 
-    // Add the bot's response to the messages
-    setMessages((prev) =>
-      [...prev, { role: 'model' as const, content: res.response }].slice(
-        -MAX_MESSAGES,
-      ),
-    ) // Keep only the last 5 interactions (10 messages: 5 user + 5 bot)
+      setMessages((prev) =>
+        [...prev, { role: 'model' as const, content: res.response }].slice(
+          -MAX_MESSAGES,
+        ),
+      )
+    } catch (error) {
+      setErrorMessage(
+        'Unable to get a response. Please check your connection and try again.',
+      )
+    }
   }
 
   const handleDragStop = (e: any, data: any) => {
     setIsDragging(false)
-
-    // Calculate the distance between the draggable's current position and the center of the screen
     const distance = Math.hypot(data.x - DROPZONE_X, data.y - DROPZONE_Y)
 
-    // Check if the draggable is within the drop zone
     if (distance < DROP_ZONE_RADIUS) {
-      // Hide the chatbot if the user has dragged it to the drop zone
       setChatbotFabHidden(true)
       setChatbotOpen(false)
     }
+  }
+
+  const resetChat = () => {
+    setMessages([])
+    setErrorMessage('')
+  }
+
+  // Get popover width based on screen size
+  const getPopoverWidth = () => {
+    if (isMobile) return window.innerWidth - 20
+    if (isTablet) return 380
+    return 420
   }
 
   return (
@@ -138,14 +159,21 @@ const Chatbot = ({
         pointerEvents: 'none',
         zIndex: 2000,
       }}
+      role="complementary"
+      aria-label="Student support chatbot"
     >
-      {isDragging && (
-        <DropZoneIndicator
-          dropZoneX={DROPZONE_X}
-          dropZoneY={DROPZONE_Y}
-          dropZoneRadius={DROP_ZONE_RADIUS}
-        />
-      )}
+      <Transition mounted={isDragging} transition="fade" duration={200}>
+        {(styles) => (
+          <div style={styles}>
+            <DropZoneIndicator
+              dropZoneX={DROPZONE_X}
+              dropZoneY={DROPZONE_Y}
+              dropZoneRadius={DROP_ZONE_RADIUS}
+            />
+          </div>
+        )}
+      </Transition>
+
       <Draggable
         nodeRef={nodeRef}
         position={position}
@@ -153,31 +181,40 @@ const Chatbot = ({
         onDrag={(e, data) => {
           setIsDragging(true)
           setChatbotOpen(false)
-          // Update the position state with Draggable's data
           setPosition({ x: data.x, y: data.y })
         }}
-        onStart={undefined} //Disables click listener
+        onStart={undefined}
         onStop={handleDragStop}
         handle=".chatbot-drag-handle"
+        disabled={isMobile} // Disable dragging on mobile
       >
         <div
           ref={nodeRef}
           style={{
             position: 'fixed',
-            cursor: isDragging ? 'grabbing' : 'grab',
+            cursor: isDragging ? 'grabbing' : isMobile ? 'pointer' : 'grab',
             pointerEvents: isChatbotFabHidden ? 'none' : 'auto',
             userSelect: 'none',
             visibility: isChatbotFabHidden ? 'hidden' : 'visible',
+            transition: 'transform 0.2s ease',
           }}
         >
           <Popover
             opened={isChatbotOpen}
             onClose={() => setChatbotOpen(false)}
-            position={position.y < window.innerHeight / 2 ? 'bottom' : 'top'}
-            width={350}
+            position={
+              isMobile
+                ? 'top'
+                : position.y < window.innerHeight / 2
+                  ? 'bottom'
+                  : 'top'
+            }
+            width={getPopoverWidth()}
             withArrow
-            shadow="lg"
-            radius="md"
+            shadow="xl"
+            radius="lg"
+            closeOnClickOutside={!isMobile}
+            trapFocus={isChatbotOpen}
           >
             <Popover.Target>
               <Button
@@ -185,28 +222,35 @@ const Chatbot = ({
                 className="chatbot-drag-handle"
                 onClick={() => setChatbotOpen(!isChatbotOpen)}
                 variant="filled"
-                color={'secondary'}
-                size="lg"
+                color="secondary"
+                size={isMobile ? 'md' : 'lg'}
                 radius="xl"
-                leftSection={<IconMessageChatbot size={24} />}
+                leftSection={<IconMessageChatbot size={isMobile ? 20 : 24} />}
+                aria-label="Open student support chat"
+                aria-expanded={isChatbotOpen}
                 style={{
-                  boxShadow: theme.shadows.sm,
+                  boxShadow: theme.shadows.lg,
                   transform: isDragging ? 'scale(1.05)' : 'none',
-                  transition: 'transform 0.2s ease',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 }}
               >
-                <Text unselectable={'on'} size={'lg'} fw={500}>
-                  Chat with AI
+                <Text size={isMobile ? 'sm' : 'lg'} fw={500}>
+                  {'Ask AI'}
                 </Text>
               </Button>
             </Popover.Target>
-            <Popover.Dropdown p={0} h={'65vh'}>
-              <Stack h={'100%'}>
-                <ChatHeader onClose={() => setChatbotOpen(false)} />{' '}
+            <Popover.Dropdown p={0} h={isMobile ? '70vh' : '65vh'}>
+              <Stack h="100%" gap={0}>
+                <ChatHeader
+                  onClose={() => setChatbotOpen(false)}
+                  onReset={resetChat}
+                  hasMessages={messages.length > 0}
+                />
                 <ChatMessages
                   messages={messages}
                   isSending={isPending}
                   isError={isError}
+                  errorMessage={errorMessage}
                 />
                 <ChatInput
                   onSendInput={addMessage}
@@ -222,32 +266,53 @@ const Chatbot = ({
   )
 }
 
-const ChatHeader = ({ onClose }: { onClose: () => void }) => {
+const ChatHeader = ({
+  onClose,
+  onReset,
+  hasMessages,
+}: {
+  onClose: () => void
+  onReset: () => void
+  hasMessages: boolean
+}) => {
   const theme = useMantineTheme()
 
   return (
     <Group
-      p={'md'}
-      justify={'space-between'}
-      bg={theme.colors.secondary[0]}
-      bdrs={'8px 8px 0 0'}
+      p="md"
+      justify="space-between"
+      bg={theme.colors.secondary[6]}
       style={{
-        borderBottom: `1px solid ${theme.colors.gray[3]}`,
+        borderBottom: `1px solid ${theme.colors.gray[2]}`,
+        borderRadius: '8px 8px 0 0',
       }}
     >
-      <Text fw={600} c={theme.white} size="md">
-        Chat Support
-      </Text>
-      <Button
-        variant="subtle"
-        size="xs"
-        miw={'auto'}
-        p={'0.25rem'}
-        onClick={onClose}
-        style={{ minWidth: 'auto', padding: 4 }}
-      >
-        <IconX size={16} color={theme.white} />
-      </Button>
+      <Flex align="center" gap="xs">
+        <Text fw={600} c={theme.white} size="md">
+          Student Support
+        </Text>
+      </Flex>
+      <Group gap="xs">
+        {hasMessages && (
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            onClick={onReset}
+            aria-label="Reset conversation"
+            title="Start new conversation"
+          >
+            <IconRefresh size={16} color={theme.white} />
+          </ActionIcon>
+        )}
+        <ActionIcon
+          variant="subtle"
+          size="sm"
+          onClick={onClose}
+          aria-label="Close chat"
+        >
+          <IconX size={18} color={theme.white} />
+        </ActionIcon>
+      </Group>
     </Group>
   )
 }
@@ -261,9 +326,9 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '0 0 8px 0',
           fontSize: '1rem',
-          fontWeight: 700,
+          fontWeight: 600,
           lineHeight: 1.3,
-          color: theme.black,
+          color: theme.colors.dark[7],
         }}
         {...props}
       />
@@ -273,9 +338,9 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '8px 0 6px 0',
           fontSize: '0.875rem',
-          fontWeight: 700,
+          fontWeight: 600,
           lineHeight: 1.35,
-          color: theme.black,
+          color: theme.colors.dark[7],
         }}
         {...props}
       />
@@ -285,9 +350,9 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '8px 0 6px 0',
           fontSize: '0.85rem',
-          fontWeight: 700,
+          fontWeight: 600,
           lineHeight: 1.4,
-          color: theme.black,
+          color: theme.colors.dark[7],
         }}
         {...props}
       />
@@ -297,8 +362,8 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '6px 0',
           fontSize: '0.875rem',
-          lineHeight: 1.5,
-          color: theme.black,
+          lineHeight: 1.6,
+          color: theme.colors.dark[7],
         }}
         {...props}
       />
@@ -317,7 +382,8 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '6px 0',
           paddingLeft: 24,
-          lineHeight: 1.5,
+          lineHeight: 1.6,
+          listStyleType: 'disc',
         }}
         {...props}
       />
@@ -336,7 +402,7 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '6px 0',
           paddingLeft: 24,
-          lineHeight: 1.5,
+          lineHeight: 1.6,
         }}
         {...props}
       />
@@ -356,19 +422,19 @@ const BotMessage = ({ message }: { message: string }) => {
         target="_blank"
         rel="noopener noreferrer"
         style={{
-          color: theme.colors.blue[5],
+          color: theme.colors.blue[6],
           textDecoration: 'underline',
           fontWeight: 500,
           transition: 'color 0.2s ease',
         }}
-        className="hover:text-blue-600"
         {...props}
       />
     ),
     strong: ({ node, ...props }) => (
       <strong
         style={{
-          fontWeight: 700,
+          fontWeight: 600,
+          color: theme.colors.dark[8],
         }}
         {...props}
       />
@@ -394,24 +460,26 @@ const BotMessage = ({ message }: { message: string }) => {
       inline ? (
         <code
           style={{
-            background: theme.colors.gray[0],
-            padding: '0 3px',
+            background: theme.colors.gray[1],
+            padding: '2px 6px',
             borderRadius: 4,
-            fontSize: '0.75em',
-            color: theme.colors.blue[5],
+            fontSize: '0.85em',
+            color: theme.colors.blue[7],
+            fontFamily: 'monospace',
           }}
           {...props}
         />
       ) : (
         <pre
           style={{
-            background: theme.colors.gray[0],
+            background: theme.colors.gray[1],
             padding: 12,
             borderRadius: 6,
             overflowX: 'auto',
             margin: '8px 0',
-            fontSize: '0.75em',
-            color: theme.colors.gray[7],
+            fontSize: '0.8em',
+            color: theme.colors.gray[8],
+            border: `1px solid ${theme.colors.gray[3]}`,
           }}
         >
           <code {...props} />
@@ -422,7 +490,7 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           border: 'none',
           borderTop: `1px solid ${theme.colors.gray[3]}`,
-          margin: '16px 0',
+          margin: '12px 0',
         }}
       />
     ),
@@ -430,12 +498,14 @@ const BotMessage = ({ message }: { message: string }) => {
 
   return (
     <Box
-      p={'md'}
-      bdrs={'12px 12px 12px 4px'}
-      bg={theme.colors.gray[1]}
-      maw="95%"
+      p="sm"
       style={{
+        borderRadius: '12px 12px 12px 4px',
+        background: theme.colors.gray[0],
+        maxWidth: '85%',
         alignSelf: 'flex-start',
+        border: `1px solid ${theme.colors.gray[2]}`,
+        boxShadow: theme.shadows.xs,
       }}
     >
       <ReactMarkdown components={components}>{message}</ReactMarkdown>
@@ -447,111 +517,68 @@ const UserMessage = ({ message }: { message: string }) => {
   const theme = useMantineTheme()
   return (
     <Box
-      p={'md'}
-      bdrs={'12px 12px 4px 12px'}
-      bg={theme.colors.gray[1]}
-      maw="90%"
+      p="sm"
       style={{
+        borderRadius: '12px 12px 4px 12px',
+        background: theme.colors.secondary[6],
+        maxWidth: '85%',
         alignSelf: 'flex-end',
+        boxShadow: theme.shadows.xs,
       }}
     >
-      <Text size="sm">{message}</Text>
+      <Text size="sm" c={theme.white} style={{ lineHeight: 1.5 }}>
+        {message}
+      </Text>
     </Box>
   )
 }
 
-// Loading indicator component
 const TypingIndicator = () => {
   const theme = useMantineTheme()
+
+  const dotStyle = {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    backgroundColor: theme.colors.gray[5],
+    animation: 'typing 1.4s infinite ease-in-out',
+  }
+
   return (
     <Box
-      p={'md'}
-      bdrs={'12px 12px 12px 4px'}
-      bg={theme.colors.gray[1]}
-      maw="95%"
+      p="sm"
       style={{
+        borderRadius: '12px 12px 12px 4px',
+        background: theme.colors.gray[0],
+        maxWidth: '85%',
         alignSelf: 'flex-start',
+        border: `1px solid ${theme.colors.gray[2]}`,
       }}
     >
-      <Flex align="center" gap="xs">
+      <Flex align="center" gap="sm">
         <Flex gap={4}>
-          <Box
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: theme.colors.gray[5],
-              animation: 'typing 1.4s infinite ease-in-out',
-              root: {
-                '@keyframes typing': {
-                  '0%, 60%, 100%': {
-                    transform: 'translateY(0)',
-                    opacity: 0.4,
-                  },
-                  '30%': {
-                    transform: 'translateY(-10px)',
-                    opacity: 1,
-                  },
-                },
-                '&:nth-of-type(1)': { animationDelay: '0s' },
-                '&:nth-of-type(2)': { animationDelay: '0.2s' },
-                '&:nth-of-type(3)': { animationDelay: '0.4s' },
-              },
-            }}
-          />
-          <Box
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: theme.colors.gray[5],
-              animation: 'typing 1.4s infinite ease-in-out',
-              root: {
-                '@keyframes typing': {
-                  '0%, 60%, 100%': {
-                    transform: 'translateY(0)',
-                    opacity: 0.4,
-                  },
-                  '30%': {
-                    transform: 'translateY(-10px)',
-                    opacity: 1,
-                  },
-                },
-                '&:nth-of-type(1)': { animationDelay: '0s' },
-                '&:nth-of-type(2)': { animationDelay: '0.2s' },
-                '&:nth-of-type(3)': { animationDelay: '0.4s' },
-              },
-            }}
-          />
-          <Box
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: theme.colors.gray[5],
-              animation: 'typing 1.4s infinite ease-in-out',
-              root: {
-                '@keyframes typing': {
-                  '0%, 60%, 100%': {
-                    transform: 'translateY(0)',
-                    opacity: 0.4,
-                  },
-                  '30%': {
-                    transform: 'translateY(-10px)',
-                    opacity: 1,
-                  },
-                },
-                '&:nth-of-type(1)': { animationDelay: '0s' },
-                '&:nth-of-type(2)': { animationDelay: '0.2s' },
-                '&:nth-of-type(3)': { animationDelay: '0.4s' },
-              },
-            }}
-          />
+          <Box style={{ ...dotStyle, animationDelay: '0s' }} />
+          <Box style={{ ...dotStyle, animationDelay: '0.2s' }} />
+          <Box style={{ ...dotStyle, animationDelay: '0.4s' }} />
         </Flex>
-        <Text size="sm" c="dimmed">
-          AI is thinking...
+        <Text size="xs" c="dimmed">
+          Thinking...
         </Text>
       </Flex>
+      <style>
+        {`
+          @keyframes typing {
+            0%, 60%, 100% {
+              transform: translateY(0);
+              opacity: 0.4;
+            }
+            30% {
+              transform: translateY(-8px);
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
     </Box>
   )
 }
@@ -560,37 +587,53 @@ type ChatMessagesProps = {
   messages: Turn[]
   isSending?: boolean
   isError?: boolean
+  errorMessage?: string
 }
 
 const ChatMessages = ({
   messages,
   isSending = false,
   isError = false,
+  errorMessage = '',
 }: ChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
 
-  // Auto-scroll to bottom when messages change or when sending starts/stops
   useEffect(() => {
-    scrollToBottom()
-  }, [messages, isSending])
+    if (shouldAutoScroll) {
+      scrollToBottom()
+    }
+  }, [messages, isSending, shouldAutoScroll])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const handleScroll = () => {
+    if (!messagesContainerRef.current) return
+
+    const { scrollTop, scrollHeight, clientHeight } =
+      messagesContainerRef.current
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50
+    setShouldAutoScroll(isNearBottom)
+  }
+
   return (
     <Stack
       ref={messagesContainerRef}
-      gap="sm"
-      p={'lg'}
+      gap="md"
+      p="md"
       flex={1}
+      onScroll={handleScroll}
       style={{
         overflowY: 'auto',
+        overflowX: 'hidden',
       }}
     >
-      <BotMessage message={'Hello! How can I help you today?'} />
-
+      <BotMessage
+        message={`### 👋 Hi there! I'm your student support assistant. How can I help you today?\n\nI can assist you with:\n\n- Enrollment and Billing information\n- Student Portal use and navigation\n- Course & Progress information\n- General questions`}
+      />
       {messages.map((msg, index) =>
         msg.role === 'user' ? (
           <UserMessage key={index} message={msg.content} />
@@ -601,15 +644,8 @@ const ChatMessages = ({
 
       {isSending && <TypingIndicator />}
 
-      {isError && (
-        <BotMessage
-          message={
-            'An error occurred while processing your request. Please try again later.'
-          }
-        />
-      )}
+      {isError && errorMessage && <BotMessage message={`⚠️ ${errorMessage}`} />}
 
-      {/* Invisible element at the bottom for auto-scrolling */}
       <div ref={messagesEndRef} />
     </Stack>
   )
@@ -628,19 +664,21 @@ const ChatInput = ({
 }: ChatInputProps) => {
   const theme = useMantineTheme()
   const [value, setValue] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const canSend = !!value.trim() && !isSending
 
   useEffect(() => {
     if (isSuccess) {
       setValue('')
+      textareaRef.current?.focus()
     }
   }, [isSuccess])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey && canSend) {
       e.preventDefault()
-      onSendInput(value)
+      handleSend()
     }
   }
 
@@ -652,23 +690,25 @@ const ChatInput = ({
   return (
     <Flex
       direction="column"
-      p="xs"
+      p="sm"
       style={{
-        borderTop: `1px solid ${theme.colors.gray[3]}`,
+        borderTop: `1px solid ${theme.colors.gray[2]}`,
+        background: theme.colors.gray[0],
       }}
     >
-      {/* Message Input Box */}
       <Flex
         direction="column"
         bg={theme.white}
         w="100%"
         style={{
           border: `1px solid ${theme.colors.gray[3]}`,
-          borderRadius: theme.radius.lg,
+          borderRadius: theme.radius.md,
+          transition: 'border-color 0.2s ease',
         }}
       >
         <Textarea
-          placeholder="Type your message..."
+          ref={textareaRef}
+          placeholder="Ask me anything..."
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
@@ -679,36 +719,36 @@ const ChatInput = ({
           variant="unstyled"
           px="sm"
           pt="xs"
+          aria-label="Type your message"
           styles={{
             input: {
               resize: 'none',
               overflowY: 'auto',
               lineHeight: 1.5,
+              fontSize: '0.875rem',
             },
           }}
         />
 
-        {/* Bottom Toolbar */}
-        <Flex align="center" justify="flex-end" gap="xs" px="sm" py="xs">
-          {/* Future tool buttons can go here */}
-
+        <Flex align="center" justify="space-between" px="sm" py="xs">
+          <Text size="xs" c="dimmed">
+            Press Enter to send
+          </Text>
           <ActionIcon
             onClick={handleSend}
-            size="md"
+            size="lg"
             radius="xl"
             loading={isSending}
             disabled={!canSend}
-            bg={canSend ? theme.colors.primary[0] : theme.colors.gray[1]}
+            variant="filled"
+            color={canSend ? 'secondary' : 'gray'}
+            aria-label="Send message"
             style={{
-              opacity: canSend ? 1 : 0.5,
+              transition: 'all 0.2s ease',
               cursor: canSend ? 'pointer' : 'not-allowed',
-              flexShrink: 0,
             }}
           >
-            <IconSend
-              size={16}
-              color={canSend ? theme.white : theme.colors.gray[6]}
-            />
+            <IconSend size={18} />
           </ActionIcon>
         </Flex>
       </Flex>
@@ -720,24 +760,37 @@ const DropZoneIndicator = ({
   dropZoneRadius = 150,
   dropZoneX = window.innerWidth / 2,
   dropZoneY = window.innerHeight / 6,
-}) => (
-  <Affix
-    position={{ top: dropZoneY, left: dropZoneX }}
-    w={dropZoneRadius}
-    h={dropZoneRadius}
-    className="rounded-full border-2 border-dashed border-blue-500 bg-blue-100 hover:bg-blue-200 transition-colors duration-300"
-    style={{
-      zIndex: 2000,
-      cursor: 'grabbing',
-      opacity: 0.7,
-    }}
-  >
-    <Stack align="center" justify="center" h="100%">
-      <Text fw={600} size="md" ta="center">
-        Drop to hide chatbot
-      </Text>
-    </Stack>
-  </Affix>
-)
+}) => {
+  const theme = useMantineTheme()
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: dropZoneY - dropZoneRadius / 2,
+        left: dropZoneX - dropZoneRadius / 2,
+        width: dropZoneRadius,
+        height: dropZoneRadius,
+        borderRadius: '50%',
+        border: `3px dashed ${theme.colors.red[5]}`,
+        background: `${theme.colors.red[0]}`,
+        zIndex: 1999,
+        pointerEvents: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: 0.9,
+        transition: 'all 0.3s ease',
+      }}
+    >
+      <Stack align="center" gap="xs">
+        <IconX size={32} color={theme.colors.red[6]} />
+        <Text fw={600} size="sm" ta="center" c={theme.colors.red[7]}>
+          Drop to hide
+        </Text>
+      </Stack>
+    </div>
+  )
+}
 
 export default Chatbot
