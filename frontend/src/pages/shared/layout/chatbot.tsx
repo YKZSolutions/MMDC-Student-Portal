@@ -19,6 +19,7 @@ import {
   IconSend,
   IconX,
   IconRefresh,
+  IconTrash,
 } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
@@ -145,7 +146,7 @@ const Chatbot = ({
     const distance = Math.hypot(data.x - DROPZONE_X, data.y - DROPZONE_Y)
 
     if (distance < DROP_ZONE_RADIUS) {
-      // Set flag to prevent the button click from opening the chat
+      // Set the flag to prevent the button click from opening the chat
       dragEndedRef.current = true
       setChatbotFabHidden(true)
       setChatbotOpen(false)
@@ -271,7 +272,7 @@ const Chatbot = ({
                 </Text>
               </Button>
             </Popover.Target>
-            <Popover.Dropdown p={0} h={isMobile ? '70vh' : '65vh'}>
+            <Popover.Dropdown p={0} h={isMobile ? '70vh' : '75vh'}>
               <Stack h="100%" gap={0}>
                 <ChatHeader
                   onClose={() => setChatbotOpen(false)}
@@ -311,7 +312,7 @@ const ChatHeader = ({
 
   return (
     <Group
-      p="md"
+      p="sm"
       justify="space-between"
       bg={theme.colors.secondary[6]}
       style={{
@@ -333,7 +334,7 @@ const ChatHeader = ({
             aria-label="Reset conversation"
             title="Start new conversation"
           >
-            <IconRefresh size={16} color={theme.white} />
+            <IconTrash size={16} color={theme.white} />
           </ActionIcon>
         )}
         <ActionIcon
@@ -746,7 +747,7 @@ const ChatInput = ({
           onKeyDown={handleKeyDown}
           autosize
           minRows={1}
-          maxRows={4}
+          maxRows={3}
           disabled={isSending}
           variant="unstyled"
           px="sm"
@@ -768,7 +769,7 @@ const ChatInput = ({
           </Text>
           <ActionIcon
             onClick={handleSend}
-            size="lg"
+            size="md"
             radius="xl"
             loading={isSending}
             disabled={!canSend}
@@ -780,7 +781,7 @@ const ChatInput = ({
               cursor: canSend ? 'pointer' : 'not-allowed',
             }}
           >
-            <IconSend size={18} />
+            <IconSend size={14} />
           </ActionIcon>
         </Flex>
       </Flex>
