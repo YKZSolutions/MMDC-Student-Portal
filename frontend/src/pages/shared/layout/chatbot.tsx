@@ -1,6 +1,5 @@
 import {
   ActionIcon,
-  Affix,
   Box,
   Button,
   Flex,
@@ -49,7 +48,7 @@ const Chatbot = ({
   const DROP_ZONE_RADIUS = isMobile ? 120 : 150
   const DROPZONE_X = window.innerWidth / 2
   const DROPZONE_Y = window.innerHeight / 6
-  const MAX_MESSAGES = 20 // Increased for better conversation history
+  const MAX_MESSAGES = 20
 
   const [messages, setMessages] = useState<Turn[]>([])
   const [errorMessage, setErrorMessage] = useState<string>('')
@@ -60,34 +59,46 @@ const Chatbot = ({
     isSuccess,
   } = useMutation(chatbotControllerPromptMutation())
 
-  // Compute "show" snap position (bottom-right or full screen on mobile)
+  // Compute the "show" snap position
   const getShowPosition = useCallback(() => {
     if (isMobile) {
-      return { x: 10, y: window.innerHeight - fabHeight - 10 }
+      return { x: 10, y: window.innerHeight - (fabHeight || 60) - 10 }
     }
     return {
-      x: window.innerWidth - fabWidth - 20,
-      y: window.innerHeight - fabHeight - 20,
+      x: window.innerWidth - (fabWidth || 200) - 20,
+      y: window.innerHeight - (fabHeight || 60) - 20,
     }
   }, [isMobile, fabWidth, fabHeight])
 
   const clampPosition = useCallback(
     (pos: { x: number; y: number }) => {
+      const width = fabWidth || 200
+      const height = fabHeight || 60
       return {
-        x: Math.min(Math.max(pos.x, 10), window.innerWidth - fabWidth - 20),
-        y: Math.min(Math.max(pos.y, 10), window.innerHeight - fabHeight - 20),
+        x: Math.min(Math.max(pos.x, 10), window.innerWidth - width - 20),
+        y: Math.min(Math.max(pos.y, 10), window.innerHeight - height - 20),
       }
     },
     [fabWidth, fabHeight],
   )
 
-  const [position, setPosition] = useState({ x: 0, y: 0 })
+  // Track the positioning state more precisely
+  const [position, setPosition] = useState(() => getShowPosition())
   const [isDragging, setIsDragging] = useState(false)
+  const dragEndedRef = useRef(false)
 
-  // Initial positioning
+  // Reset when FAB gets hidden
+  useEffect(() => {
+    if (isChatbotFabHidden) {
+      setChatbotOpen(false)
+    }
+  }, [isChatbotFabHidden, setChatbotOpen])
+
+  // Position the FAB when unhidden or when dimensions change
   useEffect(() => {
     if (!isChatbotFabHidden) {
-      setPosition(getShowPosition())
+      const newPosition = getShowPosition()
+      setPosition(newPosition)
     }
   }, [isChatbotFabHidden, fabWidth, fabHeight, getShowPosition])
 
@@ -134,9 +145,24 @@ const Chatbot = ({
     const distance = Math.hypot(data.x - DROPZONE_X, data.y - DROPZONE_Y)
 
     if (distance < DROP_ZONE_RADIUS) {
+      // Set flag to prevent the button click from opening the chat
+      dragEndedRef.current = true
       setChatbotFabHidden(true)
       setChatbotOpen(false)
+
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        dragEndedRef.current = false
+      }, 100)
     }
+  }
+
+  const handleFabClick = () => {
+    // Prevent opening if we just ended a drag in the drop zone
+    if (dragEndedRef.current) {
+      return
+    }
+    setChatbotOpen(!isChatbotOpen)
   }
 
   const resetChat = () => {
@@ -186,7 +212,7 @@ const Chatbot = ({
         onStart={undefined}
         onStop={handleDragStop}
         handle=".chatbot-drag-handle"
-        disabled={isMobile} // Disable dragging on mobile
+        disabled={isMobile}
       >
         <div
           ref={nodeRef}
@@ -196,7 +222,8 @@ const Chatbot = ({
             pointerEvents: isChatbotFabHidden ? 'none' : 'auto',
             userSelect: 'none',
             visibility: isChatbotFabHidden ? 'hidden' : 'visible',
-            transition: 'transform 0.2s ease',
+            transition: isDragging ? 'transform 0.2s ease' : 'none',
+            transform: 'translateZ(0)',
           }}
         >
           <Popover
@@ -215,12 +242,16 @@ const Chatbot = ({
             radius="lg"
             closeOnClickOutside={!isMobile}
             trapFocus={isChatbotOpen}
+            transitionProps={{
+              transition: 'pop-top-left',
+              duration: 200,
+            }}
           >
             <Popover.Target>
               <Button
                 ref={fabRef}
                 className="chatbot-drag-handle"
-                onClick={() => setChatbotOpen(!isChatbotOpen)}
+                onClick={handleFabClick}
                 variant="filled"
                 color="secondary"
                 size={isMobile ? 'md' : 'lg'}
@@ -232,6 +263,7 @@ const Chatbot = ({
                   boxShadow: theme.shadows.lg,
                   transform: isDragging ? 'scale(1.05)' : 'none',
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  minWidth: isMobile ? 'auto' : 140,
                 }}
               >
                 <Text size={isMobile ? 'sm' : 'lg'} fw={500}>
