@@ -42,7 +42,7 @@ export class SupabaseService {
   async searchSimilarDocuments(
     embedding: number[],
     limit: number = 5,
-    threshold: number = 0.6,
+    threshold: number = 0.7,
   ) {
     const { data, error } = await this.supabase.rpc('match_documents', {
       query_embedding: embedding,
