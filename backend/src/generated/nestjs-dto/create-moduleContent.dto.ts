@@ -1,5 +1,5 @@
 import { ContentType, Prisma } from '@prisma/client';
-import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
@@ -7,36 +7,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  ConnectModuleSectionDto,
-  type ConnectModuleSectionDto as ConnectModuleSectionDtoAsType,
-} from './connect-moduleSection.dto';
 
-export class CreateModuleContentModuleSectionRelationInputDto {
-  @ApiProperty({
-    type: ConnectModuleSectionDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ConnectModuleSectionDto)
-  connect: ConnectModuleSectionDtoAsType;
-}
-
-@ApiExtraModels(
-  ConnectModuleSectionDto,
-  CreateModuleContentModuleSectionRelationInputDto,
-)
 export class CreateModuleContentDto {
-  @ApiProperty({
-    type: CreateModuleContentModuleSectionRelationInputDto,
-  })
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => CreateModuleContentModuleSectionRelationInputDto)
-  moduleSection: CreateModuleContentModuleSectionRelationInputDto;
   @ApiProperty({
     enum: ContentType,
     enumName: 'ContentType',

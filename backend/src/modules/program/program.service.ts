@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -7,7 +8,10 @@ import {
 } from '@nestjs/common';
 
 import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
 import { PaginatedProgramsDto } from './dto/paginated-program.dto';
 import { Prisma } from '@prisma/client';
@@ -52,29 +56,11 @@ export class ProgramService {
     @LogParam('dto') createProgramDto: CreateProgramDto,
   ): Promise<ProgramDto> {
     return await this.prisma.client.$transaction(async (tx) => {
-      await tx.program
-        .findFirst({
-          where: {
-            deletedAt: null,
-            OR: [
-              { programCode: createProgramDto.programCode },
-              { name: createProgramDto.name },
-            ],
-          },
-        })
-        .then((program) => {
-          if (program) {
-            if (program.programCode === createProgramDto.programCode) {
-              throw new ConflictException('Program code already exists');
-            }
+      // Validate data
+      await this.validateMutationData(createProgramDto, tx);
 
-            if (program.name === createProgramDto.name) {
-              throw new ConflictException('Program name already exists');
-            }
-          }
-        });
-
-      return this.prisma.client.program.create({
+      // If no conflict, create the new program
+      return tx.program.create({
         data: createProgramDto,
       });
     });
@@ -155,8 +141,8 @@ export class ProgramService {
       `Failed to find program id=${id} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Program not found`),
   })
   async findOne(@LogParam('id') id: string): Promise<ProgramDto> {
     return await this.prisma.client.program.findUniqueOrThrow({
@@ -167,7 +153,6 @@ export class ProgramService {
   /**
    * Updates the details of an existing program.
    *
-   * @async
    * @param {string} id - The UUID of the program to update.
    * @param {UpdateProgramDto} updateProgramDto - Data Transfer Object containing updated program details.
    * @returns {Promise<ProgramDto>} The updated program record.
@@ -193,20 +178,8 @@ export class ProgramService {
     @LogParam('dto') updateProgramDto: UpdateProgramDto,
   ): Promise<ProgramDto> {
     return await this.prisma.client.$transaction(async (tx) => {
-      await tx.program
-        .findUnique({
-          where: { id },
-        })
-        .then((program) => {
-          if (program) {
-            if (program.programCode === updateProgramDto.programCode) {
-              throw new ConflictException('Program code already exists');
-            }
-            if (program.name === updateProgramDto.name) {
-              throw new ConflictException('Program name already exists');
-            }
-          }
-        });
+      // Validate data
+      await this.validateMutationData(updateProgramDto, tx, id);
 
       return tx.program.update({
         where: { id, deletedAt: null },
@@ -238,8 +211,8 @@ export class ProgramService {
       `Failed to remove program id=${id} directDelete=${directDelete ?? false} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Program with id=${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Program not found`),
     [PrismaErrorCode.TransactionDeadlock]: () =>
       new InternalServerErrorException(
         'Deleting program failed due to transaction deadlock',
@@ -266,5 +239,59 @@ export class ProgramService {
     });
 
     return new MessageDto('Program deleted permanently');
+  }
+
+  async validateMutationData(
+    programToCheck: UpdateProgramDto | CreateProgramDto,
+    transactionClient: PrismaTransaction,
+    id?: string,
+  ) {
+    if (programToCheck.yearDuration && programToCheck.yearDuration < 0) {
+      throw new BadRequestException('Year duration must not be negative');
+    }
+
+    const excludeId = { NOT: { id } };
+
+    // 1. Check for Program Code Conflict (if code is provided)
+    if (programToCheck.programCode) {
+      const existingCodeProgram = await transactionClient.program.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          programCode: {
+            equals: programToCheck.programCode,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingCodeProgram) {
+        throw new ConflictException(
+          `Program code '${existingCodeProgram.programCode}' already exists`,
+        );
+      }
+    }
+
+    // 2. Check for Name Conflict (if a name is provided)
+    if (programToCheck.name) {
+      const existingNameProgram = await transactionClient.program.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          name: {
+            equals: programToCheck.name,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingNameProgram) {
+        throw new ConflictException(
+          `Program name '${existingNameProgram.name}' already exists`,
+        );
+      }
+    }
+
+    // If neither check throws an error, the data is valid.
   }
 }

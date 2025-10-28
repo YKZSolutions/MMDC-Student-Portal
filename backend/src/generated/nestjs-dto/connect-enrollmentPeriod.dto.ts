@@ -1,5 +1,6 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -8,7 +9,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class EnrollmentPeriodStartYearEndYearTermUniqueInputDto {
+export class EnrollmentPeriodStartYearEndYearTermDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'integer',
     format: 'int32',
@@ -30,9 +31,16 @@ export class EnrollmentPeriodStartYearEndYearTermUniqueInputDto {
   @IsNotEmpty()
   @IsInt()
   term: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
-@ApiExtraModels(EnrollmentPeriodStartYearEndYearTermUniqueInputDto)
+@ApiExtraModels(EnrollmentPeriodStartYearEndYearTermDeletedAtUniqueInputDto)
 export class ConnectEnrollmentPeriodDto {
   @ApiProperty({
     type: 'string',
@@ -42,11 +50,11 @@ export class ConnectEnrollmentPeriodDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: EnrollmentPeriodStartYearEndYearTermUniqueInputDto,
+    type: EnrollmentPeriodStartYearEndYearTermDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => EnrollmentPeriodStartYearEndYearTermUniqueInputDto)
-  startYear_endYear_term?: EnrollmentPeriodStartYearEndYearTermUniqueInputDto;
+  @Type(() => EnrollmentPeriodStartYearEndYearTermDeletedAtUniqueInputDto)
+  startYear_endYear_term_deletedAt?: EnrollmentPeriodStartYearEndYearTermDeletedAtUniqueInputDto;
 }

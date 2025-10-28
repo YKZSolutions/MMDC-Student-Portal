@@ -1,6 +1,7 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
+  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -10,7 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import { Days } from '@prisma/client';
 
-export class CourseSectionCourseOfferingIdNameUniqueInputDto {
+export class CourseSectionCourseOfferingIdNameDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -23,8 +24,15 @@ export class CourseSectionCourseOfferingIdNameUniqueInputDto {
   @IsNotEmpty()
   @IsString()
   name: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
-export class CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysUniqueInputDto {
+export class CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -58,11 +66,18 @@ export class CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysUniqueIn
   @IsArray()
   @IsEnum(Days, { each: true })
   days: Days[];
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
 @ApiExtraModels(
-  CourseSectionCourseOfferingIdNameUniqueInputDto,
-  CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysUniqueInputDto,
+  CourseSectionCourseOfferingIdNameDeletedAtUniqueInputDto,
+  CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysDeletedAtUniqueInputDto,
 )
 export class ConnectCourseSectionDto {
   @ApiProperty({
@@ -73,22 +88,22 @@ export class ConnectCourseSectionDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: CourseSectionCourseOfferingIdNameUniqueInputDto,
+    type: CourseSectionCourseOfferingIdNameDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => CourseSectionCourseOfferingIdNameUniqueInputDto)
-  courseOfferingId_name?: CourseSectionCourseOfferingIdNameUniqueInputDto;
+  @Type(() => CourseSectionCourseOfferingIdNameDeletedAtUniqueInputDto)
+  courseOfferingId_name_deletedAt?: CourseSectionCourseOfferingIdNameDeletedAtUniqueInputDto;
   @ApiProperty({
-    type: CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysUniqueInputDto,
+    type: CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
   @Type(
     () =>
-      CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysUniqueInputDto,
+      CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysDeletedAtUniqueInputDto,
   )
-  courseOfferingId_mentorId_startSched_endSched_days?: CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysUniqueInputDto;
+  courseOfferingId_mentorId_startSched_endSched_days_deletedAt?: CourseSectionCourseOfferingIdMentorIdStartSchedEndSchedDaysDeletedAtUniqueInputDto;
 }

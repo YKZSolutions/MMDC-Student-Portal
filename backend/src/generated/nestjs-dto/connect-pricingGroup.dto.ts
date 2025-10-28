@@ -1,6 +1,30 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
+export class PricingGroupNameDeletedAtUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
+}
+
+@ApiExtraModels(PricingGroupNameDeletedAtUniqueInputDto)
 export class ConnectPricingGroupDto {
   @ApiProperty({
     type: 'string',
@@ -10,10 +34,11 @@ export class ConnectPricingGroupDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: 'string',
+    type: PricingGroupNameDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  name?: string;
+  @ValidateNested()
+  @Type(() => PricingGroupNameDeletedAtUniqueInputDto)
+  name_deletedAt?: PricingGroupNameDeletedAtUniqueInputDto;
 }

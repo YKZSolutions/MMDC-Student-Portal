@@ -581,29 +581,6 @@ export const zPaginatedModulesDto = z.object({
     modules: z.array(zDetailedModulesDto)
 });
 
-export const zUpdateModuleDto = z.object({
-    title: z.optional(z.string())
-});
-
-export const zModuleDto = z.object({
-    id: z.string(),
-    title: z.string(),
-    publishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    unpublishedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ]),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    deletedAt: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
 export const zModuleSection = z.object({
     id: z.string(),
     moduleId: z.string(),
@@ -616,10 +593,7 @@ export const zModuleSection = z.object({
         z.null()
     ]),
     title: z.string(),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
+    order: z.int(),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -765,6 +739,71 @@ export const zModuleContent = z.object({
     studentProgress: z.optional(z.array(zContentProgress))
 });
 
+export const zModuleProgressOverview = z.object({
+    moduleId: z.string(),
+    moduleTitle: z.string(),
+    completedContentItems: z.number(),
+    totalContentItems: z.number(),
+    notStartedContentItems: z.number(),
+    overdueAssignmentsCount: z.number(),
+    progressPercentage: z.number(),
+    status: z.object({}),
+    lastAccessedAt: z.optional(z.union([
+        z.iso.datetime(),
+        z.null()
+    ])),
+    completedStudentsCount: z.number(),
+    totalStudentsCount: z.number(),
+    moduleCompletionPercentage: z.number()
+});
+
+export const zStudentProgressStats = z.object({
+    studentId: z.string(),
+    studentName: z.string(),
+    completedModules: z.number(),
+    totalModules: z.number(),
+    averageProgress: z.number(),
+    lastActivity: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
+export const zDashboardProgress = z.object({
+    studentProgress: z.array(zModuleProgressOverview),
+    overallStats: z.optional(z.object({
+        totalStudents: z.number(),
+        averageProgress: z.number(),
+        completedModules: z.number(),
+        inProgressModules: z.number(),
+        notStartedModules: z.number()
+    })),
+    studentStats: z.optional(z.array(zStudentProgressStats))
+});
+
+export const zUpdateModuleDto = z.object({
+    title: z.optional(z.string())
+});
+
+export const zModuleDto = z.object({
+    id: z.string(),
+    title: z.string(),
+    publishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    unpublishedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    deletedAt: z.union([
+        z.iso.datetime(),
+        z.null()
+    ])
+});
+
 export const zModuleTreeLessonItemDto = z.object({
     id: z.string(),
     moduleSectionId: z.string(),
@@ -857,10 +896,7 @@ export const zModuleTreeSectionDto = z.object({
         z.null()
     ]),
     title: z.string(),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
+    order: z.int(),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -901,24 +937,6 @@ export const zModuleTreeDto = z.object({
         z.null()
     ]),
     moduleSections: z.optional(z.array(zModuleTreeSectionDto))
-});
-
-export const zModuleProgressOverview = z.object({
-    moduleId: z.string(),
-    moduleTitle: z.string(),
-    completedContentItems: z.number(),
-    totalContentItems: z.number(),
-    notStartedContentItems: z.number(),
-    overdueAssignmentsCount: z.number(),
-    progressPercentage: z.number(),
-    status: z.object({}),
-    lastAccessedAt: z.optional(z.union([
-        z.iso.datetime(),
-        z.null()
-    ])),
-    completedStudentsCount: z.number(),
-    totalStudentsCount: z.number(),
-    moduleCompletionPercentage: z.number()
 });
 
 export const zContentItemProgress = z.object({
@@ -963,30 +981,6 @@ export const zModuleProgressDetail = z.object({
         totalStudentsCount: z.number(),
         moduleCompletionPercentage: z.number()
     })
-});
-
-export const zStudentProgressStats = z.object({
-    studentId: z.string(),
-    studentName: z.string(),
-    completedModules: z.number(),
-    totalModules: z.number(),
-    averageProgress: z.number(),
-    lastActivity: z.union([
-        z.iso.datetime(),
-        z.null()
-    ])
-});
-
-export const zDashboardProgress = z.object({
-    studentProgress: z.array(zModuleProgressOverview),
-    overallStats: z.optional(z.object({
-        totalStudents: z.number(),
-        averageProgress: z.number(),
-        completedModules: z.number(),
-        inProgressModules: z.number(),
-        notStartedModules: z.number()
-    })),
-    studentStats: z.optional(z.array(zStudentProgressStats))
 });
 
 export const zCreateDetailedGroupDto = z.object({
@@ -1316,7 +1310,10 @@ export const zUpdateBillPaymentDto = z.object({
 export const zCreateProgramDto = z.object({
     programCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     yearDuration: z.int()
 });
 
@@ -1324,7 +1321,10 @@ export const zProgramDto = z.object({
     id: z.string(),
     programCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     yearDuration: z.int(),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
@@ -1344,7 +1344,10 @@ export const zMajorItemDto = z.object({
     id: z.string(),
     majorCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -1364,7 +1367,10 @@ export const zProgram = z.object({
     id: z.string(),
     programCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     yearDuration: z.int(),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
@@ -1378,7 +1384,10 @@ export const zProgram = z.object({
 export const zUpdateProgramDto = z.object({
     programCode: z.optional(z.string()),
     name: z.optional(z.string()),
-    description: z.optional(z.string()),
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     yearDuration: z.optional(z.int())
 });
 
@@ -1807,7 +1816,10 @@ export const zFinalizeEnrollmentDto = z.object({
 export const zCreateMajorDto = z.object({
     majorCode: z.string(),
     name: z.string(),
-    description: z.string()
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zCreateProgramMajorDto = z.object({
@@ -1819,7 +1831,10 @@ export const zMajorDto = z.object({
     id: z.string(),
     majorCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -1832,7 +1847,10 @@ export const zMajorDto = z.object({
 export const zUpdateMajorDto = z.object({
     majorCode: z.optional(z.string()),
     name: z.optional(z.string()),
-    description: z.optional(z.string())
+    description: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
 });
 
 export const zMajor = z.object({
@@ -1840,7 +1858,10 @@ export const zMajor = z.object({
     programId: z.string(),
     majorCode: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -2245,10 +2266,6 @@ export const zUpdateAssignmentConfigDto = z.object({
 
 export const zCreateModuleSectionDto = z.object({
     title: z.string(),
-    order: z.optional(z.union([
-        z.int().default(0),
-        z.null()
-    ])).default(0),
     parentSectionId: z.optional(z.union([
         z.string(),
         z.null()
@@ -2262,10 +2279,7 @@ export const zCreateModuleSectionDto = z.object({
 export const zDetailedModuleSectionDto = z.object({
     id: z.string(),
     title: z.string(),
-    order: z.union([
-        z.int(),
-        z.null()
-    ]),
+    order: z.int(),
     publishedAt: z.union([
         z.iso.datetime(),
         z.null()
@@ -2385,16 +2399,7 @@ export const zLessonItemDto = z.object({
     studentProgress: z.optional(z.array(zContentProgress))
 });
 
-export const zConnectModuleSectionDto = z.object({
-    id: z.string()
-});
-
-export const zCreateModuleContentModuleSectionRelationInputDto = z.object({
-    connect: zConnectModuleSectionDto
-});
-
 export const zCreateModuleContentDto = z.object({
-    moduleSection: zCreateModuleContentModuleSectionRelationInputDto,
     contentType: z.optional(zContentType),
     title: z.string(),
     subtitle: z.optional(z.union([
@@ -2412,12 +2417,7 @@ export const zCreateModuleContentDto = z.object({
     ]))
 });
 
-export const zUpdateModuleContentModuleSectionRelationInputDto = z.object({
-    connect: zConnectModuleSectionDto
-});
-
 export const zUpdateModuleContentDto = z.object({
-    moduleSection: z.optional(zUpdateModuleContentModuleSectionRelationInputDto),
     title: z.optional(z.string()),
     subtitle: z.optional(z.union([
         z.string(),
@@ -3213,6 +3213,31 @@ export const zLmsControllerFindAllForAdminData = z.object({
 
 export const zLmsControllerFindAllForAdminResponse = zPaginatedModulesDto;
 
+export const zLmsControllerFindTodosData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        dueDateFrom: z.optional(z.iso.datetime()),
+        dueDateTo: z.optional(z.iso.datetime())
+    }))
+});
+
+export const zLmsControllerFindTodosResponse = zModuleContent;
+
+export const zLmsControllerGetDashboardProgressData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        studentId: z.optional(z.uuid()),
+        courseOfferingId: z.optional(z.uuid())
+    }))
+});
+
+export const zLmsControllerGetDashboardProgressResponse = zDashboardProgress;
+
 export const zLmsControllerRemoveData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3266,20 +3291,6 @@ export const zLmsControllerUnpublishData = z.object({
     query: z.optional(z.never())
 });
 
-export const zLmsControllerFindTodosData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
-        search: z.optional(z.string()),
-        page: z.optional(z.number().gte(1)).default(1),
-        limit: z.optional(z.number().gte(1)).default(10),
-        dueDateFrom: z.optional(z.iso.datetime()),
-        dueDateTo: z.optional(z.iso.datetime())
-    }))
-});
-
-export const zLmsControllerFindTodosResponse = zModuleContent;
-
 export const zLmsControllerFindModuleTreeData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3298,7 +3309,10 @@ export const zLmsControllerGetModuleProgressOverviewData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        studentId: z.optional(z.uuid()),
+        courseOfferingId: z.optional(z.uuid())
+    }))
 });
 
 export const zLmsControllerGetModuleProgressOverviewResponse = zModuleProgressOverview;
@@ -3308,18 +3322,13 @@ export const zLmsControllerGetModuleProgressDetailData = z.object({
     path: z.object({
         id: z.string()
     }),
-    query: z.optional(z.never())
+    query: z.optional(z.object({
+        studentId: z.optional(z.uuid()),
+        courseOfferingId: z.optional(z.uuid())
+    }))
 });
 
 export const zLmsControllerGetModuleProgressDetailResponse = zModuleProgressDetail;
-
-export const zLmsControllerGetDashboardProgressData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export const zLmsControllerGetDashboardProgressResponse = zDashboardProgress;
 
 export const zGroupControllerFindAllData = z.object({
     body: z.optional(z.never()),
@@ -3856,6 +3865,30 @@ export const zEnrollmentControllerUpdateEnrollmentStatusData = z.object({
 
 export const zEnrollmentControllerUpdateEnrollmentStatusResponse = zEnrollmentPeriodDto;
 
+export const zEnrollmentControllerExportActiveEnrollmentDataData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Excel file containing enrollment data
+ */
+export const zEnrollmentControllerExportActiveEnrollmentDataResponse = z.string();
+
+export const zEnrollmentControllerExportEnrollmentDataData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        enrollmentPeriodId: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Excel file containing enrollment data
+ */
+export const zEnrollmentControllerExportEnrollmentDataResponse = z.string();
+
 export const zCourseOfferingControllerFindCourseOfferingsByPeriodData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -4326,7 +4359,8 @@ export const zLmsContentControllerFindAllResponse = zPaginatedModuleContentDto;
 export const zLmsContentControllerCreateData = z.object({
     body: zCreateModuleContentDto,
     path: z.object({
-        moduleId: z.string()
+        moduleId: z.string(),
+        moduleSectionId: z.string()
     }),
     query: z.optional(z.never())
 });
