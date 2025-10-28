@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ContentListUnion, FunctionCall, GoogleGenAI } from '@google/genai';
 import { getToolsForRole } from '@/lib/gemini/function-declarations';
 import {
   UserBaseContext,
@@ -11,16 +10,45 @@ import { ConfigService } from '@nestjs/config';
 import { EnvVars } from '@/config/env.schema';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
+import {
+  ContentEmbedding,
+  ContentListUnion,
+  FunctionCall,
+  GoogleGenAI,
+} from '@google/genai';
 
 @Injectable()
 export class GeminiService {
   private readonly gemini: GoogleGenAI;
-  private readonly model: string = 'gemini-2.5-flash';
+  private readonly model: string = 'gemini-2.5-flash-lite';
+  private readonly embeddingModel: string = 'text-embedding-004';
 
   constructor(private readonly configService: ConfigService<EnvVars>) {
     this.gemini = new GoogleGenAI({
       apiKey: this.configService.get('GEMINI_API_KEY'),
     });
+  }
+
+  /**
+   * Generate embeddings for text using Gemini's embedding model
+   */
+  @Log({
+    logArgsMessage: ({ text }) =>
+      `Generate embedding for text length=${text.length}`,
+    logSuccessMessage: () => `Successfully generated embedding`,
+    logErrorMessage: (err) =>
+      `Failed to generate embedding | Error=${err.message}`,
+  })
+  async generateEmbedding(
+    @LogParam('text') text: string[],
+  ): Promise<ContentEmbedding[]> {
+    const result = await this.gemini.models.embedContent({
+      model: this.embeddingModel,
+      contents: text,
+    });
+
+    if (result.embeddings) return result.embeddings;
+    throw new Error('No embeddings found in the response');
   }
 
   /**
@@ -103,8 +131,14 @@ export class GeminiService {
   })
   async generateFinalAnswer(
     @LogParam('question') question: string,
-    @LogParam('context') context: { narrative?: string; results?: string[] },
+    @LogParam('narrative') narrative: string,
+    @LogParam('functionCallResults')
+    functionCallResults: Array<{ functionName?: string; result?: string }>,
   ) {
+    const resultsContext = functionCallResults
+      .map((r) => `Function ${r.functionName} returned: ${r.result}`)
+      .join('\n\n');
+
     const conversation: ContentListUnion = [
       {
         role: 'user',
@@ -113,11 +147,11 @@ export class GeminiService {
             text:
               `The user asked: "${question}"\n\n` +
               `Here is the information gathered from tools:\n\n` +
-              (context.narrative
-                ? `Preliminary narrative from Gemini:\n${context.narrative}\n\n`
+              (narrative
+                ? `Preliminary narrative from Gemini:\n${narrative}\n\n`
                 : ``) +
-              (context.results?.length
-                ? `Tool call results:\n- ${context.results.join('\n- ')}\n\n`
+              (functionCallResults?.length
+                ? `Tool call results:\n- ${resultsContext}\n\n`
                 : ``) +
               `Please write a clear, helpful final answer for the user. Do not repeat the raw JSON or system-like text — instead, summarize naturally.`,
           },

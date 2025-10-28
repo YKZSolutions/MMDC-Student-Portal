@@ -41,9 +41,12 @@ export const vectorSearchFn: FunctionDeclaration = {
     type: Type.OBJECT,
     properties: {
       query: {
-        type: Type.STRING,
+        type: Type.ARRAY,
+        items: {
+          type: Type.STRING,
+        },
         description:
-          'Search query string. Use "Searching for" as a prefix to search for specific documents." ',
+          'Search query strings. Use "Searching for: " as a prefix to search for specific documents." ',
       },
       limit: {
         type: Type.INTEGER,
@@ -60,7 +63,7 @@ export const vectorSearchFn: FunctionDeclaration = {
 export const usersCountFn: FunctionDeclaration = {
   name: 'users_count_all',
   description:
-    'Count all users based on filters which include role and search term.',
+    'Count all users registered in the system based on filters which include role and search term.',
   parameters: {
     type: Type.OBJECT,
     properties: {
@@ -76,12 +79,6 @@ export const usersCountFn: FunctionDeclaration = {
       },
     },
   },
-};
-
-export const usersFindSelf: FunctionDeclaration = {
-  name: 'users_find_self',
-  description:
-    'Find the registered details of the current authenticated user. Includes extra details such as student details or staff details',
 };
 
 // -------------------------
@@ -407,11 +404,6 @@ export const billingInvoiceDetailsFn: FunctionDeclaration = {
 // -------------------------
 // Aggregations and exports
 // -------------------------
-export const userFunctions: FunctionDeclaration[] = [
-  usersCountFn,
-  usersFindSelf,
-];
-
 export const courseFunctions: FunctionDeclaration[] = [
   coursesFindAllFn,
   coursesFindOneFn,
@@ -450,13 +442,13 @@ export const tools: Tool[] = [
   {
     functionDeclarations: [
       vectorSearchFn,
-      ...userFunctions,
       ...courseFunctions,
       ...enrollmentFunctions,
       ...lmsFunctions,
       ...appointmentsFunctions,
       ...notificationsFunctions,
       ...billingFunctions,
+      usersCountFn,
     ],
   },
 ];
@@ -473,7 +465,6 @@ export function getToolsForRole(role: string) {
             ...lmsFunctions,
             ...appointmentsFunctions,
             ...notificationsFunctions,
-            usersFindSelf,
             vectorSearchFn,
           ],
         },
@@ -488,7 +479,6 @@ export function getToolsForRole(role: string) {
             ...appointmentsFunctions,
             ...notificationsFunctions,
             ...billingFunctions,
-            usersFindSelf,
             vectorSearchFn,
           ],
         },
