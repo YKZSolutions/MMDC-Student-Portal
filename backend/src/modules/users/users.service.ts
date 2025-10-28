@@ -408,12 +408,41 @@ export class UsersService {
    *
    * @param filters - Filter conditions including role and search terms.
    * @param where - Prisma `UserWhereInput` object that will be mutated.
+   * @param userId
+   * @param role
    */
 
-  filterHandler(filters: FilterUserDto, where: Prisma.UserWhereInput) {
+  filterHandler(
+    filters: FilterUserDto,
+    where: Prisma.UserWhereInput,
+    userId?: string,
+    role?: Role,
+  ) {
     if (filters.role) where.role = filters.role;
 
     where.deletedAt = null;
+
+    //If student, only allow finding their mentor's details
+    if (role && role === Role.student) {
+      if (!userId) throw new BadRequestException('User ID is required');
+
+      where.role = Role.mentor;
+      where.AND = {
+        mentorSections: {
+          some: {
+            courseOffering: {
+              courseEnrollments: {
+                some: {
+                  student: {
+                    id: userId,
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+    }
 
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
@@ -449,6 +478,8 @@ export class UsersService {
    * Finds all users that match provided filters (e.g., role, search keyword) with pagination.
    *
    * @param filters - Filter and pagination options.
+   * @param role
+   * @param userId
    * @returns Paginated list of users with metadata.
    * @throws BadRequestException or InternalServerErrorException based on the failure type.
    */
@@ -466,11 +497,13 @@ export class UsersService {
   })
   async findAll(
     @LogParam('filters') filters: FilterUserDto,
+    @LogParam('role') role?: Role,
+    @LogParam('userId') userId?: string,
   ): Promise<PaginatedUsersDto> {
     const page: FilterUserDto['page'] = Number(filters?.page) || 1;
     const where: Prisma.UserWhereInput = {};
 
-    this.filterHandler(filters, where);
+    this.filterHandler(filters, where, userId, role);
 
     const [users, meta] = await this.prisma.client.user
       .paginate({

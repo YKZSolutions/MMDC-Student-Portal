@@ -252,14 +252,18 @@ export class UsersController {
    */
 
   @Get()
-  @Roles(Role.ADMIN, Role.MENTOR)
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
   })
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  async findAll(@Query() filters: FilterUserDto): Promise<PaginatedUsersDto> {
-    return this.usersService.findAll(filters);
+  async findAll(
+    @Query() filters: FilterUserDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<PaginatedUsersDto> {
+    const { role, user_id } = user.user_metadata;
+    return this.usersService.findAll(filters, role, user_id);
   }
 
   /**
