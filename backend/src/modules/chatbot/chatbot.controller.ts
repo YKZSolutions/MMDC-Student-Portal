@@ -37,8 +37,7 @@ export class ChatbotController {
     @CurrentUser() user: CurrentAuthUser,
     @Body() prompt: PromptDto,
   ): Promise<ChatbotResponseDto> {
-    const { role } = user.user_metadata;
-    const authId = user.id;
-    return this.chatbotService.handleQuestion(authId, role, prompt);
+    const { role, user_id } = user.user_metadata;
+    return this.chatbotService.handleQuestion(user_id, role, prompt);
   }
 }

@@ -12,6 +12,8 @@ import { HttpModule } from '@nestjs/axios';
 import { AppointmentsModule } from '@/modules/appointments/appointments.module';
 import { NotificationsModule } from '@/modules/notifications/notifications.module';
 import { LmsModule } from '@/modules/lms/lms-module/lms.module';
+import { VectorSearchService } from '@/modules/chatbot/vector-search.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -23,8 +25,19 @@ import { LmsModule } from '@/modules/lms/lms-module/lms.module';
     LmsModule,
     NotificationsModule,
     HttpModule,
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 3600, // 1 hour default
+      max: 100, // maximum number of items in cache
+    }),
   ],
   controllers: [ChatbotController],
-  providers: [ChatbotService, GeminiService, SupabaseService, N8nService],
+  providers: [
+    ChatbotService,
+    GeminiService,
+    SupabaseService,
+    N8nService,
+    VectorSearchService,
+  ],
 })
 export class ChatbotModule {}
