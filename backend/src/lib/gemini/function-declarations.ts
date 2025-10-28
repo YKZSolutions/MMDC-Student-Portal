@@ -46,7 +46,7 @@ export const vectorSearchFn: FunctionDeclaration = {
           type: Type.STRING,
         },
         description:
-          'Search query strings. Use "Searching for: " as a prefix to search for specific documents." ',
+          'Search query strings. Be descriptive and specific, expound more on what the user might be looking for.',
       },
       limit: {
         type: Type.INTEGER,
@@ -239,7 +239,7 @@ export const lmsMyModulesFn: FunctionDeclaration = {
 export const appointmentsMyAppointmentsFn: FunctionDeclaration = {
   name: 'appointments_my_appointments',
   description:
-    'Get all appointments or mentoring sessions for the current user (student or mentor) with optional filtering by status, course, or date range.',
+    'Get all appointments or mentoring sessions for the current user (student or mentor) with optional filtering by status, course, date range, or search filters.',
   parameters: {
     type: Type.OBJECT,
     properties: {
@@ -248,23 +248,15 @@ export const appointmentsMyAppointmentsFn: FunctionDeclaration = {
         enum: AppointmentStatusEnum,
         description: 'Filter appointments by status.',
       },
-      courseId: {
+      relativeDate: {
         type: Type.STRING,
-        description: 'Filter appointments by course ID.',
-      },
-      startDate: {
-        type: Type.STRING,
-        description:
-          'Filter appointments starting from this date (ISO string).',
-      },
-      endDate: {
-        type: Type.STRING,
-        description: 'Filter appointments ending by this date (ISO string).',
+        enum: RelativeDateRangeEnum,
+        description: 'Filter appointments by relative date.',
       },
       search: {
         type: Type.STRING,
         description:
-          'Search term for filtering appointments by title or description.',
+          'Search term for filtering appointments by mentor, course, title, or description.',
       },
       page: {
         type: Type.INTEGER,
@@ -287,13 +279,47 @@ export const appointmentsMentorBookedFn: FunctionDeclaration = {
   parameters: {
     type: Type.OBJECT,
     properties: {
-      startDate: {
+      relativeDate: {
         type: Type.STRING,
-        description: 'Start date for filtering appointments (ISO string).',
+        enum: RelativeDateRangeEnum,
+        description: 'Filter appointments by relative date.',
       },
-      endDate: {
+    },
+  },
+};
+
+export const appointmentsMentorAvailabilityFn: FunctionDeclaration = {
+  name: 'appointments_mentor_available',
+  description:
+    'Get all available schedule a mentor is available for appointments within a date range. The mentor can be booked on the times from this list.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      relativeDate: {
         type: Type.STRING,
-        description: 'End date for filtering appointments (ISO string).',
+        enum: RelativeDateRangeEnum,
+        default: 'this_week',
+        description:
+          'Filter mentor availability by relative date. Default is this week.',
+      },
+      mentorId: {
+        type: Type.STRING,
+        description: 'Filter mentor availability by mentor ID.',
+      },
+      search: {
+        type: Type.STRING,
+        description:
+          'Search term for filtering availability by mentor and course.',
+      },
+      page: {
+        type: Type.INTEGER,
+        default: 1,
+        description: 'Page number for pagination (default 1).',
+      },
+      limit: {
+        type: Type.INTEGER,
+        default: 10,
+        description: 'Number of mentor availability per page (default 10).',
       },
     },
   },
@@ -426,6 +452,7 @@ export const lmsFunctions: FunctionDeclaration[] = [
 export const appointmentsFunctions: FunctionDeclaration[] = [
   appointmentsMyAppointmentsFn,
   appointmentsMentorBookedFn,
+  appointmentsMentorAvailabilityFn,
 ];
 
 export const notificationsFunctions: FunctionDeclaration[] = [

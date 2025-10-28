@@ -10,6 +10,7 @@ import { GeminiService } from '@/lib/gemini/gemini.service';
 import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 import {
   Injectable,
+  Logger,
   NotImplementedException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -42,6 +43,9 @@ import {
 import { VectorSearchService } from '@/modules/chatbot/vector-search.service';
 import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 import { FunctionCall } from '@google/genai';
+import { F } from '@faker-js/faker/dist/airline-CHFQMWko';
+import { FilterMentorAvailabilityDto } from '@/modules/appointments/dto/filter-mentor-availability.dto';
+import { MentorAvailabilityDto } from '@/modules/appointments/dto/mentor-availability.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -301,19 +305,21 @@ export class ChatbotService {
       case 'appointments_my_appointments': {
         const args = functionCall.args as {
           status?: string;
+          search?: string;
           page?: number;
           limit?: number;
         };
 
         const filterDto = {
           ...(args.status && { status: [args.status] }),
+          ...(args.search && { search: args.search }),
           ...(args.page && { page: args.page }),
           ...(args.limit && { limit: args.limit }),
         } as FilterAppointmentDto;
 
         const appointments = await this.appointmentsService.findAll(
           filterDto,
-          role,
+          userContext.role,
           userContext.id,
         );
         return `My appointments: ${JSON.stringify(appointments)}`;
@@ -325,12 +331,19 @@ export class ChatbotService {
         }
 
         const args = functionCall.args as {
-          startDate?: string;
-          endDate?: string;
+          relativeDate: string;
         };
 
-        const startDate = args.startDate ? new Date(args.startDate) : undefined;
-        const endDate = args.endDate ? new Date(args.endDate) : undefined;
+        let startDate: Date = new Date();
+        let endDate: Date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        const parsed = parseRelativeDateRange(
+          args.relativeDate as RelativeDateRange,
+        );
+        if (parsed) {
+          startDate = new Date(parsed.from);
+          endDate = new Date(parsed.to);
+        }
 
         const bookedAppointments = await this.appointmentsService.findAllBooked(
           userContext.id,
@@ -338,6 +351,54 @@ export class ChatbotService {
           endDate,
         );
         return `Booked appointments for mentor: ${JSON.stringify(bookedAppointments)}`;
+      }
+
+      case 'appointments_mentor_available': {
+        if (userContext.role !== 'student') {
+          return 'This function is only available to students.';
+        }
+        const logger = new Logger('appointments_mentor_available');
+
+        const args = functionCall.args as {
+          relativeDate?: string;
+          mentorId?: string;
+          search?: string;
+          page?: number;
+          limit?: number;
+        };
+
+        logger.log('args: ', JSON.stringify(args));
+
+        const filterDto = {
+          ...(args.mentorId && { mentorId: args.mentorId }),
+          ...(args.search && { search: args.search }),
+          ...(args.page && { page: args.page }),
+          ...(args.limit && { limit: args.limit }),
+          startDate: new Date(),
+          endDate: new Date(),
+        } as FilterMentorAvailabilityDto;
+
+        logger.log('filterDto: ', JSON.stringify(filterDto));
+
+        const parsed = parseRelativeDateRange(
+          (args.relativeDate as RelativeDateRange) ?? 'this_week',
+        );
+        if (parsed) {
+          filterDto.startDate = new Date(parsed.from);
+          filterDto.endDate = new Date(parsed.to);
+        }
+
+        logger.log('filterDto: ', JSON.stringify(filterDto));
+
+        const availableAppointments: MentorAvailabilityDto =
+          await this.appointmentsService.findMentorAvailability(
+            filterDto,
+            userContext.id,
+            userContext.role,
+          );
+
+        logger.log('availableAppointments: ', availableAppointments);
+        return `Mentor's available appointments: ${JSON.stringify(availableAppointments)}`;
       }
 
       case 'notifications_my_notifications': {

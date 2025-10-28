@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,7 +11,12 @@ import { UpdateAppointmentItemDto } from './dto/update-appointment.dto';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { LogParam } from '@/common/decorators/log-param.decorator';
-import { AppointmentStatus, Prisma, Role } from '@prisma/client';
+import {
+  AppointmentStatus,
+  CourseEnrollmentStatus,
+  Prisma,
+  Role,
+} from '@prisma/client';
 import {
   AppointmentDetailsDto,
   AppointmentItemDto,
@@ -26,6 +32,11 @@ import {
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { BookedAppointment } from './dto/booked-appointment-list';
+import { FilterMentorAvailabilityDto } from '@/modules/appointments/dto/filter-mentor-availability.dto';
+import {
+  MentorAvailabilityDto,
+  TimeSlotDto,
+} from '@/modules/appointments/dto/mentor-availability.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -121,11 +132,19 @@ export class AppointmentsService {
     }
   }
 
+  @Log({
+    logArgsMessage: ({ courseOfferingId, mentorId, from, to }) =>
+      `Finding booked appointments for mentor ${mentorId} in course ${courseOfferingId} from ${from} to ${to}`,
+    logSuccessMessage: (result) =>
+      `Found ${result.length} booked appointments in the specified range`,
+    logErrorMessage: (error, { courseOfferingId, mentorId }) =>
+      `Failed to find booked appointments for mentor ${mentorId} in course ${courseOfferingId}: ${error.message}`,
+  })
   async findBookedRange(
-    courseOfferingId: string,
-    mentorId: string,
-    from: Date,
-    to: Date,
+    @LogParam('courseOfferingId') courseOfferingId: string,
+    @LogParam('mentorId') mentorId: string,
+    @LogParam('from') from: Date,
+    @LogParam('to') to: Date,
   ): Promise<BookedAppointment[]> {
     const appointments = await this.prisma.client.appointment.findMany({
       where: {
@@ -176,9 +195,39 @@ export class AppointmentsService {
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim();
 
-      where.title = {
-        contains: searchTerms,
-        mode: Prisma.QueryMode.insensitive,
+      where.AND = {
+        OR: [
+          {
+            title: {
+              contains: searchTerms,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            description: {
+              contains: searchTerms,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            courseOffering: {
+              course: {
+                name: {
+                  contains: searchTerms,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+          {
+            mentor: {
+              firstName: {
+                contains: searchTerms,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+        ],
       };
     }
 
@@ -377,6 +426,676 @@ export class AppointmentsService {
       },
       section: schedule.courseSection,
     };
+  }
+
+  @Log({
+    logArgsMessage: ({ filters, userId, role }) =>
+      `Finding mentor availability for user ${userId} (${role}) with filters: ${JSON.stringify(filters)}`,
+    logSuccessMessage: (result) =>
+      `Found ${result.freeSlots?.length || 0} available slots for mentor`,
+    logErrorMessage: (err, { filters, userId }) =>
+      `Failed to find mentor availability for user ${userId}. Error: ${err.message}`,
+  })
+  async findMentorAvailability(
+    @LogParam('filters') filters: FilterMentorAvailabilityDto,
+    @LogParam('userId') userId: string, // Student ID
+    @LogParam('role') role: Role, // Add role parameter for authorization
+  ): Promise<MentorAvailabilityDto> {
+    const { mentorId, startDate, endDate, duration = 60, search } = filters;
+
+    // Validate required parameters
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+
+    // Validate date range (max 30 days to prevent performance issues)
+    const maxDateRange = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+    if (
+      new Date(endDate).getTime() - new Date(startDate).getTime() >
+      maxDateRange
+    ) {
+      throw new BadRequestException('Date range cannot exceed 30 days');
+    }
+
+    // Validate duration
+    if (duration < 15 || duration > 480) {
+      throw new BadRequestException(
+        'Duration must be between 15 and 480 minutes',
+      );
+    }
+
+    // If mentorId is not provided but search is, find mentors based on search criteria
+    let resolvedMentorId: string | undefined = mentorId;
+    let mentors: Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+    }> = [];
+
+    if (!mentorId && search) {
+      mentors = await this.findMentorsBySearch(search, userId, role);
+      if (mentors.length === 0) {
+        return {
+          mentors: [],
+          dateRange: { startDate, endDate },
+          freeSlots: [],
+          meta: {
+            totalFreeSlots: 0,
+            slotDuration: duration,
+            generatedAt: new Date().toISOString(),
+          },
+        };
+      }
+      // For now, use the first mentor found
+      resolvedMentorId = mentors[0].id;
+    } else if (!mentorId) {
+      throw new BadRequestException(
+        'Either mentorId or search parameter is required',
+      );
+    }
+
+    // For students, validate they are enrolled in the mentor's course/section
+    if (role === Role.student && resolvedMentorId) {
+      await this.validateStudentEnrollment(userId, resolvedMentorId);
+    }
+
+    // If we have a resolved mentor ID, get their availability
+    let freeSlots: TimeSlotDto[] = [];
+    if (resolvedMentorId) {
+      try {
+        const bookedAppointments = await this.getBookedAppointments(
+          resolvedMentorId,
+          startDate,
+          endDate,
+        );
+
+        const workingHours = await this.getMentorWorkingHours(resolvedMentorId);
+
+        // Generate free time slots
+        const generatedSlots = this.generateFreeTimeSlots(
+          startDate,
+          endDate,
+          bookedAppointments,
+          workingHours,
+          duration,
+        );
+
+        // Ensure we have a proper array
+        freeSlots = Array.isArray(generatedSlots) ? generatedSlots : [];
+      } catch (error) {
+        freeSlots = [];
+      }
+    }
+
+    // If we searched for mentors, return the list along with availability for the first one
+    if (mentors.length > 0 && resolvedMentorId) {
+      return {
+        mentors,
+        selectedMentor: {
+          id: resolvedMentorId,
+          name: `${mentors[0].firstName} ${mentors[0].lastName}`,
+        },
+        dateRange: { startDate, endDate },
+        freeSlots,
+        meta: {
+          totalFreeSlots: freeSlots.length,
+          slotDuration: duration,
+          generatedAt: new Date().toISOString(),
+          totalMentorsFound: mentors.length,
+        },
+      };
+    }
+
+    return {
+      mentorId: resolvedMentorId!,
+      dateRange: { startDate, endDate },
+      freeSlots,
+      meta: {
+        totalFreeSlots: freeSlots.length,
+        slotDuration: duration,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
+  // Updated method to find mentors by course name or mentor name with proper typing
+  @Log({
+    logArgsMessage: ({ search, studentId, role }) =>
+      `Searching for mentors with term "${search}" for student ${studentId} (${role})`,
+    logSuccessMessage: (result) =>
+      `Found ${result.length} mentors matching search criteria`,
+    logErrorMessage: (err, { search }) =>
+      `Failed to search for mentors with term "${search}". Error: ${err.message}`,
+  })
+  private async findMentorsBySearch(
+    @LogParam('search') search: string,
+    @LogParam('studentId') studentId: string,
+    @LogParam('role') role: Role,
+  ): Promise<
+    Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      middleName?: string;
+    }>
+  > {
+    const searchTerm = search.trim().toLowerCase();
+
+    // Base query for mentors
+    const mentorsQuery = {
+      where: {
+        deletedAt: null,
+        role: Role.mentor,
+        OR: [
+          {
+            firstName: {
+              contains: searchTerm,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            lastName: {
+              contains: searchTerm,
+              mode: 'insensitive' as const,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+      },
+    };
+
+    // If a user is a student, filter mentors from courses they're enrolled in
+    if (role === Role.student) {
+      // Get course sections where the student is enrolled
+      const studentEnrollments =
+        await this.prisma.client.courseEnrollment.findMany({
+          where: {
+            studentId,
+            deletedAt: null,
+            status: {
+              in: [
+                'enlisted',
+                'finalized',
+                'enrolled',
+              ] as CourseEnrollmentStatus[],
+            },
+          },
+          include: {
+            courseSection: {
+              include: {
+                mentor: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+                courseOffering: {
+                  include: {
+                    course: {
+                      select: {
+                        id: true,
+                        name: true,
+                        courseCode: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      // Filter enrollments by search term (mentor name OR course name)
+      const filteredEnrollments = studentEnrollments.filter((enrollment) => {
+        const mentor = enrollment.courseSection.mentor;
+        if (!mentor) return false;
+
+        const mentorFullName =
+          `${mentor.firstName} ${mentor.lastName}`.toLowerCase();
+        const courseName =
+          enrollment.courseSection.courseOffering.course.name.toLowerCase();
+        const courseCode =
+          enrollment.courseSection.courseOffering.course.courseCode.toLowerCase();
+
+        return (
+          mentorFullName.includes(searchTerm) ||
+          mentor.firstName.toLowerCase().includes(searchTerm) ||
+          mentor.lastName.toLowerCase().includes(searchTerm) ||
+          courseName.includes(searchTerm) ||
+          courseCode.includes(searchTerm)
+        );
+      });
+
+      // Extract unique mentors from filtered enrollments
+      const filteredMentors = filteredEnrollments
+        .map((enrollment) => enrollment.courseSection.mentor!)
+        .filter(
+          (mentor, index, array) =>
+            array.findIndex((m) => m.id === mentor.id) === index,
+        );
+
+      return filteredMentors;
+    }
+
+    // For admin/mentor roles, search by course name and mentor name
+    if (role === Role.admin || role === Role.mentor) {
+      // Search by course name
+      const mentorsByCourse = await this.prisma.client.courseSection.findMany({
+        where: {
+          deletedAt: null,
+          mentor: {
+            deletedAt: null,
+            role: Role.mentor,
+          },
+          OR: [
+            {
+              courseOffering: {
+                deletedAt: null,
+                course: {
+                  name: {
+                    contains: searchTerm,
+                    mode: 'insensitive' as const,
+                  },
+                },
+              },
+            },
+            {
+              courseOffering: {
+                deletedAt: null,
+                course: {
+                  courseCode: {
+                    contains: searchTerm,
+                    mode: 'insensitive' as const,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        select: {
+          mentor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+            },
+          },
+        },
+      });
+
+      // Filter out null mentors and deduplicate
+      const uniqueMentorsByCourse = mentorsByCourse
+        .map((section) => section.mentor)
+        .filter(
+          (mentor): mentor is NonNullable<typeof mentor> => mentor !== null,
+        )
+        .filter(
+          (mentor, index, array) =>
+            array.findIndex((m) => m.id === mentor.id) === index,
+        );
+
+      // Also get mentors by name
+      const mentorsByName =
+        await this.prisma.client.user.findMany(mentorsQuery);
+
+      // Combine and deduplicate
+      const allMentors = [...uniqueMentorsByCourse, ...mentorsByName];
+      return allMentors.filter(
+        (mentor, index, array) =>
+          array.findIndex((m) => m.id === mentor.id) === index,
+      );
+    }
+
+    // For other cases, just search by name
+    return await this.prisma.client.user.findMany(mentorsQuery);
+  }
+
+  // Validate that a student is enrolled in a course/section taught by the mentor
+  @Log({
+    logArgsMessage: ({ studentId, mentorId }) =>
+      `Validating enrollment for student ${studentId} with mentor ${mentorId}`,
+    logSuccessMessage: () => 'Student enrollment validation successful',
+    logErrorMessage: (err, { studentId, mentorId }) =>
+      `Failed to validate enrollment for student ${studentId} with mentor ${mentorId}. Error: ${err.message}`,
+  })
+  private async validateStudentEnrollment(
+    @LogParam('studentId') studentId: string,
+    @LogParam('mentorId') mentorId: string,
+  ): Promise<void> {
+    const enrollment = await this.prisma.client.courseEnrollment.findFirst({
+      where: {
+        studentId,
+        deletedAt: null,
+        status: {
+          in: ['enlisted', 'finalized', 'enrolled'] as CourseEnrollmentStatus[],
+        },
+        courseSection: {
+          mentorId,
+          deletedAt: null,
+        },
+      },
+      include: {
+        courseSection: {
+          select: {
+            name: true,
+            courseOffering: {
+              select: {
+                course: {
+                  select: {
+                    name: true,
+                    courseCode: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!enrollment) {
+      throw new ForbiddenException(
+        'You are not enrolled in any course section taught by this mentor',
+      );
+    }
+  }
+
+  @Log({
+    logArgsMessage: ({ mentorId }) =>
+      `Getting working hours for mentor ${mentorId}`,
+    logSuccessMessage: (result) =>
+      `Found working hours for ${result.workingDays?.length || 0} days`,
+    logErrorMessage: (err, { mentorId }) =>
+      `Failed to get working hours for mentor ${mentorId}. Error: ${err.message}`,
+  })
+  private async getMentorWorkingHours(@LogParam('mentorId') mentorId: string) {
+    try {
+      const courseSections = await this.prisma.client.courseSection.findMany({
+        where: {
+          mentorId,
+          deletedAt: null,
+          courseOffering: {
+            deletedAt: null,
+          },
+        },
+        select: {
+          startSched: true,
+          endSched: true,
+          days: true,
+        },
+      });
+
+      if (courseSections.length === 0) {
+        throw new NotFoundException('No working hours found for this mentor');
+      }
+
+      // Group working hours by day - convert string days to numbers
+      const workingHoursByDay = new Map<
+        number,
+        { start: string; end: string }[]
+      >();
+
+      // Map day strings to numbers (Monday = 1, Sunday = 0)
+      const dayMap: Record<string, number> = {
+        monday: 1,
+        tuesday: 2,
+        wednesday: 3,
+        thursday: 4,
+        friday: 5,
+        saturday: 6,
+        sunday: 0,
+      };
+
+      courseSections.forEach((section, index) => {
+        section.days.forEach((day: string) => {
+          const dayNumber = dayMap[day.toLowerCase()];
+          if (dayNumber === undefined) {
+            return;
+          }
+
+          if (!workingHoursByDay.has(dayNumber)) {
+            workingHoursByDay.set(dayNumber, []);
+          }
+          // Use non-null assertion since we just set it if it didn't exist
+          workingHoursByDay.get(dayNumber)!.push({
+            start: section.startSched,
+            end: section.endSched,
+          });
+        });
+      });
+
+      return {
+        workingHoursByDay,
+        workingDays: Array.from(workingHoursByDay.keys()),
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Log({
+    logArgsMessage: ({ mentorId, startDate, endDate }) =>
+      `Getting booked appointments for mentor ${mentorId} from ${startDate} to ${endDate}`,
+    logSuccessMessage: (result) => `Found ${result.length} booked appointments`,
+    logErrorMessage: (err, { mentorId }) =>
+      `Failed to get booked appointments for mentor ${mentorId}. Error: ${err.message}`,
+  })
+  private async getBookedAppointments(
+    @LogParam('mentorId') mentorId: string,
+    @LogParam('startDate') startDate: Date,
+    @LogParam('endDate') endDate: Date,
+  ) {
+    if (!mentorId) {
+      return [];
+    }
+
+    return await this.prisma.client.appointment.findMany({
+      where: {
+        mentorId,
+        deletedAt: null,
+        OR: [
+          // Appointments that overlap with the date range
+          {
+            startAt: { lt: endDate },
+            endAt: { gt: startDate },
+          },
+        ],
+        status: {
+          in: [
+            'booked',
+            'approved',
+            'rescheduled',
+            'extended',
+          ] as AppointmentStatus[],
+        },
+      },
+      select: {
+        startAt: true,
+        endAt: true,
+      },
+      orderBy: {
+        startAt: 'asc',
+      },
+    });
+  }
+
+  private generateFreeTimeSlots(
+    @LogParam('startDate') startDate: Date,
+    @LogParam('endDate') endDate: Date,
+    @LogParam('bookedAppointments')
+    bookedAppointments: { startAt: Date; endAt: Date }[],
+    @LogParam('workingHours')
+    workingHours: {
+      workingHoursByDay: Map<number, { start: string; end: string }[]>;
+    },
+    @LogParam('duration') duration: number,
+  ): { start: Date; end: Date }[] {
+    try {
+      const freeSlots: { start: Date; end: Date }[] = [];
+      const currentDate = new Date(startDate);
+      const end = new Date(endDate);
+      const durationMs = duration * 60 * 1000;
+
+      // Validate inputs
+      if (isNaN(currentDate.getTime()) || isNaN(end.getTime())) {
+        return [];
+      }
+
+      if (durationMs <= 0) {
+        return [];
+      }
+
+      // Convert booked appointments to time ranges for easier comparison
+      const bookedRanges = bookedAppointments
+        .map((appt) => {
+          if (
+            !appt.startAt ||
+            !appt.endAt ||
+            isNaN(appt.startAt.getTime()) ||
+            isNaN(appt.endAt.getTime())
+          ) {
+            return null;
+          }
+          return {
+            start: appt.startAt.getTime(),
+            end: appt.endAt.getTime(),
+          };
+        })
+        .filter(
+          (range): range is { start: number; end: number } => range !== null,
+        );
+
+      let processedDays = 0;
+      let totalSlotsGenerated = 0;
+
+      while (currentDate <= end) {
+        processedDays++;
+        const dayOfWeek = currentDate.getDay();
+
+        // Get working hours for this specific day
+        const dayWorkingHours = workingHours.workingHoursByDay.get(dayOfWeek);
+
+        if (dayWorkingHours && dayWorkingHours.length > 0) {
+          // Process each working hour block for this day
+          for (const workBlock of dayWorkingHours) {
+            // Parse time strings safely
+            const startParts = workBlock.start.split(':').map(Number);
+            const endParts = workBlock.end.split(':').map(Number);
+
+            if (startParts.length < 2 || endParts.length < 2) {
+              continue;
+            }
+
+            const startHour = startParts[0];
+            const startMinute = startParts[1] || 0;
+            const endHour = endParts[0];
+            const endMinute = endParts[1] || 0;
+
+            const dayStart = new Date(currentDate);
+            dayStart.setHours(startHour, startMinute, 0, 0);
+
+            const dayEnd = new Date(currentDate);
+            dayEnd.setHours(endHour, endMinute, 0, 0);
+
+            // Only generate slots if the day is within our date range
+            if (dayStart < end && dayEnd > currentDate) {
+              const slotsFromBlock = this.generateSlotsForTimeBlock(
+                dayStart,
+                dayEnd,
+                bookedRanges,
+                durationMs,
+              );
+              // Add null/undefined check before spreading
+              if (slotsFromBlock && Array.isArray(slotsFromBlock)) {
+                freeSlots.push(...slotsFromBlock);
+                totalSlotsGenerated += slotsFromBlock.length;
+              }
+            }
+          }
+        }
+
+        // Move to the next day
+        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setHours(0, 0, 0, 0);
+      }
+
+      // Explicitly return the array
+      return freeSlots;
+    } catch (error) {
+      return [];
+    }
+  }
+
+  private generateSlotsForTimeBlock(
+    blockStart: Date,
+    blockEnd: Date,
+    bookedRanges: { start: number; end: number }[],
+    durationMs: number,
+  ): { start: Date; end: Date }[] {
+    const slots: { start: Date; end: Date }[] = [];
+
+    try {
+      let currentSlotStart = new Date(blockStart);
+
+      while (currentSlotStart < blockEnd) {
+        const slotEnd = new Date(currentSlotStart.getTime() + durationMs);
+
+        // If slot extends beyond working hours, stop
+        if (slotEnd > blockEnd) {
+          break;
+        }
+
+        // Check if this slot conflicts with any booked appointments
+        const isConflict = bookedRanges.some((booked) =>
+          this.isTimeOverlap(
+            currentSlotStart.getTime(),
+            slotEnd.getTime(),
+            booked.start,
+            booked.end,
+          ),
+        );
+
+        if (!isConflict) {
+          slots.push({
+            start: new Date(currentSlotStart),
+            end: slotEnd,
+          });
+        }
+
+        // Move to the next potential slot (15-minute intervals)
+        currentSlotStart = new Date(
+          currentSlotStart.getTime() + 15 * 60 * 1000,
+        );
+      }
+    } catch (error) {
+      // Return empty array on error instead of potentially undefined
+      return [];
+    }
+
+    return slots;
+  }
+
+  // Improved time overlap detection
+  @Log({
+    logArgsMessage: ({ slotStart, slotEnd, bookedStart, bookedEnd }) =>
+      `Checking time overlap: slot [${new Date(slotStart).toISOString()} - ${new Date(slotEnd).toISOString()}] vs booked [${new Date(bookedStart).toISOString()} - ${new Date(bookedEnd).toISOString()}]`,
+    logSuccessMessage: (result) =>
+      `Time overlap check result: ${result ? 'overlap' : 'no overlap'}`,
+    logErrorMessage: (err) =>
+      `Failed to check time overlap. Error: ${err.message}`,
+  })
+  private isTimeOverlap(
+    @LogParam('slotStart') slotStart: number,
+    @LogParam('slotEnd') slotEnd: number,
+    @LogParam('bookedStart') bookedStart: number,
+    @LogParam('bookedEnd') bookedEnd: number,
+  ): boolean {
+    return slotStart < bookedEnd && slotEnd > bookedStart;
   }
 
   /**
@@ -602,7 +1321,15 @@ export class AppointmentsService {
     };
   }
 
+  @Log({
+    logArgsMessage: ({ createAppointmentDto }) =>
+      `Validating appointment creation for student ${createAppointmentDto.studentId} with mentor ${createAppointmentDto.mentorId}`,
+    logSuccessMessage: () => 'Appointment validation successful',
+    logErrorMessage: (error) =>
+      `Appointment validation failed: ${error.message}`,
+  })
   private async validateCreateAppointment(
+    @LogParam('createAppointmentDto')
     createAppointmentDto: CreateAppointmentItemDto,
   ): Promise<void> {
     const { startAt, endAt, mentorId, studentId } = createAppointmentDto;
@@ -617,7 +1344,17 @@ export class AppointmentsService {
     await this.validateBusinessRules(createAppointmentDto);
   }
 
-  private validateTimeConstraints(startAt: Date, endAt: Date): void {
+  @Log({
+    logArgsMessage: ({ startAt, endAt }) =>
+      `Validating time constraints for appointment from ${startAt} to ${endAt}`,
+    logSuccessMessage: () => 'Time constraints validation successful',
+    logErrorMessage: (error) =>
+      `Time constraints validation failed: ${error.message}`,
+  })
+  private validateTimeConstraints(
+    @LogParam('startAt') startAt: Date,
+    @LogParam('endAt') endAt: Date,
+  ): void {
     const now = new Date();
 
     // Check if the appointment is in the future
@@ -633,11 +1370,18 @@ export class AppointmentsService {
     }
   }
 
+  @Log({
+    logArgsMessage: ({ mentorId, studentId, startAt, endAt }) =>
+      `Checking scheduling conflicts for mentor ${mentorId} and student ${studentId} from ${startAt} to ${endAt}`,
+    logSuccessMessage: () => 'No scheduling conflicts found',
+    logErrorMessage: (error) =>
+      `Scheduling conflict check failed: ${error.message}`,
+  })
   private async checkSchedulingConflicts(
-    mentorId: string,
-    studentId: string,
-    startAt: Date,
-    endAt: Date,
+    @LogParam('mentorId') mentorId: string,
+    @LogParam('studentId') studentId: string,
+    @LogParam('startAt') startAt: Date,
+    @LogParam('endAt') endAt: Date,
   ): Promise<void> {
     // Check for mentor conflicts
     const mentorConflicts = await this.prisma.client.appointment.findFirst({
@@ -699,7 +1443,15 @@ export class AppointmentsService {
     }
   }
 
+  @Log({
+    logArgsMessage: ({ createAppointmentDto }) =>
+      `Validating business rules for appointment with mentor ${createAppointmentDto.mentorId}`,
+    logSuccessMessage: () => 'Business rules validation successful',
+    logErrorMessage: (error) =>
+      `Business rules validation failed: ${error.message}`,
+  })
   private async validateBusinessRules(
+    @LogParam('createAppointmentDto')
     createAppointmentDto: CreateAppointmentItemDto,
   ): Promise<void> {
     const { mentorId, studentId, courseOfferingId } = createAppointmentDto;
