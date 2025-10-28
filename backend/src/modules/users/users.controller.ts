@@ -2,7 +2,10 @@ import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { MessageDto } from '@/common/dto/message.dto';
 import { Role } from '@/common/enums/roles.enum';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import {
+  AuthUser,
+  CurrentAuthUser,
+} from '@/common/interfaces/auth.user-metadata';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
 import { User } from '@/generated/nestjs-dto/user.entity';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
@@ -170,9 +173,10 @@ export class UsersController {
   ])
   @Get('/me')
   async getMe(
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
-    return this.usersService.getMe(user.id);
+    const { user_id } = user.user_metadata;
+    return this.usersService.getMe(user_id);
   }
 
   /**

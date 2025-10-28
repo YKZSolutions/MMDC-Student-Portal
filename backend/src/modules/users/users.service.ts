@@ -630,21 +630,21 @@ export class UsersService {
    * - Includes related entities like `UserDetails`, `StudentDetails`, and `StaffDetails`
    * - Constructs and returns a flattened DTO depending on the user's role
    *
-   * @param authId - The Supabase Auth UID of the authenticated user.
    * @returns One of:
    * - `UserStudentDetailsDto` if the user is a student
    * - `UserStaffDetailsDto` if the user is a mentor/admin
    * - Fallback: `UserDetailsFullDto` if role-based detail is missing
    *
-   * @throws UnauthorizedException If the `authUid` is missing or invalid
+   * @throws UnauthorizedException If the `userId` is missing or invalid
    * @throws NotFoundException If no user account is found
    * @throws InternalServerErrorException If an unexpected error occurs
+   * @param userId
    */
   @Log({
-    logArgsMessage: ({ authId }) => `Get profile for authId=${authId}`,
+    logArgsMessage: ({ userId }) => `Get profile for userId=${userId}`,
     logSuccessMessage: (result) => `Retrieved profile for userId=${result.id}`,
-    logErrorMessage: (err, { authId }) =>
-      `Failed to get profile for authId=${authId} | Error=${err.message}`,
+    logErrorMessage: (err, { userId }) =>
+      `Failed to get profile for userId=${userId} | Error=${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: () =>
@@ -655,10 +655,10 @@ export class UsersService {
       ),
   })
   async getMe(
-    @LogParam('authId') authId: string,
+    @LogParam('userId') userId: string,
   ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
     const account = await this.prisma.client.userAccount.findUnique({
-      where: { authUid: authId },
+      where: { userId: userId },
       include: {
         user: {
           include: {
