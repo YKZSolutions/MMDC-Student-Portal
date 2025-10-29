@@ -1,4 +1,4 @@
-import { Module, CourseSection } from '@prisma/client';
+import { Module, CourseSection, Prisma } from '@prisma/client';
 import { log } from '../utils/helpers';
 import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
@@ -8,13 +8,6 @@ export async function seedSectionModules(
   modules: Module[],
 ) {
   log('Seeding section-module relationships...');
-
-  const sectionModules: Array<{
-    id: string;
-    courseSectionId: string;
-    moduleId: string;
-    classMeetings: any;
-  }> = [];
 
   // Wrap the classMeetingsTemplate in an array since the field expects JSON[]
   const classMeetingsTemplate = [
@@ -45,6 +38,9 @@ export async function seedSectionModules(
     },
   ];
 
+  // Pre-calculate section modules data for batch creation
+  const sectionModulesToCreate: Prisma.SectionModuleCreateManyInput[] = [];
+
   for (const section of courseSections) {
     // Get modules that belong to the same course offering as this section
     const sectionModulesForOffering = modules.filter(
@@ -57,17 +53,35 @@ export async function seedSectionModules(
       .slice(0, Math.floor(Math.random() * 3) + 2); // 2-4 modules
 
     for (const module of modulesToAssign) {
-      const sectionModule = await prisma.sectionModule.create({
-        data: {
-          courseSectionId: section.id,
-          moduleId: module.id,
-          classMeetings: classMeetingsTemplate, // Now this is an array
-        },
+      sectionModulesToCreate.push({
+        courseSectionId: section.id,
+        moduleId: module.id,
+        classMeetings: classMeetingsTemplate,
       });
-      sectionModules.push(sectionModule);
     }
   }
 
+  // Batch create section modules
+  if (sectionModulesToCreate.length > 0) {
+    await prisma.sectionModule.createMany({
+      data: sectionModulesToCreate,
+    });
+  }
+
+  // Fetch created section modules
+  const sectionModules = await prisma.sectionModule.findMany({
+    where: {
+      courseSectionId: {
+        in: courseSections.map(s => s.id),
+      },
+    },
+    include: {
+      courseSection: true,
+      module: true,
+    },
+  });
+
   log(`-> Created ${sectionModules.length} section-module relationships.`);
+
   return { sectionModules };
 }

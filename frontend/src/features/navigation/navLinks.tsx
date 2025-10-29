@@ -117,6 +117,7 @@ export const adminLinks: NavItem[] = [
     Icon: IconGraphFilled,
     IconInactive: IconGraph,
     fuzzy: true,
+    dataCy: 'dashboard-link'
   },
   {
     link: '/lms',
@@ -131,6 +132,7 @@ export const adminLinks: NavItem[] = [
     Icon: IconUserCog,
     IconInactive: IconUserCog,
     fuzzy: true,
+    dataCy: 'users-link'
   },
   {
     link: '/curriculum',
