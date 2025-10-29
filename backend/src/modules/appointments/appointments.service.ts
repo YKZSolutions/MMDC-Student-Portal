@@ -146,7 +146,7 @@ export class AppointmentsService {
     @LogParam('from') from: Date,
     @LogParam('to') to: Date,
   ): Promise<BookedAppointment[]> {
-    const appointments = await this.prisma.client.appointment.findMany({
+    return await this.prisma.client.appointment.findMany({
       where: {
         status: 'approved',
         courseOfferingId,
@@ -162,12 +162,10 @@ export class AppointmentsService {
         endAt: true,
       },
     });
-
-    return appointments;
   }
 
   /**
-   * Retrieves a paginated list of appointments from the database based on user role.
+   * Retrieves a paginated list of appointments from the database based on the user role.
    *
    * @param filters - The filter, search, and pagination options for the query.
    * @param role - The user's role (admin, student, or mentor).
@@ -331,13 +329,13 @@ export class AppointmentsService {
   }
 
   /**
-   * Retrieves a single appointment by ID, with filtering based on user role.
+   * Retrieves a single appointment by ID, with filtering based on the user role.
    *
    * @param id - The ID of the appointment to retrieve.
    * @param role - The user's role (admin, student, or mentor).
    * @param userId - The user's ID to check ownership.
    * @returns The appointment object if found.
-   * @throws NotFoundException - If the appointment with the specified ID is not found or the user is not authorized to view it.
+   * @throws NotFoundException - If the appointment with the specified ID is not found, or the user is not authorized to view it.
    */
   @Log({
     logArgsMessage: ({ id, role, userId }) =>
@@ -433,7 +431,7 @@ export class AppointmentsService {
       `Finding mentor availability for user ${userId} (${role}) with filters: ${JSON.stringify(filters)}`,
     logSuccessMessage: (result) =>
       `Found ${result.freeSlots?.length || 0} available slots for mentor`,
-    logErrorMessage: (err, { filters, userId }) =>
+    logErrorMessage: (err, { userId }) =>
       `Failed to find mentor availability for user ${userId}. Error: ${err.message}`,
   })
   async findMentorAvailability(
@@ -502,29 +500,25 @@ export class AppointmentsService {
     // If we have a resolved mentor ID, get their availability
     let freeSlots: TimeSlotDto[] = [];
     if (resolvedMentorId) {
-      try {
-        const bookedAppointments = await this.getBookedAppointments(
-          resolvedMentorId,
-          startDate,
-          endDate,
-        );
+      const bookedAppointments = await this.getBookedAppointments(
+        resolvedMentorId,
+        startDate,
+        endDate,
+      );
 
-        const workingHours = await this.getMentorWorkingHours(resolvedMentorId);
+      const workingHours = await this.getMentorWorkingHours(resolvedMentorId);
 
-        // Generate free time slots
-        const generatedSlots = this.generateFreeTimeSlots(
-          startDate,
-          endDate,
-          bookedAppointments,
-          workingHours,
-          duration,
-        );
+      // Generate free time slots
+      const generatedSlots = this.generateFreeTimeSlots(
+        startDate,
+        endDate,
+        bookedAppointments,
+        workingHours,
+        duration,
+      );
 
-        // Ensure we have a proper array
-        freeSlots = Array.isArray(generatedSlots) ? generatedSlots : [];
-      } catch (error) {
-        freeSlots = [];
-      }
+      // Ensure we have a proper array
+      freeSlots = Array.isArray(generatedSlots) ? generatedSlots : [];
     }
 
     // If we searched for mentors, return the list along with availability for the first one
@@ -557,6 +551,7 @@ export class AppointmentsService {
       },
     };
   }
+
   // Updated method to find mentors by course name or mentor name with proper typing
   @Log({
     logArgsMessage: ({ search, studentId, role }) =>
@@ -622,6 +617,11 @@ export class AppointmentsService {
                 'enrolled',
               ] as CourseEnrollmentStatus[],
             },
+            courseOffering: {
+              enrollmentPeriod: {
+                status: 'active',
+              },
+            },
           },
           include: {
             courseSection: {
@@ -671,14 +671,12 @@ export class AppointmentsService {
       });
 
       // Extract unique mentors from filtered enrollments
-      const filteredMentors = filteredEnrollments
+      return filteredEnrollments
         .map((enrollment) => enrollment.courseSection.mentor!)
         .filter(
           (mentor, index, array) =>
             array.findIndex((m) => m.id === mentor.id) === index,
         );
-
-      return filteredMentors;
     }
 
     // For admin/mentor roles, search by course name and mentor name
@@ -814,68 +812,64 @@ export class AppointmentsService {
       `Failed to get working hours for mentor ${mentorId}. Error: ${err.message}`,
   })
   private async getMentorWorkingHours(@LogParam('mentorId') mentorId: string) {
-    try {
-      const courseSections = await this.prisma.client.courseSection.findMany({
-        where: {
-          mentorId,
+    const courseSections = await this.prisma.client.courseSection.findMany({
+      where: {
+        mentorId,
+        deletedAt: null,
+        courseOffering: {
           deletedAt: null,
-          courseOffering: {
-            deletedAt: null,
-          },
         },
-        select: {
-          startSched: true,
-          endSched: true,
-          days: true,
-        },
-      });
+      },
+      select: {
+        startSched: true,
+        endSched: true,
+        days: true,
+      },
+    });
 
-      if (courseSections.length === 0) {
-        throw new NotFoundException('No working hours found for this mentor');
-      }
+    if (courseSections.length === 0) {
+      throw new NotFoundException('No working hours found for this mentor');
+    }
 
-      // Group working hours by day - convert string days to numbers
-      const workingHoursByDay = new Map<
-        number,
-        { start: string; end: string }[]
-      >();
+    // Group working hours by day - convert string days to numbers
+    const workingHoursByDay = new Map<
+      number,
+      { start: string; end: string }[]
+    >();
 
-      // Map day strings to numbers (Monday = 1, Sunday = 0)
-      const dayMap: Record<string, number> = {
-        monday: 1,
-        tuesday: 2,
-        wednesday: 3,
-        thursday: 4,
-        friday: 5,
-        saturday: 6,
-        sunday: 0,
-      };
+    // Map day strings to numbers (Monday = 1, Sunday = 0)
+    const dayMap: Record<string, number> = {
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      sunday: 0,
+    };
 
-      courseSections.forEach((section, index) => {
-        section.days.forEach((day: string) => {
-          const dayNumber = dayMap[day.toLowerCase()];
-          if (dayNumber === undefined) {
-            return;
-          }
+    courseSections.forEach((section) => {
+      section.days.forEach((day: string) => {
+        const dayNumber = dayMap[day.toLowerCase()];
+        if (dayNumber === undefined) {
+          return;
+        }
 
-          if (!workingHoursByDay.has(dayNumber)) {
-            workingHoursByDay.set(dayNumber, []);
-          }
-          // Use non-null assertion since we just set it if it didn't exist
-          workingHoursByDay.get(dayNumber)!.push({
-            start: section.startSched,
-            end: section.endSched,
-          });
+        if (!workingHoursByDay.has(dayNumber)) {
+          workingHoursByDay.set(dayNumber, []);
+        }
+        // Use non-null assertion since we just set it if it didn't exist
+        workingHoursByDay.get(dayNumber)!.push({
+          start: section.startSched,
+          end: section.endSched,
         });
       });
+    });
 
-      return {
-        workingHoursByDay,
-        workingDays: Array.from(workingHoursByDay.keys()),
-      };
-    } catch (error) {
-      throw error;
-    }
+    return {
+      workingHoursByDay,
+      workingDays: Array.from(workingHoursByDay.keys()),
+    };
   }
 
   @Log({
@@ -925,110 +919,99 @@ export class AppointmentsService {
   }
 
   private generateFreeTimeSlots(
-    @LogParam('startDate') startDate: Date,
-    @LogParam('endDate') endDate: Date,
-    @LogParam('bookedAppointments')
+    startDate: Date,
+    endDate: Date,
     bookedAppointments: { startAt: Date; endAt: Date }[],
-    @LogParam('workingHours')
     workingHours: {
       workingHoursByDay: Map<number, { start: string; end: string }[]>;
     },
     @LogParam('duration') duration: number,
   ): { start: Date; end: Date }[] {
-    try {
-      const freeSlots: { start: Date; end: Date }[] = [];
-      const currentDate = new Date(startDate);
-      const end = new Date(endDate);
-      const durationMs = duration * 60 * 1000;
+    const freeSlots: { start: Date; end: Date }[] = [];
+    const currentDate = new Date(startDate);
+    const end = new Date(endDate);
+    const durationMs = duration * 60 * 1000;
 
-      // Validate inputs
-      if (isNaN(currentDate.getTime()) || isNaN(end.getTime())) {
-        return [];
-      }
+    // Validate inputs
+    if (isNaN(currentDate.getTime()) || isNaN(end.getTime())) {
+      return [];
+    }
 
-      if (durationMs <= 0) {
-        return [];
-      }
+    if (durationMs <= 0) {
+      return [];
+    }
 
-      // Convert booked appointments to time ranges for easier comparison
-      const bookedRanges = bookedAppointments
-        .map((appt) => {
-          if (
-            !appt.startAt ||
-            !appt.endAt ||
-            isNaN(appt.startAt.getTime()) ||
-            isNaN(appt.endAt.getTime())
-          ) {
-            return null;
+    // Convert booked appointments to time ranges for easier comparison
+    const bookedRanges = bookedAppointments
+      .map((appt) => {
+        if (
+          !appt.startAt ||
+          !appt.endAt ||
+          isNaN(appt.startAt.getTime()) ||
+          isNaN(appt.endAt.getTime())
+        ) {
+          return null;
+        }
+        return {
+          start: appt.startAt.getTime(),
+          end: appt.endAt.getTime(),
+        };
+      })
+      .filter(
+        (range): range is { start: number; end: number } => range !== null,
+      );
+
+    while (currentDate <= end) {
+      const dayOfWeek = currentDate.getDay();
+
+      // Get working hours for this specific day
+      const dayWorkingHours = workingHours.workingHoursByDay.get(dayOfWeek);
+
+      if (dayWorkingHours && dayWorkingHours.length > 0) {
+        // Process each working hour block for this day
+        for (const workBlock of dayWorkingHours) {
+          // Parse time strings safely
+          const startParts = workBlock.start.split(':').map(Number);
+          const endParts = workBlock.end.split(':').map(Number);
+
+          if (startParts.length < 2 || endParts.length < 2) {
+            continue;
           }
-          return {
-            start: appt.startAt.getTime(),
-            end: appt.endAt.getTime(),
-          };
-        })
-        .filter(
-          (range): range is { start: number; end: number } => range !== null,
-        );
 
-      let processedDays = 0;
-      let totalSlotsGenerated = 0;
+          const startHour = startParts[0];
+          const startMinute = startParts[1] || 0;
+          const endHour = endParts[0];
+          const endMinute = endParts[1] || 0;
 
-      while (currentDate <= end) {
-        processedDays++;
-        const dayOfWeek = currentDate.getDay();
+          const dayStart = new Date(currentDate);
+          dayStart.setHours(startHour, startMinute, 0, 0);
 
-        // Get working hours for this specific day
-        const dayWorkingHours = workingHours.workingHoursByDay.get(dayOfWeek);
+          const dayEnd = new Date(currentDate);
+          dayEnd.setHours(endHour, endMinute, 0, 0);
 
-        if (dayWorkingHours && dayWorkingHours.length > 0) {
-          // Process each working hour block for this day
-          for (const workBlock of dayWorkingHours) {
-            // Parse time strings safely
-            const startParts = workBlock.start.split(':').map(Number);
-            const endParts = workBlock.end.split(':').map(Number);
-
-            if (startParts.length < 2 || endParts.length < 2) {
-              continue;
-            }
-
-            const startHour = startParts[0];
-            const startMinute = startParts[1] || 0;
-            const endHour = endParts[0];
-            const endMinute = endParts[1] || 0;
-
-            const dayStart = new Date(currentDate);
-            dayStart.setHours(startHour, startMinute, 0, 0);
-
-            const dayEnd = new Date(currentDate);
-            dayEnd.setHours(endHour, endMinute, 0, 0);
-
-            // Only generate slots if the day is within our date range
-            if (dayStart < end && dayEnd > currentDate) {
-              const slotsFromBlock = this.generateSlotsForTimeBlock(
-                dayStart,
-                dayEnd,
-                bookedRanges,
-                durationMs,
-              );
-              // Add null/undefined check before spreading
-              if (slotsFromBlock && Array.isArray(slotsFromBlock)) {
-                freeSlots.push(...slotsFromBlock);
-                totalSlotsGenerated += slotsFromBlock.length;
-              }
+          // Only generate slots if the day is within our date range
+          if (dayStart < end && dayEnd > currentDate) {
+            const slotsFromBlock = this.generateSlotsForTimeBlock(
+              dayStart,
+              dayEnd,
+              bookedRanges,
+              durationMs,
+            );
+            // Add null/undefined check before spreading
+            if (slotsFromBlock && Array.isArray(slotsFromBlock)) {
+              freeSlots.push(...slotsFromBlock);
             }
           }
         }
-
-        // Move to the next day
-        currentDate.setDate(currentDate.getDate() + 1);
-        currentDate.setHours(0, 0, 0, 0);
       }
 
-      // Explicitly return the array
-      return freeSlots;
-    } catch (error) {
-      return [];
+      // Move to the next day
+      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate.setHours(0, 0, 0, 0);
     }
+
+    // Explicitly return the array
+    return freeSlots;
   }
 
   private generateSlotsForTimeBlock(
@@ -1039,42 +1022,35 @@ export class AppointmentsService {
   ): { start: Date; end: Date }[] {
     const slots: { start: Date; end: Date }[] = [];
 
-    try {
-      let currentSlotStart = new Date(blockStart);
+    let currentSlotStart = new Date(blockStart);
 
-      while (currentSlotStart < blockEnd) {
-        const slotEnd = new Date(currentSlotStart.getTime() + durationMs);
+    while (currentSlotStart < blockEnd) {
+      const slotEnd = new Date(currentSlotStart.getTime() + durationMs);
 
-        // If slot extends beyond working hours, stop
-        if (slotEnd > blockEnd) {
-          break;
-        }
-
-        // Check if this slot conflicts with any booked appointments
-        const isConflict = bookedRanges.some((booked) =>
-          this.isTimeOverlap(
-            currentSlotStart.getTime(),
-            slotEnd.getTime(),
-            booked.start,
-            booked.end,
-          ),
-        );
-
-        if (!isConflict) {
-          slots.push({
-            start: new Date(currentSlotStart),
-            end: slotEnd,
-          });
-        }
-
-        // Move to the next potential slot (15-minute intervals)
-        currentSlotStart = new Date(
-          currentSlotStart.getTime() + 15 * 60 * 1000,
-        );
+      // If the slot extends beyond working hours, stop
+      if (slotEnd > blockEnd) {
+        break;
       }
-    } catch (error) {
-      // Return empty array on error instead of potentially undefined
-      return [];
+
+      // Check if this slot conflicts with any booked appointments
+      const isConflict = bookedRanges.some((booked) =>
+        this.isTimeOverlap(
+          currentSlotStart.getTime(),
+          slotEnd.getTime(),
+          booked.start,
+          booked.end,
+        ),
+      );
+
+      if (!isConflict) {
+        slots.push({
+          start: new Date(currentSlotStart),
+          end: slotEnd,
+        });
+      }
+
+      // Move to the next potential slot (15-minute intervals)
+      currentSlotStart = new Date(currentSlotStart.getTime() + 15 * 60 * 1000);
     }
 
     return slots;
