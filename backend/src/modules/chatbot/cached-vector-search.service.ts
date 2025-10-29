@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import * as crypto from 'crypto';
@@ -12,6 +12,7 @@ import {
 export class CachedVectorSearchService {
   private readonly CACHE_TTL = 3600; // 1 hour
   private readonly CACHE_PREFIX = 'vector_search:';
+  private readonly logger = new Logger(CachedVectorSearchService.name);
 
   constructor(
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
@@ -140,6 +141,10 @@ export class CachedVectorSearchService {
           successCount++;
         } catch (error: unknown) {
           if (error instanceof Error) {
+            this.logger.error(
+              'Failed to warm up cache for query',
+              error.message,
+            );
           }
           failCount++;
         }

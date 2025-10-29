@@ -22,10 +22,7 @@ import {
   CourseOfferingStatus,
   FilterCourseOfferingDto,
 } from './dto/filter-course-offering.dto';
-import {
-  DetailedCourseOfferingDto,
-  PaginatedCourseOfferingsDto,
-} from './dto/paginated-course-offering.dto';
+import { PaginatedCourseOfferingsDto } from './dto/paginated-course-offering.dto';
 import { LmsService } from '@/modules/lms/lms-module/lms.service';
 import { CustomDetailedCourseOfferingDto } from '@/modules/lms/lms-module/dto/paginated-module.dto';
 

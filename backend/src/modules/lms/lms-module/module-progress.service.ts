@@ -14,6 +14,12 @@ import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import { ContentProgress } from '@/generated/nestjs-dto/contentProgress.entity';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import {
+  MyModuleProgressItem,
+  MyModulesProgressFilters,
+  MyModulesProgressResponse,
+  MyModulesProgressSummary,
+} from '@/modules/lms/lms-module/dto/modules-progress.dto';
 
 /**
  * Service for tracking and managing student progress across modules, sections, and content items in the LMS.
@@ -359,21 +365,39 @@ export class ModuleProgressService {
     return result;
   }
 
+  /**
+   * Get progress overview for all modules the current user is enrolled in or responsible for
+   */
+  @Log({
+    logArgsMessage: ({ userId, role, filters }) =>
+      `Getting my modules progress for user ${userId} with role ${role}, filters: ${JSON.stringify(filters)}`,
+    logSuccessMessage: (result: MyModulesProgressResponse, { userId, role }) =>
+      `Retrieved my modules progress for user ${userId} with role ${role}: ${result.modules.length} modules, overall progress ${result.summary.overallProgress}%`,
+    logErrorMessage: (err, { userId, role, filters }) =>
+      `Failed to get my modules progress for user ${userId} with role ${role}, filters: ${JSON.stringify(filters)} | Error: ${err.message}`,
+  })
   async getMyModulesProgress(
-    userId: string,
-    role: Role,
-    filters?: { status?: string; search?: string },
-  ) {
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
+    @LogParam('filters') filters?: MyModulesProgressFilters,
+  ): Promise<MyModulesProgressResponse> {
     // Get dashboard progress first
-    const dashboard = await this.getDashboardProgress(userId, role);
+    const dashboard = await this.getDashboardProgress(
+      userId,
+      role,
+      filters?.courseOfferingId
+        ? { courseOfferingId: filters.courseOfferingId }
+        : undefined,
+    );
 
     let modules = dashboard.studentProgress || [];
 
-    // Apply filters if provided
+    // Apply status filter if provided
     if (filters?.status) {
       modules = modules.filter((module) => module.status === filters.status);
     }
 
+    // Apply search filter if provided
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
       modules = modules.filter((module) =>
@@ -381,26 +405,140 @@ export class ModuleProgressService {
       );
     }
 
-    // Calculate summary
-    const summary = {
-      totalModules: modules.length,
-      completedModules: modules.filter((m) => m.status === 'COMPLETED').length,
-      inProgressModules: modules.filter((m) => m.status === 'IN_PROGRESS')
-        .length,
-      notStartedModules: modules.filter((m) => m.status === 'NOT_STARTED')
-        .length,
-      overallProgress:
-        modules.length > 0
-          ? Math.round(
-              modules.reduce((sum, m) => sum + m.progressPercentage, 0) /
-                modules.length,
-            )
-          : 0,
-    };
+    // Enhance modules with additional course information
+    const enhancedModules = await this.enhanceModulesWithCourseInfo(
+      modules,
+      userId,
+      role,
+    );
+
+    // Calculate a comprehensive summary
+    const summary = this.calculateMyModulesSummary(enhancedModules);
 
     return {
-      modules,
+      modules: enhancedModules,
       summary,
+    };
+  }
+
+  /**
+   * Enhance modules with course information
+   */
+  private async enhanceModulesWithCourseInfo(
+    modules: ModuleProgressOverview[],
+    userId: string,
+    role: Role,
+  ): Promise<MyModuleProgressItem[]> {
+    if (modules.length === 0) {
+      return [];
+    }
+
+    // Get course information for all modules
+    const moduleIds = modules.map((module) => module.moduleId);
+
+    const modulesWithCourses = await this.prisma.client.module.findMany({
+      where: {
+        id: { in: moduleIds },
+      },
+      include: {
+        courseOffering: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    // Create a map for a quick lookup
+    const moduleCourseMap = new Map(
+      modulesWithCourses.map((mc) => [
+        mc.id,
+        {
+          courseName: mc.courseOffering?.course?.name,
+          courseCode: mc.courseOffering?.course?.courseCode,
+          courseOfferingId: mc.courseOfferingId,
+        },
+      ]),
+    );
+
+    return modules.map((module) => {
+      const courseInfo = moduleCourseMap.get(module.moduleId);
+
+      return {
+        moduleId: module.moduleId,
+        moduleTitle: module.moduleTitle,
+        courseName: courseInfo?.courseName,
+        courseCode: courseInfo?.courseCode,
+        courseOfferingId: courseInfo?.courseOfferingId,
+        progressPercentage: module.progressPercentage,
+        status: module.status,
+        completedContentItems: module.completedContentItems,
+        totalContentItems: module.totalContentItems,
+        overdueAssignmentsCount: module.overdueAssignmentsCount,
+        lastAccessedAt: module.lastAccessedAt,
+      };
+    });
+  }
+
+  /**
+   * Calculate a comprehensive summary for my modules progress
+   */
+  private calculateMyModulesSummary(
+    modules: MyModuleProgressItem[],
+  ): MyModulesProgressSummary {
+    if (modules.length === 0) {
+      return {
+        totalModules: 0,
+        completedModules: 0,
+        inProgressModules: 0,
+        notStartedModules: 0,
+        overallProgress: 0,
+        totalOverdueAssignments: 0,
+        totalCompletedContent: 0,
+        totalContentItems: 0,
+      };
+    }
+
+    const completedModules = modules.filter(
+      (m) => m.status === ProgressStatus.COMPLETED,
+    ).length;
+    const inProgressModules = modules.filter(
+      (m) => m.status === ProgressStatus.IN_PROGRESS,
+    ).length;
+    const notStartedModules = modules.filter(
+      (m) => m.status === ProgressStatus.NOT_STARTED,
+    ).length;
+
+    const totalOverdueAssignments = modules.reduce(
+      (sum, m) => sum + m.overdueAssignmentsCount,
+      0,
+    );
+    const totalCompletedContent = modules.reduce(
+      (sum, m) => sum + m.completedContentItems,
+      0,
+    );
+    const totalContentItems = modules.reduce(
+      (sum, m) => sum + m.totalContentItems,
+      0,
+    );
+
+    const overallProgress =
+      modules.length > 0
+        ? Math.round(
+            modules.reduce((sum, m) => sum + m.progressPercentage, 0) /
+              modules.length,
+          )
+        : 0;
+
+    return {
+      totalModules: modules.length,
+      completedModules,
+      inProgressModules,
+      notStartedModules,
+      overallProgress,
+      totalOverdueAssignments,
+      totalCompletedContent,
+      totalContentItems,
     };
   }
 

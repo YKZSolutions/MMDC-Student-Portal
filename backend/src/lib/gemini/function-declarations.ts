@@ -1404,7 +1404,12 @@ export const progressMyModulesFn: FunctionDeclaration = {
       },
       search: {
         type: Type.STRING,
-        description: 'Optional: Search term for filtering modules by title',
+        description:
+          'Optional: Search term for filtering modules by title or course name',
+      },
+      courseOfferingId: {
+        type: Type.STRING,
+        description: 'Optional: Filter by specific course offering ID',
       },
     },
   },
@@ -1419,6 +1424,8 @@ export const progressMyModulesFn: FunctionDeclaration = {
             moduleId: { type: Type.STRING },
             moduleTitle: { type: Type.STRING },
             courseName: { type: Type.STRING },
+            courseCode: { type: Type.STRING },
+            courseOfferingId: { type: Type.STRING },
             progressPercentage: { type: Type.INTEGER },
             status: { type: Type.STRING },
             completedContentItems: { type: Type.INTEGER },
@@ -1436,12 +1443,14 @@ export const progressMyModulesFn: FunctionDeclaration = {
           inProgressModules: { type: Type.INTEGER },
           notStartedModules: { type: Type.INTEGER },
           overallProgress: { type: Type.INTEGER },
+          totalOverdueAssignments: { type: Type.INTEGER },
+          totalCompletedContent: { type: Type.INTEGER },
+          totalContentItems: { type: Type.INTEGER },
         },
       },
     },
   },
 };
-
 // -------------------------
 // Aggregations and exports
 // -------------------------

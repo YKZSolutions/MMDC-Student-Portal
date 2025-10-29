@@ -18,7 +18,7 @@ import {
   IconMessageChatbot,
   IconSend,
   IconX,
-  IconRefresh,
+
   IconTrash,
 } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'

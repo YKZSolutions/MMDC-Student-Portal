@@ -9,13 +9,14 @@ import {
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 import {
+  BadRequestException,
   Inject,
   Injectable,
   Logger,
   NotImplementedException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { Days, Role } from '@prisma/client';
+import { Days, ProgressStatus, Role } from '@prisma/client';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { FilterAppointmentDto } from '../appointments/dto/filter-appointment.dto';
 import { BillingService } from '../billing/billing.service';
@@ -52,6 +53,7 @@ import { CreateAppointmentItemDto } from '@/modules/appointments/dto/create-appo
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { ModuleProgressService } from '@/modules/lms/lms-module/module-progress.service';
+import { MyModulesProgressFilters } from '@/modules/lms/lms-module/dto/modules-progress.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -603,13 +605,26 @@ export class ChatbotService {
         const args = functionCall.args as {
           status?: string;
           search?: string;
+          courseOfferingId?: string;
+        };
+
+        // Convert string status to ProgressStatus enum if provided
+        let status: ProgressStatus | undefined;
+        if (args.status) {
+          status = ProgressStatus[args.status as keyof typeof ProgressStatus];
+        }
+
+        const filters: MyModulesProgressFilters = {
+          status,
+          search: args.search,
+          courseOfferingId: args.courseOfferingId,
         };
 
         const myModulesProgress =
           await this.progressService.getMyModulesProgress(
             userContext.id,
             userContext.role,
-            args,
+            filters,
           );
 
         return `My modules progress: ${JSON.stringify(myModulesProgress)}`;
@@ -634,6 +649,10 @@ export class ChatbotService {
           monthsToAdd?: number;
           monthsToSubtract?: number;
         };
+
+        if (!args.useCurrentDateTime && !args.dateTime) {
+          return 'dateTime is required when useCurrentDateTime is false';
+        }
 
         const date = args.useCurrentDateTime
           ? new Date()

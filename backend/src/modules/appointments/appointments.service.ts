@@ -859,10 +859,12 @@ export class AppointmentsService {
           workingHoursByDay.set(dayNumber, []);
         }
         // Use non-null assertion since we just set it if it didn't exist
-        workingHoursByDay.get(dayNumber)!.push({
+        const hours = workingHoursByDay.get(dayNumber) || [];
+        hours.push({
           start: section.startSched,
           end: section.endSched,
         });
+        workingHoursByDay.set(dayNumber, hours);
       });
     });
 
@@ -1057,19 +1059,12 @@ export class AppointmentsService {
   }
 
   // Improved time overlap detection
-  @Log({
-    logArgsMessage: ({ slotStart, slotEnd, bookedStart, bookedEnd }) =>
-      `Checking time overlap: slot [${new Date(slotStart).toISOString()} - ${new Date(slotEnd).toISOString()}] vs booked [${new Date(bookedStart).toISOString()} - ${new Date(bookedEnd).toISOString()}]`,
-    logSuccessMessage: (result) =>
-      `Time overlap check result: ${result ? 'overlap' : 'no overlap'}`,
-    logErrorMessage: (err) =>
-      `Failed to check time overlap. Error: ${err.message}`,
-  })
+
   private isTimeOverlap(
-    @LogParam('slotStart') slotStart: number,
-    @LogParam('slotEnd') slotEnd: number,
-    @LogParam('bookedStart') bookedStart: number,
-    @LogParam('bookedEnd') bookedEnd: number,
+    slotStart: number,
+    slotEnd: number,
+    bookedStart: number,
+    bookedEnd: number,
   ): boolean {
     return slotStart < bookedEnd && slotEnd > bookedStart;
   }
