@@ -27,6 +27,8 @@ import { UsersService } from '../users/users.service';
 import { CourseEnrollmentService } from '../enrollment/course-enrollment.service';
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
 import { FilterBookedAppointment } from './dto/filter-booked-appointment.dto';
+import { FilterMentorAvailabilityDto } from '@/modules/appointments/dto/filter-mentor-availability.dto';
+import { MentorAvailabilityDto } from '@/modules/appointments/dto/mentor-availability.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -77,6 +79,19 @@ export class AppointmentsController {
       query.mentorId,
       start,
       end,
+    );
+  }
+
+  @Get('mentor-availability')
+  async findMentorAvailability(
+    @Query() filters: FilterMentorAvailabilityDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<MentorAvailabilityDto> {
+    const { role, user_id } = user.user_metadata;
+    return this.appointmentsService.findMentorAvailability(
+      filters,
+      user_id,
+      role,
     );
   }
 

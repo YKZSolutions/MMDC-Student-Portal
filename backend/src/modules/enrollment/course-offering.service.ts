@@ -24,6 +24,7 @@ import {
 } from './dto/filter-course-offering.dto';
 import { PaginatedCourseOfferingsDto } from './dto/paginated-course-offering.dto';
 import { LmsService } from '@/modules/lms/lms-module/lms.service';
+import { CustomDetailedCourseOfferingDto } from '@/modules/lms/lms-module/dto/paginated-module.dto';
 
 @Injectable()
 export class CourseOfferingService {
@@ -295,6 +296,62 @@ export class CourseOfferingService {
     }));
 
     return { courseOfferings: offeringWithAvailableSlots, meta };
+  }
+
+  /**
+   * Retrieves a paginated list of course offerings.
+   *
+   * @param userId - The user ID
+   * @param role - The user role
+   *
+   * @returns A paginated list of course offerings
+   */
+  @Log({
+    logArgsMessage: ({ filters }: { filters: FilterCourseOfferingDto }) =>
+      `Fetching course offerings | page: ${filters.page}`,
+    logSuccessMessage: (result) => `Fetched ${result.length} course offerings`,
+    logErrorMessage: (err, { filters }: { filters: FilterCourseOfferingDto }) =>
+      `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,
+  })
+  async findActiveCourseOfferings(
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
+  ): Promise<CustomDetailedCourseOfferingDto[]> {
+    const whereClause: Prisma.CourseOfferingWhereInput = {
+      enrollmentPeriod: {
+        status: 'active',
+      },
+    };
+
+    const includeClause = {
+      course: true,
+      courseSections: {
+        include: {
+          mentor: true,
+          _count: {
+            select: {
+              courseEnrollments: {
+                where: { status: { not: 'dropped' } },
+              },
+            },
+          },
+        },
+      },
+    } satisfies Prisma.CourseOfferingInclude;
+
+    const courseOfferings = await this.prisma.client.courseOffering.findMany({
+      where: Object.keys(whereClause).length ? whereClause : undefined,
+      include: includeClause,
+    });
+
+    // Calculate available slots for each course section
+    return courseOfferings.map((offering) => ({
+      ...offering,
+      courseSections: offering.courseSections.map((section) => ({
+        ...section,
+        availableSlots: section.maxSlot - section._count.courseEnrollments,
+      })),
+    }));
   }
 
   /**

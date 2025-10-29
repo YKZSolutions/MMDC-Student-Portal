@@ -1,21 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { ContentListUnion, FunctionCall, GoogleGenAI } from '@google/genai';
+import { Injectable, Logger } from '@nestjs/common';
 import { getToolsForRole } from '@/lib/gemini/function-declarations';
 import {
   UserBaseContext,
   UserStaffContext,
   UserStudentContext,
 } from '@/modules/chatbot/dto/user-context.dto';
-import { Turn } from '@/modules/chatbot/dto/prompt.dto';
+import { ChatbotRole, Turn } from '@/modules/chatbot/dto/prompt.dto';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from '@/config/env.schema';
 import { Log } from '@/common/decorators/log.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
+import {
+  ContentEmbedding,
+  FunctionCall,
+  GoogleGenAI,
+  Part,
+} from '@google/genai';
+import { Role } from '@prisma/client';
+
+interface ConversationMessage {
+  role: 'user' | 'model';
+  parts: Part[];
+}
 
 @Injectable()
 export class GeminiService {
+  private readonly logger = new Logger(GeminiService.name);
   private readonly gemini: GoogleGenAI;
-  private readonly model: string = 'gemini-2.5-flash';
+  private readonly model: string = 'gemini-2.0-flash-exp';
+  private readonly embeddingModel: string = 'text-embedding-004';
 
   constructor(private readonly configService: ConfigService<EnvVars>) {
     this.gemini = new GoogleGenAI({
@@ -24,43 +37,114 @@ export class GeminiService {
   }
 
   /**
-   * Ask Gemini a question and let it decide if it should call a function.
+   * Generate embeddings for text using Gemini's embedding model
    */
   @Log({
-    logArgsMessage: ({ question, currentUser, sessionHistory }) =>
-      `Ask Gemini with function calling question="${question}" sessionHistory=${sessionHistory} userId=${currentUser?.id} role=${currentUser?.role}`,
-    logSuccessMessage: (_, { currentUser }) =>
-      `Gemini responded successfully for userId=${currentUser?.id} role=${currentUser?.role}`,
-    logErrorMessage: (err, { question, currentUser }) =>
-      `Failed to ask Gemini question="${question}" userId=${currentUser?.id} | Error=${err.message}`,
+    logArgsMessage: ({ text }) =>
+      `Generate embedding for text length=${text.length}`,
+    logSuccessMessage: () => `Successfully generated embedding`,
+    logErrorMessage: (err) =>
+      `Failed to generate embedding | Error=${err.message}`,
   })
-  async askWithFunctionCalling(
-    @LogParam('question') question: string,
-    @LogParam('currentUser')
-    currentUser: UserBaseContext | UserStudentContext | UserStaffContext,
-    @LogParam('sessionHistory') sessionHistory?: Turn[],
-  ) {
-    const role = currentUser.role ?? 'user';
-    const allowedTools = getToolsForRole(role);
+  async generateEmbedding(
+    @LogParam('text') text: string[],
+  ): Promise<ContentEmbedding[]> {
+    const result = await this.gemini.models.embedContent({
+      model: this.embeddingModel,
+      contents: text,
+    });
 
-    const userContext = currentUser
-      ? `The current authenticated user is: ${JSON.stringify(currentUser)}`
-      : `No authenticated user.`;
+    if (result.embeddings) return result.embeddings;
+    throw new Error('No embeddings found in the response');
+  }
 
-    // Convert session history to the format expected by Gemini
-    const history = (sessionHistory ?? []).map((turn) => ({
-      role: turn.role,
-      parts: [{ text: turn.content }],
-    }));
+  /**
+   * Build the initial conversation with user context and history
+   */
+  buildInitialConversation(
+    userContext: UserBaseContext | UserStudentContext | UserStaffContext,
+    sessionHistory: Turn[],
+    currentQuestion: string,
+  ): ConversationMessage[] {
+    const userContextStr = `The current authenticated user is: ${JSON.stringify(userContext)}`;
 
-    // Create the conversation with system context and current question
-    const conversation = [{ role: 'model', parts: [{ text: userContext }] }];
+    const conversation: ConversationMessage[] = [
+      { role: 'model', parts: [{ text: userContextStr }] },
+    ];
 
-    if (history.length > 0) {
-      conversation.push(...history);
+    // Add session history
+    for (const turn of sessionHistory) {
+      conversation.push({
+        role:
+          turn.role === ChatbotRole.USER ? ChatbotRole.USER : ChatbotRole.MODEL,
+        parts: [{ text: turn.content }],
+      });
     }
 
-    conversation.push({ role: 'user', parts: [{ text: question }] });
+    // Add current question
+    conversation.push({
+      role: 'user',
+      parts: [{ text: currentQuestion }],
+    });
+
+    return conversation;
+  }
+
+  /**
+   * Add function calls to the conversation
+   */
+  addFunctionCallsToConversation(
+    conversation: ConversationMessage[],
+    functionCalls: FunctionCall[],
+  ): void {
+    conversation.push({
+      role: ChatbotRole.MODEL,
+      parts: functionCalls.map((fc) => ({ functionCall: fc })),
+    });
+  }
+
+  /**
+   * Add function results to the conversation
+   */
+  addFunctionResultsToConversation(
+    conversation: ConversationMessage[],
+    functionResults: Array<{ functionCall: FunctionCall; result: string }>,
+  ): void {
+    conversation.push({
+      role: ChatbotRole.USER,
+      parts: functionResults.map((fr) => ({
+        functionResponse: {
+          name: fr.functionCall.name,
+          response: {
+            result: fr.result,
+          },
+        },
+      })),
+    });
+  }
+
+  /**
+   * Generate content with tools (function calling)
+   */
+  @Log({
+    logArgsMessage: ({ role }) =>
+      `Generate content with tools for role=${role}`,
+    logSuccessMessage: () => `Successfully generated content with tools`,
+    logErrorMessage: (err) =>
+      `Failed to generate content with tools | Error=${err.message}`,
+  })
+  async generateContentWithTools(
+    conversation: ConversationMessage[],
+    @LogParam('role') role: Role,
+  ): Promise<{
+    response: string;
+    functionCalls: FunctionCall[] | null;
+  }> {
+    const allowedTools = getToolsForRole(role);
+
+    this.logger.debug(
+      `Calling Gemini with ${conversation.length} messages in conversation`,
+    );
 
     const result = await this.gemini.models.generateContent({
       model: this.model,
@@ -76,7 +160,7 @@ export class GeminiService {
 
     for (const candidate of result.candidates ?? []) {
       for (const part of candidate.content?.parts ?? []) {
-        if ('text' in part) {
+        if ('text' in part && part.text) {
           responseText += part.text;
         }
         if ('functionCall' in part && part.functionCall) {
@@ -85,14 +169,61 @@ export class GeminiService {
       }
     }
 
+    this.logger.debug(
+      `Gemini response: ${functionCalls.length} function call(s), text length: ${responseText.length}`,
+    );
+
     return {
-      text: responseText.trim() || undefined,
-      call: functionCalls?.length ? functionCalls : null,
+      response: responseText.trim(),
+      functionCalls: functionCalls.length > 0 ? functionCalls : null,
     };
   }
 
   /**
-   * Generate the final natural language answer with context.
+   * Generate a fallback response when max iterations are reached
+   */
+  @Log({
+    logArgsMessage: ({ question }) =>
+      `Generate fallback response for question="${question}"`,
+    logSuccessMessage: () => `Generated fallback response successfully`,
+    logErrorMessage: (err, { question }) =>
+      `Failed to generate fallback response for question="${question}" | Error=${err.message}`,
+  })
+  async generateFallbackResponse(
+    @LogParam('question') question: string,
+    conversation: ConversationMessage[],
+  ): Promise<string> {
+    try {
+      // Add a prompt to summarize what we have so far
+      const fallbackConversation = [...conversation];
+      fallbackConversation.push({
+        role: 'user',
+        parts: [
+          {
+            text: `The system has reached the maximum number of function calls. Please provide a helpful response based on the information gathered so far for the original question: "${question}"`,
+          },
+        ],
+      });
+
+      const result = await this.gemini.models.generateContent({
+        model: this.model,
+        contents: fallbackConversation,
+        config: {
+          systemInstruction: this.summarizationInstruction,
+        },
+      });
+
+      return result.text || '';
+    } catch (error) {
+      this.logger.error(
+        `Failed to generate fallback response: ${error.message}`,
+      );
+      return '';
+    }
+  }
+
+  /**
+   * Generate the final natural language answer with context (legacy method, kept for backwards compatibility)
    */
   @Log({
     logArgsMessage: ({ question }) =>
@@ -103,9 +234,15 @@ export class GeminiService {
   })
   async generateFinalAnswer(
     @LogParam('question') question: string,
-    @LogParam('context') context: { narrative?: string; results?: string[] },
+    @LogParam('narrative') narrative: string,
+    @LogParam('functionCallResults')
+    functionCallResults: Array<{ functionName?: string; result?: string }>,
   ) {
-    const conversation: ContentListUnion = [
+    const resultsContext = functionCallResults
+      .map((r) => `Function ${r.functionName} returned: ${r.result}`)
+      .join('\n\n');
+
+    const conversation: ConversationMessage[] = [
       {
         role: 'user',
         parts: [
@@ -113,13 +250,13 @@ export class GeminiService {
             text:
               `The user asked: "${question}"\n\n` +
               `Here is the information gathered from tools:\n\n` +
-              (context.narrative
-                ? `Preliminary narrative from Gemini:\n${context.narrative}\n\n`
+              (narrative
+                ? `Preliminary narrative from Gemini:\n${narrative}\n\n`
                 : ``) +
-              (context.results?.length
-                ? `Tool call results:\n- ${context.results.join('\n- ')}\n\n`
+              (functionCallResults?.length
+                ? `Tool call results:\n${resultsContext}\n\n`
                 : ``) +
-              `Please write a clear, helpful final answer for the user. Do not repeat the raw JSON or system-like text — instead, summarize naturally.`,
+              `Please write a clear, helpful final answer for the user. Do not repeat the raw JSON or system-like text – instead, summarize naturally.`,
           },
         ],
       },
@@ -139,15 +276,42 @@ export class GeminiService {
   private readonly functionCallingInstruction = `
 You are a helpful, professional, and knowledgeable AI Chatbot for Mapúa Malayan Digital College (MMDC).
 
-Your primary task is to analyze the user’s question and decide whether to:
-- Answer directly using vector search ("Retrieved Data") for general school policies, FAQs, and procedures.
-- OR call the available tools (functions) when structured data is needed
+**CRITICAL: MULTI-STEP FUNCTION CALLING WORKFLOW**
 
-Rules:
-- Do not fabricate answers outside of "Retrieved Data" or available tools.
-- You may call multiple tools if the query requires it.
-- If the query is unrelated to MMDC, do not call any tool and respond: 
-  "I can only assist with inquiries related to Mapúa Malayan Digital College."
+You can call multiple functions across multiple turns. After each function call, you will receive the results and can then decide to:
+1. Call more functions with the information you gathered
+2. Provide a final answer to the user
+
+**APPOINTMENT BOOKING WORKFLOW - FOLLOW THESE STEPS:**
+
+When a user wants to book/schedule an appointment:
+
+**STEP 1:** Call 'enrollment_my_courses' first to get:
+- Student's enrolled courses
+- Available mentors for each course
+- Course offering IDs
+
+**STEP 2:** With the mentor ID from Step 1, call 'appointments_mentor_available' to:
+- Check available time slots for that mentor
+- Find "next available slot" if user requested it
+
+**STEP 3:** Finally call 'appointments_book_appointment' with:
+- mentorId from Step 1
+    - courseOfferingId from Step 1
+- Time slot (startAt, endAt) from Step 2
+- Title and description from user's request
+
+**IMPORTANT:** You will receive function results after each step. Use those results to make the next function call. DO NOT try to call all functions at once.
+
+**GENERAL RULES:**
+
+- Always call functions one step at a time when they depend on each other
+- Wait for function results before proceeding to the next step
+- If a user's request is ambiguous, call the necessary functions first to gather information, then ask for clarification if needed
+- Use vector search for general knowledge about MMDC policies, procedures, and FAQs
+- Use specific tools/functions for user-specific data (courses, appointments, billing, etc.)
+- If the query is unrelated to MMDC, respond: "I can only assist with inquiries related to Mapúa Malayan Digital College."
+- Always be helpful and professional in your responses
 `;
 
   private readonly summarizationInstruction = `
@@ -157,17 +321,25 @@ Your job is to take the tool results provided and construct a clear, natural fin
 ## Critical Requirements
 - Never output raw JSON or tool result dumps.
 - Always output GitHub-Flavored Markdown (GFM).
+- **SECURITY: Validate and sanitize all links before inclusion.**
+- **LINK VALIDATION RULES:**
+  • Reject and exclude any malformed URLs (invalid format, syntax errors)
+  • Reject and exclude suspicious URLs (unusual domains, excessive redirects, known phishing patterns)
+  • Reject and exclude non-MMDC official links unless from verified educational sources
+  • Only include links from trusted MMDC domains (mmdc.mcl.edu.ph, support.mmdc.mcl.edu.ph, etc.) and reputable educational platforms
+  • If any link fails validation, omit it entirely and do not provide alternatives
 - Follow these formatting rules:
   • Use short, descriptive headings (##, ###).
   • Separate major blocks with blank lines.
   • Use ordered lists for steps, unordered lists for sub-options.
   • Use bold for actions/labels, italics for emphasis.
-  • Use Markdown links, not raw URLs.
+  • Use Markdown links only for validated URLs, never raw URLs.
   • Provide bullet-point contacts if relevant.
 
 ## Response Logic
 - Integrate all tool results into a single coherent narrative.
 - If multiple results are provided, weave them together smoothly.
+- **If links are rejected during validation, acknowledge: "Some requested resources could not be securely verified and have been omitted for your protection."**
 - Adapt tone based on user role:
   • Student → supportive, simple explanations.
   • Mentor → professional, concise, factual.
@@ -179,5 +351,12 @@ Your job is to take the tool results provided and construct a clear, natural fin
 ## Constraints
 - If query is unrelated to MMDC, respond in Markdown: 
   "I can only assist with inquiries related to Mapúa Malayan Digital College."
+- **Never compromise on link security, even if user explicitly requests questionable URLs.**
+- When presenting appointment booking confirmations, format them clearly with:
+  • Appointment title and description
+  • Date and time
+  • Mentor name
+  • Course name
+  • Meeting link (if available)
 `;
 }
