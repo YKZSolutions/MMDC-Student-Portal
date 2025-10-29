@@ -1,12 +1,12 @@
-import CourseGrades from '@/pages/shared/lms/$lmsCode/grades'
+import CourseOverview from '@/pages/shared/lms/$lmsCode/overview'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
-  '/(protected)/lms/$lmsCode/grades/',
+  '/(protected)/lms/$lmsCode/_layout/overview/',
 )({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <CourseGrades />
+  return <CourseOverview />
 }

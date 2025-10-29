@@ -4,5 +4,6 @@ packages:
   - scripts
   - supabase
   - cypress
+  - shared
 onlyBuiltDependencies:
   - supabase

@@ -443,6 +443,12 @@ importers:
         specifier: ^5.8.3
         version: 5.9.2
 
+  shared:
+    dependencies:
+      '@blocknote/core':
+        specifier: '*'
+        version: 0.37.0(@types/hast@3.0.4)
+
   supabase:
     devDependencies:
       supabase:

@@ -28,7 +28,7 @@ import '@mantine/notifications/styles.css'
 import './styles.css'
 
 // Listen to auth token refresh
-import './integrations/supabase/supabase-auth-event.ts'
+// import './integrations/supabase/supabase-auth-event.ts'
 
 // Create a new router instance
 const router = createRouter({

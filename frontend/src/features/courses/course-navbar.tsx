@@ -1,11 +1,9 @@
 import { Button, Stack } from '@mantine/core'
 import { Link, useMatchRoute } from '@tanstack/react-router'
-import {
-  type SectionOption,
-} from './course-select-combobox'
+import type { FileRoutesByTo } from '@/routeTree.gen'
 
 export interface CourseNavItem {
-  link: string
+  link: keyof FileRoutesByTo
   label: string
   fuzzy?: boolean
 }
@@ -28,16 +26,7 @@ function CourseNavButton({ item }: { item: CourseNavItem }) {
   )
 }
 
-function CourseNavBar({
-  navItems,
-  courseCode,
-}: {
-  navItems: CourseNavItem[]
-  courseCode: string
-  sections?: SectionOption[]
-  currentSectionId?: string
-  onSectionChange?: (id: string) => void
-}) {
+function CourseNavBar({ navItems }: { navItems: CourseNavItem[] }) {
   return (
     <Stack
       gap={'sm'}
@@ -46,8 +35,6 @@ function CourseNavBar({
       h={'100vh'}
       style={{ position: 'sticky', top: 0 }}
     >
-      {/* WIP: Implement this if sections are available for courses */}
-      {/* <CourseSelectCombobox /> */}
       {navItems.map((item, index) => (
         <CourseNavButton key={index} item={item} />
       ))}

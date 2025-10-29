@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
-  '/(protected)/lms/$lmsCode/modules/$itemId/publish',
+  '/(protected)/lms/$lmsCode/_layout/modules/$itemId/publish',
 )({
   validateSearch: (search: Record<string, unknown>) => {
     return {

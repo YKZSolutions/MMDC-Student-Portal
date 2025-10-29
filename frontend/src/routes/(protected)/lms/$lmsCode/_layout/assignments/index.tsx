@@ -6,7 +6,7 @@ const lmsAssignmentStateSearchSchema = z.object({
   view: z.uuidv4().optional(),
 })
 
-export const Route = createFileRoute('/(protected)/lms/$lmsCode/assignments/')({
+export const Route = createFileRoute('/(protected)/lms/$lmsCode/_layout/assignments/')({
   component: RouteComponent,
   validateSearch: lmsAssignmentStateSearchSchema,
 })

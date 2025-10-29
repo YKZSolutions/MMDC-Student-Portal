@@ -5,7 +5,7 @@ import {
 import ModuleContentView from '@/features/courses/modules/content/module-content-view'
 import { getRouteApi } from '@tanstack/react-router'
 
-const route = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/')
+const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/modules/$itemId/')
 
 function ModulesContentPage() {
   return (

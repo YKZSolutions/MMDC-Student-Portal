@@ -2,7 +2,7 @@ import SubmissionPage from '@/pages/admin/lms/$lmsCode/modules/$itemId/submit'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
-  '/(protected)/lms/$lmsCode/modules/$itemId/submit',
+  '/(protected)/lms/$lmsCode/_layout/modules/$itemId/submit',
 )({
   component: RouteComponent,
 })
