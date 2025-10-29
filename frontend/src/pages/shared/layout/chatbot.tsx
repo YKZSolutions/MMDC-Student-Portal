@@ -10,7 +10,6 @@ import {
   Textarea,
   useMantineTheme,
   Transition,
-  Badge,
 } from '@mantine/core'
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Draggable from 'react-draggable'
@@ -18,7 +17,6 @@ import {
   IconMessageChatbot,
   IconSend,
   IconX,
-
   IconTrash,
 } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
@@ -60,33 +58,42 @@ const Chatbot = ({
     isSuccess,
   } = useMutation(chatbotControllerPromptMutation())
 
-  // Compute the "show" snap position
-  const getShowPosition = useCallback(() => {
-    if (isMobile) {
-      return { x: 10, y: window.innerHeight - (fabHeight || 60) - 10 }
-    }
-    return {
-      x: window.innerWidth - (fabWidth || 200) - 20,
-      y: window.innerHeight - (fabHeight || 60) - 20,
-    }
-  }, [isMobile, fabWidth, fabHeight])
-
-  const clampPosition = useCallback(
-    (pos: { x: number; y: number }) => {
-      const width = fabWidth || 200
-      const height = fabHeight || 60
-      return {
-        x: Math.min(Math.max(pos.x, 10), window.innerWidth - width - 20),
-        y: Math.min(Math.max(pos.y, 10), window.innerHeight - height - 20),
-      }
-    },
-    [fabWidth, fabHeight],
-  )
-
-  // Track the positioning state more precisely
-  const [position, setPosition] = useState(() => getShowPosition())
+  // Simple state for dragging
   const [isDragging, setIsDragging] = useState(false)
   const dragEndedRef = useRef(false)
+
+  // Simple initial position calculation
+  const getInitialPosition = useCallback(() => {
+    if (isMobile) {
+      return { x: 10, y: window.innerHeight - 100 }
+    }
+    return {
+      x: window.innerWidth - 200,
+      y: window.innerHeight - 100,
+    }
+  }, [isMobile])
+
+  // Set initial position
+  const [position, setPosition] = useState(getInitialPosition)
+
+  // Reset position when FAB is shown again after being hidden
+  useEffect(() => {
+    if (!isChatbotFabHidden) {
+      setPosition(getInitialPosition())
+    }
+  }, [isChatbotFabHidden, getInitialPosition])
+
+  // Update position when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      if (!isChatbotFabHidden) {
+        setPosition(getInitialPosition())
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [isChatbotFabHidden, getInitialPosition])
 
   // Reset when FAB gets hidden
   useEffect(() => {
@@ -94,26 +101,6 @@ const Chatbot = ({
       setChatbotOpen(false)
     }
   }, [isChatbotFabHidden, setChatbotOpen])
-
-  // Position the FAB when unhidden or when dimensions change
-  useEffect(() => {
-    if (!isChatbotFabHidden) {
-      const newPosition = getShowPosition()
-      setPosition(newPosition)
-    }
-  }, [isChatbotFabHidden, fabWidth, fabHeight, getShowPosition])
-
-  // Clamp on resize
-  useEffect(() => {
-    const updatePosition = () => {
-      if (!isChatbotFabHidden) {
-        setPosition((prev) => clampPosition(prev))
-      }
-    }
-
-    window.addEventListener('resize', updatePosition)
-    return () => window.removeEventListener('resize', updatePosition)
-  }, [isChatbotFabHidden, clampPosition])
 
   const addMessage = async (userInput: string) => {
     setErrorMessage('')
@@ -141,26 +128,39 @@ const Chatbot = ({
     }
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Only handle mouse down for dragging on non-mobile devices
+    if (!isMobile) {
+      // Close the chat window immediately on mouse down
+      setChatbotOpen(false)
+    }
+  }
+
+  const handleDragStart = () => {
+    setIsDragging(true)
+  }
+
   const handleDragStop = (e: any, data: any) => {
     setIsDragging(false)
+    setPosition({ x: data.x, y: data.y })
+
     const distance = Math.hypot(data.x - DROPZONE_X, data.y - DROPZONE_Y)
 
     if (distance < DROP_ZONE_RADIUS) {
-      // Set the flag to prevent the button click from opening the chat
       dragEndedRef.current = true
       setChatbotFabHidden(true)
       setChatbotOpen(false)
 
-      // Reset the flag after a short delay
       setTimeout(() => {
         dragEndedRef.current = false
       }, 100)
     }
   }
 
-  const handleFabClick = () => {
-    // Prevent opening if we just ended a drag in the drop zone
+  const handleFabClick = (e: React.MouseEvent) => {
+    // Prevent click if we just ended a drag
     if (dragEndedRef.current) {
+      e.preventDefault()
       return
     }
     setChatbotOpen(!isChatbotOpen)
@@ -178,11 +178,19 @@ const Chatbot = ({
     return 420
   }
 
+  // Don't render anything if FAB is hidden
+  if (isChatbotFabHidden) {
+    return null
+  }
+
   return (
     <div
       style={{
-        position: 'absolute',
-        inset: 0,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         pointerEvents: 'none',
         zIndex: 2000,
       }}
@@ -205,12 +213,7 @@ const Chatbot = ({
         nodeRef={nodeRef}
         position={position}
         bounds="parent"
-        onDrag={(e, data) => {
-          setIsDragging(true)
-          setChatbotOpen(false)
-          setPosition({ x: data.x, y: data.y })
-        }}
-        onStart={undefined}
+        onStart={handleDragStart}
         onStop={handleDragStop}
         handle=".chatbot-drag-handle"
         disabled={isMobile}
@@ -220,11 +223,9 @@ const Chatbot = ({
           style={{
             position: 'fixed',
             cursor: isDragging ? 'grabbing' : isMobile ? 'pointer' : 'grab',
-            pointerEvents: isChatbotFabHidden ? 'none' : 'auto',
             userSelect: 'none',
-            visibility: isChatbotFabHidden ? 'hidden' : 'visible',
-            transition: isDragging ? 'transform 0.2s ease' : 'none',
-            transform: 'translateZ(0)',
+            pointerEvents: 'auto',
+            zIndex: 2001,
           }}
         >
           <Popover
@@ -253,6 +254,7 @@ const Chatbot = ({
                 ref={fabRef}
                 className="chatbot-drag-handle"
                 onClick={handleFabClick}
+                onMouseDown={handleMouseDown}
                 variant="filled"
                 color="secondary"
                 size={isMobile ? 'md' : 'lg'}
@@ -265,6 +267,7 @@ const Chatbot = ({
                   transform: isDragging ? 'scale(1.05)' : 'none',
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   minWidth: isMobile ? 'auto' : 140,
+                  pointerEvents: 'auto',
                 }}
               >
                 <Text size={isMobile ? 'sm' : 'lg'} fw={500}>
