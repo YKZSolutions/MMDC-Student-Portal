@@ -17,7 +17,7 @@ import {
   UpdateUserStaffDto,
   UpdateUserStudentDto,
 } from './dto/update-user-details.dto';
-import { Prisma, Role } from '@prisma/client';
+import { CourseEnrollmentStatus, Prisma, Role } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
@@ -422,33 +422,49 @@ export class UsersService {
 
     where.deletedAt = null;
 
-    //If student, only allow finding their mentor's details
+    // Initialize AND array to accumulate conditions
+    const andConditions: Prisma.UserWhereInput[] = [];
+
+    // If student, only allow finding their mentor's details
     if (role && role === Role.student) {
       if (!userId) throw new BadRequestException('User ID is required');
 
       where.role = Role.mentor;
-      where.AND = {
+
+      // Add student-specific condition to AND array
+      andConditions.push({
         mentorSections: {
           some: {
             courseOffering: {
-              courseEnrollments: {
-                some: {
-                  student: {
-                    id: userId,
-                  },
+              enrollmentPeriod: {
+                status: 'active',
+              },
+            },
+            courseEnrollments: {
+              some: {
+                studentId: userId,
+                deletedAt: null,
+                status: {
+                  in: [
+                    'enlisted',
+                    'finalized',
+                    'enrolled',
+                  ] as CourseEnrollmentStatus[],
                 },
               },
             },
+            deletedAt: null,
           },
         },
-      };
+      });
     }
 
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
-      where.AND = searchTerms.map((term) => ({
-        OR: [
+      // Create search condition
+      const searchCondition: Prisma.UserWhereInput = {
+        OR: searchTerms.flatMap((term) => [
           {
             firstName: {
               contains: term,
@@ -469,8 +485,45 @@ export class UsersService {
               },
             },
           },
-        ],
-      }));
+          // Also search by course name if the user is a mentor
+          ...(role === Role.student
+            ? [
+                {
+                  mentorSections: {
+                    some: {
+                      courseOffering: {
+                        course: {
+                          OR: [
+                            {
+                              name: {
+                                contains: term,
+                                mode: Prisma.QueryMode.insensitive,
+                              },
+                            },
+                            {
+                              courseCode: {
+                                contains: term,
+                                mode: Prisma.QueryMode.insensitive,
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ]),
+      };
+
+      // Add search condition to AND array
+      andConditions.push(searchCondition);
+    }
+
+    // If we have any AND conditions, apply them
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
   }
 
