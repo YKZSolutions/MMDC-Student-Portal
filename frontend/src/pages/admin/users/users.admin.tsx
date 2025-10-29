@@ -161,6 +161,7 @@ function UsersPage() {
             ml={'auto'}
           >
             <TextInput
+              data-cy="search-user-input"
               placeholder="Search name/email"
               radius={'md'}
               leftSection={<IconSearch size={18} stroke={1} />}
