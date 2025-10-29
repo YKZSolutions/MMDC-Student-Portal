@@ -34,7 +34,7 @@ function getMajorCode(major: string) {
 
 export function createProgramData(
   programName: string,
-): Prisma.ProgramCreateInput {
+): Prisma.ProgramCreateManyInput {
   return {
     programCode: getProgramCode(programName),
     name: programName,
@@ -48,9 +48,9 @@ export function createMajorData(
   programId: string,
   programCode: string,
   programName: string,
-): Prisma.MajorCreateInput {
+): Prisma.MajorCreateManyInput {
   return {
-    program: { connect: { id: programId } },
+    programId,
     majorCode: `${programCode}-${getMajorCode(specialization)}`,
     name: `${programName} Specialization in ${specialization}`,
     description: `Specialization in ${specialization} covering advanced topics and practical applications.`,
@@ -60,7 +60,7 @@ export function createMajorData(
 export function createCourseData(
   index: number,
   majorCode: string,
-): Prisma.CourseCreateInput {
+): Prisma.CourseCreateManyInput {
   const courseTitle =
     COURSE_TITLES[index % COURSE_TITLES.length] ||
     `${faker.helpers.arrayElement(COURSE_TOPICS)} ${faker.helpers.arrayElement(COURSE_SUBJECTS)}`;
@@ -79,5 +79,30 @@ export function createCourseData(
       'Seminar',
       'Lecture/Lab',
     ]),
+  };
+}
+
+export function createCurriculumData(
+  majorId: string,
+  majorName: string,
+): Prisma.CurriculumCreateManyInput {
+  return {
+    majorId,
+    name: `${majorName} Curriculum`,
+    description: `Official curriculum for ${majorName}`,
+  };
+}
+
+export function createCurriculumCourseData(
+  curriculumId: string,
+  courseId: string,
+  order: number,
+): Prisma.CurriculumCourseCreateManyInput {
+  return {
+    curriculumId,
+    courseId,
+    order,
+    year: Math.floor(order / 5) + 1,
+    semester: (order % 2) + 1,
   };
 }

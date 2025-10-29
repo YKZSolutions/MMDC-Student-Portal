@@ -4,6 +4,7 @@ import {
   ContentProgress,
   CourseEnrollment,
   ModuleContent,
+  Prisma,
   ProgressStatus,
 } from '@prisma/client';
 import { log } from '../utils/helpers';
@@ -11,6 +12,7 @@ import { seedConfig } from '../seed.config';
 import {
   createAssignmentSubmissionData,
   createContentProgressData,
+  createGradeRecordData,
 } from '../factories/submission.factory';
 import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
 
@@ -57,11 +59,13 @@ export async function seedSubmissions(
     }),
   );
 
-  const assignmentSubmissions: AssignmentSubmission[] = [];
-  const contentProgress: ContentProgress[] = [];
+  // Pre-calculate assignment submissions data for batch creation
+  const assignmentSubmissionsToCreate: Prisma.AssignmentSubmissionCreateManyInput[] = [];
+  const contentProgressToCreate: Prisma.ContentProgressCreateManyInput[] = [];
+  const gradeRecordsToCreate: Prisma.GradeRecordCreateManyInput[] = [];
 
-  // Track submissions to avoid duplicates
-  const submissionTracker = new Set<string>();
+  // Track submissions to avoid duplicates (studentId-assignmentId)
+  const submissionTracker = new Map<string, number>(); // Maps studentId-assignmentId to attempt count
 
   for (const enrollment of enrollments) {
     const studentId = enrollment.studentId;
@@ -98,22 +102,39 @@ export async function seedSubmissions(
         !submissionTracker.has(submissionKey) &&
         Math.random() < seedConfig.SUBMISSION_CHANCE
       ) {
-        try {
-          const submission = await prisma.assignmentSubmission.create({
-            data: createAssignmentSubmissionData(studentId, assignment.id),
-          });
-          assignmentSubmissions.push(submission);
-          submissionTracker.add(submissionKey); // Mark this combination as processed
-        } catch (error) {
-          // If there's still a unique constraint error, log it and continue
-          if (error.code === 'P2002') {
-            console.warn(
-              `Duplicate submission attempted for student ${studentId} and assignment ${assignment.id}`,
-            );
-            continue;
-          }
-          throw error;
-        }
+        // Generate attempt number (1-3)
+        const attemptNumber = 1; // Start with attempt 1 for simplicity
+        submissionTracker.set(submissionKey, attemptNumber);
+
+        assignmentSubmissionsToCreate.push({
+          studentId,
+          assignmentId: assignment.id,
+          content: [
+            {
+              type: 'doc',
+              content: [
+                {
+                  type: 'heading',
+                  attrs: { level: 2 },
+                  content: [{ type: 'text', text: 'Assignment Submission' }],
+                },
+                {
+                  type: 'paragraph',
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'This is a seeded assignment submission with sample content.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          submittedAt: new Date(),
+          lateDays: Math.random() < 0.15 ? Math.floor(Math.random() * 5) + 1 : 0,
+          state: 'SUBMITTED',
+          attemptNumber,
+        });
       }
     }
 
@@ -130,43 +151,115 @@ export async function seedSubmissions(
             ? ProgressStatus.COMPLETED
             : ProgressStatus.IN_PROGRESS;
 
-        try {
-          const progress = await prisma.contentProgress.upsert({
-            where: {
-              studentId_moduleContentId: {
-                studentId,
-                moduleContentId: content.id,
-              },
-            },
-            update: {
-              status,
-              ...(status === ProgressStatus.COMPLETED && {
-                completedAt: new Date(),
-              }),
-              lastAccessedAt: new Date(),
-            },
-            create: {
-              ...createContentProgressData(studentId, moduleId, content.id),
-              status,
-              lastAccessedAt: new Date(),
-            },
-          });
-          contentProgress.push(progress);
-        } catch (error) {
-          console.warn(
-            `Error creating progress for student ${studentId} and content ${content.id}:`,
-            error.message,
-          );
-        }
+        contentProgressToCreate.push({
+          studentId,
+          moduleId,
+          moduleContentId: content.id,
+          status,
+          completedAt: status === ProgressStatus.COMPLETED ? new Date() : null,
+          lastAccessedAt: new Date(),
+        });
       }
     }
   }
 
-  log(`-> Created ${assignmentSubmissions.length} assignment submissions.`);
-  log(`-> Created ${contentProgress.length} content progress records.`);
+  // Batch create assignment submissions
+  let createdSubmissions: AssignmentSubmission[] = [];
+  if (assignmentSubmissionsToCreate.length > 0) {
+    try {
+      await prisma.assignmentSubmission.createMany({
+        data: assignmentSubmissionsToCreate,
+      });
+
+      // Fetch created submissions
+      createdSubmissions = await prisma.assignmentSubmission.findMany({
+        where: {
+          studentId: {
+            in: assignmentSubmissionsToCreate.map(s => s.studentId),
+          },
+        },
+        include: {
+          assignment: true,
+          student: true,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        log('Warning: Some duplicate assignment submissions were skipped');
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  // Batch create content progress records
+  if (contentProgressToCreate.length > 0) {
+    await prisma.contentProgress.createMany({
+      data: contentProgressToCreate,
+    });
+  }
+
+  // Create grade records for graded submissions
+  for (const submission of createdSubmissions) {
+    if (submission.state === 'GRADED') {
+      gradeRecordsToCreate.push(createGradeRecordData(
+        submission.studentId,
+        true, // isAssignment
+      ));
+    }
+  }
+
+  // Batch create grade records
+  if (gradeRecordsToCreate.length > 0) {
+    await prisma.gradeRecord.createMany({
+      data: gradeRecordsToCreate,
+    });
+  }
+
+  // Fetch final data
+  const finalSubmissions = await prisma.assignmentSubmission.findMany({
+    where: {
+      studentId: {
+        in: enrollments.map(e => e.studentId),
+      },
+    },
+    include: {
+      assignment: true,
+      student: true,
+    },
+  });
+
+  const finalProgress = await prisma.contentProgress.findMany({
+    where: {
+      studentId: {
+        in: enrollments.map(e => e.studentId),
+      },
+    },
+    include: {
+      student: true,
+      module: true,
+      moduleContent: true,
+    },
+  });
+
+  const finalGrades = await prisma.gradeRecord.findMany({
+    where: {
+      studentId: {
+        in: enrollments.map(e => e.studentId),
+      },
+    },
+    include: {
+      student: true,
+    },
+  });
+
+  log(`-> Created ${finalSubmissions.length} assignment submissions.`);
+  log(`-> Created ${finalProgress.length} content progress records.`);
+  log(`-> Created ${finalGrades.length} grade records.`);
 
   return {
-    assignmentSubmissions,
-    contentProgress,
+    assignmentSubmissions: finalSubmissions,
+    contentProgress: finalProgress,
+    gradeRecords: finalGrades,
   };
 }

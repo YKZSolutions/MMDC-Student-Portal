@@ -13,4 +13,4 @@ n8n/tailscale_state
 n8n/**/logs
 n8n/letsencrypt
 
-.DS_Store
+.DS_Storecypress/screenshots
