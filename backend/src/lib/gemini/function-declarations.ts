@@ -42,7 +42,9 @@ const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
 export const vectorSearchFn: FunctionDeclaration = {
   name: 'search_vector',
   description:
-    'Search for documents using vector search. It answers general questions (non user specific).',
+    'Search for documents using vector search. It answers general questions (non user specific).' +
+    'For questions related to enrollment, first check if the student has previously enrolled in any course, if so' +
+    'then that student might be a continuing student. If unsure, ask the student if they are new or continuing',
   parameters: {
     type: Type.OBJECT,
     properties: {

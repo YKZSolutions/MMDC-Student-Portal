@@ -9,7 +9,6 @@ import {
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 import {
-  BadRequestException,
   Inject,
   Injectable,
   Logger,
