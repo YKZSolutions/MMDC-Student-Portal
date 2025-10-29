@@ -40,7 +40,7 @@ export class CourseEnrollmentService {
    * Retrieves all active (enlisted) course enrollments for the current student
    * within the active enrollment period.
    *
-   * This returns detailed enrollment records including the associated
+   * This returns detailed enrollment records, including the associated
    * course offering and course section (with mentor/user data).
    *
    * @param userId - The ID of the user
