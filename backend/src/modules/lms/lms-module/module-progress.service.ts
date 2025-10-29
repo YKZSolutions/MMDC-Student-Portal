@@ -359,6 +359,51 @@ export class ModuleProgressService {
     return result;
   }
 
+  async getMyModulesProgress(
+    userId: string,
+    role: Role,
+    filters?: { status?: string; search?: string },
+  ) {
+    // Get dashboard progress first
+    const dashboard = await this.getDashboardProgress(userId, role);
+
+    let modules = dashboard.studentProgress || [];
+
+    // Apply filters if provided
+    if (filters?.status) {
+      modules = modules.filter((module) => module.status === filters.status);
+    }
+
+    if (filters?.search) {
+      const searchLower = filters.search.toLowerCase();
+      modules = modules.filter((module) =>
+        module.moduleTitle.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Calculate summary
+    const summary = {
+      totalModules: modules.length,
+      completedModules: modules.filter((m) => m.status === 'COMPLETED').length,
+      inProgressModules: modules.filter((m) => m.status === 'IN_PROGRESS')
+        .length,
+      notStartedModules: modules.filter((m) => m.status === 'NOT_STARTED')
+        .length,
+      overallProgress:
+        modules.length > 0
+          ? Math.round(
+              modules.reduce((sum, m) => sum + m.progressPercentage, 0) /
+                modules.length,
+            )
+          : 0,
+    };
+
+    return {
+      modules,
+      summary,
+    };
+  }
+
   // Private helper methods
 
   private async getStudentIdsForUser(

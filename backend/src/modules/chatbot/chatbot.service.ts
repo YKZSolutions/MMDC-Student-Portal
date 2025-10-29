@@ -51,6 +51,7 @@ import { CreateAppointmentDto } from '@/generated/nestjs-dto/create-appointment.
 import { CreateAppointmentItemDto } from '@/modules/appointments/dto/create-appointment.dto';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import { ModuleProgressService } from '@/modules/lms/lms-module/module-progress.service';
 
 @Injectable()
 export class ChatbotService {
@@ -68,6 +69,7 @@ export class ChatbotService {
     private readonly lmsService: LmsService,
     private readonly appointmentsService: AppointmentsService,
     private readonly notificationsService: NotificationsService,
+    private readonly progressService: ModuleProgressService,
     @Inject('PrismaService')
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
@@ -540,6 +542,77 @@ export class ChatbotService {
           role,
         );
         return `Notification counts: ${JSON.stringify(counts)}`;
+      }
+
+      case 'progress_module_overview': {
+        const args = functionCall.args as {
+          moduleId: string;
+          courseOfferingId?: string;
+        };
+
+        const progress = await this.progressService.getModuleProgressOverview(
+          args.moduleId,
+          userContext.id,
+          userContext.role,
+          args.courseOfferingId
+            ? { courseOfferingId: args.courseOfferingId }
+            : undefined,
+        );
+
+        return `Module progress overview: ${JSON.stringify(progress)}`;
+      }
+
+      case 'progress_module_detail': {
+        const args = functionCall.args as {
+          moduleId: string;
+          courseOfferingId?: string;
+        };
+
+        const progress = await this.progressService.getModuleProgressDetail(
+          args.moduleId,
+          userContext.id,
+          userContext.role,
+          args.courseOfferingId
+            ? { courseOfferingId: args.courseOfferingId }
+            : undefined,
+        );
+
+        return `Module progress detail: ${JSON.stringify(progress)}`;
+      }
+
+      case 'progress_dashboard': {
+        const args = functionCall.args as {
+          courseOfferingId?: string;
+          search?: string;
+        };
+
+        const dashboard = await this.progressService.getDashboardProgress(
+          userContext.id,
+          userContext.role,
+          {
+            ...(args.courseOfferingId && {
+              courseOfferingId: args.courseOfferingId,
+            }),
+          },
+        );
+
+        return `Progress dashboard: ${JSON.stringify(dashboard)}`;
+      }
+
+      case 'progress_my_modules': {
+        const args = functionCall.args as {
+          status?: string;
+          search?: string;
+        };
+
+        const myModulesProgress =
+          await this.progressService.getMyModulesProgress(
+            userContext.id,
+            userContext.role,
+            args,
+          );
+
+        return `My modules progress: ${JSON.stringify(myModulesProgress)}`;
       }
 
       case 'date_utility': {

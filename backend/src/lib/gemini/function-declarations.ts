@@ -1207,6 +1207,242 @@ export const billingInvoiceDetailsFn: FunctionDeclaration = {
 };
 
 // -------------------------
+// Progress function declarations
+// -------------------------
+
+export const progressModuleOverviewFn: FunctionDeclaration = {
+  name: 'progress_module_overview',
+  description:
+    'Get overall progress statistics for a specific module including completion percentage, overdue assignments, and student progress.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      moduleId: {
+        type: Type.STRING,
+        description: 'ID of the module to get progress overview for',
+      },
+      courseOfferingId: {
+        type: Type.STRING,
+        description: 'Optional: Filter by specific course offering ID',
+      },
+    },
+    required: ['moduleId'],
+  },
+  response: {
+    type: Type.OBJECT,
+    properties: {
+      moduleId: { type: Type.STRING },
+      moduleTitle: { type: Type.STRING },
+      completedContentItems: { type: Type.INTEGER },
+      totalContentItems: { type: Type.INTEGER },
+      notStartedContentItems: { type: Type.INTEGER },
+      overdueAssignmentsCount: { type: Type.INTEGER },
+      progressPercentage: { type: Type.INTEGER },
+      status: { type: Type.STRING },
+      lastAccessedAt: { type: Type.STRING, format: 'date-time' },
+      completedStudentsCount: { type: Type.INTEGER },
+      totalStudentsCount: { type: Type.INTEGER },
+      moduleCompletionPercentage: { type: Type.INTEGER },
+    },
+  },
+};
+
+export const progressModuleDetailFn: FunctionDeclaration = {
+  name: 'progress_module_detail',
+  description:
+    'Get detailed progress breakdown for a module including sections and individual content items with completion status.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      moduleId: {
+        type: Type.STRING,
+        description: 'ID of the module to get detailed progress for',
+      },
+      courseOfferingId: {
+        type: Type.STRING,
+        description: 'Optional: Filter by specific course offering ID',
+      },
+    },
+    required: ['moduleId'],
+  },
+  response: {
+    type: Type.OBJECT,
+    properties: {
+      moduleId: { type: Type.STRING },
+      moduleTitle: { type: Type.STRING },
+      sections: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            title: { type: Type.STRING },
+            order: { type: Type.INTEGER },
+            completedContentItems: { type: Type.INTEGER },
+            totalContentItems: { type: Type.INTEGER },
+            progressPercentage: { type: Type.INTEGER },
+            completedStudentsCount: { type: Type.INTEGER },
+            totalStudentsCount: { type: Type.INTEGER },
+            completionPercentage: { type: Type.INTEGER },
+            contentItems: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  subtitle: { type: Type.STRING },
+                  contentType: { type: Type.STRING },
+                  order: { type: Type.INTEGER },
+                  status: { type: Type.STRING },
+                  completedAt: { type: Type.STRING, format: 'date-time' },
+                  lastAccessedAt: { type: Type.STRING, format: 'date-time' },
+                  completedStudentsCount: { type: Type.INTEGER },
+                  totalStudentsCount: { type: Type.INTEGER },
+                  completionPercentage: { type: Type.INTEGER },
+                },
+              },
+            },
+          },
+        },
+      },
+      overallProgress: {
+        type: Type.OBJECT,
+        properties: {
+          completedContentItems: { type: Type.INTEGER },
+          totalContentItems: { type: Type.INTEGER },
+          progressPercentage: { type: Type.INTEGER },
+          status: { type: Type.STRING },
+          completedStudentsCount: { type: Type.INTEGER },
+          totalStudentsCount: { type: Type.INTEGER },
+          moduleCompletionPercentage: { type: Type.INTEGER },
+        },
+      },
+    },
+  },
+};
+
+export const progressDashboardFn: FunctionDeclaration = {
+  name: 'progress_dashboard',
+  description:
+    'Get comprehensive progress dashboard with overview of all modules, completion statistics, and student progress (for mentors/admins).',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      courseOfferingId: {
+        type: Type.STRING,
+        description: 'Optional: Filter by specific course offering ID',
+      },
+      search: {
+        type: Type.STRING,
+        description: 'Optional: Search term for filtering modules by title',
+      },
+    },
+  },
+  response: {
+    type: Type.OBJECT,
+    properties: {
+      studentProgress: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            moduleId: { type: Type.STRING },
+            moduleTitle: { type: Type.STRING },
+            completedContentItems: { type: Type.INTEGER },
+            totalContentItems: { type: Type.INTEGER },
+            notStartedContentItems: { type: Type.INTEGER },
+            overdueAssignmentsCount: { type: Type.INTEGER },
+            progressPercentage: { type: Type.INTEGER },
+            status: { type: Type.STRING },
+            lastAccessedAt: { type: Type.STRING, format: 'date-time' },
+            completedStudentsCount: { type: Type.INTEGER },
+            totalStudentsCount: { type: Type.INTEGER },
+            moduleCompletionPercentage: { type: Type.INTEGER },
+          },
+        },
+      },
+      overallStats: {
+        type: Type.OBJECT,
+        properties: {
+          totalStudents: { type: Type.INTEGER },
+          averageProgress: { type: Type.INTEGER },
+          completedModules: { type: Type.INTEGER },
+          inProgressModules: { type: Type.INTEGER },
+          notStartedModules: { type: Type.INTEGER },
+        },
+      },
+      studentStats: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            studentId: { type: Type.STRING },
+            studentName: { type: Type.STRING },
+            completedModules: { type: Type.INTEGER },
+            totalModules: { type: Type.INTEGER },
+            averageProgress: { type: Type.INTEGER },
+            lastActivity: { type: Type.STRING, format: 'date-time' },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const progressMyModulesFn: FunctionDeclaration = {
+  name: 'progress_my_modules',
+  description:
+    'Get progress overview for all modules the current user is enrolled in or responsible for.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      status: {
+        type: Type.STRING,
+        enum: ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'],
+        description: 'Optional: Filter modules by progress status',
+      },
+      search: {
+        type: Type.STRING,
+        description: 'Optional: Search term for filtering modules by title',
+      },
+    },
+  },
+  response: {
+    type: Type.OBJECT,
+    properties: {
+      modules: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            moduleId: { type: Type.STRING },
+            moduleTitle: { type: Type.STRING },
+            courseName: { type: Type.STRING },
+            progressPercentage: { type: Type.INTEGER },
+            status: { type: Type.STRING },
+            completedContentItems: { type: Type.INTEGER },
+            totalContentItems: { type: Type.INTEGER },
+            overdueAssignmentsCount: { type: Type.INTEGER },
+            lastAccessedAt: { type: Type.STRING, format: 'date-time' },
+          },
+        },
+      },
+      summary: {
+        type: Type.OBJECT,
+        properties: {
+          totalModules: { type: Type.INTEGER },
+          completedModules: { type: Type.INTEGER },
+          inProgressModules: { type: Type.INTEGER },
+          notStartedModules: { type: Type.INTEGER },
+          overallProgress: { type: Type.INTEGER },
+        },
+      },
+    },
+  },
+};
+
+// -------------------------
 // Aggregations and exports
 // -------------------------
 export const courseFunctions: FunctionDeclaration[] = [
@@ -1244,6 +1480,13 @@ export const billingFunctions: FunctionDeclaration[] = [
   billingInvoiceDetailsFn,
 ];
 
+export const progressFunctions: FunctionDeclaration[] = [
+  progressModuleOverviewFn,
+  progressModuleDetailFn,
+  progressDashboardFn,
+  progressMyModulesFn,
+];
+
 export const tools: Tool[] = [
   {
     functionDeclarations: [
@@ -1255,12 +1498,14 @@ export const tools: Tool[] = [
       ...appointmentsFunctions,
       ...notificationsFunctions,
       ...billingFunctions,
+      ...progressFunctions,
       usersCountFn,
       usersAllMentorsListFn,
     ],
   },
 ];
 
+// Update getToolsForRole to include progress functions for appropriate roles
 export function getToolsForRole(role: string) {
   switch (role) {
     case 'admin':
@@ -1273,6 +1518,7 @@ export function getToolsForRole(role: string) {
             ...lmsFunctions,
             ...appointmentsFunctions,
             ...notificationsFunctions,
+            ...progressFunctions,
             vectorSearchFn,
             dateUtilityFn,
           ],
@@ -1288,6 +1534,7 @@ export function getToolsForRole(role: string) {
             ...appointmentsFunctions,
             ...notificationsFunctions,
             ...billingFunctions,
+            ...progressFunctions,
             vectorSearchFn,
             dateUtilityFn,
             usersAllMentorsListFn,

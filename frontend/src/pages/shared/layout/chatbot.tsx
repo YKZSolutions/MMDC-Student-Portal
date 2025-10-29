@@ -665,7 +665,7 @@ const ChatMessages = ({
       }}
     >
       <BotMessage
-        message={`### 👋 Hi there! I'm your student support assistant. How can I help you today?\n\nI can assist you with:\n\n- Enrollment and Billing information\n- Student Portal use and navigation\n- Course & Progress information\n- General questions`}
+        message={`### 👋 Hi there! I'm your student support assistant. How can I help you today?\n\nI can assist you with:\n\n- Enrollment and Billing information\n- Student Portal use and navigation\n- Course & Progress information\n- Booking Appointments and Scheduling\n- General questions`}
       />
       {messages.map((msg, index) =>
         msg.role === 'user' ? (
