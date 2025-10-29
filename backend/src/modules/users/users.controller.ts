@@ -277,7 +277,6 @@ export class UsersController {
    *
    */
   @Get(':id')
-  @Roles(Role.ADMIN)
   @ApiException(() => [
     BadRequestException,
     NotFoundException,
