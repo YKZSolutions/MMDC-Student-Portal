@@ -21,6 +21,7 @@ import reportWebVitals from './reportWebVitals.ts'
 
 import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
+import '@blocknote/xl-ai/style.css'
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
@@ -37,7 +38,7 @@ const router = createRouter({
     ...TanStackQueryProvider.getContext(),
   },
   defaultPreload: 'intent',
-  scrollRestoration: true,
+  // scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
 })

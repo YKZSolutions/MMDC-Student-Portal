@@ -7,6 +7,7 @@ import {
   Divider,
   Group,
   Menu,
+  Progress,
   rem,
   Stack,
   Text,
@@ -36,6 +37,9 @@ interface ModuleSectionCardProps {
   setExpandedItems?: (value: string[]) => void
   adminActionProps: Omit<AdminSectionActionsProps, 'id' | 'publishedAt'>
   children: ReactNode
+  progressPercentage?: number
+  completedItems?: number
+  totalItems?: number
 }
 
 export function ModuleSectionCard({
@@ -47,6 +51,9 @@ export function ModuleSectionCard({
   setExpandedItems,
   adminActionProps,
   children,
+  progressPercentage,
+  completedItems,
+  totalItems,
 }: ModuleSectionCardProps) {
   const theme = useMantineTheme()
 
@@ -54,7 +61,7 @@ export function ModuleSectionCard({
     <Fragment>
       <Accordion.Item value={id}>
         <Accordion.Control py={'sm'}>
-          <Group wrap="nowrap" flex={1}>
+          <Group wrap="nowrap" flex={1} align="start">
             <Stack gap={'xs'} flex={1}>
               <Group gap="xs" mb={4}>
                 <Title order={4} fw={600}>
@@ -74,6 +81,29 @@ export function ModuleSectionCard({
                 </Text>
               )}
             </Stack>
+
+            {viewMode === 'student' &&
+              progressPercentage !== undefined &&
+              totalItems !== undefined &&
+              totalItems > 0 && (
+                <Stack gap={4} w="100%" maw={300} align="flex-end">
+                  <Group gap="xs">
+                    <Text size="xs" c="dimmed">
+                      {completedItems || 0} / {totalItems}
+                    </Text>
+                    <Text size="xs" c="dimmed" fw={500}>
+                      {Math.round(progressPercentage)}%
+                    </Text>
+                  </Group>
+                  <Progress
+                    value={progressPercentage}
+                    size="md"
+                    radius="xl"
+                    color="blue"
+                    w="100%"
+                  />
+                </Stack>
+              )}
 
             {viewMode === 'mentor' && (
               <Tooltip label="View section analytics">
@@ -309,6 +339,19 @@ function AdminSectionActions({
           )}
         </AddModuleItemDrawer>
       </Tooltip> */}
+      <ActionIcon
+        component="div"
+        variant="subtle"
+        color="blue"
+        radius="xl"
+        size="lg"
+        onClick={(e) => {
+          e.stopPropagation()
+          onAddItem?.(id)
+        }}
+      >
+        <IconPlus size={16} />
+      </ActionIcon>
 
       {/* Actions Menu */}
       <Menu shadow="md" width={200}>

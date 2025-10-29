@@ -162,14 +162,14 @@ function AddModuleItemDrawer({
   }
 
   const setDrawer = (open: boolean) => {
-    navigate({
-      to: '.',
-      search: (prev) => ({
-        ...prev,
-        createSubsection: open || undefined,
-        sectionId: open ? section.id : undefined,
-      }),
-    })
+    // navigate({
+    //   to: '.',
+    //   search: (prev) => ({
+    //     ...prev,
+    //     createSubsection: open || undefined,
+    //     sectionId: open ? section.id : undefined,
+    //   }),
+    // })
 
     form.reset()
   }

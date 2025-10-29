@@ -2,7 +2,14 @@ import { BlockNoteView } from '@blocknote/mantine'
 import {
   FormattingToolbar,
   FormattingToolbarController,
+  SuggestionMenuController,
+  getDefaultReactSlashMenuItems,
 } from '@blocknote/react'
+import {
+  AIMenuController,
+  AIToolbarButton,
+  getAISlashMenuItems,
+} from '@blocknote/xl-ai'
 import { Divider, Group, Paper, Stack } from '@mantine/core'
 import type { BlockNoteEditor } from '@blocknote/core'
 import {
@@ -37,6 +44,7 @@ export default function Editor({ editor }: EditorOptions) {
       editor={editor}
       theme={'light'}
       formattingToolbar={false}
+      slashMenu={false}
       style={{
         height: '100%',
         width: '100%',
@@ -45,6 +53,23 @@ export default function Editor({ editor }: EditorOptions) {
       }}
     >
       <Toolbar />
+
+      <AIMenuController />
+
+      <SuggestionMenuController
+        triggerCharacter="/"
+        getItems={async (query) => {
+          const defaultItems = getDefaultReactSlashMenuItems(editor)
+          const aiItems = getAISlashMenuItems(editor)
+          const allItems = [...defaultItems, ...aiItems]
+
+          if (!query) return allItems
+
+          return allItems.filter((item) =>
+            item.title.toLowerCase().includes(query.toLowerCase()),
+          )
+        }}
+      />
     </BlockNoteView>
   )
 }
@@ -70,6 +95,9 @@ function Toolbar() {
                   <RedoButton key={'redoButton'} />
                   <UndoButton key={'undoButton'} />
                 </Group>
+                <Divider orientation="vertical" />
+                {/* AI toolbar button from xl-ai */}
+                <AIToolbarButton key={'aiToolbarButton'} />
                 <Divider orientation="vertical" />
                 <Group gap={2}>
                   <BlockTypeSelect key={'blockTypeSelect'} />

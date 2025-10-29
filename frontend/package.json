@@ -14,9 +14,12 @@
     "openapi-ts": "openapi-ts"
   },
   "dependencies": {
-    "@blocknote/core": "^0.37.0",
-    "@blocknote/mantine": "^0.37.0",
-    "@blocknote/react": "^0.37.0",
+    "@ai-sdk/google": "^2.0.25",
+    "@ai-sdk/react": "^2.0.82",
+    "@blocknote/core": "^0.41.1",
+    "@blocknote/mantine": "^0.41.1",
+    "@blocknote/react": "^0.41.1",
+    "@blocknote/xl-ai": "^0.41.1",
     "@dnd-kit/abstract": "^0.1.21",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/helpers": "^0.1.21",
@@ -39,6 +42,7 @@
     "@tanstack/react-router-devtools": "^1.121.2",
     "@tanstack/router-plugin": "^1.121.2",
     "@tanstack/zod-adapter": "^1.131.30",
+    "ai": "^5.0.82",
     "dayjs": "^1.11.13",
     "decimal.js": "^10.6.0",
     "immer": "^10.1.1",

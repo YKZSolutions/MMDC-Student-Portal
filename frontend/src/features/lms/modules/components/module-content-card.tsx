@@ -68,7 +68,9 @@ export default function ModuleContentCard({
   const isCompleted =
     viewMode === 'student' &&
     moduleContent.contentType === 'LESSON' &&
-    moduleContent.studentProgress?.every((p) => p.status === 'COMPLETED')
+    moduleContent.studentProgress &&
+    moduleContent.studentProgress.length > 0 &&
+    moduleContent.studentProgress.every((p) => p.status === 'COMPLETED')
 
   return (
     <Card
@@ -264,6 +266,7 @@ export function AdminContentActions({
             size="lg"
             onClick={(e) => {
               e.stopPropagation()
+              e.preventDefault()
             }}
           >
             <IconDotsVertical size={16} />

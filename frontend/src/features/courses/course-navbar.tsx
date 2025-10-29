@@ -1,6 +1,7 @@
-import { Button, Stack } from '@mantine/core'
-import { Link, useMatchRoute } from '@tanstack/react-router'
+import { Button, Divider, Stack } from '@mantine/core'
+import { getRouteApi, Link, useMatchRoute } from '@tanstack/react-router'
 import type { FileRoutesByTo } from '@/routeTree.gen'
+import { IconArrowLeft } from '@tabler/icons-react'
 
 export interface CourseNavItem {
   link: keyof FileRoutesByTo
@@ -26,6 +27,8 @@ function CourseNavButton({ item }: { item: CourseNavItem }) {
   )
 }
 
+const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/')
+
 function CourseNavBar({ navItems }: { navItems: CourseNavItem[] }) {
   return (
     <Stack
@@ -35,6 +38,17 @@ function CourseNavBar({ navItems }: { navItems: CourseNavItem[] }) {
       h={'100vh'}
       style={{ position: 'sticky', top: 0 }}
     >
+      <route.Link to="/lms">
+        <Button
+          justify="start"
+          variant="subtle"
+          fullWidth
+          leftSection={<IconArrowLeft />}
+        >
+          Go Back
+        </Button>
+      </route.Link>
+      <Divider />
       {navItems.map((item, index) => (
         <CourseNavButton key={index} item={item} />
       ))}

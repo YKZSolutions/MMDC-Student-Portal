@@ -1,4 +1,6 @@
 import PageHeader from '@/components/page-header'
+import RoleComponentManager from '@/components/role-component-manager'
+import { useAuth } from '@/features/auth/auth.hook'
 import {
   CourseCard,
   CourseListRow,
@@ -6,7 +8,11 @@ import {
 import { CourseListSuspense } from '@/features/courses/suspense'
 import { ViewSelectorButton } from '@/features/lms/components/view-selector-button'
 import { useSearchState } from '@/hooks/use-search-state'
-import { lmsControllerFindAllForAdminOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
+import {
+  lmsControllerFindAllForAdminOptions,
+  lmsControllerFindAllForMentorOptions,
+  lmsControllerFindAllForStudentOptions,
+} from '@/integrations/api/client/@tanstack/react-query.gen'
 import {
   Container,
   Divider,
@@ -23,7 +29,11 @@ import { Suspense } from 'react'
 
 const route = getRouteApi('/(protected)/lms/')
 
-export default function LMSDashboardAdminPage() {
+export default function LMSDashboardPage() {
+  const {
+    authUser: { role },
+  } = useAuth('protected')
+
   return (
     <Container size="md" w="100%" pb="xl">
       <Stack gap="lg">
@@ -38,7 +48,14 @@ export default function LMSDashboardAdminPage() {
           style={{ flexGrow: 1, flexBasis: '70%', minWidth: 300 }}
         >
           <Suspense fallback={<CourseListSuspense />}>
-            <ModuleList />
+            <RoleComponentManager
+              currentRole={role}
+              roleRender={{
+                admin: <ModuleListAdmin />,
+                student: <ModuleListStudent />,
+                mentor: <ModuleListMentor />,
+              }}
+            />
           </Suspense>
         </Group>
       </Stack>
@@ -47,7 +64,7 @@ export default function LMSDashboardAdminPage() {
 }
 
 function ActionBar() {
-  const { search, setSearch } = useSearchState(route)
+  const { search, setSearch, setDebouncedSearch } = useSearchState(route)
 
   return (
     <>
@@ -59,6 +76,12 @@ function ActionBar() {
           w={{
             base: '100%',
             xs: rem(250),
+          }}
+          onChange={(e) => {
+            const searchQuery = e.target.value
+            setDebouncedSearch({
+              search: searchQuery === '' ? undefined : searchQuery,
+            })
           }}
         />
         {/* Implement this at a later time */}
@@ -81,11 +104,75 @@ function ActionBar() {
   )
 }
 
-function ModuleList() {
+function ModuleListAdmin() {
   const { search } = useSearchState(route)
 
   const { data: paginated } = useSuspenseQuery(
     lmsControllerFindAllForAdminOptions({
+      query: {
+        search: search.search || undefined,
+        page: search.page || 1,
+        enrollmentPeriodId: undefined,
+      },
+    }),
+  )
+
+  const { modules } = paginated
+
+  return modules.map((module) =>
+    search.vie === 'list' ? (
+      <CourseListRow
+        key={module.id}
+        url={`/lms/${module.id}`}
+        course={module.course || undefined}
+      />
+    ) : (
+      <CourseCard
+        key={module.id}
+        url={`/lms/${module.id}`}
+        course={module.course || undefined}
+      />
+    ),
+  )
+}
+
+function ModuleListStudent() {
+  const { search } = useSearchState(route)
+
+  const { data: paginated } = useSuspenseQuery(
+    lmsControllerFindAllForStudentOptions({
+      query: {
+        search: search.search || undefined,
+        page: search.page || 1,
+        enrollmentPeriodId: undefined,
+      },
+    }),
+  )
+
+  const { modules } = paginated
+
+  return modules.map((module) =>
+    search.vie === 'list' ? (
+      <CourseListRow
+        key={module.id}
+        url={`/lms/${module.id}`}
+        course={module.course || undefined}
+      />
+    ) : (
+      <CourseCard
+        key={module.id}
+        url={`/lms/${module.id}`}
+        course={module.course || undefined}
+      />
+    ),
+  )
+}
+
+function ModuleListMentor() {
+  const { search } = useSearchState(route)
+
+  const { data: paginated } = useSuspenseQuery(
+    lmsControllerFindAllForMentorOptions({
       query: {
         search: search.search || undefined,
         page: search.page || 1,

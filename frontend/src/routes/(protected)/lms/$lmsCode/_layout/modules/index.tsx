@@ -9,6 +9,10 @@ import z from 'zod'
 const lmsModuleListStateSearchSchema = z.object({
   createSection: z.boolean().optional(),
   updateSection: z.uuidv4().optional(),
+  createSubsection: z.uuidv4().optional(),
+  updateSubsection: z.uuidv4().optional(),
+  createContent: z.uuidv4().optional(),
+  updateContent: z.uuidv4().optional(),
 })
 
 export const Route = createFileRoute(
@@ -19,16 +23,5 @@ export const Route = createFileRoute(
 })
 
 function RouteComponent() {
-  const { authUser } = useAuth('protected')
-
-  return (
-    <RoleComponentManager
-      currentRole={authUser.role}
-      roleRender={{
-        student: <ModulesStudentPage />,
-        mentor: <ModulesMentorPage />,
-        admin: <LMSModuleListPage />,
-      }}
-    />
-  )
+  return <LMSModuleListPage />
 }
