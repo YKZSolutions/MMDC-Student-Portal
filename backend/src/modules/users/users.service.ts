@@ -17,7 +17,7 @@ import {
   UpdateUserStaffDto,
   UpdateUserStudentDto,
 } from './dto/update-user-details.dto';
-import { Prisma, Role } from '@prisma/client';
+import { CourseEnrollmentStatus, Prisma, Role } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { PaginatedUsersDto } from './dto/paginated-user.dto';
@@ -408,18 +408,63 @@ export class UsersService {
    *
    * @param filters - Filter conditions including role and search terms.
    * @param where - Prisma `UserWhereInput` object that will be mutated.
+   * @param userId
+   * @param role
    */
 
-  filterHandler(filters: FilterUserDto, where: Prisma.UserWhereInput) {
+  filterHandler(
+    filters: FilterUserDto,
+    where: Prisma.UserWhereInput,
+    userId?: string,
+    role?: Role,
+  ) {
     if (filters.role) where.role = filters.role;
 
     where.deletedAt = null;
 
+    // Initialize AND array to accumulate conditions
+    const andConditions: Prisma.UserWhereInput[] = [];
+
+    // If student, only allow finding their mentor's details
+    if (role && role === Role.student) {
+      if (!userId) throw new BadRequestException('User ID is required');
+
+      where.role = Role.mentor;
+
+      // Add student-specific condition to AND array
+      andConditions.push({
+        mentorSections: {
+          some: {
+            courseOffering: {
+              enrollmentPeriod: {
+                status: 'active',
+              },
+            },
+            courseEnrollments: {
+              some: {
+                studentId: userId,
+                deletedAt: null,
+                status: {
+                  in: [
+                    'enlisted',
+                    'finalized',
+                    'enrolled',
+                  ] as CourseEnrollmentStatus[],
+                },
+              },
+            },
+            deletedAt: null,
+          },
+        },
+      });
+    }
+
     if (filters.search?.trim()) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
-      where.AND = searchTerms.map((term) => ({
-        OR: [
+      // Create search condition
+      const searchCondition: Prisma.UserWhereInput = {
+        OR: searchTerms.flatMap((term) => [
           {
             firstName: {
               contains: term,
@@ -440,8 +485,45 @@ export class UsersService {
               },
             },
           },
-        ],
-      }));
+          // Also search by course name if the user is a mentor
+          ...(role === Role.student
+            ? [
+                {
+                  mentorSections: {
+                    some: {
+                      courseOffering: {
+                        course: {
+                          OR: [
+                            {
+                              name: {
+                                contains: term,
+                                mode: Prisma.QueryMode.insensitive,
+                              },
+                            },
+                            {
+                              courseCode: {
+                                contains: term,
+                                mode: Prisma.QueryMode.insensitive,
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ]),
+      };
+
+      // Add search condition to AND array
+      andConditions.push(searchCondition);
+    }
+
+    // If we have any AND conditions, apply them
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
   }
 
@@ -449,6 +531,8 @@ export class UsersService {
    * Finds all users that match provided filters (e.g., role, search keyword) with pagination.
    *
    * @param filters - Filter and pagination options.
+   * @param role
+   * @param userId
    * @returns Paginated list of users with metadata.
    * @throws BadRequestException or InternalServerErrorException based on the failure type.
    */
@@ -466,11 +550,13 @@ export class UsersService {
   })
   async findAll(
     @LogParam('filters') filters: FilterUserDto,
+    @LogParam('role') role?: Role,
+    @LogParam('userId') userId?: string,
   ): Promise<PaginatedUsersDto> {
     const page: FilterUserDto['page'] = Number(filters?.page) || 1;
     const where: Prisma.UserWhereInput = {};
 
-    this.filterHandler(filters, where);
+    this.filterHandler(filters, where, userId, role);
 
     const [users, meta] = await this.prisma.client.user
       .paginate({
@@ -630,21 +716,21 @@ export class UsersService {
    * - Includes related entities like `UserDetails`, `StudentDetails`, and `StaffDetails`
    * - Constructs and returns a flattened DTO depending on the user's role
    *
-   * @param authId - The Supabase Auth UID of the authenticated user.
    * @returns One of:
    * - `UserStudentDetailsDto` if the user is a student
    * - `UserStaffDetailsDto` if the user is a mentor/admin
    * - Fallback: `UserDetailsFullDto` if role-based detail is missing
    *
-   * @throws UnauthorizedException If the `authUid` is missing or invalid
+   * @throws UnauthorizedException If the `userId` is missing or invalid
    * @throws NotFoundException If no user account is found
    * @throws InternalServerErrorException If an unexpected error occurs
+   * @param userId
    */
   @Log({
-    logArgsMessage: ({ authId }) => `Get profile for authId=${authId}`,
+    logArgsMessage: ({ userId }) => `Get profile for userId=${userId}`,
     logSuccessMessage: (result) => `Retrieved profile for userId=${result.id}`,
-    logErrorMessage: (err, { authId }) =>
-      `Failed to get profile for authId=${authId} | Error=${err.message}`,
+    logErrorMessage: (err, { userId }) =>
+      `Failed to get profile for userId=${userId} | Error=${err.message}`,
   })
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: () =>
@@ -655,10 +741,10 @@ export class UsersService {
       ),
   })
   async getMe(
-    @LogParam('authId') authId: string,
+    @LogParam('userId') userId: string,
   ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
     const account = await this.prisma.client.userAccount.findUnique({
-      where: { authUid: authId },
+      where: { userId: userId },
       include: {
         user: {
           include: {

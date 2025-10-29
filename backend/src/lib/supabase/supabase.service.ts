@@ -32,4 +32,28 @@ export class SupabaseService {
   get storage(): SupabaseClient['storage'] {
     return this.supabase.storage;
   }
+
+  /**
+   * Search for similar documents using vector similarity
+   * @param embedding The query embedding vector
+   * @param limit Maximum number of results to return
+   * @param threshold Minimum similarity score (0-1)
+   */
+  async searchSimilarDocuments(
+    embedding: number[],
+    limit: number = 5,
+    threshold: number = 0.7,
+  ) {
+    const { data, error } = await this.supabase.rpc('match_documents', {
+      query_embedding: embedding,
+      match_threshold: threshold,
+      match_count: limit,
+    });
+
+    if (error) {
+      throw new Error(`Supabase vector search failed: ${error.message}`);
+    }
+
+    return data;
+  }
 }

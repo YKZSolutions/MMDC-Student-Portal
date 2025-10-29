@@ -28,9 +28,10 @@
   },
   "dependencies": {
     "@electric-sql/pglite-socket": "^0.0.12",
-    "@google/genai": "^1.11.0",
+    "@google/genai": "^1.27.0",
     "@nanogiants/nestjs-swagger-api-exception-decorator": "^1.7.2",
     "@nestjs/axios": "^4.0.1",
+    "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",

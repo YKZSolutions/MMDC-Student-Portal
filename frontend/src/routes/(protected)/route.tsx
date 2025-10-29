@@ -60,7 +60,7 @@ function RouteComponent() {
 
 function PageLayoutComponent() {
   const [isChatbotOpen, setChatbotOpen] = useState(false)
-  const [isChatbotFabHidden, setChatbotFabHidden] = useState(true)
+  const [isChatbotFabHidden, setChatbotFabHidden] = useState(false) //Show the chatbot button by default
   const [sidebarOpened, setSidebarOpened] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
