@@ -9,12 +9,13 @@ import {
 import { GeminiService } from '@/lib/gemini/gemini.service';
 import { EnrollmentService } from '@/modules/enrollment/enrollment.service';
 import {
+  Inject,
   Injectable,
   Logger,
   NotImplementedException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Days, Role } from '@prisma/client';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { FilterAppointmentDto } from '../appointments/dto/filter-appointment.dto';
 import { BillingService } from '../billing/billing.service';
@@ -43,12 +44,18 @@ import {
 import { VectorSearchService } from '@/modules/chatbot/vector-search.service';
 import { ChatbotResponseDto } from '@/modules/chatbot/dto/chatbot-response.dto';
 import { FunctionCall } from '@google/genai';
-import { F } from '@faker-js/faker/dist/airline-CHFQMWko';
 import { FilterMentorAvailabilityDto } from '@/modules/appointments/dto/filter-mentor-availability.dto';
 import { MentorAvailabilityDto } from '@/modules/appointments/dto/mentor-availability.dto';
+import { CourseOfferingService } from '@/modules/enrollment/course-offering.service';
+import { CreateAppointmentDto } from '@/generated/nestjs-dto/create-appointment.dto';
+import { CreateAppointmentItemDto } from '@/modules/appointments/dto/create-appointment.dto';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 
 @Injectable()
 export class ChatbotService {
+  private readonly logger = new Logger(ChatbotService.name);
+
   constructor(
     private readonly gemini: GeminiService,
     private readonly vectorSearch: VectorSearchService,
@@ -57,9 +64,12 @@ export class ChatbotService {
     private readonly coursesService: CoursesService,
     private readonly enrollmentsService: EnrollmentService,
     private readonly courseEnrollmentService: CourseEnrollmentService,
+    private readonly courseOfferingService: CourseOfferingService,
     private readonly lmsService: LmsService,
     private readonly appointmentsService: AppointmentsService,
     private readonly notificationsService: NotificationsService,
+    @Inject('PrismaService')
+    private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
   private mapUserToContext(
@@ -121,54 +131,107 @@ export class ChatbotService {
     const userContext: UserBaseContext | UserStudentContext | UserStaffContext =
       this.mapUserToContext(role, await this.usersService.getMe(userId));
 
-    const { call, text } = await this.gemini.askWithFunctionCalling(
-      prompt.question,
+    let iterationCount = 0;
+    const maxIterations = 5; // Prevent infinite loops
+
+    // Build initial conversation with context
+    const conversation = this.gemini.buildInitialConversation(
       userContext,
-      prompt.sessionHistory,
+      prompt.sessionHistory || [],
+      prompt.question,
     );
 
-    if (!call) {
-      if (!text) {
-        throw new ServiceUnavailableException('No response from Gemini');
+    this.logger.log(
+      `Starting conversation with ${conversation.length} messages`,
+    );
+
+    // Multi-turn function calling loop
+    while (iterationCount < maxIterations) {
+      iterationCount++;
+      this.logger.log(`Iteration ${iterationCount}/${maxIterations}`);
+
+      // Call Gemini with current conversation
+      const { response, functionCalls } =
+        await this.gemini.generateContentWithTools(conversation, role);
+
+      // If no function calls, we have the final answer
+      if (!functionCalls || functionCalls.length === 0) {
+        if (!response || response.trim() === '') {
+          throw new ServiceUnavailableException('No response from Gemini');
+        }
+
+        this.logger.log('No more function calls - returning final response');
+        result.response = response;
+        return result;
       }
 
-      result.response = text;
-      return result;
+      this.logger.log(
+        `Executing ${functionCalls.length} function call(s): ${functionCalls.map((fc) => fc.name).join(', ')}`,
+      );
+
+      // Execute all function calls
+      const functionResults = await Promise.all(
+        functionCalls.map(async (functionCall) => {
+          try {
+            this.logger.debug(
+              `Executing: ${functionCall.name}`,
+              JSON.stringify(functionCall.args),
+            );
+
+            const functionResult = await this.executeFunctionCall(
+              functionCall,
+              userContext,
+              role,
+            );
+
+            this.logger.debug(
+              `Result from ${functionCall.name}: ${functionResult.substring(0, 200)}...`,
+            );
+
+            return {
+              functionCall,
+              result: functionResult,
+            };
+          } catch (error) {
+            this.logger.error(
+              `Error executing ${functionCall.name}: ${error.message}`,
+            );
+            return {
+              functionCall,
+              result: `Error: ${error.message}`,
+            };
+          }
+        }),
+      );
+
+      // Add the model's function calls to conversation
+      this.gemini.addFunctionCallsToConversation(conversation, functionCalls);
+
+      // Add function results to the conversation
+      this.gemini.addFunctionResultsToConversation(
+        conversation,
+        functionResults,
+      );
+
+      this.logger.log(
+        `Conversation now has ${conversation.length} messages. Continuing...`,
+      );
     }
 
-    const functionCallResults = await Promise.all(
-      call.map(async (functionCall) => {
-        try {
-          const result = await this.executeFunctionCall(
-            functionCall,
-            userContext,
-            role,
-          );
-          return {
-            functionName: functionCall.name,
-            result: result,
-          };
-        } catch (error) {
-          return {
-            functionName: functionCall.name,
-            result: `Error: ${error.message}`,
-          };
-        }
-      }),
+    // If we hit max iterations, try to generate a meaningful response
+    this.logger.warn(
+      `Max iterations (${maxIterations}) reached. Generating fallback response.`,
     );
 
-    // Send results back to Gemini
-    const finalAnswer = await this.gemini.generateFinalAnswer(
+    const fallbackResponse = await this.gemini.generateFallbackResponse(
       prompt.question,
-      text ?? '',
-      functionCallResults,
+      conversation,
     );
 
-    if (!finalAnswer) {
-      throw new ServiceUnavailableException('Something went wrong');
-    }
+    result.response =
+      fallbackResponse ||
+      'I apologize, but I encountered difficulties processing your request. Please try rephrasing or breaking down your question into smaller parts.';
 
-    result.response = finalAnswer;
     return result;
   }
 
@@ -186,6 +249,20 @@ export class ChatbotService {
         const args = functionCall.args as FilterUserDto;
         const count = await this.usersService.countAll(args);
         return `Found ${count} users${args.role ? ` with role '${args.role}'` : ''}${args.search ? ` matching '${args.search}'` : ''}.`;
+      }
+
+      case 'users_all_mentor_list': {
+        const args = functionCall.args as {
+          search?: string;
+        };
+
+        const mentors = await this.usersService.findAll(
+          args,
+          userContext.role,
+          userContext.id,
+        );
+
+        return `Mentors: ${JSON.stringify(mentors)}`;
       }
 
       case 'courses_find_all': {
@@ -218,6 +295,54 @@ export class ChatbotService {
           userContext.role,
         );
         return `Active enrolled courses: ${JSON.stringify(courses)}`;
+      }
+
+      case 'course_offering_for_active_enrollment': {
+        if (userContext.role !== 'student') {
+          return 'Non students do not have course offerings.';
+        }
+
+        const courseOfferings =
+          await this.courseOfferingService.findActiveCourseOfferings(
+            userContext.id,
+            userContext.role,
+          );
+
+        return `Course offerings for active enrollment: ${JSON.stringify(courseOfferings)}`;
+      }
+
+      case 'lms_my_todos': {
+        if (userContext.role !== 'student') {
+          return 'Non students do not have todos.';
+        }
+
+        const args = functionCall.args as {
+          relativeDate?: string;
+          page?: number;
+          limit?: number;
+        };
+
+        const baseFiler: BaseFilterDto = {
+          ...(args.page && { page: args.page }),
+          ...(args.limit && { limit: args.limit }),
+        };
+        const dueFilter: DueFilterDto = {};
+
+        if (typeof args.relativeDate === 'string') {
+          const parsed = parseRelativeDateRange(
+            args.relativeDate as RelativeDateRange,
+          );
+          if (parsed) {
+            dueFilter.dueDateFrom = new Date(parsed.from);
+            dueFilter.dueDateTo = new Date(parsed.to);
+          }
+        }
+
+        const todos = await this.lmsService.findTodos(userContext.id, {
+          ...baseFiler,
+          ...dueFilter,
+        });
+        return `Todos: ${JSON.stringify(todos)}`;
       }
 
       case 'lms_my_modules': {
@@ -266,40 +391,6 @@ export class ChatbotService {
             userContext.id,
           );
         return `Invoice: ${JSON.stringify(invoice)}`;
-      }
-
-      case 'lms_my_todos': {
-        if (userContext.role !== 'student') {
-          return 'Non students do not have todos.';
-        }
-
-        const args = functionCall.args as {
-          relativeDate?: string;
-          page?: number;
-          limit?: number;
-        };
-
-        const baseFiler: BaseFilterDto = {
-          ...(args.page && { page: args.page }),
-          ...(args.limit && { limit: args.limit }),
-        };
-        const dueFilter: DueFilterDto = {};
-
-        if (typeof args.relativeDate === 'string') {
-          const parsed = parseRelativeDateRange(
-            args.relativeDate as RelativeDateRange,
-          );
-          if (parsed) {
-            dueFilter.dueDateFrom = new Date(parsed.from);
-            dueFilter.dueDateTo = new Date(parsed.to);
-          }
-        }
-
-        const todos = await this.lmsService.findTodos(userContext.id, {
-          ...baseFiler,
-          ...dueFilter,
-        });
-        return `Todos: ${JSON.stringify(todos)}`;
       }
 
       case 'appointments_my_appointments': {
@@ -357,7 +448,6 @@ export class ChatbotService {
         if (userContext.role !== 'student') {
           return 'This function is only available to students.';
         }
-        const logger = new Logger('appointments_mentor_available');
 
         const args = functionCall.args as {
           relativeDate?: string;
@@ -366,8 +456,6 @@ export class ChatbotService {
           page?: number;
           limit?: number;
         };
-
-        logger.log('args: ', JSON.stringify(args));
 
         const filterDto = {
           ...(args.mentorId && { mentorId: args.mentorId }),
@@ -378,8 +466,6 @@ export class ChatbotService {
           endDate: new Date(),
         } as FilterMentorAvailabilityDto;
 
-        logger.log('filterDto: ', JSON.stringify(filterDto));
-
         const parsed = parseRelativeDateRange(
           (args.relativeDate as RelativeDateRange) ?? 'this_week',
         );
@@ -388,8 +474,6 @@ export class ChatbotService {
           filterDto.endDate = new Date(parsed.to);
         }
 
-        logger.log('filterDto: ', JSON.stringify(filterDto));
-
         const availableAppointments: MentorAvailabilityDto =
           await this.appointmentsService.findMentorAvailability(
             filterDto,
@@ -397,8 +481,36 @@ export class ChatbotService {
             userContext.role,
           );
 
-        logger.log('availableAppointments: ', availableAppointments);
         return `Mentor's available appointments: ${JSON.stringify(availableAppointments)}`;
+      }
+
+      case 'appointments_book_appointment': {
+        if (userContext.role === 'admin') {
+          return 'This function is only available to students and mentors.';
+        }
+
+        const args = functionCall.args as {
+          mentorId?: string;
+          courseOfferingId?: string;
+          startAt: string;
+          endAt: string;
+          title: string;
+          description: string;
+        };
+
+        const createDto = {
+          studentId: userContext.id,
+          mentorId: args.mentorId,
+          courseOfferingId: args.courseOfferingId,
+          startAt: new Date(args.startAt),
+          endAt: new Date(args.endAt),
+          title: args.title,
+          description: args.description,
+        } as CreateAppointmentItemDto;
+
+        const appointment: CreateAppointmentDto =
+          await this.appointmentsService.create(createDto);
+        return `Appointment created successfully: ${JSON.stringify(appointment)}`;
       }
 
       case 'notifications_my_notifications': {
@@ -428,6 +540,51 @@ export class ChatbotService {
           role,
         );
         return `Notification counts: ${JSON.stringify(counts)}`;
+      }
+
+      case 'date_utility': {
+        const args = functionCall.args as {
+          dateTime?: string;
+          useCurrentDateTime?: boolean;
+          daysToAdd?: {
+            days?: number;
+            hours?: number;
+            minutes?: number;
+            seconds?: number;
+          };
+          daysToSubtract?: {
+            days?: number;
+            hours?: number;
+            minutes?: number;
+            seconds?: number;
+          };
+          monthsToAdd?: number;
+          monthsToSubtract?: number;
+        };
+
+        const date = args.useCurrentDateTime
+          ? new Date()
+          : new Date(args.dateTime!);
+
+        date.setDate(date.getDate() + (args.daysToAdd?.days ?? 0));
+        date.setHours(date.getHours() + (args.daysToAdd?.hours ?? 0));
+        date.setMinutes(date.getMinutes() + (args.daysToAdd?.minutes ?? 0));
+        date.setSeconds(date.getSeconds() + (args.daysToAdd?.seconds ?? 0));
+        date.setDate(date.getDate() - (args.daysToSubtract?.days ?? 0));
+        date.setHours(date.getHours() - (args.daysToSubtract?.hours ?? 0));
+        date.setMinutes(
+          date.getMinutes() - (args.daysToSubtract?.minutes ?? 0),
+        );
+        date.setSeconds(
+          date.getSeconds() - (args.daysToSubtract?.seconds ?? 0),
+        );
+        date.setMonth(date.getMonth() + (args.monthsToAdd ?? 0));
+        date.setMonth(date.getMonth() - (args.monthsToSubtract ?? 0));
+
+        return JSON.stringify({
+          dateTime: date.toISOString(),
+          day: Days[date.getDay()],
+        });
       }
 
       case 'search_vector': {
