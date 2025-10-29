@@ -6,11 +6,11 @@ export function createContentProgressData(
   userId: string,
   moduleId: string,
   moduleContentId: string,
-): Prisma.ContentProgressCreateInput {
+): Prisma.ContentProgressCreateManyInput {
   return {
-    student: { connect: { id: userId } },
-    module: { connect: { id: moduleId } },
-    moduleContent: { connect: { id: moduleContentId } },
+    studentId: userId,
+    moduleId,
+    moduleContentId,
     completedAt: Math.random() > 0.5 ? faker.date.recent() : null,
   };
 }
@@ -18,7 +18,7 @@ export function createContentProgressData(
 export function createAssignmentSubmissionData(
   studentId: string,
   assignmentId: string,
-): Prisma.AssignmentSubmissionCreateInput {
+): Prisma.AssignmentSubmissionCreateManyInput {
   const isLate = Math.random() < seedConfig.LATE_SUBMISSION_CHANCE;
   const state = faker.helpers.arrayElement([
     SubmissionState.SUBMITTED,
@@ -62,48 +62,25 @@ export function createAssignmentSubmissionData(
   ];
 
   return {
-    student: { connect: { id: studentId } },
-    assignment: { connect: { id: assignmentId } },
-    content: submissionContent, // Now this is an array
+    studentId,
+    assignmentId,
+    content: submissionContent,
     submittedAt: faker.date.recent({ days: 7 }),
     lateDays: isLate ? faker.number.int({ min: 1, max: 5 }) : 0,
     state,
     attemptNumber: faker.number.int({ min: 1, max: 3 }),
-    attachments: {
-      create:
-        Math.random() > 0.5
-          ? [
-              {
-                name: 'solution.pdf',
-                url: faker.internet.url(),
-                type: 'document',
-                size: faker.number.int({ min: 1000, max: 5000000 }),
-              },
-              ...(Math.random() > 0.7
-                ? [
-                    {
-                      name: 'code.zip',
-                      url: faker.internet.url(),
-                      type: 'archive',
-                      size: faker.number.int({ min: 5000, max: 20000000 }),
-                    },
-                  ]
-                : []),
-            ]
-          : undefined,
-    },
   };
 }
 
 export function createGradeRecordData(
   studentId: string,
   isAssignment: boolean,
-): Prisma.GradeRecordCreateInput {
+): Prisma.GradeRecordCreateManyInput {
   const rawScore = faker.number.int({
     min: seedConfig.MIN_SCORE,
-    max: seedConfig.MAX_SCORE, // Fixed: was MIN_SCORE, should be MAX_SCORE
+    max: seedConfig.MAX_SCORE,
   });
-  const finalScore = isAssignment ? rawScore : rawScore; // Could apply a curve here
+  const finalScore = isAssignment ? rawScore : rawScore;
 
   const grade =
     finalScore >= 90
@@ -117,8 +94,7 @@ export function createGradeRecordData(
             : 'F';
 
   return {
-    // Simplified since we don't have the extra fields in the schema
-    student: { connect: { id: studentId } },
+    studentId,
     rawScore,
     finalScore,
     grade,

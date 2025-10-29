@@ -1,5 +1,11 @@
 import { faker } from '@faker-js/faker';
-import { PrismaClient, Role, User } from '@prisma/client';
+import {
+  Notification,
+  NotificationReceipt,
+  Prisma,
+  Role,
+  User,
+} from '@prisma/client';
 import { log } from '../utils/helpers';
 import { seedConfig } from '../seed.config';
 import { PrismaTransaction } from '../../../src/lib/prisma/prisma.extension';
@@ -37,8 +43,15 @@ export async function seedNotifications(
 ) {
   log('Seeding notifications...');
 
-  let notificationCount = 0;
-  let receiptCount = 0;
+  // Get some course names for context
+  const courses = await prisma.course.findMany({ take: 10 });
+  const assignments = await prisma.assignment.findMany({
+    take: 10,
+    include: {
+      moduleContent: true,
+    },
+  });
+  const modules = await prisma.module.findMany({ take: 10 });
 
   // Group users by role
   const usersByRole: Record<Role, User[]> = {
@@ -47,17 +60,9 @@ export async function seedNotifications(
     admin: users.filter((u) => u.role === Role.admin),
   };
 
-  // Get some course names for context
-  const courses = await prisma.course.findMany({ take: 10 });
-  const assignments = await prisma.assignment.findMany({
-    take: 10,
-    include: {
-      moduleContent: true, // Include moduleContent to get the title
-    },
-  });
-  const modules = await prisma.module.findMany({ take: 10 });
+  // 1. Pre-calculate notifications data for batch creation
+  const notificationsToCreate: Prisma.NotificationCreateManyInput[] = [];
 
-  // Create notifications for each role
   for (const [role, roleUsers] of Object.entries(usersByRole)) {
     if (roleUsers.length === 0) continue;
 
@@ -82,35 +87,70 @@ export async function seedNotifications(
 
         const content = generateNotificationContent(role as Role, title);
 
-        const isRead = Math.random() > 0.7; // 30% chance of being unread
-
-        // Create notification
-        const notification = await prisma.notification.create({
-          data: {
-            title,
-            content,
-            role: [role as Role],
-          },
+        notificationsToCreate.push({
+          title,
+          content,
+          role: [role as Role],
         });
-        notificationCount++;
-
-        // Create receipt for the user (without title and content - they're not in the model)
-        await prisma.notificationReceipt.create({
-          data: {
-            notificationId: notification.id,
-            userId: user.id,
-            isRead,
-            createdAt: faker.date.recent({ days: 30 }),
-          },
-        });
-        receiptCount++;
       }
     }
   }
 
-  log(
-    `-> Created ${notificationCount} notifications and ${receiptCount} notification receipts.`,
-  );
+  // Batch create notifications
+  if (notificationsToCreate.length > 0) {
+    await prisma.notification.createMany({
+      data: notificationsToCreate,
+    });
+  }
+
+  // Fetch created notifications
+  const notifications = await prisma.notification.findMany({
+    orderBy: [{ createdAt: 'desc' }],
+  });
+  log(`-> Created ${notifications.length} notifications.`);
+
+  // 2. Pre-calculate notification receipts data for batch creation
+  const receiptsToCreate: Prisma.NotificationReceiptCreateManyInput[] = [];
+
+  for (const notification of notifications) {
+    // Find users who should receive this notification based on role
+    const targetUsers = usersByRole[notification.role[0]];
+    if (!targetUsers) continue;
+
+    for (const user of targetUsers) {
+      const isRead = Math.random() > 0.7; // 30% chance of being unread
+
+      receiptsToCreate.push({
+        notificationId: notification.id,
+        userId: user.id,
+        isRead,
+        createdAt: faker.date.recent({ days: 30 }),
+      });
+    }
+  }
+
+  // Batch create notification receipts
+  if (receiptsToCreate.length > 0) {
+    await prisma.notificationReceipt.createMany({
+      data: receiptsToCreate,
+    });
+  }
+
+  // Fetch created receipts
+  const receipts = await prisma.notificationReceipt.findMany({
+    where: {
+      notificationId: {
+        in: notifications.map(n => n.id),
+      },
+    },
+    include: {
+      notification: true,
+      user: true,
+    },
+  });
+  log(`-> Created ${receipts.length} notification receipts.`);
+
+  return { notifications, receipts };
 }
 
 function generateNotificationContent(role: Role, title: string): string {
