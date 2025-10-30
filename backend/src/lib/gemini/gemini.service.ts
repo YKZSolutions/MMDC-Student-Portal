@@ -292,7 +292,7 @@ If this user context does not specify their current active page, assume the user
                 ? `Tool call results:\n${resultsContext}\n\n`
                 : ``) +
               `Please write a clear, helpful final answer for the user. Do not repeat raw JSON or system-like text.
-                If the answer references a sub-feature, include directions to find it unless the user context indicates they are already in that module.`,
+If the answer references a sub-feature, include directions to find it unless the user context indicates they are already in that module.`,
           },
         ],
       },
