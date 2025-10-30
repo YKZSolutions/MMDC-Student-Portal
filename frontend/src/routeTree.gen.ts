@@ -47,6 +47,9 @@ import { Route as protectedCurriculumCurriculumCodeEditRouteImport } from './rou
 import { Route as protectedBillingBillingIdEditRouteImport } from './routes/(protected)/billing/$billingId_.edit'
 import { Route as protectedLmsLmsCodeLayoutRouteRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/route'
 import { Route as protectedLmsLmsCodeLayoutIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/index'
+import { Route as protectedLmsLmsCodeLayoutStudentsIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/students/index'
+import { Route as protectedLmsLmsCodeLayoutSettingsIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/settings/index'
+import { Route as protectedLmsLmsCodeLayoutProgressIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/progress/index'
 import { Route as protectedLmsLmsCodeLayoutOverviewIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/overview/index'
 import { Route as protectedLmsLmsCodeLayoutModulesIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/modules/index'
 import { Route as protectedLmsLmsCodeLayoutGradesIndexRouteImport } from './routes/(protected)/lms/$lmsCode/_layout/grades/index'
@@ -268,6 +271,24 @@ const protectedLmsLmsCodeLayoutIndexRoute =
     path: '/',
     getParentRoute: () => protectedLmsLmsCodeLayoutRouteRoute,
   } as any)
+const protectedLmsLmsCodeLayoutStudentsIndexRoute =
+  protectedLmsLmsCodeLayoutStudentsIndexRouteImport.update({
+    id: '/students/',
+    path: '/students/',
+    getParentRoute: () => protectedLmsLmsCodeLayoutRouteRoute,
+  } as any)
+const protectedLmsLmsCodeLayoutSettingsIndexRoute =
+  protectedLmsLmsCodeLayoutSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => protectedLmsLmsCodeLayoutRouteRoute,
+  } as any)
+const protectedLmsLmsCodeLayoutProgressIndexRoute =
+  protectedLmsLmsCodeLayoutProgressIndexRouteImport.update({
+    id: '/progress/',
+    path: '/progress/',
+    getParentRoute: () => protectedLmsLmsCodeLayoutRouteRoute,
+  } as any)
 const protectedLmsLmsCodeLayoutOverviewIndexRoute =
   protectedLmsLmsCodeLayoutOverviewIndexRouteImport.update({
     id: '/overview/',
@@ -365,6 +386,9 @@ export interface FileRoutesByFullPath {
   '/lms/$lmsCode/grades': typeof protectedLmsLmsCodeLayoutGradesIndexRoute
   '/lms/$lmsCode/modules': typeof protectedLmsLmsCodeLayoutModulesIndexRoute
   '/lms/$lmsCode/overview': typeof protectedLmsLmsCodeLayoutOverviewIndexRoute
+  '/lms/$lmsCode/progress': typeof protectedLmsLmsCodeLayoutProgressIndexRoute
+  '/lms/$lmsCode/settings': typeof protectedLmsLmsCodeLayoutSettingsIndexRoute
+  '/lms/$lmsCode/students': typeof protectedLmsLmsCodeLayoutStudentsIndexRoute
   '/lms/$lmsCode/modules/$itemId/edit': typeof protectedLmsLmsCodeLayoutModulesItemIdEditRoute
   '/lms/$lmsCode/modules/$itemId/publish': typeof protectedLmsLmsCodeLayoutModulesItemIdPublishRoute
   '/lms/$lmsCode/modules/$itemId/submit': typeof protectedLmsLmsCodeLayoutModulesItemIdSubmitRoute
@@ -411,6 +435,9 @@ export interface FileRoutesByTo {
   '/lms/$lmsCode/grades': typeof protectedLmsLmsCodeLayoutGradesIndexRoute
   '/lms/$lmsCode/modules': typeof protectedLmsLmsCodeLayoutModulesIndexRoute
   '/lms/$lmsCode/overview': typeof protectedLmsLmsCodeLayoutOverviewIndexRoute
+  '/lms/$lmsCode/progress': typeof protectedLmsLmsCodeLayoutProgressIndexRoute
+  '/lms/$lmsCode/settings': typeof protectedLmsLmsCodeLayoutSettingsIndexRoute
+  '/lms/$lmsCode/students': typeof protectedLmsLmsCodeLayoutStudentsIndexRoute
   '/lms/$lmsCode/modules/$itemId/edit': typeof protectedLmsLmsCodeLayoutModulesItemIdEditRoute
   '/lms/$lmsCode/modules/$itemId/publish': typeof protectedLmsLmsCodeLayoutModulesItemIdPublishRoute
   '/lms/$lmsCode/modules/$itemId/submit': typeof protectedLmsLmsCodeLayoutModulesItemIdSubmitRoute
@@ -461,6 +488,9 @@ export interface FileRoutesById {
   '/(protected)/lms/$lmsCode/_layout/grades/': typeof protectedLmsLmsCodeLayoutGradesIndexRoute
   '/(protected)/lms/$lmsCode/_layout/modules/': typeof protectedLmsLmsCodeLayoutModulesIndexRoute
   '/(protected)/lms/$lmsCode/_layout/overview/': typeof protectedLmsLmsCodeLayoutOverviewIndexRoute
+  '/(protected)/lms/$lmsCode/_layout/progress/': typeof protectedLmsLmsCodeLayoutProgressIndexRoute
+  '/(protected)/lms/$lmsCode/_layout/settings/': typeof protectedLmsLmsCodeLayoutSettingsIndexRoute
+  '/(protected)/lms/$lmsCode/_layout/students/': typeof protectedLmsLmsCodeLayoutStudentsIndexRoute
   '/(protected)/lms/$lmsCode/_layout/modules/$itemId/edit': typeof protectedLmsLmsCodeLayoutModulesItemIdEditRoute
   '/(protected)/lms/$lmsCode/_layout/modules/$itemId/publish': typeof protectedLmsLmsCodeLayoutModulesItemIdPublishRoute
   '/(protected)/lms/$lmsCode/_layout/modules/$itemId/submit': typeof protectedLmsLmsCodeLayoutModulesItemIdSubmitRoute
@@ -510,6 +540,9 @@ export interface FileRouteTypes {
     | '/lms/$lmsCode/grades'
     | '/lms/$lmsCode/modules'
     | '/lms/$lmsCode/overview'
+    | '/lms/$lmsCode/progress'
+    | '/lms/$lmsCode/settings'
+    | '/lms/$lmsCode/students'
     | '/lms/$lmsCode/modules/$itemId/edit'
     | '/lms/$lmsCode/modules/$itemId/publish'
     | '/lms/$lmsCode/modules/$itemId/submit'
@@ -556,6 +589,9 @@ export interface FileRouteTypes {
     | '/lms/$lmsCode/grades'
     | '/lms/$lmsCode/modules'
     | '/lms/$lmsCode/overview'
+    | '/lms/$lmsCode/progress'
+    | '/lms/$lmsCode/settings'
+    | '/lms/$lmsCode/students'
     | '/lms/$lmsCode/modules/$itemId/edit'
     | '/lms/$lmsCode/modules/$itemId/publish'
     | '/lms/$lmsCode/modules/$itemId/submit'
@@ -605,6 +641,9 @@ export interface FileRouteTypes {
     | '/(protected)/lms/$lmsCode/_layout/grades/'
     | '/(protected)/lms/$lmsCode/_layout/modules/'
     | '/(protected)/lms/$lmsCode/_layout/overview/'
+    | '/(protected)/lms/$lmsCode/_layout/progress/'
+    | '/(protected)/lms/$lmsCode/_layout/settings/'
+    | '/(protected)/lms/$lmsCode/_layout/students/'
     | '/(protected)/lms/$lmsCode/_layout/modules/$itemId/edit'
     | '/(protected)/lms/$lmsCode/_layout/modules/$itemId/publish'
     | '/(protected)/lms/$lmsCode/_layout/modules/$itemId/submit'
@@ -888,6 +927,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedLmsLmsCodeLayoutIndexRouteImport
       parentRoute: typeof protectedLmsLmsCodeLayoutRouteRoute
     }
+    '/(protected)/lms/$lmsCode/_layout/students/': {
+      id: '/(protected)/lms/$lmsCode/_layout/students/'
+      path: '/students'
+      fullPath: '/lms/$lmsCode/students'
+      preLoaderRoute: typeof protectedLmsLmsCodeLayoutStudentsIndexRouteImport
+      parentRoute: typeof protectedLmsLmsCodeLayoutRouteRoute
+    }
+    '/(protected)/lms/$lmsCode/_layout/settings/': {
+      id: '/(protected)/lms/$lmsCode/_layout/settings/'
+      path: '/settings'
+      fullPath: '/lms/$lmsCode/settings'
+      preLoaderRoute: typeof protectedLmsLmsCodeLayoutSettingsIndexRouteImport
+      parentRoute: typeof protectedLmsLmsCodeLayoutRouteRoute
+    }
+    '/(protected)/lms/$lmsCode/_layout/progress/': {
+      id: '/(protected)/lms/$lmsCode/_layout/progress/'
+      path: '/progress'
+      fullPath: '/lms/$lmsCode/progress'
+      preLoaderRoute: typeof protectedLmsLmsCodeLayoutProgressIndexRouteImport
+      parentRoute: typeof protectedLmsLmsCodeLayoutRouteRoute
+    }
     '/(protected)/lms/$lmsCode/_layout/overview/': {
       id: '/(protected)/lms/$lmsCode/_layout/overview/'
       path: '/overview'
@@ -961,6 +1021,9 @@ interface protectedLmsLmsCodeLayoutRouteRouteChildren {
   protectedLmsLmsCodeLayoutGradesIndexRoute: typeof protectedLmsLmsCodeLayoutGradesIndexRoute
   protectedLmsLmsCodeLayoutModulesIndexRoute: typeof protectedLmsLmsCodeLayoutModulesIndexRoute
   protectedLmsLmsCodeLayoutOverviewIndexRoute: typeof protectedLmsLmsCodeLayoutOverviewIndexRoute
+  protectedLmsLmsCodeLayoutProgressIndexRoute: typeof protectedLmsLmsCodeLayoutProgressIndexRoute
+  protectedLmsLmsCodeLayoutSettingsIndexRoute: typeof protectedLmsLmsCodeLayoutSettingsIndexRoute
+  protectedLmsLmsCodeLayoutStudentsIndexRoute: typeof protectedLmsLmsCodeLayoutStudentsIndexRoute
   protectedLmsLmsCodeLayoutModulesItemIdEditRoute: typeof protectedLmsLmsCodeLayoutModulesItemIdEditRoute
   protectedLmsLmsCodeLayoutModulesItemIdPublishRoute: typeof protectedLmsLmsCodeLayoutModulesItemIdPublishRoute
   protectedLmsLmsCodeLayoutModulesItemIdSubmitRoute: typeof protectedLmsLmsCodeLayoutModulesItemIdSubmitRoute
@@ -980,6 +1043,12 @@ const protectedLmsLmsCodeLayoutRouteRouteChildren: protectedLmsLmsCodeLayoutRout
       protectedLmsLmsCodeLayoutModulesIndexRoute,
     protectedLmsLmsCodeLayoutOverviewIndexRoute:
       protectedLmsLmsCodeLayoutOverviewIndexRoute,
+    protectedLmsLmsCodeLayoutProgressIndexRoute:
+      protectedLmsLmsCodeLayoutProgressIndexRoute,
+    protectedLmsLmsCodeLayoutSettingsIndexRoute:
+      protectedLmsLmsCodeLayoutSettingsIndexRoute,
+    protectedLmsLmsCodeLayoutStudentsIndexRoute:
+      protectedLmsLmsCodeLayoutStudentsIndexRoute,
     protectedLmsLmsCodeLayoutModulesItemIdEditRoute:
       protectedLmsLmsCodeLayoutModulesItemIdEditRoute,
     protectedLmsLmsCodeLayoutModulesItemIdPublishRoute:

@@ -1046,6 +1046,40 @@ export const zNotificationMarkRead = z.object({
     notificationIds: z.array(z.uuid())
 });
 
+export const zEnrolledStudentDto = z.object({
+    id: z.string(),
+    studentNumber: z.union([
+        z.string(),
+        z.null()
+    ]),
+    firstName: z.string(),
+    middleName: z.union([
+        z.string(),
+        z.null()
+    ]),
+    lastName: z.string(),
+    role: z.enum([
+        'student',
+        'mentor',
+        'admin'
+    ]),
+    section: z.object({
+        id: z.optional(z.string()),
+        name: z.optional(z.string()),
+        mentorId: z.optional(z.string()),
+        mentorName: z.optional(z.string()),
+        mentorEmployeeNumber: z.optional(z.union([
+            z.number(),
+            z.null()
+        ]))
+    })
+});
+
+export const zEnrolledStudentsResponseDto = z.object({
+    students: z.array(zEnrolledStudentDto),
+    total: z.number()
+});
+
 export const zUserStatus = z.enum([
     'active',
     'disabled',
@@ -1518,6 +1552,45 @@ export const zBookedAppointment = z.object({
     id: z.string(),
     startAt: z.iso.datetime(),
     endAt: z.iso.datetime()
+});
+
+export const zMentorSummaryDto = z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    courseName: z.optional(z.string()),
+    courseCode: z.optional(z.string())
+});
+
+export const zSelectedMentorDto = z.object({
+    id: z.string(),
+    name: z.string()
+});
+
+export const zDateRangeDto = z.object({
+    startDate: z.iso.datetime(),
+    endDate: z.iso.datetime()
+});
+
+export const zTimeSlotDto = z.object({
+    start: z.iso.datetime(),
+    end: z.iso.datetime()
+});
+
+export const zMentorAvailabilityMetaDto = z.object({
+    totalFreeSlots: z.number(),
+    slotDuration: z.number(),
+    generatedAt: z.string(),
+    totalMentorsFound: z.optional(z.number())
+});
+
+export const zMentorAvailabilityDto = z.object({
+    mentorId: z.optional(z.string()),
+    mentors: z.optional(z.array(zMentorSummaryDto)),
+    selectedMentor: z.optional(zSelectedMentorDto),
+    dateRange: zDateRangeDto,
+    freeSlots: z.array(zTimeSlotDto),
+    meta: zMentorAvailabilityMetaDto
 });
 
 export const zPaginatedAppointmentDto = z.object({
@@ -3422,6 +3495,21 @@ export const zNotificationsControllerMarkAllAsReadData = z.object({
     query: z.optional(z.never())
 });
 
+export const zStudentsControllerGetEnrolledStudentsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        moduleId: z.string()
+    }),
+    query: z.optional(z.object({
+        courseOfferingId: z.optional(z.string())
+    }))
+});
+
+/**
+ * Enrolled students retrieved successfully
+ */
+export const zStudentsControllerGetEnrolledStudentsResponse = zEnrolledStudentsResponseDto;
+
 export const zAuthControllerGetMetadataData = z.object({
     body: z.optional(z.never()),
     path: z.object({
@@ -3729,6 +3817,23 @@ export const zAppointmentsControllerFindBookedRangeData = z.object({
 });
 
 export const zAppointmentsControllerFindBookedRangeResponse = z.array(zBookedAppointment);
+
+export const zAppointmentsControllerFindMentorAvailabilityData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        search: z.optional(z.string()),
+        page: z.optional(z.number().gte(1)).default(1),
+        limit: z.optional(z.number().gte(1)).default(10),
+        startDate: z.iso.datetime(),
+        endDate: z.iso.datetime(),
+        mentorId: z.optional(z.string()),
+        duration: z.optional(z.number().gte(15).lte(240)),
+        timezone: z.optional(z.string())
+    })
+});
+
+export const zAppointmentsControllerFindMentorAvailabilityResponse = zMentorAvailabilityDto;
 
 export const zAppointmentsControllerFindAllBookedData = z.object({
     body: z.optional(z.never()),

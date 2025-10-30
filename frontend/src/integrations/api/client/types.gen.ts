@@ -694,6 +694,54 @@ export type NotificationMarkRead = {
     notificationIds: Array<string>;
 };
 
+export type EnrolledStudentDto = {
+    /**
+     * The unique ID of the student
+     */
+    id: string;
+    /**
+     * The student's student number
+     */
+    studentNumber: string | null;
+    /**
+     * The student's first name
+     */
+    firstName: string;
+    /**
+     * The student's middle name
+     */
+    middleName: string | null;
+    /**
+     * The student's last name
+     */
+    lastName: string;
+    /**
+     * The role of the user
+     */
+    role: 'student' | 'mentor' | 'admin';
+    /**
+     * The course section the student is enrolled in
+     */
+    section: {
+        id?: string;
+        name?: string;
+        mentorId?: string;
+        mentorName?: string;
+        mentorEmployeeNumber?: number | null;
+    };
+};
+
+export type EnrolledStudentsResponseDto = {
+    /**
+     * List of enrolled students
+     */
+    students: Array<EnrolledStudentDto>;
+    /**
+     * Total number of enrolled students
+     */
+    total: number;
+};
+
 export type UserStatus = 'active' | 'disabled' | 'deleted';
 
 export type AuthMetadataDto = {
@@ -1043,6 +1091,108 @@ export type BookedAppointment = {
     id: string;
     startAt: string;
     endAt: string;
+};
+
+export type MentorSummaryDto = {
+    /**
+     * Mentor ID
+     */
+    id: string;
+    /**
+     * Mentor first name
+     */
+    firstName: string;
+    /**
+     * Mentor last name
+     */
+    lastName: string;
+    /**
+     * Course name if searched by course
+     */
+    courseName?: string;
+    /**
+     * Course code if searched by course
+     */
+    courseCode?: string;
+};
+
+export type SelectedMentorDto = {
+    /**
+     * Selected mentor ID
+     */
+    id: string;
+    /**
+     * Selected mentor full name
+     */
+    name: string;
+};
+
+export type DateRangeDto = {
+    /**
+     * Start date of the search range
+     */
+    startDate: string;
+    /**
+     * End date of the search range
+     */
+    endDate: string;
+};
+
+export type TimeSlotDto = {
+    /**
+     * Start time of the available slot
+     */
+    start: string;
+    /**
+     * End time of the available slot
+     */
+    end: string;
+};
+
+export type MentorAvailabilityMetaDto = {
+    /**
+     * Total number of free slots found
+     */
+    totalFreeSlots: number;
+    /**
+     * Duration of each slot in minutes
+     */
+    slotDuration: number;
+    /**
+     * Timestamp when the results were generated
+     */
+    generatedAt: string;
+    /**
+     * Total number of mentors found when using search
+     */
+    totalMentorsFound?: number;
+};
+
+export type MentorAvailabilityDto = {
+    /**
+     * Mentor ID (when searching by specific mentor)
+     */
+    mentorId?: string;
+    /**
+     * List of mentors found when using search
+     */
+    mentors?: Array<MentorSummaryDto>;
+    /**
+     * Selected mentor details when using search
+     */
+    selectedMentor?: SelectedMentorDto;
+    /**
+     * Date range used for the search
+     */
+    dateRange: DateRangeDto;
+    /**
+     * List of available time slots
+     */
+    freeSlots: Array<TimeSlotDto>;
+    /**
+     * Meta information about the results
+     */
+    meta: MentorAvailabilityMetaDto;
 };
 
 export type PaginatedAppointmentDto = {
@@ -3262,6 +3412,49 @@ export type NotificationsControllerMarkAllAsReadResponses = {
     201: unknown;
 };
 
+export type StudentsControllerGetEnrolledStudentsData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        /**
+         * Optional course offering ID to filter by specific offering
+         */
+        courseOfferingId?: string;
+    };
+    url: '/modules/{moduleId}/students';
+};
+
+export type StudentsControllerGetEnrolledStudentsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type StudentsControllerGetEnrolledStudentsError = StudentsControllerGetEnrolledStudentsErrors[keyof StudentsControllerGetEnrolledStudentsErrors];
+
+export type StudentsControllerGetEnrolledStudentsResponses = {
+    /**
+     * Enrolled students retrieved successfully
+     */
+    200: EnrolledStudentsResponseDto;
+};
+
+export type StudentsControllerGetEnrolledStudentsResponse = StudentsControllerGetEnrolledStudentsResponses[keyof StudentsControllerGetEnrolledStudentsResponses];
+
 export type AuthControllerGetMetadataData = {
     body?: never;
     path: {
@@ -4047,6 +4240,28 @@ export type AppointmentsControllerFindBookedRangeResponses = {
 };
 
 export type AppointmentsControllerFindBookedRangeResponse = AppointmentsControllerFindBookedRangeResponses[keyof AppointmentsControllerFindBookedRangeResponses];
+
+export type AppointmentsControllerFindMentorAvailabilityData = {
+    body?: never;
+    path?: never;
+    query: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        startDate: string;
+        endDate: string;
+        mentorId?: string;
+        duration?: number;
+        timezone?: string;
+    };
+    url: '/appointments/mentor-availability';
+};
+
+export type AppointmentsControllerFindMentorAvailabilityResponses = {
+    200: MentorAvailabilityDto;
+};
+
+export type AppointmentsControllerFindMentorAvailabilityResponse = AppointmentsControllerFindMentorAvailabilityResponses[keyof AppointmentsControllerFindMentorAvailabilityResponses];
 
 export type AppointmentsControllerFindAllBookedData = {
     body?: never;

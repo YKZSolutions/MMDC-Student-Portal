@@ -225,18 +225,24 @@ function ContentArea() {
   const showConfig = search.showConfig ?? false
   const isAssignment = moduleContentData.contentType === 'ASSIGNMENT'
 
+  const aiTransport = createLMSAITransport()
+
   const editor = useCreateBlockNote(
     {
-      dictionary: {
-        ...en,
-        ai: aiEn,
-      },
+      dictionary: aiTransport
+        ? {
+            ...en,
+            ai: aiEn,
+          }
+        : en,
       initialContent: toBlockArray(moduleContentData?.content),
-      extensions: [
-        createAIExtension({
-          transport: createLMSAITransport(),
-        }),
-      ],
+      extensions: aiTransport
+        ? [
+            createAIExtension({
+              transport: aiTransport,
+            }),
+          ]
+        : [],
       uploadFile: async (file) => {
         try {
           const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB

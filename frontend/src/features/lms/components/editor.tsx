@@ -39,6 +39,9 @@ interface EditorOptions {
 }
 
 export default function Editor({ editor }: EditorOptions) {
+  // Check if AI extension is available by checking the dictionary
+  const hasAI = 'ai' in editor.dictionary
+
   return (
     <BlockNoteView
       editor={editor}
@@ -52,15 +55,15 @@ export default function Editor({ editor }: EditorOptions) {
         flexDirection: 'column',
       }}
     >
-      <Toolbar />
+      <Toolbar hasAI={hasAI} />
 
-      <AIMenuController />
+      {hasAI && <AIMenuController />}
 
       <SuggestionMenuController
         triggerCharacter="/"
         getItems={async (query) => {
           const defaultItems = getDefaultReactSlashMenuItems(editor)
-          const aiItems = getAISlashMenuItems(editor)
+          const aiItems = hasAI ? getAISlashMenuItems(editor) : []
           const allItems = [...defaultItems, ...aiItems]
 
           if (!query) return allItems
@@ -74,7 +77,7 @@ export default function Editor({ editor }: EditorOptions) {
   )
 }
 
-function Toolbar() {
+function Toolbar({ hasAI }: { hasAI: boolean }) {
   return (
     <Stack align={'center'} style={{ height: '100%', width: '100%' }}>
       <FormattingToolbarController
@@ -97,8 +100,12 @@ function Toolbar() {
                 </Group>
                 <Divider orientation="vertical" />
                 {/* AI toolbar button from xl-ai */}
-                <AIToolbarButton key={'aiToolbarButton'} />
-                <Divider orientation="vertical" />
+                {hasAI && (
+                  <>
+                    <AIToolbarButton key={'aiToolbarButton'} />
+                    <Divider orientation="vertical" />
+                  </>
+                )}
                 <Group gap={2}>
                   <BlockTypeSelect key={'blockTypeSelect'} />
                   <FileDeleteButton key={'deleteFileButton'} />

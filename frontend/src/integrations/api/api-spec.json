@@ -4448,6 +4448,161 @@
         ]
       }
     },
+    "/modules/{moduleId}/students": {
+      "get": {
+        "description": "Retrieves all students enrolled in the course offering for this module, with their section information",
+        "operationId": "StudentsController_getEnrolledStudents",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseOfferingId",
+            "required": false,
+            "in": "query",
+            "description": "Optional course offering ID to filter by specific offering",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enrolled students retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrolledStudentsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NotFoundException": {
+                    "description": "Not Found",
+                    "value": {
+                      "statusCode": 404,
+                      "message": "Not Found",
+                      "error": "Not Found"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Not Found"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Get enrolled students for a module",
+        "tags": [
+          "Students"
+        ]
+      }
+    },
     "/auth/{uid}/metadata": {
       "get": {
         "description": "Retrieves the supabase auth account's metadata based on the uid given",
@@ -7265,6 +7420,100 @@
                   "items": {
                     "$ref": "#/components/schemas/BookedAppointment"
                   }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Appointments"
+        ]
+      }
+    },
+    "/appointments/mentor-availability": {
+      "get": {
+        "operationId": "AppointmentsController_findMentorAvailability",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "mentorId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 15,
+              "maximum": 240,
+              "type": "number"
+            }
+          },
+          {
+            "name": "timezone",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MentorAvailabilityDto"
                 }
               }
             }
@@ -20437,6 +20686,100 @@
           "notificationIds"
         ]
       },
+      "EnrolledStudentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique ID of the student",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "studentNumber": {
+            "type": "string",
+            "nullable": true,
+            "description": "The student's student number",
+            "example": "2021-00001"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "The student's first name",
+            "example": "John"
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true,
+            "description": "The student's middle name",
+            "example": "Michael"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "The student's last name",
+            "example": "Doe"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the user",
+            "enum": [
+              "student",
+              "mentor",
+              "admin"
+            ],
+            "example": "student"
+          },
+          "section": {
+            "type": "object",
+            "description": "The course section the student is enrolled in",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "mentorId": {
+                "type": "string"
+              },
+              "mentorName": {
+                "type": "string"
+              },
+              "mentorEmployeeNumber": {
+                "type": "number",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "studentNumber",
+          "firstName",
+          "middleName",
+          "lastName",
+          "role",
+          "section"
+        ]
+      },
+      "EnrolledStudentsResponseDto": {
+        "type": "object",
+        "properties": {
+          "students": {
+            "description": "List of enrolled students",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnrolledStudentDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Total number of enrolled students",
+            "example": 25
+          }
+        },
+        "required": [
+          "students",
+          "total"
+        ]
+      },
       "UserStatus": {
         "type": "string",
         "enum": [
@@ -21822,6 +22165,185 @@
           "id",
           "startAt",
           "endAt"
+        ]
+      },
+      "MentorSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Mentor ID",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Mentor first name",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Mentor last name",
+            "example": "Doe"
+          },
+          "courseName": {
+            "type": "string",
+            "description": "Course name if searched by course",
+            "example": "Advanced Mathematics"
+          },
+          "courseCode": {
+            "type": "string",
+            "description": "Course code if searched by course",
+            "example": "MATH101"
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName"
+        ]
+      },
+      "SelectedMentorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Selected mentor ID",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Selected mentor full name",
+            "example": "John Doe"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "DateRangeDto": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Start date of the search range",
+            "example": "2024-01-15T00:00:00.000Z"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "description": "End date of the search range",
+            "example": "2024-01-22T23:59:59.999Z"
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ]
+      },
+      "TimeSlotDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Start time of the available slot",
+            "example": "2024-01-15T09:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "End time of the available slot",
+            "example": "2024-01-15T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "MentorAvailabilityMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalFreeSlots": {
+            "type": "number",
+            "description": "Total number of free slots found",
+            "example": 15
+          },
+          "slotDuration": {
+            "type": "number",
+            "description": "Duration of each slot in minutes",
+            "example": 60
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "Timestamp when the results were generated",
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "totalMentorsFound": {
+            "type": "number",
+            "description": "Total number of mentors found when using search",
+            "example": 3
+          }
+        },
+        "required": [
+          "totalFreeSlots",
+          "slotDuration",
+          "generatedAt"
+        ]
+      },
+      "MentorAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "mentorId": {
+            "type": "string",
+            "description": "Mentor ID (when searching by specific mentor)",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "mentors": {
+            "description": "List of mentors found when using search",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MentorSummaryDto"
+            }
+          },
+          "selectedMentor": {
+            "description": "Selected mentor details when using search",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SelectedMentorDto"
+              }
+            ]
+          },
+          "dateRange": {
+            "description": "Date range used for the search",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateRangeDto"
+              }
+            ]
+          },
+          "freeSlots": {
+            "description": "List of available time slots",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSlotDto"
+            }
+          },
+          "meta": {
+            "description": "Meta information about the results",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MentorAvailabilityMetaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "dateRange",
+          "freeSlots",
+          "meta"
         ]
       },
       "PaginatedAppointmentDto": {
