@@ -128,8 +128,8 @@ export class GeminiService {
    * Generate content without tools (function calling disabled)
    */
   @Log({
-    logArgsMessage: ({ role }) =>
-      `Generate content with tools for role=${role}`,
+    logArgsMessage: ({ conversation }) =>
+      `Generate content with tools for conversation of length=${conversation.length}`,
     logSuccessMessage: () => `Successfully generated content with tools`,
     logErrorMessage: (err) =>
       `Failed to generate content with tools | Error=${err.message}`,
