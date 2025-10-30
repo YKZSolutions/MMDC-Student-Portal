@@ -19,5 +19,6 @@ export class BaseFilterDto {
   @IsOptional()
   @IsNumber()
   @Min(1, { message: 'Page limit must be greater or equal to 1' })
+  @Type(() => Number)
   limit?: number;
 }

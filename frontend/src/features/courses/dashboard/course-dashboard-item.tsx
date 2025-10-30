@@ -5,6 +5,7 @@ import type {
   CourseDto,
   DetailedCourseSectionDto,
 } from '@/integrations/api/client'
+import { lmsControllerGetModuleProgressOverviewOptions } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { formatDaysAbbrev } from '@/utils/formatters'
 import {
   ActionIcon,
@@ -19,21 +20,27 @@ import {
   Stack,
   Text,
   Title,
+  Tooltip,
   useMantineTheme,
 } from '@mantine/core'
 import {
   IconCalendar,
   IconDotsVertical,
   IconEdit,
+  IconFolder,
   IconVideo,
 } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 interface CourseDashboardItemProps {
   course: CourseDto | undefined
   section?: DetailedCourseSectionDto
   currentMeeting?: ClassMeeting
   url: string
+  progressPercentage?: number
+  moduleId?: string
+  onCalendarClick?: () => void
 }
 
 function CourseCard({
@@ -41,7 +48,75 @@ function CourseCard({
   section,
   currentMeeting,
   url,
+  progressPercentage: propProgressPercentage,
+  moduleId,
+  onCalendarClick,
 }: CourseDashboardItemProps) {
+  const { authUser } = useAuth('protected')
+
+  if (authUser.role === 'student' && moduleId) {
+    return (
+      <CourseCardWithProgress
+        course={course}
+        section={section}
+        currentMeeting={currentMeeting}
+        url={url}
+        moduleId={moduleId}
+        onCalendarClick={onCalendarClick}
+      />
+    )
+  }
+
+  return (
+    <CourseCardContent
+      course={course}
+      section={section}
+      currentMeeting={currentMeeting}
+      url={url}
+      progressPercentage={propProgressPercentage || 0}
+      onCalendarClick={onCalendarClick}
+    />
+  )
+}
+
+function CourseCardWithProgress({
+  course,
+  section,
+  currentMeeting,
+  url,
+  moduleId,
+  onCalendarClick,
+}: Omit<CourseDashboardItemProps, 'progressPercentage'> & {
+  moduleId: string
+}) {
+  const { data: moduleProgress } = useSuspenseQuery(
+    lmsControllerGetModuleProgressOverviewOptions({
+      path: { id: moduleId },
+    }),
+  )
+
+  return (
+    <CourseCardContent
+      course={course}
+      section={section}
+      currentMeeting={currentMeeting}
+      url={url}
+      progressPercentage={moduleProgress.progressPercentage || 0}
+      onCalendarClick={onCalendarClick}
+    />
+  )
+}
+
+function CourseCardContent({
+  course,
+  section,
+  currentMeeting,
+  url,
+  progressPercentage,
+  onCalendarClick,
+}: Omit<CourseDashboardItemProps, 'moduleId'> & {
+  progressPercentage: number
+}) {
   const { authUser } = useAuth('protected')
   const theme = useMantineTheme()
   const navigate = useNavigate()
@@ -154,22 +229,24 @@ function CourseCard({
                   thickness={3}
                   sections={[
                     {
-                      // value: course.courseProgress * 100,
-                      value: 60,
+                      value: Math.round(progressPercentage),
                       color: theme.colors.blue[5],
                     },
                   ]}
                 />
                 <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                  {/* {course.courseProgress * 100}% */}
-                  60%
+                  {Math.round(progressPercentage)}%
                 </Text>
               </Group>
             ),
           }}
         />
 
-        <CourseCardActionButton url={url} currentMeeting={currentMeeting} />
+        <CourseCardActionButton
+          url={url}
+          currentMeeting={currentMeeting}
+          onCalendarClick={onCalendarClick}
+        />
       </Group>
     </Card>
   )
@@ -180,7 +257,76 @@ function CourseListRow({
   section,
   currentMeeting,
   url,
+  progressPercentage: propProgressPercentage,
+  moduleId,
+  onCalendarClick,
 }: CourseDashboardItemProps) {
+  const { authUser } = useAuth('protected')
+
+  // Fetch progress if moduleId is provided and user is a student
+  if (authUser.role === 'student' && moduleId) {
+    return (
+      <CourseListRowWithProgress
+        course={course}
+        section={section}
+        currentMeeting={currentMeeting}
+        url={url}
+        moduleId={moduleId}
+        onCalendarClick={onCalendarClick}
+      />
+    )
+  }
+
+  return (
+    <CourseListRowContent
+      course={course}
+      section={section}
+      currentMeeting={currentMeeting}
+      url={url}
+      progressPercentage={propProgressPercentage || 0}
+      onCalendarClick={onCalendarClick}
+    />
+  )
+}
+
+function CourseListRowWithProgress({
+  course,
+  section,
+  currentMeeting,
+  url,
+  moduleId,
+  onCalendarClick,
+}: Omit<CourseDashboardItemProps, 'progressPercentage'> & {
+  moduleId: string
+}) {
+  const { data: moduleProgress } = useSuspenseQuery(
+    lmsControllerGetModuleProgressOverviewOptions({
+      path: { id: moduleId },
+    }),
+  )
+
+  return (
+    <CourseListRowContent
+      course={course}
+      section={section}
+      currentMeeting={currentMeeting}
+      url={url}
+      progressPercentage={moduleProgress.progressPercentage || 0}
+      onCalendarClick={onCalendarClick}
+    />
+  )
+}
+
+function CourseListRowContent({
+  course,
+  section,
+  currentMeeting,
+  url,
+  progressPercentage,
+  onCalendarClick,
+}: Omit<CourseDashboardItemProps, 'moduleId'> & {
+  progressPercentage: number
+}) {
   const theme = useMantineTheme()
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
@@ -221,7 +367,11 @@ function CourseListRow({
           </Group>
         </Stack>
         <Stack align="end">
-          <CourseCardActionButton currentMeeting={currentMeeting} url={url} />
+          <CourseCardActionButton
+            currentMeeting={currentMeeting}
+            url={url}
+            onCalendarClick={onCalendarClick}
+          />
 
           <RoleComponentManager
             currentRole={authUser.role}
@@ -233,15 +383,13 @@ function CourseListRow({
                     thickness={3}
                     sections={[
                       {
-                        // value: course.courseProgress * 100,
-                        value: 60,
+                        value: Math.round(progressPercentage),
                         color: theme.colors.blue[5],
                       },
                     ]}
                   />
                   <Text fw={500} size={'xs'} c={theme.colors.dark[3]}>
-                    {/* {course.courseProgress * 100}% */}
-                    60%
+                    {Math.round(progressPercentage)}%
                   </Text>
                 </Group>
               ),
@@ -256,11 +404,13 @@ function CourseListRow({
 type CourseCardActionButtonProps = {
   currentMeeting?: ClassMeeting
   url: string
+  onCalendarClick?: () => void
 }
 
 function CourseCardActionButton({
   currentMeeting,
   url,
+  onCalendarClick,
 }: CourseCardActionButtonProps) {
   const { authUser } = useAuth('protected')
   const navigate = useNavigate()
@@ -268,33 +418,41 @@ function CourseCardActionButton({
 
   return (
     <Group ml={'auto'}>
-      <ActionIcon
-        variant="subtle"
-        color="primary"
-        radius={'lg'}
-        size={'lg'}
-        p={rem(5)}
-        disabled={isStudent && !currentMeeting}
-        onClick={(e) => {
-          e.stopPropagation()
-          isStudent
-            ? window.open(currentMeeting?.meetingLink!, '_blank')
-            : navigate({
-                to: `${url}/modules`,
-              })
-        }}
-      >
-        {isStudent ? <IconVideo /> : <IconEdit />}
-      </ActionIcon>
-      <ActionIcon
-        variant="subtle"
-        radius={'lg'}
-        size={'lg'}
-        p={rem(5)}
-        c={'gray.6'}
-      >
-        <IconCalendar />
-      </ActionIcon>
+      <Tooltip label="Meeting">
+        <ActionIcon
+          variant="subtle"
+          color="primary"
+          radius={'lg'}
+          size={'lg'}
+          p={rem(5)}
+          disabled={isStudent && !currentMeeting}
+          onClick={(e) => {
+            e.stopPropagation()
+            isStudent
+              ? window.open(currentMeeting?.meetingLink!, '_blank')
+              : navigate({
+                  to: `${url}/modules`,
+                })
+          }}
+        >
+          {isStudent ? <IconVideo /> : <IconEdit />}
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="Files">
+        <ActionIcon
+          variant="subtle"
+          color="primary"
+          radius={'lg'}
+          size={'lg'}
+          p={rem(5)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCalendarClick?.()
+          }}
+        >
+          <IconFolder />
+        </ActionIcon>
+      </Tooltip>
       <ActionIcon
         variant="subtle"
         radius={'lg'}

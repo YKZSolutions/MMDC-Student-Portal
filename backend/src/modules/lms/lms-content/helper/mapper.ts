@@ -21,9 +21,20 @@ export function mapModuleContentToModuleTreeItem(
       throw new Error('Assignment is required for assignment content');
     }
 
+    const assignment = moduleContent.assignment;
+    const studentSubmissions = (assignment as any).submissions
+      ? (assignment as any).submissions.map((submission: any) => ({
+          ...submission,
+          grade: submission.gradeRecord,
+        }))
+      : undefined;
+
     return {
       ...moduleContent,
-      assignment: moduleContent.assignment,
+      assignment: {
+        ...assignment,
+        studentSubmissions,
+      },
       contentType: ContentType.ASSIGNMENT,
     };
   }

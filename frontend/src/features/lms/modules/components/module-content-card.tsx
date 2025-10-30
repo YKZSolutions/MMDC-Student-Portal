@@ -72,6 +72,30 @@ export default function ModuleContentCard({
     moduleContent.studentProgress.length > 0 &&
     moduleContent.studentProgress.every((p) => p.status === 'COMPLETED')
 
+  // Check assignment submission status for students
+  const assignmentSubmitted =
+    viewMode === 'student' &&
+    moduleContent.contentType === 'ASSIGNMENT' &&
+    moduleContent.assignment.studentSubmissions &&
+    moduleContent.assignment.studentSubmissions.length > 0
+
+  const assignmentGraded =
+    assignmentSubmitted &&
+    moduleContent.assignment.studentSubmissions &&
+    moduleContent.assignment.studentSubmissions[0].grade !== null &&
+    moduleContent.assignment.studentSubmissions[0].grade !== undefined
+
+  // Determine the color for the icon
+  const iconColor = isOverdue
+    ? 'red'
+    : isCompleted
+      ? 'green.8'
+      : assignmentGraded
+        ? 'green.8'
+        : assignmentSubmitted
+          ? 'blue'
+          : 'gray'
+
   return (
     <Card
       withBorder
@@ -86,11 +110,7 @@ export default function ModuleContentCard({
       <Group align="center" justify="space-between" wrap="nowrap">
         {/* Icon + Title */}
         <Group align="center" gap="sm" wrap="nowrap" flex={1}>
-          <ThemeIcon
-            size="md"
-            variant="light"
-            color={isOverdue ? 'red' : isCompleted ? 'green.8' : 'gray'}
-          >
+          <ThemeIcon size="md" variant="light" color={iconColor}>
             {getContentTypeIcon(moduleContent.contentType)}
           </ThemeIcon>
 

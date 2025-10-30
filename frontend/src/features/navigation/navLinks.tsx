@@ -21,12 +21,28 @@ import {
 } from '@tabler/icons-react'
 
 export const studentLinks: NavItem[] = [
+  // {
+  //   link: '/lms',
+  //   label: 'LMS',
+  //   Icon: IconBookFilled,
+  //   IconInactive: IconBook,
+  //   fuzzy: true,
+  // },
   {
     link: '/lms',
     label: 'LMS',
     Icon: IconBookFilled,
     IconInactive: IconBook,
     fuzzy: true,
+    subItems: [
+      {
+        link: '/lms/tasks',
+        label: 'Tasks',
+        Icon: IconClipboardListFilled,
+        IconInactive: IconClipboardList,
+        fuzzy: true,
+      },
+    ],
   },
   {
     link: '/transcript',
@@ -117,7 +133,7 @@ export const adminLinks: NavItem[] = [
     Icon: IconGraphFilled,
     IconInactive: IconGraph,
     fuzzy: true,
-    dataCy: 'dashboard-link'
+    dataCy: 'dashboard-link',
   },
   {
     link: '/lms',
@@ -132,7 +148,7 @@ export const adminLinks: NavItem[] = [
     Icon: IconUserCog,
     IconInactive: IconUserCog,
     fuzzy: true,
-    dataCy: 'users-link'
+    dataCy: 'users-link',
   },
   {
     link: '/curriculum',
