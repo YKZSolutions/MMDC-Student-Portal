@@ -15,6 +15,12 @@ import {
   PaginatedStudentAssignmentDto,
   StudentAssignmentItemDto,
 } from './dto/paginated-assignment.dto';
+import { PaginatedAllTasksDto } from './dto/all-tasks.dto';
+import {
+  FilterAllTasksDto,
+  TaskStatusFilter,
+  TaskSortBy,
+} from './dto/filter-all-tasks.dto';
 import { AssignmentSubmission, Prisma } from '@prisma/client';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { SubmitAssignmentDto } from '../submission/dto/submit-assignment.dto';
@@ -132,6 +138,7 @@ export class AssignmentService {
 
       return {
         ...assignmentItem,
+        moduleContentId: assignmentItem.moduleContentId,
         title: assignmentItem.moduleContent.title,
         subtitle: assignmentItem.moduleContent.subtitle,
         content: assignmentItem.moduleContent.content as Prisma.JsonValue[],
@@ -231,6 +238,7 @@ export class AssignmentService {
 
       return {
         ...assignment,
+        moduleContentId: assignment.moduleContentId,
         title: assignment.moduleContent.title,
         subtitle: assignment.moduleContent.subtitle,
         content: assignment.moduleContent.content as Prisma.JsonValue[],
@@ -278,18 +286,15 @@ export class AssignmentService {
       },
     };
 
-    where.submissions = {
-      some: {
-        studentId,
-      },
-    };
-
     const [data, meta] = await this.prisma.client.assignment
       .paginate({
         where,
         include: {
           moduleContent: true,
           submissions: {
+            where: {
+              studentId,
+            },
             include: {
               gradeRecord: true,
             },
@@ -300,6 +305,7 @@ export class AssignmentService {
 
     const assignments = data.map((assignment) => ({
       ...assignment,
+      moduleContentId: assignment.moduleContent.id,
       title: assignment.moduleContent.title,
       subtitle: assignment.moduleContent.subtitle,
       content: assignment.moduleContent.content as Prisma.JsonValue[],
@@ -361,7 +367,7 @@ export class AssignmentService {
         moduleContent: true,
         submissions: {
           where: { studentId },
-          include: { attachments: true },
+          include: { attachments: true, gradeRecord: true },
         },
       },
     });
@@ -375,6 +381,7 @@ export class AssignmentService {
         ...submission,
         content: submission.content as Prisma.JsonValue[],
         groupSnapshot: submission.groupSnapshot as Prisma.JsonValue,
+        grade: submission.gradeRecord,
       })),
     };
   }
@@ -456,5 +463,236 @@ export class AssignmentService {
     });
 
     return new MessageDto('Assignment softly deleted');
+  }
+
+  /**
+   * Find all assignments/tasks across all enrolled courses for a student
+   * Fetches assignments from all modules in courses the student is enrolled in for the current term
+   *
+   * @param studentId - The student's user ID
+   * @param filters - Pagination and filtering options (status, courseId, sorting)
+   * @returns Paginated list of all tasks with course and module context
+   */
+  @Log({
+    logArgsMessage: ({ studentId, filters }) =>
+      `Fetching all tasks for student ${studentId}, filters=${JSON.stringify(filters)}`,
+    logSuccessMessage: (result, { studentId }) =>
+      `Successfully fetched ${result.tasks.length} tasks for student ${studentId}`,
+    logErrorMessage: (err, { studentId }) =>
+      `Error fetching all tasks for student ${studentId}: ${err.message}`,
+  })
+  async findAllTasksForStudent(
+    @LogParam('studentId') studentId: string,
+    @LogParam('filters') filters: FilterAllTasksDto,
+  ): Promise<PaginatedAllTasksDto> {
+    const page = filters.page || 1;
+    const limit = filters.limit ?? 10;
+
+    // Build the where clause to find assignments from enrolled courses in current term
+    const where: Prisma.AssignmentWhereInput = {
+      deletedAt: null,
+      moduleContent: {
+        deletedAt: null,
+        moduleSection: {
+          deletedAt: null,
+          module: {
+            deletedAt: null,
+            courseOffering: {
+              deletedAt: null,
+              // Filter by current enrollment period (status: active)
+              enrollmentPeriod: {
+                status: 'active',
+              },
+              // Filter by student's enrollments
+              courseEnrollments: {
+                some: {
+                  studentId,
+                  deletedAt: null,
+                },
+              },
+              // Filter by course if provided
+              ...(filters.courseId && {
+                courseId: filters.courseId,
+              }),
+            },
+          },
+        },
+      },
+    };
+
+    // Determine sort order
+    const sortBy = filters.sortBy || TaskSortBy.DUE_DATE;
+    const sortDirection = filters.sortDirection || 'asc';
+
+    let orderBy: Prisma.AssignmentOrderByWithRelationInput[] = [];
+
+    switch (sortBy) {
+      case TaskSortBy.DUE_DATE:
+        orderBy = [{ dueDate: sortDirection }];
+        break;
+      case TaskSortBy.TITLE:
+        orderBy = [{ moduleContent: { title: sortDirection } }];
+        break;
+      case TaskSortBy.COURSE:
+        orderBy = [
+          {
+            moduleContent: {
+              moduleSection: {
+                module: {
+                  courseOffering: {
+                    course: { name: sortDirection },
+                  },
+                },
+              },
+            },
+          },
+        ];
+        break;
+      case TaskSortBy.STATUS:
+        // Status sorting will be done in-memory after fetching
+        orderBy = [{ dueDate: 'asc' }];
+        break;
+      default:
+        orderBy = [{ dueDate: 'asc' }];
+    }
+
+    // Fetch paginated assignments with all necessary relations
+    const [data, meta] = await this.prisma.client.assignment
+      .paginate({
+        where,
+        include: {
+          moduleContent: {
+            select: {
+              id: true,
+              title: true,
+              subtitle: true,
+              moduleSection: {
+                select: {
+                  order: true,
+                  module: {
+                    select: {
+                      id: true,
+                      title: true,
+                      courseOffering: {
+                        select: {
+                          course: {
+                            select: {
+                              id: true,
+                              name: true,
+                              courseCode: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          submissions: {
+            where: {
+              studentId,
+            },
+            select: {
+              id: true,
+              state: true,
+              submittedAt: true,
+              attemptNumber: true,
+              lateDays: true,
+              gradeRecord: true,
+            },
+          },
+          rubricTemplate: {
+            select: {
+              id: true,
+            },
+          },
+        },
+        orderBy,
+      })
+      .withPages({ limit, page, includePageCount: true });
+
+    // Transform the data to match the DTO structure
+    let tasks = data.map((assignment) => {
+      const module = assignment.moduleContent.moduleSection.module;
+      const course = module.courseOffering?.course;
+
+      if (!course) {
+        throw new Error('Course offering or course not found for assignment');
+      }
+
+      const transformedSubmissions = assignment.submissions.map(
+        (submission) => {
+          const { gradeRecord, ...submissionData } = submission;
+          return {
+            ...submissionData,
+            grade: gradeRecord,
+          };
+        },
+      );
+
+      return {
+        ...assignment,
+        moduleContentId: assignment.moduleContentId,
+        title: assignment.moduleContent.title,
+        subtitle: assignment.moduleContent.subtitle,
+        rubricTemplateId: assignment.rubricTemplate?.id ?? null,
+        course: {
+          id: course.id,
+          name: course.name,
+          courseCode: course.courseCode,
+        },
+        module: {
+          id: module.id,
+          title: module.title,
+          sectionOrder: assignment.moduleContent.moduleSection.order,
+        },
+        submissions: transformedSubmissions,
+      };
+    });
+
+    // Filter by status if provided
+    if (filters.status && filters.status !== TaskStatusFilter.ALL) {
+      tasks = tasks.filter((task) => {
+        const hasSubmissions = task.submissions.length > 0;
+        const hasGrade = hasSubmissions && task.submissions[0].grade !== null;
+
+        switch (filters.status) {
+          case TaskStatusFilter.UPCOMING:
+            return !hasSubmissions;
+          case TaskStatusFilter.SUBMITTED:
+            return hasSubmissions && !hasGrade;
+          case TaskStatusFilter.GRADED:
+            return hasGrade;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Sort by status if requested (in-memory sort)
+    if (sortBy === TaskSortBy.STATUS) {
+      tasks.sort((a, b) => {
+        const getStatusOrder = (task: (typeof tasks)[0]) => {
+          const hasSubmissions = task.submissions.length > 0;
+          const hasGrade = hasSubmissions && task.submissions[0].grade !== null;
+
+          if (hasGrade) return 3; // Graded
+          if (hasSubmissions) return 2; // Submitted
+          return 1; // Upcoming
+        };
+
+        const orderA = getStatusOrder(a);
+        const orderB = getStatusOrder(b);
+
+        return sortDirection === 'asc' ? orderA - orderB : orderB - orderA;
+      });
+    }
+
+    return {
+      tasks,
+      meta,
+    };
   }
 }

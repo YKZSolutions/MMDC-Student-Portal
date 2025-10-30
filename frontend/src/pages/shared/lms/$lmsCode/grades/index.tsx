@@ -49,121 +49,105 @@ import {
   gradingControllerGetStudentGradebookOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 import Decimal from 'decimal.js'
-import { getRouteApi, useParams } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 
 const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/grades/')
 
-function getRoleSpecificContent({
-  role,
-  studentFiltered,
-  mentorFiltered,
-  adminFiltered,
-  setStudentFiltered,
-  setMentorFiltered,
-  setAdminFiltered,
-}: {
-  role: 'student' | 'mentor' | 'admin'
-  studentFiltered: StudentViewGradeEntryDto[]
-  mentorFiltered: FullGradableAssignmentItem[]
-  adminFiltered: FullGradableAssignmentItem[]
-  setStudentFiltered: React.Dispatch<
-    React.SetStateAction<StudentViewGradeEntryDto[]>
-  >
-  setMentorFiltered: React.Dispatch<
-    React.SetStateAction<FullGradableAssignmentItem[]>
-  >
-  setAdminFiltered: React.Dispatch<
-    React.SetStateAction<FullGradableAssignmentItem[]>
-  >
-}) {
+function StudentGradesView() {
   const { lmsCode } = route.useParams()
-  switch (role) {
-    case 'student': {
-      const { data } = useSuspenseQuery(
-        gradingControllerGetStudentGradebookOptions({
-          query: {
-            moduleId: lmsCode,
-          },
-        }),
-      )
-      return {
-        data: data.gradeRecords,
-        filtered: studentFiltered,
-        onFilter: setStudentFiltered,
-        identifiers: ['assignmentTitle'] as const,
-      }
-    }
-    case 'mentor': {
-      const { data } = useSuspenseQuery(
-        gradingControllerGetMentorGradebookOptions({
-          query: {
-            moduleId: lmsCode,
-          },
-        }),
-      )
-      return {
-        data: data.gradeRecords,
-        filtered: mentorFiltered,
-        onFilter: setMentorFiltered,
-        identifiers: [
-          'assignmentTitle',
-          ['submissions', 'studentName'],
-        ] as const,
-      }
-    }
-    case 'admin': {
-      const { data } = useSuspenseQuery(
-        gradingControllerGetAdminGradebookOptions({
-          query: {
-            moduleId: lmsCode,
-          },
-        }),
-      )
-      return {
-        data: data.gradeRecords,
-        filtered: adminFiltered,
-        onFilter: setAdminFiltered,
-        identifiers: [
-          'assignmentTitle',
-          ['submissions', 'studentName'],
-        ] as const,
-      }
-    }
-    default:
-      throw new Error('Invalid role')
-  }
+  const { data } = useSuspenseQuery(
+    gradingControllerGetStudentGradebookOptions({
+      query: {
+        moduleId: lmsCode,
+      },
+    }),
+  )
+
+  return <StudentGradesTable gradeBook={data.gradeRecords} />
+}
+
+function MentorGradesView() {
+  const { lmsCode } = route.useParams()
+  const [viewMode, setViewMode] = useState<'by-assignment' | 'by-student'>(
+    'by-assignment',
+  )
+  const { data } = useSuspenseQuery(
+    gradingControllerGetMentorGradebookOptions({
+      query: {
+        moduleId: lmsCode,
+      },
+    }),
+  )
+
+  return (
+    <>
+      <Group align="start">
+        <SegmentedControl
+          value={viewMode}
+          onChange={(value) => setViewMode(value as any)}
+          data={[
+            { label: 'By Assignment', value: 'by-assignment' },
+            { label: 'By Student', value: 'by-student' },
+          ]}
+          color={'primary'}
+        />
+        <TextInput
+          placeholder="Search..."
+          radius={'md'}
+          leftSection={<IconSearch size={18} stroke={1} />}
+          w={rem(250)}
+        />
+      </Group>
+      <ElevatedRoleGradesTable
+        gradeBook={data.gradeRecords}
+        viewMode={viewMode}
+      />
+    </>
+  )
+}
+
+function AdminGradesView() {
+  const { lmsCode } = route.useParams()
+  const [viewMode, setViewMode] = useState<'by-assignment' | 'by-student'>(
+    'by-assignment',
+  )
+  const { data } = useSuspenseQuery(
+    gradingControllerGetAdminGradebookOptions({
+      query: {
+        moduleId: lmsCode,
+      },
+    }),
+  )
+
+  return (
+    <>
+      <Group align="start">
+        <SegmentedControl
+          value={viewMode}
+          onChange={(value) => setViewMode(value as any)}
+          data={[
+            { label: 'By Assignment', value: 'by-assignment' },
+            { label: 'By Student', value: 'by-student' },
+          ]}
+          color={'primary'}
+        />
+        <TextInput
+          placeholder="Search..."
+          radius={'md'}
+          leftSection={<IconSearch size={18} stroke={1} />}
+          w={rem(250)}
+        />
+      </Group>
+      <ElevatedRoleGradesTable
+        gradeBook={data.gradeRecords}
+        viewMode={viewMode}
+      />
+    </>
+  )
 }
 
 function CourseGrades() {
   const { authUser } = useAuth('protected')
-  const [studentFiltered, setStudentFiltered] = useState<
-    StudentViewGradeEntryDto[]
-  >([])
-  const [mentorFiltered, setMentorFiltered] = useState<
-    FullGradableAssignmentItem[]
-  >([])
-  const [adminFiltered, setAdminFiltered] = useState<
-    FullGradableAssignmentItem[]
-  >([])
-  const [viewMode, setViewMode] = useState<'by-assignment' | 'by-student'>(
-    'by-assignment',
-  )
-
-  const { data, filtered, onFilter, identifiers } = getRoleSpecificContent({
-    role: authUser.role,
-    studentFiltered,
-    mentorFiltered,
-    adminFiltered,
-    setStudentFiltered,
-    setMentorFiltered,
-    setAdminFiltered,
-  })
-
-  useEffect(() => {
-    if (filtered.length === 0 && data.length > 0) {
-      onFilter(data as any)
-    }
-  }, [data])
 
   return (
     <Stack gap={'md'} p={'md'}>
@@ -171,41 +155,10 @@ function CourseGrades() {
         <Title c="dark.7" variant="hero" order={2} fw={700}>
           Grades
         </Title>
-        <Group align="start">
-          {(authUser.role === 'mentor' || authUser.role === 'admin') && (
-            <SegmentedControl
-              value={viewMode}
-              onChange={(value) => setViewMode(value as any)}
-              data={[
-                { label: 'By Assignment', value: 'by-assignment' },
-                { label: 'By Student', value: 'by-student' },
-              ]}
-              color={'primary'}
-            />
-          )}
-          <TextInput
-            placeholder="Search..."
-            radius={'md'}
-            leftSection={<IconSearch size={18} stroke={1} />}
-            w={rem(250)}
-          />
-        </Group>
       </Group>
-      {authUser.role === 'student' && (
-        <StudentGradesTable gradeBook={studentFiltered} />
-      )}
-      {authUser.role === 'mentor' && (
-        <ElevatedRoleGradesTable
-          gradeBook={mentorFiltered}
-          viewMode={viewMode}
-        />
-      )}
-      {authUser.role === 'admin' && (
-        <ElevatedRoleGradesTable
-          gradeBook={adminFiltered}
-          viewMode={viewMode}
-        />
-      )}
+      {authUser.role === 'student' && <StudentGradesView />}
+      {authUser.role === 'mentor' && <MentorGradesView />}
+      {authUser.role === 'admin' && <AdminGradesView />}
     </Stack>
   )
 }
@@ -250,7 +203,7 @@ function StudentGradesTable({
           <Table.Tbody>
             <Suspense fallback={<SuspendedTableRows columns={6} />}>
               {gradeBook.map((grade) => {
-                const latestSubmission = grade?.submission.reduce(
+                const latestSubmission = grade?.submission?.reduce(
                   (latest, current) => {
                     if (!latest) return current
 

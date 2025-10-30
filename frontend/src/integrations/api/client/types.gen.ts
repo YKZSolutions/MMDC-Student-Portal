@@ -536,7 +536,50 @@ export type ModuleTreeLessonItemDto = {
     readonly contentType: string;
 };
 
-export type AssignmentDto = {
+export type SubmissionState = 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'GRADED' | 'RETURNED';
+
+export type SubmissionAttachmentDto = {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    createdAt: string;
+};
+
+export type GradeRecordDto = {
+    id: string;
+    rawScore: string;
+    finalScore: string;
+    grade: string;
+    feedback: string | null;
+    rubricEvaluationDetails: Array<{
+        [key: string]: unknown;
+    }>;
+    gradedAt: string;
+    updatedAt: string;
+};
+
+export type StudentAssignmentSubmissionItemDto = {
+    id: string;
+    groupSnapshot: {
+        [key: string]: unknown;
+    } | null;
+    state: SubmissionState;
+    content: Array<{
+        [key: string]: unknown;
+    }>;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    attachments?: Array<SubmissionAttachmentDto>;
+    grade?: GradeRecordDto | null;
+};
+
+export type ModuleTreeAssignmentDto = {
     id: string;
     mode: AssignmentMode;
     maxScore: number;
@@ -549,6 +592,7 @@ export type AssignmentDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    studentSubmissions?: Array<StudentAssignmentSubmissionItemDto>;
 };
 
 export type ModuleTreeAssignmentItemDto = {
@@ -563,7 +607,7 @@ export type ModuleTreeAssignmentItemDto = {
     updatedAt: string;
     studentProgress?: Array<ContentProgress>;
     readonly contentType: string;
-    assignment: AssignmentDto;
+    assignment: ModuleTreeAssignmentDto;
 };
 
 export type ModuleTreeSectionDto = {
@@ -1564,8 +1608,6 @@ export type UpdateCurriculumWithCourseDto = {
     courses: Array<UpdateCurriculumCourseItemDto>;
 };
 
-export type SubmissionState = 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'GRADED' | 'RETURNED';
-
 export type SubmitAssignmentDto = {
     state: SubmissionState;
     content: Array<{
@@ -1599,20 +1641,12 @@ export type AdminAssignmentItemDto = {
         [key: string]: unknown;
     }>;
     stats: AssignmentStatsDto;
+    moduleContentId: string;
 };
 
 export type PaginatedAssignmentDto = {
     meta: PaginationMetaDto;
     assignments: Array<AdminAssignmentItemDto>;
-};
-
-export type SubmissionAttachmentDto = {
-    id: string;
-    name: string;
-    url: string;
-    type: string;
-    size: number;
-    createdAt: string;
 };
 
 export type GradeRecordItemDto = {
@@ -1652,43 +1686,12 @@ export type MentorAssignmentItemDto = {
     }>;
     stats: AssignmentStatsDto;
     submissions: Array<MentorAssignmentSubmissionItemDto>;
+    moduleContentId: string;
 };
 
 export type PaginatedMentorAssignmentDto = {
     meta: PaginationMetaDto;
     assignments: Array<MentorAssignmentItemDto>;
-};
-
-export type GradeRecordDto = {
-    id: string;
-    rawScore: string;
-    finalScore: string;
-    grade: string;
-    feedback: string | null;
-    rubricEvaluationDetails: Array<{
-        [key: string]: unknown;
-    }>;
-    gradedAt: string;
-    updatedAt: string;
-};
-
-export type StudentAssignmentSubmissionItemDto = {
-    id: string;
-    groupSnapshot: {
-        [key: string]: unknown;
-    } | null;
-    state: SubmissionState;
-    content: Array<{
-        [key: string]: unknown;
-    }>;
-    submittedAt: string | null;
-    attemptNumber: number;
-    lateDays: number | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    attachments?: Array<SubmissionAttachmentDto>;
-    grade?: GradeRecordDto | null;
 };
 
 export type StudentAssignmentItemDto = {
@@ -1711,11 +1714,27 @@ export type StudentAssignmentItemDto = {
         [key: string]: unknown;
     }>;
     submissions: Array<StudentAssignmentSubmissionItemDto>;
+    moduleContentId: string;
 };
 
 export type PaginatedStudentAssignmentDto = {
     meta: PaginationMetaDto;
     assignments: Array<StudentAssignmentItemDto>;
+};
+
+export type AssignmentDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 };
 
 export type UpdateAssignmentConfigDto = {
@@ -1728,6 +1747,58 @@ export type UpdateAssignmentConfigDto = {
     dueDate?: string | null;
     gracePeriodMinutes?: number | null;
     rubricTemplateId?: string | null;
+};
+
+export type _Object = {
+    [key: string]: unknown;
+};
+
+export type TaskCourseDto = {
+    id: string;
+    name: string;
+    courseCode: string;
+};
+
+export type TaskModuleDto = {
+    id: string;
+    title: string;
+    sectionOrder: number;
+};
+
+export type TaskSubmissionItemDto = {
+    id: string;
+    state: SubmissionState;
+    submittedAt: string | null;
+    attemptNumber: number;
+    lateDays: number | null;
+    grade?: GradeRecordDto | null;
+};
+
+export type AllTaskItemDto = {
+    id: string;
+    mode: AssignmentMode;
+    maxScore: number;
+    weightPercentage: number;
+    maxAttempts: number | null;
+    allowLateSubmission: boolean | null;
+    latePenalty: number | null;
+    dueDate: string | null;
+    gracePeriodMinutes: number | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    rubricTemplateId: string | null;
+    title: string;
+    subtitle: string | null;
+    moduleContentId: string;
+    course: TaskCourseDto;
+    module: TaskModuleDto;
+    submissions: Array<TaskSubmissionItemDto>;
+};
+
+export type PaginatedAllTasksDto = {
+    meta: PaginationMetaDto;
+    tasks: Array<AllTaskItemDto>;
 };
 
 export type CreateModuleSectionDto = {
@@ -5702,6 +5773,57 @@ export type AssignmentControllerFindOneForStudentResponses = {
 };
 
 export type AssignmentControllerFindOneForStudentResponse = AssignmentControllerFindOneForStudentResponses[keyof AssignmentControllerFindOneForStudentResponses];
+
+export type TasksControllerGetAllTasksForStudentData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by task status
+         */
+        status?: 'all' | 'upcoming' | 'submitted' | 'graded';
+        /**
+         * Filter by specific course ID
+         */
+        courseId?: string;
+        /**
+         * Sort tasks by field
+         */
+        sortBy?: 'dueDate' | 'title' | 'course' | 'status';
+        /**
+         * Sort direction (asc or desc)
+         */
+        sortDirection?: _Object;
+    };
+    url: '/tasks';
+};
+
+export type TasksControllerGetAllTasksForStudentErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type TasksControllerGetAllTasksForStudentError = TasksControllerGetAllTasksForStudentErrors[keyof TasksControllerGetAllTasksForStudentErrors];
+
+export type TasksControllerGetAllTasksForStudentResponses = {
+    /**
+     * Tasks retrieved successfully
+     */
+    200: PaginatedAllTasksDto;
+};
+
+export type TasksControllerGetAllTasksForStudentResponse = TasksControllerGetAllTasksForStudentResponses[keyof TasksControllerGetAllTasksForStudentResponses];
 
 export type LmsSectionControllerFindAllModuleSectionsData = {
     body?: never;

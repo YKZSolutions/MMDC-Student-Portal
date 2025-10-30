@@ -17,8 +17,10 @@ class AssignmentStatsDto {
 class BaseAssignmentItemDto extends IntersectionType(
   AssignmentDto,
   PickType(Assignment, ['rubricTemplateId']),
-  PickType(ModuleContent, ['title', 'subtitle', 'content']),
-) {}
+  PickType(ModuleContent, ['title', 'subtitle', 'content', 'id']),
+) {
+  moduleContentId: string;
+}
 
 // Admin
 class AdminAssignmentItemDto extends BaseAssignmentItemDto {
@@ -58,7 +60,7 @@ export class PaginatedMentorAssignmentDto extends PaginatedDto {
 }
 
 // Student
-class StudentAssignmentSubmissionItemDto extends AssignmentSubmissionDto {
+export class StudentAssignmentSubmissionItemDto extends AssignmentSubmissionDto {
   attachments?: SubmissionAttachmentDto[];
   grade?: GradeRecordDto | null;
 }
