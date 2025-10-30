@@ -157,20 +157,44 @@ export class ChatbotService {
       const { response, functionCalls } =
         await this.gemini.generateContentWithTools(conversation, role);
 
-      // If no function calls, we have the final answer
-      if (!functionCalls || functionCalls.length === 0) {
-        if (!response || response.trim() === '') {
-          throw new ServiceUnavailableException('No response from Gemini');
+      // If no function calls AND no response, this is an error state
+      if (
+        (!functionCalls || functionCalls.length === 0) &&
+        (!response || response.trim() === '')
+      ) {
+        this.logger.warn(
+          'Gemini returned empty response with no function calls - attempting recovery',
+        );
+
+        // Add a prompt to force a response
+        conversation.push({
+          role: 'user',
+          parts: [
+            {
+              text: 'Please provide a response based on the information gathered. Summarize what you found and answer the original question.',
+            },
+          ],
+        });
+
+        // Try one more time without tools
+        const recoveryResult = await this.gemini.generateContent(conversation);
+
+        if (recoveryResult) {
+          result.response = recoveryResult.response;
+          return result;
         }
 
+        throw new ServiceUnavailableException(
+          'No response from Gemini after recovery attempt',
+        );
+      }
+
+      // If no function calls, we have the final answer
+      if (!functionCalls || functionCalls.length === 0) {
         this.logger.log('No more function calls - returning final response');
         result.response = response;
         return result;
       }
-
-      this.logger.log(
-        `Executing ${functionCalls.length} function call(s): ${functionCalls.map((fc) => fc.name).join(', ')}`,
-      );
 
       // Execute all function calls
       const functionResults = await Promise.all(
