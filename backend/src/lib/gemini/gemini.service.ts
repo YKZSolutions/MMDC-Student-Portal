@@ -67,7 +67,7 @@ export class GeminiService {
     currentQuestion: string,
   ): ConversationMessage[] {
     const userContextStr = `The current authenticated user is: ${JSON.stringify(userContext)}.
-    If this user context does not specify their current active page, assume the user is interacting from the home page and requires full navigation guidance (e.g., mention where tabs or pages can be found).`;
+If this user context does not specify their current active page, assume the user is interacting from the home page and requires full navigation guidance (e.g., mention where tabs or pages can be found).`;
 
     const conversation: ConversationMessage[] = [
       { role: 'model', parts: [{ text: userContextStr }] },
