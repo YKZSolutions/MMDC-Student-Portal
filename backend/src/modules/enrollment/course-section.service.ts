@@ -255,12 +255,11 @@ export class CourseSectionService {
 
       if (updateCourseSectionDto.name) {
         await tx.courseSection
-          .findUnique({
+          .findFirst({
             where: {
-              courseOfferingId_name: {
-                courseOfferingId: offeringId,
-                name: updateCourseSectionDto.name,
-              },
+              courseOfferingId: offeringId,
+              name: updateCourseSectionDto.name,
+              deletedAt: null,
             },
           })
           .then((existingSection) => {
@@ -328,9 +327,9 @@ export class CourseSectionService {
       new NotFoundException(
         `Course section [${sectionId}] not found in offering [${offeringId}].`,
       ),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_, { sectionId }) =>
+    [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException(
-        `Course section cannot be deleted because it is still referenced by other records (e.g., enrollments).`,
+        `Cannot delete course section because it is still being referenced by other records (e.g., enrollments). Drop the students from the enrollment first.`,
       ),
   })
   async removeCourseSection(

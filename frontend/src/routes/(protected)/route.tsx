@@ -9,6 +9,7 @@ import {
 } from '@/integrations/api/client/@tanstack/react-query.gen'
 import { client } from '@/integrations/api/client/client.gen'
 import { supabase } from '@/integrations/supabase/supabase-client'
+import { useSupabaseAuthEvent } from '@/integrations/supabase/use-supabase-auth-event'
 import Chatbot from '@/pages/shared/layout/chatbot'
 import Sidebar from '@/pages/shared/layout/sidebar'
 import Topbar from '@/pages/shared/layout/topbar'
@@ -59,10 +60,11 @@ function RouteComponent() {
 
 function PageLayoutComponent() {
   const [isChatbotOpen, setChatbotOpen] = useState(false)
-  const [isChatbotFabHidden, setChatbotFabHidden] = useState(true)
+  const [isChatbotFabHidden, setChatbotFabHidden] = useState(false) //Show the chatbot button by default
   const [sidebarOpened, setSidebarOpened] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
+  useSupabaseAuthEvent()
   useNotificationSubscription()
 
   return (
@@ -87,6 +89,7 @@ function PageLayoutComponent() {
             }
             justify="start"
             style={{ position: 'relative', overflow: 'hidden' }}
+            gap={0}
           >
             <Group justify="space-between" align="center" wrap="nowrap">
               {!isDesktop && (

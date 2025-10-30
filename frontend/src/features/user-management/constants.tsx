@@ -1,10 +1,11 @@
-import type { Role } from '@/integrations/api/client'
+import type { FilterOption } from '@/components/filter';
+import type { Role } from '@/integrations/api/client';
 import {
   IconChalkboardTeacher,
   IconSchool,
   IconShield,
   IconUsers,
-} from '@tabler/icons-react'
+} from '@tabler/icons-react';
 
 export const roleStyles: Record<
   Role,
@@ -27,7 +28,7 @@ export const roleStyles: Record<
   },
 }
 
-export const roleOptions = [
+export const roleFilterOptions = [
   {
     label: 'All roles',
     value: null,
@@ -36,20 +37,20 @@ export const roleOptions = [
   },
   {
     label: 'Mentor',
-    value: 'mentor' as Role,
+    value: 'mentor',
     icon: <IconChalkboardTeacher size={16} />,
     color: 'green',
   },
   {
     label: 'Student',
-    value: 'student' as Role,
+    value: 'student',
     icon: <IconSchool size={16} />,
     color: 'blue',
   },
   {
     label: 'Admin',
-    value: 'admin' as Role,
+    value: 'admin',
     icon: <IconShield size={16} />,
     color: 'red',
   },
-]
+] satisfies FilterOption<Role>[]

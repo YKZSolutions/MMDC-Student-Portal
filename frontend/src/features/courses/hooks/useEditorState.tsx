@@ -59,7 +59,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     }),
   )
 
-
   const editor = useCreateBlockNote(
     {
       initialContent: toBlockArray(moduleContentData?.content),

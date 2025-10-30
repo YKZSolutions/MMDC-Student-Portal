@@ -5,7 +5,10 @@ import {
   PrismaErrorCode,
 } from '@/common/decorators/prisma-error.decorator';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
   ConflictException,
@@ -21,6 +24,8 @@ import { CreateCourseFullDto } from './dto/create-course-full.dto';
 import { PaginatedCoursesDto } from './dto/paginated-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { LmsService } from '../lms/lms-module/lms.service';
+import { MessageDto } from '@/common/dto/message.dto';
+import { CreateCourseDto } from '@/generated/nestjs-dto/create-course.dto';
 
 @Injectable()
 export class CoursesService {
@@ -41,11 +46,11 @@ export class CoursesService {
    * @throws {Error} Any other unexpected errors.
    */
   @Log({
-    logArgsMessage: ({ course }) =>
+    logArgsMessage: ({ course }: { course: CreateCourseFullDto }) =>
       `Creating course [${course.courseCode} - ${course.name}]`,
     logSuccessMessage: (course) =>
       `Course [${course.courseCode} - ${course.name}] successfully created.`,
-    logErrorMessage: (err, { course }) =>
+    logErrorMessage: (err, { course }: { course: CreateCourseFullDto }) =>
       `An error has occurred while creating course [${course.courseCode} - ${course.name}] | Error: ${err.message}`,
   })
   @PrismaError({
@@ -55,39 +60,43 @@ export class CoursesService {
   async create(
     @LogParam('course') createCourseDto: CreateCourseFullDto,
   ): Promise<CourseFullDto> {
-    const { majorIds, prereqIds, coreqIds, ...courseData } = createCourseDto;
+    return this.prisma.client.$transaction(async (tx) => {
+      const { majorIds, prereqIds, coreqIds, ...courseData } = createCourseDto;
 
-    const data: Prisma.CourseCreateInput = {
-      ...courseData,
-    };
+      await this.validateMutationData(createCourseDto, tx);
 
-    if (majorIds?.length) {
-      data.majors = { connect: majorIds.map((id) => ({ id })) };
-    }
+      const data: Prisma.CourseCreateInput = {
+        ...courseData,
+      };
 
-    if (prereqIds?.length) {
-      data.prereqs = { connect: prereqIds.map((id) => ({ id })) };
-    }
+      if (majorIds?.length) {
+        data.majors = { connect: majorIds.map((id) => ({ id })) };
+      }
 
-    if (coreqIds?.length) {
-      data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
-    }
+      if (prereqIds?.length) {
+        data.prereqs = { connect: prereqIds.map((id) => ({ id })) };
+      }
 
-    const course = await this.prisma.client.course.create({
-      data,
-      include: { prereqs: true, coreqs: true },
+      if (coreqIds?.length) {
+        data.coreqs = { connect: coreqIds.map((id) => ({ id })) };
+      }
+
+      const course: CourseFullDto = await tx.course.create({
+        data,
+        include: { prereqs: true, coreqs: true },
+      });
+
+      await this.lmsService.initializeCourseModule(course, tx);
+
+      return course;
     });
-
-    await this.lmsService.initializeCourseModule(course.id);
-
-    return course;
   }
 
   /**
    * Retrieves all courses matching the provided filters, with pagination support.
    *
    * @async
-   * @param {BaseFilterDto} filters - Filters and pagination otions (e.g., search keyword, page number).
+   * @param {BaseFilterDto} filters - Filters and pagination options (e.g., search keyword, page number).
    * @returns {Promise<PaginatedCoursesDto>} - Paginated list of courses with metadata.
    *
    * @throws {BadRequestException} If query parameters are invalid.
@@ -104,7 +113,9 @@ export class CoursesService {
   async findAll(
     @LogParam('filters') filters: BaseFilterDto,
   ): Promise<PaginatedCoursesDto> {
-    const where: Prisma.CourseWhereInput = {};
+    const where: Prisma.CourseWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     if (filters.search?.trim()) {
@@ -145,7 +156,7 @@ export class CoursesService {
   }
 
   /**
-   * Retrieves a single course by it's unique ID.
+   * Retrieves a single course by its unique ID.
    *
    * @async
    * @param {string} id - The UUID of the course.
@@ -197,62 +208,65 @@ export class CoursesService {
    */
   @Log({
     logArgsMessage: ({ id }) => `Updating course for id ${id}`,
-    logSuccessMessage: (id) => `Successfully updated course for id ${id}`,
+    logSuccessMessage: (course) =>
+      `Successfully updated course for id ${course.id}`,
     logErrorMessage: (err, { id }) =>
       `An error has occurred while updated course for id ${id} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Course not found for Id ${id}`),
-    [PrismaErrorCode.UniqueConstraint]: (_, { course }) =>
-      new ConflictException(`Course code ${course.courseCode} already in use`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Course does not exist`),
   })
   async update(
     @LogParam('id') id: string,
     @LogParam('course') updateCourseDto: UpdateCourseDto,
   ): Promise<CourseFullDto> {
     if (!isUUID(id)) {
-      throw new NotFoundException(`Course with ID ${id} not found.`);
+      throw new BadRequestException('Invalid course ID format');
     }
 
-    const { majorIds, coreqIds, prereqIds, ...courseData } = updateCourseDto;
+    return await this.prisma.client.$transaction(async (tx) => {
+      const { majorIds, coreqIds, prereqIds, ...courseData } = updateCourseDto;
 
-    const data: Prisma.CourseUpdateInput = {
-      ...courseData,
-    };
+      await this.validateMutationData(updateCourseDto, tx, id);
 
-    if (majorIds) {
-      data.majors = { set: majorIds.map((id) => ({ id })) };
-    }
+      const data: Prisma.CourseUpdateInput = {
+        ...courseData,
+      };
 
-    if (coreqIds) {
-      data.coreqs = { set: coreqIds.map((id) => ({ id })) };
-    }
+      if (majorIds) {
+        data.majors = { set: majorIds.map((id) => ({ id })) };
+      }
 
-    if (prereqIds) {
-      data.prereqs = { set: prereqIds.map((id) => ({ id })) };
-    }
+      if (coreqIds) {
+        data.coreqs = { set: coreqIds.map((id) => ({ id })) };
+      }
 
-    return await this.prisma.client.course.update({
-      where: { id },
-      data,
-      include: {
-        prereqs: true,
-        coreqs: true,
-      },
+      if (prereqIds) {
+        data.prereqs = { set: prereqIds.map((id) => ({ id })) };
+      }
+
+      return tx.course.update({
+        where: { id },
+        data,
+        include: {
+          prereqs: true,
+          coreqs: true,
+        },
+      });
     });
   }
 
   /**
    * Deletes a course from the database.
    *
-   * - If `directDelete` is false (or omitted), the coyrse is soft-deleted (sets `deletedAt`).
+   * - If `directDelete` is false (or omitted), the course is soft-deleted (sets `deletedAt`).
    * - If `directDelete` is true, the course is permanently deleted.
    *
    * @async
    * @param {string} id - The UUID of the course to delete.
    * @param {boolean} [directDelete=false] - Whether to permanently delete the record.
-   * @returns {Promise<{ message: string }>} Deletion confirmation message.
+   * @returns {Promise<MessageDto>} Deletion confirmation message.
    *
    * @throws {NotFoundException} If no course is found with the given ID.
    * @throws {Error} Any other unexpected errors.
@@ -268,7 +282,7 @@ export class CoursesService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_msg, { id }) =>
       new NotFoundException(`Course with ID ${id} not found`),
-    [PrismaErrorCode.ForeignKeyConstraint]: (_msg, _) =>
+    [PrismaErrorCode.ForeignKeyConstraint]: () =>
       new BadRequestException(
         'Cannot delete course because it is associated with an existing major',
       ),
@@ -276,7 +290,7 @@ export class CoursesService {
   async remove(
     @LogParam('id') id: string,
     @LogParam('directDelete') directDelete?: boolean,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageDto> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Invalid ID format: ${id}`);
     }
@@ -291,10 +305,64 @@ export class CoursesService {
         data: { deletedAt: new Date() },
       });
 
-      return { message: 'Course marked for deletion' };
+      return new MessageDto('Course marked for deletion');
     }
 
     await this.prisma.client.course.delete({ where: { id } });
-    return { message: 'Course permanently deleted' };
+    return new MessageDto('Course permanently deleted');
+  }
+
+  async validateMutationData(
+    courseToCheck: CreateCourseDto | UpdateCourseDto,
+    transactionClient: PrismaTransaction,
+    id?: string,
+  ) {
+    if (courseToCheck.units && courseToCheck.units < 0) {
+      throw new BadRequestException('Units must not be negative');
+    }
+
+    const excludeId = { NOT: { id } };
+
+    // 1. Check for course Code Conflict (if code is provided)
+    if (courseToCheck.courseCode) {
+      const existingCodecourse = await transactionClient.course.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          courseCode: {
+            equals: courseToCheck.courseCode,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingCodecourse) {
+        throw new ConflictException(
+          `Course code '${existingCodecourse.courseCode}' already exists`,
+        );
+      }
+    }
+
+    // 2. Check for Name Conflict (if a name is provided)
+    if (courseToCheck.name) {
+      const existingNamecourse = await transactionClient.course.findFirst({
+        where: {
+          deletedAt: null,
+          ...excludeId,
+          name: {
+            equals: courseToCheck.name,
+            mode: Prisma.QueryMode.insensitive, // Case-insensitive search
+          },
+        },
+      });
+
+      if (existingNamecourse) {
+        throw new ConflictException(
+          `Course name '${existingNamecourse.name}' already exists`,
+        );
+      }
+    }
+
+    // If neither check throws an error, the data is valid.
   }
 }

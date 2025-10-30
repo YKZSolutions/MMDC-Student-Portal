@@ -23,7 +23,7 @@ import { LmsModule } from '../lms/lms-module/lms.module';
     CourseSectionService,
     CourseEnrollmentService,
   ],
-  exports: [EnrollmentService, CourseEnrollmentService],
+  exports: [EnrollmentService, CourseEnrollmentService, CourseOfferingService],
   imports: [BillingModule, LmsModule],
 })
 export class EnrollmentModule {}

@@ -71,8 +71,9 @@ function Topbar({ setChatbotOpen, setChatbotFabHidden }: TopBarProps) {
           variant="subtle"
           radius="xl"
           onClick={() => {
-            setChatbotOpen(true)
             setChatbotFabHidden(false)
+            setTimeout(() => setChatbotOpen(true), 500)
+            setChatbotOpen(true)
           }}
         >
           <IconMessageChatbot size={22} />

@@ -49,8 +49,9 @@ import {
   gradingControllerGetStudentGradebookOptions,
 } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 import Decimal from 'decimal.js'
-import { useParams } from '@tanstack/react-router'
-import { Route } from '@/routes/(protected)/lms/$lmsCode.tsx'
+import { getRouteApi, useParams } from '@tanstack/react-router'
+
+const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/grades/')
 
 function getRoleSpecificContent({
   role,
@@ -75,7 +76,7 @@ function getRoleSpecificContent({
     React.SetStateAction<FullGradableAssignmentItem[]>
   >
 }) {
-  const { lmsCode } = Route.useParams()
+  const { lmsCode } = route.useParams()
   switch (role) {
     case 'student': {
       const { data } = useSuspenseQuery(

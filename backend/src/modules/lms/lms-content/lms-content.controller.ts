@@ -41,7 +41,7 @@ import { FullModuleContent } from '@/modules/lms/lms-content/types';
 import { DetailedContentProgressDto } from '@/modules/lms/lms-content/dto/detailed-content-progress.dto';
 import { UpdateModuleContentDto } from '@/generated/nestjs-dto/update-moduleContent.dto';
 
-@Controller('modules/:moduleId/contents')
+@Controller('modules/:moduleId/sections/:moduleSectionId/content')
 export class LmsContentController {
   constructor(
     private readonly lmsContentService: LmsContentService,
@@ -76,9 +76,14 @@ export class LmsContentController {
   @Post()
   create(
     @Param('moduleId', new ParseUUIDPipe()) moduleId: string,
+    @Param('moduleSectionId', new ParseUUIDPipe()) moduleSectionId: string,
     @Body() createModuleContentDto: CreateModuleContentDto,
   ): Promise<FullModuleContent> {
-    return this.lmsContentService.create(moduleId, createModuleContentDto);
+    return this.lmsContentService.create(
+      moduleId,
+      moduleSectionId,
+      createModuleContentDto,
+    );
   }
 
   /**

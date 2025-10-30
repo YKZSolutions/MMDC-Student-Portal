@@ -10,9 +10,16 @@ import {
   StudentProgressStats,
 } from '@/modules/lms/lms-module/dto/module-progress-stats.dto';
 import { ModuleSection } from '@/generated/nestjs-dto/moduleSection.entity';
+import { LogParam } from '@/common/decorators/log-param.decorator';
 import { Log } from '@/common/decorators/log.decorator';
 import { ContentProgress } from '@/generated/nestjs-dto/contentProgress.entity';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import {
+  MyModuleProgressItem,
+  MyModulesProgressFilters,
+  MyModulesProgressResponse,
+  MyModulesProgressSummary,
+} from '@/modules/lms/lms-module/dto/modules-progress.dto';
 
 /**
  * Service for tracking and managing student progress across modules, sections, and content items in the LMS.
@@ -31,11 +38,18 @@ export class ModuleProgressService {
     private prisma: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
-  @Log({})
+  @Log({
+    logArgsMessage: ({ moduleId, userId, role }) =>
+      `Getting module progress overview for module ${moduleId} by user ${userId} with role ${role}`,
+    logSuccessMessage: (result, { moduleId }) =>
+      `Retrieved module progress overview for module ${moduleId} (${result.progressPercentage}% complete)`,
+    logErrorMessage: (err, { moduleId, userId }) =>
+      `Failed to get module progress overview for module ${moduleId} by user ${userId} | Error: ${err.message}`,
+  })
   async getModuleProgressOverview(
-    moduleId: string,
-    userId: string,
-    role: Role,
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     queryParams?: ProgressQueryParams,
   ): Promise<ModuleProgressOverview> {
     // Validate module exists
@@ -101,10 +115,18 @@ export class ModuleProgressService {
   /**
    * 2. Progress of module broke down into module > sections > content items
    */
+  @Log({
+    logArgsMessage: ({ moduleId, userId, role }) =>
+      `Getting detailed module progress for module ${moduleId} by user ${userId} with role ${role}`,
+    logSuccessMessage: (result, { moduleId }) =>
+      `Retrieved detailed module progress for module ${moduleId} (${result.overallProgress.progressPercentage}% complete, ${result.sections.length} sections)`,
+    logErrorMessage: (err, { moduleId, userId }) =>
+      `Failed to get detailed module progress for module ${moduleId} by user ${userId} | Error: ${err.message}`,
+  })
   async getModuleProgressDetail(
-    moduleId: string,
-    userId: string,
-    role: Role,
+    @LogParam('moduleId') moduleId: string,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     queryParams?: ProgressQueryParams,
   ): Promise<ModuleProgressDetail> {
     // Validate module exists and get structure
@@ -292,9 +314,17 @@ export class ModuleProgressService {
   /**
    * 3. Progress of modules for a dashboard
    */
+  @Log({
+    logArgsMessage: ({ userId, role }) =>
+      `Getting dashboard progress for user ${userId} with role ${role}`,
+    logSuccessMessage: (result, { userId, role }) =>
+      `Retrieved dashboard progress for user ${userId} with role ${role} (${result.studentProgress?.length || 0} modules)`,
+    logErrorMessage: (err, { userId, role }) =>
+      `Failed to get dashboard progress for user ${userId} with role ${role} | Error: ${err.message}`,
+  })
   async getDashboardProgress(
-    userId: string,
-    role: Role,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     queryParams?: ProgressQueryParams,
   ): Promise<DashboardProgress> {
     // Get student IDs based on the role
@@ -312,7 +342,6 @@ export class ModuleProgressService {
       modules.map((module) =>
         this.getModuleProgressOverview(module.id, userId, role, {
           ...queryParams,
-          moduleId: module.id,
         }),
       ),
     );
@@ -336,11 +365,188 @@ export class ModuleProgressService {
     return result;
   }
 
+  /**
+   * Get progress overview for all modules the current user is enrolled in or responsible for
+   */
+  @Log({
+    logArgsMessage: ({ userId, role, filters }) =>
+      `Getting my modules progress for user ${userId} with role ${role}, filters: ${JSON.stringify(filters)}`,
+    logSuccessMessage: (result: MyModulesProgressResponse, { userId, role }) =>
+      `Retrieved my modules progress for user ${userId} with role ${role}: ${result.modules.length} modules, overall progress ${result.summary.overallProgress}%`,
+    logErrorMessage: (err, { userId, role, filters }) =>
+      `Failed to get my modules progress for user ${userId} with role ${role}, filters: ${JSON.stringify(filters)} | Error: ${err.message}`,
+  })
+  async getMyModulesProgress(
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
+    @LogParam('filters') filters?: MyModulesProgressFilters,
+  ): Promise<MyModulesProgressResponse> {
+    // Get dashboard progress first
+    const dashboard = await this.getDashboardProgress(
+      userId,
+      role,
+      filters?.courseOfferingId
+        ? { courseOfferingId: filters.courseOfferingId }
+        : undefined,
+    );
+
+    let modules = dashboard.studentProgress || [];
+
+    // Apply status filter if provided
+    if (filters?.status) {
+      modules = modules.filter((module) => module.status === filters.status);
+    }
+
+    // Apply search filter if provided
+    if (filters?.search) {
+      const searchLower = filters.search.toLowerCase();
+      modules = modules.filter((module) =>
+        module.moduleTitle.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Enhance modules with additional course information
+    const enhancedModules = await this.enhanceModulesWithCourseInfo(
+      modules,
+      userId,
+      role,
+    );
+
+    // Calculate a comprehensive summary
+    const summary = this.calculateMyModulesSummary(enhancedModules);
+
+    return {
+      modules: enhancedModules,
+      summary,
+    };
+  }
+
+  /**
+   * Enhance modules with course information
+   */
+  private async enhanceModulesWithCourseInfo(
+    modules: ModuleProgressOverview[],
+    userId: string,
+    role: Role,
+  ): Promise<MyModuleProgressItem[]> {
+    if (modules.length === 0) {
+      return [];
+    }
+
+    // Get course information for all modules
+    const moduleIds = modules.map((module) => module.moduleId);
+
+    const modulesWithCourses = await this.prisma.client.module.findMany({
+      where: {
+        id: { in: moduleIds },
+      },
+      include: {
+        courseOffering: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    // Create a map for a quick lookup
+    const moduleCourseMap = new Map(
+      modulesWithCourses.map((mc) => [
+        mc.id,
+        {
+          courseName: mc.courseOffering?.course?.name,
+          courseCode: mc.courseOffering?.course?.courseCode,
+          courseOfferingId: mc.courseOfferingId,
+        },
+      ]),
+    );
+
+    return modules.map((module) => {
+      const courseInfo = moduleCourseMap.get(module.moduleId);
+
+      return {
+        moduleId: module.moduleId,
+        moduleTitle: module.moduleTitle,
+        courseName: courseInfo?.courseName,
+        courseCode: courseInfo?.courseCode,
+        courseOfferingId: courseInfo?.courseOfferingId,
+        progressPercentage: module.progressPercentage,
+        status: module.status,
+        completedContentItems: module.completedContentItems,
+        totalContentItems: module.totalContentItems,
+        overdueAssignmentsCount: module.overdueAssignmentsCount,
+        lastAccessedAt: module.lastAccessedAt,
+      };
+    });
+  }
+
+  /**
+   * Calculate a comprehensive summary for my modules progress
+   */
+  private calculateMyModulesSummary(
+    modules: MyModuleProgressItem[],
+  ): MyModulesProgressSummary {
+    if (modules.length === 0) {
+      return {
+        totalModules: 0,
+        completedModules: 0,
+        inProgressModules: 0,
+        notStartedModules: 0,
+        overallProgress: 0,
+        totalOverdueAssignments: 0,
+        totalCompletedContent: 0,
+        totalContentItems: 0,
+      };
+    }
+
+    const completedModules = modules.filter(
+      (m) => m.status === ProgressStatus.COMPLETED,
+    ).length;
+    const inProgressModules = modules.filter(
+      (m) => m.status === ProgressStatus.IN_PROGRESS,
+    ).length;
+    const notStartedModules = modules.filter(
+      (m) => m.status === ProgressStatus.NOT_STARTED,
+    ).length;
+
+    const totalOverdueAssignments = modules.reduce(
+      (sum, m) => sum + m.overdueAssignmentsCount,
+      0,
+    );
+    const totalCompletedContent = modules.reduce(
+      (sum, m) => sum + m.completedContentItems,
+      0,
+    );
+    const totalContentItems = modules.reduce(
+      (sum, m) => sum + m.totalContentItems,
+      0,
+    );
+
+    const overallProgress =
+      modules.length > 0
+        ? Math.round(
+            modules.reduce((sum, m) => sum + m.progressPercentage, 0) /
+              modules.length,
+          )
+        : 0;
+
+    return {
+      totalModules: modules.length,
+      completedModules,
+      inProgressModules,
+      notStartedModules,
+      overallProgress,
+      totalOverdueAssignments,
+      totalCompletedContent,
+      totalContentItems,
+    };
+  }
+
   // Private helper methods
 
   private async getStudentIdsForUser(
-    userId: string,
-    role: Role,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     queryParams?: ProgressQueryParams,
   ): Promise<string[]> {
     switch (role) {
@@ -359,7 +565,7 @@ export class ModuleProgressService {
   }
 
   private async getMentorStudentIds(
-    mentorId: string,
+    @LogParam('mentorId') mentorId: string,
     queryParams?: ProgressQueryParams,
   ): Promise<string[]> {
     const sections = await this.prisma.client.courseSection.findMany({
@@ -671,8 +877,8 @@ export class ModuleProgressService {
   }
 
   private async getRelevantModules(
-    userId: string,
-    role: Role,
+    @LogParam('userId') userId: string,
+    @LogParam('role') role: Role,
     queryParams?: ProgressQueryParams,
   ): Promise<
     Array<{
@@ -719,7 +925,8 @@ export class ModuleProgressService {
   }
 
   private async getOverallProgressStats(
-    studentIds: string[],
+    @LogParam('studentIds') studentIds: string[],
+    @LogParam('modules')
     modules: Array<{
       id: string;
       title: string;
@@ -798,7 +1005,8 @@ export class ModuleProgressService {
   }
 
   private async getStudentProgressStats(
-    studentIds: string[],
+    @LogParam('studentIds') studentIds: string[],
+    @LogParam('modules')
     modules: Array<{
       id: string;
       title: string;

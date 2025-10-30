@@ -29,7 +29,7 @@ export function createEnrollmentPeriodData(
   status: EnrollmentStatus = term === 1
     ? EnrollmentStatus.active
     : EnrollmentStatus.upcoming,
-): Prisma.EnrollmentPeriodCreateInput {
+): Prisma.EnrollmentPeriodCreateManyInput {
   const startDate = new Date(year, (term - 1) * 6, 1);
   const endDate = new Date(year, term * 6 - 1, 30);
 
@@ -47,9 +47,14 @@ export function createCourseSectionData(
   courseOfferingId: string,
   mentorId: string,
   index: number,
-): Prisma.CourseSectionCreateInput {
-  const timeSlot = faker.helpers.arrayElement(TIME_SLOTS);
-  const days = faker.helpers.arrayElement(DAY_COMBINATIONS);
+): Prisma.CourseSectionCreateManyInput {
+  // Generate unique time slot based on index to avoid constraint violations
+  const timeSlotIndex = index % TIME_SLOTS.length;
+  const timeSlot = TIME_SLOTS[timeSlotIndex];
+
+  // Generate unique days combination based on index
+  const daysIndex = index % DAY_COMBINATIONS.length;
+  const days = DAY_COMBINATIONS[daysIndex];
 
   return {
     name: `Section ${SECTION_NAMES[index] || String.fromCharCode(65 + index)}`,
@@ -57,8 +62,8 @@ export function createCourseSectionData(
     startSched: timeSlot.start,
     endSched: timeSlot.end,
     days,
-    courseOffering: { connect: { id: courseOfferingId } },
-    mentor: { connect: { id: mentorId } },
+    courseOfferingId,
+    mentorId,
   };
 }
 
@@ -66,7 +71,7 @@ export function createCourseEnrollmentData(
   courseOfferingId: string,
   courseSectionId: string,
   studentId: string,
-): Prisma.CourseEnrollmentCreateInput {
+): Prisma.CourseEnrollmentCreateManyInput {
   const status = faker.helpers.arrayElement([
     CourseEnrollmentStatus.enrolled,
     CourseEnrollmentStatus.enrolled,
@@ -82,9 +87,9 @@ export function createCourseEnrollmentData(
       : null;
 
   return {
-    courseOffering: { connect: { id: courseOfferingId } },
-    courseSection: { connect: { id: courseSectionId } },
-    student: { connect: { id: studentId } },
+    courseOfferingId,
+    courseSectionId,
+    studentId,
     status,
     startedAt,
     completedAt,

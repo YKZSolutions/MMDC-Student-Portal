@@ -311,6 +311,10 @@ export type UpdateCourseDto = {
     coreqIds?: Array<string>;
 };
 
+export type MessageDto = {
+    message: string;
+};
+
 export type EnrollmentStatus = 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
 
 export type EnrollmentPeriodDto = {
@@ -383,27 +387,13 @@ export type PaginatedModulesDto = {
     modules: Array<DetailedModulesDto>;
 };
 
-export type UpdateModuleDto = {
-    title?: string;
-};
-
-export type ModuleDto = {
-    id: string;
-    title: string;
-    publishedAt: string | null;
-    unpublishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-};
-
 export type ModuleSection = {
     id: string;
     moduleId: string;
     parentSectionId: string | null;
     prerequisiteSectionId: string | null;
     title: string;
-    order: number | null;
+    order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
@@ -480,6 +470,58 @@ export type ModuleContent = {
     studentProgress?: Array<ContentProgress>;
 };
 
+export type ModuleProgressOverview = {
+    moduleId: string;
+    moduleTitle: string;
+    completedContentItems: number;
+    totalContentItems: number;
+    notStartedContentItems: number;
+    overdueAssignmentsCount: number;
+    progressPercentage: number;
+    status: {
+        [key: string]: unknown;
+    };
+    lastAccessedAt?: string | null;
+    completedStudentsCount: number;
+    totalStudentsCount: number;
+    moduleCompletionPercentage: number;
+};
+
+export type StudentProgressStats = {
+    studentId: string;
+    studentName: string;
+    completedModules: number;
+    totalModules: number;
+    averageProgress: number;
+    lastActivity: string | null;
+};
+
+export type DashboardProgress = {
+    studentProgress: Array<ModuleProgressOverview>;
+    overallStats?: {
+        totalStudents: number;
+        averageProgress: number;
+        completedModules: number;
+        inProgressModules: number;
+        notStartedModules: number;
+    };
+    studentStats?: Array<StudentProgressStats>;
+};
+
+export type UpdateModuleDto = {
+    title?: string;
+};
+
+export type ModuleDto = {
+    id: string;
+    title: string;
+    publishedAt: string | null;
+    unpublishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
 export type ModuleTreeLessonItemDto = {
     id: string;
     moduleSectionId: string;
@@ -530,7 +572,7 @@ export type ModuleTreeSectionDto = {
     parentSectionId: string | null;
     prerequisiteSectionId: string | null;
     title: string;
-    order: number | null;
+    order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
     subsections?: Array<ModuleTreeSectionDto> | null;
@@ -548,23 +590,6 @@ export type ModuleTreeDto = {
     publishedAt: string | null;
     unpublishedAt: string | null;
     moduleSections?: Array<ModuleTreeSectionDto>;
-};
-
-export type ModuleProgressOverview = {
-    moduleId: string;
-    moduleTitle: string;
-    completedContentItems: number;
-    totalContentItems: number;
-    notStartedContentItems: number;
-    overdueAssignmentsCount: number;
-    progressPercentage: number;
-    status: {
-        [key: string]: unknown;
-    };
-    lastAccessedAt?: string | null;
-    completedStudentsCount: number;
-    totalStudentsCount: number;
-    moduleCompletionPercentage: number;
 };
 
 export type ContentItemProgress = {
@@ -607,27 +632,6 @@ export type ModuleProgressDetail = {
         totalStudentsCount: number;
         moduleCompletionPercentage: number;
     };
-};
-
-export type StudentProgressStats = {
-    studentId: string;
-    studentName: string;
-    completedModules: number;
-    totalModules: number;
-    averageProgress: number;
-    lastActivity: string | null;
-};
-
-export type DashboardProgress = {
-    studentProgress: Array<ModuleProgressOverview>;
-    overallStats?: {
-        totalStudents: number;
-        averageProgress: number;
-        completedModules: number;
-        inProgressModules: number;
-        notStartedModules: number;
-    };
-    studentStats?: Array<StudentProgressStats>;
 };
 
 export type CreateDetailedGroupDto = {
@@ -688,6 +692,54 @@ export type PaginatedNotificationDto = {
 
 export type NotificationMarkRead = {
     notificationIds: Array<string>;
+};
+
+export type EnrolledStudentDto = {
+    /**
+     * The unique ID of the student
+     */
+    id: string;
+    /**
+     * The student's student number
+     */
+    studentNumber: string | null;
+    /**
+     * The student's first name
+     */
+    firstName: string;
+    /**
+     * The student's middle name
+     */
+    middleName: string | null;
+    /**
+     * The student's last name
+     */
+    lastName: string;
+    /**
+     * The role of the user
+     */
+    role: 'student' | 'mentor' | 'admin';
+    /**
+     * The course section the student is enrolled in
+     */
+    section: {
+        id?: string;
+        name?: string;
+        mentorId?: string;
+        mentorName?: string;
+        mentorEmployeeNumber?: number | null;
+    };
+};
+
+export type EnrolledStudentsResponseDto = {
+    /**
+     * List of enrolled students
+     */
+    students: Array<EnrolledStudentDto>;
+    /**
+     * Total number of enrolled students
+     */
+    total: number;
 };
 
 export type UserStatus = 'active' | 'disabled' | 'deleted';
@@ -897,27 +949,15 @@ export type UpdateBillPaymentDto = {
 export type CreateProgramDto = {
     programCode: string;
     name: string;
-    description: string;
+    description?: string | null;
     yearDuration: number;
-};
-
-export type Program = {
-    id: string;
-    programCode: string;
-    name: string;
-    description: string;
-    yearDuration: number;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
 };
 
 export type ProgramDto = {
     id: string;
     programCode: string;
     name: string;
-    description: string;
+    description: string | null;
     yearDuration: number;
     isActive: boolean;
     createdAt: string;
@@ -934,7 +974,7 @@ export type MajorItemDto = {
     id: string;
     majorCode: string;
     name: string;
-    description: string;
+    description: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -947,10 +987,22 @@ export type PaginatedMajorsDto = {
     majors: Array<MajorItemDto>;
 };
 
+export type Program = {
+    id: string;
+    programCode: string;
+    name: string;
+    description: string | null;
+    yearDuration: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+
 export type UpdateProgramDto = {
     programCode?: string;
     name?: string;
-    description?: string;
+    description?: string | null;
     yearDuration?: number;
 };
 
@@ -1039,6 +1091,108 @@ export type BookedAppointment = {
     id: string;
     startAt: string;
     endAt: string;
+};
+
+export type MentorSummaryDto = {
+    /**
+     * Mentor ID
+     */
+    id: string;
+    /**
+     * Mentor first name
+     */
+    firstName: string;
+    /**
+     * Mentor last name
+     */
+    lastName: string;
+    /**
+     * Course name if searched by course
+     */
+    courseName?: string;
+    /**
+     * Course code if searched by course
+     */
+    courseCode?: string;
+};
+
+export type SelectedMentorDto = {
+    /**
+     * Selected mentor ID
+     */
+    id: string;
+    /**
+     * Selected mentor full name
+     */
+    name: string;
+};
+
+export type DateRangeDto = {
+    /**
+     * Start date of the search range
+     */
+    startDate: string;
+    /**
+     * End date of the search range
+     */
+    endDate: string;
+};
+
+export type TimeSlotDto = {
+    /**
+     * Start time of the available slot
+     */
+    start: string;
+    /**
+     * End time of the available slot
+     */
+    end: string;
+};
+
+export type MentorAvailabilityMetaDto = {
+    /**
+     * Total number of free slots found
+     */
+    totalFreeSlots: number;
+    /**
+     * Duration of each slot in minutes
+     */
+    slotDuration: number;
+    /**
+     * Timestamp when the results were generated
+     */
+    generatedAt: string;
+    /**
+     * Total number of mentors found when using search
+     */
+    totalMentorsFound?: number;
+};
+
+export type MentorAvailabilityDto = {
+    /**
+     * Mentor ID (when searching by specific mentor)
+     */
+    mentorId?: string;
+    /**
+     * List of mentors found when using search
+     */
+    mentors?: Array<MentorSummaryDto>;
+    /**
+     * Selected mentor details when using search
+     */
+    selectedMentor?: SelectedMentorDto;
+    /**
+     * Date range used for the search
+     */
+    dateRange: DateRangeDto;
+    /**
+     * List of available time slots
+     */
+    freeSlots: Array<TimeSlotDto>;
+    /**
+     * Meta information about the results
+     */
+    meta: MentorAvailabilityMetaDto;
 };
 
 export type PaginatedAppointmentDto = {
@@ -1297,7 +1451,7 @@ export type FinalizeEnrollmentDto = {
 export type CreateMajorDto = {
     majorCode: string;
     name: string;
-    description: string;
+    description?: string | null;
 };
 
 export type CreateProgramMajorDto = {
@@ -1309,7 +1463,7 @@ export type MajorDto = {
     id: string;
     majorCode: string;
     name: string;
-    description: string;
+    description: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -1319,7 +1473,7 @@ export type MajorDto = {
 export type UpdateMajorDto = {
     majorCode?: string;
     name?: string;
-    description?: string;
+    description?: string | null;
 };
 
 export type Major = {
@@ -1327,7 +1481,7 @@ export type Major = {
     programId: string;
     majorCode: string;
     name: string;
-    description: string;
+    description: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -1578,7 +1732,6 @@ export type UpdateAssignmentConfigDto = {
 
 export type CreateModuleSectionDto = {
     title: string;
-    order?: number | null;
     parentSectionId?: string | null;
     prerequisiteSectionId?: string | null;
 };
@@ -1586,7 +1739,7 @@ export type CreateModuleSectionDto = {
 export type DetailedModuleSectionDto = {
     id: string;
     title: string;
-    order: number | null;
+    order: number;
     publishedAt: string | null;
     unpublishedAt: string | null;
     createdAt: string;
@@ -1632,6 +1785,7 @@ export type AssignmentItemDto = {
     updatedAt: string;
     deletedAt: string | null;
     assignment: AssignmentConfigDto;
+    studentProgress?: Array<ContentProgress>;
 };
 
 export type LessonItemDto = {
@@ -1648,18 +1802,10 @@ export type LessonItemDto = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-};
-
-export type ConnectModuleSectionDto = {
-    id: string;
-};
-
-export type CreateModuleContentModuleSectionRelationInputDto = {
-    connect: ConnectModuleSectionDto;
+    studentProgress?: Array<ContentProgress>;
 };
 
 export type CreateModuleContentDto = {
-    moduleSection: CreateModuleContentModuleSectionRelationInputDto;
     contentType?: ContentType;
     title: string;
     subtitle?: string | null;
@@ -1670,12 +1816,7 @@ export type CreateModuleContentDto = {
     unpublishedAt?: string | null;
 };
 
-export type UpdateModuleContentModuleSectionRelationInputDto = {
-    connect: ConnectModuleSectionDto;
-};
-
 export type UpdateModuleContentDto = {
-    moduleSection?: UpdateModuleContentModuleSectionRelationInputDto;
     title?: string;
     subtitle?: string | null;
     content?: Array<{
@@ -1693,10 +1834,6 @@ export type PaginatedModuleContentDto = {
     } & LessonItemDto) | ({
         contentType: 'ASSIGNMENT';
     } & AssignmentItemDto)>;
-};
-
-export type MessageDto = {
-    message: string;
 };
 
 export type ModuleContentInfoDto = {
@@ -2611,8 +2748,10 @@ export type CoursesControllerRemoveErrors = {
 export type CoursesControllerRemoveError = CoursesControllerRemoveErrors[keyof CoursesControllerRemoveErrors];
 
 export type CoursesControllerRemoveResponses = {
-    200: unknown;
+    200: MessageDto;
 };
+
+export type CoursesControllerRemoveResponse = CoursesControllerRemoveResponses[keyof CoursesControllerRemoveResponses];
 
 export type CoursesControllerFindOneData = {
     body?: never;
@@ -2787,6 +2926,56 @@ export type LmsControllerFindAllForAdminResponses = {
 
 export type LmsControllerFindAllForAdminResponse = LmsControllerFindAllForAdminResponses[keyof LmsControllerFindAllForAdminResponses];
 
+export type LmsControllerFindTodosData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        dueDateFrom?: string;
+        dueDateTo?: string;
+    };
+    url: '/modules/todo';
+};
+
+export type LmsControllerFindTodosErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type LmsControllerFindTodosError = LmsControllerFindTodosErrors[keyof LmsControllerFindTodosErrors];
+
+export type LmsControllerFindTodosResponses = {
+    200: ModuleContent;
+};
+
+export type LmsControllerFindTodosResponse = LmsControllerFindTodosResponses[keyof LmsControllerFindTodosResponses];
+
+export type LmsControllerGetDashboardProgressData = {
+    body?: never;
+    path?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
+    url: '/modules/dashboard';
+};
+
+export type LmsControllerGetDashboardProgressResponses = {
+    200: DashboardProgress;
+};
+
+export type LmsControllerGetDashboardProgressResponse = LmsControllerGetDashboardProgressResponses[keyof LmsControllerGetDashboardProgressResponses];
+
 export type LmsControllerRemoveData = {
     body?: never;
     path: {
@@ -2948,40 +3137,6 @@ export type LmsControllerUnpublishResponses = {
     201: unknown;
 };
 
-export type LmsControllerFindTodosData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        page?: number;
-        limit?: number;
-        dueDateFrom?: string;
-        dueDateTo?: string;
-    };
-    url: '/modules/todo';
-};
-
-export type LmsControllerFindTodosErrors = {
-    404: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-    500: {
-        statusCode: number;
-        message: string;
-        error?: string;
-    };
-};
-
-export type LmsControllerFindTodosError = LmsControllerFindTodosErrors[keyof LmsControllerFindTodosErrors];
-
-export type LmsControllerFindTodosResponses = {
-    200: ModuleContent;
-};
-
-export type LmsControllerFindTodosResponse = LmsControllerFindTodosResponses[keyof LmsControllerFindTodosResponses];
-
 export type LmsControllerFindModuleTreeData = {
     body?: never;
     path: {
@@ -3025,7 +3180,10 @@ export type LmsControllerGetModuleProgressOverviewData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
     url: '/modules/{id}/progress/overview';
 };
 
@@ -3040,7 +3198,10 @@ export type LmsControllerGetModuleProgressDetailData = {
     path: {
         id: string;
     };
-    query?: never;
+    query?: {
+        studentId?: string;
+        courseOfferingId?: string;
+    };
     url: '/modules/{id}/progress/detail';
 };
 
@@ -3049,19 +3210,6 @@ export type LmsControllerGetModuleProgressDetailResponses = {
 };
 
 export type LmsControllerGetModuleProgressDetailResponse = LmsControllerGetModuleProgressDetailResponses[keyof LmsControllerGetModuleProgressDetailResponses];
-
-export type LmsControllerGetDashboardProgressData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/modules/dashboard';
-};
-
-export type LmsControllerGetDashboardProgressResponses = {
-    200: DashboardProgress;
-};
-
-export type LmsControllerGetDashboardProgressResponse = LmsControllerGetDashboardProgressResponses[keyof LmsControllerGetDashboardProgressResponses];
 
 export type GroupControllerFindAllData = {
     body?: never;
@@ -3263,6 +3411,49 @@ export type NotificationsControllerMarkAllAsReadData = {
 export type NotificationsControllerMarkAllAsReadResponses = {
     201: unknown;
 };
+
+export type StudentsControllerGetEnrolledStudentsData = {
+    body?: never;
+    path: {
+        moduleId: string;
+    };
+    query?: {
+        /**
+         * Optional course offering ID to filter by specific offering
+         */
+        courseOfferingId?: string;
+    };
+    url: '/modules/{moduleId}/students';
+};
+
+export type StudentsControllerGetEnrolledStudentsErrors = {
+    400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    500: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type StudentsControllerGetEnrolledStudentsError = StudentsControllerGetEnrolledStudentsErrors[keyof StudentsControllerGetEnrolledStudentsErrors];
+
+export type StudentsControllerGetEnrolledStudentsResponses = {
+    /**
+     * Enrolled students retrieved successfully
+     */
+    200: EnrolledStudentsResponseDto;
+};
+
+export type StudentsControllerGetEnrolledStudentsResponse = StudentsControllerGetEnrolledStudentsResponses[keyof StudentsControllerGetEnrolledStudentsResponses];
 
 export type AuthControllerGetMetadataData = {
     body?: never;
@@ -3758,7 +3949,7 @@ export type ProgramControllerCreateErrors = {
 export type ProgramControllerCreateError = ProgramControllerCreateErrors[keyof ProgramControllerCreateErrors];
 
 export type ProgramControllerCreateResponses = {
-    201: Program;
+    201: ProgramDto;
 };
 
 export type ProgramControllerCreateResponse = ProgramControllerCreateResponses[keyof ProgramControllerCreateResponses];
@@ -3891,6 +4082,11 @@ export type ProgramControllerUpdateData = {
 
 export type ProgramControllerUpdateErrors = {
     400: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+    404: {
         statusCode: number;
         message: string;
         error?: string;
@@ -4044,6 +4240,28 @@ export type AppointmentsControllerFindBookedRangeResponses = {
 };
 
 export type AppointmentsControllerFindBookedRangeResponse = AppointmentsControllerFindBookedRangeResponses[keyof AppointmentsControllerFindBookedRangeResponses];
+
+export type AppointmentsControllerFindMentorAvailabilityData = {
+    body?: never;
+    path?: never;
+    query: {
+        search?: string;
+        page?: number;
+        limit?: number;
+        startDate: string;
+        endDate: string;
+        mentorId?: string;
+        duration?: number;
+        timezone?: string;
+    };
+    url: '/appointments/mentor-availability';
+};
+
+export type AppointmentsControllerFindMentorAvailabilityResponses = {
+    200: MentorAvailabilityDto;
+};
+
+export type AppointmentsControllerFindMentorAvailabilityResponse = AppointmentsControllerFindMentorAvailabilityResponses[keyof AppointmentsControllerFindMentorAvailabilityResponses];
 
 export type AppointmentsControllerFindAllBookedData = {
     body?: never;
@@ -4208,6 +4426,8 @@ export type EnrollmentControllerFindAllEnrollmentsData = {
         search?: string;
         page?: number;
         limit?: number;
+        status?: 'draft' | 'upcoming' | 'active' | 'extended' | 'closed' | 'canceled' | 'archived';
+        term?: number;
     };
     url: '/enrollments';
 };
@@ -4400,6 +4620,60 @@ export type EnrollmentControllerUpdateEnrollmentStatusResponses = {
 };
 
 export type EnrollmentControllerUpdateEnrollmentStatusResponse = EnrollmentControllerUpdateEnrollmentStatusResponses[keyof EnrollmentControllerUpdateEnrollmentStatusResponses];
+
+export type EnrollmentControllerExportActiveEnrollmentDataData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/enrollments/active/export';
+};
+
+export type EnrollmentControllerExportActiveEnrollmentDataErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerExportActiveEnrollmentDataError = EnrollmentControllerExportActiveEnrollmentDataErrors[keyof EnrollmentControllerExportActiveEnrollmentDataErrors];
+
+export type EnrollmentControllerExportActiveEnrollmentDataResponses = {
+    /**
+     * Excel file containing enrollment data
+     */
+    200: Blob | File;
+};
+
+export type EnrollmentControllerExportActiveEnrollmentDataResponse = EnrollmentControllerExportActiveEnrollmentDataResponses[keyof EnrollmentControllerExportActiveEnrollmentDataResponses];
+
+export type EnrollmentControllerExportEnrollmentDataData = {
+    body?: never;
+    path: {
+        enrollmentPeriodId: string;
+    };
+    query?: never;
+    url: '/enrollments/{enrollmentPeriodId}/export';
+};
+
+export type EnrollmentControllerExportEnrollmentDataErrors = {
+    404: {
+        statusCode: number;
+        message: string;
+        error?: string;
+    };
+};
+
+export type EnrollmentControllerExportEnrollmentDataError = EnrollmentControllerExportEnrollmentDataErrors[keyof EnrollmentControllerExportEnrollmentDataErrors];
+
+export type EnrollmentControllerExportEnrollmentDataResponses = {
+    /**
+     * Excel file containing enrollment data
+     */
+    200: Blob | File;
+};
+
+export type EnrollmentControllerExportEnrollmentDataResponse = EnrollmentControllerExportEnrollmentDataResponses[keyof EnrollmentControllerExportEnrollmentDataResponses];
 
 export type CourseOfferingControllerFindCourseOfferingsByPeriodData = {
     body?: never;
@@ -4792,7 +5066,7 @@ export type CourseEnrollmentControllerGetCourseEnrollmentsErrors = {
 export type CourseEnrollmentControllerGetCourseEnrollmentsError = CourseEnrollmentControllerGetCourseEnrollmentsErrors[keyof CourseEnrollmentControllerGetCourseEnrollmentsErrors];
 
 export type CourseEnrollmentControllerGetCourseEnrollmentsResponses = {
-    201: Array<DetailedCourseEnrollmentDto>;
+    200: Array<DetailedCourseEnrollmentDto>;
 };
 
 export type CourseEnrollmentControllerGetCourseEnrollmentsResponse = CourseEnrollmentControllerGetCourseEnrollmentsResponses[keyof CourseEnrollmentControllerGetCourseEnrollmentsResponses];
@@ -5171,8 +5445,10 @@ export type CurriculumControllerRemoveErrors = {
 export type CurriculumControllerRemoveError = CurriculumControllerRemoveErrors[keyof CurriculumControllerRemoveErrors];
 
 export type CurriculumControllerRemoveResponses = {
-    200: unknown;
+    200: MessageDto;
 };
+
+export type CurriculumControllerRemoveResponse = CurriculumControllerRemoveResponses[keyof CurriculumControllerRemoveResponses];
 
 export type CurriculumControllerFindOneData = {
     body?: never;
@@ -5646,7 +5922,7 @@ export type LmsContentControllerFindAllData = {
         contentType?: ContentType;
         progress?: ProgressStatus;
     };
-    url: '/modules/{moduleId}/contents';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content';
 };
 
 export type LmsContentControllerFindAllErrors = {
@@ -5674,9 +5950,10 @@ export type LmsContentControllerCreateData = {
     body: CreateModuleContentDto;
     path: {
         moduleId: string;
+        moduleSectionId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content';
 };
 
 export type LmsContentControllerCreateErrors = {
@@ -5715,7 +5992,7 @@ export type LmsContentControllerRemoveData = {
          */
         directDelete?: boolean;
     };
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}';
 };
 
 export type LmsContentControllerRemoveErrors = {
@@ -5747,7 +6024,7 @@ export type LmsContentControllerFindOneData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}';
 };
 
 export type LmsContentControllerFindOneErrors = {
@@ -5781,7 +6058,7 @@ export type LmsContentControllerUpdateData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}';
 };
 
 export type LmsContentControllerUpdateErrors = {
@@ -5816,7 +6093,7 @@ export type LmsContentControllerPublishData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/publish';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/publish';
 };
 
 export type LmsContentControllerPublishErrors = {
@@ -5851,7 +6128,7 @@ export type LmsContentControllerUnpublishData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/unpublish';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/unpublish';
 };
 
 export type LmsContentControllerUnpublishErrors = {
@@ -5886,7 +6163,7 @@ export type LmsContentControllerFindAllContentProgressData = {
         moduleId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress';
 };
 
 export type LmsContentControllerFindAllContentProgressErrors = {
@@ -5922,7 +6199,7 @@ export type LmsContentControllerCreateContentProgressData = {
         moduleContentId: string;
     };
     query?: never;
-    url: '/modules/{moduleId}/contents/{moduleContentId}/progress';
+    url: '/modules/{moduleId}/sections/{moduleSectionId}/content/{moduleContentId}/progress';
 };
 
 export type LmsContentControllerCreateContentProgressErrors = {

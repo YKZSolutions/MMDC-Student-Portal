@@ -6,7 +6,10 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { ModuleDto } from '@/generated/nestjs-dto/module.dto';
 import { UpdateModuleDto } from '@/generated/nestjs-dto/update-module.dto';
-import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
+import {
+  ExtendedPrismaClient,
+  PrismaTransaction,
+} from '@/lib/prisma/prisma.extension';
 import {
   BadRequestException,
   Inject,
@@ -37,6 +40,8 @@ import {
 import { mapModuleContentToModuleTreeItem } from '@/modules/lms/lms-content/helper/mapper';
 import { ModuleTreeContentItem } from '@/modules/lms/lms-content/types';
 import { MessageDto } from '@/common/dto/message.dto';
+import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
+import { CourseDto } from '@/generated/nestjs-dto/course.dto';
 
 @Injectable()
 export class LmsService {
@@ -52,8 +57,8 @@ export class LmsService {
    * linked to the course, with no enrollment period assigned initially.
    *
    * @async
-   * @param {string} courseId - The UUID of the course.
-   *
+   * @param course - The course to initialize a module for.
+   * @param transactionClient - The Prisma client to use for database operations.
    * @returns {Promise<ModuleDto>} The newly created base module entity.
    *
    * @throws {NotFoundException} If no course is found with the given ID.
@@ -68,18 +73,16 @@ export class LmsService {
       `Initializing empty module for course ${courseId} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { courseId }) =>
-      new NotFoundException(`Course not found for id ${courseId}`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Course not found}`),
   })
   async initializeCourseModule(
-    @LogParam('courseId') courseId: string,
+    @LogParam('course') course: CourseDto,
+    transactionClient: PrismaTransaction,
   ): Promise<ModuleDto> {
-    const course = await this.prisma.client.course.findUniqueOrThrow({
-      where: { id: courseId },
-      select: { id: true, name: true },
-    });
+    const useClient = transactionClient || this.prisma.client;
 
-    return await this.prisma.client.module.create({
+    return useClient.module.create({
       data: {
         courseId: course.id,
         title: course.name,
@@ -139,6 +142,7 @@ export class LmsService {
               },
             },
           }),
+          deletedAt: null,
         },
         include: { courseOfferings: true },
       });
@@ -149,6 +153,7 @@ export class LmsService {
         courseId: {
           in: currentEnrollment.courseOfferings.map((co) => co.courseId),
         },
+        deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
       distinct: ['courseId'],
@@ -278,7 +283,7 @@ export class LmsService {
           module.moduleSections.map((oldSection) => {
             const newSectionId = newSectionsMap.get(oldSection.id);
             return tx.moduleSection.update({
-              where: { id: newSectionId },
+              where: { id: newSectionId, deletedAt: null },
               data: {
                 parentSectionId: oldSection.parentSectionId
                   ? newSectionsMap.get(oldSection.parentSectionId)
@@ -315,13 +320,15 @@ export class LmsService {
     logArgsMessage: ({ id, role, userId }) =>
       `Fetching module ${id} for role=${role} user=${userId}`,
 
-    logSuccessMessage: (result, { id }) => `Fetched module ${id}`,
+    logSuccessMessage: (_result, { id }) => `Fetched module ${id}`,
     logErrorMessage: (err, { id }) =>
       `Fetching module ${id} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
-      new NotFoundException(`Module ${id} not found`),
+    [PrismaErrorCode.RecordNotFound]: () =>
+      new NotFoundException(`Module not found`),
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new NotFoundException(`Module not found`),
   })
   async findOne(
     @LogParam('id') id: string,
@@ -333,7 +340,7 @@ export class LmsService {
     }
 
     // Build role-based where clause
-    const where: Prisma.ModuleWhereInput = { id };
+    const where: Prisma.ModuleWhereInput = { id, deletedAt: null };
 
     if (role === Role.student && userId) {
       where.courseOffering = {
@@ -403,7 +410,9 @@ export class LmsService {
     userId: string,
     filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
-    const where: Prisma.ModuleWhereInput = {};
+    const where: Prisma.ModuleWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     // Build search conditions
@@ -522,7 +531,9 @@ export class LmsService {
     @LogParam('userId') userId: string,
     @LogParam('filters') filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
-    const where: Prisma.ModuleWhereInput = {};
+    const where: Prisma.ModuleWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     // Build search conditions
@@ -640,7 +651,9 @@ export class LmsService {
   async findAllForAdmin(
     filters: FilterModulesDto,
   ): Promise<PaginatedModulesDto> {
-    const where: Prisma.ModuleWhereInput = {};
+    const where: Prisma.ModuleWhereInput = {
+      deletedAt: null,
+    };
     const page = filters.page || 1;
 
     // Build search conditions
@@ -738,7 +751,7 @@ export class LmsService {
     updateModuleDto: UpdateModuleDto,
   ): Promise<ModuleDto> {
     return await this.prisma.client.module.update({
-      where: { id },
+      where: { id, deletedAt: null },
       data: { ...updateModuleDto },
     });
   }
@@ -864,7 +877,7 @@ export class LmsService {
     logSuccessMessage: (result) =>
       `Successfully fetched ${result.todos.length} todos`,
     logErrorMessage: (err, { studentId }) =>
-      `Error fetching todos for user ${studentId}: ${err.message}`,
+      `Error fetching todos for user ${studentId} | Error: ${err.message}`,
   })
   async findTodos(
     @LogParam('studentId') studentId: string,
@@ -874,6 +887,7 @@ export class LmsService {
     const activeTerm = await this.prisma.client.enrollmentPeriod.findFirst({
       where: {
         status: EnrollmentStatus.active,
+        deletedAt: null,
       },
     });
 
@@ -899,7 +913,9 @@ export class LmsService {
         status: CourseEnrollmentStatus.enrolled,
         courseOffering: {
           periodId: activeTerm.id,
+          deletedAt: null,
         },
+        deletedAt: null,
       },
       include: {
         courseOffering: {
@@ -916,32 +932,41 @@ export class LmsService {
 
     // Get todos (assignments with due dates)
     const whereCondition: Prisma.ModuleContentWhereInput = {
+      // 1. Filters by Course Offerings
       moduleSection: {
         module: {
           courseOfferingId: { in: courseOfferingIds },
         },
       },
-      studentProgress: {
-        every: {
-          studentId,
-          status: { not: ProgressStatus.COMPLETED },
-        },
-      },
+
+      // 2. Filters for Assignments that are either due in the future or have no due date
       OR: [
         {
           contentType: ContentType.ASSIGNMENT,
           assignment: {
-            dueDate: { gte: new Date() },
+            dueDate: { gte: new Date() }, // Due in the future (or now)
           },
         },
         {
           contentType: ContentType.ASSIGNMENT,
           assignment: {
-            dueDate: null,
+            dueDate: null, // No due date
           },
         },
       ],
+
+      // 3. Filters for content that is published
       publishedAt: { lte: new Date() },
+
+      // 4. Filters out content that has been completed by this specific student
+      NOT: {
+        studentProgress: {
+          some: {
+            studentId,
+            status: ProgressStatus.COMPLETED,
+          },
+        },
+      },
     };
 
     const [todos, meta] = await this.prisma.client.moduleContent
@@ -983,13 +1008,10 @@ export class LmsService {
     // Transform the results to include progress status
     const items = todos.map((todo) => {
       const title = todo?.title;
-      const dueDate = todo?.assignment?.dueDate;
+      const dueDate = todo?.assignment?.dueDate ?? null;
 
       if (!title) {
         throw new Error(`Content ${todo.id} is missing a title`);
-      }
-      if (!dueDate) {
-        throw new Error(`Content ${todo.id} is missing a due date`);
       }
 
       return {
@@ -1017,11 +1039,11 @@ export class LmsService {
       `Fetching all module content tree for module ${moduleId} for user ${userId} with role ${role}`,
     logSuccessMessage: (_, { userId }) =>
       `Successfully fetched module content tree for user ${userId}`,
-    logErrorMessage: (err: any, { moduleId, userId, role }) =>
-      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role}: ${err.message}`,
+    logErrorMessage: (err, { moduleId, userId, role }) =>
+      `Error fetching module contents tree for module ${moduleId} of user ${userId} with role ${role} | Error: ${err.message}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RecordNotFound]: (message, { moduleId }) =>
+    [PrismaErrorCode.RecordNotFound]: (_message, { moduleId }) =>
       new NotFoundException(`Module ${moduleId} not found`),
   })
   async findModuleTree(
@@ -1066,19 +1088,6 @@ export class LmsService {
               createdAt: true,
               updatedAt: true,
             }),
-            ...(role === Role.student &&
-              userId && {
-                progresses: {
-                  where: { studentId: userId },
-                  select: {
-                    id: true,
-                    moduleContentId: true,
-                    status: true,
-                    createdAt: true,
-                    updatedAt: true,
-                  },
-                },
-              }),
           },
         }),
 
@@ -1137,28 +1146,45 @@ export class LmsService {
         }),
       ]);
 
+    const typedModule = module satisfies Omit<ModuleTreeDto, 'moduleSections'>;
+    const typedSections = flatSections satisfies Omit<
+      ModuleTreeSectionDto[],
+      'moduleContents' | 'subsections'
+    >;
+
     const moduleContents = flatContents.map((item) =>
-      mapModuleContentToModuleTreeItem(item),
+      mapModuleContentToModuleTreeItem(
+        item satisfies Omit<
+          ModuleContent,
+          'content' | 'moduleSection' | 'deletedAt'
+        >,
+      ),
     );
 
     return {
-      ...module,
-      moduleSections: this.buildTree(flatSections, moduleContents),
+      ...typedModule,
+      moduleSections: this.buildTree(typedSections, moduleContents),
     };
   }
 
   private buildTree(
-    flatSections: ModuleTreeSectionDto[],
+    flatSections: Omit<
+      ModuleTreeSectionDto[],
+      'moduleContents' | 'subsections'
+    >,
     flatContents: ModuleTreeContentItem[],
   ): ModuleTreeSectionDto[] {
-    const sectionsMap = new Map();
+    const sectionsMap = new Map<string, ModuleTreeSectionDto>();
     const rootSections: ModuleTreeSectionDto[] = [];
 
     // Map contents to sections
-    const contentMap = flatContents.reduce((acc, content) => {
-      (acc[content.moduleSectionId] = acc[content.moduleSectionId] || []).push(
-        content,
-      );
+    const contentMap = flatContents.reduce<
+      Record<string, ModuleTreeContentItem[]>
+    >((acc, content) => {
+      if (!acc[content.moduleSectionId]) {
+        acc[content.moduleSectionId] = [];
+      }
+      acc[content.moduleSectionId].push(content);
       return acc;
     }, {});
 
@@ -1172,9 +1198,13 @@ export class LmsService {
     // Second pass: build the hierarchy
     for (const section of flatSections) {
       if (section.parentSectionId) {
-        const parent = sectionsMap.get(section.parentSectionId);
+        const parent: ModuleTreeSectionDto | undefined = sectionsMap.get(
+          section.parentSectionId,
+        );
         if (parent) {
-          parent.subsections.push(section);
+          if (parent.subsections) {
+            parent.subsections.push(section);
+          }
         }
         // Handle "orphaned" sections if the parent is deleted/filtered out
       } else {

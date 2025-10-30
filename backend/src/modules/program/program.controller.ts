@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  ValidationPipe,
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
@@ -15,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
 
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { Program } from '@/generated/nestjs-dto/program.entity';
@@ -26,6 +25,9 @@ import { CreateProgramDto } from '@/generated/nestjs-dto/create-program.dto';
 import { UpdateProgramDto } from '@/generated/nestjs-dto/update-program.dto';
 import { BaseFilterDto } from '@/common/dto/base-filter.dto';
 import { MajorService } from '../major/major.service';
+import { ProgramDto } from '@/generated/nestjs-dto/program.dto';
+import { PaginatedMajorsDto } from '@/modules/major/dto/paginated-major.dto';
+import { MessageDto } from '@/common/dto/message.dto';
 
 /**
  * @remarks
@@ -47,10 +49,9 @@ export class ProgramController {
    */
   @Post()
   @Roles(Role.ADMIN)
-  @ApiCreatedResponse({ type: Program })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
-  create(@Body() createProgramDto: CreateProgramDto) {
+  @ApiCreatedResponse({ type: ProgramDto })
+  @ApiException(() => [BadRequestException, InternalServerErrorException])
+  create(@Body() createProgramDto: CreateProgramDto): Promise<ProgramDto> {
     return this.programService.create(createProgramDto);
   }
 
@@ -68,14 +69,14 @@ export class ProgramController {
     type: PaginatedProgramsDto,
   })
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  findAll(@Query() filters: BaseFilterDto) {
+  findAll(@Query() filters: BaseFilterDto): Promise<PaginatedProgramsDto> {
     return this.programService.findAll(filters);
   }
 
   /**
-   * Retrive all majors of a program
+   * Retrieve all majors of a program
    *
-   * @remarks Retrives a paginated list of majors based on the program id and provided filters.
+   * @remarks Retrieves a paginated list of majors based on the program id and provided filters.
    * Requires `ADMIN` role.
    */
   @Get(':programId/majors')
@@ -88,14 +89,13 @@ export class ProgramController {
   findAllMajors(
     @Param('programId', new ParseUUIDPipe()) programId: string,
     @Query() filters: BaseFilterDto,
-  ) {
+  ): Promise<PaginatedMajorsDto> {
     return this.majorService.findAll(filters, programId);
   }
 
   /**
    * Retrieve a specific program by ID
    *
-   * @remarks Requires `ADMIN` role.
    *
    */
   @Get(':id')
@@ -108,7 +108,7 @@ export class ProgramController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<ProgramDto> {
     return this.programService.findOne(id);
   }
 
@@ -125,12 +125,15 @@ export class ProgramController {
     description: 'Program updated successfully',
     type: Program,
   })
-  @ApiException(() => BadRequestException)
-  @ApiException(() => InternalServerErrorException)
+  @ApiException(() => [
+    BadRequestException,
+    NotFoundException,
+    InternalServerErrorException,
+  ])
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateProgramDto: UpdateProgramDto,
-  ) {
+  ): Promise<ProgramDto> {
     return this.programService.update(id, updateProgramDto);
   }
 
@@ -158,7 +161,7 @@ export class ProgramController {
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query?: DeleteQueryDto,
-  ) {
+  ): Promise<MessageDto> {
     return this.programService.remove(id, query?.directDelete);
   }
 }

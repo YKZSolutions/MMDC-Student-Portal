@@ -67,7 +67,9 @@ import type { FullModuleContent } from '@/features/courses/modules/types.ts'
 import { useEditorState } from '@/features/courses/hooks/useEditorState.tsx'
 import { useState } from 'react'
 
-const route = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/edit')
+const route = getRouteApi(
+  '/(protected)/lms/$lmsCode/_layout/modules/$itemId/edit',
+)
 
 interface ModuleContentViewProps {
   moduleContentData: FullModuleContent | null
@@ -500,7 +502,9 @@ function ProgressCard({
   )
 }
 
-const routeView = getRouteApi('/(protected)/lms/$lmsCode/modules/$itemId/')
+const routeView = getRouteApi(
+  '/(protected)/lms/$lmsCode/_layout/modules/$itemId/',
+)
 
 interface SubmissionContent {
   type: 'link' | 'comment'

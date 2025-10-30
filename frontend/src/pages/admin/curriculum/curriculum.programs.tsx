@@ -319,7 +319,7 @@ function MajorsList() {
             {program.name}
           </Text>
           <Text size="sm" c="dimmed">
-            {program.description.trim() !== ''
+            {program.description?.trim() !== ''
               ? program.description
               : 'No description'}
           </Text>
@@ -384,7 +384,7 @@ function MajorRow({
       <Stack gap={2}>
         <Text>{`${major.name} - ${major.majorCode}`}</Text>
         <Text size="sm" c="dimmed">
-          {major.description.trim() !== ''
+          {major.description?.trim() !== ''
             ? major.description
             : 'No description'}
         </Text>

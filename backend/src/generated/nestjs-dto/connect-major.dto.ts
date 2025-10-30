@@ -1,6 +1,48 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
+export class MajorMajorCodeDeletedAtUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  majorCode: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
+}
+export class MajorNameDeletedAtUniqueInputDto {
+  @ApiProperty({
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
+}
+
+@ApiExtraModels(
+  MajorMajorCodeDeletedAtUniqueInputDto,
+  MajorNameDeletedAtUniqueInputDto,
+)
 export class ConnectMajorDto {
   @ApiProperty({
     type: 'string',
@@ -10,17 +52,19 @@ export class ConnectMajorDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: 'string',
+    type: MajorMajorCodeDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  majorCode?: string;
+  @ValidateNested()
+  @Type(() => MajorMajorCodeDeletedAtUniqueInputDto)
+  majorCode_deletedAt?: MajorMajorCodeDeletedAtUniqueInputDto;
   @ApiProperty({
-    type: 'string',
+    type: MajorNameDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
-  @IsString()
-  name?: string;
+  @ValidateNested()
+  @Type(() => MajorNameDeletedAtUniqueInputDto)
+  name_deletedAt?: MajorNameDeletedAtUniqueInputDto;
 }

@@ -526,6 +526,10 @@ function EnrollmentPeriodsSelector({
 
   return (
     <AsyncSearchSelect
+      w={{
+        base: '100%',
+        xs: 'auto',
+      }}
       variant="default"
       radius={'md'}
       label="Enrollment Period"
@@ -568,6 +572,10 @@ function StudentSelector({
 
   return (
     <AsyncSearchSelect
+      w={{
+        base: '100%',
+        xs: 'auto',
+      }}
       variant="default"
       radius={'md'}
       label="Student"

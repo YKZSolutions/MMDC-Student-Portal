@@ -1,15 +1,16 @@
 import ErrorFallback from '@/components/error-component'
 import { SuspendedPagination } from '@/components/suspense-pagination'
-import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
 import {
   SuspendedAdminEnrollmentCourseOfferingCards,
   SuspendedStudentEnrollmentFinalizationSectionCards,
-} from '@/features/enrollment/suspense'
-import type { IPaymentScheme } from '@/features/enrollment/types'
+} from '@/features/enrollment/components/suspense'
 import {
   enrollmentStatusOptions,
   paymentSchemeData,
-} from '@/features/enrollment/validation'
+} from '@/features/enrollment/constants'
+import { isEnrollmentFinalized } from '@/features/enrollment/helpers'
+import type { IPaymentScheme } from '@/features/enrollment/types'
+
 import { useSearchState } from '@/hooks/use-search-state'
 import {
   type DetailedCourseEnrollmentDto,
@@ -237,7 +238,7 @@ function EnrollmentStudentPage() {
                   <EnrollmentStudentFinalizationQueryProvider>
                     {({ enrolledCourses, refetch }) => (
                       <>
-                        {tabsData.map((tab) => (
+                        {tabsData.map((tab, index) => (
                           <Tabs.Tab
                             disabled={
                               tab.value === 'course-selection' &&
@@ -254,9 +255,23 @@ function EnrollmentStudentPage() {
                               tab.value == 'finalization' && refetch()
                             }
                           >
-                            <Text fw={500} fz={'sm'} c={'dark.5'}>
-                              {tab.label}
-                            </Text>
+                            <Group gap="xs">
+                              <Badge
+                                size="lg"
+                                circle
+                                variant="light"
+                                color={
+                                  tab.value === 'finalization'
+                                    ? 'green'
+                                    : 'gray'
+                                }
+                              >
+                                {index + 1}
+                              </Badge>
+                              <Text fw={500} fz={'sm'} c={'dark.5'}>
+                                {tab.label}
+                              </Text>
+                            </Group>
                           </Tabs.Tab>
                         ))}
                       </>
@@ -299,26 +314,40 @@ function CourseSelectionPanel() {
   return (
     <Stack>
       <Paper radius={'md'}>
-        <Group py={'sm'} justify={'space-between'}>
-          <SegmentedControl
-            className="grow xs:max-w-2xs xs:min-w-2xs"
-            bd={'1px solid gray.2'}
-            radius={'md'}
-            data-cy="enrollment-tabs" // Add to the container
-            data={[...enrollmentStatusOptions]}
-            color="primary"
-            defaultValue={search.status}
-            onChange={(e) =>
-              handleSegmentedControlChange(
-                e as EnrollmentSearchSchema['status'],
-              )
-            }
-            fullWidth
-            w={{
-              base: '100%',
-              xs: 'auto',
-            }}
-          />
+        <Group py={'sm'} justify={'space-between'} align="start">
+          <Stack gap={rem(10)}>
+            <SegmentedControl
+              className="grow xs:max-w-2xs xs:min-w-2xs"
+              bd={'1px solid gray.2'}
+              radius={'md'}
+              data-cy="enrollment-tabs" // Add to the container
+              data={[...enrollmentStatusOptions]}
+              color="primary"
+              defaultValue={search.status}
+              onChange={(e) =>
+                handleSegmentedControlChange(
+                  e as EnrollmentSearchSchema['status'],
+                )
+              }
+              fullWidth
+              w={{
+                base: '100%',
+                xs: 'auto',
+              }}
+            />
+            <EnrollmentStudentFinalizationQueryProvider>
+              {({ enrolledCourses }) => (
+                <Text c="dark.3" size="sm">
+                  Total Units Enrolled:{' '}
+                  {enrolledCourses.reduce(
+                    (acc, course) =>
+                      acc + (course.courseOffering?.course.units || 0),
+                    0,
+                  )}{' '}
+                </Text>
+              )}
+            </EnrollmentStudentFinalizationQueryProvider>
+          </Stack>
 
           <Flex
             wrap={'wrap'}
@@ -841,6 +870,7 @@ function CourseOfferingSubjectCard({
       },
       {
         onSuccess: async () => {
+          // Invalidate the active enrollment and course offerings queries
           const activeEnrollmentKey =
             enrollmentControllerFindActiveEnrollmentQueryKey()
 
@@ -860,6 +890,16 @@ function CourseOfferingSubjectCard({
               Array.isArray(query.queryKey) &&
               query.queryKey[0]?._id ===
                 'courseOfferingControllerFindCourseOfferingsByPeriod',
+          })
+
+          // Invalidate fetched course enrollments
+          const courseEnrollmentsKey =
+            courseEnrollmentControllerGetCourseEnrollmentsQueryKey()
+
+          await queryClient.cancelQueries({ queryKey: courseEnrollmentsKey })
+
+          await queryClient.invalidateQueries({
+            queryKey: courseEnrollmentsKey,
           })
         },
       },
@@ -883,6 +923,7 @@ function CourseOfferingSubjectCard({
     },
     {
       onSuccess: async () => {
+        // Invalidate the active enrollment and course offerings queries
         const activeEnrollmentKey =
           enrollmentControllerFindActiveEnrollmentQueryKey()
 
@@ -906,6 +947,16 @@ function CourseOfferingSubjectCard({
                 'courseOfferingControllerFindCourseOfferingsByPeriod'
             )
           },
+        })
+
+        // Invalidate fetched course enrollments
+        const courseEnrollmentsKey =
+          courseEnrollmentControllerGetCourseEnrollmentsQueryKey()
+
+        await queryClient.cancelQueries({ queryKey: courseEnrollmentsKey })
+
+        await queryClient.invalidateQueries({
+          queryKey: courseEnrollmentsKey,
         })
       },
     },
@@ -969,6 +1020,7 @@ function CourseOfferingSubjectCard({
                 <Button
                   size="xs"
                   radius={'lg'}
+                  color="red"
                   onClick={() =>
                     dropMutate({
                       path: {

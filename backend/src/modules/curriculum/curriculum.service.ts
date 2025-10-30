@@ -19,6 +19,7 @@ import {
 } from '@/common/decorators/prisma-error.decorator';
 import { LogParam } from '@/common/decorators/log-param.decorator';
 import { validate } from 'uuid';
+import { MessageDto } from '@/common/dto/message.dto';
 
 @Injectable()
 export class CurriculumService {
@@ -34,14 +35,18 @@ export class CurriculumService {
    * @returns The created curriculum object in DTO format.
    */
   @Log({
-    logArgsMessage: ({ createCurriculumDto }) =>
+    logArgsMessage: ({
+      createCurriculumDto,
+    }: {
+      createCurriculumDto: CreateCurriculumWithCoursesDto;
+    }) =>
       `Creating curriculum for major=${createCurriculumDto.majorId} and ${createCurriculumDto.courses.length} courses`,
     logSuccessMessage: (res) => `Created curriculum with id=${res.id}`,
   })
   @PrismaError({
-    [PrismaErrorCode.RelatedRecordNotFound]: (_, { createCurriculumDto }) =>
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
       new NotFoundException(
-        `Some courses in curriculum could not be found for major=${createCurriculumDto.majorId}`,
+        `Missing relevant records to create the curriculum.`,
       ),
   })
   async create(
@@ -61,6 +66,7 @@ export class CurriculumService {
           id: {
             in: createCurriculumDto.courses.map((course) => course.courseId),
           },
+          deletedAt: null,
         },
       });
 
@@ -98,8 +104,12 @@ export class CurriculumService {
     logSuccessMessage: (res) => `Fetched ${res.length} curriculums`,
   })
   async findAll(): Promise<CurriculumItemDto[]> {
-    const curriculums = (
+    return (
       await this.prisma.client.curriculum.findMany({
+        where: {
+          deletedAt: null,
+          major: { deletedAt: null, program: { deletedAt: null } },
+        },
         include: {
           major: {
             include: {
@@ -118,8 +128,6 @@ export class CurriculumService {
         major: major,
       };
     });
-
-    return curriculums;
   }
 
   /**
@@ -139,7 +147,9 @@ export class CurriculumService {
       new NotFoundException(`Curriculum with id=${id} was not found`),
   })
   async findOne(@LogParam('id') id: string): Promise<CurriculumWithCoursesDto> {
-    const where: Prisma.CurriculumWhereInput = {};
+    const where: Prisma.CurriculumWhereInput = {
+      deletedAt: null,
+    };
 
     if (validate(id)) {
       where.id = id;
@@ -156,37 +166,40 @@ export class CurriculumService {
       throw new BadRequestException('Invalid id: not a uuid or code format');
     }
 
-    const curriculum = await this.prisma.client.curriculum.findFirstOrThrow({
-      where,
-      include: {
-        major: {
-          include: {
-            program: true,
+    return this.prisma.client.$transaction(async (tx) => {
+      const curriculum = await tx.curriculum.findFirstOrThrow({
+        where,
+        include: {
+          major: {
+            include: {
+              program: true,
+            },
           },
         },
-      },
+      });
+
+      const courses = await tx.curriculumCourse.findMany({
+        where: {
+          curriculumId: curriculum.id,
+          deletedAt: null,
+        },
+        include: {
+          course: true,
+        },
+      });
+
+      const { major: majorItem, ...item } = curriculum;
+      const { program, ...major } = majorItem;
+
+      return {
+        curriculum: {
+          ...item,
+          major: major,
+          program: program,
+        },
+        courses,
+      };
     });
-
-    const courses = await this.prisma.client.curriculumCourse.findMany({
-      where: {
-        curriculumId: curriculum.id,
-      },
-      include: {
-        course: true,
-      },
-    });
-
-    const { major: majorItem, ...item } = curriculum;
-    const { program, ...major } = majorItem;
-
-    return {
-      curriculum: {
-        ...item,
-        major: major,
-        program: program,
-      },
-      courses,
-    };
   }
 
   /**
@@ -204,6 +217,10 @@ export class CurriculumService {
   @PrismaError({
     [PrismaErrorCode.RecordNotFound]: (_, { id }) =>
       new NotFoundException(`Curriculum with id=${id} was not found`),
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new BadRequestException(
+        `Missing relevant records to update the curriculum.`,
+      ),
   })
   async update(
     @LogParam('id') id: string,
@@ -211,42 +228,58 @@ export class CurriculumService {
   ): Promise<CurriculumDto> {
     return this.prisma.client.$transaction(async (tx) => {
       const curriculum = await tx.curriculum.update({
-        where: { id },
+        where: { id, deletedAt: null },
         data: {
           majorId: updateCurriculumDto.majorId,
           ...updateCurriculumDto.curriculum,
         },
       });
 
+      // Manually upsert curriculum courses: for each course, find an existing record and update it, or create a new one if it does not exist
       for (const course of updateCurriculumDto.courses) {
-        await tx.curriculumCourse.upsert({
+        // Find existing non-deleted record
+        const existing = await tx.curriculumCourse.findFirst({
           where: {
-            curriculumId_courseId: {
-              curriculumId: id,
-              courseId: course.courseId,
-            },
-          },
-          update: {
-            year: course.year,
-            semester: course.semester,
-            order: course.order,
-          },
-          create: {
             curriculumId: id,
             courseId: course.courseId,
-            year: course.year,
-            semester: course.semester,
-            order: course.order,
+            deletedAt: null,
           },
         });
+
+        if (existing) {
+          // Update existing
+          await tx.curriculumCourse.update({
+            where: { id: existing.id },
+            data: {
+              year: course.year,
+              semester: course.semester,
+              order: course.order,
+            },
+          });
+        } else {
+          // Create new
+          await tx.curriculumCourse.create({
+            data: {
+              curriculumId: id,
+              courseId: course.courseId,
+              year: course.year,
+              semester: course.semester,
+              order: course.order,
+            },
+          });
+        }
       }
 
-      await tx.curriculumCourse.deleteMany({
+      await tx.curriculumCourse.updateMany({
         where: {
           curriculumId: id,
           courseId: {
             notIn: updateCurriculumDto.courses.map((c) => c.courseId),
           },
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
         },
       });
 
@@ -279,13 +312,13 @@ export class CurriculumService {
   async remove(
     @LogParam('id') id: string,
     @LogParam('directDelete') directDelete?: boolean,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageDto> {
     if (!directDelete) {
       const curriculum = await this.prisma.client.curriculum.findFirstOrThrow({
         where: { id },
       });
       if (!curriculum.deletedAt) {
-        this.prisma.client.$transaction(async (tx) => {
+        await this.prisma.client.$transaction(async (tx) => {
           await tx.curriculumCourse.updateMany({
             where: { curriculumId: id },
             data: {
@@ -301,13 +334,11 @@ export class CurriculumService {
           });
         });
 
-        return {
-          message: 'Curriculum has been soft deleted',
-        };
+        return new MessageDto('Curriculum marked for deletion');
       }
     }
 
-    this.prisma.client.$transaction(async (tx) => {
+    await this.prisma.client.$transaction(async (tx) => {
       await tx.curriculumCourse.deleteMany({
         where: { curriculumId: id },
       });
@@ -317,8 +348,6 @@ export class CurriculumService {
       });
     });
 
-    return {
-      message: 'Curriculum has been permanently deleted',
-    };
+    return new MessageDto('Curriculum permanently deleted');
   }
 }

@@ -2,7 +2,10 @@ import { CurrentUser } from '@/common/decorators/auth-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { MessageDto } from '@/common/dto/message.dto';
 import { Role } from '@/common/enums/roles.enum';
-import { AuthUser } from '@/common/interfaces/auth.user-metadata';
+import {
+  AuthUser,
+  CurrentAuthUser,
+} from '@/common/interfaces/auth.user-metadata';
 import { UserDto } from '@/generated/nestjs-dto/user.dto';
 import { User } from '@/generated/nestjs-dto/user.entity';
 import { InviteUserDto } from '@/modules/users/dto/invite-user.dto';
@@ -18,11 +21,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
   Query,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -31,7 +35,7 @@ import {
   ApiOkResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { DeleteQueryDto } from '../../common/dto/delete-query.dto';
+import { DeleteQueryDto } from '@/common/dto/delete-query.dto';
 import {
   CreateUserFullDto,
   CreateUserStaffDto,
@@ -169,9 +173,10 @@ export class UsersController {
   ])
   @Get('/me')
   async getMe(
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: CurrentAuthUser,
   ): Promise<UserStudentDetailsDto | UserStaffDetailsDto> {
-    return this.usersService.getMe(user.id);
+    const { user_id } = user.user_metadata;
+    return this.usersService.getMe(user_id);
   }
 
   /**
@@ -247,14 +252,18 @@ export class UsersController {
    */
 
   @Get()
-  @Roles(Role.ADMIN, Role.MENTOR)
+  @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   @ApiOkResponse({
     description: 'List of users retrieved successfully',
     type: PaginatedUsersDto,
   })
   @ApiException(() => [BadRequestException, InternalServerErrorException])
-  async findAll(@Query() filters: FilterUserDto): Promise<PaginatedUsersDto> {
-    return this.usersService.findAll(filters);
+  async findAll(
+    @Query() filters: FilterUserDto,
+    @CurrentUser() user: CurrentAuthUser,
+  ): Promise<PaginatedUsersDto> {
+    const { role, user_id } = user.user_metadata;
+    return this.usersService.findAll(filters, role, user_id);
   }
 
   /**
@@ -273,7 +282,9 @@ export class UsersController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  async findOne(@Param('id') id: string): Promise<UserWithRelations> {
+  async findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<UserWithRelations> {
     return this.usersService.findOne(id);
   }
 
@@ -302,7 +313,9 @@ export class UsersController {
     },
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  async updateUserStatus(@Param('id') id: string): Promise<MessageDto> {
+  async updateUserStatus(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<MessageDto> {
     return this.usersService.updateStatus(id);
   }
 
@@ -339,7 +352,7 @@ export class UsersController {
   })
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   remove(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query?: DeleteQueryDto,
   ): Promise<MessageDto> {
     return this.usersService.remove(id, query?.directDelete);

@@ -1,4 +1,5 @@
 import { ProgressStatus } from '@prisma/client';
+import { IsUUID, IsOptional } from 'class-validator';
 
 export class ContentItemProgress {
   id: string;
@@ -74,8 +75,11 @@ export class DashboardProgress {
   studentStats?: StudentProgressStats[];
 }
 
-export interface ProgressQueryParams {
-  moduleId?: string;
+export class ProgressQueryParams {
+  @IsOptional()
+  @IsUUID()
   studentId?: string;
+  @IsOptional()
+  @IsUUID()
   courseOfferingId?: string;
 }

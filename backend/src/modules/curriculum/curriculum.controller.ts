@@ -10,6 +10,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   BadRequestException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CurriculumService } from './curriculum.service';
 import { CreateCurriculumWithCoursesDto } from './dto/create-curriculum.dto';
@@ -19,6 +20,10 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/roles.enum';
 import { ApiException } from '@nanogiants/nestjs-swagger-api-exception-decorator';
+import { MessageDto } from '@/common/dto/message.dto';
+import { CurriculumDto } from '@/generated/nestjs-dto/curriculum.dto';
+import { CurriculumWithCoursesDto } from '@/modules/curriculum/dto/curriculum-with-course.dto';
+import { CurriculumItemDto } from '@/modules/curriculum/dto/curriculum-item.dto';
 
 @ApiBearerAuth()
 @Controller('curriculum')
@@ -31,20 +36,22 @@ export class CurriculumController {
   @Post()
   @Roles(Role.ADMIN)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  create(@Body() createCurriculumDto: CreateCurriculumWithCoursesDto) {
+  create(
+    @Body() createCurriculumDto: CreateCurriculumWithCoursesDto,
+  ): Promise<CurriculumDto> {
     return this.curriculumService.create(createCurriculumDto);
   }
 
   /**
    * Fetch curriculums
    * @remarks
-   * Fetches all of the curriculums
+   * Fetches all the curriculums
    * Returns a list
    */
   @Get()
   @Roles(Role.ADMIN)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  findAll() {
+  findAll(): Promise<CurriculumItemDto[]> {
     return this.curriculumService.findAll();
   }
 
@@ -61,7 +68,7 @@ export class CurriculumController {
     NotFoundException,
     InternalServerErrorException,
   ])
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<CurriculumWithCoursesDto> {
     return this.curriculumService.findOne(id);
   }
 
@@ -73,9 +80,9 @@ export class CurriculumController {
   @Roles(Role.ADMIN)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateCurriculumDto: UpdateCurriculumWithCourseDto,
-  ) {
+  ): Promise<CurriculumDto> {
     return this.curriculumService.update(id, updateCurriculumDto);
   }
 
@@ -93,7 +100,10 @@ export class CurriculumController {
   @Delete(':id')
   @Roles(Role.ADMIN)
   @ApiException(() => [NotFoundException, InternalServerErrorException])
-  remove(@Param('id') id: string, @Query() query?: DeleteQueryDto) {
-    return this.curriculumService.remove(id);
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query?: DeleteQueryDto,
+  ): Promise<MessageDto> {
+    return this.curriculumService.remove(id, query?.directDelete);
   }
 }

@@ -4,10 +4,11 @@ import {
   Catch,
   ConflictException,
   ExceptionFilter,
-  HttpException,
+  ForbiddenException,
   HttpStatus,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -18,6 +19,15 @@ import { RequestWithId } from '@/middleware/request-id.middleware';
 export class GlobalHttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalHttpExceptionFilter.name);
   private readonly isProduction = process.env.NODE_ENV === 'production';
+
+  private formatFieldName(fieldName: any): string {
+    const typed = fieldName as string;
+    return typed
+      .toString()
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
+  }
 
   catch(exception: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -36,6 +46,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
 
       // --- 2. Prisma Errors ---
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      // Fallback for known Prisma errors if unhandled
       const prismaErrorMap: Record<
         string,
         { message: string; statusCode: number }
@@ -51,7 +62,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
           statusCode: HttpStatus.BAD_REQUEST,
         },
         P2002: {
-          message: `Duplicate entry: ${exception.meta?.target as string}`,
+          message: `An existing record on field: ${this.formatFieldName(exception.meta?.target)} was found.`,
           statusCode: HttpStatus.CONFLICT,
         },
         // For not found errors, it is generally much better to throw a NotFoundException
@@ -77,15 +88,17 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       };
 
       const errorInfo = prismaErrorMap[exception.code];
-      statusCode = errorInfo?.statusCode || HttpStatus.BAD_REQUEST;
-      message = errorInfo?.message || 'An unexpected database error occurred.';
+      statusCode = errorInfo?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
+      message = errorInfo?.message || 'Unexpected error occurred.';
       this.logError('PrismaClientKnownRequestError', requestId, req, exception);
 
       // --- 3. NestJS HTTP Exceptions ---
     } else if (
       exception instanceof NotFoundException ||
       exception instanceof BadRequestException ||
-      exception instanceof ConflictException
+      exception instanceof ConflictException ||
+      exception instanceof UnauthorizedException ||
+      exception instanceof ForbiddenException
     ) {
       const exceptionResponse = exception.getResponse();
       statusCode = exception.getStatus();
@@ -107,7 +120,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       // --- 4. Unhandled Errors ---
     } else {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'An unexpected internal server error occurred.';
+      message = 'Unexpected error occurred.';
       this.logError('UnhandledException', requestId, req, exception);
     }
 

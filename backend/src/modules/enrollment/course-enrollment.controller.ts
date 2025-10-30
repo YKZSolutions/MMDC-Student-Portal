@@ -14,13 +14,14 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Query
+  Query,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CourseEnrollmentService } from './course-enrollment.service';
 import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
 import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
+import { CourseEnrollmentDto } from '@/generated/nestjs-dto/courseEnrollment.dto';
 
 @Controller('enrollment/student')
 export class CourseEnrollmentController {
@@ -34,7 +35,7 @@ export class CourseEnrollmentController {
    * @remarks
    * - `STUDENT` will receive their own enlisted enrollments for the active enrollment period.
    * - `ADMIN` may call this endpoint (typically for inspection); use DTO body to scope to another student when supported.
-   * - Each returned record includes related course offering, course section and mentor/user data.
+   * - Each returned record includes a related course offering, course section and mentor/user data.
    *
    * @returns An array of DetailedCourseEnrollmentDto containing the student's active enrollments.
    *
@@ -43,7 +44,7 @@ export class CourseEnrollmentController {
    */
   @ApiException(() => [BadRequestException, NotFoundException])
   @Roles(Role.MENTOR, Role.STUDENT, Role.ADMIN)
-  @Post('/sections')
+  @Get('/sections')
   getCourseEnrollments(@CurrentUser() user: CurrentAuthUser) {
     const { role, user_id } = user.user_metadata;
     return this.courseEnrollmentService.getCourseEnrollments(user_id, role);
@@ -76,9 +77,10 @@ export class CourseEnrollmentController {
    * - `STUDENT` can only enroll themselves.
    * - `ADMIN` can enroll on behalf of another student (using `studentId` in body).
    *
-   * @throws BadRequestException If enrollment period is closed or section full
-   * @throws NotFoundException If course section does not exist
+   * @throws BadRequestException If the enrollment period is closed or section full
+   * @throws NotFoundException If the course section does not exist
    */
+  @ApiCreatedResponse({ type: CourseEnrollmentDto })
   @ApiException(() => [BadRequestException, NotFoundException])
   @Roles(Role.STUDENT, Role.ADMIN)
   @Post('/sections/:sectionId')

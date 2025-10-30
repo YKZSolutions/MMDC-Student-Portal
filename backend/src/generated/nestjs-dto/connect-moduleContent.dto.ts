@@ -1,5 +1,6 @@
 import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -8,7 +9,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ModuleContentModuleSectionIdOrderUniqueInputDto {
+export class ModuleContentModuleSectionIdOrderDeletedAtUniqueInputDto {
   @ApiProperty({
     type: 'string',
   })
@@ -23,9 +24,16 @@ export class ModuleContentModuleSectionIdOrderUniqueInputDto {
   @IsNotEmpty()
   @IsInt()
   order: number;
+  @ApiProperty({
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  deletedAt: Date;
 }
 
-@ApiExtraModels(ModuleContentModuleSectionIdOrderUniqueInputDto)
+@ApiExtraModels(ModuleContentModuleSectionIdOrderDeletedAtUniqueInputDto)
 export class ConnectModuleContentDto {
   @ApiProperty({
     type: 'string',
@@ -35,11 +43,11 @@ export class ConnectModuleContentDto {
   @IsString()
   id?: string;
   @ApiProperty({
-    type: ModuleContentModuleSectionIdOrderUniqueInputDto,
+    type: ModuleContentModuleSectionIdOrderDeletedAtUniqueInputDto,
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => ModuleContentModuleSectionIdOrderUniqueInputDto)
-  moduleSectionId_order?: ModuleContentModuleSectionIdOrderUniqueInputDto;
+  @Type(() => ModuleContentModuleSectionIdOrderDeletedAtUniqueInputDto)
+  moduleSectionId_order_deletedAt?: ModuleContentModuleSectionIdOrderDeletedAtUniqueInputDto;
 }

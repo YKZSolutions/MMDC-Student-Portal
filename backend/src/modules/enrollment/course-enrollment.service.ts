@@ -11,7 +11,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { CourseEnrollmentStatus, Role } from '@prisma/client';
 import { addDays, addMonths } from 'date-fns';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { BillingService } from '../billing/billing.service';
@@ -23,6 +23,10 @@ import { DetailedCourseEnrollmentDto } from './dto/detailed-course-enrollment.dt
 import { FinalizeEnrollmentDto } from './dto/finalize-enrollment.dto';
 import { PaginatedCourseEnrollmentsDto } from './dto/paginated-course-enrollments.dto';
 import { StudentIdentifierDto } from './dto/student-identifier.dto';
+import {
+  PrismaError,
+  PrismaErrorCode,
+} from '@/common/decorators/prisma-error.decorator';
 
 @Injectable()
 export class CourseEnrollmentService {
@@ -36,7 +40,7 @@ export class CourseEnrollmentService {
    * Retrieves all active (enlisted) course enrollments for the current student
    * within the active enrollment period.
    *
-   * This returns detailed enrollment records including the associated
+   * This returns detailed enrollment records, including the associated
    * course offering and course section (with mentor/user data).
    *
    * @param userId - The ID of the user
@@ -57,7 +61,7 @@ export class CourseEnrollmentService {
   ): Promise<DetailedCourseEnrollmentDto[]> {
     const isStudent = role === Role.student;
 
-    const enrollments = await this.prisma.client.courseEnrollment.findMany({
+    return await this.prisma.client.courseEnrollment.findMany({
       where: {
         status: { in: ['enlisted', 'finalized'] },
         ...(isStudent && { studentId: userId }),
@@ -87,15 +91,13 @@ export class CourseEnrollmentService {
         },
       },
     });
-
-    return enrollments;
   }
 
   /**
    * Retrieves all (enlisted or finalized) course enrollments across all students
    * within the active enrollment period.
    *
-   * This returns detailed enrollment records including the associated
+   * This returns detailed enrollment records, including the associated
    * course offering and course section (with mentor/user data).
    *
    * @param filters - Optional filters for pagination and sorting
@@ -175,12 +177,35 @@ export class CourseEnrollmentService {
    * @throws ConflictException - If the student is already enrolled in the offering
    */
   @Log({
-    logArgsMessage: ({ courseSectionId, dto, user }) =>
+    logArgsMessage: ({
+      courseSectionId,
+      dto,
+      user,
+    }: {
+      courseSectionId: string;
+      dto: StudentIdentifierDto;
+      user: CurrentAuthUser;
+    }) =>
       `Creating enrollment for section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'}`,
     logSuccessMessage: (enrollment) =>
       `Enrollment [${enrollment.id}] successfully created`,
-    logErrorMessage: (err, { courseSectionId, dto, user }) =>
+    logErrorMessage: (
+      err,
+      {
+        courseSectionId,
+        dto,
+        user,
+      }: {
+        courseSectionId: string;
+        dto: StudentIdentifierDto;
+        user: CurrentAuthUser;
+      },
+    ) =>
       `Error creating enrollment in section [${courseSectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'} | Error: ${err.message}`,
+  })
+  @PrismaError({
+    [PrismaErrorCode.RelatedRecordNotFound]: () =>
+      new NotFoundException(`Program not found`),
   })
   async createCourseEnrollment(
     @LogParam('courseSectionId') courseSectionId: string,
@@ -227,7 +252,7 @@ export class CourseEnrollmentService {
       throw new BadRequestException('Enrollment period already closed.');
     }
 
-    const enrollment = await this.prisma.client.$transaction(async (tx) => {
+    return await this.prisma.client.$transaction(async (tx) => {
       const enrolled = await tx.courseEnrollment.findFirst({
         where: {
           studentId: studentId,
@@ -237,9 +262,20 @@ export class CourseEnrollmentService {
         },
       });
 
-      // Validate if student is already enrolled in the course
       if (enrolled) {
-        throw new ConflictException('Already enrolled in this course offering');
+        if (
+          enrolled.status === CourseEnrollmentStatus.enlisted ||
+          enrolled.status === CourseEnrollmentStatus.finalized ||
+          enrolled.status === CourseEnrollmentStatus.enrolled
+        ) {
+          throw new ConflictException(
+            'Already enrolled in this course offering',
+          );
+        }
+
+        if (enrolled.status === CourseEnrollmentStatus.completed) {
+          throw new BadRequestException('Already finished this course');
+        }
       }
 
       const count = await tx.courseEnrollment.count({
@@ -249,25 +285,46 @@ export class CourseEnrollmentService {
         },
       });
 
-      // Validate no of currently enrolled student
+      // Validate number of currently enrolled students
       if (count >= maxSlot) {
         throw new BadRequestException(
           'This section has reached its maximum capacity.',
         );
       }
 
-      // create course enrollment record
-      return tx.courseEnrollment.create({
-        data: {
-          studentId: studentId,
+      // Find existing non-deleted enrollment
+      const existing = await tx.courseEnrollment.findFirst({
+        where: {
           courseOfferingId: offeringId,
-          courseSectionId: sectionId,
-          status: 'enlisted',
-          startedAt: new Date(),
+          studentId: studentId,
+          deletedAt: null,
         },
       });
+
+      if (existing) {
+        // Update existing enrollment
+        return tx.courseEnrollment.update({
+          where: { id: existing.id },
+          data: {
+            courseSectionId: sectionId,
+            status: 'enlisted',
+            startedAt: new Date(),
+            deletedAt: null,
+          },
+        });
+      } else {
+        // Create new enrollment
+        return tx.courseEnrollment.create({
+          data: {
+            studentId: studentId,
+            courseOfferingId: offeringId,
+            courseSectionId: sectionId,
+            status: 'enlisted',
+            startedAt: new Date(),
+          },
+        });
+      }
     });
-    return enrollment;
   }
 
   /**
@@ -282,11 +339,37 @@ export class CourseEnrollmentService {
    * @throws BadRequestException - If `studentId` is missing
    */
   @Log({
-    logArgsMessage: ({ sectionId, dto, user }) =>
+    logArgsMessage: ({
+      sectionId,
+      dto,
+      user,
+    }: {
+      sectionId: string;
+      dto: StudentIdentifierDto;
+      user: CurrentAuthUser;
+    }) =>
       `Dropping enrollment for section [${sectionId}] | user: ${user.user_metadata.user_id} | studentId: ${dto?.studentId ?? 'self'}`,
-    logSuccessMessage: (_, { sectionId, user }) =>
+    logSuccessMessage: (
+      _,
+      {
+        sectionId,
+        user,
+      }: {
+        sectionId: string;
+        user: CurrentAuthUser;
+      },
+    ) =>
       `Successfully dropped enrollment in section [${sectionId}] by user [${user.user_metadata.user_id}]`,
-    logErrorMessage: (err, { sectionId, user }) =>
+    logErrorMessage: (
+      err,
+      {
+        sectionId,
+        user,
+      }: {
+        sectionId: string;
+        user: CurrentAuthUser;
+      },
+    ) =>
       `Error dropping enrollment in section [${sectionId}] by user [${user.user_metadata.user_id}] | Error: ${err.message}`,
   })
   async dropCourseEnrollment(
@@ -294,12 +377,11 @@ export class CourseEnrollmentService {
     @LogParam('dto') dto: StudentIdentifierDto,
     @LogParam('user') user: CurrentAuthUser,
   ) {
+    const role = user.user_metadata.role;
     const studentId =
-      user.user_metadata.role === Role.student
-        ? user.user_metadata.user_id
-        : dto.studentId;
+      role === Role.student ? user.user_metadata.user_id : dto.studentId;
 
-    if (user.user_metadata.role === Role.admin && !studentId) {
+    if (role === Role.admin && !studentId) {
       throw new BadRequestException('studentId cannot be empty.');
     }
 
@@ -311,6 +393,21 @@ export class CourseEnrollmentService {
       if (!courseEnrollment) {
         throw new NotFoundException(
           'Enrollment record not found or already dropped.',
+        );
+      }
+
+      if (courseEnrollment.status === CourseEnrollmentStatus.completed) {
+        throw new BadRequestException(
+          'Cannot drop an enrollment that has already been completed.',
+        );
+      }
+
+      if (
+        role === Role.student &&
+        courseEnrollment.status === CourseEnrollmentStatus.finalized
+      ) {
+        throw new BadRequestException(
+          'Cannot drop a finalized enrollment. Please contact the admin for further assistance.',
         );
       }
 
