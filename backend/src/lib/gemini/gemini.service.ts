@@ -66,7 +66,8 @@ export class GeminiService {
     sessionHistory: Turn[],
     currentQuestion: string,
   ): ConversationMessage[] {
-    const userContextStr = `The current authenticated user is: ${JSON.stringify(userContext)}`;
+    const userContextStr = `The current authenticated user is: ${JSON.stringify(userContext)}.
+If this user context does not specify their current active page, assume the user is interacting from the home page and requires full navigation guidance (e.g., mention where tabs or pages can be found).`;
 
     const conversation: ConversationMessage[] = [
       { role: 'model', parts: [{ text: userContextStr }] },
@@ -81,7 +82,7 @@ export class GeminiService {
       });
     }
 
-    // Add current question
+    // Add the current question
     conversation.push({
       role: 'user',
       parts: [{ text: currentQuestion }],
@@ -121,6 +122,40 @@ export class GeminiService {
         },
       })),
     });
+  }
+
+  /**
+   * Generate content without tools (function calling disabled)
+   */
+  @Log({
+    logArgsMessage: ({ conversation }) =>
+      `Generate content with tools for conversation of length=${conversation.length}`,
+    logSuccessMessage: () => `Successfully generated content with tools`,
+    logErrorMessage: (err) =>
+      `Failed to generate content with tools | Error=${err.message}`,
+  })
+  async generateContent(conversation: ConversationMessage[]): Promise<{
+    response: string;
+    functionCalls: FunctionCall[] | null;
+  }> {
+    this.logger.debug(
+      `Calling Gemini with ${conversation.length} messages in conversation`,
+    );
+
+    const result = await this.gemini.models.generateContent({
+      model: this.model,
+      contents: conversation,
+      config: {
+        systemInstruction: this.functionCallingInstruction,
+      },
+    });
+
+    const responseText = result.text || '';
+
+    return {
+      response: responseText.trim(),
+      functionCalls: null,
+    };
   }
 
   /**
@@ -256,7 +291,8 @@ export class GeminiService {
               (functionCallResults?.length
                 ? `Tool call results:\n${resultsContext}\n\n`
                 : ``) +
-              `Please write a clear, helpful final answer for the user. Do not repeat the raw JSON or system-like text – instead, summarize naturally.`,
+              `Please write a clear, helpful final answer for the user. Do not repeat raw JSON or system-like text.
+If the answer references a sub-feature, include directions to find it unless the user context indicates they are already in that module.`,
           },
         ],
       },
@@ -340,6 +376,15 @@ You are a helpful AI assistant for Mapúa Malayan Digital College (MMDC).
   • Use bold for actions/labels, italics for emphasis.
   • Use Markdown links only for validated URLs, never raw URLs.
   • Provide bullet-point contacts if relevant.
+  
+## Context-Awareness Rules
+- If the answer references a page, tab, or section (like "Grades" or "Courses"):
+  • Always clarify where to find it (e.g., “in your LMS dashboard” or “in your student portal under the Academics section”) unless the user context explicitly indicates they are already in that module.
+- If the context of the user (like current page/module) is missing or unclear:
+  • Assume the user is asking from outside the LMS.
+  • Provide both the action (“Go to the Grades tab”) and the **location** (“in your student portal under Academics”) to make it self-contained.
+- If the system knows the user’s current module (from the conversation context or userContext), tailor the instructions specifically for that.
+
 
 ## Response Logic
 - Integrate all tool results into a single coherent narrative.
