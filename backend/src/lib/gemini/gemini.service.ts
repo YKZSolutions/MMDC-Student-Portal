@@ -125,7 +125,7 @@ export class GeminiService {
   }
 
   /**
-   * Generate content with tools (function calling)
+   * Generate content without tools (function calling disabled)
    */
   @Log({
     logArgsMessage: ({ role }) =>
