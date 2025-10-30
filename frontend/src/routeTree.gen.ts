@@ -36,6 +36,7 @@ import { Route as protectedBillingCreateRouteImport } from './routes/(protected)
 import { Route as protectedBillingBillingIdRouteImport } from './routes/(protected)/billing/$billingId'
 import { Route as protectedAppointmentAppointmentIdRouteImport } from './routes/(protected)/appointment/$appointmentId'
 import { Route as protectedLmsLmsCodeRouteRouteImport } from './routes/(protected)/lms/$lmsCode/route'
+import { Route as protectedLmsTasksIndexRouteImport } from './routes/(protected)/lms/tasks/index'
 import { Route as protectedCurriculumProgramsIndexRouteImport } from './routes/(protected)/curriculum/programs/index'
 import { Route as protectedCurriculumMajorsIndexRouteImport } from './routes/(protected)/curriculum/majors/index'
 import { Route as protectedCurriculumCoursesIndexRouteImport } from './routes/(protected)/curriculum/courses/index'
@@ -207,6 +208,11 @@ const protectedLmsLmsCodeRouteRoute =
     path: '/lms/$lmsCode',
     getParentRoute: () => protectedRouteRoute,
   } as any)
+const protectedLmsTasksIndexRoute = protectedLmsTasksIndexRouteImport.update({
+  id: '/lms/tasks/',
+  path: '/lms/tasks/',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
 const protectedCurriculumProgramsIndexRoute =
   protectedCurriculumProgramsIndexRouteImport.update({
     id: '/curriculum/programs/',
@@ -380,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/courses': typeof protectedCurriculumCoursesIndexRoute
   '/curriculum/majors': typeof protectedCurriculumMajorsIndexRoute
   '/curriculum/programs': typeof protectedCurriculumProgramsIndexRoute
+  '/lms/tasks': typeof protectedLmsTasksIndexRoute
   '/lms/$lmsCode/': typeof protectedLmsLmsCodeLayoutIndexRoute
   '/lms/$lmsCode/modules/create': typeof protectedLmsLmsCodeLayoutModulesCreateRoute
   '/lms/$lmsCode/assignments': typeof protectedLmsLmsCodeLayoutAssignmentsIndexRoute
@@ -430,6 +437,7 @@ export interface FileRoutesByTo {
   '/curriculum/courses': typeof protectedCurriculumCoursesIndexRoute
   '/curriculum/majors': typeof protectedCurriculumMajorsIndexRoute
   '/curriculum/programs': typeof protectedCurriculumProgramsIndexRoute
+  '/lms/tasks': typeof protectedLmsTasksIndexRoute
   '/lms/$lmsCode/modules/create': typeof protectedLmsLmsCodeLayoutModulesCreateRoute
   '/lms/$lmsCode/assignments': typeof protectedLmsLmsCodeLayoutAssignmentsIndexRoute
   '/lms/$lmsCode/grades': typeof protectedLmsLmsCodeLayoutGradesIndexRoute
@@ -482,6 +490,7 @@ export interface FileRoutesById {
   '/(protected)/curriculum/courses/': typeof protectedCurriculumCoursesIndexRoute
   '/(protected)/curriculum/majors/': typeof protectedCurriculumMajorsIndexRoute
   '/(protected)/curriculum/programs/': typeof protectedCurriculumProgramsIndexRoute
+  '/(protected)/lms/tasks/': typeof protectedLmsTasksIndexRoute
   '/(protected)/lms/$lmsCode/_layout/': typeof protectedLmsLmsCodeLayoutIndexRoute
   '/(protected)/lms/$lmsCode/_layout/modules/create': typeof protectedLmsLmsCodeLayoutModulesCreateRoute
   '/(protected)/lms/$lmsCode/_layout/assignments/': typeof protectedLmsLmsCodeLayoutAssignmentsIndexRoute
@@ -534,6 +543,7 @@ export interface FileRouteTypes {
     | '/curriculum/courses'
     | '/curriculum/majors'
     | '/curriculum/programs'
+    | '/lms/tasks'
     | '/lms/$lmsCode/'
     | '/lms/$lmsCode/modules/create'
     | '/lms/$lmsCode/assignments'
@@ -584,6 +594,7 @@ export interface FileRouteTypes {
     | '/curriculum/courses'
     | '/curriculum/majors'
     | '/curriculum/programs'
+    | '/lms/tasks'
     | '/lms/$lmsCode/modules/create'
     | '/lms/$lmsCode/assignments'
     | '/lms/$lmsCode/grades'
@@ -635,6 +646,7 @@ export interface FileRouteTypes {
     | '/(protected)/curriculum/courses/'
     | '/(protected)/curriculum/majors/'
     | '/(protected)/curriculum/programs/'
+    | '/(protected)/lms/tasks/'
     | '/(protected)/lms/$lmsCode/_layout/'
     | '/(protected)/lms/$lmsCode/_layout/modules/create'
     | '/(protected)/lms/$lmsCode/_layout/assignments/'
@@ -848,6 +860,13 @@ declare module '@tanstack/react-router' {
       path: '/lms/$lmsCode'
       fullPath: '/lms/$lmsCode'
       preLoaderRoute: typeof protectedLmsLmsCodeRouteRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/lms/tasks/': {
+      id: '/(protected)/lms/tasks/'
+      path: '/lms/tasks'
+      fullPath: '/lms/tasks'
+      preLoaderRoute: typeof protectedLmsTasksIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
     '/(protected)/curriculum/programs/': {
@@ -1111,6 +1130,7 @@ interface protectedRouteRouteChildren {
   protectedCurriculumCoursesIndexRoute: typeof protectedCurriculumCoursesIndexRoute
   protectedCurriculumMajorsIndexRoute: typeof protectedCurriculumMajorsIndexRoute
   protectedCurriculumProgramsIndexRoute: typeof protectedCurriculumProgramsIndexRoute
+  protectedLmsTasksIndexRoute: typeof protectedLmsTasksIndexRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
@@ -1146,6 +1166,7 @@ const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedCurriculumCoursesIndexRoute: protectedCurriculumCoursesIndexRoute,
   protectedCurriculumMajorsIndexRoute: protectedCurriculumMajorsIndexRoute,
   protectedCurriculumProgramsIndexRoute: protectedCurriculumProgramsIndexRoute,
+  protectedLmsTasksIndexRoute: protectedLmsTasksIndexRoute,
 }
 
 const protectedRouteRouteWithChildren = protectedRouteRoute._addFileChildren(

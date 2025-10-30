@@ -1132,7 +1132,17 @@ export class LmsService {
             subtitle: true,
             order: true,
             contentType: true,
-            assignment: true,
+            assignment:
+              role === Role.student && userId
+                ? {
+                    include: {
+                      submissions: {
+                        where: { studentId: userId },
+                        include: { gradeRecord: true },
+                      },
+                    },
+                  }
+                : true,
             ...(role !== Role.student && {
               publishedAt: true,
               unpublishedAt: true,

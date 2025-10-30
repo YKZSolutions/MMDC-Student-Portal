@@ -2,6 +2,7 @@ import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { AssignmentDto } from '@/generated/nestjs-dto/assignment.dto';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 import { ContentType } from '@prisma/client';
+import { StudentAssignmentSubmissionItemDto } from '@/modules/lms/assignment/dto/paginated-assignment.dto';
 
 class ModuleTreeBase extends OmitType(ModuleContent, [
   'content',
@@ -11,6 +12,14 @@ class ModuleTreeBase extends OmitType(ModuleContent, [
   'deletedAt',
 ]) {}
 
+class ModuleTreeAssignmentDto extends AssignmentDto {
+  @ApiProperty({
+    type: [StudentAssignmentSubmissionItemDto],
+    required: false,
+  })
+  studentSubmissions?: StudentAssignmentSubmissionItemDto[];
+}
+
 export class ModuleTreeAssignmentItemDto extends ModuleTreeBase {
   @ApiProperty({
     default: ContentType.ASSIGNMENT,
@@ -19,9 +28,9 @@ export class ModuleTreeAssignmentItemDto extends ModuleTreeBase {
   declare contentType: 'ASSIGNMENT';
 
   @ApiProperty({
-    type: AssignmentDto,
+    type: ModuleTreeAssignmentDto,
   })
-  assignment: AssignmentDto;
+  assignment: ModuleTreeAssignmentDto;
 }
 
 export class ModuleTreeLessonItemDto extends ModuleTreeBase {

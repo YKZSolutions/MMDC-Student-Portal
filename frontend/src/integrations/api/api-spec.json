@@ -12775,6 +12775,186 @@
         ]
       }
     },
+    "/tasks": {
+      "get": {
+        "description": "Retrieves all assignments from enrolled courses in the current term with filtering and sorting options",
+        "operationId": "TasksController_getAllTasksForStudent",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task status",
+            "schema": {
+              "example": "upcoming",
+              "type": "string",
+              "enum": [
+                "all",
+                "upcoming",
+                "submitted",
+                "graded"
+              ]
+            }
+          },
+          {
+            "name": "courseId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by specific course ID",
+            "schema": {
+              "format": "uuid",
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort tasks by field",
+            "schema": {
+              "example": "dueDate",
+              "type": "string",
+              "enum": [
+                "dueDate",
+                "title",
+                "course",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction (asc or desc)",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAllTasksDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Get all tasks across enrolled courses",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
     "/modules/{moduleId}/sections": {
       "post": {
         "description": "Requires `ADMIN` role",
@@ -20078,7 +20258,175 @@
           "contentType"
         ]
       },
-      "AssignmentDto": {
+      "SubmissionState": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "SUBMITTED",
+          "UNDER_REVIEW",
+          "GRADED",
+          "RETURNED"
+        ]
+      },
+      "SubmissionAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "type",
+          "size",
+          "createdAt"
+        ]
+      },
+      "GradeRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rawScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "finalScore": {
+            "type": "string",
+            "format": "Decimal.js"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubricEvaluationDetails": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "gradedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "rawScore",
+          "finalScore",
+          "grade",
+          "feedback",
+          "rubricEvaluationDetails",
+          "gradedAt",
+          "updatedAt"
+        ]
+      },
+      "StudentAssignmentSubmissionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groupSnapshot": {
+            "type": "object",
+            "nullable": true
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmissionState"
+              }
+            ]
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "attemptNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateDays": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubmissionAttachmentDto"
+            }
+          },
+          "grade": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradeRecordDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "groupSnapshot",
+          "state",
+          "content",
+          "submittedAt",
+          "attemptNumber",
+          "lateDays",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "ModuleTreeAssignmentDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -20135,6 +20483,12 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
+          },
+          "studentSubmissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentAssignmentSubmissionItemDto"
+            }
           }
         },
         "required": [
@@ -20202,7 +20556,7 @@
             "readOnly": true
           },
           "assignment": {
-            "$ref": "#/components/schemas/AssignmentDto"
+            "$ref": "#/components/schemas/ModuleTreeAssignmentDto"
           }
         },
         "required": [
@@ -23761,16 +24115,6 @@
           "courses"
         ]
       },
-      "SubmissionState": {
-        "type": "string",
-        "enum": [
-          "DRAFT",
-          "SUBMITTED",
-          "UNDER_REVIEW",
-          "GRADED",
-          "RETURNED"
-        ]
-      },
       "SubmitAssignmentDto": {
         "type": "object",
         "properties": {
@@ -23889,6 +24233,9 @@
           },
           "stats": {
             "$ref": "#/components/schemas/AssignmentStatsDto"
+          },
+          "moduleContentId": {
+            "type": "string"
           }
         },
         "required": [
@@ -23908,7 +24255,8 @@
           "title",
           "subtitle",
           "content",
-          "stats"
+          "stats",
+          "moduleContentId"
         ]
       },
       "PaginatedAssignmentDto": {
@@ -23933,39 +24281,6 @@
         "required": [
           "meta",
           "assignments"
-        ]
-      },
-      "SubmissionAttachmentDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "url",
-          "type",
-          "size",
-          "createdAt"
         ]
       },
       "GradeRecordItemDto": {
@@ -24116,6 +24431,9 @@
             "items": {
               "$ref": "#/components/schemas/MentorAssignmentSubmissionItemDto"
             }
+          },
+          "moduleContentId": {
+            "type": "string"
           }
         },
         "required": [
@@ -24136,7 +24454,8 @@
           "subtitle",
           "content",
           "stats",
-          "submissions"
+          "submissions",
+          "moduleContentId"
         ]
       },
       "PaginatedMentorAssignmentDto": {
@@ -24161,131 +24480,6 @@
         "required": [
           "meta",
           "assignments"
-        ]
-      },
-      "GradeRecordDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "rawScore": {
-            "type": "string",
-            "format": "Decimal.js"
-          },
-          "finalScore": {
-            "type": "string",
-            "format": "Decimal.js"
-          },
-          "grade": {
-            "type": "string"
-          },
-          "feedback": {
-            "type": "string",
-            "nullable": true
-          },
-          "rubricEvaluationDetails": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "gradedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "rawScore",
-          "finalScore",
-          "grade",
-          "feedback",
-          "rubricEvaluationDetails",
-          "gradedAt",
-          "updatedAt"
-        ]
-      },
-      "StudentAssignmentSubmissionItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "groupSnapshot": {
-            "type": "object",
-            "nullable": true
-          },
-          "state": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SubmissionState"
-              }
-            ]
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "submittedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "attemptNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "lateDays": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SubmissionAttachmentDto"
-            }
-          },
-          "grade": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GradeRecordDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "groupSnapshot",
-          "state",
-          "content",
-          "submittedAt",
-          "attemptNumber",
-          "lateDays",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
         ]
       },
       "StudentAssignmentItemDto": {
@@ -24368,6 +24562,9 @@
             "items": {
               "$ref": "#/components/schemas/StudentAssignmentSubmissionItemDto"
             }
+          },
+          "moduleContentId": {
+            "type": "string"
           }
         },
         "required": [
@@ -24387,7 +24584,8 @@
           "title",
           "subtitle",
           "content",
-          "submissions"
+          "submissions",
+          "moduleContentId"
         ]
       },
       "PaginatedStudentAssignmentDto": {
@@ -24412,6 +24610,80 @@
         "required": [
           "meta",
           "assignments"
+        ]
+      },
+      "AssignmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
         ]
       },
       "UpdateAssignmentConfigDto": {
@@ -24466,6 +24738,223 @@
             "nullable": true
           }
         }
+      },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
+      "TaskCourseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "courseCode"
+        ]
+      },
+      "TaskModuleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "sectionOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "sectionOrder"
+        ]
+      },
+      "TaskSubmissionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubmissionState"
+              }
+            ]
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "attemptNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateDays": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "grade": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GradeRecordDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "submittedAt",
+          "attemptNumber",
+          "lateDays"
+        ]
+      },
+      "AllTaskItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "rubricTemplateId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "course": {
+            "$ref": "#/components/schemas/TaskCourseDto"
+          },
+          "module": {
+            "$ref": "#/components/schemas/TaskModuleDto"
+          },
+          "submissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskSubmissionItemDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "rubricTemplateId",
+          "title",
+          "subtitle",
+          "moduleContentId",
+          "course",
+          "module",
+          "submissions"
+        ]
+      },
+      "PaginatedAllTasksDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AllTaskItemDto"
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "tasks"
+        ]
       },
       "CreateModuleSectionDto": {
         "type": "object",
