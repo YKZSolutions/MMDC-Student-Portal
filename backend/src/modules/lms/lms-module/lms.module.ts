@@ -5,11 +5,12 @@ import { LmsPublishService } from '@/modules/lms/publish/lms-publish.service';
 import { GroupModule } from '../group/group.module';
 import { NotificationsModule } from '../../notifications/notifications.module';
 import { ModuleProgressService } from '@/modules/lms/lms-module/module-progress.service';
+import { StudentsModule } from '@/modules/lms/students/students.module';
 
 @Module({
   controllers: [LmsController],
   providers: [LmsService, LmsPublishService, ModuleProgressService],
   exports: [LmsService, ModuleProgressService],
-  imports: [GroupModule, NotificationsModule],
+  imports: [GroupModule, NotificationsModule, StudentsModule],
 })
 export class LmsModule {}

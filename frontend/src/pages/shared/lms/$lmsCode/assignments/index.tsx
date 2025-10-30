@@ -107,7 +107,7 @@ const roleConfig: RoleBasedAssignmentConfig = {
   },
 }
 
-const route = getRouteApi('/(protected)/lms/$lmsCode/assignments/')
+const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/assignments/')
 
 function AssignmentPage() {
   const { authUser } = useAuth('protected')

@@ -6,7 +6,7 @@ import { IconPlus } from '@tabler/icons-react'
 import { getRouteApi } from '@tanstack/react-router'
 import { Fragment, useState } from 'react'
 
-const route = getRouteApi('/(protected)/lms/$lmsCode/modules/')
+const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/modules/')
 
 const { queryClient } = getContext()
 

@@ -1,11 +1,10 @@
-import { Button, Stack } from '@mantine/core'
-import { Link, useMatchRoute } from '@tanstack/react-router'
-import {
-  type SectionOption,
-} from './course-select-combobox'
+import { Button, Divider, Stack } from '@mantine/core'
+import { getRouteApi, Link, useMatchRoute } from '@tanstack/react-router'
+import type { FileRoutesByTo } from '@/routeTree.gen'
+import { IconArrowLeft } from '@tabler/icons-react'
 
 export interface CourseNavItem {
-  link: string
+  link: keyof FileRoutesByTo
   label: string
   fuzzy?: boolean
 }
@@ -28,16 +27,9 @@ function CourseNavButton({ item }: { item: CourseNavItem }) {
   )
 }
 
-function CourseNavBar({
-  navItems,
-  courseCode,
-}: {
-  navItems: CourseNavItem[]
-  courseCode: string
-  sections?: SectionOption[]
-  currentSectionId?: string
-  onSectionChange?: (id: string) => void
-}) {
+const route = getRouteApi('/(protected)/lms/$lmsCode/_layout/')
+
+function CourseNavBar({ navItems }: { navItems: CourseNavItem[] }) {
   return (
     <Stack
       gap={'sm'}
@@ -46,8 +38,17 @@ function CourseNavBar({
       h={'100vh'}
       style={{ position: 'sticky', top: 0 }}
     >
-      {/* WIP: Implement this if sections are available for courses */}
-      {/* <CourseSelectCombobox /> */}
+      <route.Link to="/lms">
+        <Button
+          justify="start"
+          variant="subtle"
+          fullWidth
+          leftSection={<IconArrowLeft />}
+        >
+          Go Back
+        </Button>
+      </route.Link>
+      <Divider />
       {navItems.map((item, index) => (
         <CourseNavButton key={index} item={item} />
       ))}

@@ -90,25 +90,25 @@ export class LmsContentService {
       });
 
       // 3. Fetch the studentIds enrolled in the module and initialize their progress
-      const studentIds = await tx.user.findMany({
-        where: {
-          courseEnrollment: {
-            some: { courseOffering: { modules: { some: { id: moduleId } } } },
-          },
-        },
-        select: { id: true },
-      });
+      // const studentIds = await tx.user.findMany({
+      //   where: {
+      //     courseEnrollment: {
+      //       some: { courseOffering: { modules: { some: { id: moduleId } } } },
+      //     },
+      //   },
+      //   select: { id: true },
+      // });
 
-      if (studentIds.length > 0) {
-        await tx.contentProgress.createMany({
-          data: studentIds.map(({ id }) => ({
-            studentId: id,
-            moduleId,
-            moduleContentId: newContent.id,
-            status: ProgressStatus.NOT_STARTED,
-          })),
-        });
-      }
+      // if (studentIds.length > 0) {
+      //   await tx.contentProgress.createMany({
+      //     data: studentIds.map(({ id }) => ({
+      //       studentId: id,
+      //       moduleId,
+      //       moduleContentId: newContent.id,
+      //       status: ProgressStatus.NOT_STARTED,
+      //     })),
+      //   });
+      // }
 
       return newContent;
     });
@@ -245,7 +245,13 @@ export class LmsContentService {
 
       let message = 'Module content successfully removed.';
 
-      // 2. Delegate child deletion/soft-delete (pass tx)
+      // 2. Delete all content progress records associated with this module content
+      //    This must happen before deleting the module content to avoid FK constraint errors
+      await tx.contentProgress.deleteMany({
+        where: { moduleContentId: id },
+      });
+
+      // 3. Delegate child deletion/soft-delete (pass tx)
       switch (currentContent.contentType) {
         case ContentType.ASSIGNMENT:
           message = (await this.assignmentService.remove(directDelete, id, tx))
@@ -253,7 +259,7 @@ export class LmsContentService {
           break;
       }
 
-      // 3. Delete or soft-delete the moduleContent itself
+      // 4. Delete or soft-delete the moduleContent itself
       if (directDelete) {
         await tx.moduleContent.delete({ where: { id } });
       } else {
@@ -364,6 +370,7 @@ export class LmsContentService {
         moduleId,
         moduleContentId,
         completedAt: new Date(),
+        status: ProgressStatus.COMPLETED,
       },
       update: {
         completedAt: new Date(),
