@@ -53,6 +53,11 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '@/lib/prisma/prisma.extension';
 import { ModuleProgressService } from '@/modules/lms/lms-module/module-progress.service';
 import { MyModulesProgressFilters } from '@/modules/lms/lms-module/dto/modules-progress.dto';
+import { AssignmentService } from '@/modules/lms/assignment/assignment.service';
+import {
+  TaskSortBy,
+  TaskStatusFilter,
+} from '@/modules/lms/assignment/dto/filter-all-tasks.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -68,6 +73,7 @@ export class ChatbotService {
     private readonly courseEnrollmentService: CourseEnrollmentService,
     private readonly courseOfferingService: CourseOfferingService,
     private readonly lmsService: LmsService,
+    private readonly assignmentService: AssignmentService,
     private readonly appointmentsService: AppointmentsService,
     private readonly notificationsService: NotificationsService,
     private readonly progressService: ModuleProgressService,
@@ -267,453 +273,453 @@ export class ChatbotService {
     userContext: UserBaseContext | UserStudentContext | UserStaffContext,
     role: Role,
   ): Promise<string> {
-    switch (functionCall.name) {
-      case 'users_count_all': {
-        if (userContext.role !== 'admin') {
-          return 'This user does not have permission to count users.';
+    try {
+      switch (functionCall.name) {
+        case 'users_count_all': {
+          if (userContext.role !== 'admin') {
+            return 'This user does not have permission to count users.';
+          }
+
+          const args = functionCall.args as FilterUserDto;
+          const count = await this.usersService.countAll(args);
+          return `Found ${count} users${args.role ? ` with role '${args.role}'` : ''}${args.search ? ` matching '${args.search}'` : ''}.`;
         }
 
-        const args = functionCall.args as FilterUserDto;
-        const count = await this.usersService.countAll(args);
-        return `Found ${count} users${args.role ? ` with role '${args.role}'` : ''}${args.search ? ` matching '${args.search}'` : ''}.`;
-      }
+        case 'users_all_mentor_list': {
+          const args = functionCall.args as {
+            search?: string;
+          };
 
-      case 'users_all_mentor_list': {
-        const args = functionCall.args as {
-          search?: string;
-        };
-
-        const mentors = await this.usersService.findAll(
-          args,
-          userContext.role,
-          userContext.id,
-        );
-
-        return `Mentors: ${JSON.stringify(mentors)}`;
-      }
-
-      case 'courses_find_all': {
-        const args = functionCall.args as BaseFilterDto;
-        const courses = await this.coursesService.findAll(args);
-        return `Courses${args.search ? ` matching '${args.search}'` : ''}: ${JSON.stringify(courses.courses)}`;
-      }
-
-      case 'courses_find_one': {
-        const { id } = functionCall.args as { id: string };
-        const course = await this.coursesService.findOne(id);
-        return `Course: ${JSON.stringify(course)}`;
-      }
-
-      case 'enrollment_find_active': {
-        const enrollment = await this.enrollmentsService.findActiveEnrollment();
-        return `Active enrollment: ${JSON.stringify(enrollment)}`;
-      }
-
-      case 'enrollment_find_all': {
-        const args = functionCall.args as FilterEnrollmentDto;
-        const enrollments =
-          await this.enrollmentsService.findAllEnrollments(args);
-        return `Enrollment periods: ${JSON.stringify(enrollments)}`;
-      }
-
-      case 'enrollment_my_courses': {
-        const courses = await this.courseEnrollmentService.getCourseEnrollments(
-          userContext.id,
-          userContext.role,
-        );
-        return `Active enrolled courses: ${JSON.stringify(courses)}`;
-      }
-
-      case 'course_offering_for_active_enrollment': {
-        if (userContext.role !== 'student') {
-          return 'Non students do not have course offerings.';
-        }
-
-        const courseOfferings =
-          await this.courseOfferingService.findActiveCourseOfferings(
-            userContext.id,
+          const mentors = await this.usersService.findAll(
+            args,
             userContext.role,
+            userContext.id,
           );
 
-        return `Course offerings for active enrollment: ${JSON.stringify(courseOfferings)}`;
-      }
-
-      case 'lms_my_todos': {
-        if (userContext.role !== 'student') {
-          return 'Non students do not have todos.';
+          return `Mentors: ${JSON.stringify(mentors)}`;
         }
 
-        const args = functionCall.args as {
-          relativeDate?: string;
-          page?: number;
-          limit?: number;
-        };
+        case 'courses_find_all': {
+          const args = functionCall.args as BaseFilterDto;
+          const courses = await this.coursesService.findAll(args);
+          return `Courses${args.search ? ` matching '${args.search}'` : ''}: ${JSON.stringify(courses.courses)}`;
+        }
 
-        const baseFiler: BaseFilterDto = {
-          ...(args.page && { page: args.page }),
-          ...(args.limit && { limit: args.limit }),
-        };
-        const dueFilter: DueFilterDto = {};
+        case 'courses_find_one': {
+          const { id } = functionCall.args as { id: string };
+          const course = await this.coursesService.findOne(id);
+          return `Course: ${JSON.stringify(course)}`;
+        }
 
-        if (typeof args.relativeDate === 'string') {
+        case 'enrollment_find_active': {
+          const enrollment =
+            await this.enrollmentsService.findActiveEnrollment();
+          return `Active enrollment: ${JSON.stringify(enrollment)}`;
+        }
+
+        case 'enrollment_find_all': {
+          const args = functionCall.args as FilterEnrollmentDto;
+          const enrollments =
+            await this.enrollmentsService.findAllEnrollments(args);
+          return `Enrollment periods: ${JSON.stringify(enrollments)}`;
+        }
+
+        case 'enrollment_my_courses': {
+          const courses =
+            await this.courseEnrollmentService.getCourseEnrollments(
+              userContext.id,
+              userContext.role,
+            );
+          return `Active enrolled courses: ${JSON.stringify(courses)}`;
+        }
+
+        case 'course_offering_for_active_enrollment': {
+          if (userContext.role !== 'student') {
+            return 'Non students do not have course offerings.';
+          }
+
+          const courseOfferings =
+            await this.courseOfferingService.findActiveCourseOfferings(
+              userContext.id,
+              userContext.role,
+            );
+
+          return `Course offerings for active enrollment: ${JSON.stringify(courseOfferings)}`;
+        }
+
+        case 'lms_my_todos': {
+          if (userContext.role !== 'student') {
+            return 'Non students do not have todos.';
+          }
+
+          const args = functionCall.args as {
+            status?: TaskStatusFilter;
+            courseId?: string;
+            sortBy?: TaskSortBy;
+            sortDirection?: 'asc' | 'desc';
+            page?: number;
+            limit?: number;
+          };
+
+          const todos = await this.assignmentService.findAllTasksForStudent(
+            userContext.id,
+            args,
+          );
+          return `Todos: ${JSON.stringify(todos)}`;
+        }
+
+        case 'lms_my_modules': {
+          const args = functionCall.args as FilterModulesDto;
+          let modules: PaginatedModulesDto;
+          switch (userContext.role) {
+            case 'student':
+              modules = await this.lmsService.findAllForStudent(
+                userContext.id,
+                args,
+              );
+              break;
+            case 'mentor':
+              modules = await this.lmsService.findAllForMentor(
+                userContext.id,
+                args,
+              );
+              break;
+            case 'admin':
+              modules = await this.lmsService.findAllForAdmin(args);
+              break;
+          }
+          return `My modules: ${JSON.stringify(modules)}`;
+        }
+
+        case 'billing_my_invoices': {
+          if (userContext.role !== 'student') {
+            return 'Non students do not have invoices.';
+          }
+
+          const args = functionCall.args as FilterBillDto;
+          const invoices = await this.billingService.findAll(
+            args,
+            userContext.role,
+            userContext.id,
+          );
+          return `My invoices: ${JSON.stringify(invoices)}`;
+        }
+
+        case 'billing_invoice_details': {
+          const { id } = functionCall.args as { id: number };
+          const invoice: DetailedBillDto =
+            await this.billingService.findOneByInvoiceId(
+              id,
+              userContext.role,
+              userContext.id,
+            );
+          return `Invoice: ${JSON.stringify(invoice)}`;
+        }
+
+        case 'appointments_my_appointments': {
+          const args = functionCall.args as {
+            status?: string;
+            search?: string;
+            page?: number;
+            limit?: number;
+          };
+
+          const filterDto = {
+            ...(args.status && { status: [args.status] }),
+            ...(args.search && { search: args.search }),
+            ...(args.page && { page: args.page }),
+            ...(args.limit && { limit: args.limit }),
+          } as FilterAppointmentDto;
+
+          const appointments = await this.appointmentsService.findAll(
+            filterDto,
+            userContext.role,
+            userContext.id,
+          );
+          return `My appointments: ${JSON.stringify(appointments)}`;
+        }
+
+        case 'appointments_mentor_booked': {
+          if (userContext.role !== 'mentor') {
+            return 'This function is only available to mentors.';
+          }
+
+          const args = functionCall.args as {
+            relativeDate: string;
+          };
+
+          let startDate: Date = new Date();
+          let endDate: Date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
           const parsed = parseRelativeDateRange(
             args.relativeDate as RelativeDateRange,
           );
           if (parsed) {
-            dueFilter.dueDateFrom = new Date(parsed.from);
-            dueFilter.dueDateTo = new Date(parsed.to);
+            startDate = new Date(parsed.from);
+            endDate = new Date(parsed.to);
           }
-        }
 
-        const todos = await this.lmsService.findTodos(userContext.id, {
-          ...baseFiler,
-          ...dueFilter,
-        });
-        return `Todos: ${JSON.stringify(todos)}`;
-      }
-
-      case 'lms_my_modules': {
-        const args = functionCall.args as FilterModulesDto;
-        let modules: PaginatedModulesDto;
-        switch (userContext.role) {
-          case 'student':
-            modules = await this.lmsService.findAllForStudent(
+          const bookedAppointments =
+            await this.appointmentsService.findAllBooked(
               userContext.id,
-              args,
+              startDate,
+              endDate,
             );
-            break;
-          case 'mentor':
-            modules = await this.lmsService.findAllForMentor(
-              userContext.id,
-              args,
-            );
-            break;
-          case 'admin':
-            modules = await this.lmsService.findAllForAdmin(args);
-            break;
-        }
-        return `My modules: ${JSON.stringify(modules)}`;
-      }
-
-      case 'billing_my_invoices': {
-        if (userContext.role !== 'student') {
-          return 'Non students do not have invoices.';
+          return `Booked appointments for mentor: ${JSON.stringify(bookedAppointments)}`;
         }
 
-        const args = functionCall.args as FilterBillDto;
-        const invoices = await this.billingService.findAll(
-          args,
-          userContext.role,
-          userContext.id,
-        );
-        return `My invoices: ${JSON.stringify(invoices)}`;
-      }
+        case 'appointments_mentor_available': {
+          if (userContext.role !== 'student') {
+            return 'This function is only available to students.';
+          }
 
-      case 'billing_invoice_details': {
-        const { id } = functionCall.args as { id: number };
-        const invoice: DetailedBillDto =
-          await this.billingService.findOneByInvoiceId(
-            id,
-            userContext.role,
-            userContext.id,
+          const args = functionCall.args as {
+            relativeDate?: string;
+            startingFrom?: string;
+            mentorId?: string;
+            search?: string;
+            page?: number;
+            limit?: number;
+          };
+
+          const filterDto = {
+            ...(args.mentorId && { mentorId: args.mentorId }),
+            ...(args.search && { search: args.search }),
+            ...(args.page && { page: args.page }),
+            ...(args.limit && { limit: args.limit }),
+            startDate: args.startingFrom
+              ? new Date(args.startingFrom)
+              : new Date(),
+            endDate: new Date(),
+          } as FilterMentorAvailabilityDto;
+
+          const parsed = parseRelativeDateRange(
+            (args.relativeDate as RelativeDateRange) ?? 'this_week',
+            filterDto.startDate,
           );
-        return `Invoice: ${JSON.stringify(invoice)}`;
-      }
+          if (parsed) {
+            filterDto.endDate = new Date(parsed.to);
+          }
 
-      case 'appointments_my_appointments': {
-        const args = functionCall.args as {
-          status?: string;
-          search?: string;
-          page?: number;
-          limit?: number;
-        };
+          const availableAppointments: MentorAvailabilityDto =
+            await this.appointmentsService.findMentorAvailability(
+              filterDto,
+              userContext.id,
+              userContext.role,
+            );
 
-        const filterDto = {
-          ...(args.status && { status: [args.status] }),
-          ...(args.search && { search: args.search }),
-          ...(args.page && { page: args.page }),
-          ...(args.limit && { limit: args.limit }),
-        } as FilterAppointmentDto;
-
-        const appointments = await this.appointmentsService.findAll(
-          filterDto,
-          userContext.role,
-          userContext.id,
-        );
-        return `My appointments: ${JSON.stringify(appointments)}`;
-      }
-
-      case 'appointments_mentor_booked': {
-        if (userContext.role !== 'mentor') {
-          return 'This function is only available to mentors.';
+          return `Mentor's available appointments: ${JSON.stringify(availableAppointments)}`;
         }
 
-        const args = functionCall.args as {
-          relativeDate: string;
-        };
+        case 'appointments_book_appointment': {
+          if (userContext.role === 'admin') {
+            return 'This function is only available to students and mentors.';
+          }
 
-        let startDate: Date = new Date();
-        let endDate: Date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          const args = functionCall.args as {
+            mentorId?: string;
+            courseOfferingId?: string;
+            startAt: string;
+            endAt: string;
+            title: string;
+            description: string;
+          };
 
-        const parsed = parseRelativeDateRange(
-          args.relativeDate as RelativeDateRange,
-        );
-        if (parsed) {
-          startDate = new Date(parsed.from);
-          endDate = new Date(parsed.to);
+          const createDto = {
+            studentId: userContext.id,
+            mentorId: args.mentorId,
+            courseOfferingId: args.courseOfferingId,
+            startAt: new Date(args.startAt),
+            endAt: new Date(args.endAt),
+            title: args.title,
+            description: args.description,
+          } as CreateAppointmentItemDto;
+
+          const appointment: CreateAppointmentDto =
+            await this.appointmentsService.create(createDto);
+          return `Appointment created successfully: ${JSON.stringify(appointment)}`;
         }
 
-        const bookedAppointments = await this.appointmentsService.findAllBooked(
-          userContext.id,
-          startDate,
-          endDate,
-        );
-        return `Booked appointments for mentor: ${JSON.stringify(bookedAppointments)}`;
-      }
+        case 'notifications_my_notifications': {
+          const args = functionCall.args as {
+            type?: string;
+            page?: number;
+            limit?: number;
+          };
 
-      case 'appointments_mentor_available': {
-        if (userContext.role !== 'student') {
-          return 'This function is only available to students.';
-        }
+          const filterDto = {
+            ...(args.type && { type: args.type }),
+            ...(args.page && { page: args.page }),
+            ...(args.limit && { limit: args.limit }),
+          } as FilterNotificationDto;
 
-        const args = functionCall.args as {
-          relativeDate?: string;
-          mentorId?: string;
-          search?: string;
-          page?: number;
-          limit?: number;
-        };
-
-        const filterDto = {
-          ...(args.mentorId && { mentorId: args.mentorId }),
-          ...(args.search && { search: args.search }),
-          ...(args.page && { page: args.page }),
-          ...(args.limit && { limit: args.limit }),
-          startDate: new Date(),
-          endDate: new Date(),
-        } as FilterMentorAvailabilityDto;
-
-        const parsed = parseRelativeDateRange(
-          (args.relativeDate as RelativeDateRange) ?? 'this_week',
-        );
-        if (parsed) {
-          filterDto.startDate = new Date(parsed.from);
-          filterDto.endDate = new Date(parsed.to);
-        }
-
-        const availableAppointments: MentorAvailabilityDto =
-          await this.appointmentsService.findMentorAvailability(
+          const notifications = await this.notificationsService.findAll(
             filterDto,
             userContext.id,
-            userContext.role,
+            role,
           );
-
-        return `Mentor's available appointments: ${JSON.stringify(availableAppointments)}`;
-      }
-
-      case 'appointments_book_appointment': {
-        if (userContext.role === 'admin') {
-          return 'This function is only available to students and mentors.';
+          return `My notifications: ${JSON.stringify(notifications)}`;
         }
 
-        const args = functionCall.args as {
-          mentorId?: string;
-          courseOfferingId?: string;
-          startAt: string;
-          endAt: string;
-          title: string;
-          description: string;
-        };
-
-        const createDto = {
-          studentId: userContext.id,
-          mentorId: args.mentorId,
-          courseOfferingId: args.courseOfferingId,
-          startAt: new Date(args.startAt),
-          endAt: new Date(args.endAt),
-          title: args.title,
-          description: args.description,
-        } as CreateAppointmentItemDto;
-
-        const appointment: CreateAppointmentDto =
-          await this.appointmentsService.create(createDto);
-        return `Appointment created successfully: ${JSON.stringify(appointment)}`;
-      }
-
-      case 'notifications_my_notifications': {
-        const args = functionCall.args as {
-          type?: string;
-          page?: number;
-          limit?: number;
-        };
-
-        const filterDto = {
-          ...(args.type && { type: args.type }),
-          ...(args.page && { page: args.page }),
-          ...(args.limit && { limit: args.limit }),
-        } as FilterNotificationDto;
-
-        const notifications = await this.notificationsService.findAll(
-          filterDto,
-          userContext.id,
-          role,
-        );
-        return `My notifications: ${JSON.stringify(notifications)}`;
-      }
-
-      case 'notifications_my_counts': {
-        const counts = await this.notificationsService.getCount(
-          userContext.id,
-          role,
-        );
-        return `Notification counts: ${JSON.stringify(counts)}`;
-      }
-
-      case 'progress_module_overview': {
-        const args = functionCall.args as {
-          moduleId: string;
-          courseOfferingId?: string;
-        };
-
-        const progress = await this.progressService.getModuleProgressOverview(
-          args.moduleId,
-          userContext.id,
-          userContext.role,
-          args.courseOfferingId
-            ? { courseOfferingId: args.courseOfferingId }
-            : undefined,
-        );
-
-        return `Module progress overview: ${JSON.stringify(progress)}`;
-      }
-
-      case 'progress_module_detail': {
-        const args = functionCall.args as {
-          moduleId: string;
-          courseOfferingId?: string;
-        };
-
-        const progress = await this.progressService.getModuleProgressDetail(
-          args.moduleId,
-          userContext.id,
-          userContext.role,
-          args.courseOfferingId
-            ? { courseOfferingId: args.courseOfferingId }
-            : undefined,
-        );
-
-        return `Module progress detail: ${JSON.stringify(progress)}`;
-      }
-
-      case 'progress_dashboard': {
-        const args = functionCall.args as {
-          courseOfferingId?: string;
-          search?: string;
-        };
-
-        const dashboard = await this.progressService.getDashboardProgress(
-          userContext.id,
-          userContext.role,
-          {
-            ...(args.courseOfferingId && {
-              courseOfferingId: args.courseOfferingId,
-            }),
-          },
-        );
-
-        return `Progress dashboard: ${JSON.stringify(dashboard)}`;
-      }
-
-      case 'progress_my_modules': {
-        const args = functionCall.args as {
-          status?: string;
-          search?: string;
-          courseOfferingId?: string;
-        };
-
-        // Convert string status to ProgressStatus enum if provided
-        let status: ProgressStatus | undefined;
-        if (args.status) {
-          status = ProgressStatus[args.status as keyof typeof ProgressStatus];
+        case 'notifications_my_counts': {
+          const counts = await this.notificationsService.getCount(
+            userContext.id,
+            role,
+          );
+          return `Notification counts: ${JSON.stringify(counts)}`;
         }
 
-        const filters: MyModulesProgressFilters = {
-          status,
-          search: args.search,
-          courseOfferingId: args.courseOfferingId,
-        };
+        case 'progress_module_overview': {
+          const args = functionCall.args as {
+            moduleId: string;
+            courseOfferingId?: string;
+          };
 
-        const myModulesProgress =
-          await this.progressService.getMyModulesProgress(
+          const progress = await this.progressService.getModuleProgressOverview(
+            args.moduleId,
             userContext.id,
             userContext.role,
-            filters,
+            args.courseOfferingId
+              ? { courseOfferingId: args.courseOfferingId }
+              : undefined,
           );
 
-        return `My modules progress: ${JSON.stringify(myModulesProgress)}`;
-      }
-
-      case 'date_utility': {
-        const args = functionCall.args as {
-          dateTime?: string;
-          useCurrentDateTime?: boolean;
-          daysToAdd?: {
-            days?: number;
-            hours?: number;
-            minutes?: number;
-            seconds?: number;
-          };
-          daysToSubtract?: {
-            days?: number;
-            hours?: number;
-            minutes?: number;
-            seconds?: number;
-          };
-          monthsToAdd?: number;
-          monthsToSubtract?: number;
-        };
-
-        if (!args.useCurrentDateTime && !args.dateTime) {
-          return 'dateTime is required when useCurrentDateTime is false';
+          return `Module progress overview: ${JSON.stringify(progress)}`;
         }
 
-        const date = args.useCurrentDateTime
-          ? new Date()
-          : new Date(args.dateTime!);
+        case 'progress_module_detail': {
+          const args = functionCall.args as {
+            moduleId: string;
+            courseOfferingId?: string;
+          };
 
-        date.setDate(date.getDate() + (args.daysToAdd?.days ?? 0));
-        date.setHours(date.getHours() + (args.daysToAdd?.hours ?? 0));
-        date.setMinutes(date.getMinutes() + (args.daysToAdd?.minutes ?? 0));
-        date.setSeconds(date.getSeconds() + (args.daysToAdd?.seconds ?? 0));
-        date.setDate(date.getDate() - (args.daysToSubtract?.days ?? 0));
-        date.setHours(date.getHours() - (args.daysToSubtract?.hours ?? 0));
-        date.setMinutes(
-          date.getMinutes() - (args.daysToSubtract?.minutes ?? 0),
-        );
-        date.setSeconds(
-          date.getSeconds() - (args.daysToSubtract?.seconds ?? 0),
-        );
-        date.setMonth(date.getMonth() + (args.monthsToAdd ?? 0));
-        date.setMonth(date.getMonth() - (args.monthsToSubtract ?? 0));
+          const progress = await this.progressService.getModuleProgressDetail(
+            args.moduleId,
+            userContext.id,
+            userContext.role,
+            args.courseOfferingId
+              ? { courseOfferingId: args.courseOfferingId }
+              : undefined,
+          );
 
-        return JSON.stringify({
-          dateTime: date.toISOString(),
-          day: Days[date.getDay()],
-        });
+          return `Module progress detail: ${JSON.stringify(progress)}`;
+        }
+
+        case 'progress_dashboard': {
+          const args = functionCall.args as {
+            courseOfferingId?: string;
+            search?: string;
+          };
+
+          const dashboard = await this.progressService.getDashboardProgress(
+            userContext.id,
+            userContext.role,
+            {
+              ...(args.courseOfferingId && {
+                courseOfferingId: args.courseOfferingId,
+              }),
+            },
+          );
+
+          return `Progress dashboard: ${JSON.stringify(dashboard)}`;
+        }
+
+        case 'progress_my_modules': {
+          const args = functionCall.args as {
+            status?: string;
+            search?: string;
+            courseOfferingId?: string;
+          };
+
+          // Convert string status to ProgressStatus enum if provided
+          let status: ProgressStatus | undefined;
+          if (args.status) {
+            status = ProgressStatus[args.status as keyof typeof ProgressStatus];
+          }
+
+          const filters: MyModulesProgressFilters = {
+            status,
+            search: args.search,
+            courseOfferingId: args.courseOfferingId,
+          };
+
+          const myModulesProgress =
+            await this.progressService.getMyModulesProgress(
+              userContext.id,
+              userContext.role,
+              filters,
+            );
+
+          return `My modules progress: ${JSON.stringify(myModulesProgress)}`;
+        }
+
+        case 'date_utility': {
+          const args = functionCall.args as {
+            dateTime?: string;
+            useCurrentDateTime?: boolean;
+            daysToAdd?: {
+              days?: number;
+              hours?: number;
+              minutes?: number;
+              seconds?: number;
+            };
+            daysToSubtract?: {
+              days?: number;
+              hours?: number;
+              minutes?: number;
+              seconds?: number;
+            };
+            monthsToAdd?: number;
+            monthsToSubtract?: number;
+          };
+
+          if (!args.useCurrentDateTime && !args.dateTime) {
+            return 'dateTime is required when useCurrentDateTime is false';
+          }
+
+          const date = args.useCurrentDateTime
+            ? new Date()
+            : new Date(args.dateTime!);
+
+          date.setDate(date.getDate() + (args.daysToAdd?.days ?? 0));
+          date.setHours(date.getHours() + (args.daysToAdd?.hours ?? 0));
+          date.setMinutes(date.getMinutes() + (args.daysToAdd?.minutes ?? 0));
+          date.setSeconds(date.getSeconds() + (args.daysToAdd?.seconds ?? 0));
+          date.setDate(date.getDate() - (args.daysToSubtract?.days ?? 0));
+          date.setHours(date.getHours() - (args.daysToSubtract?.hours ?? 0));
+          date.setMinutes(
+            date.getMinutes() - (args.daysToSubtract?.minutes ?? 0),
+          );
+          date.setSeconds(
+            date.getSeconds() - (args.daysToSubtract?.seconds ?? 0),
+          );
+          date.setMonth(date.getMonth() + (args.monthsToAdd ?? 0));
+          date.setMonth(date.getMonth() - (args.monthsToSubtract ?? 0));
+
+          return JSON.stringify({
+            dateTime: date.toISOString(),
+            day: Days[date.getDay()],
+          });
+        }
+
+        case 'search_vector': {
+          const args = functionCall.args as { query: string[]; limit?: number };
+          return await this.vectorSearch.searchAndFormatContext(
+            args.query,
+            args.limit || 5,
+          );
+        }
+
+        default:
+          throw new NotImplementedException(
+            'Unsupported function call: ' + functionCall.name,
+          );
       }
-
-      case 'search_vector': {
-        const args = functionCall.args as { query: string[]; limit?: number };
-        return await this.vectorSearch.searchAndFormatContext(
-          args.query,
-          args.limit || 5,
-        );
-      }
-
-      default:
-        throw new NotImplementedException(
-          'Unsupported function call: ' + functionCall.name,
-        );
+    } catch (error) {
+      this.logger.error(
+        `Error executing function ${functionCall.name}: ${error.message}`,
+      );
+      return `Error: ${error.message}`;
     }
   }
 }

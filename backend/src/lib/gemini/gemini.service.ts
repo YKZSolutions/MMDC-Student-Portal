@@ -129,7 +129,7 @@ If this user context does not specify their current active page, assume the user
    */
   @Log({
     logArgsMessage: ({ conversation }) =>
-      `Generate content with tools for conversation of length=${conversation.length}`,
+      `Generate content with tools for conversation of length=${conversation}`,
     logSuccessMessage: () => `Successfully generated content with tools`,
     logErrorMessage: (err) =>
       `Failed to generate content with tools | Error=${err.message}`,

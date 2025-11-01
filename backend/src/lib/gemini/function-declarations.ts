@@ -6,17 +6,21 @@ import {
 } from '@/modules/billing/dto/filter-bill.dto';
 import {
   AppointmentStatus,
+  AssignmentMode,
   BillType,
-  ContentType,
   CourseEnrollmentStatus,
   Days,
   EnrollmentStatus,
   PaymentScheme,
-  ProgressStatus,
   Role,
+  SubmissionState,
 } from '@prisma/client';
 import { RelativeDateRange } from '@/common/utils/date-range.util';
 import { NotificationType } from '@/modules/notifications/dto/filter-notification.dto';
+import {
+  TaskSortBy,
+  TaskStatusFilter,
+} from '@/modules/lms/assignment/dto/filter-all-tasks.dto';
 
 // Common enums/refs
 const RoleEnum = Object.values(Role) as string[];
@@ -25,8 +29,6 @@ const CourseEnrollmentStatusEnum = Object.values(
   CourseEnrollmentStatus,
 ) as string[];
 const DaysEnum = Object.values(Days) as string[];
-const ContentTypeEnum = Object.values(ContentType) as string[];
-const ProgressStatusEnum = Object.values(ProgressStatus) as string[];
 const SortOrderEnum = Object.values(SortOrder) as string[];
 const FilterBillSortEnum = Object.values(FilterBillSort) as string[];
 const BillStatusEnum = Object.values(BillStatus) as string[];
@@ -35,6 +37,10 @@ const BillTypeEnum = Object.values(BillType) as string[];
 const AppointmentStatusEnum = Object.values(AppointmentStatus) as string[];
 const NotificationTypeEnum = Object.values(NotificationType);
 const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
+const TaskStatusFilterEnum = Object.values(TaskStatusFilter) as string[];
+const TaskSortByEnum = Object.values(TaskSortBy) as string[];
+const AssignmentModeEnum = Object.values(AssignmentMode) as string[];
+const SubmissionStateEnum = Object.values(SubmissionState) as string[];
 
 // -------------------------
 // General knowledge search
@@ -42,9 +48,7 @@ const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
 export const vectorSearchFn: FunctionDeclaration = {
   name: 'search_vector',
   description:
-    'Search for documents using vector search. It answers general questions (non user specific).' +
-    'For questions related to enrollment, first check if the student has previously enrolled in any course, if so' +
-    'then that student might be a continuing student. If unsure, ask the student if they are new or continuing',
+    'Search for documents using vector search. It answers general questions (non user specific).',
   parameters: {
     type: Type.OBJECT,
     properties: {
@@ -600,14 +604,29 @@ export const courseOfferingForActiveEnrollment: FunctionDeclaration = {
 export const lmsMyTodosFn: FunctionDeclaration = {
   name: 'lms_my_todos',
   description:
-    'Get all pending todos (assignments and quizzes with due dates) for the current student.',
+    'Get all pending todos (assignments and with due dates) for the current student.',
   parameters: {
     type: Type.OBJECT,
     properties: {
-      relativeDate: {
+      status: {
         type: Type.STRING,
-        enum: RelativeDateRangeEnum,
-        description: 'Filter todos by relative date.',
+        enum: TaskStatusFilterEnum,
+        description: 'Filter todos by status.',
+      },
+      courseId: {
+        type: Type.STRING,
+        description: 'Filter todos by course identifier.',
+      },
+      sortBy: {
+        type: Type.STRING,
+        enum: TaskSortByEnum,
+        description: 'Sort todos.',
+      },
+      sortDirection: {
+        type: Type.STRING,
+        enum: ['asc', 'desc'],
+        default: 'desc',
+        description: 'Sort direction for sorting todos.',
       },
       page: {
         type: Type.INTEGER,
@@ -617,14 +636,14 @@ export const lmsMyTodosFn: FunctionDeclaration = {
       limit: {
         type: Type.INTEGER,
         default: 10,
-        description: 'Number of todos per page (default 10).',
+        description: 'Number of tasks per page (default 10).',
       },
     },
   },
   response: {
     type: Type.OBJECT,
     properties: {
-      todos: {
+      tasks: {
         type: Type.ARRAY,
         items: {
           type: Type.OBJECT,
@@ -633,9 +652,50 @@ export const lmsMyTodosFn: FunctionDeclaration = {
               type: Type.STRING,
               description: 'Assignment identifier.',
             },
+            moduleContentId: {
+              type: Type.STRING,
+              description: 'Module content identifier.',
+            },
+            mode: {
+              type: Type.STRING,
+              enum: AssignmentModeEnum,
+              description: 'The mode of the assignment.',
+            },
+            maxScore: {
+              type: Type.INTEGER,
+              description: 'Maximum score for the assignment.',
+            },
+            weightPercentage: {
+              type: Type.INTEGER,
+              description: 'Weight percentage for the assignment.',
+            },
+            maxAttempts: {
+              type: Type.INTEGER,
+              description: 'Maximum attempts for the assignment.',
+            },
+            allowLateSubmission: {
+              type: Type.BOOLEAN,
+              description: 'Whether late submission is allowed.',
+            },
+            latePenalty: {
+              type: Type.INTEGER,
+              description: 'Late penalty for the assignment.',
+            },
+            gracePeriodMinutes: {
+              type: Type.INTEGER,
+              description: 'Grace period in minutes.',
+            },
+            rubricTemplateId: {
+              type: Type.STRING,
+              description: 'Rubric template identifier.',
+            },
             title: {
               type: Type.STRING,
               description: 'Assignment title.',
+            },
+            subtitle: {
+              type: Type.STRING,
+              description: 'Assignment subtitle.',
             },
             dueDate: {
               type: Type.STRING,
@@ -646,6 +706,173 @@ export const lmsMyTodosFn: FunctionDeclaration = {
               type: Type.STRING,
               description: 'Module name for the assignment.',
             },
+            course: {
+              type: Type.OBJECT,
+              properties: {
+                id: {
+                  type: Type.STRING,
+                  description: 'Course identifier.',
+                },
+                courseCode: {
+                  type: Type.STRING,
+                  description: 'Course code.',
+                },
+                name: {
+                  type: Type.STRING,
+                  description: 'Course name.',
+                },
+              },
+            },
+            module: {
+              type: Type.OBJECT,
+              properties: {
+                id: {
+                  type: Type.STRING,
+                  description: 'Module identifier.',
+                },
+                title: {
+                  type: Type.STRING,
+                  description: 'Module title.',
+                },
+                sectionOrder: {
+                  type: Type.INTEGER,
+                  description: 'The order of the section within the module',
+                },
+              },
+            },
+            submissions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: {
+                    type: Type.STRING,
+                    description: 'Submission identifier.',
+                  },
+                  state: {
+                    type: Type.STRING,
+                    enum: SubmissionStateEnum,
+                    description: 'The state of the submission.',
+                  },
+                  submittedAt: {
+                    type: Type.STRING,
+                    format: 'date-time',
+                    description: 'Date and time when the submission was made.',
+                  },
+                  attemptNumber: {
+                    type: Type.INTEGER,
+                    description: 'Attempt number for the submission.',
+                  },
+                  lateDays: {
+                    type: Type.INTEGER,
+                    description: 'Late days for the submission.',
+                  },
+                  grade: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: {
+                        type: Type.STRING,
+                        description: 'Grade identifier.',
+                      },
+                      rawScore: {
+                        type: Type.INTEGER,
+                        description: 'Raw score for the grade.',
+                      },
+                      finalScore: {
+                        type: Type.INTEGER,
+                        description: 'Final score for the grade.',
+                      },
+                      grade: {
+                        type: Type.STRING,
+                        description: 'Grade for the assignment.',
+                      },
+                      feedback: {
+                        type: Type.STRING,
+                        description: 'Feedback for the assignment.',
+                      },
+                      rubricEvaluationDetails: {
+                        type: Type.ARRAY,
+                        items: {
+                          type: Type.OBJECT,
+                          properties: {
+                            criterionId: {
+                              type: Type.STRING,
+                              description: 'Criterion identifier.',
+                            },
+                            criterionName: {
+                              type: Type.STRING,
+                              description: 'Criterion name.',
+                            },
+                            selectedScoreValue: {
+                              type: Type.INTEGER,
+                              description: 'Selected score value.',
+                            },
+                            maxScoreValue: {
+                              type: Type.INTEGER,
+                              description: 'Maximum score value.',
+                            },
+                            weightPercentage: {
+                              type: Type.INTEGER,
+                              description: 'Weight percentage.',
+                            },
+                            selectedDescriptor: {
+                              type: Type.STRING,
+                              description: 'Selected descriptor.',
+                            },
+                            weightedContributionPercent: {
+                              type: Type.INTEGER,
+                              description: 'Weighted contribution percent.',
+                            },
+                            raterComment: {
+                              type: Type.STRING,
+                              description: 'Rater comment.',
+                            },
+                          },
+                        },
+                      },
+                      gradedAt: {
+                        type: Type.STRING,
+                        format: 'date-time',
+                        description: 'Date and time when the grade was graded.',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      meta: {
+        type: Type.OBJECT,
+        properties: {
+          isFirstPage: {
+            type: Type.BOOLEAN,
+            description: 'Whether the current page is the first page.',
+          },
+          isLastPage: {
+            type: Type.BOOLEAN,
+            description: 'Whether the current page is the last page.',
+          },
+          currentPage: {
+            type: Type.INTEGER,
+            description: 'Current page number.',
+          },
+          previousPage: {
+            type: Type.INTEGER,
+            description: 'Previous page number.',
+          },
+          nextPage: {
+            type: Type.INTEGER,
+            description: 'Next page number.',
+          },
+          pageCount: {
+            type: Type.INTEGER,
+            description: 'Total number of pages.',
+          },
+          totalCount: {
+            type: Type.INTEGER,
+            description: 'Total number of items.',
           },
         },
       },
@@ -924,6 +1151,12 @@ export const appointmentsMentorAvailabilityFn: FunctionDeclaration = {
         default: 'this_week',
         description:
           'Filter mentor availability by relative date. Default is this week.',
+      },
+      startingFrom: {
+        type: Type.STRING,
+        format: 'date-time',
+        description:
+          'Start date for the date range of the relativeDate. For example if the relativeDate is this_week, then this is the start date of the week.',
       },
       mentorId: {
         type: Type.STRING,

@@ -107,27 +107,6 @@ export class LmsController {
     return this.lmsService.findAllForAdmin(filters);
   }
 
-  /**
-   * Retrieve multiple todos
-   *
-   * @remarks Requires `STUDENT` role.
-   *
-   *
-   */
-  @ApiOkResponse({
-    type: ModuleContent,
-  })
-  @ApiException(() => [NotFoundException, InternalServerErrorException])
-  @Roles(Role.STUDENT)
-  @Get('todo')
-  async findTodos(
-    @Query() filters: FilterTodosDto,
-    @CurrentUser() user: CurrentAuthUser,
-  ): Promise<PaginatedTodosDto> {
-    const { user_id } = user.user_metadata;
-    return this.lmsService.findTodos(user_id, filters);
-  }
-
   @Get('dashboard')
   @Roles(Role.ADMIN, Role.MENTOR, Role.STUDENT)
   async getDashboardProgress(

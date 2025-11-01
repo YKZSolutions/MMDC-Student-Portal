@@ -7,7 +7,7 @@ import { Assignment } from '@/generated/nestjs-dto/assignment.entity';
 import { ModuleContent } from '@/generated/nestjs-dto/moduleContent.entity';
 
 /**
- * Submission details for all tasks view
+ * Submission details for all the tasks view
  */
 class TaskSubmissionItemDto extends PickType(AssignmentSubmissionDto, [
   'id',
@@ -20,7 +20,7 @@ class TaskSubmissionItemDto extends PickType(AssignmentSubmissionDto, [
 }
 
 /**
- * Course context for task
+ * Course context for the task
  */
 class TaskCourseDto {
   id: string;
@@ -43,7 +43,7 @@ class TaskModuleDto {
 export class AllTaskItemDto extends IntersectionType(
   AssignmentDto,
   PickType(Assignment, ['rubricTemplateId']),
-  PickType(ModuleContent, ['title', 'subtitle', 'id']),
+  PickType(ModuleContent, ['title', 'subtitle']),
 ) {
   moduleContentId: string;
 
