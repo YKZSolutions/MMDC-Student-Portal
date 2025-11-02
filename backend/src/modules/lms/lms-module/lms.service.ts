@@ -449,7 +449,17 @@ export class LmsService {
     // Only include modules from courses the student is enrolled in
     where.courseOffering = {
       is: {
-        courseEnrollments: { some: { studentId: userId } },
+        courseEnrollments: {
+          some: {
+            studentId: userId,
+            status: {
+              notIn: [
+                CourseEnrollmentStatus.enlisted,
+                CourseEnrollmentStatus.dropped,
+              ],
+            },
+          },
+        },
         enrollmentPeriod: {
           is: {
             id: enrollmentPeriod?.id,
