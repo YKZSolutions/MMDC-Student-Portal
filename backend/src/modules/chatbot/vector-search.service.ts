@@ -31,7 +31,7 @@ export class VectorSearchService {
       `Vector search failed for query="${query}" | Error=${err.message}`,
   })
   async search(
-    @LogParam('query') query: string[],
+    @LogParam('query') query: string,
     @LogParam('limit') limit: number = 5,
     @LogParam('threshold') threshold: number = 0.7,
   ): Promise<VectorSearchResult[]> {
@@ -74,9 +74,11 @@ export class VectorSearchService {
   async searchAndFormatContext(
     @LogParam('query') query: string[],
     limit: number = 5,
-    threshold: number = 0.6,
+    threshold: number = 0.7,
   ): Promise<string> {
-    const results = await this.search(query, limit, threshold);
+    const combinedQuery = query.join(' ');
+
+    const results = await this.search(combinedQuery, limit, threshold);
 
     if (results.length === 0) {
       return 'No relevant information found in the knowledge base.';
