@@ -61,6 +61,13 @@ export const vectorSearchFn: FunctionDeclaration = {
     '- Step-by-step enrollment walkthrough ' +
     '- Comprehensive billing and payment guide ' +
     '- Detailed appointment booking instructions ' +
+    '- FAQs answering questions related to: ' +
+    '-- Billing and payment ' +
+    '-- AI Chat Assistant ' +
+    '-- Enrollment ' +
+    '-- Learning Management System (LMS) ' +
+    '-- Mentoring Appointments ' +
+    '-- Notifications ' +
     'USAGE: Call with multiple related query strings for comprehensive results.',
   parameters: {
     type: Type.OBJECT,
@@ -73,7 +80,12 @@ export const vectorSearchFn: FunctionDeclaration = {
         description:
           'Search query strings. Use MULTIPLE queries for comprehensive coverage. ' +
           'Example for enrollment: ["enrollment process", "how to enroll", "enrollment steps", "enrollment requirements"]. ' +
-          'Be descriptive and specific, cover different aspects of what the user is asking.',
+          'Be descriptive and specific, cover different aspects of what the user is asking.' +
+          'If possible, include faq formatted queries.' +
+          'Example for payment: ["how to pay tuition"]' +
+          'Some details might be hard to find especially for very complex questions or specific ones, ' +
+          'what you could do is search for the most common terms it could be possibly in and then search for the specific terms. ' +
+          'Example for payment methods: ["how to pay tuition", "tuition payment methods","billing and payment guide"]',
       },
       limit: {
         type: Type.INTEGER,
@@ -193,30 +205,18 @@ export const usersCountFn: FunctionDeclaration = {
   },
 };
 
-// export const usersMentorDetailsFn: FunctionDeclaration = {
-//   name: 'users_mentor_details',
-//   description:
-//     'Get details of a mentor based on the mentor ID. This includes mentor details, courses, and appointments.',
-//   parameters: {
-//     type: Type.OBJECT,
-//     properties: {
-//       mentorId: {
-//         type: Type.STRING,
-//         description: 'ID of the mentor to fetch details for.',
-//       },
-//     },
-//   },
-// };
-
 export const usersAllMentorsListFn: FunctionDeclaration = {
   name: 'users_all_mentor_list',
-  description: 'Get details of all the mentors of the student',
+  description:
+    'Get details of all the mentors of the student, including their email address for contacting them.',
   parameters: {
     type: Type.OBJECT,
     properties: {
       search: {
         type: Type.STRING,
-        description: 'Search term for filtering mentors by name.',
+        description:
+          'Search term for filtering mentors by name. ' +
+          'Default is empty string which searches for all mentors.',
       },
     },
   },
@@ -1172,7 +1172,9 @@ export const appointmentsMentorAvailabilityFn: FunctionDeclaration = {
         type: Type.STRING,
         format: 'date-time',
         description:
-          'Start date for the date range of the relativeDate. For example if the relativeDate is this_week, then this is the start date of the week.',
+          'Start date for the date range of the relativeDate. ' +
+          'For example if the relativeDate is this_week, then this is the start date of the week. ' +
+          'Default is the current date.',
       },
       mentorId: {
         type: Type.STRING,
