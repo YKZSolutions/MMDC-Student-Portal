@@ -141,7 +141,9 @@ export class ChatbotService {
       this.mapUserToContext(role, await this.usersService.getMe(userId));
 
     let iterationCount = 0;
-    const maxIterations = 5; // Prevent infinite loops
+    const maxIterations = 6; // Increased to allow for reflection turn
+    let awaitingReflection = false;
+    let initialResponseReceived = false;
 
     // Build initial conversation with context
     const conversation = this.gemini.buildInitialConversation(
@@ -154,7 +156,7 @@ export class ChatbotService {
       `Starting conversation with ${conversation.length} messages`,
     );
 
-    // Multi-turn function calling loop
+    // Multi-turn function calling loop with self-reflection
     while (iterationCount < maxIterations) {
       iterationCount++;
       this.logger.log(`Iteration ${iterationCount}/${maxIterations}`);
@@ -163,7 +165,7 @@ export class ChatbotService {
       const { response, functionCalls } =
         await this.gemini.generateContentWithTools(conversation, role);
 
-      // If no function calls AND no response, this is an error state
+      // Handle empty response with no function calls (error state)
       if (
         (!functionCalls || functionCalls.length === 0) &&
         (!response || response.trim() === '')
@@ -195,11 +197,68 @@ export class ChatbotService {
         );
       }
 
-      // If no function calls, we have the final answer
-      if (!functionCalls || functionCalls.length === 0) {
-        this.logger.log('No more function calls - returning final response');
+      // If no function calls and we haven't triggered reflection yet
+      if (
+        (!functionCalls || functionCalls.length === 0) &&
+        !awaitingReflection &&
+        !initialResponseReceived
+      ) {
+        this.logger.log(
+          'First response received - triggering self-reflection check',
+        );
+
+        // Mark that we got an initial response
+        initialResponseReceived = true;
+
+        // Add self-reflection prompt
+        conversation.push({
+          role: 'user',
+          parts: [
+            {
+              text: `Before finalizing your response, please perform a self-check on your answer to: "${prompt.question}"
+
+**Completeness Checklist:**
+✓ Have I fully addressed all aspects of the question?
+✓ For "how to" questions: Have I provided complete step-by-step instructions?
+✓ Have I included WHERE to find features/pages in the portal?
+✓ Have I mentioned any prerequisites or requirements?
+✓ Have I included relevant deadlines or time-sensitive information?
+✓ Have I provided contact information for additional help?
+
+**Action Required:**
+- If you realize information is MISSING, call the appropriate functions now (e.g., 'search_vector' for procedures, or other relevant functions)
+- If your answer is COMPLETE and addresses all points above, respond with your final answer
+
+Do NOT just say "yes it's complete" - either call more functions or provide your final complete answer.`,
+            },
+          ],
+        });
+
+        awaitingReflection = true;
+        continue; // Go to next iteration for reflection response
+      }
+
+      // If we were awaiting reflection and got a response without function calls
+      if (
+        awaitingReflection &&
+        (!functionCalls || functionCalls.length === 0)
+      ) {
+        this.logger.log('Self-reflection complete - returning final response');
         result.response = response;
         return result;
+      }
+
+      // If we got function calls after reflection, reset flag and continue gathering
+      if (awaitingReflection && functionCalls && functionCalls.length > 0) {
+        this.logger.log(
+          'AI identified missing information during reflection - gathering additional data',
+        );
+        awaitingReflection = false;
+      }
+
+      // If no function calls at this point, skip to next iteration
+      if (!functionCalls || functionCalls.length === 0) {
+        continue;
       }
 
       // Execute all function calls
