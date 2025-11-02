@@ -48,7 +48,20 @@ const SubmissionStateEnum = Object.values(SubmissionState) as string[];
 export const vectorSearchFn: FunctionDeclaration = {
   name: 'search_vector',
   description:
-    'Search for documents using vector search. It answers general questions (non user specific).',
+    'Searches the knowledge base focusing exclusively on MMDC Student Portal features. ' +
+    'CRITICAL: For "How do I?" questions, ALWAYS call this function FIRST to get complete procedural documentation. ' +
+    'This ensures you have the full process before calling other functions for user-specific data. ' +
+    'Contains documents related to: ' +
+    '- Complete course enrollment process (prerequisites, steps, deadlines) ' +
+    '- Billing interface and payment procedures ' +
+    '- Navigating the student portal ' +
+    '- Booking and managing mentoring appointments ' +
+    '- Understanding the notification system ' +
+    '- Using the AI Chat Assistant feature ' +
+    '- Step-by-step enrollment walkthrough ' +
+    '- Comprehensive billing and payment guide ' +
+    '- Detailed appointment booking instructions ' +
+    'USAGE: Call with multiple related query strings for comprehensive results.',
   parameters: {
     type: Type.OBJECT,
     properties: {
@@ -58,11 +71,14 @@ export const vectorSearchFn: FunctionDeclaration = {
           type: Type.STRING,
         },
         description:
-          'Search query strings. Be descriptive and specific, expound more on what the user might be looking for.',
+          'Search query strings. Use MULTIPLE queries for comprehensive coverage. ' +
+          'Example for enrollment: ["enrollment process", "how to enroll", "enrollment steps", "enrollment requirements"]. ' +
+          'Be descriptive and specific, cover different aspects of what the user is asking.',
       },
       limit: {
         type: Type.INTEGER,
-        description: 'Maximum number of results to return',
+        description:
+          'Maximum number of results to return (default: 5, increase to 10-15 for complex questions)',
       },
     },
     required: ['query'],
