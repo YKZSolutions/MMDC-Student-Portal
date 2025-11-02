@@ -74,7 +74,7 @@ const Chatbot = ({
     }
   }, [isMobile])
 
-  // Set initial position
+  // Set the initial position
   const [position, setPosition] = useState(getInitialPosition)
 
   // Reset position when FAB is shown again after being hidden
@@ -84,7 +84,7 @@ const Chatbot = ({
     }
   }, [isChatbotFabHidden, getInitialPosition])
 
-  // Update position when window resizes
+  // Update position when the window resizes
   useEffect(() => {
     const handleResize = () => {
       if (!isChatbotFabHidden) {
@@ -132,7 +132,7 @@ const Chatbot = ({
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only handle mouse down for dragging on non-mobile devices
+    // Only handle the mouse down for dragging on non-mobile devices
     if (!isMobile) {
       // Close the chat window immediately on mouse down
       setChatbotOpen(false)
