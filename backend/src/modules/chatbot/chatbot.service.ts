@@ -141,7 +141,7 @@ export class ChatbotService {
       this.mapUserToContext(role, await this.usersService.getMe(userId));
 
     let iterationCount = 0;
-    const maxIterations = 6; // Increased to allow for reflection turn
+    const maxIterations = 8; // Increased to allow for reflection turn
     let awaitingReflection = false;
     let initialResponseReceived = false;
 
@@ -210,7 +210,7 @@ export class ChatbotService {
         // Mark that we got an initial response
         initialResponseReceived = true;
 
-        // Add self-reflection prompt
+        // Add a self-reflection prompt
         conversation.push({
           role: 'user',
           parts: [
@@ -235,7 +235,7 @@ Do NOT just say "yes it's complete" - either call more functions or provide your
         });
 
         awaitingReflection = true;
-        continue; // Go to next iteration for reflection response
+        continue; // Go to the next iteration for reflection response
       }
 
       // If we were awaiting reflection and got a response without function calls
@@ -248,7 +248,7 @@ Do NOT just say "yes it's complete" - either call more functions or provide your
         return result;
       }
 
-      // If we got function calls after reflection, reset flag and continue gathering
+      // If we got function calls after reflection, reset the flag and continue gathering
       if (awaitingReflection && functionCalls && functionCalls.length > 0) {
         this.logger.log(
           'AI identified missing information during reflection - gathering additional data',
@@ -256,54 +256,51 @@ Do NOT just say "yes it's complete" - either call more functions or provide your
         awaitingReflection = false;
       }
 
-      // If no function calls at this point, skip to next iteration
-      if (!functionCalls || functionCalls.length === 0) {
-        continue;
-      }
-
       // Execute all function calls
-      const functionResults = await Promise.all(
-        functionCalls.map(async (functionCall) => {
-          try {
-            this.logger.debug(
-              `Executing: ${functionCall.name}`,
-              JSON.stringify(functionCall.args),
-            );
+      if (functionCalls && functionCalls.length > 0) {
+        const functionResults = await Promise.all(
+          functionCalls.map(async (functionCall) => {
+            try {
+              this.logger.debug(
+                `Executing: ${functionCall.name}`,
+                JSON.stringify(functionCall.args),
+              );
 
-            const functionResult = await this.executeFunctionCall(
-              functionCall,
-              userContext,
-              role,
-            );
+              const functionResult = await this.executeFunctionCall(
+                functionCall,
+                userContext,
+                role,
+              );
 
-            this.logger.debug(
-              `Result from ${functionCall.name}: ${functionResult.substring(0, 200)}...`,
-            );
+              this.logger.debug(
+                `Result from ${functionCall.name}: ${functionResult.substring(0, 200)}...`,
+              );
 
-            return {
-              functionCall,
-              result: functionResult,
-            };
-          } catch (error) {
-            this.logger.error(
-              `Error executing ${functionCall.name}: ${error.message}`,
-            );
-            return {
-              functionCall,
-              result: `Error: ${error.message}`,
-            };
-          }
-        }),
-      );
+              return {
+                functionCall,
+                result: functionResult,
+              };
+            } catch (error) {
+              this.logger.error(
+                `Error executing ${functionCall.name}: ${error.message}`,
+              );
+              return {
+                functionCall,
+                result: `Error: ${error.message}`,
+              };
+            }
+          }),
+        );
 
-      // Add the model's function calls to conversation
-      this.gemini.addFunctionCallsToConversation(conversation, functionCalls);
+        // Add the model's function calls to conversation
+        this.gemini.addFunctionCallsToConversation(conversation, functionCalls);
 
-      // Add function results to the conversation
-      this.gemini.addFunctionResultsToConversation(
-        conversation,
-        functionResults,
-      );
+        // Add function results to the conversation
+        this.gemini.addFunctionResultsToConversation(
+          conversation,
+          functionResults,
+        );
+      }
 
       this.logger.log(
         `Conversation now has ${conversation.length} messages. Continuing...`,
