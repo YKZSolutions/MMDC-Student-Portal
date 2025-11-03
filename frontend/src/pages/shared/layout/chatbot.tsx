@@ -117,7 +117,6 @@ const Chatbot = ({
         },
       })
 
-      console.log(res.response)
 
       setMessages((prev) =>
         [...prev, { role: 'model' as const, content: res.response }].slice(
