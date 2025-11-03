@@ -308,7 +308,7 @@ export class CourseOfferingService {
    */
   @Log({
     logArgsMessage: ({ filters }: { filters: FilterCourseOfferingDto }) =>
-      `Fetching course offerings | page: ${filters.page}`,
+      `Fetching course offerings | page: ${filters}`,
     logSuccessMessage: (result) => `Fetched ${result.length} course offerings`,
     logErrorMessage: (err, { filters }: { filters: FilterCourseOfferingDto }) =>
       `Error fetching course offerings | page: ${filters.page} | Error: ${err.message}`,

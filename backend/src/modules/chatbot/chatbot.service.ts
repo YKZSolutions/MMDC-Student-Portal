@@ -141,7 +141,7 @@ export class ChatbotService {
       this.mapUserToContext(role, await this.usersService.getMe(userId));
 
     let iterationCount = 0;
-    const maxIterations = 8; // Increased to allow for reflection turn
+    const maxIterations = 10; // Increased to allow for reflection turn
     let awaitingReflection = false;
     let initialResponseReceived = false;
 
@@ -165,7 +165,7 @@ export class ChatbotService {
       const { response, functionCalls } =
         await this.gemini.generateContentWithTools(conversation, role);
 
-      // Handle empty response with no function calls (error state)
+      // Handle an empty response with no function calls (error state)
       if (
         (!functionCalls || functionCalls.length === 0) &&
         (!response || response.trim() === '')
@@ -197,7 +197,7 @@ export class ChatbotService {
         );
       }
 
-      // If no function calls and we haven't triggered reflection yet
+      // If no function calls, and we haven't triggered reflection yet
       if (
         (!functionCalls || functionCalls.length === 0) &&
         !awaitingReflection &&
@@ -209,6 +209,7 @@ export class ChatbotService {
 
         // Mark that we got an initial response
         initialResponseReceived = true;
+        awaitingReflection = true;
 
         // Add a self-reflection prompt
         conversation.push({
@@ -234,7 +235,6 @@ Do NOT just say "yes it's complete" - either call more functions or provide your
           ],
         });
 
-        awaitingReflection = true;
         continue; // Go to the next iteration for reflection response
       }
 
@@ -300,11 +300,30 @@ Do NOT just say "yes it's complete" - either call more functions or provide your
           conversation,
           functionResults,
         );
-      }
 
-      this.logger.log(
-        `Conversation now has ${conversation.length} messages. Continuing...`,
-      );
+        this.logger.log(
+          `Conversation now has ${conversation.length} messages. Continuing...`,
+        );
+      } else {
+        if (
+          response &&
+          response.trim().length > 0 &&
+          !awaitingReflection &&
+          initialResponseReceived
+        ) {
+          this.logger.log('Received final text response - returning');
+          result.response = response;
+          return result;
+        }
+
+        // If we get here with no function calls and no response, something is wrong
+        if (!response || response.trim().length === 0) {
+          this.logger.warn(
+            'No function calls and empty response - breaking loop',
+          );
+          break;
+        }
+      }
     }
 
     // If we hit max iterations, try to generate a meaningful response
@@ -760,10 +779,23 @@ Do NOT just say "yes it's complete" - either call more functions or provide your
 
         case 'search_vector': {
           const args = functionCall.args as { query: string[]; limit?: number };
-          return await this.vectorSearch.searchAndFormatContext(
+          const result = await this.vectorSearch.searchAndFormatContext(
             args.query,
             args.limit || 5,
           );
+
+          // If the search failed, suggest retry strategies
+          if (result.includes('No relevant information found')) {
+            return `${result}
+            SUGGESTION: The search terms used were: ${JSON.stringify(args.query)}
+            Consider retrying search_vector with:
+            1. Broader terms (remove specific words, use general concepts)
+            2. Alternative phrasing (synonyms or related terms)
+            3. FAQ format queries (e.g., "how to..." or "what is...")
+            You can call search_vector again with different query terms.`;
+          }
+
+          return result;
         }
 
         default:

@@ -28,7 +28,7 @@ export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
   private readonly gemini: GoogleGenAI;
   private readonly model: string = 'gemini-2.5-flash-lite';
-  private readonly embeddingModel: string = 'gemini-embedding-001';
+  private readonly embeddingModel: string = 'text-embedding-004';
 
   constructor(private readonly configService: ConfigService<EnvVars>) {
     this.gemini = new GoogleGenAI({
@@ -50,10 +50,10 @@ export class GeminiService {
   ): Promise<ContentEmbedding[]> {
     const result = await this.gemini.models.embedContent({
       model: this.embeddingModel,
-      contents: [text], // Ensure proper format
+      contents: [text],
       config: {
-        taskType: 'RETRIEVAL_QUERY', // Optimize for search queries
-        outputDimensionality: 3072, // EXPLICITLY SET to match your DB
+        taskType: 'RETRIEVAL_QUERY',
+        outputDimensionality: 768,
       },
     });
 
@@ -132,7 +132,7 @@ If this user context does not specify their current active page, assume the user
    */
   @Log({
     logArgsMessage: ({ conversation }) =>
-      `Generate content with tools for conversation=${conversation.length}`,
+      `Generate content with tools for conversation=${conversation}`,
     logSuccessMessage: () => `Successfully generated content with tools`,
     logErrorMessage: (err) =>
       `Failed to generate content with tools | Error=${err.message}`,
@@ -312,10 +312,6 @@ If the answer references a sub-feature, include directions to find it unless the
     return result.text;
   }
 
-  // ===================================================================
-  // FILE 1: gemini.service.ts - Update system instructions
-  // ===================================================================
-
   private readonly functionCallingInstruction = `
 You are a helpful, professional, and knowledgeable AI Chatbot for Mapúa Malayan Digital College (MMDC).
 
@@ -468,13 +464,34 @@ Then combine ALL this information into a complete answer using ONLY information 
 - Always call functions one step at a time when they depend on each other
 - Wait for function results before proceeding to the next step
 - For procedural questions, ALWAYS call 'search_vector' first to get documentation
-- If search_vector returns no results, acknowledge this and work with available data only
-- Use specific tools/functions for user-specific data (courses, appointments, billing, etc.)
-- If the query is unrelated to MMDC, respond: "I can only assist with inquiries related to Mapúa Malayan Digital College."
-- Always be helpful and professional in your responses
-- **Never mention, describe, or hint at any tool or function name in your message to the user**
-- If you need to refer to an action, describe it naturally in plain language
-- **CRITICAL: If you don't have navigation info from search_vector, present data without describing where it's located in the portal**
+
+**CRITICAL SEARCH_VECTOR RETRY LOGIC:**
+When search_vector returns "No relevant information found":
+
+1. **ALWAYS RETRY** - Don't give up on the first failure
+2. **Try 2-3 different search strategies** before concluding no information exists
+3. **Progressively broaden your search terms:**
+   - First attempt: Use specific, detailed queries (e.g., ["mentor email contact", "how to reach mentor"])
+   - Second attempt: Use broader, simpler terms (e.g., ["mentor", "contact"])
+   - Third attempt: Use related concepts (e.g., ["communication", "support", "help"])
+4. **Vary your query approach:**
+   - Try FAQ format: ["how to contact mentor"]
+   - Try noun phrases: ["mentor contact information"]
+   - Try related features: ["mentoring appointments", "mentor details"]
+
+**Example Retry Sequence:**
+  First call: search_vector(["enrollment process steps", "how to enroll in courses"])
+  Result: "No relevant information found"
+
+  Second call: search_vector(["enrollment", "enroll course"])
+  Result: "No relevant information found"
+
+  Third call: search_vector(["course registration", "add courses"])
+  Result: Found relevant information!
+
+- **ONLY after 2-3 failed search attempts** should you proceed with other functions only
+- If all searches fail, proceed with data from other functions and acknowledge the limitation
+[... rest of existing content ...]
 `;
 
   private readonly summarizationInstruction = `
