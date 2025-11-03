@@ -33,7 +33,7 @@ export class VectorSearchService {
   async search(
     @LogParam('query') query: string,
     @LogParam('limit') limit: number = 5,
-    @LogParam('threshold') threshold: number = 7,
+    @LogParam('threshold') threshold: number = 0.7,
   ): Promise<VectorSearchResult[]> {
     // 1. Generate embedding for the query
     const queryEmbedding: ContentEmbedding[] =
