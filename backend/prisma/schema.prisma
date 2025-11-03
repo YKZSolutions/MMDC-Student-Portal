@@ -1145,10 +1145,12 @@ model Transcript {
 }
 
 model documents {
-  id         String                      @id @default(uuid()) @db.Uuid
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   content    String
-  embedding  Unsupported("vector(3072)")
+  embedding  Unsupported("halfvec")
   metadata   Json
-  created_at DateTime                    @default(now())
-  updated_at DateTime                    @updatedAt
+  created_at DateTime               @default(now())
+  updated_at DateTime?              @updatedAt
+
+  @@index([embedding])
 }
