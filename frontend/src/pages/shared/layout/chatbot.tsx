@@ -23,6 +23,7 @@ import { useMutation } from '@tanstack/react-query'
 import { chatbotControllerPromptMutation } from '@/integrations/api/client/@tanstack/react-query.gen.ts'
 import type { Turn } from '@/integrations/api/client'
 import ReactMarkdown, { type Components } from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useResizeObserver, useMediaQuery } from '@mantine/hooks'
 
 type ChatbotProps = {
@@ -40,7 +41,7 @@ const Chatbot = ({
 }: ChatbotProps) => {
   const theme = useMantineTheme()
   const nodeRef = useRef<HTMLDivElement>(null)
-  const [fabRef, { width: fabWidth, height: fabHeight }] = useResizeObserver()
+  const [fabRef] = useResizeObserver()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const isTablet = useMediaQuery('(max-width: 1024px)')
 
@@ -73,7 +74,7 @@ const Chatbot = ({
     }
   }, [isMobile])
 
-  // Set initial position
+  // Set the initial position
   const [position, setPosition] = useState(getInitialPosition)
 
   // Reset position when FAB is shown again after being hidden
@@ -83,7 +84,7 @@ const Chatbot = ({
     }
   }, [isChatbotFabHidden, getInitialPosition])
 
-  // Update position when window resizes
+  // Update position when the window resizes
   useEffect(() => {
     const handleResize = () => {
       if (!isChatbotFabHidden) {
@@ -116,6 +117,7 @@ const Chatbot = ({
         },
       })
 
+
       setMessages((prev) =>
         [...prev, { role: 'model' as const, content: res.response }].slice(
           -MAX_MESSAGES,
@@ -129,7 +131,7 @@ const Chatbot = ({
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only handle mouse down for dragging on non-mobile devices
+    // Only handle the mouse down for dragging on non-mobile devices
     if (!isMobile) {
       // Close the chat window immediately on mouse down
       setChatbotOpen(false)
@@ -406,11 +408,9 @@ const BotMessage = ({ message }: { message: string }) => {
     ),
     ul: ({
       node,
-      ordered,
       ...props
     }: {
       node?: any
-      ordered?: boolean
       className?: string
       children?: React.ReactNode
     }) => (
@@ -426,11 +426,9 @@ const BotMessage = ({ message }: { message: string }) => {
     ),
     ol: ({
       node,
-      ordered,
       ...props
     }: {
       node?: any
-      ordered?: boolean
       className?: string
       children?: React.ReactNode
     }) => (
@@ -439,6 +437,7 @@ const BotMessage = ({ message }: { message: string }) => {
           margin: '6px 0',
           paddingLeft: 24,
           lineHeight: 1.6,
+          listStyleType: 'decimal',
         }}
         {...props}
       />
@@ -448,6 +447,7 @@ const BotMessage = ({ message }: { message: string }) => {
         style={{
           margin: '4px 0',
           fontSize: '0.875rem',
+          display: 'list-item',
         }}
         {...props}
       />
@@ -530,6 +530,67 @@ const BotMessage = ({ message }: { message: string }) => {
         }}
       />
     ),
+    // GFM-specific components
+    table: ({ node, ...props }) => (
+      <div style={{ overflowX: 'auto', margin: '12px 0' }}>
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: '0.8rem',
+          }}
+          {...props}
+        />
+      </div>
+    ),
+    th: ({ node, ...props }) => (
+      <th
+        style={{
+          border: `1px solid ${theme.colors.gray[3]}`,
+          padding: '8px 12px',
+          backgroundColor: theme.colors.gray[0],
+          fontWeight: 600,
+          textAlign: 'left',
+        }}
+        {...props}
+      />
+    ),
+    td: ({ node, ...props }) => (
+      <td
+        style={{
+          border: `1px solid ${theme.colors.gray[3]}`,
+          padding: '8px 12px',
+          backgroundColor: theme.white,
+        }}
+        {...props}
+      />
+    ),
+    del: ({ node, ...props }) => (
+      <del
+        style={{
+          textDecoration: 'line-through',
+          color: theme.colors.gray[6],
+        }}
+        {...props}
+      />
+    ),
+    input: ({ node, checked, type, ...props }) => {
+      if (type === 'checkbox') {
+        return (
+          <input
+            type="checkbox"
+            checked={checked}
+            readOnly
+            style={{
+              marginRight: '6px',
+              transform: 'scale(0.9)',
+            }}
+            {...props}
+          />
+        )
+      }
+      return <input type={type} {...props} />
+    },
   }
 
   return (
@@ -544,7 +605,9 @@ const BotMessage = ({ message }: { message: string }) => {
         boxShadow: theme.shadows.xs,
       }}
     >
-      <ReactMarkdown components={components}>{message}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        {message}
+      </ReactMarkdown>
     </Box>
   )
 }
@@ -668,7 +731,7 @@ const ChatMessages = ({
       }}
     >
       <BotMessage
-        message={`### 👋 Hi there! I'm your student support assistant. How can I help you today?\n\nI can assist you with:\n\n- Enrollment and Billing information\n- Student Portal use and navigation\n- Course & Progress information\n- Booking Appointments and Scheduling\n- General questions`}
+        message={`### 👋 Hi there! I'm your student support assistant. How can I help you today?\n\nI can assist you with:\n\n- Enrollment and Billing information\n- Student Portal use and navigation\n- Course & Progress information\n- Booking Appointments and Scheduling\n- General questions\n\n`}
       />
       {messages.map((msg, index) =>
         msg.role === 'user' ? (

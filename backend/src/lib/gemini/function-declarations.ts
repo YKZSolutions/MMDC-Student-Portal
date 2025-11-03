@@ -6,17 +6,21 @@ import {
 } from '@/modules/billing/dto/filter-bill.dto';
 import {
   AppointmentStatus,
+  AssignmentMode,
   BillType,
-  ContentType,
   CourseEnrollmentStatus,
   Days,
   EnrollmentStatus,
   PaymentScheme,
-  ProgressStatus,
   Role,
+  SubmissionState,
 } from '@prisma/client';
 import { RelativeDateRange } from '@/common/utils/date-range.util';
 import { NotificationType } from '@/modules/notifications/dto/filter-notification.dto';
+import {
+  TaskSortBy,
+  TaskStatusFilter,
+} from '@/modules/lms/assignment/dto/filter-all-tasks.dto';
 
 // Common enums/refs
 const RoleEnum = Object.values(Role) as string[];
@@ -25,8 +29,6 @@ const CourseEnrollmentStatusEnum = Object.values(
   CourseEnrollmentStatus,
 ) as string[];
 const DaysEnum = Object.values(Days) as string[];
-const ContentTypeEnum = Object.values(ContentType) as string[];
-const ProgressStatusEnum = Object.values(ProgressStatus) as string[];
 const SortOrderEnum = Object.values(SortOrder) as string[];
 const FilterBillSortEnum = Object.values(FilterBillSort) as string[];
 const BillStatusEnum = Object.values(BillStatus) as string[];
@@ -35,6 +37,10 @@ const BillTypeEnum = Object.values(BillType) as string[];
 const AppointmentStatusEnum = Object.values(AppointmentStatus) as string[];
 const NotificationTypeEnum = Object.values(NotificationType);
 const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
+const TaskStatusFilterEnum = Object.values(TaskStatusFilter) as string[];
+const TaskSortByEnum = Object.values(TaskSortBy) as string[];
+const AssignmentModeEnum = Object.values(AssignmentMode) as string[];
+const SubmissionStateEnum = Object.values(SubmissionState) as string[];
 
 // -------------------------
 // General knowledge search
@@ -42,9 +48,27 @@ const RelativeDateRangeEnum = Object.values(RelativeDateRange) as string[];
 export const vectorSearchFn: FunctionDeclaration = {
   name: 'search_vector',
   description:
-    'Search for documents using vector search. It answers general questions (non user specific).' +
-    'For questions related to enrollment, first check if the student has previously enrolled in any course, if so' +
-    'then that student might be a continuing student. If unsure, ask the student if they are new or continuing',
+    'Searches the knowledge base focusing exclusively on MMDC Student Portal features. ' +
+    'CRITICAL: For "How do I?" questions, ALWAYS call this function FIRST to get complete procedural documentation. ' +
+    'This ensures you have the full process before calling other functions for user-specific data. ' +
+    'Contains documents related to: ' +
+    '- Complete course enrollment process (prerequisites, steps, deadlines) ' +
+    '- Billing interface and payment procedures ' +
+    '- Navigating the student portal ' +
+    '- Booking and managing mentoring appointments ' +
+    '- Understanding the notification system ' +
+    '- Using the AI Chat Assistant feature ' +
+    '- Step-by-step enrollment walkthrough ' +
+    '- Comprehensive billing and payment guide ' +
+    '- Detailed appointment booking instructions ' +
+    '- FAQs answering questions related to: ' +
+    '-- Billing and payment ' +
+    '-- AI Chat Assistant ' +
+    '-- Enrollment ' +
+    '-- Learning Management System (LMS) ' +
+    '-- Mentoring Appointments ' +
+    '-- Notifications ' +
+    'USAGE: Call with multiple related query strings for comprehensive results.',
   parameters: {
     type: Type.OBJECT,
     properties: {
@@ -54,11 +78,19 @@ export const vectorSearchFn: FunctionDeclaration = {
           type: Type.STRING,
         },
         description:
-          'Search query strings. Be descriptive and specific, expound more on what the user might be looking for.',
+          'Search query strings. Use MULTIPLE queries for comprehensive coverage. ' +
+          'Example for enrollment: ["enrollment process", "how to enroll", "enrollment steps", "enrollment requirements"]. ' +
+          'Be descriptive and specific, cover different aspects of what the user is asking.' +
+          'If possible, include faq formatted queries.' +
+          'Example for payment: ["how to pay tuition"]' +
+          'Some details might be hard to find especially for very complex questions or specific ones, ' +
+          'what you could do is search for the most common terms it could be possibly in and then search for the specific terms. ' +
+          'Example for payment methods: ["how to pay tuition", "tuition payment methods","billing and payment guide"]',
       },
       limit: {
         type: Type.INTEGER,
-        description: 'Maximum number of results to return',
+        description:
+          'Maximum number of results to return (default: 5, increase to 10-15 for complex questions)',
       },
     },
     required: ['query'],
@@ -173,30 +205,18 @@ export const usersCountFn: FunctionDeclaration = {
   },
 };
 
-// export const usersMentorDetailsFn: FunctionDeclaration = {
-//   name: 'users_mentor_details',
-//   description:
-//     'Get details of a mentor based on the mentor ID. This includes mentor details, courses, and appointments.',
-//   parameters: {
-//     type: Type.OBJECT,
-//     properties: {
-//       mentorId: {
-//         type: Type.STRING,
-//         description: 'ID of the mentor to fetch details for.',
-//       },
-//     },
-//   },
-// };
-
 export const usersAllMentorsListFn: FunctionDeclaration = {
   name: 'users_all_mentor_list',
-  description: 'Get details of all the mentors of the student',
+  description:
+    'Get details of all the mentors of the student, including their email address for contacting them.',
   parameters: {
     type: Type.OBJECT,
     properties: {
       search: {
         type: Type.STRING,
-        description: 'Search term for filtering mentors by name.',
+        description:
+          'Search term for filtering mentors by name. ' +
+          'Default is empty string which searches for all mentors.',
       },
     },
   },
@@ -600,14 +620,29 @@ export const courseOfferingForActiveEnrollment: FunctionDeclaration = {
 export const lmsMyTodosFn: FunctionDeclaration = {
   name: 'lms_my_todos',
   description:
-    'Get all pending todos (assignments and quizzes with due dates) for the current student.',
+    'Get all pending todos (assignments and with due dates) for the current student.',
   parameters: {
     type: Type.OBJECT,
     properties: {
-      relativeDate: {
+      status: {
         type: Type.STRING,
-        enum: RelativeDateRangeEnum,
-        description: 'Filter todos by relative date.',
+        enum: TaskStatusFilterEnum,
+        description: 'Filter todos by status.',
+      },
+      courseId: {
+        type: Type.STRING,
+        description: 'Filter todos by course identifier.',
+      },
+      sortBy: {
+        type: Type.STRING,
+        enum: TaskSortByEnum,
+        description: 'Sort todos.',
+      },
+      sortDirection: {
+        type: Type.STRING,
+        enum: ['asc', 'desc'],
+        default: 'desc',
+        description: 'Sort direction for sorting todos.',
       },
       page: {
         type: Type.INTEGER,
@@ -617,14 +652,14 @@ export const lmsMyTodosFn: FunctionDeclaration = {
       limit: {
         type: Type.INTEGER,
         default: 10,
-        description: 'Number of todos per page (default 10).',
+        description: 'Number of tasks per page (default 10).',
       },
     },
   },
   response: {
     type: Type.OBJECT,
     properties: {
-      todos: {
+      tasks: {
         type: Type.ARRAY,
         items: {
           type: Type.OBJECT,
@@ -633,9 +668,50 @@ export const lmsMyTodosFn: FunctionDeclaration = {
               type: Type.STRING,
               description: 'Assignment identifier.',
             },
+            moduleContentId: {
+              type: Type.STRING,
+              description: 'Module content identifier.',
+            },
+            mode: {
+              type: Type.STRING,
+              enum: AssignmentModeEnum,
+              description: 'The mode of the assignment.',
+            },
+            maxScore: {
+              type: Type.INTEGER,
+              description: 'Maximum score for the assignment.',
+            },
+            weightPercentage: {
+              type: Type.INTEGER,
+              description: 'Weight percentage for the assignment.',
+            },
+            maxAttempts: {
+              type: Type.INTEGER,
+              description: 'Maximum attempts for the assignment.',
+            },
+            allowLateSubmission: {
+              type: Type.BOOLEAN,
+              description: 'Whether late submission is allowed.',
+            },
+            latePenalty: {
+              type: Type.INTEGER,
+              description: 'Late penalty for the assignment.',
+            },
+            gracePeriodMinutes: {
+              type: Type.INTEGER,
+              description: 'Grace period in minutes.',
+            },
+            rubricTemplateId: {
+              type: Type.STRING,
+              description: 'Rubric template identifier.',
+            },
             title: {
               type: Type.STRING,
               description: 'Assignment title.',
+            },
+            subtitle: {
+              type: Type.STRING,
+              description: 'Assignment subtitle.',
             },
             dueDate: {
               type: Type.STRING,
@@ -646,6 +722,173 @@ export const lmsMyTodosFn: FunctionDeclaration = {
               type: Type.STRING,
               description: 'Module name for the assignment.',
             },
+            course: {
+              type: Type.OBJECT,
+              properties: {
+                id: {
+                  type: Type.STRING,
+                  description: 'Course identifier.',
+                },
+                courseCode: {
+                  type: Type.STRING,
+                  description: 'Course code.',
+                },
+                name: {
+                  type: Type.STRING,
+                  description: 'Course name.',
+                },
+              },
+            },
+            module: {
+              type: Type.OBJECT,
+              properties: {
+                id: {
+                  type: Type.STRING,
+                  description: 'Module identifier.',
+                },
+                title: {
+                  type: Type.STRING,
+                  description: 'Module title.',
+                },
+                sectionOrder: {
+                  type: Type.INTEGER,
+                  description: 'The order of the section within the module',
+                },
+              },
+            },
+            submissions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: {
+                    type: Type.STRING,
+                    description: 'Submission identifier.',
+                  },
+                  state: {
+                    type: Type.STRING,
+                    enum: SubmissionStateEnum,
+                    description: 'The state of the submission.',
+                  },
+                  submittedAt: {
+                    type: Type.STRING,
+                    format: 'date-time',
+                    description: 'Date and time when the submission was made.',
+                  },
+                  attemptNumber: {
+                    type: Type.INTEGER,
+                    description: 'Attempt number for the submission.',
+                  },
+                  lateDays: {
+                    type: Type.INTEGER,
+                    description: 'Late days for the submission.',
+                  },
+                  grade: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: {
+                        type: Type.STRING,
+                        description: 'Grade identifier.',
+                      },
+                      rawScore: {
+                        type: Type.INTEGER,
+                        description: 'Raw score for the grade.',
+                      },
+                      finalScore: {
+                        type: Type.INTEGER,
+                        description: 'Final score for the grade.',
+                      },
+                      grade: {
+                        type: Type.STRING,
+                        description: 'Grade for the assignment.',
+                      },
+                      feedback: {
+                        type: Type.STRING,
+                        description: 'Feedback for the assignment.',
+                      },
+                      rubricEvaluationDetails: {
+                        type: Type.ARRAY,
+                        items: {
+                          type: Type.OBJECT,
+                          properties: {
+                            criterionId: {
+                              type: Type.STRING,
+                              description: 'Criterion identifier.',
+                            },
+                            criterionName: {
+                              type: Type.STRING,
+                              description: 'Criterion name.',
+                            },
+                            selectedScoreValue: {
+                              type: Type.INTEGER,
+                              description: 'Selected score value.',
+                            },
+                            maxScoreValue: {
+                              type: Type.INTEGER,
+                              description: 'Maximum score value.',
+                            },
+                            weightPercentage: {
+                              type: Type.INTEGER,
+                              description: 'Weight percentage.',
+                            },
+                            selectedDescriptor: {
+                              type: Type.STRING,
+                              description: 'Selected descriptor.',
+                            },
+                            weightedContributionPercent: {
+                              type: Type.INTEGER,
+                              description: 'Weighted contribution percent.',
+                            },
+                            raterComment: {
+                              type: Type.STRING,
+                              description: 'Rater comment.',
+                            },
+                          },
+                        },
+                      },
+                      gradedAt: {
+                        type: Type.STRING,
+                        format: 'date-time',
+                        description: 'Date and time when the grade was graded.',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      meta: {
+        type: Type.OBJECT,
+        properties: {
+          isFirstPage: {
+            type: Type.BOOLEAN,
+            description: 'Whether the current page is the first page.',
+          },
+          isLastPage: {
+            type: Type.BOOLEAN,
+            description: 'Whether the current page is the last page.',
+          },
+          currentPage: {
+            type: Type.INTEGER,
+            description: 'Current page number.',
+          },
+          previousPage: {
+            type: Type.INTEGER,
+            description: 'Previous page number.',
+          },
+          nextPage: {
+            type: Type.INTEGER,
+            description: 'Next page number.',
+          },
+          pageCount: {
+            type: Type.INTEGER,
+            description: 'Total number of pages.',
+          },
+          totalCount: {
+            type: Type.INTEGER,
+            description: 'Total number of items.',
           },
         },
       },
@@ -924,6 +1167,14 @@ export const appointmentsMentorAvailabilityFn: FunctionDeclaration = {
         default: 'this_week',
         description:
           'Filter mentor availability by relative date. Default is this week.',
+      },
+      startingFrom: {
+        type: Type.STRING,
+        format: 'date-time',
+        description:
+          'Start date for the date range of the relativeDate. ' +
+          'For example if the relativeDate is this_week, then this is the start date of the week. ' +
+          'Default is the current date.',
       },
       mentorId: {
         type: Type.STRING,
