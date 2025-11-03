@@ -40,8 +40,7 @@ export class GeminiService {
    * Generate embeddings for text using Gemini's embedding model
    */
   @Log({
-    logArgsMessage: ({ text }) =>
-      `Generate embedding for text length=${text.length}`,
+    logArgsMessage: ({ text }) => `Generate embedding for text length=${text}`,
     logSuccessMessage: () => `Successfully generated embedding`,
     logErrorMessage: (err) =>
       `Failed to generate embedding | Error=${err.message}`,
@@ -133,7 +132,7 @@ If this user context does not specify their current active page, assume the user
    */
   @Log({
     logArgsMessage: ({ conversation }) =>
-      `Generate content with tools for conversation of length=${conversation.length}`,
+      `Generate content with tools for conversation=${conversation.length}`,
     logSuccessMessage: () => `Successfully generated content with tools`,
     logErrorMessage: (err) =>
       `Failed to generate content with tools | Error=${err.message}`,
