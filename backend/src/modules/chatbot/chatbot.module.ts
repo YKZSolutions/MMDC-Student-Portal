@@ -14,6 +14,7 @@ import { NotificationsModule } from '@/modules/notifications/notifications.modul
 import { LmsModule } from '@/modules/lms/lms-module/lms.module';
 import { VectorSearchService } from '@/modules/chatbot/vector-search.service';
 import { CacheModule } from '@nestjs/cache-manager';
+import { AssignmentModule } from '@/modules/lms/assignment/assignment.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     CoursesModule,
     EnrollmentModule,
     LmsModule,
+    AssignmentModule,
     NotificationsModule,
     HttpModule,
     CacheModule.register({

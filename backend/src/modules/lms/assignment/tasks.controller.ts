@@ -32,7 +32,7 @@ export class TasksController {
    *
    * @param filters - Query filters for pagination, status, course, and sorting
    * @param currentUser - The authenticated student user
-   * @returns Paginated list of all tasks with course and module context
+   * @returns Paginated the list of all tasks with course and module context
    */
   @Get()
   @Roles(Role.STUDENT)

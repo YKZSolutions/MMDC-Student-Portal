@@ -2809,152 +2809,6 @@
         ]
       }
     },
-    "/modules/todo": {
-      "get": {
-        "description": "Requires `STUDENT` role.",
-        "operationId": "LmsController_findTodos",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "dueDateFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "name": "dueDateTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModuleContent"
-                }
-              }
-            }
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "NotFoundException": {
-                    "description": "Not Found",
-                    "value": {
-                      "statusCode": 404,
-                      "message": "Not Found",
-                      "error": "Not Found"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Not Found"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Retrieve multiple todos",
-        "tags": [
-          "Lms"
-        ]
-      }
-    },
     "/modules/dashboard": {
       "get": {
         "operationId": "LmsController_getDashboardProgress",
@@ -10907,6 +10761,788 @@
         ]
       }
     },
+    "/modules/{moduleId}/{moduleContentId}/assignments/{assignmentId}": {
+      "post": {
+        "operationId": "AssignmentController_submit",
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitAssignmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      },
+      "patch": {
+        "operationId": "AssignmentController_update",
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAssignmentConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/modules/{moduleId}/{moduleContentId}/assignments/admin/all": {
+      "get": {
+        "operationId": "AssignmentController_findAllForAdmin",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAssignmentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/modules/{moduleId}/{moduleContentId}/assignments/mentor/all": {
+      "get": {
+        "operationId": "AssignmentController_findAllForMentor",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMentorAssignmentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/modules/{moduleId}/{moduleContentId}/assignments/student/all": {
+      "get": {
+        "operationId": "AssignmentController_findAllForStudent",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedStudentAssignmentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/modules/{moduleId}/{moduleContentId}/assignments": {
+      "get": {
+        "operationId": "AssignmentController_findOne",
+        "parameters": [
+          {
+            "name": "moduleContentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/modules/{moduleId}/{moduleContentId}/assignments/student": {
+      "get": {
+        "operationId": "AssignmentController_findOneForStudent",
+        "parameters": [
+          {
+            "name": "moduleContentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentAssignmentItemDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assignment"
+        ]
+      }
+    },
+    "/tasks": {
+      "get": {
+        "description": "Retrieves all assignments from enrolled courses in the current term with filtering and sorting options",
+        "operationId": "TasksController_getAllTasksForStudent",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task status",
+            "schema": {
+              "example": "upcoming",
+              "type": "string",
+              "enum": [
+                "all",
+                "upcoming",
+                "submitted",
+                "graded"
+              ]
+            }
+          },
+          {
+            "name": "courseId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by specific course ID",
+            "schema": {
+              "format": "uuid",
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort tasks by field",
+            "schema": {
+              "example": "dueDate",
+              "type": "string",
+              "enum": [
+                "dueDate",
+                "title",
+                "course",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction (asc or desc)",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAllTasksDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "BadRequestException": {
+                    "description": "Bad Request",
+                    "value": {
+                      "statusCode": 400,
+                      "message": "Bad Request",
+                      "error": "Bad Request"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "InternalServerErrorException": {
+                    "description": "Internal Server Error",
+                    "value": {
+                      "statusCode": 500,
+                      "message": "Internal Server Error",
+                      "error": "Internal Server Error"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Get all tasks across enrolled courses",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
     "/majors": {
       "post": {
         "description": "This operation creates a new academic major.\nRequires `ADMIN` role.",
@@ -12170,788 +12806,6 @@
         "summary": "Deletes a curriculum (temporary or permanent)",
         "tags": [
           "Curriculum"
-        ]
-      }
-    },
-    "/modules/{moduleId}/{moduleContentId}/assignments/{assignmentId}": {
-      "post": {
-        "operationId": "AssignmentController_submit",
-        "parameters": [
-          {
-            "name": "assignmentId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SubmitAssignmentDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      },
-      "patch": {
-        "operationId": "AssignmentController_update",
-        "parameters": [
-          {
-            "name": "assignmentId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAssignmentConfigDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "BadRequestException": {
-                    "description": "Bad Request",
-                    "value": {
-                      "statusCode": 400,
-                      "message": "Bad Request",
-                      "error": "Bad Request"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 400
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      }
-    },
-    "/modules/{moduleId}/{moduleContentId}/assignments/admin/all": {
-      "get": {
-        "operationId": "AssignmentController_findAllForAdmin",
-        "parameters": [
-          {
-            "name": "moduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedAssignmentDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      }
-    },
-    "/modules/{moduleId}/{moduleContentId}/assignments/mentor/all": {
-      "get": {
-        "operationId": "AssignmentController_findAllForMentor",
-        "parameters": [
-          {
-            "name": "moduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedMentorAssignmentDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      }
-    },
-    "/modules/{moduleId}/{moduleContentId}/assignments/student/all": {
-      "get": {
-        "operationId": "AssignmentController_findAllForStudent",
-        "parameters": [
-          {
-            "name": "moduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedStudentAssignmentDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      }
-    },
-    "/modules/{moduleId}/{moduleContentId}/assignments": {
-      "get": {
-        "operationId": "AssignmentController_findOne",
-        "parameters": [
-          {
-            "name": "moduleContentId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AssignmentDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      }
-    },
-    "/modules/{moduleId}/{moduleContentId}/assignments/student": {
-      "get": {
-        "operationId": "AssignmentController_findOneForStudent",
-        "parameters": [
-          {
-            "name": "moduleContentId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StudentAssignmentItemDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "Assignment"
-        ]
-      }
-    },
-    "/tasks": {
-      "get": {
-        "description": "Retrieves all assignments from enrolled courses in the current term with filtering and sorting options",
-        "operationId": "TasksController_getAllTasksForStudent",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "description": "Filter by task status",
-            "schema": {
-              "example": "upcoming",
-              "type": "string",
-              "enum": [
-                "all",
-                "upcoming",
-                "submitted",
-                "graded"
-              ]
-            }
-          },
-          {
-            "name": "courseId",
-            "required": false,
-            "in": "query",
-            "description": "Filter by specific course ID",
-            "schema": {
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000",
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "description": "Sort tasks by field",
-            "schema": {
-              "example": "dueDate",
-              "type": "string",
-              "enum": [
-                "dueDate",
-                "title",
-                "course",
-                "status"
-              ]
-            }
-          },
-          {
-            "name": "sortDirection",
-            "required": false,
-            "in": "query",
-            "description": "Sort direction (asc or desc)",
-            "schema": {
-              "$ref": "#/components/schemas/Object"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tasks retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedAllTasksDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "BadRequestException": {
-                    "description": "Bad Request",
-                    "value": {
-                      "statusCode": 400,
-                      "message": "Bad Request",
-                      "error": "Bad Request"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 400
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad Request"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "InternalServerErrorException": {
-                    "description": "Internal Server Error",
-                    "value": {
-                      "statusCode": 500,
-                      "message": "Internal Server Error",
-                      "error": "Internal Server Error"
-                    }
-                  }
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 500
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Internal Server Error"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "summary": "Get all tasks across enrolled courses",
-        "tags": [
-          "Tasks"
         ]
       }
     },
@@ -19643,371 +19497,6 @@
           "modules"
         ]
       },
-      "ModuleSection": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleId": {
-            "type": "string"
-          },
-          "parentSectionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "prerequisiteSectionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "title": {
-            "type": "string"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleId",
-          "parentSectionId",
-          "prerequisiteSectionId",
-          "title",
-          "order",
-          "publishedAt",
-          "unpublishedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "ContentType": {
-        "type": "string",
-        "enum": [
-          "LESSON",
-          "ASSIGNMENT"
-        ]
-      },
-      "RubricTemplate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "criteriaJson": {
-            "type": "object",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "description",
-          "tags",
-          "criteriaJson",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "AssignmentMode": {
-        "type": "string",
-        "enum": [
-          "INDIVIDUAL",
-          "GROUP"
-        ]
-      },
-      "Assignment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "rubricTemplate": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/RubricTemplate"
-              }
-            ]
-          },
-          "rubricTemplateId": {
-            "type": "string",
-            "nullable": true
-          },
-          "mode": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AssignmentMode"
-              }
-            ]
-          },
-          "maxScore": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "weightPercentage": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "allowLateSubmission": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "latePenalty": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "gracePeriodMinutes": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "moduleContentId",
-          "rubricTemplateId",
-          "mode",
-          "maxScore",
-          "weightPercentage",
-          "maxAttempts",
-          "allowLateSubmission",
-          "latePenalty",
-          "dueDate",
-          "gracePeriodMinutes",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "ProgressStatus": {
-        "type": "string",
-        "enum": [
-          "NOT_STARTED",
-          "IN_PROGRESS",
-          "COMPLETED"
-        ]
-      },
-      "ContentProgress": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "studentId": {
-            "type": "string"
-          },
-          "moduleId": {
-            "type": "string"
-          },
-          "moduleContentId": {
-            "type": "string"
-          },
-          "status": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProgressStatus"
-              }
-            ]
-          },
-          "completedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "lastAccessedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "studentId",
-          "moduleId",
-          "moduleContentId",
-          "status",
-          "completedAt",
-          "lastAccessedAt",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "ModuleContent": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "moduleSection": {
-            "$ref": "#/components/schemas/ModuleSection"
-          },
-          "moduleSectionId": {
-            "type": "string"
-          },
-          "contentType": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ContentType"
-              }
-            ]
-          },
-          "title": {
-            "type": "string"
-          },
-          "subtitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "publishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "unpublishedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "assignment": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Assignment"
-              }
-            ]
-          },
-          "studentProgress": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContentProgress"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "moduleSectionId",
-          "contentType",
-          "title",
-          "subtitle",
-          "content",
-          "order",
-          "publishedAt",
-          "unpublishedAt",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
       "ModuleProgressOverview": {
         "type": "object",
         "properties": {
@@ -20195,6 +19684,67 @@
           "deletedAt"
         ]
       },
+      "ProgressStatus": {
+        "type": "string",
+        "enum": [
+          "NOT_STARTED",
+          "IN_PROGRESS",
+          "COMPLETED"
+        ]
+      },
+      "ContentProgress": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProgressStatus"
+              }
+            ]
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "lastAccessedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "studentId",
+          "moduleId",
+          "moduleContentId",
+          "status",
+          "completedAt",
+          "lastAccessedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "ModuleTreeLessonItemDto": {
         "type": "object",
         "properties": {
@@ -20256,6 +19806,13 @@
           "createdAt",
           "updatedAt",
           "contentType"
+        ]
+      },
+      "AssignmentMode": {
+        "type": "string",
+        "enum": [
+          "INDIVIDUAL",
+          "GROUP"
         ]
       },
       "SubmissionState": {
@@ -23681,440 +23238,6 @@
           "paymentScheme"
         ]
       },
-      "CreateMajorDto": {
-        "type": "object",
-        "properties": {
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "majorCode",
-          "name"
-        ]
-      },
-      "CreateProgramMajorDto": {
-        "type": "object",
-        "properties": {
-          "major": {
-            "nullable": false,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CreateMajorDto"
-              }
-            ]
-          },
-          "programId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "major",
-          "programId"
-        ]
-      },
-      "MajorDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "majorCode",
-          "name",
-          "description",
-          "isActive",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "UpdateMajorDto": {
-        "type": "object",
-        "properties": {
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "Major": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "programId": {
-            "type": "string"
-          },
-          "majorCode": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "programId",
-          "majorCode",
-          "name",
-          "description",
-          "isActive",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "CreateCurriculumDto": {
-        "type": "object",
-        "properties": {
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "CreateCurriculumCourseItemDto": {
-        "type": "object",
-        "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "order": {
-            "type": "number"
-          },
-          "year": {
-            "type": "number",
-            "minimum": 1
-          },
-          "semester": {
-            "type": "number",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "courseId",
-          "order",
-          "year",
-          "semester"
-        ]
-      },
-      "CreateCurriculumWithCoursesDto": {
-        "type": "object",
-        "properties": {
-          "majorId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "curriculum": {
-            "$ref": "#/components/schemas/CreateCurriculumDto"
-          },
-          "courses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateCurriculumCourseItemDto"
-            }
-          }
-        },
-        "required": [
-          "majorId",
-          "curriculum",
-          "courses"
-        ]
-      },
-      "CurriculumDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "icon",
-          "name",
-          "description",
-          "createdAt",
-          "updatedAt",
-          "deletedAt"
-        ]
-      },
-      "CurriculumItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "program": {
-            "$ref": "#/components/schemas/ProgramDto"
-          },
-          "major": {
-            "$ref": "#/components/schemas/MajorDto"
-          }
-        },
-        "required": [
-          "id",
-          "icon",
-          "name",
-          "description",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
-          "program",
-          "major"
-        ]
-      },
-      "CurriculumCourseItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "semester": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deletedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time"
-          },
-          "course": {
-            "$ref": "#/components/schemas/CourseDto"
-          }
-        },
-        "required": [
-          "id",
-          "order",
-          "year",
-          "semester",
-          "createdAt",
-          "updatedAt",
-          "deletedAt",
-          "course"
-        ]
-      },
-      "CurriculumWithCoursesDto": {
-        "type": "object",
-        "properties": {
-          "curriculum": {
-            "$ref": "#/components/schemas/CurriculumItemDto"
-          },
-          "courses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CurriculumCourseItemDto"
-            }
-          }
-        },
-        "required": [
-          "curriculum",
-          "courses"
-        ]
-      },
-      "UpdateCurriculumDto": {
-        "type": "object",
-        "properties": {
-          "icon": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "UpdateCurriculumCourseItemDto": {
-        "type": "object",
-        "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "order": {
-            "type": "number"
-          },
-          "year": {
-            "type": "number",
-            "minimum": 1
-          },
-          "semester": {
-            "type": "number",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "courseId",
-          "order",
-          "year",
-          "semester"
-        ]
-      },
-      "UpdateCurriculumWithCourseDto": {
-        "type": "object",
-        "properties": {
-          "majorId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "curriculum": {
-            "$ref": "#/components/schemas/UpdateCurriculumDto"
-          },
-          "courses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpdateCurriculumCourseItemDto"
-            }
-          }
-        },
-        "required": [
-          "curriculum",
-          "courses"
-        ]
-      },
       "SubmitAssignmentDto": {
         "type": "object",
         "properties": {
@@ -24956,6 +24079,440 @@
           "tasks"
         ]
       },
+      "CreateMajorDto": {
+        "type": "object",
+        "properties": {
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "majorCode",
+          "name"
+        ]
+      },
+      "CreateProgramMajorDto": {
+        "type": "object",
+        "properties": {
+          "major": {
+            "nullable": false,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateMajorDto"
+              }
+            ]
+          },
+          "programId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "major",
+          "programId"
+        ]
+      },
+      "MajorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "majorCode",
+          "name",
+          "description",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "UpdateMajorDto": {
+        "type": "object",
+        "properties": {
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Major": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "programId": {
+            "type": "string"
+          },
+          "majorCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "programId",
+          "majorCode",
+          "name",
+          "description",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "CreateCurriculumDto": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateCurriculumCourseItemDto": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "number"
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1
+          },
+          "semester": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "courseId",
+          "order",
+          "year",
+          "semester"
+        ]
+      },
+      "CreateCurriculumWithCoursesDto": {
+        "type": "object",
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "curriculum": {
+            "$ref": "#/components/schemas/CreateCurriculumDto"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateCurriculumCourseItemDto"
+            }
+          }
+        },
+        "required": [
+          "majorId",
+          "curriculum",
+          "courses"
+        ]
+      },
+      "CurriculumDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "icon",
+          "name",
+          "description",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "CurriculumItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "program": {
+            "$ref": "#/components/schemas/ProgramDto"
+          },
+          "major": {
+            "$ref": "#/components/schemas/MajorDto"
+          }
+        },
+        "required": [
+          "id",
+          "icon",
+          "name",
+          "description",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "program",
+          "major"
+        ]
+      },
+      "CurriculumCourseItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "semester": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "course": {
+            "$ref": "#/components/schemas/CourseDto"
+          }
+        },
+        "required": [
+          "id",
+          "order",
+          "year",
+          "semester",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "course"
+        ]
+      },
+      "CurriculumWithCoursesDto": {
+        "type": "object",
+        "properties": {
+          "curriculum": {
+            "$ref": "#/components/schemas/CurriculumItemDto"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurriculumCourseItemDto"
+            }
+          }
+        },
+        "required": [
+          "curriculum",
+          "courses"
+        ]
+      },
+      "UpdateCurriculumDto": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateCurriculumCourseItemDto": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "number"
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1
+          },
+          "semester": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "courseId",
+          "order",
+          "year",
+          "semester"
+        ]
+      },
+      "UpdateCurriculumWithCourseDto": {
+        "type": "object",
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "curriculum": {
+            "$ref": "#/components/schemas/UpdateCurriculumDto"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateCurriculumCourseItemDto"
+            }
+          }
+        },
+        "required": [
+          "curriculum",
+          "courses"
+        ]
+      },
       "CreateModuleSectionDto": {
         "type": "object",
         "properties": {
@@ -25038,6 +24595,13 @@
       "UpdateModuleSectionDto": {
         "type": "object",
         "properties": {}
+      },
+      "ContentType": {
+        "type": "string",
+        "enum": [
+          "LESSON",
+          "ASSIGNMENT"
+        ]
       },
       "AssignmentConfigDto": {
         "type": "object",
@@ -25343,6 +24907,296 @@
             "format": "date-time"
           }
         }
+      },
+      "ModuleSection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "parentSectionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "prerequisiteSectionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleId",
+          "parentSectionId",
+          "prerequisiteSectionId",
+          "title",
+          "order",
+          "publishedAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "RubricTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "criteriaJson": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "tags",
+          "criteriaJson",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "Assignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleContentId": {
+            "type": "string"
+          },
+          "rubricTemplate": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RubricTemplate"
+              }
+            ]
+          },
+          "rubricTemplateId": {
+            "type": "string",
+            "nullable": true
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentMode"
+              }
+            ]
+          },
+          "maxScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "allowLateSubmission": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "latePenalty": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "gracePeriodMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "moduleContentId",
+          "rubricTemplateId",
+          "mode",
+          "maxScore",
+          "weightPercentage",
+          "maxAttempts",
+          "allowLateSubmission",
+          "latePenalty",
+          "dueDate",
+          "gracePeriodMinutes",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "ModuleContent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "moduleSection": {
+            "$ref": "#/components/schemas/ModuleSection"
+          },
+          "moduleSectionId": {
+            "type": "string"
+          },
+          "contentType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentType"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "unpublishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "assignment": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            ]
+          },
+          "studentProgress": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentProgress"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "moduleSectionId",
+          "contentType",
+          "title",
+          "subtitle",
+          "content",
+          "order",
+          "publishedAt",
+          "unpublishedAt",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
       },
       "PaginatedModuleContentDto": {
         "type": "object",

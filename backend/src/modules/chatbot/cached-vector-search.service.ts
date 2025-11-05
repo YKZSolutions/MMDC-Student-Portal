@@ -49,7 +49,7 @@ export class CachedVectorSearchService {
     const cached = await this.cacheManager.get<VectorSearchResult[]>(cacheKey);
     if (cached) return cached;
 
-    const results = await this.vectorSearch.search([query], limit, threshold);
+    const results = await this.vectorSearch.search(query, limit, threshold);
     await this.cacheManager.set(cacheKey, results, this.CACHE_TTL);
 
     return results;
@@ -91,7 +91,7 @@ export class CachedVectorSearchService {
   async invalidateQuery(
     @LogParam('query') query: string,
     limit = 5,
-    threshold = 0.6,
+    threshold = 0.7,
   ): Promise<void> {
     const cacheKey = this.generateCacheKey(query, limit, threshold);
     await this.cacheManager.del(cacheKey);
@@ -129,7 +129,7 @@ export class CachedVectorSearchService {
   async warmUpCache(
     @LogParam('queries') queries: string[],
     limit = 5,
-    threshold = 0.6,
+    threshold = 0.7,
   ): Promise<{ successCount: number; failCount: number }> {
     let successCount = 0;
     let failCount = 0;

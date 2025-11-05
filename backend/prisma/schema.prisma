@@ -1143,3 +1143,14 @@ model Transcript {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 }
+
+model documents {
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content    String
+  embedding  Unsupported("halfvec")
+  metadata   Json
+  created_at DateTime               @default(now())
+  updated_at DateTime?              @updatedAt
+
+  @@index([embedding])
+}

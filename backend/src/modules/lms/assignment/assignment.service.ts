@@ -488,7 +488,7 @@ export class AssignmentService {
     const page = filters.page || 1;
     const limit = filters.limit ?? 10;
 
-    // Build the where clause to find assignments from enrolled courses in current term
+    // Build the where clause to find assignments from enrolled courses in the current term
     const where: Prisma.AssignmentWhereInput = {
       deletedAt: null,
       moduleContent: {
