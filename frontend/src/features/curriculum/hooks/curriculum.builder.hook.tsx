@@ -226,13 +226,19 @@ export const useCurriculumBuilder = (initialCourses?: CurriculumCourse[]) => {
 
   const [sortables, dispatch] = useImmerReducer(reducer, initialStructure)
 
-  const courses: Record<string, CurriculumCourse[]> = Object.fromEntries(
-    Object.entries(sortables).map(([key, codes]) => [
-      key,
-      codes
-        .map((code) => currentCourses.find((course) => course.code === code))
-        .filter((course): course is CurriculumCourse => Boolean(course)),
-    ]),
+  const courses: Record<string, CurriculumCourse[]> = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(sortables).map(([key, codes]) => [
+          key,
+          codes
+            .map((code) =>
+              currentCourses.find((course) => course.code === code),
+            )
+            .filter((course): course is CurriculumCourse => Boolean(course)),
+        ]),
+      ),
+    [sortables, currentCourses],
   )
 
   const transformed: YearStructure[] = Object.keys(sortables).reduce<
