@@ -58,46 +58,83 @@ export default function CurriculumBuilder({
       </Group>
       <DragDropProvider
         onDragOver={(event) => {
-          const { source, target } = event.operation
-          if (!source || !target) return
+          try {
+            const { source, target } = event.operation
+            if (!source || !target) return
 
-          if (source?.data !== undefined && source.data.external === true) {
-            const { course } = source.data
-            if (!course) return
+            if (source?.data !== undefined && source.data.external === true) {
+              const { course } = source.data
+              if (!course || !course.code) return
 
-            dispatch({
-              type: 'ADD_COURSE_DRAG',
-              payload: { key: target.id.toString(), course: course.code },
-            })
-            setCurrentCourses((draft) => {
-              draft.push(course)
-            })
-          } else {
-            dispatch({ type: 'SET', payload: (items) => move(items, event) })
+              // Parse year and semester from target
+              let targetYear = 0
+              let targetSem = 0
+
+              const targetId = target.id.toString()
+              const [year, sem] = targetId.split('-').map(Number)
+
+              if (!isNaN(year) && !isNaN(sem)) {
+                targetYear = year
+                targetSem = sem
+              }
+
+              // Check if course already exists in currentCourses to prevent duplicates
+              const courseExists = currentCourses.some(
+                (c) => c.code === course.code,
+              )
+
+              if (!courseExists) {
+                setCurrentCourses((draft) => {
+                  draft.push({
+                    ...course,
+                    year: targetYear,
+                    semester: targetSem,
+                  })
+                })
+              }
+
+              dispatch({
+                type: 'ADD_COURSE_DRAG',
+                payload: { key: targetId, course: course.code },
+              })
+            } else {
+              dispatch({ type: 'SET', payload: (items) => move(items, event) })
+            }
+          } catch (error) {
+            console.error('Error during drag over:', error)
+            // Silently fail to prevent UI crash
           }
         }}
         onDragEnd={(event) => {
-          const { source, target } = event.operation
-          if (!source || !target) return
+          try {
+            const { source, target } = event.operation
+            if (!source || !target) return
 
-          let id = ''
-          if ('sortable' in target) {
-            const sortable = target.sortable as { group: string }
-            id = sortable.group
-          } else {
-            id = target.id.toString()
-          }
-          const [year, sem] = id.split('-').map(Number)
-
-          setCurrentCourses((draft) => {
-            const draggedCourse = draft.find(
-              (course) => course.code === source.id,
-            )
-            if (draggedCourse) {
-              draggedCourse.year = year
-              draggedCourse.semester = sem
+            let id = ''
+            if ('sortable' in target) {
+              const sortable = target.sortable as { group: string }
+              id = sortable.group
+            } else {
+              id = target.id.toString()
             }
-          })
+            const [year, sem] = id.split('-').map(Number)
+
+            // Only update if year and sem are valid numbers
+            if (!isNaN(year) && !isNaN(sem)) {
+              setCurrentCourses((draft) => {
+                const draggedCourse = draft.find(
+                  (course) => course.code === source.id,
+                )
+                if (draggedCourse) {
+                  draggedCourse.year = year
+                  draggedCourse.semester = sem
+                }
+              })
+            }
+          } catch (error) {
+            console.error('Error during drag end:', error)
+            // Silently fail to prevent UI crash
+          }
         }}
       >
         <CourseListDrawer
@@ -298,17 +335,22 @@ const YearCard = memo(function YearCard({
       </Group>
 
       <Stack gap="lg">
-        {semesters.map((sem) => (
-          <Droppable key={`${year}-${sem}`} id={`${year}-${sem}`}>
-            <SemesterCard
-              year={year}
-              semester={sem}
-              courses={courses[`${year}-${sem}`]}
-              dispatch={dispatch}
-              setCurrentCourses={setCurrentCourses}
-            />
-          </Droppable>
-        ))}
+        {semesters.map((sem) => {
+          const semesterKey = `${year}-${sem}`
+          const semesterCourses = courses[semesterKey] || []
+
+          return (
+            <Droppable key={semesterKey} id={semesterKey}>
+              <SemesterCard
+                year={year}
+                semester={sem}
+                courses={semesterCourses}
+                dispatch={dispatch}
+                setCurrentCourses={setCurrentCourses}
+              />
+            </Droppable>
+          )
+        })}
       </Stack>
     </Card>
   )
@@ -321,6 +363,9 @@ const SemesterCard = memo(function SemesterCard(props: {
   dispatch: Dispatch<StructureAction>
   setCurrentCourses: Updater<CurriculumCourse[]>
 }) {
+  // Defensive check to prevent undefined errors during drag operations
+  const courses = props.courses || []
+
   return (
     <Card
       shadow="none"
@@ -367,7 +412,7 @@ const SemesterCard = memo(function SemesterCard(props: {
       </Group>
 
       <Stack>
-        {props.courses.map((course, idx) => (
+        {courses.map((course, idx) => (
           <Sortable
             key={course.id}
             id={course.code}

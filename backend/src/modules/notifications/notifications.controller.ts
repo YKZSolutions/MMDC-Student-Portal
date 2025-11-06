@@ -107,8 +107,8 @@ export class NotificationsController {
    */
   @Post('mark-read/all')
   markAllAsRead(@CurrentUser() currentUser: CurrentAuthUser) {
-    const { user_id } = currentUser.user_metadata;
+    const { user_id, role } = currentUser.user_metadata;
 
-    return this.notificationsService.markAllAsRead(user_id);
+    return this.notificationsService.markAllAsRead(user_id, role);
   }
 }
