@@ -336,6 +336,7 @@ export class NotificationsService {
    * Marks all notifications as read for a specific user.
    *
    * @param userId - The ID of the user.
+   * @param role - The role of the user.
    * @returns Void.
    */
   @Log({
@@ -345,9 +346,17 @@ export class NotificationsService {
     logErrorMessage: (err, { userId }) =>
       `Failed to mark all notifications as read for user ${userId}. Error: ${err.message}`,
   })
-  async markAllAsRead(@LogParam('userId') userId: string) {
+  async markAllAsRead(@LogParam('userId') userId: string, role: Role) {
     await this.prisma.client.$transaction(async (tx) => {
+      // Fetch only notifications that are relevant to this user
       const allNotificationIds = await tx.notification.findMany({
+        where: {
+          OR: [
+            { receipts: { some: { userId } } },
+            { role: { has: role } },
+            { role: { hasEvery: ['admin', 'mentor', 'student'] } },
+          ],
+        },
         select: { id: true },
       });
       const notificationIds = allNotificationIds.map((n) => n.id);
