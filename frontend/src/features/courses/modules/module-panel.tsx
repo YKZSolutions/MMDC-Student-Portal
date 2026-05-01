@@ -34,7 +34,6 @@ import {
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import {
-  IconCalendarTime,
   IconChartBar,
   IconDotsVertical,
   IconEdit,
@@ -595,12 +594,6 @@ function AdminActions({ section }: AdminActionsProps) {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
     e.stopPropagation()
-    // navigate({
-    //   from: '/lms/$lmsCode/modules',
-    //   to: `$itemId/publish`,
-    //   params: { itemId: section.id },
-    //   search: { scheduled: false, unpublish: false },
-    // })
 
     modals.openConfirmModal({
       title: (
@@ -693,29 +686,6 @@ function AdminActions({ section }: AdminActionsProps) {
               }
             >
               Publish Now
-            </Menu.Item>
-          )}
-
-          {!section.publishedAt && (
-            <Menu.Item
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate({
-                  from: '/lms/$lmsCode/modules',
-                  to: `$itemId/publish`,
-                  params: { itemId: section.id },
-                  search: { scheduled: true, unpublish: false },
-                })
-              }}
-              leftSection={
-                <IconCalendarTime
-                  size={16}
-                  stroke={1.5}
-                  color={theme.colors.blue[6]}
-                />
-              }
-            >
-              Schedule Publish
             </Menu.Item>
           )}
 
@@ -935,12 +905,6 @@ function AdminActionsModuleContent({
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
     e.stopPropagation()
-    // navigate({
-    //   from: '/lms/$lmsCode/modules',
-    //   to: `$itemId/publish`,
-    //   params: { itemId: section.id },
-    //   search: { scheduled: false, unpublish: false },
-    // })
 
     modals.openConfirmModal({
       title: (
@@ -1033,24 +997,6 @@ function AdminActionsModuleContent({
               }
             >
               Publish Now
-            </Menu.Item>
-          )}
-
-          {!moduleContent.publishedAt && (
-            <Menu.Item
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: Handle schedule publish for module content
-              }}
-              leftSection={
-                <IconCalendarTime
-                  size={16}
-                  stroke={1.5}
-                  color={theme.colors.blue[6]}
-                />
-              }
-            >
-              Schedule Publish
             </Menu.Item>
           )}
 

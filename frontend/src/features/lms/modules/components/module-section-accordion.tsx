@@ -16,7 +16,6 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import {
-  IconCalendarTime,
   IconChartBar,
   IconDotsVertical,
   IconEdit,
@@ -216,7 +215,6 @@ interface AdminSectionActionsProps {
   publishedAt?: string | null
   onPublishNow?: (id: string) => void
   onUnpublish?: (id: string) => void
-  onSchedulePublish?: (id: string) => void
   onDelete?: (id: string) => void
   onRename?: (id: string) => void
   onAddItem?: (id: string) => void
@@ -227,7 +225,6 @@ function AdminSectionActions({
   publishedAt,
   onPublishNow,
   onUnpublish,
-  onSchedulePublish,
   onDelete,
   onRename,
   onAddItem,
@@ -278,22 +275,6 @@ function AdminSectionActions({
                 }
               >
                 Publish Now
-              </Menu.Item>
-
-              <Menu.Item
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onSchedulePublish?.(id)
-                }}
-                leftSection={
-                  <IconCalendarTime
-                    size={16}
-                    stroke={1.5}
-                    color={theme.colors.blue[6]}
-                  />
-                }
-              >
-                Schedule Publish
               </Menu.Item>
             </>
           )}

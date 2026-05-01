@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(protected)/lms/$lmsCode/_layout/')({
-  component: RouteComponent,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/lms/$lmsCode/overview',
+      params: { lmsCode: params.lmsCode },
+    })
+  },
 })
-
-function RouteComponent() {
-  return <div>Hello "/(protected)/lms/$lmsCode/_layout/"!</div>
-}

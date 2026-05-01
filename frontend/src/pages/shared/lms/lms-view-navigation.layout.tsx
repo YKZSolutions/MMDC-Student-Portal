@@ -11,7 +11,7 @@ export function LMSNavigationLayout() {
 
   const studentNavItems: CourseNavItem[] = [
     {
-      link: `/lms/$lmsCode`,
+      link: `/lms/$lmsCode/overview`,
       label: 'Overview',
       fuzzy: false,
     },
@@ -47,11 +47,6 @@ export function LMSNavigationLayout() {
     {
       link: `/lms/$lmsCode/progress`,
       label: 'Progress',
-      fuzzy: true,
-    },
-    {
-      link: `/lms/$lmsCode/settings`,
-      label: 'Settings',
       fuzzy: true,
     },
   ]
