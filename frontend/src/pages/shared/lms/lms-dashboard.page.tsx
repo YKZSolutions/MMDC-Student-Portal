@@ -9,6 +9,7 @@ import { CourseListSuspense } from '@/features/courses/suspense'
 import { ViewSelectorButton } from '@/features/lms/components/view-selector-button'
 import { useSearchState } from '@/hooks/use-search-state'
 import {
+  enrollmentControllerFindActiveEnrollmentOptions,
   lmsControllerFindAllForAdminOptions,
   lmsControllerFindAllForMentorOptions,
   lmsControllerFindAllForStudentOptions,
@@ -131,13 +132,16 @@ function ActionBar() {
 
 function ModuleListAdmin() {
   const { search } = useSearchState(route)
+  const { data: activeEnrollmentPeriod } = useSuspenseQuery(
+    enrollmentControllerFindActiveEnrollmentOptions(),
+  )
 
   const { data: paginated } = useSuspenseQuery(
     lmsControllerFindAllForAdminOptions({
       query: {
         search: search.search || undefined,
         page: search.page || 1,
-        enrollmentPeriodId: undefined,
+        enrollmentPeriodId: activeEnrollmentPeriod.id,
       },
     }),
   )
@@ -163,13 +167,16 @@ function ModuleListAdmin() {
 
 function ModuleListStudent() {
   const { search } = useSearchState(route)
+  const { data: activeEnrollmentPeriod } = useSuspenseQuery(
+    enrollmentControllerFindActiveEnrollmentOptions(),
+  )
 
   const { data: paginated } = useSuspenseQuery(
     lmsControllerFindAllForStudentOptions({
       query: {
         search: search.search || undefined,
         page: search.page || 1,
-        enrollmentPeriodId: undefined,
+        enrollmentPeriodId: activeEnrollmentPeriod.id,
       },
     }),
   )
@@ -208,13 +215,16 @@ function ModuleListStudent() {
 
 function ModuleListMentor() {
   const { search } = useSearchState(route)
+  const { data: activeEnrollmentPeriod } = useSuspenseQuery(
+    enrollmentControllerFindActiveEnrollmentOptions(),
+  )
 
   const { data: paginated } = useSuspenseQuery(
     lmsControllerFindAllForMentorOptions({
       query: {
         search: search.search || undefined,
         page: search.page || 1,
-        enrollmentPeriodId: undefined,
+        enrollmentPeriodId: activeEnrollmentPeriod.id,
       },
     }),
   )

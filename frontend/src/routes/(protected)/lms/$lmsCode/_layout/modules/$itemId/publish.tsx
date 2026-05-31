@@ -1,19 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
   '/(protected)/lms/$lmsCode/_layout/modules/$itemId/publish',
 )({
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      unpublish: search.unpublish === 'true',
-      scheduled: search.scheduled === 'true',
-    }
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/lms/$lmsCode/modules/$itemId/edit',
+      params: { lmsCode: params.lmsCode, itemId: params.itemId },
+    })
   },
-  component: RouteComponent,
 })
-
-function RouteComponent() {
-  return (
-    <div>Hello "/(protected)/courses/$lmsCode/modules/$itemId/publish"!</div>
-  )
-}
