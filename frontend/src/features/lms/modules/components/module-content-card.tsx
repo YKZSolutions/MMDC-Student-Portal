@@ -12,7 +12,6 @@ import {
 } from '@mantine/core'
 import { Box, Card, Group, ThemeIcon } from '@mantine/core'
 import {
-  IconCalendarTime,
   IconDotsVertical,
   IconEdit,
   IconRubberStamp,
@@ -172,7 +171,6 @@ interface AdminContentActionsProps {
   publishedAt?: string | null
   onPublishNow?: (id: string) => void
   onUnpublish?: (id: string) => void
-  onSchedulePublish?: (id: string) => void
   onEdit?: (id: string) => void
   onDelete?: (id: string) => void
 }
@@ -182,7 +180,6 @@ export function AdminContentActions({
   publishedAt,
   onPublishNow,
   onUnpublish,
-  onSchedulePublish,
   onEdit,
   onDelete,
 }: AdminContentActionsProps) {
@@ -235,22 +232,6 @@ export function AdminContentActions({
                 }
               >
                 Publish Now
-              </Menu.Item>
-
-              <Menu.Item
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onSchedulePublish?.(id)
-                }}
-                leftSection={
-                  <IconCalendarTime
-                    size={16}
-                    stroke={1.5}
-                    color={theme.colors.blue[6]}
-                  />
-                }
-              >
-                Schedule Publish
               </Menu.Item>
             </>
           )}
