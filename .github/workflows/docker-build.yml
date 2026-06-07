@@ -62,3 +62,15 @@ jobs:
             ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:${{ needs.commit-hash.outputs.commit_hash }}
             ghcr.io/${{ env.REPO_OWNER_LC }}/mmdc-student-portal:latest
 
+  deploy-to-dokploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dokploy Deployment
+        uses: benbristow/dokploy-deploy-action@0.2.2
+        with:
+          api_token: ${{ secrets.DOKPLOY_AUTH_TOKEN }}
+          application_id: ${{ secrets.DOKPLOY_APPLICATION_ID }}
+          dokploy_url: ${{ secrets.DOKPLOY_URL }}
+          service_type: compose
