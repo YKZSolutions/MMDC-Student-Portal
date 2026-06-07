@@ -1,8 +1,0 @@
-services:
-  nestjs:
-    image: ghcr.io/ykzsolutions/mmdc-student-portal
-    container_name: mmdc-student-portal
-    env_file:
-      - .env
-    expose:
-      - "3001"
