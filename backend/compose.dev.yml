@@ -1,6 +1,7 @@
 services:
   nestjs:
-    image: ghcr.io/ykzsolutions/mmdc-student-portal
+    pull_policy: never
+    image: backend:latest
     container_name: mmdc-student-portal
     ports:
       - "3001:3001"
