@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "fetch-spec": "node fetch-api-spec.ts"
+    "fetch-spec": "tsx fetch-api-spec.ts",
+    "docker-build": "tsx --env-file=.env docker-build-backend.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.3.1",
+    "tsx": "^4.22.4",
     "typescript": "^5.8.3"
   }
 }
