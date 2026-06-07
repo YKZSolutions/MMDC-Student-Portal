@@ -21,11 +21,11 @@ export class SupabaseService {
     this.supabase = createClient(url, serviceRoleKey);
   }
 
-  get client() {
+  get client(): SupabaseClient {
     return this.supabase;
   }
 
-  get auth() {
+  get auth(): SupabaseClient['auth'] {
     return this.supabase.auth;
   }
 
