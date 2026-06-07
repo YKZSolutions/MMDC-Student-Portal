@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:24 AS base
+FROM node:24-alpine AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
